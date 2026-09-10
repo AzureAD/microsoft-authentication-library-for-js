@@ -7,9 +7,11 @@ import { ICustomAuthPublicClientApplication } from "./ICustomAuthPublicClientApp
 import {
     ResetPasswordInputsV2,
     SignInInputsV2,
-} from "./CustomAuthActionInputsV2.js";
+    SignUpInputsV2,
+} from "./CustomAuthActionInputs.js";
 import { ResetPasswordStartResultV2 } from "./core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
 import { SignInStartResultV2 } from "./sign_in/auth_flow/v2/result/SignInStartResultV2.js";
+import { SignUpStartResultV2 } from "./sign_up/auth_flow/v2/result/SignUpStartResultV2.js";
 
 /**
  * Public interface for the native auth V2 surface.
@@ -23,6 +25,13 @@ export interface ICustomAuthPublicClientApplicationV2
      * @returns A promise that resolves to the sign-in start result.
      */
     signInV2(inputs: SignInInputsV2): Promise<SignInStartResultV2>;
+
+    /**
+     * Starts native auth V2 sign-up.
+     * @param inputs - Inputs for the sign-up V2 flow.
+     * @returns A promise that resolves to the sign-up start result.
+     */
+    signUpV2(inputs: SignUpInputsV2): Promise<SignUpStartResultV2>;
 
     /**
      * Initiates the native auth V2 self-service password reset flow for the given username.

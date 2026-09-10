@@ -5,7 +5,7 @@
 
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import type { ResetPasswordStartErrorV2 } from "../error/ResetPasswordStartErrorV2.js";
-import type { AuthenticationMethodSelectionRequiredStateV2 } from "../state/AuthenticationMethodSelectionRequiredStateV2.js";
+import type { AuthMethodSelectionRequiredStateV2 } from "../state/AuthMethodSelectionRequiredStateV2.js";
 import type { ChallengeVerificationRequiredStateV2 } from "../state/ChallengeVerificationRequiredStateV2.js";
 import type { FailedStateV2 } from "../state/FailedStateV2.js";
 
@@ -15,7 +15,7 @@ import type { FailedStateV2 } from "../state/FailedStateV2.js";
  * selection. `FailedStateV2` carries a terminal error.
  */
 export type ResetPasswordStartResultStateV2 =
-    | AuthenticationMethodSelectionRequiredStateV2
+    | AuthMethodSelectionRequiredStateV2
     | ChallengeVerificationRequiredStateV2
     | FailedStateV2;
 

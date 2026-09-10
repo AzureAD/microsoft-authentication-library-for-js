@@ -10,7 +10,7 @@ import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomA
 import { SignInContinuationErrorV2 } from "../error_type/SignInContinuationErrorV2.js";
 import type { SignInContinuationStateParametersV2 } from "./SignInStateParametersV2.js";
 import type { SignInContinuationResultV2 } from "../result/SignInContinuationResultV2.js";
-import type { SignInContinuationInputsV2 } from "../../../../CustomAuthActionInputsV2.js";
+import type { SignInContinuationInputsV2 } from "../../../../CustomAuthActionInputs.js";
 import * as ArgumentValidator from "../../../../core/utils/ArgumentValidator.js";
 
 /**

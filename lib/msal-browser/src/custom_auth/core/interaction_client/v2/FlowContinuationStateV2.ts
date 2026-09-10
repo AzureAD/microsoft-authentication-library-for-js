@@ -15,7 +15,7 @@ export interface FlowLinksV2 {
     resend?: string;
     update?: string;
     poll?: string;
-    continue?: string;
+    submitAttributes?: string;
 }
 
 /*
@@ -28,5 +28,8 @@ export interface FlowContinuationStateV2 {
     links: FlowLinksV2;
     tokenRequest?: {
         scopes?: string[];
+    };
+    signUp?: {
+        passwordWasSupplied: boolean;
     };
 }

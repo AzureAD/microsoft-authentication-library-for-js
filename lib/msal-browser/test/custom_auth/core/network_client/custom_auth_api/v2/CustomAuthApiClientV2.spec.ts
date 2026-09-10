@@ -78,6 +78,25 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
+        it("sends optional scopes as a space-delimited form value", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuation_token: "ct-entry",
+                    sign_up: "/tenant/api/v0.1/signup/start",
+                })
+            );
+
+            await apiClient.authorizeChallengeStart(context, [
+                "openid",
+                "User.Read",
+            ]);
+
+            const [, options] = mockHttpClient.sendAsync.mock.calls[0];
+            expect(options.body.toString()).toBe(
+                "client_id=client-id-123&scope=openid+User.Read"
+            );
+        });
+
         it("throws the normalized server error when the entry has no continuation token", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse(
@@ -226,6 +245,7 @@ describe("CustomAuthApiClientV2", () => {
                 authenticationFactor: "singleFactor",
                 scenario: undefined,
             });
+
             expect(mockHttpClient.sendAsync).toHaveBeenCalledTimes(1);
 
             const [startUrl, options] = mockHttpClient.sendAsync.mock.calls[0];
@@ -311,6 +331,277 @@ describe("CustomAuthApiClientV2", () => {
                 );
             }
         );
+    });
+
+    describe("signUpStart", () => {
+        it("sends only the continuation token and returns the submit-attributes data", async () => {
+            const request = {
+                continuationToken: "ct-entry",
+            };
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-start",
+                    state: "interactionRequired",
+                    action: "collectAttributes",
+                    attributes: [
+                        {
+                            attributeId: "email",
+                            inputType: "text",
+                            required: true,
+                            canChange: true,
+                            label: "Email Address",
+                            regex: "^.*",
+                        },
+                    ],
+                    _links: {
+                        submitAttributes: {
+                            href: "/tenant/api/v0.1/signup/submitattributes",
+                            name: "submitAttributes",
+                        },
+                        self: {
+                            href: "/tenant/api/v0.1/signup/submitattributes",
+                            name: "self",
+                        },
+                    },
+                })
+            );
+
+            const result = await apiClient.signUpStart(
+                "/tenant/api/v0.1/signup/start",
+                request,
+                context
+            );
+
+            expect(result).toEqual({
+                continuationToken: "ct-start",
+                submitAttributesHref:
+                    "/tenant/api/v0.1/signup/submitattributes",
+                attributes: [
+                    {
+                        attributeId: "email",
+                        inputType: "text",
+                        required: true,
+                        canChange: true,
+                        label: "Email Address",
+                        regex: "^.*",
+                    },
+                ],
+            });
+
+            const [startUrl, options] = mockHttpClient.sendAsync.mock.calls[0];
+            expect(startUrl.href).toBe(
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/signup/start"
+            );
+            expect(JSON.parse(options.body)).toEqual(request);
+        });
+
+        it("allows the attributes metadata to be omitted", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-start",
+                    state: "interactionRequired",
+                    action: "collectAttributes",
+                    _links: {
+                        submitAttributes: {
+                            href: "/tenant/api/v0.1/signup/submitattributes",
+                        },
+                    },
+                })
+            );
+
+            const result = await apiClient.signUpStart(
+                "/tenant/api/v0.1/signup/start",
+                { continuationToken: "ct-entry" },
+                context
+            );
+
+            expect(result.attributes).toBeUndefined();
+        });
+    });
+
+    describe("submitSignUpAttributes", () => {
+        it("submits attributes and returns the issued email challenge", async () => {
+            const request = {
+                continuationToken: "ct-start",
+                attributes: {
+                    email: "user@test.com",
+                    password: "P@ssword1!",
+                    displayName: "Test User",
+                },
+            };
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-submit",
+                    state: "interactionRequired",
+                    action: "verify",
+                    id: "email-1",
+                    type: "email",
+                    hint: "u***@test.com",
+                    codeLength: 8,
+                    attributes: [
+                        {
+                            attributeId: "password",
+                            inputType: "password",
+                            required: true,
+                        },
+                    ],
+                    _links: {
+                        verify: {
+                            href: "/tenant/api/v0.1/signup/verify",
+                        },
+                        resend: {
+                            href: "/tenant/api/v0.1/signup/resend",
+                        },
+                    },
+                })
+            );
+
+            const result = await apiClient.submitSignUpAttributes(
+                "/tenant/api/v0.1/signup/submitattributes",
+                request,
+                context
+            );
+
+            expect(result).toEqual({
+                nextAction: "verify",
+                continuationToken: "ct-submit",
+                type: "email",
+                hint: "u***@test.com",
+                codeLength: 8,
+                verifyHref: "/tenant/api/v0.1/signup/verify",
+                resendHref: "/tenant/api/v0.1/signup/resend",
+                attributes: [
+                    {
+                        attributeId: "password",
+                        inputType: "password",
+                        required: true,
+                    },
+                ],
+            });
+
+            const [url, options] = mockHttpClient.sendAsync.mock.calls[0];
+            expect(url.href).toBe(
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/signup/submitattributes"
+            );
+            expect(JSON.parse(options.body)).toEqual(request);
+        });
+
+        it("retains attribute-validation error details", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse(
+                    {
+                        error: {
+                            code: "invalidRequest",
+                            message:
+                                "AADSTS1002027: Some of the collected attributes were invalid.",
+                            correlationId: "corr-response",
+                            innerError: {
+                                code: "attributeValidationError",
+                                details: [
+                                    {
+                                        attributeIds: ["email"],
+                                        code: "attributeRequired",
+                                        message:
+                                            "Attribute 'email': is required.",
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                    400
+                )
+            );
+
+            await expect(
+                apiClient.submitSignUpAttributes(
+                    "/tenant/api/v0.1/signup/submitattributes",
+                    {
+                        continuationToken: "ct-start",
+                        attributes: { email: "" },
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: "invalidRequest",
+                subError: "attributeValidationError",
+                correlationId: "corr-response",
+                attributeValidationDetails: [
+                    {
+                        attributeIds: ["email"],
+                        code: "attributeRequired",
+                        message: "Attribute 'email': is required.",
+                    },
+                ],
+            });
+        });
+
+        it("maps a repeated collect-attributes response", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-submit",
+                    state: "interactionRequired",
+                    action: "collectAttributes",
+                    attributes: [
+                        {
+                            attributeId: "jobTitle",
+                            inputType: "text",
+                            required: true,
+                        },
+                    ],
+                    _links: {
+                        submitAttributes: {
+                            href: "/tenant/api/v0.1/signup/submitattributes-2",
+                        },
+                    },
+                })
+            );
+
+            const result = await apiClient.submitSignUpAttributes(
+                "/tenant/api/v0.1/signup/submitattributes",
+                {
+                    continuationToken: "ct-start",
+                    attributes: { city: "Redmond" },
+                },
+                context
+            );
+
+            expect(result).toEqual({
+                nextAction: "collectAttributes",
+                continuationToken: "ct-submit",
+                attributes: [
+                    {
+                        attributeId: "jobTitle",
+                        inputType: "text",
+                        required: true,
+                    },
+                ],
+                submitAttributesHref:
+                    "/tenant/api/v0.1/signup/submitattributes-2",
+            });
+        });
+
+        it("maps a completed attribute submission", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-complete",
+                    state: "continue",
+                })
+            );
+
+            const result = await apiClient.submitSignUpAttributes(
+                "/tenant/api/v0.1/signup/submitattributes",
+                {
+                    continuationToken: "ct-start",
+                    attributes: { jobTitle: "Engineer" },
+                },
+                context
+            );
+
+            expect(result).toEqual({
+                nextAction: "continue",
+                continuationToken: "ct-complete",
+            });
+        });
     });
 
     describe("requestChallenge", () => {
@@ -435,6 +726,88 @@ describe("CustomAuthApiClientV2", () => {
             expect(result).toEqual({
                 nextAction: "continue",
                 continuationToken: "ct-verify",
+            });
+        });
+
+        it("maps sign-up state:continue using its continuation token", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-sign-up-verify",
+                    state: "continue",
+                })
+            );
+
+            const result = await apiClient.verifyChallenge(
+                "/tenant/api/v0.1/signup/verify",
+                { continuationToken: "ct-challenge", otp: "12345678" },
+                context
+            );
+
+            expect(result).toEqual({
+                nextAction: "continue",
+                continuationToken: "ct-sign-up-verify",
+            });
+        });
+
+        it("maps sign-up collectAttributes metadata and submit href", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-sign-up-verify",
+                    state: "interactionRequired",
+                    action: "collectAttributes",
+                    attributes: [
+                        {
+                            attributeId: "password",
+                            inputType: "password",
+                            required: true,
+                            canChange: true,
+                            label: "Password",
+                            confirmationInput: "retype",
+                        },
+                        {
+                            attributeId: "jobTitle",
+                            inputType: "text",
+                            canChange: true,
+                            label: "Job Title",
+                            regex: "^.*",
+                        },
+                    ],
+                    _links: {
+                        submitAttributes: {
+                            href: "/tenant/api/v0.1/signup/submitattributes",
+                        },
+                    },
+                })
+            );
+
+            const result = await apiClient.verifyChallenge(
+                "/tenant/api/v0.1/signup/verify",
+                { continuationToken: "ct-challenge", otp: "12345678" },
+                context
+            );
+
+            expect(result).toEqual({
+                nextAction: "collectAttributes",
+                continuationToken: "ct-sign-up-verify",
+                attributes: [
+                    {
+                        attributeId: "password",
+                        inputType: "password",
+                        required: true,
+                        canChange: true,
+                        label: "Password",
+                        confirmationInput: "retype",
+                    },
+                    {
+                        attributeId: "jobTitle",
+                        inputType: "text",
+                        canChange: true,
+                        label: "Job Title",
+                        regex: "^.*",
+                    },
+                ],
+                submitAttributesHref:
+                    "/tenant/api/v0.1/signup/submitattributes",
             });
         });
 
@@ -640,14 +1013,11 @@ describe("CustomAuthApiClientV2", () => {
     });
 
     describe("poll", () => {
-        it("reports completion with the continue href on state continue", async () => {
+        it("reports completion on state continue", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     state: "continue",
                     continuationToken: "ct-poll",
-                    _links: {
-                        continue: { href: "/tenant/api/v0.1/continue" },
-                    },
                 })
             );
 
@@ -660,7 +1030,6 @@ describe("CustomAuthApiClientV2", () => {
             expect(result).toEqual({
                 continuationToken: "ct-poll",
                 isCompleted: true,
-                continueHref: "/tenant/api/v0.1/continue",
             });
         });
 
@@ -682,7 +1051,6 @@ describe("CustomAuthApiClientV2", () => {
 
             expect(result.isCompleted).toBe(false);
             expect(result.continuationToken).toBe("ct-update");
-            expect(result.continueHref).toBeUndefined();
             expect(result.pollHref).toBe("/tenant/api/v0.1/poll-next");
         });
     });
@@ -778,6 +1146,14 @@ describe("CustomAuthApiClientV2", () => {
 
             expect(result.access_token).toBe("access-1");
             expect(mockHttpClient.sendAsync).toHaveBeenCalledTimes(2);
+            expect(
+                mockHttpClient.sendAsync.mock.calls[0][1].body.toString()
+            ).toBe("continuation_token=ct-poll");
+            expect(
+                mockHttpClient.sendAsync.mock.calls[1][1].body.toString()
+            ).toBe(
+                "client_id=client-id-123&grant_type=authorization_code&code=auth-code-1&client_info=1&scope=openid"
+            );
         });
     });
 });

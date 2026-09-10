@@ -4,6 +4,12 @@
  */
 
 // Nested error shape returned by the HAL `/api` resource endpoints.
+export interface AttributeValidationDetailV2 {
+    attributeIds?: string[];
+    code?: string;
+    message?: string;
+}
+
 export interface HalErrorResponseV2 {
     error?: {
         code?: string;
@@ -13,6 +19,7 @@ export interface HalErrorResponseV2 {
         correlationId?: string;
         innerError?: {
             code?: string;
+            details?: AttributeValidationDetailV2[];
         };
     };
 }
@@ -39,4 +46,5 @@ export interface ServerErrorV2 {
     correlationId?: string;
     traceId?: string;
     timestamp?: string;
+    attributeValidationDetails?: AttributeValidationDetailV2[];
 }

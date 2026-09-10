@@ -12,6 +12,7 @@ import {
     PASSWORD_TOO_WEAK,
 } from "./AuthFlowErrorSubcodesV2.js";
 import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
+import type { AttributeValidationDetailV2 } from "../../../network_client/custom_auth_api/v2/response/ErrorResponsesV2.js";
 
 /*
  * Standalone V2 error base; intentionally does NOT extend the V1 AuthFlowErrorBase.
@@ -61,6 +62,17 @@ export abstract class AuthFlowErrorBaseV2 {
         return this.errorData instanceof InvalidArgumentError;
     }
 
+    /**
+     * Checks whether an account already exists for the supplied identifier.
+     * This can occur at different stages while completing sign-up.
+     * @returns True if the account already exists, otherwise false.
+     */
+    isUserAlreadyExists(): boolean {
+        return this.getAttributeValidationDetails().some(
+            (detail) => detail.code === "userAlreadyExists"
+        );
+    }
+
     /*
      * User-not-found arrives as AADSTS50034. The nested `/api` error carries no
      * innerError and no error_codes array, so the AADSTS marker in the message is
@@ -100,10 +112,35 @@ export abstract class AuthFlowErrorBaseV2 {
         );
     }
 
+    protected isPasswordPolicyViolationError(): boolean {
+        return this.getAttributeValidationDetails().some(
+            (detail) =>
+                detail.code === "passwordPolicyViolation" &&
+                detail.attributeIds?.some(
+                    (attributeId) => attributeId.toLowerCase() === "password"
+                ) === true
+        );
+    }
+
     protected isPasswordIncorrectError(): boolean {
         return (
             this.errorData.error === "invalidGrant" &&
             this.errorData.subError === INVALID_USERNAME_OR_PASSWORD
         );
+    }
+
+    protected getAttributeValidationDetails(): AttributeValidationDetailV2[] {
+        const details = (
+            this.errorData as CustomAuthError & {
+                attributeValidationDetails?: unknown;
+            }
+        ).attributeValidationDetails;
+
+        return Array.isArray(details)
+            ? details.filter(
+                  (detail): detail is AttributeValidationDetailV2 =>
+                      typeof detail === "object" && detail !== null
+              )
+            : [];
     }
 }

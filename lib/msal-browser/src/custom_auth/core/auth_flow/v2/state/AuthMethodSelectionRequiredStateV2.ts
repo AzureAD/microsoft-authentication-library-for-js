@@ -7,7 +7,7 @@ import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
 import { ChallengeVerificationRequiredStateV2 } from "./ChallengeVerificationRequiredStateV2.js";
-import type { AuthenticationMethodSelectionRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
+import type { AuthMethodSelectionRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
 import { FLOW_CODE_REQUIRED_V2 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
 import { AuthenticationMethodSelectionStateBaseV2 } from "./AuthenticationMethodSelectionStateBaseV2.js";
@@ -20,8 +20,8 @@ import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth
  * methods and lets the app request a challenge for the chosen one. The flow
  * stays on this state until a challenge is successfully requested.
  */
-export class AuthenticationMethodSelectionRequiredStateV2 extends AuthenticationMethodSelectionStateBaseV2<AuthenticationMethodSelectionRequiredStateParametersV2> {
-    readonly stateType = "authenticationMethodSelectionRequired";
+export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSelectionStateBaseV2<AuthMethodSelectionRequiredStateParametersV2> {
+    readonly stateType = "authMethodSelectionRequired";
 
     /**
      * Requests a challenge for the selected authentication method. The returned
