@@ -37,6 +37,7 @@ function normalizeHalError(response: HalErrorResponseV2): ServerErrorV2 {
         code: readString(error.code) ?? UNEXPECTED_ERROR,
         message: readString(error.message),
         innerErrorCode: readString(error.innerError?.code),
+        attributeValidationDetails: error.innerError?.details,
         correlationId: readString(error.correlationId),
         traceId: readString(error.traceId),
         timestamp: readString(error.timestamp),

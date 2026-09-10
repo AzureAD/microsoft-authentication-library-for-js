@@ -14,6 +14,7 @@ export const CONTINUATION_TOKEN_MISSING = "continuation_token_missing";
 export const INVALID_HAL_RESPONSE = "invalid_hal_response";
 export const RESET_PASSWORD_UNSUPPORTED = "reset_password_unsupported";
 export const SIGN_IN_UNSUPPORTED = "sign_in_unsupported";
+export const SIGN_UP_UNSUPPORTED = "sign_up_unsupported";
 export const CONTINUATION_LINK_MISSING = "continuation_link_missing";
 export const RESET_PASSWORD_TIMEOUT = "reset_password_timeout";
 export const UNSUPPORTED_FLOW_STEP = "unsupported_flow_step";

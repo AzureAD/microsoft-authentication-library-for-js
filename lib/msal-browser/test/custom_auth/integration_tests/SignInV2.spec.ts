@@ -253,7 +253,7 @@ describe("Sign-in V2 entry", () => {
 
         const challengeState =
             result.state as ChallengeVerificationRequiredStateV2;
-        expect(challengeState.method.id).toBe("email-1");
+        expect(challengeState.method?.id).toBe("email-1");
         expect(challengeState.channel).toBe("email");
         expect(challengeState.sentTo).toBe("u***@contoso.com");
         expect((fetch as jest.Mock).mock.calls[2][0].href).toContain(

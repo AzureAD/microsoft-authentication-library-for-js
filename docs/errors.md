@@ -1189,6 +1189,10 @@ const msalConfig = {
 
 -   Sign-in is not supported by the native authentication server.
 
+#### `sign_up_unsupported`
+
+-   Sign-up is not supported by the native authentication server.
+
 #### `continuation_link_missing`
 
 -   A server-provided link required to continue the native authentication flow is missing.

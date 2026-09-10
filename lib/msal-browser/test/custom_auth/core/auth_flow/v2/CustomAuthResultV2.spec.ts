@@ -11,7 +11,7 @@ import { ResetPasswordStartErrorV2 } from "../../../../../src/custom_auth/core/a
 import { CustomAuthApiError } from "../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { MsalCustomAuthError } from "../../../../../src/custom_auth/core/error/MsalCustomAuthError.js";
 import { UnexpectedError } from "../../../../../src/custom_auth/core/error/UnexpectedError.js";
-import { AuthenticationMethodSelectionRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/AuthenticationMethodSelectionRequiredStateV2.js";
+import { AuthMethodSelectionRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { ChallengeVerificationRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
 import { FailedStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/FailedStateV2.js";
 import { AuthenticationMethodV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/AuthenticationMethodV2.js";
@@ -33,21 +33,20 @@ describe("CustomAuthResultV2", () => {
         challengeHref: "/c",
     };
 
-    const buildSelectionState =
-        (): AuthenticationMethodSelectionRequiredStateV2 =>
-            new AuthenticationMethodSelectionRequiredStateV2({
-                correlationId,
-                logger: getDefaultLogger(),
-                config: mockConfig,
-                flowClient: {} as unknown as FlowInteractionClientV2,
-                cacheClient: {} as unknown as CustomAuthSilentCacheClient,
-                continuationState: {
-                    continuationToken: "ct",
-                    scenario: CustomAuthFlowScenarioV2.PasswordReset,
-                    links: {},
-                },
-                methods: [{ id: "email", type: "email", challengeHref: "/c" }],
-            });
+    const buildSelectionState = (): AuthMethodSelectionRequiredStateV2 =>
+        new AuthMethodSelectionRequiredStateV2({
+            correlationId,
+            logger: getDefaultLogger(),
+            config: mockConfig,
+            flowClient: {} as unknown as FlowInteractionClientV2,
+            cacheClient: {} as unknown as CustomAuthSilentCacheClient,
+            continuationState: {
+                continuationToken: "ct",
+                scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                links: {},
+            },
+            methods: [{ id: "email", type: "email", challengeHref: "/c" }],
+        });
 
     describe("isState narrowing", () => {
         it("returns true and narrows state to the matching union member", () => {
@@ -55,11 +54,9 @@ describe("CustomAuthResultV2", () => {
                 buildSelectionState()
             );
 
-            expect(
-                result.isState("authenticationMethodSelectionRequired")
-            ).toBe(true);
+            expect(result.isState("authMethodSelectionRequired")).toBe(true);
 
-            if (result.isState("authenticationMethodSelectionRequired")) {
+            if (result.isState("authMethodSelectionRequired")) {
                 // Compile-time proof of narrowing: `methods` and
                 // `requestChallenge` exist only on the narrowed member.
                 expect(result.state.methods).toEqual([method]);
