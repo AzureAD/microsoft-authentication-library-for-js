@@ -368,7 +368,8 @@ export async function initializeAuthorizationRequest(
         config,
         performanceClient,
         logger,
-        correlationId
+        correlationId,
+        browserStorage
     );
 
     const interactionRequest: CommonAuthorizationUrlRequest = {

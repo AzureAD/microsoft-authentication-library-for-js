@@ -45,7 +45,7 @@ import type {
     WaitForIframeResponseFn,
     WaitForIframeRequest,
 } from "../interaction_client/SilentIframeClient.js";
-import { ITokenCache } from "../cache/TokenCache.js";
+import type { ITokenCache } from "../cache/TokenCache.js";
 
 type TokenCacheController = IController & {
     getTokenCache?: () => ITokenCache;

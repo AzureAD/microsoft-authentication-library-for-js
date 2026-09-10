@@ -14,6 +14,7 @@ import {
     StubPerformanceClient,
 } from "@azure/msal-common/browser";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
+import { IPublicClientApplication } from "../../src/app/IPublicClientApplication.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { IWindowStorage } from "../../src/cache/IWindowStorage.js";
 import { MemoryStorage } from "../../src/cache/MemoryStorage.js";
@@ -279,6 +280,38 @@ describe("DPoP nonce cache", () => {
                 DpopNonceType.ResourceServer,
                 "https://resource.example.com/next",
                 now
+            )
+        ).resolves.toBe("newer-nonce");
+    });
+
+    it("does not purge a newer nonce for another origin during an older write", async () => {
+        const storage = new MemoryStorage<string>();
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage,
+            storage
+        );
+        jest.spyOn(Date, "now").mockReturnValue(300);
+
+        await cacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://newer.example/path",
+            "newer-nonce",
+            DpopNonceSource.ResourceServer,
+            200
+        );
+        await cacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://older.example/path",
+            "older-nonce",
+            DpopNonceSource.ResourceServer,
+            100
+        );
+
+        await expect(
+            cacheManager.getDpopNonce(
+                DpopNonceType.ResourceServer,
+                "https://newer.example/other",
+                300
             )
         ).resolves.toBe("newer-nonce");
     });
@@ -750,7 +783,7 @@ describe("DPoP nonce cache", () => {
     });
 
     it("exposes an instance-bound async loadDpopNonce API from PublicClientApplication", async () => {
-        const pca = new PublicClientApplication({
+        const pca: IPublicClientApplication = new PublicClientApplication({
             auth: {
                 clientId,
             },
@@ -785,7 +818,11 @@ describe("DPoP nonce cache", () => {
             BrowserCacheLocation.MemoryStorage,
             storage
         );
-        const tokenCache = new TokenCache(cacheManager);
+        const tokenCache = new TokenCache(
+            cacheManager,
+            logger,
+            new StubPerformanceClient()
+        );
 
         await tokenCache.loadDpopNonce(
             "https://resource.example.com/path",
@@ -793,5 +830,77 @@ describe("DPoP nonce cache", () => {
         );
 
         expect(storage.getKeys()).toHaveLength(1);
+    });
+
+    it("preserves valid nonces when a replacement write fails", async () => {
+        const storage = new MemoryStorage<string>();
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage,
+            storage
+        );
+        const now = Date.now();
+
+        for (let i = 0; i < DPOP_NONCE_MAX_ENTRIES_PER_TYPE; i++) {
+            await cacheManager.setDpopNonce(
+                DpopNonceType.ResourceServer,
+                `https://resource-${i}.example/path`,
+                `nonce-${i}`,
+                DpopNonceSource.ResourceServer,
+                now
+            );
+        }
+
+        const originalSetItem = storage.setItem.bind(storage);
+        jest.spyOn(storage, "setItem").mockImplementation((key, value) => {
+            if (!storage.containsKey(key)) {
+                throw new Error("write failed");
+            }
+            originalSetItem(key, value);
+        });
+
+        await expect(
+            cacheManager.setDpopNonce(
+                DpopNonceType.ResourceServer,
+                "https://replacement.example/path",
+                "replacement",
+                DpopNonceSource.ResourceServer,
+                now
+            )
+        ).rejects.toBeInstanceOf(CacheError);
+        expect(
+            cacheManager.getDpopNonceKeys(DpopNonceType.ResourceServer)
+        ).toHaveLength(DPOP_NONCE_MAX_ENTRIES_PER_TYPE);
+    });
+
+    it("propagates a sanitized clear failure after attempting every nonce", async () => {
+        const storage = new MemoryStorage<string>();
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage,
+            storage
+        );
+        await cacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://first.example/path",
+            "first",
+            DpopNonceSource.ResourceServer
+        );
+        await cacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://second.example/path",
+            "second",
+            DpopNonceSource.ResourceServer
+        );
+        const keys = cacheManager.getDpopNonceKeys();
+        const originalRemoveItem = storage.removeItem.bind(storage);
+        jest.spyOn(storage, "removeItem").mockImplementation((key) => {
+            if (key === keys[0]) {
+                throw new Error("nonce sentinel");
+            }
+            originalRemoveItem(key);
+        });
+
+        expect(() => cacheManager.clearDpopNonces()).toThrow(CacheError);
+        expect(storage.containsKey(keys[0])).toBe(true);
+        expect(storage.containsKey(keys[1])).toBe(false);
     });
 });

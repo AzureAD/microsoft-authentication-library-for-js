@@ -29,6 +29,7 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+import type { ITokenCache } from "../cache/TokenCache.js";
 
 export interface IPublicClientApplication {
     // TODO: Make request mandatory in the next major version?
@@ -62,6 +63,7 @@ export interface IPublicClientApplication {
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;
     getActiveAccount(): AccountInfo | null;
+    getTokenCache(): ITokenCache;
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
     setNavigationClient(navigationClient: INavigationClient): void;
     /** @internal */
@@ -198,6 +200,12 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     getActiveAccount: () => {
         return null;
+    },
+    getTokenCache: () => {
+        throw createBrowserConfigurationAuthError(
+            BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
+            ""
+        );
     },
     initializeWrapperLibrary: () => {
         return;

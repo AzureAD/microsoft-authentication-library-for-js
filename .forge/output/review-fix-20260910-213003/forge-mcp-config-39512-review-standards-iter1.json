@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "forge-tools": {
+      "type": "http",
+      "url": "http://127.0.0.1:55746/mcp/39512-review-standards-iter1",
+      "tools": [
+        "*"
+      ]
+    }
+  }
+}

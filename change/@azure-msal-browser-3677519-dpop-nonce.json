@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add PCA-bound resource-server DPoP nonce persistence (AB#3677519)",
+  "comment": "Add PCA-bound resource-server DPoP nonce persistence (AB#3677519) [#8819](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8819)",
   "packageName": "@azure/msal-browser",
   "email": "nugetaad@microsoft.com",
   "dependentChangeType": "patch"

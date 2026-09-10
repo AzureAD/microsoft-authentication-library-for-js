@@ -64,10 +64,43 @@ To faciliate efficient token acquisition while maintaining a good UX, MSAL cache
 - **Telemetry**
     - previous failed request 
     - performance data
+- **DPoP nonce state**
+    - opaque resource-server nonces scoped to the HTTPS resource origin
 
 > :bulb: Temporary cache entries will always be stored in session storage or in memory. MSAL will fallback to memory storage if sessionStorage is not available.
 
 > :bulb: The authorization code is only stored in memory and will be discarded after redeeming it for tokens.
+
+## DPoP resource-server nonce challenges
+
+When a resource server responds to a DPoP request with a `DPoP-Nonce` response
+header, deposit the opaque header value before retrying token acquisition:
+
+```typescript
+await pca
+    .getTokenCache()
+    .loadDpopNonce(resourceRequestUri, dpopNonceResponseHeader);
+
+const result = await pca.acquireTokenSilent({
+    ...request,
+    authenticationScheme: AuthenticationScheme.DPOP,
+    resourceRequestUri,
+    resourceRequestMethod: "GET",
+});
+```
+
+`resourceRequestUri` must be an absolute HTTPS URI without embedded
+credentials. Nonces are scoped to its origin, so paths, query strings, and
+fragments do not create separate entries. Treat the nonce as opaque: pass the
+response-header value unchanged. Empty values, control characters, and values
+larger than 1024 UTF-8 bytes are rejected, as are invalid or non-HTTPS resource
+URIs.
+
+The nonce uses the PCA's configured cache location (`sessionStorage`,
+`localStorage`, or memory), expires after 24 hours, and is included
+automatically in the next DPoP resource proof for that origin. MSAL removes
+these entries when `clearCache()` or logout clears the PCA cache. Storage and
+validation failures reject `loadDpopNonce()` with an MSAL error.
 
 ## Cache persistence during MSAL.js upgrades and rollbacks
 
