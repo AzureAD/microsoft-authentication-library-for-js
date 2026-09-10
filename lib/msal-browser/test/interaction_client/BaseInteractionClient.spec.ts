@@ -12,6 +12,8 @@ import {
     CacheManager,
     IdTokenEntity,
     CacheHelpers,
+    DpopNonceSource,
+    DpopNonceType,
 } from "@azure/msal-common";
 import {
     TEST_DATA_CLIENT_INFO,
@@ -234,6 +236,13 @@ describe("BaseInteractionClient", () => {
         });
 
         it("Removes account provided", async () => {
+            // @ts-ignore
+            await pca.browserStorage.setDpopNonce(
+                DpopNonceType.ResourceServer,
+                "https://resource.example.com/path",
+                "nonce-to-clear",
+                DpopNonceSource.ResourceServer
+            );
             expect(pca.getAllAccounts().length).toBe(2);
             expect(pca.getActiveAccount()).toMatchObject(testAccountInfo1);
             await testClient.logout({ account: testAccountInfo1 });
@@ -248,6 +257,8 @@ describe("BaseInteractionClient", () => {
                 })
             ).toMatchObject(testAccountInfo2);
             expect(pca.getActiveAccount()).toBe(null);
+            // @ts-ignore
+            expect(pca.browserStorage.getDpopNonceKeys()).toHaveLength(0);
         });
     });
     describe("getDiscoveredAuthority()", () => {

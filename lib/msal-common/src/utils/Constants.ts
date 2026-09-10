@@ -87,6 +87,7 @@ export const HeaderNames = {
     CONTENT_TYPE: "Content-Type",
     CONTENT_LENGTH: "Content-Length",
     DPOP: "DPoP",
+    DPOP_NONCE: "DPoP-Nonce",
     RETRY_AFTER: "Retry-After",
     CCS_HEADER: "X-AnchorMailbox",
     WWWAuthenticate: "WWW-Authenticate",

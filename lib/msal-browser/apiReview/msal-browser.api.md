@@ -722,6 +722,11 @@ function isInPopup(): boolean;
 export function isPlatformBrokerAvailable(domConfig: boolean, loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
 
 // @public
+export interface ITokenCache {
+    loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
+}
+
+// @public
 export interface IWebBrokerBridgeMessage {
     readonly requestId: string;
     readonly type: string;
@@ -965,6 +970,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     // @internal
     getConfiguration(): BrowserConfiguration;
     getLogger(): Logger;
+    getTokenCache(): ITokenCache;
     handleRedirectPromise(options?: HandleRedirectPromiseOptions): Promise<AuthenticationResult | null>;
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
     initialize(request?: InitializeApplicationRequest): Promise<void>;

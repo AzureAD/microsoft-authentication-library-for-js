@@ -270,6 +270,7 @@ export async function clearCacheOnLogout(
                 correlationId
             );
         }
+        browserStorage.clearDpopNonces();
     } else {
         try {
             logger.verbose(

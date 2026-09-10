@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add PCA-bound resource-server DPoP nonce persistence (AB#3677519)",
+  "packageName": "@azure/msal-browser",
+  "email": "nugetaad@microsoft.com",
+  "dependentChangeType": "patch"
+}

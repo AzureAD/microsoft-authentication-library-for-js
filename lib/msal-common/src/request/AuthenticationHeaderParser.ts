@@ -7,6 +7,7 @@ import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError.js";
+import { validateDpopNonce } from "../cache/entities/DpopNonceEntity.js";
 import { HeaderNames } from "../utils/Constants.js";
 
 type WWWAuthenticateChallenges = {
@@ -22,10 +23,28 @@ type AuthenticationInfoChallenges = {
  * header challenge values that can be used outside the basic authorization flows.
  */
 export class AuthenticationHeaderParser {
-    private headers: Record<string, string>;
+    private headers:
+        | Record<string, string>
+        | { get(name: string): string | null };
 
-    constructor(headers: Record<string, string>) {
+    constructor(
+        headers: Record<string, string> | { get(name: string): string | null }
+    ) {
         this.headers = headers;
+    }
+
+    /**
+     * Extracts the standalone DPoP-Nonce response header.
+     *
+     * The nonce is validated against the centralized DPoP nonce policy and is
+     * otherwise returned exactly as supplied, without trimming, decoding, or
+     * semantic normalization.
+     *
+     * @returns The opaque nonce value, or null when the header is absent.
+     */
+    getDPoPNonce(): string | null {
+        const nonce = this.getHeaderValue(HeaderNames.DPOP_NONCE);
+        return nonce === null ? null : validateDpopNonce(nonce);
     }
 
     /**
@@ -34,8 +53,10 @@ export class AuthenticationHeaderParser {
      */
     getShrNonce(): string {
         // Attempt to parse nonce from Authentiacation-Info
-        const authenticationInfo = this.headers[HeaderNames.AuthenticationInfo];
-        if (authenticationInfo) {
+        const authenticationInfo = this.getHeaderValue(
+            HeaderNames.AuthenticationInfo
+        );
+        if (typeof authenticationInfo === "string" && authenticationInfo) {
             const authenticationInfoChallenges =
                 this.parseChallenges<AuthenticationInfoChallenges>(
                     authenticationInfo
@@ -50,8 +71,10 @@ export class AuthenticationHeaderParser {
         }
 
         // Attempt to parse nonce from WWW-Authenticate
-        const wwwAuthenticate = this.headers[HeaderNames.WWWAuthenticate];
-        if (wwwAuthenticate) {
+        const wwwAuthenticate = this.getHeaderValue(
+            HeaderNames.WWWAuthenticate
+        );
+        if (typeof wwwAuthenticate === "string" && wwwAuthenticate) {
             const wwwAuthenticateChallenges =
                 this.parseChallenges<WWWAuthenticateChallenges>(
                     wwwAuthenticate
@@ -89,5 +112,24 @@ export class AuthenticationHeaderParser {
         });
 
         return challengeMap;
+    }
+
+    private getHeaderValue(headerName: string): unknown | null {
+        const get = (this.headers as { get?: unknown }).get;
+        if (typeof get === "function") {
+            const value = get.call(this.headers, headerName);
+            return value === undefined ? null : value;
+        }
+
+        const recordHeaders = this.headers as Record<string, unknown>;
+        if (recordHeaders[headerName] !== undefined) {
+            return recordHeaders[headerName];
+        }
+
+        const normalizedHeaderName = headerName.toLowerCase();
+        const matchingHeaderName = Object.keys(recordHeaders).find(
+            (name) => name.toLowerCase() === normalizedHeaderName
+        );
+        return matchingHeaderName ? recordHeaders[matchingHeaderName] : null;
     }
 }

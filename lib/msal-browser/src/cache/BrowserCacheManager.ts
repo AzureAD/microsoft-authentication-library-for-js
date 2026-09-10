@@ -40,6 +40,16 @@ import {
     AuthToken,
     getTenantIdFromIdTokenClaims,
     buildTenantProfile,
+    canonicalizeDpopNonceIssuer,
+    createDpopNonceEntity,
+    DPOP_NONCE_MAX_ENTRIES_PER_TYPE,
+    DPOP_NONCE_SCHEMA_VERSION,
+    DpopNonceEntity,
+    DpopNonceSource,
+    DpopNonceType,
+    generateDpopNonceCacheKey,
+    isDpopNonceEntityValid,
+    parseDpopNonceCacheKey,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -114,6 +124,12 @@ export class BrowserCacheManager extends CacheManager {
     protected logger: Logger;
     // Event Handler
     private eventHandler: EventHandler;
+    /*
+     * Serializes nonce writes so later deposits cannot be overwritten by
+     * earlier calls that finish asynchronous key derivation out of order.
+     */
+    private dpopNonceWriteQueue: Promise<void> = Promise.resolve();
+    private dpopNonceCacheGeneration = 0;
 
     constructor(
         clientId: string,
@@ -123,7 +139,8 @@ export class BrowserCacheManager extends CacheManager {
         performanceClient: IPerformanceClient,
         eventHandler: EventHandler,
         staticAuthorityOptions?: StaticAuthorityOptions,
-        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER
+        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+        storageImplementation?: IWindowStorage<string>
     ) {
         super(
             clientId,
@@ -136,12 +153,14 @@ export class BrowserCacheManager extends CacheManager {
         this.cacheConfig = cacheConfig;
         this.logger = logger;
         this.internalStorage = new MemoryStorage();
-        this.browserStorage = getStorageImplementation(
-            clientId,
-            cacheConfig.cacheLocation,
-            logger,
-            performanceClient
-        );
+        this.browserStorage =
+            storageImplementation ||
+            getStorageImplementation(
+                clientId,
+                cacheConfig.cacheLocation,
+                logger,
+                performanceClient
+            );
         this.temporaryCacheStorage = getStorageImplementation(
             clientId,
             BrowserCacheLocation.SessionStorage,
@@ -960,6 +979,275 @@ export class BrowserCacheManager extends CacheManager {
         } catch (error) {
             return null;
         }
+    }
+
+    /**
+     * Stores a validated DPoP nonce in the configured persistent cache.
+     * Quota recovery removes only DPoP nonce entries and never credentials.
+     * @internal
+     */
+    async setDpopNonce(
+        nonceType: DpopNonceType,
+        issuerUri: string,
+        nonce: unknown,
+        nonceSource: DpopNonceSource,
+        lastUpdatedAt: number = Date.now()
+    ): Promise<void> {
+        const entity = createDpopNonceEntity(
+            this.clientId,
+            nonceType,
+            nonceSource,
+            nonce,
+            lastUpdatedAt
+        );
+        const cacheGeneration = this.dpopNonceCacheGeneration;
+        const writeOperation = this.dpopNonceWriteQueue.then(() =>
+            this.setDpopNonceInternal(
+                nonceType,
+                issuerUri,
+                entity,
+                cacheGeneration
+            )
+        );
+        this.dpopNonceWriteQueue = writeOperation.catch(() => undefined);
+        return writeOperation;
+    }
+
+    private async setDpopNonceInternal(
+        nonceType: DpopNonceType,
+        issuerUri: string,
+        entity: DpopNonceEntity,
+        cacheGeneration: number
+    ): Promise<void> {
+        const cacheKey = await this.generateDpopNonceCacheKey(
+            nonceType,
+            issuerUri
+        );
+        if (cacheGeneration !== this.dpopNonceCacheGeneration) {
+            return;
+        }
+
+        const serializedEntity = JSON.stringify(entity);
+        const retainedEntries = this.getDpopNonceEntries(
+            nonceType,
+            entity.lastUpdatedAt
+        );
+
+        if (
+            !retainedEntries.some((entry) => entry.key === cacheKey) &&
+            retainedEntries.length >= DPOP_NONCE_MAX_ENTRIES_PER_TYPE
+        ) {
+            const entriesToRemove =
+                retainedEntries.length - DPOP_NONCE_MAX_ENTRIES_PER_TYPE + 1;
+            retainedEntries
+                .slice(0, entriesToRemove)
+                .forEach((entry) =>
+                    this.removeDpopNonceEntryForWrite(entry.key)
+                );
+        }
+
+        try {
+            this.browserStorage.setItem(cacheKey, serializedEntity);
+            return;
+        } catch (error) {
+            const cacheError = createCacheError(error);
+            if (cacheError.errorCode !== CacheErrorCodes.cacheQuotaExceeded) {
+                throw new CacheError(cacheError.errorCode);
+            }
+        }
+
+        const nonceEntries = this.getDpopNonceEntries(
+            undefined,
+            entity.lastUpdatedAt
+        ).filter((entry) => entry.key !== cacheKey);
+        for (const entry of nonceEntries) {
+            this.removeDpopNonceEntryForWrite(entry.key);
+            try {
+                this.browserStorage.setItem(cacheKey, serializedEntity);
+                return;
+            } catch (error) {
+                const cacheError = createCacheError(error);
+                if (
+                    cacheError.errorCode !== CacheErrorCodes.cacheQuotaExceeded
+                ) {
+                    throw new CacheError(cacheError.errorCode);
+                }
+            }
+        }
+
+        throw new CacheError(CacheErrorCodes.cacheQuotaExceeded);
+    }
+
+    /**
+     * Returns a valid cached DPoP nonce or null. Malformed, expired,
+     * future-dated, and schema-mismatched entries are purged as cache misses.
+     * @internal
+     */
+    async getDpopNonce(
+        nonceType: DpopNonceType,
+        issuerUri: string,
+        now: number = Date.now()
+    ): Promise<string | null> {
+        const cacheKey = await this.generateDpopNonceCacheKey(
+            nonceType,
+            issuerUri
+        );
+        const currentKey = parseDpopNonceCacheKey(cacheKey);
+        this.getDpopNonceKeys(nonceType).forEach((candidateKey) => {
+            const candidate = parseDpopNonceCacheKey(candidateKey);
+            if (
+                candidate &&
+                candidate.schemaVersion !== DPOP_NONCE_SCHEMA_VERSION &&
+                candidate.issuerHash === currentKey?.issuerHash
+            ) {
+                try {
+                    this.browserStorage.removeItem(candidateKey);
+                } catch {
+                    /*
+                     * Old-schema nonce cache entries are treated as misses
+                     * even when a custom storage implementation cannot remove
+                     * them.
+                     */
+                }
+            }
+        });
+
+        let rawEntity: string | null;
+        try {
+            rawEntity = this.browserStorage.getItem(cacheKey);
+        } catch {
+            return null;
+        }
+
+        if (!rawEntity) {
+            return null;
+        }
+
+        const entity = this.validateAndParseJson(rawEntity);
+        if (!isDpopNonceEntityValid(entity, this.clientId, nonceType, now)) {
+            try {
+                this.browserStorage.removeItem(cacheKey);
+            } catch {
+                /*
+                 * Invalid nonce cache entries are treated as misses even when
+                 * a custom storage implementation cannot remove them.
+                 */
+            }
+            return null;
+        }
+
+        return entity.nonce;
+    }
+
+    /**
+     * Gets all DPoP nonce keys owned by this client, optionally restricted to
+     * one nonce type.
+     * @internal
+     */
+    getDpopNonceKeys(nonceType?: DpopNonceType): string[] {
+        let cacheKeys: string[];
+        try {
+            cacheKeys = this.browserStorage.getKeys();
+        } catch {
+            return [];
+        }
+
+        return cacheKeys.filter((cacheKey) => {
+            const parsedKey = parseDpopNonceCacheKey(cacheKey);
+            return (
+                parsedKey?.clientId === this.clientId &&
+                (!nonceType || parsedKey.nonceType === nonceType)
+            );
+        });
+    }
+
+    /**
+     * Removes all persisted DPoP nonce entries for this client across schema
+     * versions and nonce types.
+     * @internal
+     */
+    clearDpopNonces(): void {
+        this.dpopNonceCacheGeneration++;
+        this.getDpopNonceKeys().forEach((cacheKey) => {
+            try {
+                this.browserStorage.removeItem(cacheKey);
+            } catch {
+                /*
+                 * Continue clearing the remaining nonce entries when a custom
+                 * storage implementation fails to remove one item.
+                 */
+            }
+        });
+    }
+
+    private async generateDpopNonceCacheKey(
+        nonceType: DpopNonceType,
+        issuerUri: string
+    ): Promise<string> {
+        const canonicalIssuer = canonicalizeDpopNonceIssuer(
+            issuerUri,
+            nonceType
+        );
+        const issuerHash = await this.cryptoImpl.hashString(canonicalIssuer);
+        return generateDpopNonceCacheKey(this.clientId, nonceType, issuerHash);
+    }
+
+    private removeDpopNonceEntryForWrite(cacheKey: string): void {
+        try {
+            this.browserStorage.removeItem(cacheKey);
+        } catch (error) {
+            const cacheError = createCacheError(error);
+            throw new CacheError(cacheError.errorCode);
+        }
+    }
+
+    private getDpopNonceEntries(
+        nonceType?: DpopNonceType,
+        now: number = Date.now()
+    ): Array<{ key: string; entity: DpopNonceEntity }> {
+        const entries: Array<{ key: string; entity: DpopNonceEntity }> = [];
+
+        this.getDpopNonceKeys(nonceType).forEach((cacheKey) => {
+            const parsedKey = parseDpopNonceCacheKey(cacheKey);
+            let rawEntity: string | null = null;
+            try {
+                rawEntity = this.browserStorage.getItem(cacheKey);
+            } catch {
+                return;
+            }
+
+            const entity = this.validateAndParseJson(rawEntity || "");
+            if (
+                !parsedKey ||
+                parsedKey.schemaVersion !== DPOP_NONCE_SCHEMA_VERSION ||
+                !isDpopNonceEntityValid(
+                    entity,
+                    this.clientId,
+                    parsedKey.nonceType,
+                    now
+                )
+            ) {
+                try {
+                    this.browserStorage.removeItem(cacheKey);
+                } catch {
+                    /*
+                     * Treat malformed entries as misses even if removal fails.
+                     */
+                }
+                return;
+            }
+
+            entries.push({
+                key: cacheKey,
+                entity,
+            });
+        });
+
+        return entries.sort(
+            (left, right) =>
+                left.entity.lastUpdatedAt - right.entity.lastUpdatedAt ||
+                (left.key < right.key ? -1 : left.key > right.key ? 1 : 0)
+        );
     }
 
     /**
@@ -2088,6 +2376,7 @@ export class BrowserCacheManager extends CacheManager {
         // Removes all accounts and their credentials
         this.removeAllAccounts(correlationId);
         this.removeAppMetadata(correlationId);
+        this.clearDpopNonces();
 
         // Remove temp storage first to make sure any cookies are cleared
         this.temporaryCacheStorage.getKeys().forEach((cacheKey: string) => {
@@ -2101,6 +2390,10 @@ export class BrowserCacheManager extends CacheManager {
 
         // Removes all remaining MSAL cache items
         this.browserStorage.getKeys().forEach((cacheKey: string) => {
+            if (parseDpopNonceCacheKey(cacheKey)) {
+                return;
+            }
+
             if (
                 cacheKey.indexOf(CacheKeys.PREFIX) !== -1 ||
                 cacheKey.indexOf(this.clientId) !== -1
