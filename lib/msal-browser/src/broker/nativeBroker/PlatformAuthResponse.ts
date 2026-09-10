@@ -25,6 +25,9 @@ export type PlatformAuthResponse = {
     scope: string;
     state: string;
     shr?: string;
+    token_type?: string;
+    DPoP?: string;
+    binding_attested?: boolean;
     extendedLifetimeToken?: boolean;
 };
 
@@ -34,6 +37,16 @@ export type PlatformAuthResponse = {
 export type NativeResponseProperties = {
     MATS?: string;
 };
+
+/**
+ * DPoP response values returned through the platform DOM API properties map.
+ */
+export type PlatformDOMResponseProperties = NativeResponseProperties &
+    Record<string, string> & {
+        token_type?: string;
+        dpop_proof?: string;
+        binding_attested?: string;
+    };
 
 /**
  * The native token broker can optionally include additional information about operations it performs. If that data is returned, MSAL.js will include the following properties in the telemetry it collects.
@@ -67,7 +80,7 @@ export type PlatformDOMTokenResponse = {
     proofOfPossessionPayload?: string;
     extendedLifetimeToken?: boolean;
     error: ErrorResult;
-    properties?: Record<string, string>;
+    properties?: PlatformDOMResponseProperties;
 };
 
 export type ErrorResult = {

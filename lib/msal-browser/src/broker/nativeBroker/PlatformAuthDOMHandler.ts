@@ -143,14 +143,19 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             correlationId,
             state,
             extraParameters,
+            preferBinding,
+            enclave,
+            reqCnf,
+            extraParametersNoCache,
             ...remainingProperties
         } = request;
+        delete remainingProperties.resourceRequestMethod;
+        delete remainingProperties.resourceRequestUri;
 
         const validExtraParameters: DOMExtraParameters = this.getDOMExtraParams(
             remainingProperties,
             correlationId
         );
-
         const platformDOMRequest: PlatformDOMTokenRequest = {
             accountId: accountId,
             brokerId: this.getExtensionId(),
@@ -165,6 +170,10 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             redirectUri: redirectUri,
             scope: scope,
             state: state,
+            preferBinding: preferBinding,
+            enclave: enclave,
+            requestConfirmation: reqCnf,
+            extraParametersNoCache,
         };
 
         return platformDOMRequest;
@@ -231,6 +240,12 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             `'${this.platformAuthType}' - convertToNativeResponse called`,
             correlationId
         );
+        const responseProperties = response.properties || {};
+        const bindingAttested = this.parseDOMBoolean(
+            responseProperties.binding_attested,
+            "binding_attested",
+            correlationId
+        );
         const nativeResponse: PlatformAuthResponse = {
             access_token: response.accessToken,
             id_token: response.idToken,
@@ -239,12 +254,35 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             expires_in: response.expiresIn,
             scope: response.scopes,
             state: response.state || "",
-            properties: response.properties || {},
+            properties: responseProperties,
             extendedLifetimeToken: response.extendedLifetimeToken ?? false,
             shr: response.proofOfPossessionPayload,
+            token_type: responseProperties.token_type,
+            DPoP: responseProperties.dpop_proof,
+            binding_attested: bindingAttested,
         };
 
         return nativeResponse;
+    }
+
+    private parseDOMBoolean(
+        value: string | undefined,
+        propertyName: string,
+        correlationId: string
+    ): boolean | undefined {
+        if (value === undefined) {
+            return undefined;
+        }
+
+        if (value === "true" || value === "false") {
+            return value === "true";
+        }
+
+        throw createAuthError(
+            AuthErrorCodes.unexpectedError,
+            correlationId,
+            `Platform broker returned invalid ${propertyName} value.`
+        );
     }
 
     private getDOMExtraParams(

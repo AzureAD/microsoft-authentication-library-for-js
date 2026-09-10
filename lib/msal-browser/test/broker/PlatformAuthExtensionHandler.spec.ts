@@ -8,13 +8,19 @@ import {
     AuthError,
     AuthErrorCodes,
     IPerformanceClient,
+    Constants,
 } from "@azure/msal-common";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { NativeExtensionMethod } from "../../src/utils/BrowserConstants.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
-import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
+import {
+    PlatformAuthBindingPreference,
+    PlatformAuthEnclave,
+    PlatformAuthRequest,
+    PlatformAuthTokenType,
+} from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants.js";
 import {
     getDefaultErrorMessage,
@@ -265,7 +271,10 @@ describe("PlatformAuthExtensionHandler Tests", () => {
     });
 
     describe("sendMessage", () => {
-        it("Sends message to WAM extension", async () => {
+        it.each([
+            Constants.AuthenticationScheme.POP,
+            PlatformAuthTokenType.DPOP_WITH_PROOF,
+        ])("Sends token type %s to WAM extension", async (tokenType) => {
             const testWAMResponse = {
                 access_token: "test-access-token",
                 id_token: "test-id-token",
@@ -277,6 +286,9 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 },
                 scope: "read openid",
                 expires_in: "3600",
+                token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
+                DPoP: "test-dpop-proof",
+                binding_attested: true,
             };
             const testResponse = {
                 status: "Success",
@@ -303,6 +315,19 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                     expect(event.data.body.method).toBe(
                         NativeExtensionMethod.GetToken
                     );
+                    expect(event.data.body.request).toEqual({
+                        ...TEST_REQUEST,
+                        preferBinding: PlatformAuthBindingPreference.ATTESTED,
+                        enclave: PlatformAuthEnclave.HARDWARE,
+                        reqCnf: "test-req-cnf",
+                        tokenType,
+                        extraParametersNoCache: {
+                            pop_method: "POST",
+                            pop_url: "https://graph.microsoft.com/v1.0/me",
+                            pop_nonce: "test-dpop-nonce",
+                            custom_no_cache: "test-value",
+                        },
+                    });
                     mcPort.postMessage({
                         channelId: "53ee284d-920a-4b59-9d30-a60315b26836",
                         extensionId: "test-ext-id",
@@ -329,7 +354,21 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 PlatformAuthExtensionHandler
             );
 
-            const response = await wamMessageHandler.sendMessage(TEST_REQUEST);
+            const response = await wamMessageHandler.sendMessage({
+                ...TEST_REQUEST,
+                preferBinding: PlatformAuthBindingPreference.ATTESTED,
+                enclave: PlatformAuthEnclave.HARDWARE,
+                reqCnf: "test-req-cnf",
+                tokenType,
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                extraParametersNoCache: {
+                    custom_no_cache: "test-value",
+                    pop_method: "POST",
+                    pop_url: "https://graph.microsoft.com/v1.0/me",
+                    pop_nonce: "test-dpop-nonce",
+                },
+            });
             expect(response).toEqual(testResponse.result);
 
             window.removeEventListener("message", eventHandler, true);

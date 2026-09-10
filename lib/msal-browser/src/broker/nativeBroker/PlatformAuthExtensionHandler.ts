@@ -86,9 +86,12 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         );
 
         // fall back to native calls
+        const extensionRequest = { ...request };
+        delete extensionRequest.resourceRequestMethod;
+        delete extensionRequest.resourceRequestUri;
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
-            request: request,
+            request: extensionRequest,
         };
 
         const req: NativeExtensionRequest = {
