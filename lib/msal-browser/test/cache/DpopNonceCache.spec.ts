@@ -201,6 +201,88 @@ describe("DPoP nonce cache", () => {
         ).resolves.toBe("second-nonce");
     });
 
+    it("preserves invocation order across cache-manager instances sharing storage", async () => {
+        const firstCacheManager = createCacheManager(
+            BrowserCacheLocation.SessionStorage
+        );
+        const secondCacheManager = createCacheManager(
+            BrowserCacheLocation.SessionStorage
+        );
+        let resolveFirstHash: (hash: string) => void = () => undefined;
+        const firstHash = new Promise<string>((resolve) => {
+            resolveFirstHash = resolve;
+        });
+        const hashSpy = jest
+            .spyOn(crypto, "hashString")
+            .mockImplementationOnce(() => firstHash)
+            .mockResolvedValue("shared-issuer-hash");
+
+        const firstWrite = firstCacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://resource.example.com/first",
+            "first-nonce",
+            DpopNonceSource.ResourceServer,
+            100
+        );
+        const secondWrite = secondCacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://resource.example.com/second",
+            "second-nonce",
+            DpopNonceSource.ResourceServer,
+            200
+        );
+
+        await Promise.resolve();
+        expect(hashSpy).toHaveBeenCalledTimes(1);
+
+        resolveFirstHash("shared-issuer-hash");
+        await Promise.all([firstWrite, secondWrite]);
+
+        await expect(
+            firstCacheManager.getDpopNonce(
+                DpopNonceType.ResourceServer,
+                "https://resource.example.com/next",
+                200
+            )
+        ).resolves.toBe("second-nonce");
+    });
+
+    it("does not overwrite a newer persisted nonce with an older entry", async () => {
+        const storage = new MemoryStorage<string>();
+        const now = Date.now();
+        const firstCacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage,
+            storage
+        );
+        const secondCacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage,
+            storage
+        );
+
+        await firstCacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://resource.example.com/first",
+            "newer-nonce",
+            DpopNonceSource.ResourceServer,
+            now
+        );
+        await secondCacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://resource.example.com/second",
+            "older-nonce",
+            DpopNonceSource.ResourceServer,
+            now - 1
+        );
+
+        await expect(
+            firstCacheManager.getDpopNonce(
+                DpopNonceType.ResourceServer,
+                "https://resource.example.com/next",
+                now
+            )
+        ).resolves.toBe("newer-nonce");
+    });
+
     it("purges malformed, expired, future-dated, and schema-mismatched entries", async () => {
         const storage = new MemoryStorage<string>();
         const cacheManager = createCacheManager(
@@ -588,6 +670,38 @@ describe("DPoP nonce cache", () => {
                 "https://after-clear.example.com/other"
             )
         ).resolves.toBe("after-clear-nonce");
+    });
+
+    it("prevents a pending write from repopulating after another cache-manager instance clears", async () => {
+        const writingCacheManager = createCacheManager(
+            BrowserCacheLocation.SessionStorage
+        );
+        const clearingCacheManager = createCacheManager(
+            BrowserCacheLocation.SessionStorage
+        );
+        let resolvePendingHash: (hash: string) => void = () => undefined;
+        const pendingHash = new Promise<string>((resolve) => {
+            resolvePendingHash = resolve;
+        });
+        const hashSpy = jest
+            .spyOn(crypto, "hashString")
+            .mockImplementationOnce(() => pendingHash);
+
+        const pendingWrite = writingCacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://before-clear.example.com/path",
+            "before-clear-nonce",
+            DpopNonceSource.ResourceServer
+        );
+
+        await Promise.resolve();
+        expect(hashSpy).toHaveBeenCalledTimes(1);
+
+        clearingCacheManager.clearDpopNonces();
+        resolvePendingHash("pre-clear-hash");
+        await pendingWrite;
+
+        expect(writingCacheManager.getDpopNonceKeys()).toHaveLength(0);
     });
 
     it("full clear removes current-client nonces but preserves another client's nonces", async () => {
