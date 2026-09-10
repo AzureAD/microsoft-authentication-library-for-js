@@ -12,11 +12,10 @@ import { NewPasswordRequiredStateV2 } from "../../../../reset_password/auth_flow
 import type { ChallengeVerificationRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { VerifyChallengeResultV2 } from "../result/VerifyChallengeResultV2.js";
 import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
-import { CompletedStateV2 } from "./CompletedStateV2.js";
-import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import {
     FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_COMPLETED_V2,
+    FLOW_MFA_REQUIRED_V2,
     FLOW_NEW_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
@@ -110,6 +109,26 @@ export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequired
                 });
             }
 
+            if (
+                result.type === FLOW_COMPLETED_V2 ||
+                result.type === FLOW_MFA_REQUIRED_V2
+            ) {
+                const signInStateTransitionHandler =
+                    this.stateParameters.signInStateTransitionHandler;
+                if (!signInStateTransitionHandler) {
+                    throw new CustomAuthError(
+                        UNSUPPORTED_FLOW_TRANSITION,
+                        "Sign-in state transition handler is missing.",
+                        correlationId
+                    );
+                }
+
+                return signInStateTransitionHandler.handleCodeVerification(
+                    result,
+                    this.stateParameters
+                );
+            }
+
             if (result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2) {
                 return new CustomAuthResultV2(
                     new SignInContinuationStateV2({
@@ -122,22 +141,6 @@ export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequired
                     }),
                     undefined,
                     result.continuationState.scenario
-                );
-            }
-
-            if (result.type === FLOW_COMPLETED_V2) {
-                const account = new CustomAuthAccountData(
-                    result.authenticationResult.account,
-                    this.stateParameters.config,
-                    this.stateParameters.cacheClient,
-                    logger,
-                    correlationId
-                );
-
-                return new CustomAuthResultV2(
-                    new CompletedStateV2(),
-                    account,
-                    continuationState.scenario
                 );
             }
 
@@ -185,6 +188,8 @@ export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequired
                     flowClient,
                     continuationState: result.continuationState,
                     cacheClient: this.stateParameters.cacheClient,
+                    signInStateTransitionHandler:
+                        this.stateParameters.signInStateTransitionHandler,
                     signUpStateTransitionHandler:
                         this.stateParameters.signUpStateTransitionHandler,
                     method: this.method,

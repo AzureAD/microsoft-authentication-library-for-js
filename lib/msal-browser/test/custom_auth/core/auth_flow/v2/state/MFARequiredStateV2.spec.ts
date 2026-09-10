@@ -99,6 +99,12 @@ describe("MFARequiredStateV2", () => {
         expect(result.state).toBeInstanceOf(
             ChallengeVerificationRequiredStateV2
         );
+        if (result.isState("challengeVerificationRequired")) {
+            expect(result.state.method).toBe(methods[0]);
+            expect(result.state.sentTo).toBe("u***@contoso.com");
+            expect(result.state.channel).toBe("email");
+            expect(result.state.codeLength).toBe(6);
+        }
     });
 
     it("rejects a method not returned by the server", async () => {

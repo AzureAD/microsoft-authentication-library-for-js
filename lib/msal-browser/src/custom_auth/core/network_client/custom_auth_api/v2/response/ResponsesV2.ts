@@ -105,9 +105,22 @@ export interface PasswordChallengeResponseV2 extends ChallengeResponseBaseV2 {
     };
 }
 
-export type ChallengeResponseV2 =
+export type VerificationChallengeResponseV2 =
     | CodeChallengeResponseV2
     | PasswordChallengeResponseV2;
+
+export interface RiskVerificationRequiredResponseV2
+    extends ChallengeResponseBaseV2 {
+    _links?: {
+        riskverify?: HalLink;
+    };
+}
+
+export type ChallengeResponseV2 =
+    | VerificationChallengeResponseV2
+    | RiskVerificationRequiredResponseV2;
+
+export type RiskVerificationResponseV2 = CodeChallengeResponseV2;
 
 export interface SignUpSubmitAttributesResponseV2
     extends Omit<CodeChallengeResponseV2, "_links"> {
