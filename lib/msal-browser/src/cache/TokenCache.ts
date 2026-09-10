@@ -95,12 +95,12 @@ export class TokenCache implements ITokenCache {
                         DpopNonceSource.ResourceServer
                     );
                     this.performanceClient.addFields(
-                        { dpopNonceCacheWriteSucceeded: true },
+                        { "ext.dpopNonceCacheWriteSucceeded": true },
                         correlationId
                     );
                 } catch (error) {
                     this.performanceClient.addFields(
-                        { dpopNonceCacheWriteSucceeded: false },
+                        { "ext.dpopNonceCacheWriteSucceeded": false },
                         correlationId
                     );
                     throw error;

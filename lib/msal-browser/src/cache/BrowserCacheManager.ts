@@ -42,7 +42,6 @@ import {
     buildTenantProfile,
     canonicalizeDpopNonceIssuer,
     createDpopNonceEntity,
-    DPOP_NONCE_CACHE_KEY_PREFIX,
     DPOP_NONCE_MAX_ENTRIES_PER_TYPE,
     DPOP_NONCE_SCHEMA_VERSION,
     DpopNonceEntity,
@@ -116,16 +115,6 @@ const dpopNonceCacheStates = new WeakMap<
     object,
     Map<string, DpopNonceCacheState>
 >();
-const DPOP_NONCE_LOCK_TTL_MS = 1000;
-const DPOP_NONCE_LOCK_RETRY_MS = 10;
-const DPOP_NONCE_LOCK_RETRY_COUNT = 100;
-
-/**
- * Waits for the specified duration before retrying DPoP nonce lock acquisition.
- */
-function delay(milliseconds: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, milliseconds));
-}
 
 /**
  * Returns shared DPoP nonce coordination state for one client and backing
@@ -238,7 +227,6 @@ export class BrowserCacheManager extends CacheManager {
             correlationId
         );
         await this.browserStorage.initialize(correlationId);
-        this.purgeInvalidDpopNonces();
         await this.migrateExistingCache(correlationId);
         this.trackVersionChanges(correlationId);
     }
@@ -1059,14 +1047,12 @@ export class BrowserCacheManager extends CacheManager {
             lastUpdatedAt
         );
         const cacheGeneration = this.dpopNonceCacheState.generation;
-        const clearMarker = this.getDpopNonceClearMarker();
         const writeOperation = this.dpopNonceCacheState.writeQueue.then(() =>
             this.setDpopNonceInternal(
                 nonceType,
                 issuerUri,
                 entity,
-                cacheGeneration,
-                clearMarker
+                cacheGeneration
             )
         );
         this.dpopNonceCacheState.writeQueue = writeOperation.catch(
@@ -1075,15 +1061,11 @@ export class BrowserCacheManager extends CacheManager {
         return writeOperation;
     }
 
-    /**
-     * Derives the nonce key and queues a generation-fenced cache commit.
-     */
     private async setDpopNonceInternal(
         nonceType: DpopNonceType,
         issuerUri: string,
         entity: DpopNonceEntity,
-        cacheGeneration: number,
-        clearMarker: string
+        cacheGeneration: number
     ): Promise<void> {
         const cacheKey = await this.generateDpopNonceCacheKey(
             nonceType,
@@ -1093,27 +1075,6 @@ export class BrowserCacheManager extends CacheManager {
             return;
         }
 
-        return this.withDpopNonceStorageLock(async () => {
-            if (
-                cacheGeneration !== this.dpopNonceCacheState.generation ||
-                clearMarker !== this.getDpopNonceClearMarker()
-            ) {
-                return;
-            }
-            this.commitDpopNonce(nonceType, cacheKey, entity, clearMarker);
-        });
-    }
-
-    /**
-     * Commits a nonce while preserving newer entries and recovering from quota
-     * pressure by evicting only DPoP nonce entries.
-     */
-    private commitDpopNonce(
-        nonceType: DpopNonceType,
-        cacheKey: string,
-        entity: DpopNonceEntity,
-        clearMarker: string
-    ): void {
         let persistedEntity: object | null = null;
         try {
             const persistedValue = this.browserStorage.getItem(cacheKey);
@@ -1141,15 +1102,7 @@ export class BrowserCacheManager extends CacheManager {
             retainedEntries.length >= DPOP_NONCE_MAX_ENTRIES_PER_TYPE;
 
         try {
-            if (
-                !this.setDpopNonceStorageItem(
-                    cacheKey,
-                    serializedEntity,
-                    clearMarker
-                )
-            ) {
-                return;
-            }
+            this.browserStorage.setItem(cacheKey, serializedEntity);
             if (!requiresCapacityEviction) {
                 return;
             }
@@ -1174,36 +1127,28 @@ export class BrowserCacheManager extends CacheManager {
             }
         }
 
-        const allNonceEntries = this.getDpopNonceEntries(
+        const nonceEntries = this.getDpopNonceEntries(
             undefined,
             validationTime
         ).filter((entry) => entry.key !== cacheKey);
-        const capacityEntries = requiresCapacityEviction
-            ? retainedEntries.filter((entry) => entry.key !== cacheKey)
-            : [];
-        const capacityKeys = new Set(capacityEntries.map((entry) => entry.key));
-        const nonceEntries = [
-            ...capacityEntries,
-            ...allNonceEntries.filter((entry) => !capacityKeys.has(entry.key)),
-        ];
         const removedEntries: Array<{ key: string; value: string }> = [];
         for (const entry of nonceEntries) {
-            const value = this.browserStorage.getItem(entry.key);
+            let value: string | null;
+            try {
+                value = this.browserStorage.getItem(entry.key);
+            } catch (error) {
+                this.restoreDpopNonceEntries(removedEntries);
+                const cacheError = createCacheError(error);
+                throw new CacheError(cacheError.errorCode);
+            }
             if (value === null) {
                 continue;
             }
+
             this.removeDpopNonceEntryForWrite(entry.key);
             removedEntries.push({ key: entry.key, value });
             try {
-                if (
-                    !this.setDpopNonceStorageItem(
-                        cacheKey,
-                        serializedEntity,
-                        clearMarker
-                    )
-                ) {
-                    return;
-                }
+                this.browserStorage.setItem(cacheKey, serializedEntity);
                 return;
             } catch (error) {
                 const cacheError = createCacheError(error);
@@ -1221,24 +1166,6 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Persists a nonce and removes it if a cross-context clear changes the
-     * persisted clear marker during the write.
-     */
-    private setDpopNonceStorageItem(
-        cacheKey: string,
-        serializedEntity: string,
-        clearMarker: string
-    ): boolean {
-        this.browserStorage.setItem(cacheKey, serializedEntity);
-        if (clearMarker === this.getDpopNonceClearMarker()) {
-            return true;
-        }
-
-        this.removeDpopNonceEntryForWrite(cacheKey);
-        return false;
-    }
-
-    /**
      * Restores entries removed during failed nonce-only quota recovery without
      * replacing the original sanitized storage error.
      */
@@ -1252,94 +1179,6 @@ export class BrowserCacheManager extends CacheManager {
                 // Preserve the original sanitized cache failure.
             }
         });
-    }
-
-    /**
-     * Runs a nonce write under a cross-context localStorage ownership lock.
-     * Lock failures are sanitized and quota recovery evicts only nonce entries.
-     */
-    private async withDpopNonceStorageLock(
-        callback: () => Promise<void>
-    ): Promise<void> {
-        if (!(this.browserStorage instanceof LocalStorage)) {
-            return callback();
-        }
-
-        const lockKey = `${DPOP_NONCE_CACHE_KEY_PREFIX}.lock|${this.clientId}`;
-        const owner = this.cryptoImpl.createNewGuid();
-        for (
-            let attempt = 0;
-            attempt < DPOP_NONCE_LOCK_RETRY_COUNT;
-            attempt++
-        ) {
-            try {
-                const now = Date.now();
-                const currentLock = this.browserStorage.getItem(lockKey);
-                const currentExpiry = Number(currentLock?.split("|")[1]);
-                if (
-                    !currentLock ||
-                    !Number.isFinite(currentExpiry) ||
-                    currentExpiry <= now
-                ) {
-                    const lockValue = `${owner}|${
-                        now + DPOP_NONCE_LOCK_TTL_MS
-                    }`;
-                    this.setDpopNonceLock(lockKey, lockValue);
-                    if (this.browserStorage.getItem(lockKey) === lockValue) {
-                        try {
-                            return await callback();
-                        } finally {
-                            if (
-                                this.browserStorage.getItem(lockKey) ===
-                                lockValue
-                            ) {
-                                this.browserStorage.removeItem(lockKey);
-                            }
-                        }
-                    }
-                }
-            } catch (error) {
-                const cacheError = createCacheError(error);
-                throw new CacheError(cacheError.errorCode);
-            }
-            await delay(DPOP_NONCE_LOCK_RETRY_MS);
-        }
-
-        throw new CacheError(CacheErrorCodes.cacheErrorUnknown);
-    }
-
-    /**
-     * Persists the localStorage lock, evicting only DPoP nonce entries when
-     * quota prevents lock acquisition.
-     */
-    private setDpopNonceLock(lockKey: string, lockValue: string): void {
-        try {
-            this.browserStorage.setItem(lockKey, lockValue);
-            return;
-        } catch (error) {
-            const cacheError = createCacheError(error);
-            if (cacheError.errorCode !== CacheErrorCodes.cacheQuotaExceeded) {
-                throw new CacheError(cacheError.errorCode);
-            }
-        }
-
-        const nonceEntries = this.getDpopNonceEntries();
-        for (const entry of nonceEntries) {
-            this.removeDpopNonceEntryForWrite(entry.key);
-            try {
-                this.browserStorage.setItem(lockKey, lockValue);
-                return;
-            } catch (error) {
-                const cacheError = createCacheError(error);
-                if (
-                    cacheError.errorCode !== CacheErrorCodes.cacheQuotaExceeded
-                ) {
-                    throw new CacheError(cacheError.errorCode);
-                }
-            }
-        }
-
-        throw new CacheError(CacheErrorCodes.cacheQuotaExceeded);
     }
 
     /**
@@ -1418,7 +1257,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Enumerates nonce keys for mutations and propagates storage failures so a
-     * write or clear cannot report false success.
+     * write cannot report false success.
      */
     private getDpopNonceKeysForWrite(nonceType?: DpopNonceType): string[] {
         return this.browserStorage.getKeys().filter((cacheKey) => {
@@ -1432,109 +1271,23 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Removes all persisted DPoP nonce entries for this client across schema
-     * versions and nonce types. A persisted marker fences pending writes in
-     * other browsing contexts before key removal begins.
+     * versions and nonce types.
      * @internal
      */
     clearDpopNonces(): void {
         this.dpopNonceCacheState.generation++;
-        let removalError: CacheError | null = null;
-        if (this.browserStorage instanceof LocalStorage) {
-            try {
-                this.setDpopNonceClearMarker(this.cryptoImpl.createNewGuid());
-            } catch (error) {
-                const cacheError = createCacheError(error);
-                removalError = new CacheError(cacheError.errorCode);
-            }
-        }
-
-        let cacheKeys: string[] = [];
-        try {
-            cacheKeys = this.getDpopNonceKeysForWrite();
-        } catch (error) {
-            const cacheError = createCacheError(error);
-            removalError ||= new CacheError(cacheError.errorCode);
-        }
-
-        cacheKeys.forEach((cacheKey) => {
+        this.getDpopNonceKeys().forEach((cacheKey) => {
             try {
                 this.browserStorage.removeItem(cacheKey);
-            } catch (error) {
-                const cacheError = createCacheError(error);
-                removalError ||= new CacheError(cacheError.errorCode);
+            } catch {
+                /*
+                 * Continue clearing the remaining nonce entries when a custom
+                 * storage implementation fails to remove one item.
+                 */
             }
         });
-        if (removalError) {
-            throw removalError;
-        }
     }
 
-    /**
-     * Returns the localStorage clear marker used to reject writes that began
-     * before another browsing context cleared nonce state.
-     */
-    private getDpopNonceClearMarker(): string {
-        if (!(this.browserStorage instanceof LocalStorage)) {
-            return "";
-        }
-
-        try {
-            return (
-                this.browserStorage.getItem(
-                    this.getDpopNonceClearMarkerKey()
-                ) || ""
-            );
-        } catch (error) {
-            const cacheError = createCacheError(error);
-            throw new CacheError(cacheError.errorCode);
-        }
-    }
-
-    /**
-     * Persists a cross-context clear marker, evicting only nonce entries if
-     * localStorage quota is exhausted.
-     */
-    private setDpopNonceClearMarker(clearMarker: string): void {
-        const markerKey = this.getDpopNonceClearMarkerKey();
-        try {
-            this.browserStorage.setItem(markerKey, clearMarker);
-            return;
-        } catch (error) {
-            const cacheError = createCacheError(error);
-            if (cacheError.errorCode !== CacheErrorCodes.cacheQuotaExceeded) {
-                throw new CacheError(cacheError.errorCode);
-            }
-        }
-
-        const nonceEntries = this.getDpopNonceEntries();
-        for (const entry of nonceEntries) {
-            this.removeDpopNonceEntryForWrite(entry.key);
-            try {
-                this.browserStorage.setItem(markerKey, clearMarker);
-                return;
-            } catch (error) {
-                const cacheError = createCacheError(error);
-                if (
-                    cacheError.errorCode !== CacheErrorCodes.cacheQuotaExceeded
-                ) {
-                    throw new CacheError(cacheError.errorCode);
-                }
-            }
-        }
-
-        throw new CacheError(CacheErrorCodes.cacheQuotaExceeded);
-    }
-
-    /**
-     * Generates the per-client key for the persisted clear marker.
-     */
-    private getDpopNonceClearMarkerKey(): string {
-        return `${DPOP_NONCE_CACHE_KEY_PREFIX}.clear|${this.clientId}`;
-    }
-
-    /**
-     * Generates a bounded nonce cache key from the canonical issuer hash.
-     */
     private async generateDpopNonceCacheKey(
         nonceType: DpopNonceType,
         issuerUri: string
@@ -1547,9 +1300,6 @@ export class BrowserCacheManager extends CacheManager {
         return generateDpopNonceCacheKey(this.clientId, nonceType, issuerHash);
     }
 
-    /**
-     * Removes a nonce during a write or rollback and sanitizes storage errors.
-     */
     private removeDpopNonceEntryForWrite(cacheKey: string): void {
         try {
             this.browserStorage.removeItem(cacheKey);
@@ -1559,10 +1309,6 @@ export class BrowserCacheManager extends CacheManager {
         }
     }
 
-    /**
-     * Returns valid nonce entries ordered oldest first, removing malformed
-     * entries and supporting nonce-only quota recovery.
-     */
     private getDpopNonceEntries(
         nonceType?: DpopNonceType,
         now: number = Date.now()
@@ -1610,20 +1356,6 @@ export class BrowserCacheManager extends CacheManager {
                 left.entity.lastUpdatedAt - right.entity.lastUpdatedAt ||
                 (left.key < right.key ? -1 : left.key > right.key ? 1 : 0)
         );
-    }
-
-    /**
-     * Best-effort sweep of invalid or expired nonce entries during cache startup.
-     */
-    private purgeInvalidDpopNonces(): void {
-        try {
-            this.getDpopNonceEntries();
-        } catch {
-            /*
-             * Cache initialization must remain available when storage cannot be
-             * enumerated. Individual reads continue to validate nonce entries.
-             */
-        }
     }
 
     /**
@@ -2752,13 +2484,7 @@ export class BrowserCacheManager extends CacheManager {
         // Removes all accounts and their credentials
         this.removeAllAccounts(correlationId);
         this.removeAppMetadata(correlationId);
-        let dpopNonceClearError: CacheError | null = null;
-        try {
-            this.clearDpopNonces();
-        } catch (error) {
-            const cacheError = createCacheError(error);
-            dpopNonceClearError = new CacheError(cacheError.errorCode);
-        }
+        this.clearDpopNonces();
 
         // Remove temp storage first to make sure any cookies are cleared
         this.temporaryCacheStorage.getKeys().forEach((cacheKey: string) => {
@@ -2772,10 +2498,7 @@ export class BrowserCacheManager extends CacheManager {
 
         // Removes all remaining MSAL cache items
         this.browserStorage.getKeys().forEach((cacheKey: string) => {
-            if (
-                parseDpopNonceCacheKey(cacheKey) ||
-                cacheKey === this.getDpopNonceClearMarkerKey()
-            ) {
+            if (parseDpopNonceCacheKey(cacheKey)) {
                 return;
             }
 
@@ -2788,10 +2511,6 @@ export class BrowserCacheManager extends CacheManager {
         });
 
         this.internalStorage.clear();
-
-        if (dpopNonceClearError) {
-            throw dpopNonceClearError;
-        }
     }
 
     /**

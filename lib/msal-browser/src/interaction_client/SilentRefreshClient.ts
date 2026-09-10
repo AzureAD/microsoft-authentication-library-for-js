@@ -49,8 +49,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
             this.config,
             this.performanceClient,
             this.logger,
-            this.correlationId,
-            this.browserStorage
+            this.correlationId
         );
         const tokenBindingParams = await getTokenBindingRequestParams(
             baseRequest,

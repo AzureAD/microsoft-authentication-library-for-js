@@ -89,10 +89,7 @@ import { IController } from "./IController.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
-import {
-    getDpopNonceForRequest,
-    initializeSilentRequest,
-} from "../request/RequestHelpers.js";
+import { initializeSilentRequest } from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import {
@@ -2322,27 +2319,16 @@ export class StandardController implements IController {
         account: AccountInfo,
         correlationId: string
     ): Promise<AuthenticationResult> {
-        const requestWithDpopNonce = {
-            ...request,
-            dpopNonce:
-                request.dpopNonce ??
-                (await getDpopNonceForRequest(request, this.browserStorage)),
-        };
         const thumbprint = getRequestThumbprint(
             this.config.auth.clientId,
             {
-                ...requestWithDpopNonce,
-                authority:
-                    requestWithDpopNonce.authority ||
-                    this.config.auth.authority,
+                ...request,
+                authority: request.authority || this.config.auth.authority,
                 correlationId: correlationId,
             },
             account.homeAccountId
         );
-        const silentRequestKey = JSON.stringify({
-            ...thumbprint,
-            dpopNonce: requestWithDpopNonce.dpopNonce,
-        });
+        const silentRequestKey = JSON.stringify(thumbprint);
 
         const inProgressRequest =
             this.activeSilentTokenRequests.get(silentRequestKey);
@@ -2362,7 +2348,7 @@ export class StandardController implements IController {
                 correlationId
             )(
                 {
-                    ...requestWithDpopNonce,
+                    ...request,
                     correlationId,
                 },
                 account
@@ -2416,14 +2402,7 @@ export class StandardController implements IController {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(
-            request,
-            account,
-            this.config,
-            this.performanceClient,
-            this.logger,
-            this.browserStorage
-        );
+        )(request, account, this.config, this.performanceClient, this.logger);
         const cacheLookupPolicy =
             request.cacheLookupPolicy || CacheLookupPolicy.Default;
 

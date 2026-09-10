@@ -17,7 +17,6 @@ import {
     JsonWebTokenAlgorithms,
     PerformanceEvents,
     PopTokenGenerator,
-    DpopNonceType,
     createClientConfigurationError,
     invokeAsync,
 } from "@azure/msal-common/browser";
@@ -27,7 +26,6 @@ import { SilentRequest } from "./SilentRequest.js";
 import { PopupRequest } from "./PopupRequest.js";
 import { RedirectRequest } from "./RedirectRequest.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 
 const SUPPORTED_AUTHENTICATION_SCHEMES = new Set<string>([
     Constants.AuthenticationScheme.BEARER,
@@ -132,29 +130,6 @@ export async function getTokenBindingRequestParams(
 }
 
 /**
- * Loads the resource-server DPoP nonce associated with a request, if any.
- */
-export async function getDpopNonceForRequest(
-    request: Partial<BaseAuthRequest>,
-    browserStorage?: BrowserCacheManager
-): Promise<string | undefined> {
-    if (
-        request.authenticationScheme !== Constants.AuthenticationScheme.DPOP ||
-        !request.resourceRequestUri ||
-        !browserStorage
-    ) {
-        return undefined;
-    }
-
-    return (
-        (await browserStorage.getDpopNonce(
-            DpopNonceType.ResourceServer,
-            request.resourceRequestUri
-        )) || undefined
-    );
-}
-
-/**
  * Initializer function for all request APIs
  * @param request
  * @param config
@@ -167,8 +142,7 @@ export async function initializeBaseRequest(
     config: BrowserConfiguration,
     performanceClient: IPerformanceClient,
     logger: Logger,
-    correlationId: string,
-    browserStorage?: BrowserCacheManager
+    correlationId: string
 ): Promise<BaseAuthRequest> {
     const authority = request.authority || config.auth.authority;
 
@@ -216,17 +190,6 @@ export async function initializeBaseRequest(
         );
     }
 
-    if (
-        validatedRequest.dpopNonce === undefined &&
-        validatedRequest.authenticationScheme ===
-            Constants.AuthenticationScheme.DPOP
-    ) {
-        validatedRequest.dpopNonce = await getDpopNonceForRequest(
-            validatedRequest,
-            browserStorage
-        );
-    }
-
     return validatedRequest;
 }
 
@@ -235,8 +198,7 @@ export async function initializeSilentRequest(
     account: AccountInfo,
     config: BrowserConfiguration,
     performanceClient: IPerformanceClient,
-    logger: Logger,
-    browserStorage?: BrowserCacheManager
+    logger: Logger
 ): Promise<CommonSilentFlowRequest> {
     const baseRequest = await invokeAsync(
         initializeBaseRequest,
@@ -244,14 +206,7 @@ export async function initializeSilentRequest(
         logger,
         performanceClient,
         request.correlationId
-    )(
-        request,
-        config,
-        performanceClient,
-        logger,
-        request.correlationId,
-        browserStorage
-    );
+    )(request, config, performanceClient, logger, request.correlationId);
     return {
         ...request,
         ...baseRequest,

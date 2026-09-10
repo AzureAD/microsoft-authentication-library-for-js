@@ -6122,66 +6122,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(resultB.accessToken).toBe(`token-for(${RESOURCE_B})`);
         });
 
-        it("does not deduplicate DPoP requests when the cached nonce changes", async () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: TEST_CONFIG.TENANT,
-                username: "user@contoso.com",
-            };
-            const tokenResponse: AuthenticationResult = {
-                authority: TEST_CONFIG.validAuthority,
-                uniqueId: testAccount.localAccountId,
-                tenantId: testAccount.tenantId,
-                scopes: ["User.Read"],
-                idToken: TEST_TOKENS.IDTOKEN_V2,
-                idTokenClaims: {},
-                accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                fromCache: false,
-                correlationId: RANDOM_TEST_GUID,
-                expiresOn: TestTimeUtils.nowDateWithOffset(
-                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
-                ),
-                account: testAccount,
-                tokenType: Constants.AuthenticationScheme.DPOP,
-            };
-            const nonceSpy = jest
-                .spyOn(browserStorage, "getDpopNonce")
-                .mockResolvedValueOnce("first-nonce")
-                .mockResolvedValueOnce("fresh-nonce");
-            const silentATStub = jest
-                .spyOn(
-                    RefreshTokenClient.prototype,
-                    "acquireTokenByRefreshToken"
-                )
-                .mockImplementation(async () => {
-                    await new Promise((resolve) => setTimeout(resolve, 20));
-                    return tokenResponse;
-                });
-            const request: SilentRequest = {
-                scopes: ["User.Read"],
-                account: testAccount,
-                authority: TEST_CONFIG.validAuthority,
-                authenticationScheme: Constants.AuthenticationScheme.DPOP,
-                resourceRequestMethod: "GET",
-                resourceRequestUri: "https://resource.example/path",
-                dpopJkt: "test-dpop-jkt",
-                forceRefresh: true,
-            };
-
-            await Promise.all([
-                pca.acquireTokenSilent(request),
-                pca.acquireTokenSilent(request),
-            ]);
-
-            expect(nonceSpy).toHaveBeenCalledTimes(2);
-            expect(silentATStub).toHaveBeenCalledTimes(2);
-            expect(
-                silentATStub.mock.calls.map((call) => call[0].dpopNonce)
-            ).toEqual(["first-nonce", "fresh-nonce"]);
-        });
-
         it("makes network requests for identical requests for different embedded apps when acquireTokenSilent is called in parallel", async () => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,

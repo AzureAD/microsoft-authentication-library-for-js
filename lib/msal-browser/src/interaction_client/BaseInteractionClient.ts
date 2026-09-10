@@ -270,14 +270,7 @@ export async function clearCacheOnLogout(
                 correlationId
             );
         }
-        try {
-            browserStorage.clearDpopNonces();
-        } catch {
-            logger.error(
-                "Failed to clear DPoP nonce cache during logout. Continuing with server sign-out.",
-                correlationId
-            );
-        }
+        browserStorage.clearDpopNonces();
     } else {
         try {
             logger.verbose(
