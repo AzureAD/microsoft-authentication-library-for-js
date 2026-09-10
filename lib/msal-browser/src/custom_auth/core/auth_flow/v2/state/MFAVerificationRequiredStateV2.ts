@@ -14,13 +14,13 @@ import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomA
 import { FLOW_COMPLETED_V2 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
-import { CodeVerificationStateBaseV2 } from "./CodeVerificationStateBaseV2.js";
+import { ChallengeVerificationStateBaseV2 } from "./ChallengeVerificationStateBaseV2.js";
 
 /**
  * State returned when sign-in requires verification of an email or SMS MFA
  * challenge. It allows the app to submit the challenge or request a replacement.
  */
-export class MFAVerificationRequiredStateV2 extends CodeVerificationStateBaseV2<MFAVerificationRequiredStateParametersV2> {
+export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBaseV2<MFAVerificationRequiredStateParametersV2> {
     readonly stateType = "mfaVerificationRequired";
 
     /**

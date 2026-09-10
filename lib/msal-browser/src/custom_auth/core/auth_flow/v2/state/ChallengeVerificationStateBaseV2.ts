@@ -11,7 +11,7 @@ import type {
     FlowSubmitCodeResultV2,
 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
 
-export abstract class CodeVerificationStateBaseV2<
+export abstract class ChallengeVerificationStateBaseV2<
     TParameters extends CodeVerificationStateParametersV2 = CodeVerificationStateParametersV2
 > extends AuthFlowActionRequiredStateBase<TParameters> {
     readonly method?: AuthenticationMethodV2;

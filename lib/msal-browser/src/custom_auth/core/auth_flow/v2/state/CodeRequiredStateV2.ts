@@ -24,13 +24,13 @@ import {
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
-import { CodeVerificationStateBaseV2 } from "./CodeVerificationStateBaseV2.js";
+import { ChallengeVerificationStateBaseV2 } from "./ChallengeVerificationStateBaseV2.js";
 
 /**
  * State returned when first-factor email authentication requires a one-time
  * code. It allows the app to submit the code or request a replacement.
  */
-export class CodeRequiredStateV2 extends CodeVerificationStateBaseV2<CodeRequiredStateParametersV2> {
+export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRequiredStateParametersV2> {
     readonly stateType = "codeRequired";
 
     /**
