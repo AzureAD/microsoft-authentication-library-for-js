@@ -9,7 +9,7 @@ import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { FLOW_CODE_REQUIRED_V2 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
-import { ChallengeVerificationRequiredStateV2 } from "./ChallengeVerificationRequiredStateV2.js";
+import { MFAVerificationRequiredStateV2 } from "./MFAVerificationRequiredStateV2.js";
 import type { MFARequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { MFARequestChallengeResultV2 } from "../result/MFARequestChallengeResultV2.js";
 import { AuthenticationMethodSelectionStateBaseV2 } from "./AuthenticationMethodSelectionStateBaseV2.js";
@@ -45,7 +45,7 @@ export class MFARequiredStateV2 extends AuthenticationMethodSelectionStateBaseV2
             }
 
             return new CustomAuthResultV2(
-                new ChallengeVerificationRequiredStateV2({
+                new MFAVerificationRequiredStateV2({
                     correlationId: result.correlationId,
                     logger,
                     config: this.stateParameters.config,

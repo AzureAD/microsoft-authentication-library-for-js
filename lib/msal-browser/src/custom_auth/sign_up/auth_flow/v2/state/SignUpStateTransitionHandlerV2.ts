@@ -4,7 +4,7 @@
  */
 
 import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
-import { ChallengeVerificationRequiredStateV2 } from "../../../../core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+import { CodeRequiredStateV2 } from "../../../../core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { CustomAuthError } from "../../../../core/error/CustomAuthError.js";
 import {
     FLOW_ATTRIBUTES_REQUIRED_V2,
@@ -35,7 +35,7 @@ export class SignUpStateTransitionHandlerV2 {
 
         if (result.type === FLOW_CODE_REQUIRED_V2) {
             return new CustomAuthResultV2(
-                new ChallengeVerificationRequiredStateV2({
+                new CodeRequiredStateV2({
                     ...commonStateParameters,
                     sentTo: result.sentTo,
                     channel: result.channel,

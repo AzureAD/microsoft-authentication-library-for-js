@@ -102,6 +102,14 @@ export interface FlowCompletedResultV2 extends FlowActionResultBaseV2 {
     authenticationResult: AuthenticationResult;
 }
 
+export type FlowSubmitCodeResultV2 =
+    | FlowNewPasswordRequiredResultV2
+    | FlowSignUpPasswordRequiredResultV2
+    | FlowAttributesRequiredResultV2
+    | FlowSignInContinuationRequiredResultV2
+    | FlowMFARequiredResultV2
+    | FlowCompletedResultV2;
+
 export type FlowSignUpActionResultV2 =
     | FlowCodeRequiredResultV2
     | FlowSignUpPasswordRequiredResultV2
