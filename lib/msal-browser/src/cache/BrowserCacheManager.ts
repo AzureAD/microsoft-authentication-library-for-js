@@ -238,6 +238,7 @@ export class BrowserCacheManager extends CacheManager {
             correlationId
         );
         await this.browserStorage.initialize(correlationId);
+        this.purgeInvalidDpopNonces();
         await this.migrateExistingCache(correlationId);
         this.trackVersionChanges(correlationId);
     }
@@ -1612,6 +1613,20 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * Best-effort sweep of invalid or expired nonce entries during cache startup.
+     */
+    private purgeInvalidDpopNonces(): void {
+        try {
+            this.getDpopNonceEntries();
+        } catch {
+            /*
+             * Cache initialization must remain available when storage cannot be
+             * enumerated. Individual reads continue to validate nonce entries.
+             */
+        }
+    }
+
+    /**
      * Helper to setItem in browser storage, with cleanup in case of quota errors
      * @param key
      * @param value
@@ -2737,7 +2752,13 @@ export class BrowserCacheManager extends CacheManager {
         // Removes all accounts and their credentials
         this.removeAllAccounts(correlationId);
         this.removeAppMetadata(correlationId);
-        this.clearDpopNonces();
+        let dpopNonceClearError: CacheError | null = null;
+        try {
+            this.clearDpopNonces();
+        } catch (error) {
+            const cacheError = createCacheError(error);
+            dpopNonceClearError = new CacheError(cacheError.errorCode);
+        }
 
         // Remove temp storage first to make sure any cookies are cleared
         this.temporaryCacheStorage.getKeys().forEach((cacheKey: string) => {
@@ -2767,6 +2788,10 @@ export class BrowserCacheManager extends CacheManager {
         });
 
         this.internalStorage.clear();
+
+        if (dpopNonceClearError) {
+            throw dpopNonceClearError;
+        }
     }
 
     /**

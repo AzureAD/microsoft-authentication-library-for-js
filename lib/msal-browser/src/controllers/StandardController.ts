@@ -89,7 +89,10 @@ import { IController } from "./IController.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
-import { initializeSilentRequest } from "../request/RequestHelpers.js";
+import {
+    getDpopNonceForRequest,
+    initializeSilentRequest,
+} from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import {
@@ -2319,16 +2322,27 @@ export class StandardController implements IController {
         account: AccountInfo,
         correlationId: string
     ): Promise<AuthenticationResult> {
+        const requestWithDpopNonce = {
+            ...request,
+            dpopNonce:
+                request.dpopNonce ??
+                (await getDpopNonceForRequest(request, this.browserStorage)),
+        };
         const thumbprint = getRequestThumbprint(
             this.config.auth.clientId,
             {
-                ...request,
-                authority: request.authority || this.config.auth.authority,
+                ...requestWithDpopNonce,
+                authority:
+                    requestWithDpopNonce.authority ||
+                    this.config.auth.authority,
                 correlationId: correlationId,
             },
             account.homeAccountId
         );
-        const silentRequestKey = JSON.stringify(thumbprint);
+        const silentRequestKey = JSON.stringify({
+            ...thumbprint,
+            dpopNonce: requestWithDpopNonce.dpopNonce,
+        });
 
         const inProgressRequest =
             this.activeSilentTokenRequests.get(silentRequestKey);
@@ -2348,7 +2362,7 @@ export class StandardController implements IController {
                 correlationId
             )(
                 {
-                    ...request,
+                    ...requestWithDpopNonce,
                     correlationId,
                 },
                 account

@@ -683,7 +683,7 @@ export interface IPublicClientApplication {
     // (undocumented)
     getLogger(): Logger;
     // (undocumented)
-    getTokenCache(): ITokenCache;
+    getTokenCache?(): ITokenCache;
     // (undocumented)
     handleRedirectPromise(options?: HandleRedirectPromiseOptions): Promise<AuthenticationResult | null>;
     // (undocumented)

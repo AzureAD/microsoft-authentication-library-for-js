@@ -132,6 +132,29 @@ export async function getTokenBindingRequestParams(
 }
 
 /**
+ * Loads the resource-server DPoP nonce associated with a request, if any.
+ */
+export async function getDpopNonceForRequest(
+    request: Partial<BaseAuthRequest>,
+    browserStorage?: BrowserCacheManager
+): Promise<string | undefined> {
+    if (
+        request.authenticationScheme !== Constants.AuthenticationScheme.DPOP ||
+        !request.resourceRequestUri ||
+        !browserStorage
+    ) {
+        return undefined;
+    }
+
+    return (
+        (await browserStorage.getDpopNonce(
+            DpopNonceType.ResourceServer,
+            request.resourceRequestUri
+        )) || undefined
+    );
+}
+
+/**
  * Initializer function for all request APIs
  * @param request
  * @param config
@@ -194,16 +217,14 @@ export async function initializeBaseRequest(
     }
 
     if (
+        validatedRequest.dpopNonce === undefined &&
         validatedRequest.authenticationScheme ===
-            Constants.AuthenticationScheme.DPOP &&
-        validatedRequest.resourceRequestUri &&
-        browserStorage
+            Constants.AuthenticationScheme.DPOP
     ) {
-        validatedRequest.dpopNonce =
-            (await browserStorage.getDpopNonce(
-                DpopNonceType.ResourceServer,
-                validatedRequest.resourceRequestUri
-            )) || undefined;
+        validatedRequest.dpopNonce = await getDpopNonceForRequest(
+            validatedRequest,
+            browserStorage
+        );
     }
 
     return validatedRequest;

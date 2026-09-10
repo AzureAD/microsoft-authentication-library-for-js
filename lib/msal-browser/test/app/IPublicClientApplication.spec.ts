@@ -163,7 +163,7 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
 
         it("getTokenCache throws", () => {
             expect(() =>
-                stubbedPublicClientApplication.getTokenCache()
+                stubbedPublicClientApplication.getTokenCache?.()
             ).toThrow(
                 BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
             );

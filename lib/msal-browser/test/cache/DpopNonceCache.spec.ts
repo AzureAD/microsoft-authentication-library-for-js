@@ -399,6 +399,32 @@ describe("DPoP nonce cache", () => {
         expect(storage.containsKey(schemaKey)).toBe(false);
     });
 
+    it("purges expired nonce entries during cache initialization", async () => {
+        const storage = new MemoryStorage<string>();
+        const now = Date.now();
+        const firstCacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage,
+            storage
+        );
+        await firstCacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://expired-on-startup.example/path",
+            "expired-nonce",
+            DpopNonceSource.ResourceServer,
+            now
+        );
+        expect(firstCacheManager.getDpopNonceKeys()).toHaveLength(1);
+
+        jest.spyOn(Date, "now").mockReturnValue(now + DPOP_NONCE_TTL_MS + 1);
+        const secondCacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage,
+            storage
+        );
+        await secondCacheManager.initialize(TEST_CONFIG.CORRELATION_ID);
+
+        expect(secondCacheManager.getDpopNonceKeys()).toHaveLength(0);
+    });
+
     it("purges only a matching old-schema key when the current key is absent", async () => {
         const storage = new MemoryStorage<string>();
         const cacheManager = createCacheManager(
@@ -939,6 +965,42 @@ describe("DPoP nonce cache", () => {
         expect(() => cacheManager.clearDpopNonces()).toThrow(CacheError);
         expect(storage.containsKey(keys[0])).toBe(true);
         expect(storage.containsKey(keys[1])).toBe(false);
+    });
+
+    it("continues full cache cleanup after a nonce removal failure", async () => {
+        const storage = new MemoryStorage<string>();
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage,
+            storage
+        );
+        await cacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://failed-clear.example/path",
+            "nonce",
+            DpopNonceSource.ResourceServer
+        );
+        const nonceKey = cacheManager.getDpopNonceKeys()[0];
+        const msalKey = "msal.test-key";
+        storage.setItem(msalKey, "value");
+        cacheManager.setTemporaryCache("msal.temporary-key", "value", false);
+        cacheManager.setWrapperMetadata("test-sku", "test-version");
+
+        const originalRemoveItem = storage.removeItem.bind(storage);
+        jest.spyOn(storage, "removeItem").mockImplementation((key) => {
+            if (key === nonceKey) {
+                throw new Error("nonce removal failed");
+            }
+            originalRemoveItem(key);
+        });
+
+        expect(() => cacheManager.clear(TEST_CONFIG.CORRELATION_ID)).toThrow(
+            CacheError
+        );
+        expect(storage.containsKey(msalKey)).toBe(false);
+        expect(
+            cacheManager.getTemporaryCache("msal.temporary-key", false)
+        ).toBeNull();
+        expect(cacheManager.getWrapperMetadata()).toEqual(["", ""]);
     });
 
     it("propagates a sanitized clear failure when key enumeration fails", () => {
