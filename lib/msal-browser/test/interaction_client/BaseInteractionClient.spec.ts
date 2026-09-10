@@ -35,6 +35,7 @@ import {
     TenantProfile,
 } from "../../src/index.js";
 import { OpenIdConfigResponse } from "../../../msal-common/src/authority/OpenIdConfigResponse.js";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 
 class testInteractionClient extends BaseInteractionClient {
     acquireToken(): Promise<void> {
@@ -259,6 +260,24 @@ describe("BaseInteractionClient", () => {
             expect(pca.getActiveAccount()).toBe(null);
             // @ts-ignore
             expect(pca.browserStorage.getDpopNonceKeys()).toHaveLength(0);
+        });
+
+        it("continues account logout when clearing DPoP nonces fails", async () => {
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "clearDpopNonces"
+            ).mockImplementation(() => {
+                throw new Error("nonce clear failed");
+            });
+
+            await expect(
+                testClient.logout({ account: testAccountInfo1 })
+            ).resolves.toBeUndefined();
+            expect(
+                pca.getAccount({
+                    homeAccountId: testAccountInfo1.homeAccountId,
+                })
+            ).toBeNull();
         });
     });
     describe("getDiscoveredAuthority()", () => {

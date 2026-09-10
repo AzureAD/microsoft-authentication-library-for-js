@@ -89,7 +89,10 @@ import { IController } from "./IController.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
-import { initializeSilentRequest } from "../request/RequestHelpers.js";
+import {
+    getDpopNonceForRequest,
+    initializeSilentRequest,
+} from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import {
@@ -2442,9 +2445,15 @@ export class StandardController implements IController {
         account: AccountInfo,
         correlationId: string
     ): Promise<AuthenticationResult> {
+        const requestWithDpopNonce = {
+            ...request,
+            dpopNonce:
+                request.dpopNonce ??
+                (await getDpopNonceForRequest(request, this.browserStorage)),
+        };
         const preparedRequest = resolveSilentRequestPreparation(
             {
-                request,
+                request: requestWithDpopNonce,
                 account,
                 correlationId,
                 config: this.config,
