@@ -1,0 +1,13 @@
+I’m applying only the supplied finding metadata; first I’m satisfying the mandatory baseline guardrail, without inspecting repository code or diffs.
+
+The metadata contains clear duplicate clusters around the missing public interface and DPoP workflow documentation. I’m checking prior decisions before removing only duplicates or explicitly resolved items.
+
+No prior resolutions exist. I’m removing the two lower-priority interface duplicates and the narrower duplicate documentation finding; all other findings describe distinct files, failure modes, or package requirements.
+
+Removed 3 semantic duplicates:
+
+- `factory-return-type-hides-token-cache`
+- `token-cache-missing-from-public-interface`
+- `document-public-dpop-nonce-cache-api`
+
+No prior `wontfix` or `by-design` decisions were recorded. The remaining 11 findings describe distinct issues.

@@ -1,0 +1,49 @@
+I’m loading the mandatory security and repository rules before examining the PR diff.
+
+The loop-specific diff tools are unavailable in this runtime, so I’m retrieving the authoritative GitHub PR patch directly and will keep findings limited to the supplied changed-file list.
+
+The patch shows the core risk is nonce-cache coordination and lifecycle behavior; I’m tracing those final source paths and their callers against the checked-out PR state.
+
+```json:findings
+[
+  {
+    "id": "older-write-purges-newer-origins",
+    "severity": "🟡",
+    "file": "lib/msal-browser/src/cache/BrowserCacheManager.ts",
+    "line": 1095,
+    "action": "fix",
+    "details": {
+      "problem": "A delayed nonce write validates all retained entries using the delayed entity's older timestamp, causing newer nonces for other origins to be classified as future-dated and deleted.",
+      "reasoning": "The write queue is shared only within one JavaScript realm. If another tab writes origin B at time T2 while an origin A write created at T1 is awaiting hashing, the T1 write can resume later and call getDpopNonceEntries(nonceType, T1). The valid origin-B entry has lastUpdatedAt T2, so isDpopNonceEntityValid rejects it as future-dated and the enumeration removes it. The same-origin freshness check does not protect entries under different cache keys.",
+      "suggestion": "Use the actual current time when validating retained entries during cleanup, rather than entity.lastUpdatedAt. Keep insertion ordering and eviction comparisons separate from entity-validity time, and add a test with an older delayed write and a newer nonce under a different origin."
+    },
+    "confidence": "high"
+  },
+  {
+    "id": "token-cache-missing-from-public-interface",
+    "severity": "🟡",
+    "file": "lib/msal-browser/src/app/PublicClientApplication.ts",
+    "line": 397,
+    "action": "fix",
+    "details": {
+      "problem": "The new getTokenCache method is added only to the concrete PublicClientApplication class and not to IPublicClientApplication.",
+      "reasoning": "createStandardPublicClientApplication and createNestablePublicClientApplication both return Promise<IPublicClientApplication>, and wrapper libraries also expose instances through that interface. Consumers using those supported paths therefore get a TypeScript error when calling getTokenCache, making the new public nonce-loading API inaccessible despite the runtime object implementing it.",
+      "suggestion": "Add getTokenCache(): ITokenCache to IPublicClientApplication, implement the corresponding stub behavior, and update the API review so the method is available through factory and wrapper return types."
+    },
+    "confidence": "high"
+  },
+  {
+    "id": "failed-nonce-removal-hidden-on-clear",
+    "severity": "🟡",
+    "file": "lib/msal-browser/src/cache/BrowserCacheManager.ts",
+    "line": 1233,
+    "action": "fix",
+    "details": {
+      "problem": "clearDpopNonces silently ignores removal failures, while the subsequent full-cache cleanup deliberately skips every DPoP nonce key.",
+      "reasoning": "If storage removeItem throws, clearDpopNonces leaves the nonce persisted but reports success. BrowserCacheManager.clear then encounters that same key and returns early because parseDpopNonceCacheKey succeeds, so logout or clearCache can complete with a still-loadable stale nonce. This is reproducible with a supported custom IWindowStorage implementation and can also occur when browser storage operations fail.",
+      "suggestion": "Continue attempting all nonce removals but retain and propagate a sanitized failure afterward, or have clear() retry current-client DPoP keys instead of unconditionally skipping them. Add coverage where removeItem fails and verify clearing does not report success while the nonce remains."
+    },
+    "confidence": "high"
+  }
+]
+```

@@ -130,7 +130,11 @@ export class UnknownOperatingContextController implements IController {
                   undefined,
                   tokenBindingKeyManager
               );
-        this.tokenCache = new TokenCache(this.browserStorage);
+        this.tokenCache = new TokenCache(
+            this.browserStorage,
+            this.logger,
+            this.performanceClient
+        );
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

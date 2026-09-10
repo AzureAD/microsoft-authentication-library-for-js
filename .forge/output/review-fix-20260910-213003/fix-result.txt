@@ -1,0 +1,35 @@
+I’m consolidating the merged findings and current branch diffs first, then I’ll patch the public API, nonce persistence semantics, documentation, tests, and changefiles as one coherent fix.
+
+The fixes converge on three root causes: the token-cache surface is incomplete, nonce writes are not transactional across storage failures/contexts, and resource proofs never consume the cache. I’m reading the exact controller/proof/performance/test patterns now so the patch follows repository conventions.
+
+The existing PCA integration test is present but typed concretely, so I’ll strengthen it to the public interface. The proof path is in `msal-common` response handling, which means consuming browser storage there would violate package layering; I’m tracing the browser-to-common request context to inject the cached nonce before proof generation instead.
+
+I have the implementation shape. I’m applying a transactional write strategy (write-first logical eviction, rollback on quota recovery), a localStorage-backed ownership lock for cross-tab commits, propagated clear failures, public-interface/stub completion, telemetry injection, and cached nonce propagation into common DPoP proof generation.
+
+The core patch is in place. I’m now adding regression coverage for rollback and clear failures, asserting the public interface path, verifying the cached nonce reaches signed proof claims, and correcting the v5 migration/cache docs before running package checks.
+
+Implementation and regression coverage are complete. I’m running formatting plus the focused browser/common test suites and builds now; any type/API drift will be corrected before decisions are recorded.
+
+Validation is currently blocked by missing root dependencies (`ts-jest` and `shx`). The formatter also touched unrelated files, so I’m first removing only those formatter-induced changes outside the PR’s original file set, then I’ll bootstrap dependencies and rerun the focused checks.
+
+Dependency bootstrap hit a Windows filesystem collision at `node_modules\@types\jest` after partial install. I’m checking the resulting tool availability and repository state; if package binaries are now usable, I’ll validate directly without further dependency mutation.
+
+The package formatter normalized whole files, leaving a non-surgical diff. I’m resetting only the tracked working-tree edits back to the PR branch HEAD via reverse patch, then reapplying the fixes without whole-file formatting so the final delta stays reviewable.
+
+The source diff is surgical again. The partial install left a malformed `node_modules\@types\jest` entry and no package binaries; I’m removing that exact failed dependency path and retrying the repository bootstrap, then validation can proceed normally.
+
+The repository-local install cannot be repaired under the current file-access policy, so I’m isolating validation tooling in the session workspace and pointing Node resolution at it. This avoids changing manifests or the repository dependency tree while still enabling typechecks/tests.
+
+Typechecking found one missing constant import, now fixed; the remaining browser error is expected until the changed common declarations are emitted. I’m running the focused tests, then building common declarations into its ignored output before the browser typecheck.
+
+Production typechecks now pass for both packages. The repository Jest config still binds to the broken local type installation, so I’m using temporary session-only Jest configs with the same resolver/environment and transpile-only test compilation; this will execute the tests without weakening repository code or committing config changes.
+
+Focused tests exposed a compatibility issue in deterministic timestamp-injection tests: using only wall-clock time correctly fixes delayed writes but treats test-supplied future insertion timestamps as invalid. I’m using the later of wall-clock and the incoming insertion timestamp, which preserves the race fix while retaining deterministic ordering semantics.
+
+Focused runtime tests and production typechecks now pass. I’ve also updated the API review and stub coverage; the final gate is targeted formatting, a rerun of browser tests after the eviction-order adjustment, and a clean diff review before recording all finding decisions.
+
+All targeted checks are green: 49 browser tests, 32 common response tests, both package typechecks, Prettier, and diff whitespace. I’m recording the required fix decisions for all 13 findings and finalizing the validation-loop handoff.
+
+**Fixed all 13 findings.** The changes complete the public `IPublicClientApplication.getTokenCache()` API, consume cached nonces in subsequent DPoP proofs, add nonce-cache telemetry, coordinate cross-tab `localStorage` writes, make eviction transactional, propagate clear failures, update documentation/API review/changefiles, and add regression coverage.
+
+Validation passed: **49 browser tests**, **32 common tests**, both package typechecks, Prettier checks, and `git diff --check`. All findings were recorded as fixed.

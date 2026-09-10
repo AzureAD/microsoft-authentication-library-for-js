@@ -17,6 +17,7 @@ import {
     JsonWebTokenAlgorithms,
     PerformanceEvents,
     PopTokenGenerator,
+    DpopNonceType,
     createClientConfigurationError,
     invokeAsync,
 } from "@azure/msal-common/browser";
@@ -26,6 +27,7 @@ import { SilentRequest } from "./SilentRequest.js";
 import { PopupRequest } from "./PopupRequest.js";
 import { RedirectRequest } from "./RedirectRequest.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 
 const SUPPORTED_AUTHENTICATION_SCHEMES = new Set<string>([
     Constants.AuthenticationScheme.BEARER,
@@ -195,7 +197,8 @@ export async function initializeBaseRequest(
     config: BrowserConfiguration,
     performanceClient: IPerformanceClient,
     logger: Logger,
-    correlationId: string
+    correlationId: string,
+    browserStorage?: BrowserCacheManager
 ): Promise<BaseAuthRequest> {
     const authority = request.authority || config.auth.authority;
 
@@ -243,6 +246,19 @@ export async function initializeBaseRequest(
         );
     }
 
+    if (
+        validatedRequest.authenticationScheme ===
+            Constants.AuthenticationScheme.DPOP &&
+        validatedRequest.resourceRequestUri &&
+        browserStorage
+    ) {
+        validatedRequest.dpopNonce =
+            (await browserStorage.getDpopNonce(
+                DpopNonceType.ResourceServer,
+                validatedRequest.resourceRequestUri
+            )) || undefined;
+    }
+
     return validatedRequest;
 }
 
@@ -251,7 +267,8 @@ export async function initializeSilentRequest(
     account: AccountInfo,
     config: BrowserConfiguration,
     performanceClient: IPerformanceClient,
-    logger: Logger
+    logger: Logger,
+    browserStorage?: BrowserCacheManager
 ): Promise<CommonSilentFlowRequest> {
     const baseRequest = await invokeAsync(
         initializeBaseRequest,
@@ -259,7 +276,14 @@ export async function initializeSilentRequest(
         logger,
         performanceClient,
         request.correlationId
-    )(request, config, performanceClient, logger, request.correlationId);
+    )(
+        request,
+        config,
+        performanceClient,
+        logger,
+        request.correlationId,
+        browserStorage
+    );
     return {
         ...request,
         ...baseRequest,

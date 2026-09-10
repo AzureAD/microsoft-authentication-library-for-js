@@ -74,18 +74,43 @@ export interface ITokenCache {
  * @internal
  */
 export class TokenCache implements ITokenCache {
-    constructor(private readonly browserStorage: BrowserCacheManager) {}
+    constructor(
+        private readonly browserStorage: BrowserCacheManager,
+        private readonly logger: Logger,
+        private readonly performanceClient: IPerformanceClient
+    ) {}
 
     async loadDpopNonce(
         resourceRequestUri: string,
         dpopNonce: string
     ): Promise<void> {
-        return this.browserStorage.setDpopNonce(
-            DpopNonceType.ResourceServer,
-            resourceRequestUri,
-            dpopNonce,
-            DpopNonceSource.ResourceServer
-        );
+        const correlationId = BrowserCrypto.createNewGuid();
+        return invokeAsync(
+            async (): Promise<void> => {
+                try {
+                    await this.browserStorage.setDpopNonce(
+                        DpopNonceType.ResourceServer,
+                        resourceRequestUri,
+                        dpopNonce,
+                        DpopNonceSource.ResourceServer
+                    );
+                    this.performanceClient.addFields(
+                        { dpopNonceCacheWriteSucceeded: true },
+                        correlationId
+                    );
+                } catch (error) {
+                    this.performanceClient.addFields(
+                        { dpopNonceCacheWriteSucceeded: false },
+                        correlationId
+                    );
+                    throw error;
+                }
+            },
+            BrowserPerformanceEvents.TokenCacheLoadDpopNonce,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
     }
 }
 

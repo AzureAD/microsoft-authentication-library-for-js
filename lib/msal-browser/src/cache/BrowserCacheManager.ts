@@ -42,6 +42,7 @@ import {
     buildTenantProfile,
     canonicalizeDpopNonceIssuer,
     createDpopNonceEntity,
+    DPOP_NONCE_CACHE_KEY_PREFIX,
     DPOP_NONCE_MAX_ENTRIES_PER_TYPE,
     DPOP_NONCE_SCHEMA_VERSION,
     DpopNonceEntity,
@@ -115,6 +116,13 @@ const dpopNonceCacheStates = new WeakMap<
     object,
     Map<string, DpopNonceCacheState>
 >();
+const DPOP_NONCE_LOCK_TTL_MS = 1000;
+const DPOP_NONCE_LOCK_RETRY_MS = 10;
+const DPOP_NONCE_LOCK_RETRY_COUNT = 100;
+
+function delay(milliseconds: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
 
 /**
  * Returns shared DPoP nonce coordination state for one client and backing
@@ -1075,6 +1083,19 @@ export class BrowserCacheManager extends CacheManager {
             return;
         }
 
+        return this.withDpopNonceStorageLock(async () => {
+            if (cacheGeneration !== this.dpopNonceCacheState.generation) {
+                return;
+            }
+            this.commitDpopNonce(nonceType, cacheKey, entity);
+        });
+    }
+
+    private commitDpopNonce(
+        nonceType: DpopNonceType,
+        cacheKey: string,
+        entity: DpopNonceEntity
+    ): void {
         let persistedEntity: object | null = null;
         try {
             const persistedValue = this.browserStorage.getItem(cacheKey);
@@ -1092,26 +1113,33 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         const serializedEntity = JSON.stringify(entity);
+        const validationTime = Math.max(Date.now(), entity.lastUpdatedAt);
         const retainedEntries = this.getDpopNonceEntries(
             nonceType,
-            entity.lastUpdatedAt
+            validationTime
         );
-
-        if (
+        const requiresCapacityEviction =
             !retainedEntries.some((entry) => entry.key === cacheKey) &&
-            retainedEntries.length >= DPOP_NONCE_MAX_ENTRIES_PER_TYPE
-        ) {
-            const entriesToRemove =
-                retainedEntries.length - DPOP_NONCE_MAX_ENTRIES_PER_TYPE + 1;
-            retainedEntries
-                .slice(0, entriesToRemove)
-                .forEach((entry) =>
-                    this.removeDpopNonceEntryForWrite(entry.key)
-                );
-        }
+            retainedEntries.length >= DPOP_NONCE_MAX_ENTRIES_PER_TYPE;
 
         try {
             this.browserStorage.setItem(cacheKey, serializedEntity);
+            if (!requiresCapacityEviction) {
+                return;
+            }
+
+            const entriesToRemove =
+                retainedEntries.length - DPOP_NONCE_MAX_ENTRIES_PER_TYPE + 1;
+            try {
+                retainedEntries
+                    .slice(0, entriesToRemove)
+                    .forEach((entry) =>
+                        this.removeDpopNonceEntryForWrite(entry.key)
+                    );
+            } catch (error) {
+                this.removeDpopNonceEntryForWrite(cacheKey);
+                throw error;
+            }
             return;
         } catch (error) {
             const cacheError = createCacheError(error);
@@ -1120,12 +1148,26 @@ export class BrowserCacheManager extends CacheManager {
             }
         }
 
-        const nonceEntries = this.getDpopNonceEntries(
+        const allNonceEntries = this.getDpopNonceEntries(
             undefined,
-            entity.lastUpdatedAt
+            validationTime
         ).filter((entry) => entry.key !== cacheKey);
+        const capacityEntries = requiresCapacityEviction
+            ? retainedEntries.filter((entry) => entry.key !== cacheKey)
+            : [];
+        const capacityKeys = new Set(capacityEntries.map((entry) => entry.key));
+        const nonceEntries = [
+            ...capacityEntries,
+            ...allNonceEntries.filter((entry) => !capacityKeys.has(entry.key)),
+        ];
+        const removedEntries: Array<{ key: string; value: string }> = [];
         for (const entry of nonceEntries) {
+            const value = this.browserStorage.getItem(entry.key);
+            if (value === null) {
+                continue;
+            }
             this.removeDpopNonceEntryForWrite(entry.key);
+            removedEntries.push({ key: entry.key, value });
             try {
                 this.browserStorage.setItem(cacheKey, serializedEntity);
                 return;
@@ -1134,12 +1176,68 @@ export class BrowserCacheManager extends CacheManager {
                 if (
                     cacheError.errorCode !== CacheErrorCodes.cacheQuotaExceeded
                 ) {
+                    this.restoreDpopNonceEntries(removedEntries);
                     throw new CacheError(cacheError.errorCode);
                 }
             }
         }
 
+        this.restoreDpopNonceEntries(removedEntries);
         throw new CacheError(CacheErrorCodes.cacheQuotaExceeded);
+    }
+
+    private restoreDpopNonceEntries(
+        entries: Array<{ key: string; value: string }>
+    ): void {
+        entries.forEach((entry) => {
+            try {
+                this.browserStorage.setItem(entry.key, entry.value);
+            } catch {
+                // Preserve the original sanitized cache failure.
+            }
+        });
+    }
+
+    private async withDpopNonceStorageLock(
+        callback: () => Promise<void>
+    ): Promise<void> {
+        if (!(this.browserStorage instanceof LocalStorage)) {
+            return callback();
+        }
+
+        const lockKey = `${DPOP_NONCE_CACHE_KEY_PREFIX}.lock|${this.clientId}`;
+        const owner = this.cryptoImpl.createNewGuid();
+        for (
+            let attempt = 0;
+            attempt < DPOP_NONCE_LOCK_RETRY_COUNT;
+            attempt++
+        ) {
+            const now = Date.now();
+            const currentLock = this.browserStorage.getItem(lockKey);
+            const currentExpiry = Number(currentLock?.split("|")[1]);
+            if (
+                !currentLock ||
+                !Number.isFinite(currentExpiry) ||
+                currentExpiry <= now
+            ) {
+                const lockValue = `${owner}|${now + DPOP_NONCE_LOCK_TTL_MS}`;
+                this.browserStorage.setItem(lockKey, lockValue);
+                if (this.browserStorage.getItem(lockKey) === lockValue) {
+                    try {
+                        return await callback();
+                    } finally {
+                        if (
+                            this.browserStorage.getItem(lockKey) === lockValue
+                        ) {
+                            this.browserStorage.removeItem(lockKey);
+                        }
+                    }
+                }
+            }
+            await delay(DPOP_NONCE_LOCK_RETRY_MS);
+        }
+
+        throw new CacheError(CacheErrorCodes.cacheErrorUnknown);
     }
 
     /**
@@ -1232,16 +1330,18 @@ export class BrowserCacheManager extends CacheManager {
      */
     clearDpopNonces(): void {
         this.dpopNonceCacheState.generation++;
+        let removalError: CacheError | null = null;
         this.getDpopNonceKeys().forEach((cacheKey) => {
             try {
                 this.browserStorage.removeItem(cacheKey);
-            } catch {
-                /*
-                 * Continue clearing the remaining nonce entries when a custom
-                 * storage implementation fails to remove one item.
-                 */
+            } catch (error) {
+                const cacheError = createCacheError(error);
+                removalError ||= new CacheError(cacheError.errorCode);
             }
         });
+        if (removalError) {
+            throw removalError;
+        }
     }
 
     private async generateDpopNonceCacheKey(

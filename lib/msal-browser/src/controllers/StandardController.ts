@@ -270,7 +270,11 @@ export class StandardController implements IController {
                   undefined,
                   this.tokenBindingKeyManager
               );
-        this.tokenCache = new TokenCache(this.browserStorage);
+        this.tokenCache = new TokenCache(
+            this.browserStorage,
+            this.logger,
+            this.performanceClient
+        );
 
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
@@ -2535,7 +2539,14 @@ export class StandardController implements IController {
             this.logger,
             this.performanceClient,
             request.correlationId
-        )(request, account, this.config, this.performanceClient, this.logger);
+        )(
+            request,
+            account,
+            this.config,
+            this.performanceClient,
+            this.logger,
+            this.browserStorage
+        );
         const cacheLookupPolicy =
             request.cacheLookupPolicy || CacheLookupPolicy.Default;
 

@@ -35,12 +35,14 @@ await shr
     });
 ```
 
-### TokenCache and loadExternalTokens
+### `loadExternalTokens`
 
 MSAL JS API for [loadExternalTokens](../testing.md#the-loadexternaltokens-api) is modified. The changes include:
 
--   `TokenCache` object and `getTokenCache()` have been removed
--   The `loadExternalTokens()` API is now a separate export and requires `Configuration` as a parameter
+-   The legacy `TokenCache.loadExternalTokens()` method has been removed.
+-   The `loadExternalTokens()` API is now a separate export and requires `Configuration` as a parameter.
+-   `getTokenCache()` remains available for dedicated cache operations such as
+    [`loadDpopNonce()`](./caching.md#dpop-resource-server-nonce-challenges).
 
 ```js
 // BEFORE

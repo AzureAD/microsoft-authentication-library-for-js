@@ -141,7 +141,11 @@ export class NestedAppAuthController implements IController {
                   undefined,
                   tokenBindingKeyManager
               );
-        this.tokenCache = new TokenCache(this.browserStorage);
+        this.tokenCache = new TokenCache(
+            this.browserStorage,
+            this.logger,
+            this.performanceClient
+        );
 
         this.nestedAppAuthAdapter = new NestedAppAuthAdapter(
             this.config.auth.clientId,

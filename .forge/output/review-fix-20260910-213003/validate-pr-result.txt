@@ -1,0 +1,32 @@
+```json:findings
+[
+  {
+    "id": "expose-token-cache-on-public-pca-interface",
+    "severity": "blocking",
+    "file": "lib/msal-browser/src/app/PublicClientApplication.ts",
+    "line": 394,
+    "action": "fix",
+    "details": {
+      "problem": "getTokenCache() is added only to the PublicClientApplication class, not to the public IPublicClientApplication interface returned and consumed by MSAL factory and wrapper APIs.",
+      "reasoning": "Consumers whose PCA is typed as IPublicClientApplication cannot call the newly documented getTokenCache(). This makes the advertised public DPoP nonce deposit API unavailable through the library's primary public abstraction, and leaves stubbed implementations without the member.",
+      "suggestion": "Add getTokenCache(): ITokenCache to IPublicClientApplication, import the interface as a type there, and add a matching deterministic stub implementation to stubbedPublicClientApplication. Add coverage using a PCA value typed as IPublicClientApplication."
+    },
+    "confidence": "high",
+    "source": "validate-pr"
+  },
+  {
+    "id": "document-public-dpop-nonce-cache-api",
+    "severity": "warn",
+    "file": "lib/msal-browser/src/cache/TokenCache.ts",
+    "line": 58,
+    "action": "fix",
+    "details": {
+      "problem": "The PR introduces the public ITokenCache.loadDpopNonce API without updating msal-browser documentation.",
+      "reasoning": "The API is exported and exposed from PublicClientApplication, but no documentation describes its resource-origin scoping, input constraints, persistence lifecycle, or error behavior. Consumers therefore have no supported usage guidance for the new public surface.",
+      "suggestion": "Add msal-browser documentation for getTokenCache().loadDpopNonce(), including HTTPS resource URI requirements, opaque nonce handling, cache-location behavior, and nonce removal during logout or cache clearing."
+    },
+    "confidence": "high",
+    "source": "validate-pr"
+  }
+]
+```
