@@ -33,6 +33,9 @@ import {
     Constants,
     ClientAuthError,
     StubPerformanceClient,
+    getRequestThumbprint,
+    NativeRequest,
+    AADServerParamKeys,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -56,12 +59,30 @@ import { UsernamePasswordClient } from "./UsernamePasswordClient.js";
 import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
 
 /**
+ * Prepared silent requests and the acquisition path whose parameters determine their key.
+ */
+type SilentRequestKeyInput =
+    | {
+          requestType: "non-native";
+          request: CommonSilentFlowRequest;
+          authority: string;
+      }
+    | {
+          requestType: "native";
+          request: NativeRequest;
+      };
+
+/**
  * Base abstract class for all ClientApplications - public and confidential
  * @public
  */
 export abstract class ClientApplication {
     protected readonly cryptoProvider: CryptoProvider;
     private tokenCache: TokenCache;
+    private readonly activeSilentTokenRequests: Map<
+        string,
+        Promise<AuthenticationResult>
+    >;
 
     /**
      * Platform storage object
@@ -109,6 +130,7 @@ export abstract class ClientApplication {
             this.logger,
             this.config.cache.cachePlugin
         );
+        this.activeSilentTokenRequests = new Map();
     }
 
     /**
@@ -293,6 +315,7 @@ export abstract class ClientApplication {
      *
      * This API expects the user to provide an account object and looks into the cache to retrieve the token if present.
      * There is also an optional "forceRefresh" boolean the user can send to bypass the cache for access_token and id_token.
+     * Concurrent requests with the same request thumbprint return the same in-progress result.
      * In case the refresh_token is expired or not found, an error is thrown
      * and the guidance is for the user to call any interactive token acquisition API (eg: `acquireTokenByCode()`).
      */
@@ -305,6 +328,202 @@ export abstract class ClientApplication {
             forceRefresh: request.forceRefresh || false,
         };
 
+        if (!validRequest.account) {
+            return this.acquireTokenSilentAsync(
+                validRequest,
+                request.azureCloudOptions
+            );
+        }
+
+        const authorityForThumbprint = Authority.generateAuthority(
+            validRequest.authority,
+            request.azureCloudOptions || this.config.auth.azureCloudOptions
+        );
+        const silentRequestKey = this.getSilentRequestKey({
+            requestType: "non-native",
+            request: validRequest,
+            authority: authorityForThumbprint,
+        });
+        return this.acquireTokenSilentDeduped(
+            silentRequestKey,
+            validRequest.correlationId,
+            () =>
+                this.acquireTokenSilentAsync(
+                    validRequest,
+                    request.azureCloudOptions
+                )
+        );
+    }
+
+    /**
+     * Shares an in-flight silent acquisition while preserving each caller's correlation ID.
+     * The key must identify both the acquisition path and its effective request parameters.
+     */
+    protected acquireTokenSilentDeduped(
+        silentRequestKey: string,
+        correlationId: string,
+        acquireToken: () => Promise<AuthenticationResult>
+    ): Promise<AuthenticationResult> {
+        const inProgressRequest =
+            this.activeSilentTokenRequests.get(silentRequestKey);
+
+        if (inProgressRequest) {
+            this.logger.verbose(
+                "acquireTokenSilent has been called previously, returning the result from the first call",
+                correlationId
+            );
+            return this.applyCallerCorrelationId(
+                inProgressRequest,
+                correlationId
+            );
+        }
+
+        this.logger.verbose(
+            "acquireTokenSilent called for the first time, storing active request",
+            correlationId
+        );
+        // Register before invoking user-provided plugins, including those that throw synchronously.
+        const activeRequest = Promise.resolve()
+            .then(acquireToken)
+            .finally(() => {
+                this.activeSilentTokenRequests.delete(silentRequestKey);
+            });
+        this.activeSilentTokenRequests.set(silentRequestKey, activeRequest);
+
+        return this.applyCallerCorrelationId(activeRequest, correlationId);
+    }
+
+    /**
+     * Builds the key used to identify equivalent in-progress silent requests.
+     */
+    protected getSilentRequestKey(input: SilentRequestKeyInput): string {
+        const { request } = input;
+        const authority =
+            input.requestType === "native"
+                ? request.authority
+                : input.authority;
+        const commonKeyFields = {
+            requestType: input.requestType,
+            clientId:
+                input.requestType === "native"
+                    ? input.request.clientId
+                    : this.config.auth.clientId,
+            authority,
+            scopes: this.canonicalizeRequestValues(request.scopes),
+            claims: request.claims,
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            forceRefresh: request.forceRefresh,
+            redirectUri: request.redirectUri || "",
+            resource: request.resource,
+            extraParameters: this.canonicalizeRequestValues(
+                request.extraParameters
+            ),
+        };
+
+        if (input.requestType === "native") {
+            return JSON.stringify({
+                ...commonKeyFields,
+                accountId: input.request.accountId,
+                shrNonce: input.request.shrNonce,
+                extraScopesToConsent: this.canonicalizeRequestValues(
+                    input.request.extraScopesToConsent
+                ),
+                loginHint: input.request.loginHint,
+                prompt: input.request.prompt,
+            });
+        }
+
+        const nonNativeRequest = input.request;
+        const thumbprint = getRequestThumbprint(
+            this.config.auth.clientId,
+            { ...nonNativeRequest, authority },
+            nonNativeRequest.account.homeAccountId
+        );
+
+        return JSON.stringify({
+            ...thumbprint,
+            ...commonKeyFields,
+            accountTenantId: nonNativeRequest.account.tenantId,
+            accountEnvironment: nonNativeRequest.account.environment,
+            refreshTokenExpirationOffsetSeconds:
+                nonNativeRequest.refreshTokenExpirationOffsetSeconds,
+            extraQueryParameters: this.canonicalizeRequestValues(
+                nonNativeRequest.extraQueryParameters
+            ),
+            skipBrokerClaims:
+                thumbprint.embeddedClientId ||
+                nonNativeRequest.extraParameters?.[
+                    AADServerParamKeys.BROKER_CLIENT_ID
+                ]
+                    ? nonNativeRequest.skipBrokerClaims
+                    : undefined,
+        });
+    }
+
+    /**
+     * Canonicalizes scope sets and request dictionaries without changing the outgoing request.
+     * Only scopes are trimmed and deduplicated; scope casing and dictionary keys and values are preserved.
+     */
+    private canonicalizeRequestValues(
+        values?: Record<string, string> | Array<string>
+    ): Array<[string, string]> | Array<string> | undefined {
+        if (Array.isArray(values)) {
+            return Array.from(
+                new Set(
+                    values
+                        .map((scope) => scope.trim())
+                        .filter((scope) => scope.length > 0)
+                )
+            ).sort();
+        }
+
+        return values
+            ? Object.keys(values)
+                  .sort()
+                  .map((key): [string, string] => [key, values[key]])
+            : undefined;
+    }
+
+    /**
+     * Applies the caller's correlation ID without mutating a result or error shared with other callers.
+     */
+    private applyCallerCorrelationId(
+        activeRequest: Promise<AuthenticationResult>,
+        correlationId: string
+    ): Promise<AuthenticationResult> {
+        return activeRequest
+            .then((result) => ({
+                ...result,
+                correlationId,
+            }))
+            .catch((error: unknown) => {
+                if (error instanceof AuthError) {
+                    const callerError = Object.create(
+                        Object.getPrototypeOf(error),
+                        {
+                            ...Object.getOwnPropertyDescriptors(error),
+                            // Materialize the original stack; copying V8's stack accessor does not copy its backing state.
+                            stack: {
+                                value: error.stack,
+                                writable: true,
+                                configurable: true,
+                            },
+                        }
+                    ) as AuthError;
+                    callerError.correlationId = correlationId;
+                    throw callerError;
+                }
+
+                throw error;
+            });
+    }
+
+    private async acquireTokenSilentAsync(
+        validRequest: CommonSilentFlowRequest,
+        azureCloudOptions?: AzureCloudOptions
+    ): Promise<AuthenticationResult> {
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenSilent,
             validRequest.correlationId,
@@ -316,7 +535,7 @@ export abstract class ClientApplication {
                 validRequest.authority,
                 validRequest.correlationId,
                 undefined,
-                request.azureCloudOptions
+                azureCloudOptions
             );
             const clientConfiguration =
                 await this.buildOauthClientConfiguration(

@@ -411,6 +411,16 @@ describe("PublicClientApplication", () => {
     });
 
     describe("acquireTokenSilent tests", () => {
+        const setupSilentFlowClientMock = (): jest.SpyInstance => {
+            const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
+            jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
+                (config) =>
+                    new silentFlowClient(config, new StubPerformanceClient())
+            );
+
+            return jest.spyOn(silentFlowClient.prototype, "acquireCachedToken");
+        };
+
         test("acquireTokenSilent succeeds", async () => {
             const request: SilentFlowRequest = {
                 account: mockAccountInfo,
@@ -433,6 +443,609 @@ describe("PublicClientApplication", () => {
             const authApp = new PublicClientApplication(appConfig);
             await authApp.acquireTokenSilent(request);
             expect(SilentFlowClient).toHaveBeenCalledTimes(1);
+        });
+
+        test("coalesces concurrent silent requests with the same thumbprint", async () => {
+            let releaseRequest: () => void = () => {};
+            const requestGate = new Promise<void>((resolve) => {
+                releaseRequest = resolve;
+            });
+            const acquireCachedTokenSpy = setupSilentFlowClientMock();
+            acquireCachedTokenSpy.mockImplementation(async () => {
+                await requestGate;
+                return [
+                    mockAuthenticationResult,
+                    CommonConstants.CacheOutcome.NOT_APPLICABLE,
+                ];
+            });
+
+            const authApp = new PublicClientApplication(appConfig);
+            const firstRequest = authApp.acquireTokenSilent({
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                correlationId: "first-correlation-id",
+            });
+            const secondRequest = authApp.acquireTokenSilent({
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                authority: appConfig.auth.authority,
+                correlationId: "second-correlation-id",
+            });
+
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(1);
+
+            releaseRequest();
+            await expect(
+                Promise.all([firstRequest, secondRequest])
+            ).resolves.toEqual([
+                {
+                    ...mockAuthenticationResult,
+                    correlationId: "first-correlation-id",
+                },
+                {
+                    ...mockAuthenticationResult,
+                    correlationId: "second-correlation-id",
+                },
+            ]);
+        });
+
+        test.each([
+            [
+                "scopes",
+                {
+                    scopes: ["different-scope"],
+                },
+            ],
+            [
+                "authority",
+                {
+                    authority:
+                        "https://login.microsoftonline.com/different-tenant",
+                },
+            ],
+            [
+                "account",
+                {
+                    account: {
+                        ...mockAccountInfo,
+                        homeAccountId: "different-home-account-id",
+                    },
+                },
+            ],
+            [
+                "claims",
+                {
+                    claims: JSON.stringify({
+                        access_token: {
+                            xms_cc: {
+                                values: ["cp1"],
+                            },
+                        },
+                    }),
+                },
+            ],
+            [
+                "resource",
+                {
+                    resource: "https://different-resource.example",
+                },
+            ],
+            [
+                "azureCloudOptions",
+                {
+                    azureCloudOptions: {
+                        azureCloudInstance:
+                            msalCommon.AzureCloudInstance.AzureUsGovernment,
+                        tenant: "common",
+                    },
+                },
+            ],
+            [
+                "account tenant",
+                {
+                    account: {
+                        ...mockAccountInfo,
+                        tenantId: "different-tenant-id",
+                    },
+                },
+            ],
+            [
+                "account environment",
+                {
+                    account: {
+                        ...mockAccountInfo,
+                        environment: "login.microsoftonline.us",
+                    },
+                },
+            ],
+            [
+                "forceRefresh",
+                {
+                    forceRefresh: true,
+                },
+            ],
+            [
+                "refresh token expiration offset",
+                {
+                    refreshTokenExpirationOffsetSeconds: 60,
+                },
+            ],
+            [
+                "extra parameters",
+                {
+                    extraParameters: {
+                        customParameter: "customValue",
+                    },
+                },
+            ],
+            [
+                "extra query parameters",
+                {
+                    extraQueryParameters: {
+                        customQueryParameter: "customQueryValue",
+                    },
+                },
+            ],
+        ])(
+            "does not coalesce concurrent silent requests with different %s",
+            async (_requestProperty, requestOverrides) => {
+                const acquireCachedTokenSpy = setupSilentFlowClientMock();
+                acquireCachedTokenSpy.mockResolvedValue([
+                    mockAuthenticationResult,
+                    CommonConstants.CacheOutcome.NOT_APPLICABLE,
+                ]);
+                const authApp = new PublicClientApplication(appConfig);
+                const request: SilentFlowRequest = {
+                    account: mockAccountInfo,
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                };
+
+                await Promise.all([
+                    authApp.acquireTokenSilent(request),
+                    authApp.acquireTokenSilent({
+                        ...request,
+                        ...requestOverrides,
+                    }),
+                ]);
+
+                expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(2);
+            }
+        );
+
+        test("coalesces requests with equivalent attribute token sets", async () => {
+            let releaseRequest: () => void = () => {};
+            const requestGate = new Promise<void>((resolve) => {
+                releaseRequest = resolve;
+            });
+            const acquireCachedTokenSpy = setupSilentFlowClientMock();
+            acquireCachedTokenSpy.mockImplementation(async () => {
+                await requestGate;
+                return [
+                    mockAuthenticationResult,
+                    CommonConstants.CacheOutcome.NOT_APPLICABLE,
+                ];
+            });
+            const authApp = new PublicClientApplication(appConfig);
+            const request: SilentFlowRequest = {
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            };
+
+            const firstRequest = authApp.acquireTokenSilent({
+                ...request,
+                attributeTokens: ["zeta", "alpha"],
+            });
+            const secondRequest = authApp.acquireTokenSilent({
+                ...request,
+                attributeTokens: ["alpha", "zeta"],
+            });
+
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(1);
+
+            releaseRequest();
+            await Promise.all([firstRequest, secondRequest]);
+        });
+
+        test.each([
+            ["order", ["Mail.Read", "User.Read"]],
+            ["duplicates", ["User.Read", "Mail.Read", "User.Read"]],
+            ["whitespace", [" User.Read ", "Mail.Read", "", " "]],
+            ["combined", [" Mail.Read ", "User.Read", "User.Read"]],
+        ])(
+            "coalesces equivalent scopes differing in %s without changing the outgoing scopes",
+            async (_difference, equivalentScopes) => {
+                let releaseRequest!: () => void;
+                const requestGate = new Promise<void>((resolve) => {
+                    releaseRequest = resolve;
+                });
+                const acquireCachedTokenSpy = setupSilentFlowClientMock();
+                acquireCachedTokenSpy.mockImplementation(async () => {
+                    await requestGate;
+                    return [
+                        mockAuthenticationResult,
+                        CommonConstants.CacheOutcome.NOT_APPLICABLE,
+                    ];
+                });
+                const authApp = new PublicClientApplication(appConfig);
+                const firstScopes = ["User.Read", "Mail.Read"];
+                const secondScopes = [...equivalentScopes];
+                const requests = Promise.all([
+                    authApp.acquireTokenSilent({
+                        account: mockAccountInfo,
+                        scopes: firstScopes,
+                    }),
+                    authApp.acquireTokenSilent({
+                        account: mockAccountInfo,
+                        scopes: secondScopes,
+                    }),
+                ]);
+
+                await new Promise<void>((resolve) => setImmediate(resolve));
+                expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(1);
+                expect(acquireCachedTokenSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        scopes: [
+                            "User.Read",
+                            "Mail.Read",
+                            ...CommonConstants.OIDC_DEFAULT_SCOPES,
+                        ],
+                    })
+                );
+                expect(firstScopes).toEqual(["User.Read", "Mail.Read"]);
+                expect(secondScopes).toEqual(equivalentScopes);
+
+                releaseRequest();
+                await requests;
+            }
+        );
+
+        test("does not coalesce silent requests whose scopes differ only in casing", async () => {
+            const acquireCachedTokenSpy = setupSilentFlowClientMock();
+            acquireCachedTokenSpy.mockResolvedValue([
+                mockAuthenticationResult,
+                CommonConstants.CacheOutcome.NOT_APPLICABLE,
+            ]);
+            const authApp = new PublicClientApplication(appConfig);
+
+            await Promise.all(
+                ["User.Read", "user.read"].map((scope) =>
+                    authApp.acquireTokenSilent({
+                        account: mockAccountInfo,
+                        scopes: [scope],
+                    })
+                )
+            );
+
+            expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(2);
+            for (const scope of ["User.Read", "user.read"]) {
+                expect(acquireCachedTokenSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        scopes: [scope, ...CommonConstants.OIDC_DEFAULT_SCOPES],
+                    })
+                );
+            }
+        });
+
+        test.each(["extraParameters", "extraQueryParameters"] as const)(
+            "coalesces requests with equivalent %s in different property order",
+            async (parameterName) => {
+                let releaseRequest: () => void = () => {};
+                const requestGate = new Promise<void>((resolve) => {
+                    releaseRequest = resolve;
+                });
+                const acquireCachedTokenSpy = setupSilentFlowClientMock();
+                acquireCachedTokenSpy.mockImplementation(async () => {
+                    await requestGate;
+                    return [
+                        mockAuthenticationResult,
+                        CommonConstants.CacheOutcome.NOT_APPLICABLE,
+                    ];
+                });
+                const authApp = new PublicClientApplication(appConfig);
+                const request: SilentFlowRequest = {
+                    account: mockAccountInfo,
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                };
+
+                const firstRequest = authApp.acquireTokenSilent({
+                    ...request,
+                    [parameterName]: {
+                        zeta: "last",
+                        alpha: "first",
+                    },
+                });
+                const secondRequest = authApp.acquireTokenSilent({
+                    ...request,
+                    [parameterName]: {
+                        alpha: "first",
+                        zeta: "last",
+                    },
+                });
+
+                await new Promise<void>((resolve) => setImmediate(resolve));
+                expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(1);
+
+                releaseRequest();
+                await Promise.all([firstRequest, secondRequest]);
+            }
+        );
+
+        test("does not coalesce broker requests when skipBrokerClaims differs", async () => {
+            const acquireCachedTokenSpy = setupSilentFlowClientMock();
+            acquireCachedTokenSpy.mockResolvedValue([
+                mockAuthenticationResult,
+                CommonConstants.CacheOutcome.NOT_APPLICABLE,
+            ]);
+            const authApp = new PublicClientApplication(appConfig);
+            const request: SilentFlowRequest = {
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                embeddedClientId: "embedded-client-id",
+            };
+
+            await Promise.all([
+                authApp.acquireTokenSilent({
+                    ...request,
+                    skipBrokerClaims: false,
+                }),
+                authApp.acquireTokenSilent({
+                    ...request,
+                    skipBrokerClaims: true,
+                }),
+            ]);
+
+            expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(2);
+        });
+
+        test.each(["extraParameters", "extraQueryParameters"] as const)(
+            "preserves case and whitespace when comparing %s",
+            async (parameterName) => {
+                const acquireCachedTokenSpy = setupSilentFlowClientMock();
+                acquireCachedTokenSpy.mockResolvedValue([
+                    mockAuthenticationResult,
+                    CommonConstants.CacheOutcome.NOT_APPLICABLE,
+                ]);
+                const authApp = new PublicClientApplication(appConfig);
+                const parameterSets = [
+                    { Custom: "Value" },
+                    { custom: "Value" },
+                    { Custom: "value" },
+                    { Custom: " Value " },
+                ];
+
+                await Promise.all(
+                    parameterSets.map((parameters) =>
+                        authApp.acquireTokenSilent({
+                            account: mockAccountInfo,
+                            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                            [parameterName]: parameters,
+                        })
+                    )
+                );
+
+                expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(4);
+                parameterSets.forEach((parameters) => {
+                    expect(acquireCachedTokenSpy).toHaveBeenCalledWith(
+                        expect.objectContaining({
+                            [parameterName]: parameters,
+                        })
+                    );
+                });
+            }
+        );
+
+        test.each([
+            ["broker-client-id", 2],
+            ["", 1],
+            [undefined, 1],
+        ])(
+            "uses a non-empty extraParameters.brk_client_id (%s) to distinguish skipBrokerClaims",
+            async (brokerClientId, expectedRequests) => {
+                const acquireCachedTokenSpy = setupSilentFlowClientMock();
+                acquireCachedTokenSpy.mockResolvedValue([
+                    mockAuthenticationResult,
+                    CommonConstants.CacheOutcome.NOT_APPLICABLE,
+                ]);
+                const authApp = new PublicClientApplication(appConfig);
+                const request: SilentFlowRequest = {
+                    account: mockAccountInfo,
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    extraParameters:
+                        brokerClientId === undefined
+                            ? undefined
+                            : {
+                                  [AADServerParamKeys.BROKER_CLIENT_ID]:
+                                      brokerClientId,
+                              },
+                };
+
+                await Promise.all([
+                    authApp.acquireTokenSilent({
+                        ...request,
+                        skipBrokerClaims: false,
+                    }),
+                    authApp.acquireTokenSilent({
+                        ...request,
+                        skipBrokerClaims: true,
+                    }),
+                ]);
+
+                expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(
+                    expectedRequests
+                );
+            }
+        );
+
+        test("removes a completed silent request from the in-flight map", async () => {
+            const acquireCachedTokenSpy = setupSilentFlowClientMock();
+            acquireCachedTokenSpy.mockResolvedValue([
+                mockAuthenticationResult,
+                CommonConstants.CacheOutcome.NOT_APPLICABLE,
+            ]);
+            const authApp = new PublicClientApplication(appConfig);
+            const request: SilentFlowRequest = {
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            };
+
+            await authApp.acquireTokenSilent(request);
+            await authApp.acquireTokenSilent(request);
+
+            expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(2);
+        });
+
+        test("removes a failed silent request from the in-flight map", async () => {
+            const acquireCachedTokenSpy = setupSilentFlowClientMock();
+            const requestError = createClientAuthError(
+                ClientAuthErrorCodes.noAccountInSilentRequest,
+                ""
+            );
+            let rejectRequest: (error: Error) => void = () => {};
+            const requestGate = new Promise<never>((_resolve, reject) => {
+                rejectRequest = reject;
+            });
+            acquireCachedTokenSpy
+                .mockImplementationOnce(() => requestGate)
+                .mockResolvedValueOnce([
+                    mockAuthenticationResult,
+                    CommonConstants.CacheOutcome.NOT_APPLICABLE,
+                ]);
+            const authApp = new PublicClientApplication(appConfig);
+            const request: SilentFlowRequest = {
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            };
+
+            const firstRequest = authApp.acquireTokenSilent({
+                ...request,
+                correlationId: "first-correlation-id",
+            });
+            const secondRequest = authApp.acquireTokenSilent({
+                ...request,
+                correlationId: "second-correlation-id",
+            });
+            const settledRequests = Promise.allSettled([
+                firstRequest,
+                secondRequest,
+            ]);
+
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(1);
+            rejectRequest(requestError);
+
+            const [firstResult, secondResult] = await settledRequests;
+            expect(firstResult).toEqual({
+                status: "rejected",
+                reason: expect.objectContaining({
+                    correlationId: "first-correlation-id",
+                }),
+            });
+            expect(secondResult).toEqual({
+                status: "rejected",
+                reason: expect.objectContaining({
+                    correlationId: "second-correlation-id",
+                }),
+            });
+            if (
+                firstResult.status === "rejected" &&
+                secondResult.status === "rejected"
+            ) {
+                expect(firstResult.reason).not.toBe(secondResult.reason);
+            }
+
+            await expect(authApp.acquireTokenSilent(request)).resolves.toEqual(
+                expect.objectContaining({
+                    ...mockAuthenticationResult,
+                    correlationId: expect.any(String),
+                })
+            );
+            expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(2);
+        });
+
+        test("preserves failure telemetry when account is missing", async () => {
+            const acquireCachedTokenSpy = setupSilentFlowClientMock();
+            const requestError = createClientAuthError(
+                ClientAuthErrorCodes.noAccountInSilentRequest,
+                "missing-account-correlation-id"
+            );
+            acquireCachedTokenSpy.mockRejectedValue(requestError);
+            const cacheFailedRequestSpy = jest
+                .spyOn(
+                    msalCommon.ServerTelemetryManager.prototype,
+                    "cacheFailedRequest"
+                )
+                .mockImplementation();
+            const authApp = new PublicClientApplication(appConfig);
+            const request = {
+                account: undefined,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                correlationId: "missing-account-correlation-id",
+            } as unknown as SilentFlowRequest;
+
+            await expect(
+                authApp.acquireTokenSilent(request)
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.noAccountInSilentRequest,
+                correlationId: "missing-account-correlation-id",
+            });
+            expect(cacheFailedRequestSpy).toHaveBeenCalledWith(requestError);
+        });
+
+        test("does not coalesce silent requests across application instances", async () => {
+            const acquireCachedTokenSpy = setupSilentFlowClientMock();
+            acquireCachedTokenSpy.mockResolvedValue([
+                mockAuthenticationResult,
+                CommonConstants.CacheOutcome.NOT_APPLICABLE,
+            ]);
+            const firstApp = new PublicClientApplication(appConfig);
+            const secondApp = new PublicClientApplication(appConfig);
+            const request: SilentFlowRequest = {
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            };
+
+            await Promise.all([
+                firstApp.acquireTokenSilent(request),
+                secondApp.acquireTokenSilent(request),
+            ]);
+
+            expect(acquireCachedTokenSpy).toHaveBeenCalledTimes(2);
+        });
+
+        test("coalesces the refresh token network request for concurrent cache misses", async () => {
+            const acquireCachedTokenSpy = setupSilentFlowClientMock();
+            acquireCachedTokenSpy.mockRejectedValue(
+                createClientAuthError(
+                    ClientAuthErrorCodes.tokenRefreshRequired,
+                    ""
+                )
+            );
+            const refreshTokenClient =
+                getMsalCommonAutoMock().RefreshTokenClient;
+            jest.spyOn(msalCommon, "RefreshTokenClient").mockImplementation(
+                (config) =>
+                    new refreshTokenClient(config, new StubPerformanceClient())
+            );
+            const acquireTokenByRefreshTokenSpy = jest
+                .spyOn(
+                    refreshTokenClient.prototype,
+                    "acquireTokenByRefreshToken"
+                )
+                .mockResolvedValue(mockAuthenticationResult);
+            const authApp = new PublicClientApplication(appConfig);
+            const request: SilentFlowRequest = {
+                account: mockAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            };
+
+            await Promise.all([
+                authApp.acquireTokenSilent(request),
+                authApp.acquireTokenSilent(request),
+            ]);
+
+            expect(acquireTokenByRefreshTokenSpy).toHaveBeenCalledTimes(1);
         });
 
         test("acquireTokenSilent calls into NativeBrokerPlugin and returns result", async () => {
@@ -515,7 +1128,8 @@ describe("PublicClientApplication", () => {
                 });
             authApp.acquireTokenSilent(request).catch((e) => {
                 expect(brokerSpy).toHaveBeenCalled();
-                expect(e).toBe(testError);
+                expect(e).toBeInstanceOf(InteractionRequiredAuthError);
+                expect(e.errorCode).toBe(testError.errorCode);
                 done();
             });
         });
@@ -560,7 +1174,10 @@ describe("PublicClientApplication", () => {
             };
 
             const response = await authApp.acquireTokenSilent(request);
-            expect(response).toEqual(mockAuthenticationResult);
+            expect(response).toEqual({
+                ...mockAuthenticationResult,
+                correlationId: expect.any(String),
+            });
             expect(acquireCachedTokenSpy).toHaveBeenCalled();
             expect(cacheSpy).toHaveBeenCalled();
         });
@@ -780,7 +1397,10 @@ describe("PublicClientApplication", () => {
             // This should not throw and should reset redirectUri to empty string and continue with the request
             const response = await authApp.acquireTokenSilent(request);
 
-            expect(response).toEqual(mockAuthenticationResult);
+            expect(response).toEqual({
+                ...mockAuthenticationResult,
+                correlationId: expect.any(String),
+            });
             expect(request.redirectUri).toBe("");
         });
     });
