@@ -88,6 +88,10 @@ export type DpopNonceCacheKey = {
 
 const DPOP_NONCE_CONTROL_CHARACTER_REGEX = /[\u0000-\u001f\u007f-\u009f]/;
 
+/**
+ * Calculates UTF-8 encoded byte length, including surrogate-pair handling,
+ * for DPoP nonce size validation.
+ */
 function getUtf8ByteLength(value: string): number {
     let byteLength = 0;
 
