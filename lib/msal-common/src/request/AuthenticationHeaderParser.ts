@@ -114,6 +114,11 @@ export class AuthenticationHeaderParser {
         return challengeMap;
     }
 
+    /**
+     * Reads a header from a Fetch Headers-like source or a plain record.
+     * Record names are matched case-insensitively, and missing undefined
+     * values are normalized to null.
+     */
     private getHeaderValue(headerName: string): unknown | null {
         const get = (this.headers as { get?: unknown }).get;
         if (typeof get === "function") {

@@ -20,6 +20,8 @@ import {
     CommonSilentFlowRequest,
     AccountEntity,
     Constants,
+    DpopNonceSource,
+    DpopNonceType,
 } from "@azure/msal-common";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import {
@@ -159,6 +161,14 @@ describe("SilentRefreshClient", () => {
         });
 
         it("passes generated DPoP key id to refresh token request", async () => {
+            const resourceRequestUri =
+                "https://graph.microsoft.com/v1.0/me";
+            await browserCacheManager.setDpopNonce(
+                DpopNonceType.ResourceServer,
+                resourceRequestUri,
+                "resource-server-nonce",
+                DpopNonceSource.ResourceServer
+            );
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testIdTokenClaims.oid || "",
@@ -194,7 +204,7 @@ describe("SilentRefreshClient", () => {
                 authority: TEST_CONFIG.validAuthority,
                 authenticationScheme: Constants.AuthenticationScheme.DPOP,
                 resourceRequestMethod: "GET",
-                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                resourceRequestUri,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false,
             });
@@ -203,8 +213,9 @@ describe("SilentRefreshClient", () => {
                 expect.objectContaining({
                     authenticationScheme: Constants.AuthenticationScheme.DPOP,
                     dpopJkt: "test-dpop-jkt",
+                    dpopNonce: "resource-server-nonce",
                     resourceRequestMethod: "GET",
-                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                    resourceRequestUri,
                 }),
                 ApiId.acquireTokenSilent_silentFlow
             );
@@ -217,6 +228,7 @@ describe("SilentRefreshClient", () => {
             const refreshRequest = silentATStub.mock
                 .calls[0][0] as CommonSilentFlowRequest;
             expect(refreshRequest.dpopJkt).toBe("test-dpop-jkt");
+            expect(refreshRequest.dpopNonce).toBe("resource-server-nonce");
             expect(tokenResp).toEqual(testTokenResponse);
         });
 

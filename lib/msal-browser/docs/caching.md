@@ -7,7 +7,12 @@ When MSAL acquires a token, it caches it for future usage. MSAL manages token li
 You can configure the cache storage location via the configuration object that is used to instantiate MSAL:
 
 ```typescript
-import { PublicClientApplication, BrowserCacheLocation } from "@azure/msal-browser";
+import {
+    AuthenticationHeaderParser,
+    AuthenticationScheme,
+    BrowserCacheLocation,
+    PublicClientApplication,
+} from "@azure/msal-browser";
 
 const pca = new PublicClientApplication({
     auth: {
@@ -77,9 +82,15 @@ When a resource server responds to a DPoP request with a `DPoP-Nonce` response
 header, deposit the opaque header value before retrying token acquisition:
 
 ```typescript
+const headerParser = new AuthenticationHeaderParser(response.headers);
+const dpopNonce = headerParser.getDPoPNonce();
+if (dpopNonce === null) {
+    throw new Error("The response did not include a DPoP-Nonce header.");
+}
+
 await pca
     .getTokenCache()
-    .loadDpopNonce(resourceRequestUri, dpopNonceResponseHeader);
+    .loadDpopNonce(resourceRequestUri, dpopNonce);
 
 const result = await pca.acquireTokenSilent({
     ...request,
@@ -88,6 +99,11 @@ const result = await pca.acquireTokenSilent({
     resourceRequestMethod: "GET",
 });
 ```
+
+`AuthenticationHeaderParser` accepts either a Fetch `Headers` object or a
+plain header record with case-insensitive names. `getDPoPNonce()` returns
+`null` when the header is absent and throws an MSAL validation error when the
+header value is empty, contains control characters, or exceeds the size limit.
 
 `resourceRequestUri` must be an absolute HTTPS URI without embedded
 credentials. Nonces are scoped to its origin, so paths, query strings, and

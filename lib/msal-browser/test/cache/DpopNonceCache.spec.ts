@@ -737,6 +737,43 @@ describe("DPoP nonce cache", () => {
         expect(writingCacheManager.getDpopNonceKeys()).toHaveLength(0);
     });
 
+    it("uses a persisted fence to reject pre-clear localStorage writes from another realm", async () => {
+        const writingCacheManager = createCacheManager(
+            BrowserCacheLocation.LocalStorage
+        );
+        const clearingCacheManager = createCacheManager(
+            BrowserCacheLocation.LocalStorage
+        );
+        Object.defineProperty(writingCacheManager, "dpopNonceCacheState", {
+            value: { writeQueue: Promise.resolve(), generation: 0 },
+        });
+        Object.defineProperty(clearingCacheManager, "dpopNonceCacheState", {
+            value: { writeQueue: Promise.resolve(), generation: 0 },
+        });
+
+        let resolvePendingHash: (hash: string) => void = () => undefined;
+        const pendingHash = new Promise<string>((resolve) => {
+            resolvePendingHash = resolve;
+        });
+        jest.spyOn(crypto, "hashString").mockImplementationOnce(
+            () => pendingHash
+        );
+
+        const pendingWrite = writingCacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://before-clear.example.com/path",
+            "before-clear-nonce",
+            DpopNonceSource.ResourceServer
+        );
+        await Promise.resolve();
+
+        clearingCacheManager.clearDpopNonces();
+        resolvePendingHash("pre-clear-hash");
+        await pendingWrite;
+
+        expect(writingCacheManager.getDpopNonceKeys()).toHaveLength(0);
+    });
+
     it("full clear removes current-client nonces but preserves another client's nonces", async () => {
         const storage = new MemoryStorage<string>();
         const firstClient = createCacheManager(
@@ -902,5 +939,84 @@ describe("DPoP nonce cache", () => {
         expect(() => cacheManager.clearDpopNonces()).toThrow(CacheError);
         expect(storage.containsKey(keys[0])).toBe(true);
         expect(storage.containsKey(keys[1])).toBe(false);
+    });
+
+    it("propagates a sanitized clear failure when key enumeration fails", () => {
+        const storage = new MemoryStorage<string>();
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage,
+            storage
+        );
+        jest.spyOn(storage, "getKeys").mockImplementation(() => {
+            throw new Error("enumeration sentinel");
+        });
+
+        expect(() => cacheManager.clearDpopNonces()).toThrow(CacheError);
+    });
+
+    it("recovers localStorage lock quota by evicting only nonce entries", async () => {
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.LocalStorage
+        );
+        await cacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://old.example/path",
+            "old-nonce",
+            DpopNonceSource.ResourceServer
+        );
+
+        const storage = (cacheManager as any)
+            .browserStorage as IWindowStorage<string>;
+        const originalSetItem = storage.setItem.bind(storage);
+        let rejectLockWrite = true;
+        jest.spyOn(storage, "setItem").mockImplementation((key, value) => {
+            if (
+                rejectLockWrite &&
+                key.startsWith(`${DPOP_NONCE_CACHE_KEY_PREFIX}.lock|`)
+            ) {
+                rejectLockWrite = false;
+                const error = new Error("quota");
+                error.name = "QuotaExceededError";
+                throw error;
+            }
+            originalSetItem(key, value);
+        });
+
+        await cacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://new.example/path",
+            "new-nonce",
+            DpopNonceSource.ResourceServer
+        );
+
+        await expect(
+            cacheManager.getDpopNonce(
+                DpopNonceType.ResourceServer,
+                "https://new.example/other"
+            )
+        ).resolves.toBe("new-nonce");
+    });
+
+    it("sanitizes localStorage lock read failures", async () => {
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.LocalStorage
+        );
+        const storage = (cacheManager as any)
+            .browserStorage as IWindowStorage<string>;
+        jest.spyOn(storage, "getItem").mockImplementation((key) => {
+            if (key.startsWith(`${DPOP_NONCE_CACHE_KEY_PREFIX}.lock|`)) {
+                throw new Error("lock read sentinel");
+            }
+            return null;
+        });
+
+        await expect(
+            cacheManager.setDpopNonce(
+                DpopNonceType.ResourceServer,
+                "https://resource.example/path",
+                "nonce",
+                DpopNonceSource.ResourceServer
+            )
+        ).rejects.toBeInstanceOf(CacheError);
     });
 });

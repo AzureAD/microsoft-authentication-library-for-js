@@ -1,7 +1,0 @@
-I’m loading the mandatory security baseline, repository instructions, and contextual-rule configuration before evaluating the PR.
-
-The repository has no `forge.json`, so I’m using the default `docs\review-rules` catalog and checking whether that catalog exists before loading the PR diff.
-
-```json:findings
-[]
-```

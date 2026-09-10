@@ -1,5 +1,0 @@
-no findings
-
-```json:findings
-[]
-```
