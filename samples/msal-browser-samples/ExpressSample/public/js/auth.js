@@ -12,8 +12,17 @@ import { createMsalConfig, loginRequest } from "./authConfig.js";
 // MSAL instance
 export let msalInstance;
 
+const PLATFORM_BROKER_RESPONSE_KEY = "__platformBrokerResponse";
+
 // Retry state tracking
 let retryRequested = false;
+
+function recordAuthenticationResult(response) {
+    window.sessionStorage.setItem(
+        PLATFORM_BROKER_RESPONSE_KEY,
+        String(response.fromPlatformBroker === true)
+    );
+}
 
 // Initialize MSAL
 export async function initializeMsal() {
@@ -25,6 +34,7 @@ export async function initializeMsal() {
         if (window.location.pathname !== "/playground") {
             await msalInstance.handleRedirectPromise().then((response) => {
                 if (response) {
+                    recordAuthenticationResult(response);
                     msalInstance.setActiveAccount(response.account);
                 }
             });
@@ -46,6 +56,7 @@ export async function handleProtectedRouteAuth(path) {
             scopes: loginRequest.scopes,
         })
         .then((response) => {
+            recordAuthenticationResult(response);
             msalInstance.setActiveAccount(response.account);
             updateUI(response.account);
         })
@@ -78,6 +89,7 @@ export async function signInPopup() {
         hidePopupWarning();
         retryRequested = false;
 
+        recordAuthenticationResult(response);
         msalInstance.setActiveAccount(response.account);
         updateUI(response.account);
         showSuccess("Successfully signed in!");
@@ -181,7 +193,9 @@ export async function ssoSilent() {
             account,
             loginHint: account && account.username
         });
+        recordAuthenticationResult(response);
         msalInstance.setActiveAccount(response.account);
+        updateUI(response.account);
         setSilentStatus('ssoSilent:success');
         showSuccess('ssoSilent succeeded');
     } catch (error) {
@@ -202,6 +216,7 @@ export async function acquireTokenSilent() {
             account: msalInstance.getActiveAccount(),
             forceRefresh: true
         });
+        recordAuthenticationResult(response);
         msalInstance.setActiveAccount(response.account);
         setSilentStatus('acquireTokenSilent:success');
         showSuccess('acquireTokenSilent succeeded');

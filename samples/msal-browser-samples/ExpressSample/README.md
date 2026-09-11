@@ -74,6 +74,14 @@ npm run build:package
 
 The Puppeteer e2e tests live in [`./test`](./test). The EAR (Encrypted Authorize Response) web-flow suite is in [`./test/ear-basic.spec.ts`](./test/ear-basic.spec.ts).
 
+A basic [`./test/kmsi-basic.spec.ts`](./test/kmsi-basic.spec.ts) suite verifies that a standard web sign-in with KMSI persists across a complete browser restart:
+
+```powershell
+npm run test:e2e:kmsi
+```
+
+This web-flow KMSI suite is the only KMSI suite enabled in the 3P e2e pipeline.
+
 A separate [`./test/ear-platform-broker.spec.ts`](./test/ear-platform-broker.spec.ts) suite exercises EAR combined with the platform broker. It is excluded from CI (the pipeline `testFilter` runs only `ear-basic`) because the platform broker is only available locally. To run it locally, set `SSO_EXTENSION_PATH` to the unpacked "Microsoft Single Sign On" extension directory (the folder containing its `manifest.json`):
 
 ```powershell
@@ -82,6 +90,12 @@ $env:SSO_EXTENSION_PATH = "C:\Users\<you>\AppData\Local\Microsoft\Edge\User Data
 ```
 
 The path is machine-specific (Edge version subfolder and user profile vary). If the platform-broker suite is run without this variable set, it fails fast with a clear error.
+
+The local-only [`./test/platform-broker-kmsi.spec.ts`](./test/platform-broker-kmsi.spec.ts) suite verifies the expected behavior that a platform-broker sign-in returns the KMSI claim and can be restored silently after restarting the browser with the same profile. It is intentionally excluded from the pipeline because WAM and the native broker environment are unavailable there:
+
+```powershell
+npm run test:e2e:platform-broker-kmsi
+```
 
 ## Learn more
 
