@@ -77,7 +77,7 @@ export class NestedAppAuthController implements IController {
 
     // Storage interface implementation
     protected readonly browserStorage!: BrowserCacheManager;
-    private readonly tokenCache: ITokenCache;
+    private readonly tokenCache: TokenCache;
 
     // Logger
     protected logger: Logger;
@@ -823,6 +823,7 @@ export class NestedAppAuthController implements IController {
      */
     setLogger(logger: Logger): void {
         this.logger = logger;
+        this.tokenCache.setLogger(logger);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

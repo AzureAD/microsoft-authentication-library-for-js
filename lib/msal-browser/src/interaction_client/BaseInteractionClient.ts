@@ -264,13 +264,20 @@ export async function clearCacheOnLogout(
                 "Cleared cache items belonging to the account provided in the logout request.",
                 correlationId
             );
-        } catch (error) {
+        } catch {
             logger.error(
                 "Account provided in logout request was not found. Local cache unchanged.",
                 correlationId
             );
         }
-        browserStorage.clearDpopNonces();
+        try {
+            browserStorage.clearDpopNonces();
+        } catch {
+            logger.warning(
+                "Unable to clear cached DPoP nonces during logout. Continuing logout.",
+                correlationId
+            );
+        }
     } else {
         try {
             logger.verbose(

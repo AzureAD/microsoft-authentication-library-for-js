@@ -129,7 +129,7 @@ export class StandardController implements IController {
 
     // Storage interface implementation
     protected readonly browserStorage: BrowserCacheManager;
-    private readonly tokenCache: ITokenCache;
+    private readonly tokenCache: TokenCache;
 
     // Native Cache in memory storage implementation
     protected readonly nativeInternalStorage: BrowserCacheManager;
@@ -2138,6 +2138,7 @@ export class StandardController implements IController {
      */
     setLogger(logger: Logger): void {
         this.logger = logger;
+        this.tokenCache.setLogger(logger);
     }
 
     /**

@@ -1103,21 +1103,8 @@ export class BrowserCacheManager extends CacheManager {
 
         try {
             this.browserStorage.setItem(cacheKey, serializedEntity);
-            if (!requiresCapacityEviction) {
-                return;
-            }
-
-            const entriesToRemove =
-                retainedEntries.length - DPOP_NONCE_MAX_ENTRIES_PER_TYPE + 1;
-            try {
-                retainedEntries
-                    .slice(0, entriesToRemove)
-                    .forEach((entry) =>
-                        this.removeDpopNonceEntryForWrite(entry.key)
-                    );
-            } catch (error) {
-                this.removeDpopNonceEntryForWrite(cacheKey);
-                throw error;
+            if (requiresCapacityEviction) {
+                this.enforceDpopNonceCapacity(cacheKey, retainedEntries);
             }
             return;
         } catch (error) {
@@ -1131,6 +1118,19 @@ export class BrowserCacheManager extends CacheManager {
             undefined,
             validationTime
         ).filter((entry) => entry.key !== cacheKey);
+        try {
+            this.browserStorage.setItem(cacheKey, serializedEntity);
+            if (requiresCapacityEviction) {
+                this.enforceDpopNonceCapacity(cacheKey, retainedEntries);
+            }
+            return;
+        } catch (error) {
+            const cacheError = createCacheError(error);
+            if (cacheError.errorCode !== CacheErrorCodes.cacheQuotaExceeded) {
+                throw new CacheError(cacheError.errorCode);
+            }
+        }
+
         const removedEntries: Array<{ key: string; value: string }> = [];
         for (const entry of nonceEntries) {
             let value: string | null;
@@ -1149,6 +1149,9 @@ export class BrowserCacheManager extends CacheManager {
             removedEntries.push({ key: entry.key, value });
             try {
                 this.browserStorage.setItem(cacheKey, serializedEntity);
+                if (requiresCapacityEviction) {
+                    this.enforceDpopNonceCapacity(cacheKey, retainedEntries);
+                }
                 return;
             } catch (error) {
                 const cacheError = createCacheError(error);
@@ -1163,6 +1166,37 @@ export class BrowserCacheManager extends CacheManager {
 
         this.restoreDpopNonceEntries(removedEntries);
         throw new CacheError(CacheErrorCodes.cacheQuotaExceeded);
+    }
+
+    /**
+     * Enforces the per-type nonce capacity while rolling back evictions if a
+     * storage removal fails.
+     */
+    private enforceDpopNonceCapacity(
+        cacheKey: string,
+        retainedEntries: Array<{ key: string; entity: DpopNonceEntity }>
+    ): void {
+        const entriesToRemove =
+            retainedEntries.length - DPOP_NONCE_MAX_ENTRIES_PER_TYPE + 1;
+        const removedEntries: Array<{ key: string; value: string }> = [];
+        try {
+            for (const entry of retainedEntries.slice(0, entriesToRemove)) {
+                const value = this.browserStorage.getItem(entry.key);
+                if (value === null) {
+                    continue;
+                }
+                this.removeDpopNonceEntryForWrite(entry.key);
+                removedEntries.push({ key: entry.key, value });
+            }
+        } catch (error) {
+            try {
+                this.removeDpopNonceEntryForWrite(cacheKey);
+            } catch {
+                // Preserve the original storage failure.
+            }
+            this.restoreDpopNonceEntries(removedEntries);
+            throw error;
+        }
     }
 
     /**
@@ -1276,16 +1310,27 @@ export class BrowserCacheManager extends CacheManager {
      */
     clearDpopNonces(): void {
         this.dpopNonceCacheState.generation++;
-        this.getDpopNonceKeys().forEach((cacheKey) => {
+        let cacheKeys: string[];
+        try {
+            cacheKeys = this.getDpopNonceKeysForWrite();
+        } catch (error) {
+            throw new CacheError(createCacheError(error).errorCode);
+        }
+
+        let firstError: CacheError | null = null;
+        cacheKeys.forEach((cacheKey) => {
             try {
                 this.browserStorage.removeItem(cacheKey);
-            } catch {
-                /*
-                 * Continue clearing the remaining nonce entries when a custom
-                 * storage implementation fails to remove one item.
-                 */
+            } catch (error) {
+                firstError =
+                    firstError ||
+                    new CacheError(createCacheError(error).errorCode);
             }
         });
+
+        if (firstError) {
+            throw firstError;
+        }
     }
 
     private async generateDpopNonceCacheKey(
@@ -2484,10 +2529,20 @@ export class BrowserCacheManager extends CacheManager {
         // Removes all accounts and their credentials
         this.removeAllAccounts(correlationId);
         this.removeAppMetadata(correlationId);
-        this.clearDpopNonces();
+        try {
+            this.clearDpopNonces();
+        } catch {
+            /*
+             * Nonce cleanup is retried below and must not prevent the rest of
+             * logout cache cleanup, including keystore cleanup by the caller.
+             */
+        }
 
         // Remove temp storage first to make sure any cookies are cleared
         this.temporaryCacheStorage.getKeys().forEach((cacheKey: string) => {
+            if (parseDpopNonceCacheKey(cacheKey)) {
+                return;
+            }
             if (
                 cacheKey.indexOf(CacheKeys.PREFIX) !== -1 ||
                 cacheKey.indexOf(this.clientId) !== -1
@@ -2498,7 +2553,15 @@ export class BrowserCacheManager extends CacheManager {
 
         // Removes all remaining MSAL cache items
         this.browserStorage.getKeys().forEach((cacheKey: string) => {
-            if (parseDpopNonceCacheKey(cacheKey)) {
+            const parsedDpopNonceKey = parseDpopNonceCacheKey(cacheKey);
+            if (parsedDpopNonceKey) {
+                if (parsedDpopNonceKey.clientId === this.clientId) {
+                    try {
+                        this.browserStorage.removeItem(cacheKey);
+                    } catch {
+                        // Nonce cleanup is best effort during a full clear.
+                    }
+                }
                 return;
             }
 

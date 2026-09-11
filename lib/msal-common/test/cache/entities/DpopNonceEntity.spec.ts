@@ -38,8 +38,8 @@ describe("DpopNonceEntity", () => {
             ).toThrow(ClientConfigurationErrorCodes.invalidDpopNonce);
         });
 
-        it.each([undefined, null, 1, {}, [], ""])(
-            "rejects non-string and empty value %#",
+        it.each([undefined, null, 1, {}, [], "", " ", "   "])(
+            "rejects non-string, empty, and whitespace-only value %#",
             (nonce) => {
                 expect(() => validateDpopNonce(nonce)).toThrow(
                     ClientConfigurationErrorCodes.invalidDpopNonce

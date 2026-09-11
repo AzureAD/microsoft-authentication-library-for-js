@@ -96,6 +96,9 @@ await pca
 plain header record with case-insensitive names. `getDPoPNonce()` returns
 `null` when the header is absent and throws an MSAL validation error when the
 header value is empty, contains control characters, or exceeds the size limit.
+For cross-origin Fetch requests, the resource server must also return
+`Access-Control-Expose-Headers: DPoP-Nonce`; otherwise browser code cannot read
+the `DPoP-Nonce` response header.
 
 `resourceRequestUri` must be an absolute HTTPS URI without embedded
 credentials. Nonces are scoped to its origin, so paths, query strings, and
