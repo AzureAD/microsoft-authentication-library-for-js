@@ -132,7 +132,7 @@ export function validateDpopNonce(
 ): string {
     if (
         typeof nonce !== "string" ||
-        nonce.length === 0 ||
+        nonce.trim().length === 0 ||
         DPOP_NONCE_CONTROL_CHARACTER_REGEX.test(nonce) ||
         getUtf8ByteLength(nonce) > DPOP_NONCE_MAX_SIZE_BYTES
     ) {

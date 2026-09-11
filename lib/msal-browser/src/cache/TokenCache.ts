@@ -76,9 +76,17 @@ export interface ITokenCache {
 export class TokenCache implements ITokenCache {
     constructor(
         private readonly browserStorage: BrowserCacheManager,
-        private readonly logger: Logger,
+        private logger: Logger,
         private readonly performanceClient: IPerformanceClient
     ) {}
+
+    /**
+     * Replaces the logger used by token-cache operations.
+     * @internal
+     */
+    setLogger(logger: Logger): void {
+        this.logger = logger;
+    }
 
     async loadDpopNonce(
         resourceRequestUri: string,

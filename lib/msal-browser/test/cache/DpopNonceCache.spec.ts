@@ -583,6 +583,78 @@ describe("DPoP nonce cache", () => {
         ).resolves.toBe("new-nonce");
     });
 
+    it("retries a quota-limited write after purging malformed nonce entries", async () => {
+        const storage = new QuotaStorage(2);
+        storage.setItem("credential-entry", "credential-value");
+        storage.setItem(
+            `${DPOP_NONCE_CACHE_KEY_PREFIX}.0|${encodeURIComponent(clientId)}|${
+                DpopNonceType.AuthorizationServer
+            }|invalid`,
+            "not-json"
+        );
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage,
+            storage
+        );
+
+        await cacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://resource.example/path",
+            "new-nonce",
+            DpopNonceSource.ResourceServer
+        );
+
+        expect(storage.getItem("credential-entry")).toBe("credential-value");
+        await expect(
+            cacheManager.getDpopNonce(
+                DpopNonceType.ResourceServer,
+                "https://resource.example/other"
+            )
+        ).resolves.toBe("new-nonce");
+    });
+
+    it("enforces per-type capacity after quota recovery evicts another nonce type", async () => {
+        const storage = new QuotaStorage(DPOP_NONCE_MAX_ENTRIES_PER_TYPE + 1);
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage,
+            storage
+        );
+        const now = 2_000_000_000_000;
+        jest.spyOn(Date, "now").mockReturnValue(now);
+
+        await cacheManager.setDpopNonce(
+            DpopNonceType.AuthorizationServer,
+            "https://login.example.com/token",
+            "authorization-server-nonce",
+            DpopNonceSource.AuthorizationServer,
+            now
+        );
+        for (let i = 0; i < DPOP_NONCE_MAX_ENTRIES_PER_TYPE; i++) {
+            await cacheManager.setDpopNonce(
+                DpopNonceType.ResourceServer,
+                `https://resource-${i}.example/path`,
+                `nonce-${i}`,
+                DpopNonceSource.ResourceServer,
+                now + i + 1
+            );
+        }
+
+        await cacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://resource-new.example/path",
+            "new-nonce",
+            DpopNonceSource.ResourceServer,
+            now + DPOP_NONCE_MAX_ENTRIES_PER_TYPE + 1
+        );
+
+        expect(
+            cacheManager.getDpopNonceKeys(DpopNonceType.AuthorizationServer)
+        ).toHaveLength(0);
+        expect(
+            cacheManager.getDpopNonceKeys(DpopNonceType.ResourceServer)
+        ).toHaveLength(DPOP_NONCE_MAX_ENTRIES_PER_TYPE);
+    });
+
     it("sanitizes custom-storage failures so nonce values are not exposed", async () => {
         const sentinel = "raw-nonce-sentinel";
         const storage = new MemoryStorage<string>();
@@ -658,6 +730,48 @@ describe("DPoP nonce cache", () => {
         expect(storage.getItem("credential-entry")).toBe("credential-value");
         expect(firstClient.getDpopNonceKeys()).toHaveLength(0);
         expect(secondClient.getDpopNonceKeys()).toHaveLength(1);
+    });
+
+    it("propagates nonce enumeration failures from clearDpopNonces", () => {
+        const storage = new MemoryStorage<string>();
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage,
+            storage
+        );
+        jest.spyOn(storage, "getKeys").mockImplementation(() => {
+            throw new Error("enumeration failed");
+        });
+
+        expect(() => cacheManager.clearDpopNonces()).toThrow(CacheError);
+    });
+
+    it("retries failed nonce removals without failing full cache clear", async () => {
+        const storage = new MemoryStorage<string>();
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage,
+            storage
+        );
+        await cacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://resource.example/path",
+            "nonce",
+            DpopNonceSource.ResourceServer
+        );
+        const nonceKey = cacheManager.getDpopNonceKeys()[0];
+        const originalRemoveItem = storage.removeItem.bind(storage);
+        let nonceRemovalAttempts = 0;
+        jest.spyOn(storage, "removeItem").mockImplementation((key) => {
+            if (key === nonceKey && nonceRemovalAttempts++ === 0) {
+                throw new Error("transient removal failure");
+            }
+            originalRemoveItem(key);
+        });
+
+        expect(() =>
+            cacheManager.clear(TEST_CONFIG.CORRELATION_ID)
+        ).not.toThrow();
+        expect(storage.containsKey(nonceKey)).toBe(false);
+        expect(nonceRemovalAttempts).toBe(2);
     });
 
     it("prevents pending writes from repopulating after clear while allowing later writes", async () => {
@@ -794,12 +908,19 @@ describe("DPoP nonce cache", () => {
 
         const tokenCache = pca.getTokenCache();
         expect(tokenCache).toBe(pca.getTokenCache());
+        const initialLogger = pca.getLogger();
+        const initialLoggerTrace = jest.spyOn(initialLogger, "trace");
+        const replacementLogger = new Logger({});
+        const replacementLoggerTrace = jest.spyOn(replacementLogger, "trace");
+        pca.setLogger(replacementLogger);
 
         await tokenCache.loadDpopNonce(
             "https://resource.example.com/path",
             "pca-bound-nonce"
         );
 
+        expect(initialLoggerTrace).not.toHaveBeenCalled();
+        expect(replacementLoggerTrace).toHaveBeenCalled();
         const cacheManager = createCacheManager(
             BrowserCacheLocation.SessionStorage
         );
@@ -869,5 +990,53 @@ describe("DPoP nonce cache", () => {
         expect(
             cacheManager.getDpopNonceKeys(DpopNonceType.ResourceServer)
         ).toHaveLength(DPOP_NONCE_MAX_ENTRIES_PER_TYPE);
+    });
+
+    it("restores all entries removed before a capacity eviction fails", async () => {
+        const storage = new MemoryStorage<string>();
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage,
+            storage
+        );
+        const now = Date.now();
+
+        for (let i = 0; i < DPOP_NONCE_MAX_ENTRIES_PER_TYPE; i++) {
+            await cacheManager.setDpopNonce(
+                DpopNonceType.ResourceServer,
+                `https://resource-${i}.example/path`,
+                `nonce-${i}`,
+                DpopNonceSource.ResourceServer,
+                now + i
+            );
+        }
+
+        const firstKey = cacheManager.getDpopNonceKeys()[0];
+        const extraKey = firstKey.replace(/\|[^|]+$/, "|extra-hash");
+        storage.setItem(extraKey, storage.getItem(firstKey) || "");
+        const originalKeys = new Set(cacheManager.getDpopNonceKeys());
+        const originalRemoveItem = storage.removeItem.bind(storage);
+        let oldEntryRemovalCount = 0;
+        jest.spyOn(storage, "removeItem").mockImplementation((key) => {
+            if (originalKeys.has(key) && ++oldEntryRemovalCount === 2) {
+                throw new Error("removal failed");
+            }
+            originalRemoveItem(key);
+        });
+
+        await expect(
+            cacheManager.setDpopNonce(
+                DpopNonceType.ResourceServer,
+                "https://replacement.example/path",
+                "replacement",
+                DpopNonceSource.ResourceServer,
+                now + DPOP_NONCE_MAX_ENTRIES_PER_TYPE + 1
+            )
+        ).rejects.toBeInstanceOf(CacheError);
+        originalKeys.forEach((key) => {
+            expect(storage.containsKey(key)).toBe(true);
+        });
+        expect(cacheManager.getDpopNonceKeys()).toHaveLength(
+            DPOP_NONCE_MAX_ENTRIES_PER_TYPE + 1
+        );
     });
 });
