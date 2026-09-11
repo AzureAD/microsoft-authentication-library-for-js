@@ -318,6 +318,30 @@ export type PerformanceEvent = {
     extensionInstalled?: boolean;
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;
+    platformAuthAllowed?: boolean;
+    platformAuthEligibilityReason?: string;
+    platformAuthProviderType?: string;
+    platformAuthProviderAvailable?: boolean;
+    platformAuthDomEnabled?: boolean;
+    platformAuthNativeAccountAvailable?: boolean;
+    platformAuthPromptSupported?: boolean;
+    platformAuthSchemeSupported?: boolean;
+    platformAuthStage?: string;
+    platformAuthIsPopRequest?: boolean;
+    platformAuthPromptCategory?: string;
+    storeInCacheAccessToken?: boolean;
+    storeInCacheIdToken?: boolean;
+    storeInCacheRefreshToken?: boolean;
+    platformAuthCachedRequestAvailable?: boolean;
+    platformAuthBrokerResendAttempted?: boolean;
+    platformAuthDomApiAvailable?: boolean;
+    platformAuthDomContractSupported?: boolean;
+    platformAuthDomAttempted?: boolean;
+    platformAuthExtensionAttempted?: boolean;
+    platformAuthPreferredExtensionAttempted?: boolean;
+    platformAuthExtensionFallbackAttempted?: boolean;
+    platformAuthOutcome?: string;
+    platformAuthResponseCategory?: string;
 
     /**
      * Nested App Auth Fields

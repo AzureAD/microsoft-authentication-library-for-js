@@ -1373,8 +1373,13 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
             const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events[0].success).toBe(true);
-                expect(events[0].name).toBe(perfMeasurement.event.name);
+                const preRedirectEvent = events.find(
+                    (event) => event.name === perfMeasurement.event.name
+                );
+                if (!preRedirectEvent) {
+                    return;
+                }
+                expect(preRedirectEvent.success).toBe(true);
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
@@ -1777,11 +1782,51 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         it("returns null if native request is not cached", async () => {
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
             const response =
                 await platformAuthInteractionClient.handleRedirectPromise();
             expect(response).toBe(null);
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    platformAuthCachedRequestAvailable: false,
+                    platformAuthBrokerResendAttempted: false,
+                }),
+                RANDOM_TEST_GUID
+            );
+        });
+
+        it("records that a cached request was resent to the broker", async () => {
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockResolvedValue(MOCK_WAM_RESPONSE);
+            // @ts-ignore
+            pca.browserStorage.setInteractionInProgress(true);
+            // @ts-ignore
+            pca.browserStorage.setTemporaryCache(
+                "request.native",
+                JSON.stringify({
+                    accountId: "nativeAccountId",
+                    authority: TEST_CONFIG.validAuthority,
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    correlationId: RANDOM_TEST_GUID,
+                    scope: "User.Read",
+                }),
+                true
+            );
+
+            await platformAuthInteractionClient.handleRedirectPromise();
+
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    platformAuthCachedRequestAvailable: true,
+                    platformAuthBrokerResendAttempted: true,
+                }),
+                RANDOM_TEST_GUID
+            );
         });
     });
 
@@ -2529,7 +2574,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             });
 
             expect(addFieldsSpy).toHaveBeenCalledWith(
-                { hasAttributeTokens: false },
+                expect.objectContaining({ hasAttributeTokens: false }),
                 expect.any(String)
             );
 
@@ -2542,7 +2587,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             });
 
             expect(addFieldsSpy).toHaveBeenCalledWith(
-                { hasAttributeTokens: true },
+                expect.objectContaining({ hasAttributeTokens: true }),
                 expect.any(String)
             );
         });
@@ -2687,6 +2732,115 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     success: false,
                 }),
                 nativeError
+            );
+        });
+
+        it("measures successful request initialization, response handling, and cache stages", async () => {
+            const measurements = new Map<string, any>();
+            startMeasurementSpy.mockImplementation(
+                (name: string, correlationId?: string) => {
+                    const measurement = {
+                        add: jest.fn(),
+                        end: jest.fn(),
+                        increment: jest.fn(),
+                        discard: jest.fn(),
+                        event: {
+                            name,
+                            correlationId,
+                        },
+                    };
+                    measurements.set(name, measurement);
+                    return measurement;
+                }
+            );
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockResolvedValue(MOCK_WAM_RESPONSE);
+
+            await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                prompt: Constants.PromptValue.LOGIN,
+                attributeTokens: ["alpha"],
+                storeInCache: {
+                    accessToken: false,
+                    idToken: true,
+                    refreshToken: false,
+                },
+            });
+
+            [
+                "platformAuthInteractionClientInitializeRequest",
+                "platformAuthHandleNativeResponse",
+                "nativeGenerateAuthResult",
+                "platformAuthCacheAccount",
+                "platformAuthCacheNativeTokens",
+            ].forEach((eventName) => {
+                const measurement = measurements.get(eventName);
+                expect(measurement).toBeDefined();
+                expect(measurement.end).toHaveBeenCalledTimes(1);
+                expect(measurement.end).toHaveBeenCalledWith({
+                    success: true,
+                });
+            });
+            expect(performanceSpy).toHaveBeenCalledWith(
+                {
+                    hasAttributeTokens: true,
+                    platformAuthIsPopRequest: false,
+                    platformAuthPromptCategory: "interactive",
+                },
+                RANDOM_TEST_GUID
+            );
+            expect(performanceSpy).toHaveBeenCalledWith(
+                {
+                    storeInCacheAccessToken: false,
+                    storeInCacheIdToken: true,
+                    storeInCacheRefreshToken: false,
+                },
+                RANDOM_TEST_GUID
+            );
+        });
+
+        it("closes request initialization measurement once when validation fails", async () => {
+            const measurements = new Map<string, any>();
+            startMeasurementSpy.mockImplementation(
+                (name: string, correlationId?: string) => {
+                    const measurement = {
+                        add: jest.fn(),
+                        end: jest.fn(),
+                        increment: jest.fn(),
+                        discard: jest.fn(),
+                        event: {
+                            name,
+                            correlationId,
+                        },
+                    };
+                    measurements.set(name, measurement);
+                    return measurement;
+                }
+            );
+
+            await expect(
+                platformAuthInteractionClient.acquireToken({
+                    scopes: ["User.Read"],
+                    prompt: Constants.PromptValue.SELECT_ACCOUNT,
+                })
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.nativePromptNotSupported,
+            });
+
+            const measurement = measurements.get(
+                "platformAuthInteractionClientInitializeRequest"
+            );
+            expect(measurement).toBeDefined();
+            expect(measurement.end).toHaveBeenCalledTimes(1);
+            expect(measurement.end).toHaveBeenCalledWith(
+                {
+                    success: false,
+                },
+                expect.objectContaining({
+                    errorCode: BrowserAuthErrorCodes.nativePromptNotSupported,
+                })
             );
         });
 

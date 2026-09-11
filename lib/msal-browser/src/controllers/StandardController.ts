@@ -723,11 +723,9 @@ export class StandardController implements IController {
             );
 
             let result: Promise<void>;
+            const platformAuthProvider = this.platformAuthProvider;
 
-            if (
-                this.platformAuthProvider &&
-                this.canUsePlatformBroker(request)
-            ) {
+            if (this.canUsePlatformBroker(request) && platformAuthProvider) {
                 const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -737,7 +735,7 @@ export class StandardController implements IController {
                     this.navigationClient,
                     ApiId.acquireTokenRedirect,
                     this.performanceClient,
-                    this.platformAuthProvider,
+                    platformAuthProvider,
                     this.getNativeAccountId(request),
                     this.nativeInternalStorage,
                     correlationId,
@@ -1867,63 +1865,75 @@ export class StandardController implements IController {
      * @param request
      */
     public canUsePlatformBroker(
-        request: RedirectRequest | PopupRequest | SsoSilentRequest,
+        request:
+            | RedirectRequest
+            | PopupRequest
+            | SsoSilentRequest
+            | SilentRequest,
         accountId?: string
     ): boolean {
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("canUsePlatformBroker called", correlationId);
-        if (!this.platformAuthProvider) {
+        const platformAuthAllowed = isPlatformAuthAllowed(
+            this.config,
+            this.logger,
+            correlationId,
+            this.platformAuthProvider,
+            request.authenticationScheme,
+            this.performanceClient
+        );
+        const nativeAccountAvailable = !!(
+            accountId || this.getNativeAccountId(request)
+        );
+        const promptCategory = this.getPlatformAuthPromptCategory(
+            request.prompt
+        );
+        const promptSupported = promptCategory !== "unsupported";
+
+        let eligibilityReason = "eligible";
+        if (!platformAuthAllowed) {
+            eligibilityReason = "platform_auth_not_allowed";
+        } else if (!promptSupported) {
+            eligibilityReason = "prompt_not_supported";
+        } else if (!nativeAccountAvailable) {
+            eligibilityReason = "native_account_unavailable";
+        }
+
+        const canUsePlatformBroker =
+            platformAuthAllowed && promptSupported && nativeAccountAvailable;
+        this.performanceClient.addFields(
+            {
+                platformAuthNativeAccountAvailable: nativeAccountAvailable,
+                platformAuthPromptSupported: promptSupported,
+                platformAuthAllowed: canUsePlatformBroker,
+                platformAuthEligibilityReason: eligibilityReason,
+                platformAuthPromptCategory: promptCategory,
+            },
+            correlationId
+        );
+
+        if (!canUsePlatformBroker) {
             this.logger.trace(
-                "canUsePlatformBroker: platform broker unavilable, returning false",
+                `canUsePlatformBroker: returning false ('${eligibilityReason}')`,
                 correlationId
             );
-            return false;
         }
 
-        if (
-            !isPlatformAuthAllowed(
-                this.config,
-                this.logger,
-                correlationId,
-                this.platformAuthProvider,
-                request.authenticationScheme
-            )
-        ) {
-            this.logger.trace(
-                "canUsePlatformBroker: isPlatformAuthAllowed returned false, returning false",
-                correlationId
-            );
-            return false;
-        }
+        return canUsePlatformBroker;
+    }
 
-        if (request.prompt) {
-            switch (request.prompt) {
-                case Constants.PromptValue.NONE:
-                case Constants.PromptValue.CONSENT:
-                case Constants.PromptValue.LOGIN:
-                    this.logger.trace(
-                        "canUsePlatformBroker: prompt is compatible with platform broker flow",
-                        correlationId
-                    );
-                    break;
-                default:
-                    this.logger.trace(
-                        `canUsePlatformBroker: prompt = '${request.prompt}' is not compatible with platform broker flow, returning false`,
-                        correlationId
-                    );
-                    return false;
-            }
+    private getPlatformAuthPromptCategory(prompt?: string): string {
+        switch (prompt) {
+            case undefined:
+                return "not_provided";
+            case Constants.PromptValue.NONE:
+                return "none";
+            case Constants.PromptValue.CONSENT:
+            case Constants.PromptValue.LOGIN:
+                return "interactive";
+            default:
+                return "unsupported";
         }
-
-        if (!accountId && !this.getNativeAccountId(request)) {
-            this.logger.trace(
-                "canUsePlatformBroker: nativeAccountId is not available, returning false",
-                correlationId
-            );
-            return false;
-        }
-
-        return true;
     }
 
     /**
@@ -1931,9 +1941,11 @@ export class StandardController implements IController {
      * @param request
      * @returns
      */
-    public getNativeAccountId(
-        request: RedirectRequest | PopupRequest | SsoSilentRequest
-    ): string {
+    public getNativeAccountId(request: {
+        account?: AccountInfo;
+        loginHint?: string;
+        sid?: string;
+    }): string {
         const account =
             request.account ||
             this.getAccount({
@@ -2549,14 +2561,10 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         // if the cache policy is set to access_token only, we should not be hitting the native layer yet
         if (
-            isPlatformAuthAllowed(
-                this.config,
-                this.logger,
-                silentRequest.correlationId,
-                this.platformAuthProvider,
-                silentRequest.authenticationScheme
-            ) &&
-            silentRequest.account.nativeAccountId
+            this.canUsePlatformBroker(
+                silentRequest,
+                silentRequest.account.nativeAccountId
+            )
         ) {
             this.logger.verbose(
                 "acquireTokenSilent - attempting to acquire token from native platform",
