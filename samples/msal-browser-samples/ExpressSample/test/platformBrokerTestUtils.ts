@@ -9,7 +9,6 @@ import * as path from "path";
 import * as puppeteer from "puppeteer";
 import { BrowserCacheUtils } from "e2e-test-utils";
 
-const PLATFORM_BROKER_RESPONSE_KEY = "__platformBrokerResponse";
 const SSO_EXTENSION_PATH = process.env.SSO_EXTENSION_PATH || "";
 const SSO_EXTENSION_ID = "ppnbnpeolgkicgegkbkbjmhlideopiji";
 const SSO_EXTENSION_TIMEOUT = 20000;
@@ -75,10 +74,13 @@ export async function verifyPlatformBrokerResponse(
     target: puppeteer.Page
 ): Promise<void> {
     const fromPlatformBroker = await target.evaluate(
-        (key) => window.sessionStorage.getItem(key),
-        PLATFORM_BROKER_RESPONSE_KEY
+        async (modulePath) => {
+            const authModule = await import(modulePath);
+            return authModule.lastResponseFromPlatformBroker;
+        },
+        "/js/auth.js"
     );
-    expect(fromPlatformBroker).toBe("true");
+    expect(fromPlatformBroker).toBe(true);
 }
 
 export async function verifyPlatformBrokerTokenStore(
