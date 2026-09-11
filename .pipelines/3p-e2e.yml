@@ -100,7 +100,7 @@ extends:
                               dir: "NestedAuthAppSample"
                               # Platform-broker specs require a self-hosted WAM-enabled
                               # machine and must not run on the hosted E2E agents.
-                              testFilter: "naa-basic\\.spec"
+                              testFilter: "naa-(basic|ear)\\.spec"
                         debug: ${{ parameters.debug }}
                         npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                         enableScreenshots: ${{ parameters.enableScreenshots }}

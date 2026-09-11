@@ -154,10 +154,8 @@ The **EAR** suites open the host with `?ear=true` so it runs in
 `ProtocolMode.EAR`; the host's login and the token it brokers for the nested app
 come back as an encrypted `ear_jwe`. A `crypto.subtle.decrypt` spy asserts the
 response was actually decrypted (i.e. EAR was used, not a plaintext auth-code
-fallback). The web EAR suite is gated behind `NAA_EAR_E2E=true`, which
-`npm run test:e2e:ear` loads from `.env.e2e`, so it stays skipped in CI until
-an EAR registration authorized to obtain refresh tokens from `/authorize` is
-available.
+fallback). The web EAR suite runs in CI using the EAR-enabled registrations
+from `.env.e2e`.
 
 The platform-broker suites are **self-hosted only**: they require branded
 Chrome, the Microsoft SSO extension, WAM, and a brokerable signed-in Windows
@@ -167,7 +165,7 @@ End-to-end tests must run over HTTPS. The Jest configuration starts the HTTPS
 servers automatically.
 
 ```bash
-npm run test:e2e        # base web and broker suites; web EAR is skipped
+npm run test:e2e        # all web and broker suites
 ```
 
 The e2e specs consume the shared browser, cache, credential, and screenshot
