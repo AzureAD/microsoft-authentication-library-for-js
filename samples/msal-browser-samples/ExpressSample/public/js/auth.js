@@ -6,6 +6,7 @@
 import { showError, showSuccess } from "./utils.js";
 import { updateUI } from "./ui.js";
 import { createMsalConfig, loginRequest } from "./authConfig.js";
+import { isEarEnabled, isPlatformBrokerEnabled } from "./earConfig.js";
 
 // Authentication module - handles all MSAL authentication logic
 
@@ -13,11 +14,16 @@ import { createMsalConfig, loginRequest } from "./authConfig.js";
 export let msalInstance;
 
 const PLATFORM_BROKER_RESPONSE_KEY = "__platformBrokerResponse";
+const PLATFORM_BROKER_TEST_MODE =
+    isEarEnabled() || isPlatformBrokerEnabled();
 
 // Retry state tracking
 let retryRequested = false;
 
 function recordAuthenticationResult(response) {
+    if (!PLATFORM_BROKER_TEST_MODE) {
+        return;
+    }
     window.sessionStorage.setItem(
         PLATFORM_BROKER_RESPONSE_KEY,
         String(response.fromPlatformBroker === true)
