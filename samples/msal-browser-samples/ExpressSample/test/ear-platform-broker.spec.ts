@@ -1,9 +1,16 @@
 import * as path from "path";
-import * as fs from "fs";
-import * as os from "os";
 import { spawn, ChildProcess } from "child_process";
 import * as puppeteer from "puppeteer";
 import { Screenshot, BrowserCacheUtils } from "e2e-test-utils";
+import {
+    createPlatformBrokerProfile,
+    launchPlatformBrokerBrowser,
+    PLATFORM_LOGIN_TIMEOUT,
+    PlatformBrokerProfile,
+    removePlatformBrokerProfile,
+    verifyPlatformBrokerResponse,
+    verifyPlatformBrokerTokenStore,
+} from "./platformBrokerTestUtils";
 
 // CommonJS helper; require by relative path.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -24,13 +31,6 @@ const EAR_CACHE_LOCATION = "sessionStorage";
 const EAR_ORIGIN = `https://localhost:${EAR_PORT}`;
 // sessionStorage key for the decrypt spy count.
 const EAR_DECRYPT_COUNT_KEY = "__earDecryptCount";
-
-// Unpacked "Microsoft Single Sign On" extension dir (id ppnbnpeolgkicgegkbkbjmhlideopiji).
-const SSO_EXTENSION_PATH = process.env.SSO_EXTENSION_PATH || "";
-// The platform broker writes this storage key only on the broker path.
-const MATS_TELEMETRY_KEY = "mats-telemetry-profile-id";
-// The SSO extension can take a while to complete sign-in.
-const PLATFORM_LOGIN_TIMEOUT = 180000;
 
 /** True when /authorize used POST (EAR posts the encrypted JWK). */
 function isAuthorizePost(request: puppeteer.HTTPRequest): boolean {
@@ -95,31 +95,6 @@ async function installEarDecryptSpy(target: puppeteer.Page): Promise<void> {
     );
 }
 
-/** True when the platform-broker path wrote its telemetry profile id. */
-async function getHasMatsTelemetryProfileId(
-    target: puppeteer.Page
-): Promise<boolean> {
-    return target.evaluate(
-        (key) => window.sessionStorage.getItem(key) !== null,
-        MATS_TELEMETRY_KEY
-    );
-}
-
-/**
- * Platform-broker cache shape: the broker keeps the access token in native
- * in-memory storage and no refresh token is browser-cached, so only the id
- * token and account land in browser storage.
- */
-async function verifyPlatformBrokerTokenStore(
-    browserCache: BrowserCacheUtils
-): Promise<void> {
-    const tokenStore = await browserCache.getTokens();
-    expect(tokenStore.idTokens.length).toBe(1);
-    expect(tokenStore.accessTokens.length).toBe(0);
-    expect(tokenStore.refreshTokens.length).toBe(0);
-    expect(await browserCache.getAccountFromCache()).not.toBeNull();
-}
-
 // Platform-broker EAR tests are local-only: they need the MS SSO extension,
 // native host and a brokerable signed-in Windows account, none of which exist
 // in ADO/prod CI. This whole spec is excluded from CI by the `ear-basic`
@@ -130,17 +105,10 @@ describe("EAR + Platform Broker Tests", () => {
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
     let earServerProcess: ChildProcess;
-    let extensionDir = "";
+    let profile: PlatformBrokerProfile;
 
     beforeAll(async () => {
-        if (!SSO_EXTENSION_PATH) {
-            throw new Error(
-                "SSO_EXTENSION_PATH must point to the unpacked Microsoft SSO extension"
-            );
-        }
-        // Copy the extension out of any live browser profile before loading it.
-        extensionDir = fs.mkdtempSync(path.join(os.tmpdir(), "sso-ext-"));
-        fs.cpSync(SSO_EXTENSION_PATH, extensionDir, { recursive: true });
+        profile = createPlatformBrokerProfile();
 
         earServerProcess = spawn(EAR_START_CMD, {
             shell: true,
@@ -154,18 +122,7 @@ describe("EAR + Platform Broker Tests", () => {
             );
         }
 
-        // Bundled Chrome for Testing (NOT channel:chrome — Chrome 137+ blocks
-        // --load-extension). The native host must also be registered for it.
-        browser = await puppeteer.launch({
-            headless: false,
-            acceptInsecureCerts: true,
-            timeout: 60000,
-            args: [
-                "--disable-features=DisableLoadExtensionCommandLineSwitch",
-                `--disable-extensions-except=${extensionDir}`,
-                `--load-extension=${extensionDir}`,
-            ],
-        });
+        browser = await launchPlatformBrokerBrowser(profile);
     });
 
     afterAll(async () => {
@@ -182,9 +139,7 @@ describe("EAR + Platform Broker Tests", () => {
             earServerProcess.kill();
             setTimeout(() => resolve(), 5000);
         });
-        if (extensionDir) {
-            fs.rmSync(extensionDir, { recursive: true, force: true });
-        }
+        removePlatformBrokerProfile(profile);
     });
 
     beforeEach(async () => {
@@ -228,8 +183,7 @@ describe("EAR + Platform Broker Tests", () => {
         // EAR still POSTs /authorize; ear_jwe is decrypted to extract accountId.
         expect(authorizeWasPost).toBe(true);
         expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
-        // Only the platform-broker path sets this; the web flow does not.
-        expect(await getHasMatsTelemetryProfileId(page)).toBe(true);
+        await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 
@@ -265,7 +219,7 @@ describe("EAR + Platform Broker Tests", () => {
 
         expect(authorizeWasPost).toBe(true);
         expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
-        expect(await getHasMatsTelemetryProfileId(page)).toBe(true);
+        await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 
@@ -295,7 +249,7 @@ describe("EAR + Platform Broker Tests", () => {
         expect(await getEarDecryptCount(page)).toBeGreaterThan(
             decryptCountBefore
         );
-        expect(await getHasMatsTelemetryProfileId(page)).toBe(true);
+        await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 
@@ -320,7 +274,7 @@ describe("EAR + Platform Broker Tests", () => {
         await screenshot.takeScreenshot(page, "acquireTokenSilent completed");
 
         // Platform accounts renew through the broker, not the EAR RT grant.
-        expect(await getHasMatsTelemetryProfileId(page)).toBe(true);
+        await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 });

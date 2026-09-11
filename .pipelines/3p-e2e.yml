@@ -95,6 +95,10 @@ extends:
                             - name: "ExpressSample-EAR"
                               dir: "ExpressSample"
                               testFilter: "ear-basic"
+                            # WAM KMSI requires a local native broker environment.
+                            - name: "ExpressSample-KMSI-Web"
+                              dir: "ExpressSample"
+                              testFilter: "kmsi-basic"
                             - name: "NativeAuthSample"
                             - name: "NestedAuthAppSample"
                               dir: "NestedAuthAppSample"

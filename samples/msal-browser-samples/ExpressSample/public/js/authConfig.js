@@ -3,7 +3,11 @@
  * See LICENSE in the source repository root for complete license information.
  */
 
-import { earConfig, isEarEnabled } from './earConfig.js';
+import {
+    isEarEnabled,
+    isPlatformBrokerEnabled,
+    platformBrokerConfig,
+} from './earConfig.js';
 
 // Function to create MSAL configuration - only called after environment validation
 export function createMsalConfig() {
@@ -45,14 +49,26 @@ export function createMsalConfig() {
         }
     };
 
-    // ?ear=true -> apply EAR flow config (earConfig.js) and force EAR protocol.
-    if (isEarEnabled()) {
-        msalConfig.auth.clientId = earConfig.auth.clientId;
-        msalConfig.auth.authority = earConfig.auth.authority;
-        msalConfig.auth.redirectUri = earConfig.auth.redirectUri;
-        msalConfig.auth.postLogoutRedirectUri = earConfig.auth.postLogoutRedirectUri;
-        msalConfig.cache.cacheLocation = earConfig.cache.cacheLocation;
-        msalConfig.system.allowPlatformBroker = earConfig.system.allowPlatformBroker;
+    const earEnabled = isEarEnabled();
+    const kmsiTestEnabled =
+        new URLSearchParams(window.location.search).get("kmsi") === "true";
+    if (kmsiTestEnabled) {
+        msalConfig.cache.cacheLocation = "sessionStorage";
+    }
+
+    if (earEnabled || isPlatformBrokerEnabled()) {
+        msalConfig.auth.clientId = platformBrokerConfig.auth.clientId;
+        msalConfig.auth.authority = platformBrokerConfig.auth.authority;
+        msalConfig.auth.redirectUri = platformBrokerConfig.auth.redirectUri;
+        msalConfig.auth.postLogoutRedirectUri =
+            platformBrokerConfig.auth.postLogoutRedirectUri;
+        msalConfig.cache.cacheLocation = platformBrokerConfig.cache.cacheLocation;
+        msalConfig.system.allowPlatformBroker =
+            platformBrokerConfig.system.allowPlatformBroker;
+    }
+
+    // ?ear=true additionally forces the encrypted-response protocol.
+    if (earEnabled) {
         msalConfig.system.protocolMode = msal.ProtocolMode.EAR;
     }
 
