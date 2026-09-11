@@ -52,7 +52,7 @@ in this sample the host app supplies its own implementation
 | `server.js`  | Spawns the `hostApp` and `nestedApp` vite dev servers. |
 | `hostApp/`   | Top-frame host app (platform broker + NAA host).       |
 | `nestedApp/` | Embedded nested app.                                   |
-| `test/`      | Jest + Puppeteer end-to-end specs.                     |
+| `test/`      | Jest end-to-end specs (Puppeteer for the web flow, Playwright for the platform broker). |
 
 The host and nested app ports are defined once in `sampleConfig.cjs` and
 imported everywhere they are needed (`server.js`, both `vite.config.js` files,
@@ -98,6 +98,19 @@ placeholders with your own registrations:
 | `VITE_NESTED_CLIENT_ID` | Application (client) id of the **nested** app.                    |
 | `VITE_AUTHORITY`        | Authority URL, e.g. `https://login.microsoftonline.com/<tenant>`. |
 
+For the **NAA + EAR** tests only, the following optional variables point at an
+**EAR-enabled** registration pair. Set them in `.env.e2e` for `npm run
+test:e2e:ear` and in `.env` for `npm run test:e2e:ear-broker`, whose broker
+harness starts the sample using `.env`. When left unset, the standard
+registrations from the corresponding file are reused (and must themselves have
+EAR enabled):
+
+| Variable                    | Value                                                    |
+| --------------------------- | -------------------------------------------------------- |
+| `VITE_EAR_HOST_CLIENT_ID`   | Client id of an **EAR-enabled host/broker** app.         |
+| `VITE_EAR_NESTED_CLIENT_ID` | Client id of an **EAR-enabled nested** app.              |
+| `VITE_EAR_AUTHORITY`        | EAR authority URL (defaults to `VITE_AUTHORITY`).        |
+
 ## Running the sample
 
 ```bash
@@ -123,16 +136,36 @@ expected for local use.
 
 ## Running the end-to-end tests
 
-The end-to-end test exercises Nested App Authentication through the
-**host-supplied** `window.nestedAppAuthBridge`: the host app brokers the nested
-app's token over the regular web flow, and the test asserts the nested app never
-holds a refresh token (the core NAA property).
+The end-to-end suites live in `test/` and cover two host configurations, each of
+which also has an **Encrypted Authorize Response (EAR)** combination variant:
+
+| Spec / suite | Host flow | Runs in CI? | Command |
+| ------------ | --------- | ----------- | ------- |
+| `naa-basic.spec.ts` | Web flow (Puppeteer) | Yes (`naa-basic` filter) | `npm run test:e2e:basic` |
+| `naa-ear.spec.ts` | Web flow + `ProtocolMode.EAR` | No (opt-in) | `npm run test:e2e:ear` |
+| `naa-platform-broker.spec.ts` | Platform broker / WAM (Playwright) | No (self-hosted) | `npm run test:e2e:broker` |
+| `naa-ear-platform-broker.spec.ts` | Platform broker + `ProtocolMode.EAR` | No (self-hosted) | `npm run test:e2e:ear-broker` |
+
+The base suites exercise Nested App Authentication through the **host-supplied**
+`window.nestedAppAuthBridge`: the host brokers the nested app's token and the
+test asserts the nested app never holds a refresh token (the core NAA property).
+
+The **EAR** suites open the host with `?ear=true` so it runs in
+`ProtocolMode.EAR`; the host's login and the token it brokers for the nested app
+come back as an encrypted `ear_jwe`. A `crypto.subtle.decrypt` spy asserts the
+response was actually decrypted (i.e. EAR was used, not a plaintext auth-code
+fallback). The web EAR suite runs in CI using the EAR-enabled registrations
+from `.env.e2e`.
+
+The platform-broker suites are **self-hosted only**: they require branded
+Chrome, the Microsoft SSO extension, WAM, and a brokerable signed-in Windows
+account, so they are excluded from CI by the `naa-basic` pipeline filter.
 
 End-to-end tests must run over HTTPS. The Jest configuration starts the HTTPS
 servers automatically.
 
 ```bash
-npm run test:e2e
+npm run test:e2e        # all web and broker suites
 ```
 
 The e2e specs consume the shared browser, cache, credential, and screenshot

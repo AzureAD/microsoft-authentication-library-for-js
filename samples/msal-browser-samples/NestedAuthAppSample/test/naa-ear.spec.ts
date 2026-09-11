@@ -7,7 +7,11 @@ import {
     Screenshot,
     enterCredentials,
 } from "e2e-test-utils";
-import { getLabCredentials } from "./naaTestUtils";
+import {
+    getLabCredentials,
+    getPuppeteerEarDecryptCount,
+    installPuppeteerEarDecryptSpy,
+} from "./naaTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/nestedAppAuth`;
 const PUPPETEER_TIMEOUT = 15000;
@@ -81,7 +85,7 @@ async function verifyNestedTokenStore(
     ).toBeTruthy();
 }
 
-describe("Nested App Authentication brokered through the host app", () => {
+describe("Nested App Authentication + EAR brokered through the host app", () => {
     jest.setTimeout(120000);
 
     let browser: Browser;
@@ -104,6 +108,7 @@ describe("Nested App Authentication brokered through the host app", () => {
         await client.send("Security.setIgnoreCertificateErrors", {
             ignore: true,
         });
+        await installPuppeteerEarDecryptSpy(page);
         hostCache = new BrowserCacheUtils(page, "sessionStorage");
     });
 
@@ -111,12 +116,12 @@ describe("Nested App Authentication brokered through the host app", () => {
         await context.close();
     });
 
-    it("nested app acquires a token through the host without holding a refresh token", async () => {
+    it("nested app acquires a token through the host with encrypted authorize responses", async () => {
         const screenshot = new Screenshot(
-            `${SCREENSHOT_BASE_FOLDER_NAME}/nestedAcquireToken`
+            `${SCREENSHOT_BASE_FOLDER_NAME}/nestedAcquireTokenEar`
         );
 
-        await page.goto(`https://localhost:${HOST_APP_PORT}`);
+        await page.goto(`https://localhost:${HOST_APP_PORT}/?ear=true`);
 
         const hostFrame = page.mainFrame();
         const loginButton = await hostFrame.waitForSelector(
@@ -134,10 +139,14 @@ describe("Nested App Authentication brokered through the host app", () => {
         await enterCredentials(popupPage, screenshot, username, password);
         await waitForHostSignIn(hostFrame);
         await verifyHostTokenStore(hostCache);
+        expect(await getPuppeteerEarDecryptCount(page)).toBeGreaterThan(0);
 
         const nestedFrame = await getNestedFrame(page);
         const acquireButton = await nestedFrame.waitForSelector(
             "xpath=//button[contains(., 'acquireTokenSilent')]"
+        );
+        const decryptCountBeforeNested = await getPuppeteerEarDecryptCount(
+            page
         );
         await acquireButton?.click();
         await nestedFrame.waitForSelector(
@@ -145,6 +154,9 @@ describe("Nested App Authentication brokered through the host app", () => {
             { timeout: PUPPETEER_TIMEOUT }
         );
         await screenshot.takeScreenshot(page, "Nested app authenticated");
+        expect(await getPuppeteerEarDecryptCount(page)).toBeGreaterThan(
+            decryptCountBeforeNested
+        );
 
         const nestedCache = new BrowserCacheUtils(
             nestedFrame as unknown as Page,

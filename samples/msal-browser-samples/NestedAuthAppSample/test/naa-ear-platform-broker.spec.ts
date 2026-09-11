@@ -12,6 +12,8 @@ import {
     accessTokenForScopesExists,
     closeBrokerContext,
     enterAadCredentials,
+    getEarDecryptCount,
+    installEarDecryptSpy,
     launchBrokerContext,
     readAccountKeys,
     readSessionTokenStore,
@@ -28,7 +30,7 @@ const { HOST_APP_PORT, NESTED_APP_PORT } = require("../sampleConfig.cjs") as {
 };
 
 const SAMPLE_ROOT = path.join(__dirname, "..");
-const HOST_URL = `https://localhost:${HOST_APP_PORT}`;
+const HOST_URL = `https://localhost:${HOST_APP_PORT}/?ear=true`;
 const NESTED_IFRAME = "iframe[title='nestedApp']";
 const SCOPES = ["User.Read"];
 const ACTION_TIMEOUT = 60000;
@@ -77,7 +79,7 @@ function assertNestedTokenStore(store: TokenStore): void {
     expect(accessTokenForScopesExists(store.accessTokens, SCOPES)).toBe(true);
 }
 
-describe("NAA token APIs brokered through the platform broker", () => {
+describe("NAA token APIs + EAR brokered through the platform broker", () => {
     jest.setTimeout(300000);
 
     let broker: BrokerContext;
@@ -135,6 +137,7 @@ describe("NAA token APIs brokered through the platform broker", () => {
             );
         }
         context = broker.context;
+        await installEarDecryptSpy(context);
 
         hostPage = await context.newPage();
         await hostPage.goto(HOST_URL, {
@@ -168,6 +171,7 @@ describe("NAA token APIs brokered through the platform broker", () => {
         expect(hostStore.refreshTokens.length).toBe(0);
         expect(hostStore.idTokens.length).toBe(1);
         expect(await readAccountKeys(hostPage)).not.toBeNull();
+        expect(await getEarDecryptCount(hostPage)).toBeGreaterThan(0);
 
         autoCompleteAadPopups();
         nestedFrame = await getNestedFrame(hostPage);
@@ -189,6 +193,7 @@ describe("NAA token APIs brokered through the platform broker", () => {
     it.each(TOKEN_APIS)(
         "nested app acquires a token via $name ($bridge) through the broker",
         async ({ name }) => {
+            const decryptCountBeforeNested = await getEarDecryptCount(hostPage);
             await nestedFrame
                 .locator(`#${name}`)
                 .click({ timeout: ACTION_TIMEOUT });
@@ -201,6 +206,9 @@ describe("NAA token APIs brokered through the platform broker", () => {
             expect(await readAccountKeys(nestedFrame)).not.toBeNull();
             const nestedStore = await readSessionTokenStore(nestedFrame);
             assertNestedTokenStore(nestedStore);
+            expect(await getEarDecryptCount(hostPage)).toBeGreaterThan(
+                decryptCountBeforeNested
+            );
         }
     );
 
