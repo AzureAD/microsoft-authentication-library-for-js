@@ -683,6 +683,90 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
+    describe("platform broker routing telemetry", () => {
+        it("records an eligible routing decision in a single telemetry update", () => {
+            const controller = (pca as any).controller as StandardController;
+            const performanceClient = controller.getPerformanceClient();
+            const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
+            const isPlatformAuthAllowedSpy = jest
+                .spyOn(PlatformAuthProvider, "isPlatformAuthAllowed")
+                .mockReturnValue(true);
+
+            (controller as any).platformAuthProvider = {
+                getExtensionId: jest.fn(),
+                getExtensionVersion: jest.fn(),
+                getExtensionName: jest.fn(),
+                sendMessage: jest.fn(),
+            };
+
+            const result = controller.canUsePlatformBroker({
+                scopes: ["User.Read"],
+                correlationId: RANDOM_TEST_GUID,
+                account: BASIC_NATIVE_TEST_ACCOUNT_INFO,
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                prompt: Constants.PromptValue.LOGIN,
+            });
+
+            expect(result).toBe(true);
+            expect(isPlatformAuthAllowedSpy).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.anything(),
+                RANDOM_TEST_GUID,
+                expect.anything(),
+                Constants.AuthenticationScheme.BEARER,
+                performanceClient
+            );
+            expect(addFieldsSpy).toHaveBeenCalledTimes(1);
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    platformAuthNativeAccountAvailable: true,
+                    platformAuthPromptSupported: true,
+                    platformAuthAllowed: true,
+                    platformAuthEligibilityReason: "eligible",
+                    platformAuthPromptCategory: "interactive",
+                },
+                RANDOM_TEST_GUID
+            );
+        });
+
+        it("records an unsupported prompt routing decision without attempting the broker", () => {
+            const controller = (pca as any).controller as StandardController;
+            const performanceClient = controller.getPerformanceClient();
+            const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
+            jest.spyOn(
+                PlatformAuthProvider,
+                "isPlatformAuthAllowed"
+            ).mockReturnValue(true);
+
+            (controller as any).platformAuthProvider = {
+                getExtensionId: jest.fn(),
+                getExtensionVersion: jest.fn(),
+                getExtensionName: jest.fn(),
+                sendMessage: jest.fn(),
+            };
+
+            const result = controller.canUsePlatformBroker({
+                scopes: ["User.Read"],
+                correlationId: RANDOM_TEST_GUID,
+                account: BASIC_NATIVE_TEST_ACCOUNT_INFO,
+                prompt: Constants.PromptValue.SELECT_ACCOUNT,
+            });
+
+            expect(result).toBe(false);
+            expect(addFieldsSpy).toHaveBeenCalledTimes(1);
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    platformAuthNativeAccountAvailable: true,
+                    platformAuthPromptSupported: false,
+                    platformAuthAllowed: false,
+                    platformAuthEligibilityReason: "prompt_not_supported",
+                    platformAuthPromptCategory: "unsupported",
+                },
+                RANDOM_TEST_GUID
+            );
+        });
+    });
+
     describe("handleRedirectPromise", () => {
         beforeEach(async () => {
             // Implementation of pca was moved to controller

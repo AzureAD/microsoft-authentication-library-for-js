@@ -9,6 +9,8 @@ import {
     AuthErrorCodes,
     IPerformanceClient,
     StringDict,
+    AuthError,
+    invokeAsync,
 } from "@azure/msal-common/browser";
 import {
     DOMExtraParameters,
@@ -20,8 +22,13 @@ import {
     PlatformAuthResponse,
     PlatformDOMTokenResponse,
 } from "./PlatformAuthResponse.js";
-import { createNativeAuthError } from "../../error/NativeAuthError.js";
+import {
+    createNativeAuthError,
+    NativeAuthError,
+} from "../../error/NativeAuthError.js";
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
+import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
+import { BrowserAuthErrorCodes } from "../../error/BrowserAuthError.js";
 
 export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     protected logger: Logger;
@@ -49,31 +56,91 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             "PlatformAuthDOMHandler: createProvider called",
             correlationId
         );
+        const createProviderMeasurement = performanceClient.startMeasurement(
+            BrowserPerformanceEvents.PlatformAuthDOMCreateProvider,
+            correlationId
+        );
 
-        // @ts-ignore
-        if (window.navigator?.platformAuthentication) {
-            const supportedContracts =
-                // @ts-ignore
-                await window.navigator.platformAuthentication.getSupportedContracts(
-                    PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID
-                );
-            if (
-                supportedContracts?.includes(
-                    PlatformAuthConstants.PLATFORM_DOM_APIS
-                )
-            ) {
+        try {
+            const platformAuthentication = (
+                window.navigator as Navigator & {
+                    platformAuthentication?: {
+                        getSupportedContracts: (
+                            brokerId: string
+                        ) => Promise<string[]>;
+                    };
+                }
+            ).platformAuthentication;
+            if (!platformAuthentication) {
+                createProviderMeasurement.end({
+                    success: true,
+                    platformAuthDomApiAvailable: false,
+                    platformAuthDomContractSupported: false,
+                    platformAuthProviderAvailable: false,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                    platformAuthOutcome: "api_unavailable",
+                });
+                return undefined;
+            }
+
+            const supportedContracts = (await invokeAsync(
+                platformAuthentication.getSupportedContracts.bind(
+                    platformAuthentication
+                ),
+                BrowserPerformanceEvents.PlatformAuthDOMGetSupportedContracts,
+                logger,
+                performanceClient,
+                correlationId
+            )(PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID)) as string[];
+            const contractSupported = supportedContracts?.includes(
+                PlatformAuthConstants.PLATFORM_DOM_APIS
+            );
+            if (contractSupported) {
                 logger.trace(
                     "Platform auth api available in DOM",
                     correlationId
                 );
+                createProviderMeasurement.end({
+                    success: true,
+                    platformAuthDomApiAvailable: true,
+                    platformAuthDomContractSupported: true,
+                    platformAuthProviderAvailable: true,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                    platformAuthOutcome: "contract_supported",
+                });
                 return new PlatformAuthDOMHandler(
                     logger,
                     performanceClient,
                     correlationId
                 );
             }
+
+            createProviderMeasurement.end({
+                success: true,
+                platformAuthDomApiAvailable: true,
+                platformAuthDomContractSupported: false,
+                platformAuthProviderAvailable: false,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                platformAuthOutcome: "contract_unsupported",
+            });
+            return undefined;
+        } catch (e) {
+            createProviderMeasurement.end(
+                {
+                    success: false,
+                    platformAuthDomApiAvailable: true,
+                    platformAuthProviderAvailable: false,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                    platformAuthOutcome: "contract_lookup_error",
+                },
+                e
+            );
+            throw e;
         }
-        return undefined;
     }
 
     /**
@@ -100,9 +167,14 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     async sendMessage(
         request: PlatformAuthRequest
     ): Promise<PlatformAuthResponse> {
+        const correlationId = request.correlationId || this.correlationId;
+        const sendMessageMeasurement = this.performanceClient.startMeasurement(
+            BrowserPerformanceEvents.PlatformAuthDOMSendMessage,
+            correlationId
+        );
         this.logger.trace(
             `'${this.platformAuthType}' - Sending request to browser DOM API`,
-            request.correlationId
+            correlationId
         );
 
         try {
@@ -113,14 +185,28 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 await window.navigator.platformAuthentication.executeGetToken(
                     platformDOMRequest
                 );
-            return this.validatePlatformBrokerResponse(
+            const validatedResponse = this.validatePlatformBrokerResponse(
                 response,
-                request.correlationId
+                correlationId
             );
+            sendMessageMeasurement.end({
+                success: true,
+                platformAuthProviderType: this.platformAuthType,
+                platformAuthResponseCategory: "success",
+            });
+            return validatedResponse;
         } catch (e) {
             this.logger.error(
                 `'${this.platformAuthType}' - executeGetToken DOM API error`,
-                request.correlationId
+                correlationId
+            );
+            sendMessageMeasurement.end(
+                {
+                    success: false,
+                    platformAuthProviderType: this.platformAuthType,
+                    platformAuthResponseCategory: this.getResponseCategory(e),
+                },
+                e
             );
             throw e;
         }
@@ -174,24 +260,40 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         response: object,
         correlationId: string
     ): PlatformAuthResponse {
-        if (response.hasOwnProperty("isSuccess")) {
+        const responseCorrelationId = correlationId || this.correlationId;
+        const validationMeasurement = this.performanceClient.startMeasurement(
+            BrowserPerformanceEvents.PlatformAuthDOMValidateResponse,
+            responseCorrelationId
+        );
+        if (
+            response &&
+            Object.prototype.hasOwnProperty.call(response, "isSuccess")
+        ) {
             if (
-                response.hasOwnProperty("accessToken") &&
-                response.hasOwnProperty("idToken") &&
-                response.hasOwnProperty("clientInfo") &&
-                response.hasOwnProperty("account") &&
-                response.hasOwnProperty("scopes") &&
-                response.hasOwnProperty("expiresIn")
+                Object.prototype.hasOwnProperty.call(response, "accessToken") &&
+                Object.prototype.hasOwnProperty.call(response, "idToken") &&
+                Object.prototype.hasOwnProperty.call(response, "clientInfo") &&
+                Object.prototype.hasOwnProperty.call(response, "account") &&
+                Object.prototype.hasOwnProperty.call(response, "scopes") &&
+                Object.prototype.hasOwnProperty.call(response, "expiresIn")
             ) {
                 this.logger.trace(
                     `'${this.platformAuthType}' - platform broker returned successful and valid response`,
-                    correlationId
+                    responseCorrelationId
                 );
-                return this.convertToPlatformBrokerResponse(
+                const validatedResponse = this.convertToPlatformBrokerResponse(
                     response as PlatformDOMTokenResponse,
-                    correlationId
+                    responseCorrelationId
                 );
-            } else if (response.hasOwnProperty("error")) {
+                validationMeasurement.end({
+                    success: true,
+                    platformAuthProviderType: this.platformAuthType,
+                    platformAuthResponseCategory: "success",
+                });
+                return validatedResponse;
+            } else if (
+                Object.prototype.hasOwnProperty.call(response, "error")
+            ) {
                 const errorResponse = response as PlatformDOMTokenResponse;
                 if (
                     errorResponse.isSuccess === false &&
@@ -200,11 +302,16 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 ) {
                     this.logger.trace(
                         `'${this.platformAuthType}' - platform broker returned error response`,
-                        correlationId
+                        responseCorrelationId
                     );
+                    validationMeasurement.end({
+                        success: true,
+                        platformAuthProviderType: this.platformAuthType,
+                        platformAuthResponseCategory: "broker_error",
+                    });
                     throw createNativeAuthError(
                         errorResponse.error.code,
-                        correlationId,
+                        responseCorrelationId,
                         errorResponse.error.description,
                         {
                             error: parseInt(errorResponse.error.errorCode),
@@ -216,11 +323,41 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 }
             }
         }
-        throw createAuthError(
+        const error = createAuthError(
             AuthErrorCodes.unexpectedError,
-            correlationId,
+            responseCorrelationId,
             "Response missing expected properties."
         );
+        validationMeasurement.end(
+            {
+                success: false,
+                platformAuthProviderType: this.platformAuthType,
+                platformAuthResponseCategory: "invalid_response",
+            },
+            error
+        );
+        throw error;
+    }
+
+    private getResponseCategory(error: unknown): string {
+        if (error instanceof NativeAuthError) {
+            return "broker_error";
+        }
+        if (error instanceof AuthError) {
+            if (error.errorCode === BrowserAuthErrorCodes.userCancelled) {
+                return "cancelled";
+            }
+            return error.errorCode === AuthErrorCodes.unexpectedError
+                ? "invalid_response"
+                : "broker_error";
+        }
+        if (error instanceof Error && error.name === "AbortError") {
+            return "cancelled";
+        }
+        if (error instanceof Error && error.name === "TimeoutError") {
+            return "timeout";
+        }
+        return "api_error";
     }
 
     private convertToPlatformBrokerResponse(
