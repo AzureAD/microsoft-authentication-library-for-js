@@ -78,4 +78,53 @@ describe("AuthenticationHeaderParser unit tests", () => {
             );
         });
     });
+
+    describe("getDPoPNonce", () => {
+        it("returns the standalone DPoP-Nonce value from record headers without normalizing it", () => {
+            const nonce = "  opaque%2Fnonce+/=  ";
+            const authenticationHeaderParser = new AuthenticationHeaderParser({
+                "dpop-nonce": nonce,
+            });
+
+            expect(authenticationHeaderParser.getDPoPNonce()).toBe(nonce);
+        });
+
+        it("returns the standalone DPoP-Nonce value from a structural get(name) header implementation", () => {
+            const nonce = "resource-nonce";
+            const authenticationHeaderParser = new AuthenticationHeaderParser({
+                get: (name: string): string | null =>
+                    name === HeaderNames.DPOP_NONCE ? nonce : null,
+            });
+
+            expect(authenticationHeaderParser.getDPoPNonce()).toBe(nonce);
+        });
+
+        it("returns null when DPoP-Nonce is absent", () => {
+            expect(
+                new AuthenticationHeaderParser({}).getDPoPNonce()
+            ).toBeNull();
+            expect(
+                new AuthenticationHeaderParser({
+                    get: (): string | null => null,
+                }).getDPoPNonce()
+            ).toBeNull();
+        });
+
+        it("rejects invalid DPoP-Nonce header values without including the value in the error", () => {
+            const sentinel = "nonce\r\nsentinel";
+            const authenticationHeaderParser = new AuthenticationHeaderParser({
+                [HeaderNames.DPOP_NONCE]: sentinel,
+            });
+
+            expect(() => authenticationHeaderParser.getDPoPNonce()).toThrow(
+                ClientConfigurationErrorCodes.invalidDpopNonce
+            );
+
+            try {
+                authenticationHeaderParser.getDPoPNonce();
+            } catch (error) {
+                expect(String(error)).not.toContain(sentinel);
+            }
+        });
+    });
 });

@@ -375,7 +375,10 @@ const AuthClientExecuteTokenRequest = "authClientExecuteTokenRequest";
 
 // @public
 export class AuthenticationHeaderParser {
-    constructor(headers: Record<string, string>);
+    constructor(headers: Record<string, string> | {
+        get(name: string): string | null;
+    });
+    getDPoPNonce(): string | null;
     getShrNonce(): string;
 }
 
@@ -928,6 +931,9 @@ const cannotRemoveEmptyScope = "cannot_remove_empty_scope";
 // @public (undocumented)
 const cannotSetOIDCOptions = "cannot_set_OIDCOptions";
 
+// @internal
+export function canonicalizeDpopNonceIssuer(issuerUri: unknown, nonceType: DpopNonceType, correlationId?: string): string;
+
 // @public (undocumented)
 const CCS_HEADER = "X-AnchorMailbox";
 
@@ -1378,6 +1384,9 @@ export function createClientConfigurationError(errorCode: string, correlationId:
 // @internal
 function createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, logger: Logger, correlationId: string, performanceClient: IPerformanceClient): Promise<Authority>;
 
+// @internal
+export function createDpopNonceEntity(clientId: string, nonceType: DpopNonceType, nonceSource: DpopNonceSource, nonce: unknown, lastUpdatedAt?: number): DpopNonceEntity;
+
 // @public
 function createIdTokenEntity(homeAccountId: string, environment: string, idToken: string, clientId: string, tenantId: string): IdTokenEntity;
 
@@ -1538,8 +1547,59 @@ const DOMAIN_HINT = "domain_hint";
 // @public (undocumented)
 const DPOP_JKT = "dpop_jkt";
 
+// @internal
+export const DPOP_NONCE_CACHE_KEY_PREFIX = "msal.dpop_nonce";
+
+// @internal
+export const DPOP_NONCE_MAX_ENTRIES_PER_TYPE = 50;
+
+// @internal
+export const DPOP_NONCE_MAX_SIZE_BYTES = 1024;
+
+// @internal
+export const DPOP_NONCE_SCHEMA_VERSION = 1;
+
+// @internal
+export const DPOP_NONCE_TTL_MS: number;
+
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";
+
+// @internal
+export type DpopNonceCacheKey = {
+    schemaVersion: number;
+    clientId: string;
+    nonceType: DpopNonceType;
+    issuerHash: string;
+};
+
+// @internal
+export type DpopNonceEntity = {
+    schemaVersion: number;
+    nonce: string;
+    clientId: string;
+    nonceType: DpopNonceType;
+    nonceSource: DpopNonceSource;
+    lastUpdatedAt: number;
+};
+
+// @internal
+export const DpopNonceSource: {
+    readonly AuthorizationServer: "authorization_server";
+    readonly ResourceServer: "resource_server";
+};
+
+// @internal (undocumented)
+export type DpopNonceSource = (typeof DpopNonceSource)[keyof typeof DpopNonceSource];
+
+// @internal
+export const DpopNonceType: {
+    readonly AuthorizationServer: "authorization_server";
+    readonly ResourceServer: "resource_server";
+};
+
+// @internal (undocumented)
+export type DpopNonceType = (typeof DpopNonceType)[keyof typeof DpopNonceType];
 
 // @public (undocumented)
 const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
@@ -1629,6 +1689,9 @@ export type GenerateAuthenticationResultOptions = {
 // @public
 function generateAuthorityMetadataExpiresAt(): number;
 
+// @internal
+export function generateDpopNonceCacheKey(clientId: string, nonceType: DpopNonceType, issuerHash: string): string;
+
 // @public
 function generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, correlationId: string, idTokenClaims?: TokenClaims): string;
 
@@ -1697,6 +1760,7 @@ const HeaderNames: {
     readonly CONTENT_TYPE: "Content-Type";
     readonly CONTENT_LENGTH: "Content-Length";
     readonly DPOP: "DPoP";
+    readonly DPOP_NONCE: "DPoP-Nonce";
     readonly RETRY_AFTER: "Retry-After";
     readonly CCS_HEADER: "X-AnchorMailbox";
     readonly WWWAuthenticate: "WWW-Authenticate";
@@ -2030,6 +2094,9 @@ function isCacheExpired(lastUpdatedAt: string, cacheRetentionDays: number): bool
 // @public (undocumented)
 function isCredentialEntity(entity: object): entity is CredentialEntity;
 
+// @internal
+export function isDpopNonceEntityValid(entity: unknown, clientId: string, nonceType: DpopNonceType, now?: number): entity is DpopNonceEntity;
+
 // @public (undocumented)
 export interface ISerializableTokenCache {
     // (undocumented)
@@ -2353,6 +2420,9 @@ const OPENID_SCOPE = "openid";
 
 // @public (undocumented)
 const openIdConfigError = "openid_config_error";
+
+// @internal
+export function parseDpopNonceCacheKey(cacheKey: string): DpopNonceCacheKey | null;
 
 // @public
 function parseRequestState(base64Decode: (input: string) => string, state: string, correlationId: string): RequestStateObject;
@@ -3478,6 +3548,9 @@ const USERNAME = "username";
 
 // @public
 function validateAuthorizationResponse(serverResponse: AuthorizeResponse, requestState: string, correlationId: string): void;
+
+// @internal
+export function validateDpopNonce(nonce: unknown, correlationId?: string): string;
 
 // @public
 function validateUrl(url: string, logger?: Logger, correlationId?: string): void;

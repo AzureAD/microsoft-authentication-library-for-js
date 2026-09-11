@@ -188,6 +188,11 @@ export const LoadAccessToken = "loadAccessToken";
 export const LoadRefreshToken = "loadRefreshToken";
 
 /**
+ * loadDpopNonce API in TokenCache.
+ */
+export const TokenCacheLoadDpopNonce = "tokenCacheLoadDpopNonce";
+
+/**
  * Background telemetry measurement that tracks whether a late bridge response
  * arrives after the iframe timeout has already fired.
  */

@@ -100,6 +100,7 @@ import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandle
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
+import { ITokenCache, TokenCache } from "../cache/TokenCache.js";
 
 function preflightCheck(
     initialized: boolean,
@@ -128,6 +129,7 @@ export class StandardController implements IController {
 
     // Storage interface implementation
     protected readonly browserStorage: BrowserCacheManager;
+    private readonly tokenCache: TokenCache;
 
     // Native Cache in memory storage implementation
     protected readonly nativeInternalStorage: BrowserCacheManager;
@@ -265,6 +267,11 @@ export class StandardController implements IController {
                   undefined,
                   this.tokenBindingKeyManager
               );
+        this.tokenCache = new TokenCache(
+            this.browserStorage,
+            this.logger,
+            this.performanceClient
+        );
 
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
@@ -2119,11 +2126,19 @@ export class StandardController implements IController {
     }
 
     /**
+     * Returns the token cache bound to this controller's active cache manager.
+     */
+    public getTokenCache(): ITokenCache {
+        return this.tokenCache;
+    }
+
+    /**
      * Replaces the default logger set in configurations with new Logger with new configurations
      * @param logger Logger instance
      */
     setLogger(logger: Logger): void {
         this.logger = logger;
+        this.tokenCache.setLogger(logger);
     }
 
     /**

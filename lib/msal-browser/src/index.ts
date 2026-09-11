@@ -69,7 +69,7 @@ export { HandleRedirectPromiseOptions } from "./request/HandleRedirectPromiseOpt
 export type { IWebBrokerBridgeMessage } from "./webBrokerBridge/IWebBrokerBridgeMessage.js";
 
 // Cache
-export { LoadTokenOptions } from "./cache/TokenCache.js";
+export { ITokenCache, LoadTokenOptions } from "./cache/TokenCache.js";
 export { loadExternalTokens } from "./cache/TokenCache.js";
 
 // Storage

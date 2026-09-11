@@ -140,6 +140,25 @@ export {
 } from "./response/ResponseHandler.js";
 export { ScopeSet } from "./request/ScopeSet.js";
 export { AuthenticationHeaderParser } from "./request/AuthenticationHeaderParser.js";
+export {
+    DPOP_NONCE_CACHE_KEY_PREFIX,
+    DPOP_NONCE_MAX_ENTRIES_PER_TYPE,
+    DPOP_NONCE_MAX_SIZE_BYTES,
+    DPOP_NONCE_SCHEMA_VERSION,
+    DPOP_NONCE_TTL_MS,
+    DpopNonceSource,
+    DpopNonceType,
+    canonicalizeDpopNonceIssuer,
+    createDpopNonceEntity,
+    generateDpopNonceCacheKey,
+    isDpopNonceEntityValid,
+    parseDpopNonceCacheKey,
+    validateDpopNonce,
+} from "./cache/entities/DpopNonceEntity.js";
+export type {
+    DpopNonceCacheKey,
+    DpopNonceEntity,
+} from "./cache/entities/DpopNonceEntity.js";
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger.js";
 export {
     InteractionRequiredAuthError,

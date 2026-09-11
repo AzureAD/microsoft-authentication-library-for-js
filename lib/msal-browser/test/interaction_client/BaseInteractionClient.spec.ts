@@ -12,6 +12,8 @@ import {
     CacheManager,
     IdTokenEntity,
     CacheHelpers,
+    DpopNonceSource,
+    DpopNonceType,
 } from "@azure/msal-common";
 import {
     TEST_DATA_CLIENT_INFO,
@@ -233,7 +235,37 @@ describe("BaseInteractionClient", () => {
             expect(pca.getActiveAccount()).toBe(null);
         });
 
+        it("continues full logout and clears the keystore when DPoP nonce cleanup fails", async () => {
+            jest.spyOn(
+                // @ts-ignore
+                pca.browserStorage,
+                "clearDpopNonces"
+            ).mockImplementation(() => {
+                throw new Error("storage unavailable");
+            });
+            const clearKeystoreSpy = jest.spyOn(
+                testClient["browserCrypto"],
+                "clearKeystore"
+            );
+
+            await expect(
+                testClient.logout({ account: null })
+            ).resolves.toBeUndefined();
+
+            expect(clearKeystoreSpy).toHaveBeenCalledWith(
+                testClient["correlationId"]
+            );
+            expect(pca.getAllAccounts()).toHaveLength(0);
+        });
+
         it("Removes account provided", async () => {
+            // @ts-ignore
+            await pca.browserStorage.setDpopNonce(
+                DpopNonceType.ResourceServer,
+                "https://resource.example.com/path",
+                "nonce-to-clear",
+                DpopNonceSource.ResourceServer
+            );
             expect(pca.getAllAccounts().length).toBe(2);
             expect(pca.getActiveAccount()).toMatchObject(testAccountInfo1);
             await testClient.logout({ account: testAccountInfo1 });
@@ -248,6 +280,37 @@ describe("BaseInteractionClient", () => {
                 })
             ).toMatchObject(testAccountInfo2);
             expect(pca.getActiveAccount()).toBe(null);
+            // @ts-ignore
+            expect(pca.browserStorage.getDpopNonceKeys()).toHaveLength(0);
+        });
+
+        it("continues account logout when DPoP nonce cleanup fails", async () => {
+            // @ts-ignore
+            const clearDpopNoncesSpy = jest
+                // @ts-ignore
+                .spyOn(pca.browserStorage, "clearDpopNonces")
+                .mockImplementation(() => {
+                    throw new Error("storage unavailable");
+                });
+            const loggerWarningSpy = jest.spyOn(
+                testClient["logger"],
+                "warning"
+            );
+
+            await expect(
+                testClient.logout({ account: testAccountInfo1 })
+            ).resolves.toBeUndefined();
+
+            expect(clearDpopNoncesSpy).toHaveBeenCalledTimes(1);
+            expect(loggerWarningSpy).toHaveBeenCalledWith(
+                "Unable to clear cached DPoP nonces during logout. Continuing logout.",
+                testClient["correlationId"]
+            );
+            expect(
+                pca.getAccount({
+                    homeAccountId: testAccountInfo1.homeAccountId,
+                })
+            ).toBeNull();
         });
     });
     describe("getDiscoveredAuthority()", () => {

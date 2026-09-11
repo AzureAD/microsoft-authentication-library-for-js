@@ -12,6 +12,7 @@ import { WrapperSKU } from "../utils/BrowserConstants.js";
 import { IPublicClientApplication } from "./IPublicClientApplication.js";
 import { IController } from "../controllers/IController.js";
 import {
+    AuthError,
     PerformanceCallbackFunction,
     AccountInfo,
     AccountFilter,
@@ -44,6 +45,15 @@ import type {
     WaitForIframeResponseFn,
     WaitForIframeRequest,
 } from "../interaction_client/SilentIframeClient.js";
+import type { ITokenCache } from "../cache/TokenCache.js";
+
+type TokenCacheController = IController & {
+    getTokenCache?: () => ITokenCache;
+};
+
+const TOKEN_CACHE_UNAVAILABLE_ERROR = "token_cache_unavailable";
+const TOKEN_CACHE_UNAVAILABLE_MESSAGE =
+    "The configured controller does not support token cache access.";
 
 /**
  * Auth-response handlers.
@@ -379,6 +389,22 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     getActiveAccount(): AccountInfo | null {
         return this.controller.getActiveAccount();
+    }
+
+    /**
+     * Returns the token cache bound to this PublicClientApplication instance.
+     */
+    getTokenCache(): ITokenCache {
+        const tokenCacheController = this.controller as TokenCacheController;
+        if (typeof tokenCacheController.getTokenCache !== "function") {
+            throw new AuthError(
+                TOKEN_CACHE_UNAVAILABLE_ERROR,
+                "",
+                TOKEN_CACHE_UNAVAILABLE_MESSAGE
+            );
+        }
+
+        return tokenCacheController.getTokenCache();
     }
 
     /**

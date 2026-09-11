@@ -7,7 +7,11 @@ When MSAL acquires a token, it caches it for future usage. MSAL manages token li
 You can configure the cache storage location via the configuration object that is used to instantiate MSAL:
 
 ```typescript
-import { PublicClientApplication, BrowserCacheLocation } from "@azure/msal-browser";
+import {
+    AuthenticationHeaderParser,
+    BrowserCacheLocation,
+    PublicClientApplication,
+} from "@azure/msal-browser";
 
 const pca = new PublicClientApplication({
     auth: {
@@ -64,10 +68,51 @@ To faciliate efficient token acquisition while maintaining a good UX, MSAL cache
 - **Telemetry**
     - previous failed request 
     - performance data
+- **DPoP nonce state**
+    - opaque resource-server nonces scoped to the HTTPS resource origin
 
 > :bulb: Temporary cache entries will always be stored in session storage or in memory. MSAL will fallback to memory storage if sessionStorage is not available.
 
 > :bulb: The authorization code is only stored in memory and will be discarded after redeeming it for tokens.
+
+## DPoP resource-server nonce challenges
+
+When a resource server responds to a DPoP request with a `DPoP-Nonce` response
+header, deposit the opaque header value in the PCA's cache:
+
+```typescript
+const headerParser = new AuthenticationHeaderParser(response.headers);
+const dpopNonce = headerParser.getDPoPNonce();
+if (dpopNonce === null) {
+    throw new Error("The response did not include a DPoP-Nonce header.");
+}
+
+await pca
+    .getTokenCache()
+    .loadDpopNonce(resourceRequestUri, dpopNonce);
+```
+
+`AuthenticationHeaderParser` accepts either a Fetch `Headers` object or a
+plain header record with case-insensitive names. `getDPoPNonce()` returns
+`null` when the header is absent and throws an MSAL validation error when the
+header value is empty, contains control characters, or exceeds the size limit.
+For cross-origin Fetch requests, the resource server must also return
+`Access-Control-Expose-Headers: DPoP-Nonce`; otherwise browser code cannot read
+the `DPoP-Nonce` response header.
+
+`resourceRequestUri` must be an absolute HTTPS URI without embedded
+credentials. Nonces are scoped to its origin, so paths, query strings, and
+fragments do not create separate entries. Treat the nonce as opaque: pass the
+response-header value unchanged. Empty values, control characters, and values
+larger than 1024 UTF-8 bytes are rejected, as are invalid or non-HTTPS resource
+URIs.
+
+The nonce uses the PCA's configured cache location (`sessionStorage`,
+`localStorage`, or memory) and expires after 24 hours. `loadDpopNonce()` only
+deposits the nonce; MSAL does not retry the resource request or automatically
+attach the nonce to a DPoP proof. MSAL removes these entries when `clearCache()`
+or logout clears the PCA cache. Storage and validation failures reject
+`loadDpopNonce()` with an MSAL error.
 
 ## Cache persistence during MSAL.js upgrades and rollbacks
 

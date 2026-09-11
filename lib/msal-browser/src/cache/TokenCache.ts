@@ -26,6 +26,8 @@ import {
     StubPerformanceClient,
     TimeUtils,
     TokenClaims,
+    DpopNonceSource,
+    DpopNonceType,
 } from "@azure/msal-common/browser";
 import { buildConfiguration, Configuration } from "../config/Configuration.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
@@ -51,6 +53,74 @@ export type LoadTokenOptions = {
     expiresOn?: number;
     extendedExpiresOn?: number;
 };
+
+/**
+ * Token-cache operations exposed by a PublicClientApplication instance.
+ */
+export interface ITokenCache {
+    /**
+     * Stores an opaque resource-server DPoP nonce for the HTTPS origin derived
+     * from resourceRequestUri. The nonce is validated and persisted using the
+     * PublicClientApplication instance's active cache manager.
+     *
+     * @param resourceRequestUri Absolute HTTPS URI of the resource response.
+     * @param dpopNonce Opaque DPoP-Nonce response-header value.
+     */
+    loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
+}
+
+/**
+ * Instance-bound implementation of the browser token-cache API.
+ * @internal
+ */
+export class TokenCache implements ITokenCache {
+    constructor(
+        private readonly browserStorage: BrowserCacheManager,
+        private logger: Logger,
+        private readonly performanceClient: IPerformanceClient
+    ) {}
+
+    /**
+     * Replaces the logger used by token-cache operations.
+     * @internal
+     */
+    setLogger(logger: Logger): void {
+        this.logger = logger;
+    }
+
+    async loadDpopNonce(
+        resourceRequestUri: string,
+        dpopNonce: string
+    ): Promise<void> {
+        const correlationId = BrowserCrypto.createNewGuid();
+        return invokeAsync(
+            async (): Promise<void> => {
+                try {
+                    await this.browserStorage.setDpopNonce(
+                        DpopNonceType.ResourceServer,
+                        resourceRequestUri,
+                        dpopNonce,
+                        DpopNonceSource.ResourceServer
+                    );
+                    this.performanceClient.addFields(
+                        { "ext.dpopNonceCacheWriteSucceeded": true },
+                        correlationId
+                    );
+                } catch (error) {
+                    this.performanceClient.addFields(
+                        { "ext.dpopNonceCacheWriteSucceeded": false },
+                        correlationId
+                    );
+                    throw error;
+                }
+            },
+            BrowserPerformanceEvents.TokenCacheLoadDpopNonce,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
+    }
+}
 
 /**
  * API to load tokens to msal-browser cache.
