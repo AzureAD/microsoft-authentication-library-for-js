@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add a supported confidential and managed identity package entry point [#PR](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/PR)",
+  "comment": "Add a supported confidential and managed identity package entry point [#8825](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8825)",
   "packageName": "@azure/msal-node",
   "email": "nugetaad@microsoft.com",
   "dependentChangeType": "patch"
