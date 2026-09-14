@@ -142,11 +142,11 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             redirectUri,
             correlationId,
             state,
-            extraParameters,
             preferBinding,
             enclave,
             reqCnf,
             extraParametersNoCache,
+            extraParameters,
             ...remainingProperties
         } = request;
         delete remainingProperties.resourceRequestMethod;
