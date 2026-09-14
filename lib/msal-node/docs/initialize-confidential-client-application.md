@@ -15,6 +15,17 @@ In this document:
 
 In order to use MSAL Node, you need to instantiate a [ConfidentialClient](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.confidentialclientapplication.html) object.
 
+Confidential client applications can import their supported surface from the
+`@azure/msal-node/confidential` entry point. The root `@azure/msal-node` entry
+point remains supported.
+
+```typescript
+import {
+    ConfidentialClientApplication,
+    type Configuration,
+} from "@azure/msal-node/confidential";
+```
+
 ### Using secrets and certificates securely
 
 Secrets should never be hardcoded. The dotenv npm package can be used to store secrets or certificates in a .env file (located in project's root directory) that should be included in .gitignore to prevent accidental uploads of the secrets.
