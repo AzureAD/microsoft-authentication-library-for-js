@@ -4,6 +4,8 @@
  */
 
 /**
+ * Shared web broker bridge contracts and runtime utilities.
+ *
  * @packageDocumentation
  * @module @azure/msal-browser/web-broker-bridge
  */
