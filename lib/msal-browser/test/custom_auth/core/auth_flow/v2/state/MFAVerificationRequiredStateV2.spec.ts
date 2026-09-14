@@ -93,6 +93,22 @@ describe("MFAVerificationRequiredStateV2", () => {
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
     });
 
+    it("fails MFA completion when the account is missing", async () => {
+        flowClient.submitCode.mockResolvedValue({
+            type: FLOW_COMPLETED_V2,
+            correlationId,
+            authenticationResult: {
+                account: undefined,
+            } as unknown as AuthenticationResult,
+        });
+
+        const result = await buildState().submitChallenge("123456");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.data).toBeUndefined();
+        expect(result.error).toBeDefined();
+    });
+
     it("resends an MFA challenge and remains in MFA verification", async () => {
         flowClient.resendCode.mockResolvedValue({
             type: FLOW_CODE_REQUIRED_V2,
@@ -116,9 +132,7 @@ describe("MFAVerificationRequiredStateV2", () => {
         const result = await buildState().resendChallenge();
 
         expect(result.isState("mfaVerificationRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(
-            MFAVerificationRequiredStateV2
-        );
+        expect(result.state).toBeInstanceOf(MFAVerificationRequiredStateV2);
         if (result.isState("mfaVerificationRequired")) {
             expect(result.state.method?.type).toBe("sms");
             expect(result.state.sentTo).toBe("+1******5678");

@@ -22,5 +22,5 @@ export type MFASubmitChallengeResultStateV2 = CompletedStateV2 | FailedStateV2;
 export type MFASubmitChallengeResultV2 = CustomAuthResultV2<
     MFASubmitChallengeResultStateV2,
     VerifyChallengeErrorV2,
-    CustomAuthAccountData | undefined
+    CustomAuthAccountData
 >;

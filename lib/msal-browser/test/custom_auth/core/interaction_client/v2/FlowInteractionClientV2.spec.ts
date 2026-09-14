@@ -67,6 +67,7 @@ describe("FlowInteractionClientV2", () => {
             | "signUpStart"
             | "submitSignUpAttributes"
             | "requestChallenge"
+            | "verifyRisk"
             | "verifyChallenge"
             | "submitNewPassword"
             | "poll"
@@ -112,6 +113,7 @@ describe("FlowInteractionClientV2", () => {
             signUpStart: jest.fn(),
             submitSignUpAttributes: jest.fn(),
             requestChallenge: jest.fn(),
+            verifyRisk: jest.fn(),
             verifyChallenge: jest.fn(),
             submitNewPassword: jest.fn(),
             poll: jest.fn(),
@@ -125,6 +127,7 @@ describe("FlowInteractionClientV2", () => {
                 | "signUpStart"
                 | "submitSignUpAttributes"
                 | "requestChallenge"
+                | "verifyRisk"
                 | "verifyChallenge"
                 | "submitNewPassword"
                 | "poll"
@@ -473,7 +476,7 @@ describe("FlowInteractionClientV2", () => {
             );
         });
 
-        it("falls back to email without submitting a supplied password", async () => {
+        it("fails when a password is supplied without a password method", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
                 signInHref: "https://endpoint/sign-in",
@@ -489,20 +492,20 @@ describe("FlowInteractionClientV2", () => {
                     },
                 ],
             });
-            apiClient.requestChallenge.mockResolvedValue({
-                nextAction: "verify",
-                continuationToken: "ct-email",
-                verifyHref: "https://endpoint/email/verify",
-                type: "email",
+
+            await expect(
+                client.signIn({
+                    correlationId,
+                    username: "user@contoso.com",
+                    password: "P@ssword1!",
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+                errorDescription:
+                    "A password was supplied, but the sign-in response did not include a password method.",
             });
 
-            const result = await client.signIn({
-                correlationId,
-                username: "user@contoso.com",
-                password: "P@ssword1!",
-            });
-
-            expect(result.type).toBe(FLOW_CODE_REQUIRED_V2);
+            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
             expect(apiClient.verifyChallenge).not.toHaveBeenCalled();
         });
 
@@ -1634,6 +1637,61 @@ describe("FlowInteractionClientV2", () => {
                     resend: "https://endpoint/resend-2",
                 },
             });
+        });
+
+        it("completes SMS risk verification before returning a code-required result", async () => {
+            apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "riskVerify",
+                continuationToken: "ct-risk",
+                riskVerifyHref: "https://endpoint/risk/verify",
+            });
+            apiClient.verifyRisk.mockResolvedValue({
+                nextAction: "verify",
+                continuationToken: "ct-sms",
+                verifyHref: "https://endpoint/sms/verify",
+                resendHref: "https://endpoint/sms/resend",
+                codeLength: 6,
+                hint: "***1234",
+                type: "sms",
+            });
+
+            const result = await client.resendCode({
+                correlationId,
+                continuationState,
+            });
+
+            expect(apiClient.verifyRisk).toHaveBeenCalledWith(
+                "https://endpoint/risk/verify",
+                { continuationToken: "ct-risk" },
+                expect.objectContaining({ correlationId })
+            );
+            expect(result).toMatchObject({
+                type: FLOW_CODE_REQUIRED_V2,
+                channel: "sms",
+                sentTo: "***1234",
+                codeLength: 6,
+            });
+        });
+
+        it("rejects an unsupported challenge next action", async () => {
+            apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "unsupported" as "verify",
+                continuationToken: "ct-unsupported",
+                verifyHref: "https://endpoint/unsupported",
+            });
+
+            await expect(
+                client.resendCode({
+                    correlationId,
+                    continuationState,
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+                errorDescription:
+                    "Challenge next action 'unsupported' is not supported.",
+            });
+
+            expect(apiClient.verifyRisk).not.toHaveBeenCalled();
         });
 
         it("uses the sign-up resend API ID for a sign-up challenge", async () => {

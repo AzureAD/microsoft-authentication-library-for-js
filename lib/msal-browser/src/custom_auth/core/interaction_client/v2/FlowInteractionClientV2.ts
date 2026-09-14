@@ -847,17 +847,23 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         );
 
         if (passwordProvided) {
-            // Use the supplied password when supported; otherwise fall back to email OTP.
-            const selectedMethod = passwordMethod ?? emailMethod;
-            if (selectedMethod) {
-                return selectedMethod;
+            if (passwordMethod) {
+                return passwordMethod;
             }
-        } else {
-            // Without a password, prefer email OTP; otherwise ask for a password afterward.
-            const selectedMethod = emailMethod ?? passwordMethod;
-            if (selectedMethod) {
-                return selectedMethod;
-            }
+
+            const message =
+                "A password was supplied, but the sign-in response did not include a password method.";
+            this.logger.error(message, correlationId);
+            throw new CustomAuthError(
+                UNSUPPORTED_FLOW_TRANSITION,
+                message,
+                correlationId
+            );
+        }
+
+        const selectedMethod = emailMethod ?? passwordMethod;
+        if (selectedMethod) {
+            return selectedMethod;
         }
 
         const message =
@@ -1051,17 +1057,27 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             { continuationToken: continuationState.continuationToken },
             context
         );
+        const nextAction: string = challengeResult.nextAction;
 
         if (challengeResult.nextAction === ChallengeNextActionV2.VERIFY) {
             return challengeResult;
         }
 
-        const verificationResult = await this.apiClient.verifyRisk(
-            challengeResult.riskVerifyHref,
-            { continuationToken: challengeResult.continuationToken },
-            context
+        if (challengeResult.nextAction === ChallengeNextActionV2.RISK_VERIFY) {
+            return this.apiClient.verifyRisk(
+                challengeResult.riskVerifyHref,
+                { continuationToken: challengeResult.continuationToken },
+                context
+            );
+        }
+
+        const message = `Challenge next action '${nextAction}' is not supported.`;
+        this.logger.error(message, correlationId);
+        throw new CustomAuthError(
+            UNSUPPORTED_FLOW_TRANSITION,
+            message,
+            correlationId
         );
-        return verificationResult;
     }
 
     private createChallengeContinuationState(
