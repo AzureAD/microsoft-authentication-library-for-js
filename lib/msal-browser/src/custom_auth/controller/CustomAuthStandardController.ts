@@ -48,7 +48,7 @@ import {
     FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
 } from "../core/interaction_client/v2/result/FlowActionResultV2.js";
 import { PasswordRequiredStateV2 } from "../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
-import { ChallengeVerificationRequiredStateV2 } from "../core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+import { CodeRequiredStateV2 } from "../core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { MFARequiredStateV2 } from "../core/auth_flow/v2/state/MFARequiredStateV2.js";
 import { AttributesRequiredStateV2 } from "../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { SignUpPasswordRequiredStateV2 } from "../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
@@ -671,7 +671,7 @@ export class CustomAuthStandardController
 
             if (result.type === FLOW_CODE_REQUIRED_V2) {
                 return new CustomAuthResultV2(
-                    new ChallengeVerificationRequiredStateV2({
+                    new CodeRequiredStateV2({
                         correlationId: result.correlationId,
                         logger: this.logger,
                         config: this.customAuthConfig,
@@ -782,7 +782,7 @@ export class CustomAuthStandardController
 
             if (result.type === FLOW_CODE_REQUIRED_V2) {
                 return new CustomAuthResultV2(
-                    new ChallengeVerificationRequiredStateV2({
+                    new CodeRequiredStateV2({
                         correlationId: result.correlationId,
                         logger: this.logger,
                         config: this.customAuthConfig,
@@ -887,7 +887,7 @@ export class CustomAuthStandardController
 
             if (result.type === FLOW_CODE_REQUIRED_V2) {
                 return new CustomAuthResultV2(
-                    new ChallengeVerificationRequiredStateV2({
+                    new CodeRequiredStateV2({
                         ...commonStateParameters,
                         sentTo: result.sentTo,
                         channel: result.channel,

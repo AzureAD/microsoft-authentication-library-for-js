@@ -6,7 +6,7 @@
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { AuthenticationMethodV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/AuthenticationMethodV2.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
-import { ChallengeVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+import { MFAVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
 import { MFARequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/MFARequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import { FLOW_CODE_REQUIRED_V2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
@@ -95,9 +95,9 @@ describe("MFARequiredStateV2", () => {
                 },
             },
         });
-        expect(result.isState("challengeVerificationRequired")).toBe(true);
+        expect(result.isState("mfaVerificationRequired")).toBe(true);
         expect(result.state).toBeInstanceOf(
-            ChallengeVerificationRequiredStateV2
+            MFAVerificationRequiredStateV2
         );
     });
 

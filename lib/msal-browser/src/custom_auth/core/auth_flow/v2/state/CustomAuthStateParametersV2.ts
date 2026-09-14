@@ -27,11 +27,18 @@ export interface MFARequiredStateParametersV2
     methods: readonly AuthenticationMethodV2[];
 }
 
-export interface ChallengeVerificationRequiredStateParametersV2
+export interface CodeVerificationStateParametersV2
     extends CustomAuthActionRequiredStateParametersV2 {
-    signUpStateTransitionHandler?: SignUpStateTransitionHandlerV2;
     method?: AuthenticationMethodV2;
     sentTo?: string;
     channel?: string;
     codeLength?: number;
 }
+
+export interface CodeRequiredStateParametersV2
+    extends CodeVerificationStateParametersV2 {
+    signUpStateTransitionHandler?: SignUpStateTransitionHandlerV2;
+}
+
+export type MFAVerificationRequiredStateParametersV2 =
+    CodeVerificationStateParametersV2;

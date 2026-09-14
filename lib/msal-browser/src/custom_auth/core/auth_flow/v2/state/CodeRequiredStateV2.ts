@@ -3,20 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
-import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import { VerifyChallengeErrorV2 } from "../error/VerifyChallengeErrorV2.js";
 import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
 import { NewPasswordRequiredStateV2 } from "../../../../reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
-import type { ChallengeVerificationRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
+import type { CodeRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { VerifyChallengeResultV2 } from "../result/VerifyChallengeResultV2.js";
 import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
 import { CompletedStateV2 } from "./CompletedStateV2.js";
+import { MFARequiredStateV2 } from "./MFARequiredStateV2.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import {
     FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_COMPLETED_V2,
+    FLOW_MFA_REQUIRED_V2,
     FLOW_NEW_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
@@ -24,55 +24,28 @@ import {
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
+import { ChallengeVerificationStateBaseV2 } from "./ChallengeVerificationStateBaseV2.js";
 
 /**
- * State returned when the user must verify a challenge, for example by
- * submitting a one-time code sent to their email. It carries metadata about the
- * challenge and lets the app submit the code or request a fresh one.
+ * State returned when first-factor email authentication requires a one-time
+ * code. It allows the app to submit the code or request a replacement.
  */
-export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequiredStateBase<ChallengeVerificationRequiredStateParametersV2> {
-    readonly stateType = "challengeVerificationRequired";
-
-    readonly method?: AuthenticationMethodV2;
-
-    readonly sentTo?: string;
-
-    readonly channel?: string;
-
-    readonly codeLength?: number;
-
-    constructor(
-        stateParameters: ChallengeVerificationRequiredStateParametersV2
-    ) {
-        super(stateParameters);
-        this.method = stateParameters.method;
-        this.sentTo = stateParameters.sentTo;
-        this.channel = stateParameters.channel;
-        this.codeLength = stateParameters.codeLength;
-    }
+export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRequiredStateParametersV2> {
+    readonly stateType = "codeRequired";
 
     /**
-     * Verifies the challenge with the code the user received. On success the
-     * result requests the next required action; failures identify invalid codes.
-     * @param code - The code to verify.
-     * @returns The result of verifying the challenge.
+     * Submits the first-factor email code and advances the active flow. The
+     * result may complete the operation or require another flow-specific step.
+     * @param code - The code to submit.
+     * @returns The result of submitting the first-factor code.
      */
-    async verifyChallenge(code: string): Promise<VerifyChallengeResultV2> {
-        const { correlationId, logger, continuationState, flowClient } =
+    async submitCode(code: string): Promise<VerifyChallengeResultV2> {
+        const { correlationId, logger, continuationState } =
             this.stateParameters;
 
         try {
-            if (this.stateParameters.codeLength) {
-                this.ensureCodeIsValid(code, this.stateParameters.codeLength);
-            }
-
-            logger.verbose("Verifying V2 challenge code.", correlationId);
-
-            const result = await flowClient.submitCode({
-                correlationId,
-                continuationState,
-                code,
-            });
+            logger.verbose("Submitting V2 first-factor code.", correlationId);
+            const result = await this.submitCodeCore(code);
             const resultType: string = result.type;
 
             if (result.type === FLOW_NEW_PASSWORD_REQUIRED_V2) {
@@ -81,7 +54,7 @@ export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequired
                         correlationId: result.correlationId,
                         logger,
                         config: this.stateParameters.config,
-                        flowClient,
+                        flowClient: this.stateParameters.flowClient,
                         continuationState: result.continuationState,
                         cacheClient: this.stateParameters.cacheClient,
                     }),
@@ -116,9 +89,25 @@ export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequired
                         correlationId: result.correlationId,
                         logger,
                         config: this.stateParameters.config,
-                        flowClient,
+                        flowClient: this.stateParameters.flowClient,
                         continuationState: result.continuationState,
                         cacheClient: this.stateParameters.cacheClient,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_MFA_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new MFARequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger,
+                        config: this.stateParameters.config,
+                        flowClient: this.stateParameters.flowClient,
+                        continuationState: result.continuationState,
+                        cacheClient: this.stateParameters.cacheClient,
+                        methods: result.methods,
                     }),
                     undefined,
                     result.continuationState.scenario
@@ -143,12 +132,12 @@ export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequired
 
             throw new CustomAuthError(
                 UNSUPPORTED_FLOW_TRANSITION,
-                `Challenge verification result type '${resultType}' is not supported.`,
+                `Code submission result type '${resultType}' is not supported.`,
                 correlationId
             );
         } catch (error) {
             logger.errorPii(
-                `Failed to verify V2 challenge. Error: '${error}'.`,
+                `Failed to submit V2 first-factor code. Error: '${error}'.`,
                 correlationId
             );
 
@@ -161,28 +150,24 @@ export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequired
     }
 
     /**
-     * Requests a new challenge when the previous code was not received or expired.
-     * The returned result contains the newly issued challenge details.
-     * @returns The result of requesting a new challenge.
+     * Requests a replacement first-factor email code. The returned state
+     * contains the refreshed challenge metadata.
+     * @returns The result of requesting a replacement code.
      */
-    async requestNewChallenge(): Promise<RequestChallengeResultV2> {
-        const { correlationId, logger, continuationState, flowClient } =
+    async resendCode(): Promise<RequestChallengeResultV2> {
+        const { correlationId, logger, continuationState } =
             this.stateParameters;
 
         try {
-            logger.verbose("Resending V2 challenge code.", correlationId);
-
-            const result = await flowClient.resendCode({
-                correlationId,
-                continuationState,
-            });
+            logger.verbose("Resending V2 first-factor code.", correlationId);
+            const result = await this.resendCodeCore();
 
             return new CustomAuthResultV2(
-                new ChallengeVerificationRequiredStateV2({
+                new CodeRequiredStateV2({
                     correlationId: result.correlationId,
                     logger,
                     config: this.stateParameters.config,
-                    flowClient,
+                    flowClient: this.stateParameters.flowClient,
                     continuationState: result.continuationState,
                     cacheClient: this.stateParameters.cacheClient,
                     signUpStateTransitionHandler:
@@ -197,7 +182,7 @@ export class ChallengeVerificationRequiredStateV2 extends AuthFlowActionRequired
             );
         } catch (error) {
             logger.errorPii(
-                `Failed to resend V2 challenge. Error: '${error}'.`,
+                `Failed to resend V2 first-factor code. Error: '${error}'.`,
                 correlationId
             );
 

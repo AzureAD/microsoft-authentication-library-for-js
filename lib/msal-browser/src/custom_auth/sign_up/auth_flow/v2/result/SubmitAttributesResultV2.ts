@@ -4,13 +4,13 @@
  */
 
 import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
-import type { ChallengeVerificationRequiredStateV2 } from "../../../../core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+import type { CodeRequiredStateV2 } from "../../../../core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import type { FailedStateV2 } from "../../../../core/auth_flow/v2/state/FailedStateV2.js";
 import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import type { SubmitAttributesErrorV2 } from "../error_type/SubmitAttributesErrorV2.js";
 
 export type SubmitAttributesResultStateV2 =
-    | ChallengeVerificationRequiredStateV2
+    | CodeRequiredStateV2
     | SignInContinuationStateV2
     | FailedStateV2;
 

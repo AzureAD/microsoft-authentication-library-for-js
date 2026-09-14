@@ -12,7 +12,7 @@ import { CustomAuthApiError } from "../../../../../src/custom_auth/core/error/Cu
 import { MsalCustomAuthError } from "../../../../../src/custom_auth/core/error/MsalCustomAuthError.js";
 import { UnexpectedError } from "../../../../../src/custom_auth/core/error/UnexpectedError.js";
 import { AuthMethodSelectionRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
-import { ChallengeVerificationRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+import { CodeRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { FailedStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/FailedStateV2.js";
 import { AuthenticationMethodV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/AuthenticationMethodV2.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
@@ -74,7 +74,7 @@ describe("CustomAuthResultV2", () => {
 
         it("narrows an auto-selected reset result to code verification", () => {
             const result: ResetPasswordStartResultV2 = new CustomAuthResultV2(
-                new ChallengeVerificationRequiredStateV2({
+                new CodeRequiredStateV2({
                     correlationId,
                     logger: getDefaultLogger(),
                     config: mockConfig,
@@ -92,8 +92,8 @@ describe("CustomAuthResultV2", () => {
                 })
             );
 
-            expect(result.isState("challengeVerificationRequired")).toBe(true);
-            if (result.isState("challengeVerificationRequired")) {
+            expect(result.isState("codeRequired")).toBe(true);
+            if (result.isState("codeRequired")) {
                 expect(result.state.method).toBe(method);
             }
         });

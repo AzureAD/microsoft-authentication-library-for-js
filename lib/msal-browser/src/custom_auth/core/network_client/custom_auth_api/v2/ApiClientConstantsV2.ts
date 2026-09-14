@@ -10,7 +10,14 @@ export const JSON_CONTENT_TYPE = "application/json";
 export const UPDATE_RELATION = "update";
 export const CHALLENGE_RELATION = "challenge";
 export const VERIFY_RELATION = "verify";
+export const RISK_VERIFY_RELATION = "riskverify";
 export const COLLECT_ATTRIBUTES_RELATION = "collectAttributes";
+
+export const AuthenticationMethodTypeV2 = {
+    EMAIL: "email",
+    PASSWORD: "password",
+    SMS: "sms",
+} as const;
 
 /*
  * Known `state` values on a HAL response. Kept open (the body field is typed as string) because

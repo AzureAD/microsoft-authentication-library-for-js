@@ -6,7 +6,7 @@
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
-import { ChallengeVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+import { CodeRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
     FLOW_CODE_REQUIRED_V2,
@@ -105,9 +105,9 @@ describe("AttributesRequiredStateV2", () => {
             givenName: "Test",
         });
 
-        expect(result.isState("challengeVerificationRequired")).toBe(true);
+        expect(result.isState("codeRequired")).toBe(true);
         expect(result.state).toBeInstanceOf(
-            ChallengeVerificationRequiredStateV2
+            CodeRequiredStateV2
         );
     });
 

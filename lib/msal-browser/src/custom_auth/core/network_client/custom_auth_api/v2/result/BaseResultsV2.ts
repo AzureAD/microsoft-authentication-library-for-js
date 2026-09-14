@@ -51,11 +51,13 @@ export interface StartResultV2 {
 export type ResetPasswordStartApiResultV2 = StartResultV2;
 export type SignInStartApiResultV2 = StartResultV2;
 
-/*
- * Result of requesting a challenge. It contains the verification link and
- * optional display metadata for the selected authentication method.
- */
-export interface ChallengeResultV2 {
+export const ChallengeNextActionV2 = {
+    VERIFY: "verify",
+    RISK_VERIFY: "riskVerify",
+} as const;
+
+export interface ChallengeVerificationResultV2 {
+    nextAction: typeof ChallengeNextActionV2.VERIFY;
     continuationToken: string;
     verifyHref: string;
     resendHref?: string;
@@ -63,6 +65,16 @@ export interface ChallengeResultV2 {
     hint?: string;
     type?: string;
 }
+
+export interface RiskVerificationRequiredResultV2 {
+    nextAction: typeof ChallengeNextActionV2.RISK_VERIFY;
+    continuationToken: string;
+    riskVerifyHref: string;
+}
+
+export type ChallengeResultV2 =
+    | ChallengeVerificationResultV2
+    | RiskVerificationRequiredResultV2;
 
 export const VerifyNextActionV2 = {
     UPDATE: "update",

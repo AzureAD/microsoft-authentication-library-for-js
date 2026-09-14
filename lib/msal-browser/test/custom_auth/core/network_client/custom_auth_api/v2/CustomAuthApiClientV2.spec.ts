@@ -609,6 +609,7 @@ describe("CustomAuthApiClientV2", () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     continuationToken: "ct-challenge",
+                    action: "verify",
                     type: "email",
                     codeLength: 6,
                     hint: "u***@test.com",
@@ -626,6 +627,7 @@ describe("CustomAuthApiClientV2", () => {
             );
 
             expect(result).toEqual({
+                nextAction: "verify",
                 continuationToken: "ct-challenge",
                 type: "email",
                 verifyHref: "/tenant/api/v0.1/verify",
@@ -639,6 +641,7 @@ describe("CustomAuthApiClientV2", () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     continuationToken: "ct-challenge",
+                    action: "verify",
                     payload: { codeLength: 8 },
                     _links: { verify: { href: "/tenant/api/v0.1/verify" } },
                 })
@@ -649,14 +652,17 @@ describe("CustomAuthApiClientV2", () => {
                 { continuationToken: "ct-start" },
                 context
             );
-            expect(result.codeLength).toBe(8);
-            expect(result.codeLength).toBe(8);
+            expect(result).toMatchObject({
+                nextAction: "verify",
+                codeLength: 8,
+            });
         });
 
         it("maps a password challenge without OTP metadata", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     continuationToken: "ct-password",
+                    action: "verify",
                     id: "password-1",
                     type: "password",
                     _links: {
@@ -676,12 +682,206 @@ describe("CustomAuthApiClientV2", () => {
             );
 
             expect(result).toEqual({
+                nextAction: "verify",
                 continuationToken: "ct-password",
                 type: "password",
                 verifyHref: "/tenant/api/v0.1/password/verify",
                 resendHref: undefined,
                 codeLength: undefined,
                 hint: undefined,
+            });
+        });
+
+        it.each([undefined, "unsupported"])(
+            "rejects a challenge with action %s",
+            async (action) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-challenge",
+                        action,
+                        type: "email",
+                        _links: {
+                            verify: { href: "/tenant/api/v0.1/verify" },
+                        },
+                    })
+                );
+
+                await expect(
+                    apiClient.requestChallenge(
+                        "/tenant/api/v0.1/challenge",
+                        { continuationToken: "ct-start" },
+                        context
+                    )
+                ).rejects.toMatchObject({
+                    error: INVALID_HAL_RESPONSE,
+                    errorDescription:
+                        "Invalid HAL response: challenge returned no known next action",
+                });
+            }
+        );
+
+        it("returns the risk-verification link for an SMS challenge", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-risk",
+                    state: "interactionRequired",
+                    action: "riskverify",
+                    _links: {
+                        riskverify: {
+                            href: "/tenant/api/v1.0-internal/risk/phone/verify",
+                        },
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.requestChallenge(
+                    "/tenant/api/v0.1/sms/challenge",
+                    { continuationToken: "ct-start" },
+                    context
+                )
+            ).resolves.toEqual({
+                nextAction: "riskVerify",
+                continuationToken: "ct-risk",
+                riskVerifyHref: "/tenant/api/v1.0-internal/risk/phone/verify",
+            });
+        });
+
+        it("rejects risk verification without a riskverify link", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-risk",
+                    state: "interactionRequired",
+                    action: "riskverify",
+                    _links: {},
+                })
+            );
+
+            await expect(
+                apiClient.requestChallenge(
+                    "/tenant/api/v0.1/sms/challenge",
+                    { continuationToken: "ct-start" },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription:
+                    "Invalid HAL response: missing 'riskverify' link",
+            });
+        });
+    });
+
+    describe("verifyRisk", () => {
+        it("returns SMS verification metadata", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-sms-verify",
+                    state: "interactionRequired",
+                    action: "verify",
+                    scenario: "signin",
+                    type: "sms",
+                    hint: "+*** *******11",
+                    payload: { codeLength: 6 },
+                    _links: {
+                        verify: {
+                            href: "/tenant/api/v1.0-internal/sms/verify",
+                        },
+                        resend: {
+                            href: "/tenant/api/v1.0-internal/sms/challenge",
+                        },
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.verifyRisk(
+                    "/tenant/api/v1.0-internal/risk/phone/verify",
+                    { continuationToken: "ct-risk" },
+                    context
+                )
+            ).resolves.toEqual({
+                nextAction: "verify",
+                continuationToken: "ct-sms-verify",
+                verifyHref: "/tenant/api/v1.0-internal/sms/verify",
+                resendHref: "/tenant/api/v1.0-internal/sms/challenge",
+                codeLength: 6,
+                hint: "+*** *******11",
+                type: "sms",
+            });
+        });
+
+        it("rejects a response without the verify action", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-risk",
+                    action: "unsupported",
+                })
+            );
+
+            await expect(
+                apiClient.verifyRisk(
+                    "/tenant/api/v1.0-internal/risk/phone/verify",
+                    { continuationToken: "ct-risk" },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription:
+                    "Invalid HAL response: SMS risk verification returned no known next action",
+            });
+        });
+
+        it.each([undefined, "email"])(
+            "rejects risk verification with challenge type %s",
+            async (type) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-sms-verify",
+                        action: "verify",
+                        scenario: "signin",
+                        type,
+                        _links: {
+                            verify: {
+                                href: "/tenant/api/v1.0-internal/sms/verify",
+                            },
+                        },
+                    })
+                );
+
+                await expect(
+                    apiClient.verifyRisk(
+                        "/tenant/api/v1.0-internal/risk/phone/verify",
+                        { continuationToken: "ct-risk" },
+                        context
+                    )
+                ).rejects.toMatchObject({
+                    error: INVALID_HAL_RESPONSE,
+                    errorDescription:
+                        "Invalid HAL response: SMS risk verification returned a non-SMS challenge",
+                });
+            }
+        );
+
+        it("rejects risk verification without a verify link", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-sms-verify",
+                    action: "verify",
+                    scenario: "signin",
+                    type: "sms",
+                    _links: {},
+                })
+            );
+
+            await expect(
+                apiClient.verifyRisk(
+                    "/tenant/api/v1.0-internal/risk/phone/verify",
+                    { continuationToken: "ct-risk" },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription: "Invalid HAL response: missing 'verify' link",
             });
         });
     });

@@ -6,16 +6,18 @@
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
-import { ChallengeVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+import { CodeRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { AttributesRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { SignUpPasswordRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
 import { SignUpStateTransitionHandlerV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
 import { SignInContinuationStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
+import { MFARequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/MFARequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
     FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_COMPLETED_V2,
+    FLOW_MFA_REQUIRED_V2,
     FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
@@ -24,14 +26,14 @@ import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/g
 import type { AuthenticationResult } from "../../../../../../src/response/AuthenticationResult.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
-describe("ChallengeVerificationRequiredStateV2", () => {
+describe("CodeRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
     const flowClient = {
         submitCode: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
 
-    const buildState = (): ChallengeVerificationRequiredStateV2 =>
-        new ChallengeVerificationRequiredStateV2({
+    const buildState = (): CodeRequiredStateV2 =>
+        new CodeRequiredStateV2({
             correlationId,
             logger: getDefaultLogger(),
             config: {
@@ -61,8 +63,8 @@ describe("ChallengeVerificationRequiredStateV2", () => {
             codeLength: 6,
         });
 
-    const buildSignUpState = (): ChallengeVerificationRequiredStateV2 =>
-        new ChallengeVerificationRequiredStateV2({
+    const buildSignUpState = (): CodeRequiredStateV2 =>
+        new CodeRequiredStateV2({
             correlationId,
             logger: getDefaultLogger(),
             config: {
@@ -91,7 +93,7 @@ describe("ChallengeVerificationRequiredStateV2", () => {
         jest.clearAllMocks();
     });
 
-    it("returns completed sign-in after verifying an MFA code", async () => {
+    it("returns completed sign-in after submitting a first-factor code", async () => {
         flowClient.submitCode.mockResolvedValue({
             type: FLOW_COMPLETED_V2,
             correlationId,
@@ -102,7 +104,7 @@ describe("ChallengeVerificationRequiredStateV2", () => {
             } as unknown as AuthenticationResult,
         });
 
-        const result = await buildState().verifyChallenge("123456");
+        const result = await buildState().submitCode("123456");
 
         expect(flowClient.submitCode).toHaveBeenCalledWith({
             correlationId,
@@ -121,6 +123,33 @@ describe("ChallengeVerificationRequiredStateV2", () => {
         expect(result.isState("completed")).toBe(true);
         expect(result.state).toBeInstanceOf(CompletedStateV2);
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+    });
+
+    it("returns MFA required after submitting a first-factor code", async () => {
+        flowClient.submitCode.mockResolvedValue({
+            type: FLOW_MFA_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-mfa",
+                scenario: CustomAuthFlowScenarioV2.SignIn,
+                links: {},
+                tokenRequest: {
+                    scopes: ["User.Read"],
+                },
+            },
+            methods: [
+                {
+                    id: "sms-mfa",
+                    type: "sms",
+                    challengeHref: "/mfa/sms/challenge",
+                },
+            ],
+        });
+
+        const result = await buildState().submitCode("123456");
+
+        expect(result.isState("mfaRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(MFARequiredStateV2);
     });
 
     it("returns attributes required after verifying a sign-up code", async () => {
@@ -147,7 +176,7 @@ describe("ChallengeVerificationRequiredStateV2", () => {
             ],
         });
 
-        const result = await buildSignUpState().verifyChallenge("12345678");
+        const result = await buildSignUpState().submitCode("12345678");
 
         expect(result.isState("attributesRequired")).toBe(true);
         expect(result.state).toBeInstanceOf(AttributesRequiredStateV2);
@@ -176,7 +205,7 @@ describe("ChallengeVerificationRequiredStateV2", () => {
             )
         );
 
-        const result = await buildSignUpState().verifyChallenge("12345678");
+        const result = await buildSignUpState().submitCode("12345678");
 
         expect(result.isFailed()).toBe(true);
         expect(result.error?.isUserAlreadyExists()).toBe(true);
@@ -206,7 +235,7 @@ describe("ChallengeVerificationRequiredStateV2", () => {
             requiredPasswordAttribute,
         });
 
-        const result = await buildSignUpState().verifyChallenge("12345678");
+        const result = await buildSignUpState().submitCode("12345678");
 
         expect(result.isState("passwordRequired")).toBe(true);
         expect(result.state).toBeInstanceOf(SignUpPasswordRequiredStateV2);
@@ -231,7 +260,7 @@ describe("ChallengeVerificationRequiredStateV2", () => {
             },
         });
 
-        const result = await buildSignUpState().verifyChallenge("12345678");
+        const result = await buildSignUpState().submitCode("12345678");
 
         expect(result.isState("signInContinuation")).toBe(true);
         expect(result.state).toBeInstanceOf(SignInContinuationStateV2);

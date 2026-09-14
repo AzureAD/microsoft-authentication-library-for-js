@@ -15,6 +15,8 @@ import {
     StartResultV2,
     StartMethodV2,
     ChallengeResultV2,
+    ChallengeNextActionV2,
+    ChallengeVerificationResultV2,
     VerifyResultV2,
     VerifyNextActionV2,
     AuthenticationFactorV2,
@@ -30,6 +32,9 @@ import {
     SignUpStartResponseV2,
     SignUpSubmitAttributesResponseV2,
     ChallengeResponseV2,
+    RiskVerificationRequiredResponseV2,
+    RiskVerificationResponseV2,
+    VerificationChallengeResponseV2,
     VerifyResponseV2,
     UpdatePasswordResponseV2,
     PollResponseV2,
@@ -52,6 +57,8 @@ import {
     COLLECT_ATTRIBUTES_RELATION,
     UPDATE_RELATION,
     VERIFY_RELATION,
+    RISK_VERIFY_RELATION,
+    AuthenticationMethodTypeV2,
     ResponseStateV2,
 } from "./ApiClientConstantsV2.js";
 import {
@@ -170,8 +177,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
 
         if (parsedResponse.body.action === VERIFY_RELATION) {
             return {
-                nextAction: SignUpSubmitAttributesNextActionV2.VERIFY,
-                ...this.toChallengeResult(parsedResponse),
+                ...this.toChallengeVerificationResult(parsedResponse),
                 attributes: parsedResponse.body.attributes,
             };
         }
@@ -204,6 +210,41 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             );
 
         return this.toChallengeResult(parsedResponse);
+    }
+
+    async verifyRisk(
+        riskVerifyHref: string,
+        request: ChallengeRequestV2,
+        context: RequestContextV2
+    ): Promise<ChallengeVerificationResultV2> {
+        const parsedResponse =
+            await this.sendActionRequest<RiskVerificationResponseV2>(
+                riskVerifyHref,
+                HttpMethod.POST,
+                request,
+                context
+            );
+
+        if (parsedResponse.body.action !== VERIFY_RELATION) {
+            throw new CustomAuthApiError(
+                INVALID_HAL_RESPONSE,
+                "Invalid HAL response: SMS risk verification returned no known next action",
+                parsedResponse.correlationId
+            );
+        }
+
+        if (
+            parsedResponse.body.type?.toLowerCase() !==
+            AuthenticationMethodTypeV2.SMS
+        ) {
+            throw new CustomAuthApiError(
+                INVALID_HAL_RESPONSE,
+                "Invalid HAL response: SMS risk verification returned a non-SMS challenge",
+                parsedResponse.correlationId
+            );
+        }
+
+        return this.toChallengeVerificationResult(parsedResponse);
     }
 
     /*
@@ -404,6 +445,40 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
     private toChallengeResult(
         parsedResponse: ParsedResponseV2<ChallengeResponseV2>
     ): ChallengeResultV2 {
+        if (parsedResponse.body.action === RISK_VERIFY_RELATION) {
+            const riskResponse =
+                parsedResponse.body as RiskVerificationRequiredResponseV2;
+
+            return {
+                nextAction: ChallengeNextActionV2.RISK_VERIFY,
+                continuationToken: this.handler.requireContinuationToken(
+                    parsedResponse.continuationToken,
+                    parsedResponse.correlationId
+                ),
+                riskVerifyHref: this.handler.requireHref(
+                    riskResponse._links?.riskverify?.href,
+                    RISK_VERIFY_RELATION,
+                    parsedResponse.correlationId
+                ),
+            };
+        }
+
+        if (parsedResponse.body.action === VERIFY_RELATION) {
+            return this.toChallengeVerificationResult(
+                parsedResponse as ParsedResponseV2<VerificationChallengeResponseV2>
+            );
+        }
+
+        throw new CustomAuthApiError(
+            INVALID_HAL_RESPONSE,
+            "Invalid HAL response: challenge returned no known next action",
+            parsedResponse.correlationId
+        );
+    }
+
+    private toChallengeVerificationResult(
+        parsedResponse: ParsedResponseV2<VerificationChallengeResponseV2>
+    ): ChallengeVerificationResultV2 {
         const continuationToken = this.handler.requireContinuationToken(
             parsedResponse.continuationToken,
             parsedResponse.correlationId
@@ -417,6 +492,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 : undefined;
 
         return {
+            nextAction: ChallengeNextActionV2.VERIFY,
             continuationToken,
             verifyHref: this.handler.requireHref(
                 links?.verify?.href,

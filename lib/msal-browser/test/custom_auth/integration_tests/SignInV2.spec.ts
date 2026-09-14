@@ -8,7 +8,8 @@ import { CustomAuthStandardController } from "../../../src/custom_auth/controlle
 import { PasswordRequiredStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { MFARequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/MFARequiredStateV2.js";
-import { ChallengeVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/ChallengeVerificationRequiredStateV2.js";
+import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
+import { MFAVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import {
     NO_AUTHENTICATION_METHODS,
@@ -102,6 +103,7 @@ const PASSWORD_AND_EMAIL_START_RESPONSE = {
 
 const PASSWORD_CHALLENGE_RESPONSE = {
     continuationToken: "ct-challenge",
+    action: "verify",
     id: "password-1",
     type: "password",
     _links: {
@@ -111,6 +113,7 @@ const PASSWORD_CHALLENGE_RESPONSE = {
 
 const EMAIL_CHALLENGE_RESPONSE = {
     continuationToken: "ct-email-challenge",
+    action: "verify",
     type: "email",
     codeLength: 6,
     hint: "u***@contoso.com",
@@ -153,6 +156,7 @@ const MFA_REQUIRED_RESPONSE = {
 
 const MFA_CHALLENGE_RESPONSE = {
     continuationToken: "ct-mfa-challenge",
+    action: "verify",
     codeLength: 6,
     hint: "u***@contoso.com",
     type: "email",
@@ -246,13 +250,11 @@ describe("Sign-in V2 entry", () => {
             scopes: ["User.Read"],
         });
 
-        expect(result.isState("challengeVerificationRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(
-            ChallengeVerificationRequiredStateV2
-        );
+        expect(result.isState("codeRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
 
         const challengeState =
-            result.state as ChallengeVerificationRequiredStateV2;
+            result.state as CodeRequiredStateV2;
         expect(challengeState.method?.id).toBe("email-1");
         expect(challengeState.channel).toBe("email");
         expect(challengeState.sentTo).toBe("u***@contoso.com");
@@ -272,7 +274,7 @@ describe("Sign-in V2 entry", () => {
             password: "P@ssword1!",
         });
 
-        expect(result.isState("challengeVerificationRequired")).toBe(true);
+        expect(result.isState("codeRequired")).toBe(true);
         expect(fetch).toHaveBeenCalledTimes(3);
     });
 
@@ -290,15 +292,15 @@ describe("Sign-in V2 entry", () => {
             scopes: ["User.Read"],
         });
         const result = await (
-            startResult.state as ChallengeVerificationRequiredStateV2
-        ).verifyChallenge("123456");
+            startResult.state as CodeRequiredStateV2
+        ).submitCode("123456");
 
         expect(result.isState("completed")).toBe(true);
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
         expect(fetch).toHaveBeenCalledTimes(6);
     });
 
-    it("rejects MFA-required after first-factor email OTP", async () => {
+    it("returns MFA-required after first-factor email OTP", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
             .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE))
@@ -310,11 +312,21 @@ describe("Sign-in V2 entry", () => {
             scopes: ["User.Read"],
         });
         const result = await (
-            startResult.state as ChallengeVerificationRequiredStateV2
-        ).verifyChallenge("123456");
+            startResult.state as CodeRequiredStateV2
+        ).submitCode("123456");
 
-        expect(result.isFailed()).toBe(true);
-        expect(result.error?.errorData.error).toBe(UNSUPPORTED_FLOW_TRANSITION);
+        expect(result.isState("mfaRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(MFARequiredStateV2);
+        if (result.isState("mfaRequired")) {
+            expect(result.state.methods).toEqual([
+                {
+                    id: "email-mfa",
+                    type: "email",
+                    hint: "u***@contoso.com",
+                    challengeHref: "/tenant/api/v0.1/mfa/challenge",
+                },
+            ]);
+        }
     });
 
     it("submits a password from PasswordRequiredStateV2 and completes sign-in", async () => {
@@ -405,24 +417,20 @@ describe("Sign-in V2 entry", () => {
             mfaState.methods[0]
         );
 
-        expect(challengeResult.isState("challengeVerificationRequired")).toBe(
-            true
-        );
+        expect(challengeResult.isState("mfaVerificationRequired")).toBe(true);
         expect(challengeResult.state).toBeInstanceOf(
-            ChallengeVerificationRequiredStateV2
+            MFAVerificationRequiredStateV2
         );
 
         const resendResult = await (
-            challengeResult.state as ChallengeVerificationRequiredStateV2
-        ).requestNewChallenge();
+            challengeResult.state as MFAVerificationRequiredStateV2
+        ).resendChallenge();
 
-        expect(resendResult.isState("challengeVerificationRequired")).toBe(
-            true
-        );
+        expect(resendResult.isState("mfaVerificationRequired")).toBe(true);
 
         const completedResult = await (
-            resendResult.state as ChallengeVerificationRequiredStateV2
-        ).verifyChallenge("123456");
+            resendResult.state as MFAVerificationRequiredStateV2
+        ).submitChallenge("123456");
 
         expect(completedResult.isState("completed")).toBe(true);
         expect(completedResult.state).toBeInstanceOf(CompletedStateV2);
