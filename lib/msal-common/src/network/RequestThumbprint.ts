@@ -21,6 +21,7 @@ export type RequestThumbprint = {
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
     shrClaims?: string;
+    shrNonce?: string;
     sshKid?: string;
     shrOptions?: ShrOptions;
     embeddedClientId?: string;
@@ -43,7 +44,9 @@ export function getRequestThumbprint(
         resourceRequestMethod: request.resourceRequestMethod,
         resourceRequestUri: request.resourceRequestUri,
         shrClaims: request.shrClaims,
+        shrNonce: request.shrNonce,
         sshKid: request.sshKid,
+        shrOptions: request.shrOptions,
         embeddedClientId:
             request.embeddedClientId || request.extraParameters?.clientId,
         resource: request.resource,

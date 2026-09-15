@@ -74,6 +74,42 @@ describe("RequestThumbprint.ts Unit Tests", () => {
         );
     });
 
+    it("produces distinct thumbprints for requests that differ only by shrNonce", () => {
+        const thumbprintA = getRequestThumbprint(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            { ...baseRequest, shrNonce: "nonce-a" },
+            "uid.utid"
+        );
+        const thumbprintB = getRequestThumbprint(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            { ...baseRequest, shrNonce: "nonce-b" },
+            "uid.utid"
+        );
+
+        expect(thumbprintA.shrNonce).toBe("nonce-a");
+        expect(JSON.stringify(thumbprintA)).not.toEqual(
+            JSON.stringify(thumbprintB)
+        );
+    });
+
+    it("produces distinct thumbprints for requests that differ only by shrOptions", () => {
+        const thumbprintA = getRequestThumbprint(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            { ...baseRequest, shrOptions: { header: { typ: "pop" } } },
+            "uid.utid"
+        );
+        const thumbprintB = getRequestThumbprint(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            { ...baseRequest, shrOptions: { header: { typ: "JWT" } } },
+            "uid.utid"
+        );
+
+        expect(thumbprintA.shrOptions).toEqual({ header: { typ: "pop" } });
+        expect(JSON.stringify(thumbprintA)).not.toEqual(
+            JSON.stringify(thumbprintB)
+        );
+    });
+
     it("normalizes attribute token ordering and isolates distinct attribute token sets", () => {
         const sameSetDifferentOrderA = getRequestThumbprint(
             TEST_CONFIG.MSAL_CLIENT_ID,

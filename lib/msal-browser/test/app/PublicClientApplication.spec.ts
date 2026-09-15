@@ -6122,6 +6122,81 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(resultB.accessToken).toBe(`token-for(${RESOURCE_B})`);
         });
 
+        it("makes a network request per SHR nonce when PoP acquireTokenSilent is called in parallel with different shrNonce values", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+            const baseTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: "00000000-0000-0000-66f3-3332eca7ea81",
+                tenantId: testAccount.tenantId,
+                scopes: ["User.Read"],
+                idToken: TEST_TOKENS.IDTOKEN_V2,
+                idTokenClaims: {},
+                accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
+                ),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.POP,
+            };
+
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            // Each underlying acquisition returns an SHR bound to the nonce it
+            // was requested with. The delay keeps both requests in flight.
+            const silentATStub: jest.SpyInstance = jest
+                .spyOn(
+                    RefreshTokenClient.prototype,
+                    "acquireTokenByRefreshToken"
+                )
+                .mockImplementation(
+                    async (request: CommonSilentFlowRequest) => {
+                        await new Promise((resolve) => setTimeout(resolve, 50));
+                        return {
+                            ...baseTokenResponse,
+                            accessToken: `shr-for(${request.shrNonce})`,
+                        };
+                    }
+                );
+
+            const requestA: SilentRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: Constants.AuthenticationScheme.POP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://testUri.com/user.read",
+                correlationId: "corr-A",
+                forceRefresh: false,
+                shrNonce: "nonce-A",
+            };
+            const requestB: SilentRequest = {
+                ...requestA,
+                correlationId: "corr-B",
+                shrNonce: "nonce-B",
+            };
+
+            const [resultA, resultB] = await Promise.all([
+                pca.acquireTokenSilent(requestA),
+                pca.acquireTokenSilent(requestB),
+            ]);
+
+            // The SHR is signed over the nonce, so a caller must never receive
+            // the SHR minted for another caller's nonce.
+            expect(silentATStub).toHaveBeenCalledTimes(2);
+            expect(resultA.accessToken).toBe("shr-for(nonce-A)");
+            expect(resultB.accessToken).toBe("shr-for(nonce-B)");
+        });
+
         it("makes network requests for identical requests for different embedded apps when acquireTokenSilent is called in parallel", async () => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
