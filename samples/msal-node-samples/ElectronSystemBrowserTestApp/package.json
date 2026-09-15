@@ -65,7 +65,7 @@
         "react": "^19.2.1",
         "react-bootstrap": "^2.7.2",
         "react-dom": "^19.2.1",
-        "react-router-dom": "^6.9.0"
+        "react-router-dom": "^6.30.6"
     },
     "config": {
         "forge": {
