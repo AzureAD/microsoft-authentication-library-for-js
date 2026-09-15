@@ -39,6 +39,16 @@ Prior to using managed identities from MSALJS, developers must enable them for t
 
 For both user-assigned and system-assigned identities, developers can use the [ManagedIdentityApplication](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msi_feature_branch/lib/msal-node/src/client/ManagedIdentityApplication.ts) class.
 
+The managed identity surface is available from the confidential entry point:
+
+```typescript
+import {
+    ManagedIdentityApplication,
+    type ManagedIdentityConfiguration,
+    type ManagedIdentityRequestParams,
+} from "@azure/msal-node/confidential";
+```
+
 ### System-assigned managed identities
 
 For system-assigned managed identities, the developer does not need to pass any additional information when creating an instance of ManagedIdentityApplication, as it will automatically infer the relevant metadata about the assigned identity.

@@ -26,6 +26,16 @@
   "module": "dist/index.mjs",
   "types": "types/index.d.ts",
   "exports": {
+    "./confidential": {
+      "import": {
+        "types": "./types/confidential/index.d.ts",
+        "default": "./dist/confidential/index.mjs"
+      },
+      "require": {
+        "types": "./types/confidential/index.d.cts",
+        "default": "./lib/confidential/msal-node-confidential.cjs"
+      }
+    },
     ".": {
       "import": {
         "types": "./types/index.d.ts",
@@ -59,7 +69,7 @@
     "prepack": "npm run build:all",
     "format:check": "prettier --ignore-path .gitignore --check src test",
     "format:fix": "prettier --ignore-path .gitignore --write src test",
-    "apiExtractor": "api-extractor run"
+    "apiExtractor": "api-extractor run && api-extractor run --config api-extractor.confidential.json"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "^7.58.7",
