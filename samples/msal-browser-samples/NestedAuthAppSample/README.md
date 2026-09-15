@@ -142,7 +142,7 @@ which also has an **Encrypted Authorize Response (EAR)** combination variant:
 | Spec / suite | Host flow | Runs in CI? | Command |
 | ------------ | --------- | ----------- | ------- |
 | `naa-basic.spec.ts` | Web flow (Puppeteer) | Yes (`naa-basic` filter) | `npm run test:e2e:naa-basic` |
-| `naa-ear.spec.ts` | Web flow + `ProtocolMode.EAR` | No (opt-in) | `npm run test:e2e:ear` |
+| `naa-ear.spec.ts` | Web flow + `ProtocolMode.EAR` | Yes (`naa-ear` filter) | `npm run test:e2e:ear` |
 | `naa-platform-broker.spec.ts` | Platform broker / WAM (Playwright) | No (self-hosted) | `npm run test:e2e:broker` |
 | `naa-ear-platform-broker.spec.ts` | Platform broker + `ProtocolMode.EAR` | No (self-hosted) | `npm run test:e2e:ear-broker` |
 
@@ -159,7 +159,7 @@ from `.env.e2e`.
 
 The platform-broker suites are **self-hosted only**: they require branded
 Chrome, the Microsoft SSO extension, WAM, and a brokerable signed-in Windows
-account, so they are excluded from CI by the `naa-basic` pipeline filter.
+account, so their pipeline entries remain commented out.
 
 End-to-end tests must run over HTTPS. The Jest configuration starts the HTTPS
 servers automatically.
