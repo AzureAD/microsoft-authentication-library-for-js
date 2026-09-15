@@ -177,13 +177,15 @@ export abstract class ClientApplication {
                 state: "",
             };
         }
-        if (request.nonce) {
-            validatedAuthCodePayload = {
-                ...validatedAuthCodePayload,
-                code: request.code,
-                nonce: request.nonce,
-            };
-        }
+        const expectedNonce =
+            request.nonce !== undefined
+                ? request.nonce
+                : validatedAuthCodePayload?.nonce;
+        validatedAuthCodePayload = {
+            ...validatedAuthCodePayload,
+            code: request.code,
+            nonce: expectedNonce,
+        };
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
             ...(await this.initializeBaseRequest(request)),
