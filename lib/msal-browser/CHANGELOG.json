@@ -2,6 +2,35 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 15 Sep 2026 19:42:08 GMT",
+      "version": "5.22.0",
+      "tag": "@azure/msal-browser_v5.22.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c97d44c4eed672ff43d7b7836a7c82df7795f455",
+            "comment": "Fix flaky timestamp validation in unit tests [#8796](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8796)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c97d44c4eed672ff43d7b7836a7c82df7795f455",
+            "comment": "Export shared web broker bridge runtime utilities from the package root. [#8792](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8792)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.14.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 02 Sep 2026 21:15:30 GMT",
       "version": "5.21.0",
       "tag": "@azure/msal-browser_v5.21.0",
