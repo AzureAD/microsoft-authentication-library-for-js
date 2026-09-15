@@ -8,6 +8,8 @@
  * @module @azure/msal-node/confidential
  */
 
+import { Constants as CommonConstants } from "@azure/msal-common/node";
+
 // Interfaces
 export { IConfidentialClientApplication } from "../client/IConfidentialClientApplication.js";
 export { ITokenCache } from "../cache/ITokenCache.js";
@@ -55,8 +57,6 @@ export type { UsernamePasswordRequest } from "../request/UsernamePasswordRequest
 export type { RefreshTokenRequest } from "../request/RefreshTokenRequest.js";
 export type { SilentFlowRequest } from "../request/SilentFlowRequest.js";
 export type { ManagedIdentityRequestParams } from "../request/ManagedIdentityRequestParams.js";
-
-import { Constants as CommonConstants } from "@azure/msal-common/node";
 
 const PromptValue = CommonConstants.PromptValue;
 const ResponseMode = CommonConstants.ResponseMode;
