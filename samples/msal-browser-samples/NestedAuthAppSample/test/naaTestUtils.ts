@@ -100,6 +100,7 @@ const PASSWORD_INPUT =
     "#i0118, input[name='i0118'], #passwordEntry, input[type='password']";
 const PRIMARY_SUBMIT =
     "#idSIButton9, input[name='idSIButton9'], #next, button[type='submit'], input[type='submit']";
+const AAD_ACCOUNT_TYPE = "#aadTile, input[name='aadTile']";
 const KMSI_TITLE = "#kmsiTitle";
 
 export async function enterAadCredentials(
@@ -113,6 +114,12 @@ export async function enterAadCredentials(
     await page.fill(USERNAME_INPUT, username);
     await screenshot?.takeScreenshot(page, "loginPageUsernameFilled");
     await page.click(PRIMARY_SUBMIT);
+
+    const aadAccountType = page.locator(AAD_ACCOUNT_TYPE).first();
+    if (await aadAccountType.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await screenshot?.takeScreenshot(page, "accountType");
+        await aadAccountType.click();
+    }
 
     await page.waitForSelector(PASSWORD_INPUT, { timeout: 30000 });
     await screenshot?.takeScreenshot(page, "passwordPage");

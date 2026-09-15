@@ -17,9 +17,8 @@ const AUTHENTICATION_TIMEOUT = 60000;
 const SCOPES = ["User.Read"];
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { HOST_APP_PORT, NESTED_APP_PORT } = require("../sampleConfig.cjs") as {
+const { HOST_APP_PORT } = require("../sampleConfig.cjs") as {
     HOST_APP_PORT: number;
-    NESTED_APP_PORT: number;
 };
 
 async function getNestedFrame(page: Page): Promise<Frame> {
@@ -125,6 +124,14 @@ describe("Nested App Authentication + EAR brokered through the host app", () => 
         await verifyHostTokenStore(page);
         expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
         const nestedFrame = await getNestedFrame(page);
+        await page.evaluate(() => {
+            Object.keys(window.sessionStorage)
+                .filter((key) => key.includes("refreshtoken"))
+                .forEach((key) => window.sessionStorage.removeItem(key));
+        });
+        const decryptCountBeforeNested =
+            (await getEarDecryptCount(page)) +
+            (await getEarDecryptCount(nestedFrame));
         await nestedFrame
             .getByRole("button", { name: "acquireTokenSilent" })
             .click({ timeout: ACTION_TIMEOUT });
@@ -132,6 +139,12 @@ describe("Nested App Authentication + EAR brokered through the host app", () => 
             .getByRole("columnheader", { name: "homeAccountId" })
             .waitFor({ timeout: ACTION_TIMEOUT });
         await screenshot.takeScreenshot(page, "Nested app authenticated");
+        const decryptCountAfterNested =
+            (await getEarDecryptCount(page)) +
+            (await getEarDecryptCount(nestedFrame));
+        expect(decryptCountAfterNested).toBeGreaterThan(
+            decryptCountBeforeNested
+        );
         await verifyNestedTokenStore(nestedFrame);
     });
 });
