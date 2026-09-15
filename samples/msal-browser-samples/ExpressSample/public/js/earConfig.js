@@ -3,9 +3,9 @@
  * See LICENSE in the source repository root for complete license information.
  */
 
-// Broker-enabled test configuration shared by the standalone platform-broker
-// and EAR modes. The app registration is enabled for both scenarios.
-export const platformBrokerConfig = {
+// Applied only with ?ear=true. This app registration is allow-listed for
+// Encrypted Authorize Response (EAR) flows.
+export const earConfig = {
     auth: {
         clientId: "9f33d0de-fdfd-431b-a565-af47c697a4c4",
         authority:

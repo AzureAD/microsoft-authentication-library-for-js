@@ -4,9 +4,9 @@
  */
 
 import {
+    earConfig,
     isEarEnabled,
     isPlatformBrokerEnabled,
-    platformBrokerConfig,
 } from './earConfig.js';
 
 // Function to create MSAL configuration - only called after environment validation
@@ -51,19 +51,20 @@ export function createMsalConfig() {
 
     const earEnabled = isEarEnabled();
 
-    if (earEnabled || isPlatformBrokerEnabled()) {
-        msalConfig.auth.clientId = platformBrokerConfig.auth.clientId;
-        msalConfig.auth.authority = platformBrokerConfig.auth.authority;
-        msalConfig.auth.redirectUri = platformBrokerConfig.auth.redirectUri;
-        msalConfig.auth.postLogoutRedirectUri =
-            platformBrokerConfig.auth.postLogoutRedirectUri;
-        msalConfig.cache.cacheLocation = platformBrokerConfig.cache.cacheLocation;
-        msalConfig.system.allowPlatformBroker =
-            platformBrokerConfig.system.allowPlatformBroker;
+    if (isPlatformBrokerEnabled()) {
+        msalConfig.system.allowPlatformBroker = true;
     }
 
-    // ?ear=true additionally forces the encrypted-response protocol.
+    // ?ear=true -> apply EAR flow config (earConfig.js) and force EAR protocol.
     if (earEnabled) {
+        msalConfig.auth.clientId = earConfig.auth.clientId;
+        msalConfig.auth.authority = earConfig.auth.authority;
+        msalConfig.auth.redirectUri = earConfig.auth.redirectUri;
+        msalConfig.auth.postLogoutRedirectUri =
+            earConfig.auth.postLogoutRedirectUri;
+        msalConfig.cache.cacheLocation = earConfig.cache.cacheLocation;
+        msalConfig.system.allowPlatformBroker =
+            earConfig.system.allowPlatformBroker;
         msalConfig.system.protocolMode = msal.ProtocolMode.EAR;
     }
 
