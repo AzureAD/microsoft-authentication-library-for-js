@@ -76,7 +76,12 @@ export async function verifyPlatformBrokerResponse(
     const fromPlatformBroker = await target.evaluate(
         "import('/js/auth.js').then((authModule) => authModule.lastResponseFromPlatformBroker)"
     );
+    const nativeAccountId = await target.evaluate(
+        "import('/js/auth.js').then((authModule) => authModule.msalInstance.getActiveAccount()?.nativeAccountId)"
+    );
+
     expect(fromPlatformBroker).toBe(true);
+    expect(nativeAccountId).toBeTruthy();
 }
 
 export async function verifyPlatformBrokerTokenStore(
@@ -86,5 +91,4 @@ export async function verifyPlatformBrokerTokenStore(
     expect(tokenStore.idTokens.length).toBe(1);
     expect(tokenStore.accessTokens.length).toBe(0);
     expect(tokenStore.refreshTokens.length).toBe(0);
-    expect(await browserCache.getAccountFromCache()).not.toBeNull();
 }
