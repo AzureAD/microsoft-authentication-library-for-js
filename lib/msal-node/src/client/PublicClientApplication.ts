@@ -40,6 +40,11 @@ import { SignOutRequest } from "../request/SignOutRequest.js";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest.js";
 import { DeviceCodeClient } from "./DeviceCodeClient.js";
 import { version } from "../packageMetadata.js";
+import {
+    acquireTokenSilentDeduped,
+    getSilentRequestKey,
+    snapshotNativeRequest,
+} from "./SilentRequestCoalescer.js";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -292,7 +297,7 @@ export class PublicClientApplication
 
         if (this.nativeBrokerPlugin) {
             const nativeBrokerPlugin = this.nativeBrokerPlugin;
-            const brokerRequest: NativeRequest = {
+            const brokerRequest = snapshotNativeRequest({
                 ...request,
                 clientId: this.config.auth.clientId,
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
@@ -306,12 +311,14 @@ export class PublicClientApplication
                 },
                 accountId: request.account.nativeAccountId,
                 forceRefresh: request.forceRefresh || false,
-            };
-            const silentRequestKey = this.getSilentRequestKey({
+            });
+            const silentRequestKey = getSilentRequestKey({
                 requestType: "native",
                 request: brokerRequest,
             });
-            return this.acquireTokenSilentDeduped(
+            return acquireTokenSilentDeduped(
+                this,
+                this.logger,
                 silentRequestKey,
                 correlationId,
                 () => nativeBrokerPlugin.acquireTokenSilent(brokerRequest)

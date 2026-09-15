@@ -290,7 +290,7 @@ describe("Native silent request coalescing", () => {
         const response = deferred<AuthenticationResult>();
         const error = new InteractionRequiredAuthError(
             "interaction_required",
-            "underlying-correlation",
+            "first",
             "Interaction required"
         );
         error.platformBrokerError = new PlatformBrokerError(
@@ -327,10 +327,46 @@ describe("Native silent request coalescing", () => {
                 });
             }
         }
-        expect(first.reason).not.toBe(second.reason);
-        expect(error.correlationId).toBe("underlying-correlation");
+        expect(first.reason).toBe(error);
+        expect(second.reason).not.toBe(error);
+        expect(error.correlationId).toBe("first");
         await app.acquireTokenSilent(request);
         expect(brokerSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it("snapshots mutable native inputs before registering the request", async () => {
+        const response = deferred<AuthenticationResult>();
+        brokerSpy.mockReturnValue(response.promise);
+        const scopes = ["User.Read"];
+        const extraParameters = { custom: "original" };
+        const mutableRequest: SilentFlowRequest = {
+            ...request,
+            scopes,
+            extraParameters,
+        };
+
+        const firstRequest = app.acquireTokenSilent(mutableRequest);
+        scopes[0] = "Mutated.Scope";
+        extraParameters.custom = "mutated";
+        const secondRequest = app.acquireTokenSilent({
+            ...request,
+            scopes: ["User.Read"],
+            extraParameters: { custom: "original" },
+        });
+
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        expect(brokerSpy).toHaveBeenCalledTimes(1);
+        expect(brokerSpy).toHaveBeenCalledWith(
+            expect.objectContaining({
+                scopes: ["User.Read"],
+                extraParameters: expect.objectContaining({
+                    custom: "original",
+                }),
+            })
+        );
+
+        response.resolve(mockNativeAuthenticationResult);
+        await Promise.all([firstRequest, secondRequest]);
     });
 
     it.each(["throw", "reject"])(
