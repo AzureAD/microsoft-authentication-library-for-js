@@ -67,12 +67,9 @@ async function verifyHostTokenStore(page: Page): Promise<void> {
 async function verifyNestedTokenStore(frame: Frame): Promise<void> {
     const tokenStore = await readSessionTokenStore(frame);
     expect(tokenStore.idTokens.length).toBe(1);
-    expect(tokenStore.accessTokens.length).toBe(1);
+    expect(tokenStore.accessTokens.length).toBe(0);
     expect(tokenStore.refreshTokens.length).toBe(0);
     expect(await readAccountKeys(frame)).not.toBeNull();
-    expect(accessTokenForScopesExists(tokenStore.accessTokens, SCOPES)).toBe(
-        true
-    );
 }
 
 describe("Nested App Authentication brokered through the host app", () => {

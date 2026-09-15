@@ -39,20 +39,46 @@ export interface BrokerContext {
 // `extensionPresent` is false if it does not appear before the timeout.
 export async function launchBrokerContext(): Promise<BrokerContext> {
     const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "naa-broker-"));
+    const executablePath = process.env.CHROME_FOR_TESTING_PATH;
+    const extensionSource = process.env.SSO_EXTENSION_PATH;
+    const extensionDir = extensionSource
+        ? path.join(userDataDir, "sso-extension")
+        : undefined;
+    if (extensionDir && extensionSource) {
+        fs.cpSync(extensionSource, extensionDir, { recursive: true });
+    }
 
-    const context = await chromium.launchPersistentContext(userDataDir, {
-        channel: "chrome",
-        headless: false,
-        ignoreHTTPSErrors: true,
-        ignoreDefaultArgs: IGNORED_DEFAULT_ARGS,
-        args: [
-            "--no-first-run",
-            "--no-default-browser-check",
-            "--ignore-certificate-errors",
-        ],
-    });
+    const args = [
+        "--no-first-run",
+        "--no-default-browser-check",
+        "--ignore-certificate-errors",
+        ...(extensionDir
+            ? [
+                  "--disable-features=DisableLoadExtensionCommandLineSwitch",
+                  `--disable-extensions-except=${extensionDir}`,
+                  `--load-extension=${extensionDir}`,
+              ]
+            : []),
+    ];
+    const context = executablePath
+        ? await chromium.launchPersistentContext(userDataDir, {
+              executablePath,
+              headless: false,
+              ignoreHTTPSErrors: true,
+              ignoreDefaultArgs: IGNORED_DEFAULT_ARGS,
+              args,
+          })
+        : await chromium.launchPersistentContext(userDataDir, {
+              channel: "chrome",
+              headless: false,
+              ignoreHTTPSErrors: true,
+              ignoreDefaultArgs: IGNORED_DEFAULT_ARGS,
+              args,
+          });
 
-    const extensionPresent = await waitForExtension(userDataDir);
+    const extensionPresent = extensionDir
+        ? await waitForActiveExtension(context)
+        : await waitForExtension(userDataDir);
     return { context, userDataDir, extensionPresent };
 }
 
@@ -83,6 +109,24 @@ async function waitForExtension(userDataDir: string): Promise<boolean> {
             installed = [];
         }
         if (installed.includes(SSO_EXTENSION_ID)) {
+            return true;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+    return false;
+}
+
+async function waitForActiveExtension(
+    context: BrowserContext
+): Promise<boolean> {
+    const extensionOrigin = `chrome-extension://${SSO_EXTENSION_ID}/`;
+    const deadline = Date.now() + EXTENSION_INSTALL_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+        if (
+            context
+                .serviceWorkers()
+                .some((worker) => worker.url().startsWith(extensionOrigin))
+        ) {
             return true;
         }
         await new Promise((resolve) => setTimeout(resolve, 500));

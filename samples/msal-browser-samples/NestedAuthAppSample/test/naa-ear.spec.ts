@@ -68,12 +68,9 @@ async function verifyHostTokenStore(page: Page): Promise<void> {
 async function verifyNestedTokenStore(frame: Frame): Promise<void> {
     const tokenStore = await readSessionTokenStore(frame);
     expect(tokenStore.idTokens.length).toBe(1);
-    expect(tokenStore.accessTokens.length).toBe(1);
+    expect(tokenStore.accessTokens.length).toBe(0);
     expect(tokenStore.refreshTokens.length).toBe(0);
     expect(await readAccountKeys(frame)).not.toBeNull();
-    expect(accessTokenForScopesExists(tokenStore.accessTokens, SCOPES)).toBe(
-        true
-    );
 }
 
 describe("Nested App Authentication + EAR brokered through the host app", () => {
@@ -135,9 +132,23 @@ describe("Nested App Authentication + EAR brokered through the host app", () => 
         await nestedFrame
             .getByRole("button", { name: "acquireTokenSilent" })
             .click({ timeout: ACTION_TIMEOUT });
-        await nestedFrame
-            .getByRole("columnheader", { name: "homeAccountId" })
-            .waitFor({ timeout: ACTION_TIMEOUT });
+        await nestedFrame.waitForFunction(
+            () =>
+                Boolean(
+                    document.querySelector(
+                        "table[data-testid='lastApi'][data-api='acquireTokenSilent']"
+                    )
+                ) || Boolean(document.querySelector("pre[data-testid='apiError']")),
+            undefined,
+            { timeout: ACTION_TIMEOUT }
+        );
+        const nestedError = await nestedFrame
+            .locator("pre[data-testid='apiError']")
+            .textContent()
+            .catch(() => null);
+        if (nestedError) {
+            throw new Error(`Nested authentication failed: ${nestedError}`);
+        }
         await screenshot.takeScreenshot(page, "Nested app authenticated");
         const decryptCountAfterNested =
             (await getEarDecryptCount(page)) +

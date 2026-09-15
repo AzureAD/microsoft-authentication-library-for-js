@@ -23,7 +23,9 @@ This sample demonstrates a 3P **Nested Authentication App (NAA)** brokered throu
     app in an iframe. Also supplies the `nestedAppAuthBridge` used by the nested app.
 -   **nestedApp** — the embedded child. It creates its client with
     `createNestablePublicClientApplication()` and acquires tokens **through the
-    host bridge**, never contacting the identity provider directly.
+    host bridge**, never contacting the identity provider directly. Its account
+    and ID token use the configured browser storage, while its access token is
+    limited to the iframe's in-memory page session.
 
 ## The NAA bridge
 
@@ -138,7 +140,9 @@ which also has an **Encrypted Authorize Response (EAR)** combination variant:
 
 The base suites exercise Nested App Authentication through the **host-supplied**
 `window.nestedAppAuthBridge`: the host brokers the nested app's token and the
-test asserts the nested app never holds a refresh token (the core NAA property).
+test asserts the nested app stores its account and ID token in the configured
+browser storage, keeps the access token in page memory, and never holds a
+refresh token.
 
 The **EAR** suites open the host with `?ear=true` so it runs in
 `ProtocolMode.EAR`; the host's login and the token it brokers for the nested app
@@ -149,6 +153,13 @@ was actually decrypted (i.e. EAR was used, not a plaintext auth-code fallback).
 The platform-broker suites are **self-hosted only**: they require branded
 Chrome, the Microsoft SSO extension, WAM, and a brokerable signed-in Windows
 account, so their pipeline entries remain commented out.
+
+By default, the broker harness launches branded Chrome with a fresh profile and
+waits for the Microsoft SSO extension to be force-installed by browser policy.
+For a local Chrome for Testing setup, set `CHROME_FOR_TESTING_PATH` to its
+executable and `SSO_EXTENSION_PATH` to an unpacked Microsoft SSO extension
+directory before running either broker command. The BrowserCore native
+messaging host must be registered for that browser.
 
 End-to-end tests must run over HTTPS. The Jest configuration starts the HTTPS
 servers automatically.

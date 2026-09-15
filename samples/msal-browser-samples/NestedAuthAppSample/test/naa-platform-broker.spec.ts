@@ -13,7 +13,6 @@ import {
 } from "./brokerHarness";
 import {
     TokenStore,
-    accessTokenForScopesExists,
     enterAadCredentials,
     getLabCredentials,
     readAccountKeys,
@@ -32,7 +31,6 @@ const { HOST_APP_PORT, NESTED_APP_PORT } = require("../sampleConfig.cjs") as {
 const SAMPLE_ROOT = path.join(__dirname, "..");
 const HOST_URL = `https://localhost:${HOST_APP_PORT}`;
 const NESTED_IFRAME = "iframe[title='nestedApp']";
-const SCOPES = ["User.Read"];
 const ACTION_TIMEOUT = 60000;
 const SERVER_READY_TIMEOUT_MS = 120000;
 const UNSUPPORTED_METHOD_CODE = "unsupported_method";
@@ -74,9 +72,8 @@ async function resetNestedFrame(hostPage: Page): Promise<Frame> {
 
 function assertNestedTokenStore(store: TokenStore): void {
     expect(store.idTokens.length).toBe(1);
-    expect(store.accessTokens.length).toBe(1);
+    expect(store.accessTokens.length).toBe(0);
     expect(store.refreshTokens.length).toBe(0);
-    expect(accessTokenForScopesExists(store.accessTokens, SCOPES)).toBe(true);
 }
 
 describe("NAA token APIs brokered through the platform broker", () => {
@@ -111,7 +108,7 @@ describe("NAA token APIs brokered through the platform broker", () => {
     beforeAll(async () => {
         await serverUtils.killServer(HOST_APP_PORT);
         await serverUtils.killServer(NESTED_APP_PORT);
-        serverProcess = spawn("node server.js --https", {
+        serverProcess = spawn("npm run start:e2e", {
             shell: true,
             cwd: SAMPLE_ROOT,
             stdio: ["ignore", "inherit", "inherit"],
