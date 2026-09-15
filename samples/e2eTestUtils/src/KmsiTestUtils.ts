@@ -168,6 +168,27 @@ export function assertSigninStateContains(
 }
 
 /**
+ * Reads the signin_state claim captured from the latest authentication response
+ * and asserts that it represents a KMSI session.
+ */
+export async function verifyKmsiFromResponse(target: Page): Promise<void> {
+    const signinState = await target.evaluate(
+        "import('/js/auth.js').then((authModule) => authModule.lastSigninState)"
+    );
+
+    if (
+        !Array.isArray(signinState) ||
+        !signinState.every((value) => typeof value === "string")
+    ) {
+        throw new Error(
+            "Authentication response did not contain the signin_state claim"
+        );
+    }
+
+    assertKmsiSigninState({ signin_state: signinState });
+}
+
+/**
  * Reads the cached ID token and asserts its Keep Me Signed In state via the
  * `signin_state` claim. Returns the decoded claims for further assertions.
  */

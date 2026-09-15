@@ -17,8 +17,8 @@ import {
     Screenshot,
     setupCredentials,
     verifyKmsiFromCache,
+    verifyKmsiFromResponse,
 } from "e2e-test-utils";
-import { verifyKmsiFromResponse } from "./kmsiTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/kmsiBasic`;
 const KMSI_URL = "http://localhost:3000/";

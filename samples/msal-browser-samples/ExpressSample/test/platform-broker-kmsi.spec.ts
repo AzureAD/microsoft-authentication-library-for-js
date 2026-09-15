@@ -6,8 +6,11 @@
 import * as path from "path";
 import { spawn, ChildProcess } from "child_process";
 import * as puppeteer from "puppeteer";
-import { BrowserCacheUtils, Screenshot } from "e2e-test-utils";
-import { verifyKmsiFromResponse } from "./kmsiTestUtils";
+import {
+    BrowserCacheUtils,
+    Screenshot,
+    verifyKmsiFromResponse,
+} from "e2e-test-utils";
 import {
     createPlatformBrokerProfile,
     launchPlatformBrokerBrowser,
