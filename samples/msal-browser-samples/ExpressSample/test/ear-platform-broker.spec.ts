@@ -193,8 +193,19 @@ describe("EAR + Platform Broker Tests", () => {
         );
 
         await page.locator("button#signInButton").click();
+        let authorizeWasPost = false;
         const newPopupWindowPromise = new Promise<puppeteer.Page | null>(
-            (resolve) => page.once("popup", resolve)
+            (resolve) =>
+                page.once("popup", (popupPage) => {
+                    if (popupPage) {
+                        popupPage.on("request", (request) => {
+                            if (isAuthorizePost(request)) {
+                                authorizeWasPost = true;
+                            }
+                        });
+                    }
+                    resolve(popupPage);
+                })
         );
         await page.locator("a#signInPopup").click();
 
@@ -202,13 +213,6 @@ describe("EAR + Platform Broker Tests", () => {
         if (!popupPage) {
             throw new Error("Popup window was not opened");
         }
-
-        let authorizeWasPost = false;
-        popupPage.on("request", (request) => {
-            if (isAuthorizePost(request)) {
-                authorizeWasPost = true;
-            }
-        });
 
         // The SSO extension completes the popup sign-in for the Windows account.
         await page.waitForSelector("a#viewProfileButton", {
