@@ -10,6 +10,10 @@ import {
     PromptValue,
     ResponseMode,
     version,
+    AuthErrorCodes,
+    ClientAuthErrorCodes,
+    ClientConfigurationErrorCodes,
+    InteractionRequiredAuthErrorCodes,
 } from "@azure/msal-node/confidential";
 import type {
     IConfidentialClientApplication,
@@ -47,13 +51,9 @@ import type {
     AccountInfo,
     ValidCacheType,
     AuthError,
-    AuthErrorCodes,
     ClientAuthError,
-    ClientAuthErrorCodes,
     ClientConfigurationError,
-    ClientConfigurationErrorCodes,
     InteractionRequiredAuthError,
-    InteractionRequiredAuthErrorCodes,
     ServerError,
     INetworkModule,
     NetworkRequestOptions,
@@ -100,6 +100,10 @@ void CryptoProvider;
 void PromptValue;
 void ResponseMode;
 void version;
+void AuthErrorCodes;
+void ClientAuthErrorCodes;
+void ClientConfigurationErrorCodes;
+void InteractionRequiredAuthErrorCodes;
 void (undefined as
     | IConfidentialClientApplication
     | ITokenCache
@@ -136,13 +140,9 @@ void (undefined as
     | AccountInfo
     | ValidCacheType
     | AuthError
-    | AuthErrorCodes
     | ClientAuthError
-    | ClientAuthErrorCodes
     | ClientConfigurationError
-    | ClientConfigurationErrorCodes
     | InteractionRequiredAuthError
-    | InteractionRequiredAuthErrorCodes
     | ServerError
     | INetworkModule
     | NetworkRequestOptions
