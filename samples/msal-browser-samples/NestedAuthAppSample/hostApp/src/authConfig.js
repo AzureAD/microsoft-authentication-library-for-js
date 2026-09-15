@@ -6,25 +6,17 @@ const HOST_APP_CLIENT_ID = import.meta.env.VITE_HOST_CLIENT_ID;
  * Encrypted Authorize Response (EAR) is toggled per-page with `?ear=true`, so
  * the same host serves both the standard NAA flow and the NAA + EAR flow without
  * a second app. The e2e specs open the host with `?ear=true` to exercise EAR.
- *
- * EAR requires an EAR-enabled app registration. Point `VITE_EAR_HOST_CLIENT_ID`
- * / `VITE_EAR_AUTHORITY` at one for the EAR tests; when they are unset the
- * standard host registration is reused (which then must itself have EAR enabled).
  */
 export function isEarEnabled() {
     return new URLSearchParams(window.location.search).get("ear") === "true";
 }
 
 const earEnabled = isEarEnabled();
-const EAR_HOST_CLIENT_ID =
-    import.meta.env.VITE_EAR_HOST_CLIENT_ID || HOST_APP_CLIENT_ID;
-const EAR_AUTHORITY =
-    import.meta.env.VITE_EAR_AUTHORITY || import.meta.env.VITE_AUTHORITY;
 
 export const msalConfig = {
     auth: {
-        clientId: earEnabled ? EAR_HOST_CLIENT_ID : HOST_APP_CLIENT_ID,
-        authority: earEnabled ? EAR_AUTHORITY : import.meta.env.VITE_AUTHORITY,
+        clientId: HOST_APP_CLIENT_ID,
+        authority: import.meta.env.VITE_AUTHORITY,
         // Derive the redirect URI from the running origin so it stays accurate
         // whether the host is served over http (`npm start`) or https
         // (`npm run start:https`). The host is always served on port 30663, so
@@ -63,7 +55,7 @@ export const msalConfig = {
 // ESTS test slice used for manual validation. Passed on BOTH the authorize
 // request (extraQueryParameters) and the token request (extraParameters) so
 // every ESTS call — authorize and token — is routed to the same slice.
-const TEST_SLICE = { dc: "ESTS-PUB-SCUS-FD000-TEST3-100" };
+const TEST_SLICE = { dc: "ESTS-PUB-EUS-FD000-TEST1-100" };
 
 export const loginRequest = {
     scopes: ["User.Read"],

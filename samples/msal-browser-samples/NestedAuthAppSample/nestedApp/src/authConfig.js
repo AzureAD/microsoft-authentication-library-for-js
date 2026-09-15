@@ -3,17 +3,6 @@ import { LogLevel } from "@azure/msal-browser";
 const NESTED_APP_CLIENT_ID = import.meta.env.VITE_NESTED_CLIENT_ID;
 const TEST_TENANT_AUTHORITY = import.meta.env.VITE_AUTHORITY;
 
-// The host embeds this app with `?ear=true` when it runs the Encrypted Authorize
-// Response (EAR) flow (see hostApp/src/App.jsx). EAR needs an EAR-enabled child
-// registration; `VITE_EAR_NESTED_CLIENT_ID` / `VITE_EAR_AUTHORITY` supply one
-// for the EAR e2e tests and fall back to the standard nested registration.
-const earEnabled =
-    new URLSearchParams(window.location.search).get("ear") === "true";
-const EAR_NESTED_CLIENT_ID =
-    import.meta.env.VITE_EAR_NESTED_CLIENT_ID || NESTED_APP_CLIENT_ID;
-const EAR_AUTHORITY =
-    import.meta.env.VITE_EAR_AUTHORITY || TEST_TENANT_AUTHORITY;
-
 /**
  * MSAL configuration for the nested (child) app.
  *
@@ -23,8 +12,8 @@ const EAR_AUTHORITY =
  */
 export const msalConfig = {
     auth: {
-        clientId: earEnabled ? EAR_NESTED_CLIENT_ID : NESTED_APP_CLIENT_ID,
-        authority: earEnabled ? EAR_AUTHORITY : TEST_TENANT_AUTHORITY,
+        clientId: NESTED_APP_CLIENT_ID,
+        authority: TEST_TENANT_AUTHORITY,
     },
     cache: {
         cacheLocation: "sessionStorage",
@@ -52,7 +41,7 @@ export const msalConfig = {
     },
 };
 
-const TEST_SLICE = { dc: "ESTS-PUB-SCUS-FD000-TEST3-100" };
+const TEST_SLICE = { dc: "ESTS-PUB-EUS-FD000-TEST1-100" };
 
 // The nested app requests tokens through the host bridge, so these extra params
 // do not themselves reach ESTS (the host applies its own `brokerExtraParams` to

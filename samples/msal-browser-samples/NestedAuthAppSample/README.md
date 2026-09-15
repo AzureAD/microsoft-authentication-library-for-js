@@ -96,18 +96,10 @@ placeholders with your own registrations:
 | `VITE_NESTED_CLIENT_ID` | Application (client) id of the **nested** app.                    |
 | `VITE_AUTHORITY`        | Authority URL, e.g. `https://login.microsoftonline.com/<tenant>`. |
 
-For the **NAA + EAR** tests only, the following optional variables point at an
-**EAR-enabled** registration pair. Set them in `.env.e2e` for `npm run
-test:e2e:ear` and in `.env` for `npm run test:e2e:ear-broker`, whose broker
-harness starts the sample using `.env`. When left unset, the standard
-registrations from the corresponding file are reused (and must themselves have
-EAR enabled):
-
-| Variable                    | Value                                             |
-| --------------------------- | ------------------------------------------------- |
-| `VITE_EAR_HOST_CLIENT_ID`   | Client id of an **EAR-enabled host/broker** app.  |
-| `VITE_EAR_NESTED_CLIENT_ID` | Client id of an **EAR-enabled nested** app.       |
-| `VITE_EAR_AUTHORITY`        | EAR authority URL (defaults to `VITE_AUTHORITY`). |
+The same host and nested app registrations are used for the NAA and NAA + EAR
+flows. The test registrations are allow-listed for EAR in the
+`ESTS-PUB-EUS-FD000-TEST1-100` test slice. The sample adds that slice as the
+`dc` parameter to both authorize and token requests.
 
 ## Running the sample
 
@@ -150,10 +142,9 @@ test asserts the nested app never holds a refresh token (the core NAA property).
 
 The **EAR** suites open the host with `?ear=true` so it runs in
 `ProtocolMode.EAR`; the host's login and the token it brokers for the nested app
-come back as an encrypted `ear_jwe`. A `crypto.subtle.decrypt` spy asserts the
-response was actually decrypted (i.e. EAR was used, not a plaintext auth-code
-fallback). The web EAR suite runs in CI using the EAR-enabled registrations
-from `.env.e2e`.
+use the same client IDs as the base NAA suites and are routed through the
+EAR-allow-listed test slice. A `crypto.subtle.decrypt` spy asserts the response
+was actually decrypted (i.e. EAR was used, not a plaintext auth-code fallback).
 
 The platform-broker suites are **self-hosted only**: they require branded
 Chrome, the Microsoft SSO extension, WAM, and a brokerable signed-in Windows
