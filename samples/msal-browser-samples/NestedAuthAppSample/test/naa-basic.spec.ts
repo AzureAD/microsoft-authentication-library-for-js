@@ -1,16 +1,16 @@
+import { Browser, BrowserContext, Frame, Page } from "playwright-core";
 import {
-    Browser,
-    BrowserCacheUtils,
-    BrowserContext,
-    Frame,
-    Page,
     Screenshot,
-    enterCredentials,
-} from "e2e-test-utils";
-import { getLabCredentials } from "./naaTestUtils";
+    accessTokenForScopesExists,
+    enterAadCredentials,
+    getLabCredentials,
+    launchBrowser,
+    readAccountKeys,
+    readSessionTokenStore,
+} from "./naaTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/nestedAppAuth`;
-const PUPPETEER_TIMEOUT = 15000;
+const ACTION_TIMEOUT = 15000;
 const AUTHENTICATION_TIMEOUT = 60000;
 const SCOPES = ["User.Read"];
 
@@ -21,13 +21,16 @@ const { HOST_APP_PORT, NESTED_APP_PORT } = require("../sampleConfig.cjs") as {
 };
 
 async function getNestedFrame(page: Page): Promise<Frame> {
-    const frame = await page.waitForFrame(
-        (candidate) => candidate.url().includes(NESTED_APP_PORT.toString()),
-        { timeout: PUPPETEER_TIMEOUT }
-    );
+    const handle = await page.waitForSelector("iframe[title='nestedApp']", {
+        timeout: ACTION_TIMEOUT,
+    });
+    const frame = await handle.contentFrame();
+    if (!frame) {
+        throw new Error("Nested app iframe has no content frame");
+    }
     await frame.waitForSelector(
         "xpath=//button[contains(., 'acquireTokenSilent')]",
-        { timeout: PUPPETEER_TIMEOUT }
+        { timeout: ACTION_TIMEOUT }
     );
     return frame;
 }
@@ -38,6 +41,7 @@ async function waitForHostSignIn(frame: Frame): Promise<void> {
             Array.from(document.querySelectorAll("p")).some((element) =>
                 element.textContent?.includes("Signed in")
             ) || Boolean(document.querySelector("pre")),
+        undefined,
         { timeout: AUTHENTICATION_TIMEOUT }
     );
 
@@ -49,36 +53,26 @@ async function waitForHostSignIn(frame: Frame): Promise<void> {
     }
 }
 
-async function verifyHostTokenStore(
-    browserCache: BrowserCacheUtils
-): Promise<void> {
-    const tokenStore = await browserCache.getTokens();
+async function verifyHostTokenStore(page: Page): Promise<void> {
+    const tokenStore = await readSessionTokenStore(page);
     expect(tokenStore.idTokens.length).toBe(1);
     expect(tokenStore.accessTokens.length).toBe(1);
     expect(tokenStore.refreshTokens.length).toBe(1);
-    expect(await browserCache.getAccountFromCache()).not.toBeNull();
-    expect(
-        await browserCache.accessTokenForScopesExists(
-            tokenStore.accessTokens,
-            SCOPES
-        )
-    ).toBeTruthy();
+    expect(await readAccountKeys(page)).not.toBeNull();
+    expect(accessTokenForScopesExists(tokenStore.accessTokens, SCOPES)).toBe(
+        true
+    );
 }
 
-async function verifyNestedTokenStore(
-    browserCache: BrowserCacheUtils
-): Promise<void> {
-    const tokenStore = await browserCache.getTokens();
+async function verifyNestedTokenStore(frame: Frame): Promise<void> {
+    const tokenStore = await readSessionTokenStore(frame);
     expect(tokenStore.idTokens.length).toBe(1);
     expect(tokenStore.accessTokens.length).toBe(1);
     expect(tokenStore.refreshTokens.length).toBe(0);
-    expect(await browserCache.getAccountFromCache()).not.toBeNull();
-    expect(
-        await browserCache.accessTokenForScopesExists(
-            tokenStore.accessTokens,
-            SCOPES
-        )
-    ).toBeTruthy();
+    expect(await readAccountKeys(frame)).not.toBeNull();
+    expect(accessTokenForScopesExists(tokenStore.accessTokens, SCOPES)).toBe(
+        true
+    );
 }
 
 describe("Nested App Authentication brokered through the host app", () => {
@@ -89,26 +83,23 @@ describe("Nested App Authentication brokered through the host app", () => {
     let page: Page;
     let username: string;
     let password: string;
-    let hostCache: BrowserCacheUtils;
 
     beforeAll(async () => {
-        // @ts-ignore
-        browser = await global.__BROWSER__;
+        browser = await launchBrowser();
         ({ username, password } = await getLabCredentials());
     });
 
     beforeEach(async () => {
-        context = await browser.createBrowserContext();
+        context = await browser.newContext({ ignoreHTTPSErrors: true });
         page = await context.newPage();
-        const client = await page.createCDPSession();
-        await client.send("Security.setIgnoreCertificateErrors", {
-            ignore: true,
-        });
-        hostCache = new BrowserCacheUtils(page, "sessionStorage");
     });
 
     afterEach(async () => {
         await context.close();
+    });
+
+    afterAll(async () => {
+        await browser.close();
     });
 
     it("nested app acquires a token through the host without holding a refresh token", async () => {
@@ -119,37 +110,25 @@ describe("Nested App Authentication brokered through the host app", () => {
         await page.goto(`https://localhost:${HOST_APP_PORT}`);
 
         const hostFrame = page.mainFrame();
-        const loginButton = await hostFrame.waitForSelector(
-            "xpath=//button[contains(., 'Login')]",
-            { timeout: PUPPETEER_TIMEOUT }
-        );
-        const popupPromise = new Promise<Page | null>((resolve) =>
-            page.once("popup", resolve)
-        );
-        await loginButton?.click();
+        const popupPromise = page.waitForEvent("popup", {
+            timeout: ACTION_TIMEOUT,
+        });
+        await hostFrame
+            .getByRole("button", { name: "Login" })
+            .click({ timeout: ACTION_TIMEOUT });
         const popupPage = await popupPromise;
-        if (!popupPage) {
-            throw new Error("Login popup was not opened");
-        }
-        await enterCredentials(popupPage, screenshot, username, password);
+        await enterAadCredentials(popupPage, username, password, screenshot);
         await waitForHostSignIn(hostFrame);
-        await verifyHostTokenStore(hostCache);
+        await verifyHostTokenStore(page);
 
         const nestedFrame = await getNestedFrame(page);
-        const acquireButton = await nestedFrame.waitForSelector(
-            "xpath=//button[contains(., 'acquireTokenSilent')]"
-        );
-        await acquireButton?.click();
-        await nestedFrame.waitForSelector(
-            "xpath=//th[contains(., 'homeAccountId')]",
-            { timeout: PUPPETEER_TIMEOUT }
-        );
+        await nestedFrame
+            .getByRole("button", { name: "acquireTokenSilent" })
+            .click({ timeout: ACTION_TIMEOUT });
+        await nestedFrame
+            .getByRole("columnheader", { name: "homeAccountId" })
+            .waitFor({ timeout: ACTION_TIMEOUT });
         await screenshot.takeScreenshot(page, "Nested app authenticated");
-
-        const nestedCache = new BrowserCacheUtils(
-            nestedFrame as unknown as Page,
-            "sessionStorage"
-        );
-        await verifyNestedTokenStore(nestedCache);
+        await verifyNestedTokenStore(nestedFrame);
     });
 });

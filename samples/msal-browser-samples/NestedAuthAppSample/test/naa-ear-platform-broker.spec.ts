@@ -8,18 +8,18 @@ import * as path from "path";
 import { BrowserContext, Frame, Page } from "playwright-core";
 import {
     BrokerContext,
-    TokenStore,
-    accessTokenForScopesExists,
     closeBrokerContext,
-    enterAadCredentials,
     launchBrokerContext,
-    readAccountKeys,
-    readSessionTokenStore,
 } from "./brokerHarness";
 import {
+    TokenStore,
+    accessTokenForScopesExists,
+    enterAadCredentials,
     getEarDecryptCount,
     getLabCredentials,
     installEarDecryptSpy,
+    readAccountKeys,
+    readSessionTokenStore,
 } from "./naaTestUtils";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires

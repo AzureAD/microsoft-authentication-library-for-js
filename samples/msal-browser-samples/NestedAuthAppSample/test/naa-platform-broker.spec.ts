@@ -8,15 +8,17 @@ import * as path from "path";
 import { BrowserContext, Frame, Page } from "playwright-core";
 import {
     BrokerContext,
+    closeBrokerContext,
+    launchBrokerContext,
+} from "./brokerHarness";
+import {
     TokenStore,
     accessTokenForScopesExists,
-    closeBrokerContext,
     enterAadCredentials,
-    launchBrokerContext,
+    getLabCredentials,
     readAccountKeys,
     readSessionTokenStore,
-} from "./brokerHarness";
-import { getLabCredentials } from "./naaTestUtils";
+} from "./naaTestUtils";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serverUtils = require("../../../e2eTestUtils/jest-puppeteer-utils/serverUtils");

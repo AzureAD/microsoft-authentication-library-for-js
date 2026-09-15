@@ -43,16 +43,15 @@ in this sample the host app supplies its own implementation
     passing the nested app's client id as MSAL's `embeddedClientId` request
     parameter so the host acts as the broker.
 
-
 ## Structure
 
-| Path         | Description                                            |
-| ------------ | ------------------------------------------------------ |
-| `sampleConfig.cjs` | Single source of truth for the host/nested app ports.  |
-| `server.js`  | Spawns the `hostApp` and `nestedApp` vite dev servers. |
-| `hostApp/`   | Top-frame host app (platform broker + NAA host).       |
-| `nestedApp/` | Embedded nested app.                                   |
-| `test/`      | Jest end-to-end specs (Puppeteer for the web flow, Playwright for the platform broker). |
+| Path               | Description                                                    |
+| ------------------ | -------------------------------------------------------------- |
+| `sampleConfig.cjs` | Single source of truth for the host/nested app ports.          |
+| `server.js`        | Spawns the `hostApp` and `nestedApp` vite dev servers.         |
+| `hostApp/`         | Top-frame host app (platform broker + NAA host).               |
+| `nestedApp/`       | Embedded nested app.                                           |
+| `test/`            | Jest end-to-end specs using Playwright for browser automation. |
 
 The host and nested app ports are defined once in `sampleConfig.cjs` and
 imported everywhere they are needed (`server.js`, both `vite.config.js` files,
@@ -60,7 +59,6 @@ the Jest config, and the e2e setup/spec). The host app receives the nested
 app's port and protocol at runtime from `server.js` via the
 `VITE_NESTED_APP_PORT` / `VITE_NESTED_APP_PROTOCOL` environment variables, so
 changing a port only requires editing `sampleConfig.cjs`.
-
 
 ### Registering the apps for NAA
 
@@ -92,7 +90,7 @@ provided. Before running, edit `.env` (used by `npm start` / `npm run
 start:https`) and, if you run the e2e tests, `.env.e2e`, replacing the
 placeholders with your own registrations:
 
-| Variable                | Value                                                              |
+| Variable                | Value                                                             |
 | ----------------------- | ----------------------------------------------------------------- |
 | `VITE_HOST_CLIENT_ID`   | Application (client) id of the **host/broker** app.               |
 | `VITE_NESTED_CLIENT_ID` | Application (client) id of the **nested** app.                    |
@@ -105,11 +103,11 @@ harness starts the sample using `.env`. When left unset, the standard
 registrations from the corresponding file are reused (and must themselves have
 EAR enabled):
 
-| Variable                    | Value                                                    |
-| --------------------------- | -------------------------------------------------------- |
-| `VITE_EAR_HOST_CLIENT_ID`   | Client id of an **EAR-enabled host/broker** app.         |
-| `VITE_EAR_NESTED_CLIENT_ID` | Client id of an **EAR-enabled nested** app.              |
-| `VITE_EAR_AUTHORITY`        | EAR authority URL (defaults to `VITE_AUTHORITY`).        |
+| Variable                    | Value                                             |
+| --------------------------- | ------------------------------------------------- |
+| `VITE_EAR_HOST_CLIENT_ID`   | Client id of an **EAR-enabled host/broker** app.  |
+| `VITE_EAR_NESTED_CLIENT_ID` | Client id of an **EAR-enabled nested** app.       |
+| `VITE_EAR_AUTHORITY`        | EAR authority URL (defaults to `VITE_AUTHORITY`). |
 
 ## Running the sample
 
@@ -126,7 +124,7 @@ npm start               # hostApp -> http://localhost:30663
 To serve both apps over HTTPS with locally generated development certificates:
 
 ```bash
-npm run start:https     
+npm run start:https
 # hostApp -> https://localhost:30663
 # nestedApp -> https://localhost:30667
 ```
@@ -139,12 +137,12 @@ expected for local use.
 The end-to-end suites live in `test/` and cover two host configurations, each of
 which also has an **Encrypted Authorize Response (EAR)** combination variant:
 
-| Spec / suite | Host flow | Runs in CI? | Command |
-| ------------ | --------- | ----------- | ------- |
-| `naa-basic.spec.ts` | Web flow (Puppeteer) | Yes (`naa-basic` filter) | `npm run test:e2e:naa-basic` |
-| `naa-ear.spec.ts` | Web flow + `ProtocolMode.EAR` | Yes (`naa-ear` filter) | `npm run test:e2e:ear` |
-| `naa-platform-broker.spec.ts` | Platform broker / WAM (Playwright) | No (self-hosted) | `npm run test:e2e:broker` |
-| `naa-ear-platform-broker.spec.ts` | Platform broker + `ProtocolMode.EAR` | No (self-hosted) | `npm run test:e2e:ear-broker` |
+| Spec / suite                      | Host flow                            | Runs in CI?              | Command                       |
+| --------------------------------- | ------------------------------------ | ------------------------ | ----------------------------- |
+| `naa-basic.spec.ts`               | Web flow (Playwright)                | Yes (`naa-basic` filter) | `npm run test:e2e:naa-basic`  |
+| `naa-ear.spec.ts`                 | Web flow + `ProtocolMode.EAR`        | Yes (`naa-ear` filter)   | `npm run test:e2e:ear`        |
+| `naa-platform-broker.spec.ts`     | Platform broker / WAM (Playwright)   | No (self-hosted)         | `npm run test:e2e:broker`     |
+| `naa-ear-platform-broker.spec.ts` | Platform broker + `ProtocolMode.EAR` | No (self-hosted)         | `npm run test:e2e:ear-broker` |
 
 The base suites exercise Nested App Authentication through the **host-supplied**
 `window.nestedAppAuthBridge`: the host brokers the nested app's token and the
@@ -164,5 +162,5 @@ account, so their pipeline entries remain commented out.
 End-to-end tests must run over HTTPS. The Jest configuration starts the HTTPS
 servers automatically.
 
-The e2e specs consume the shared browser, cache, credential, and screenshot
-utilities from `samples/e2eTestUtils`.
+The e2e specs use Playwright for browser automation and consume the shared
+lab-account utilities from `samples/e2eTestUtils`.
