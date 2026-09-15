@@ -10,16 +10,19 @@ import * as puppeteer from "puppeteer";
 import {
     AppTypes,
     AzureEnvironments,
+    BrowserCacheUtils,
     enterCredentials,
     LabApiQueryParams,
     LabClient,
     Screenshot,
     setupCredentials,
+    verifyKmsiFromCache,
 } from "e2e-test-utils";
 import { verifyKmsiFromResponse } from "./kmsiTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/kmsiBasic`;
 const KMSI_URL = "http://localhost:3000/";
+const CACHE_LOCATION = "localStorage";
 const LOGIN_TIMEOUT = 120000;
 
 describe("Keep Me Signed In Tests", () => {
@@ -73,6 +76,7 @@ describe("Keep Me Signed In Tests", () => {
 
         browser = await launchBrowser();
         let page = await browser.newPage();
+        let browserCache = new BrowserCacheUtils(page, CACHE_LOCATION);
 
         await page.goto(KMSI_URL, { timeout: 10000 });
         await page.locator("button#signInButton").click();
@@ -83,37 +87,21 @@ describe("Keep Me Signed In Tests", () => {
             timeout: LOGIN_TIMEOUT,
         });
         await verifyKmsiFromResponse(page);
+        await verifyKmsiFromCache(browserCache);
 
         await browser.close();
         browser = undefined;
 
         browser = await launchBrowser();
         page = await browser.newPage();
+        browserCache = new BrowserCacheUtils(page, CACHE_LOCATION);
 
         await page.goto(KMSI_URL, { timeout: 10000 });
-        await page.waitForSelector("button#ssoSilentButton");
-        await page.evaluate(() => {
-            document.getElementById("ssoSilentButton")?.click();
-        });
-        await page.waitForFunction(
-            () => {
-                const status =
-                    document.getElementById("silentStatus")?.dataset.status;
-                return (
-                    status === "ssoSilent:success" ||
-                    status === "ssoSilent:error"
-                );
-            },
-            { timeout: LOGIN_TIMEOUT }
-        );
-        const silentStatus = await page.evaluate(
-            () => document.getElementById("silentStatus")?.dataset.status
-        );
-        expect(silentStatus).toBe("ssoSilent:success");
         await page.waitForSelector("a#viewProfileButton", {
             visible: true,
             timeout: LOGIN_TIMEOUT,
         });
-        await verifyKmsiFromResponse(page);
+        expect(await browserCache.getAccountFromCache()).not.toBeNull();
+        await verifyKmsiFromCache(browserCache);
     }, 180000);
 });
