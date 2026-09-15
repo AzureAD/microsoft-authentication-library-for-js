@@ -74,7 +74,7 @@ describe("SignUpPasswordRequiredStateV2", () => {
             },
         });
 
-        const result = await buildState().submitPassword("P@ssword1!", {
+        const result = await buildState().submitPassword("valid-password", {
             givenName: "Test",
             username: "test-user",
             password: "wrong-password",
@@ -86,7 +86,7 @@ describe("SignUpPasswordRequiredStateV2", () => {
             attributes: {
                 givenName: "Test",
                 username: "test-user",
-                password: "P@ssword1!",
+                password: "valid-password",
             },
         });
         expect(result.isState("signInContinuation")).toBe(true);
@@ -118,12 +118,10 @@ describe("SignUpPasswordRequiredStateV2", () => {
             codeLength: 8,
         });
 
-        const result = await buildState().submitPassword("P@ssword1!");
+        const result = await buildState().submitPassword("valid-password");
 
         expect(result.isState("codeRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(
-            CodeRequiredStateV2
-        );
+        expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
     });
 
     it("returns a failed result for an unsupported transition", async () => {
@@ -136,7 +134,7 @@ describe("SignUpPasswordRequiredStateV2", () => {
             codeLength: 0,
         });
 
-        const result = await buildState().submitPassword("P@ssword1!");
+        const result = await buildState().submitPassword("valid-password");
 
         expect(result.isFailed()).toBe(true);
     });

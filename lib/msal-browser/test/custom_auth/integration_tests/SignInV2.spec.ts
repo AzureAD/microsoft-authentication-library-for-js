@@ -269,7 +269,7 @@ describe("Sign-in V2 entry", () => {
 
         const result = await app.signInV2({
             username: "user@contoso.com",
-            password: "P@ssword1!",
+            password: "valid-password",
         });
 
         expect(result.isFailed()).toBe(true);
@@ -345,7 +345,7 @@ describe("Sign-in V2 entry", () => {
 
         const submitResult = await (
             startResult.state as PasswordRequiredStateV2
-        ).submitPassword("P@ssword1!");
+        ).submitPassword("valid-password");
 
         expect(submitResult.isState("completed")).toBe(true);
         expect(submitResult.state).toBeInstanceOf(CompletedStateV2);
@@ -369,7 +369,7 @@ describe("Sign-in V2 entry", () => {
 
         const submitResult = await (
             startResult.state as PasswordRequiredStateV2
-        ).submitPassword("P@ssword1!");
+        ).submitPassword("valid-password");
 
         expect(submitResult.isFailed()).toBe(false);
         expect(submitResult.isState("mfaRequired")).toBe(true);
@@ -408,7 +408,7 @@ describe("Sign-in V2 entry", () => {
         });
         const passwordResult = await (
             startResult.state as PasswordRequiredStateV2
-        ).submitPassword("P@ssword1!");
+        ).submitPassword("valid-password");
         const mfaState = passwordResult.state as MFARequiredStateV2;
 
         const challengeResult = await mfaState.requestChallenge(
@@ -455,7 +455,7 @@ describe("Sign-in V2 entry", () => {
 
         const result = await app.signInV2({
             username: "user@contoso.com",
-            password: "P@ssword1!",
+            password: "valid-password",
         });
 
         expect(result.isState("completed")).toBe(true);
@@ -474,7 +474,7 @@ describe("Sign-in V2 entry", () => {
 
         const result = await app.signInV2({
             username: "user@contoso.com",
-            password: "P@ssword1!",
+            password: "valid-password",
             scopes: ["User.Read"],
         });
 
@@ -493,7 +493,7 @@ describe("Sign-in V2 entry", () => {
 
         const result = await app.signInV2({
             username: "user@contoso.com",
-            password: "P@ssword1!",
+            password: "valid-password",
             scopes: ["User.Read"],
             claims: '{"access_token":{}}',
         });

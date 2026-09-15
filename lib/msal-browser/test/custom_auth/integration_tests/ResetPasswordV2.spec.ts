@@ -250,8 +250,7 @@ describe("Reset password V2 (SSPR)", () => {
         const challengeResult = await methodState.requestChallenge(smsMethod);
         expect(challengeResult.isState("codeRequired")).toBe(true);
 
-        const codeState =
-            challengeResult.state as CodeRequiredStateV2;
+        const codeState = challengeResult.state as CodeRequiredStateV2;
         expect(codeState.channel).toBe("sms");
         expect(codeState.sentTo).toBe("+*** *******11");
         expect(codeState.codeLength).toBe(6);
@@ -259,7 +258,7 @@ describe("Reset password V2 (SSPR)", () => {
         const verifyResult = await codeState.submitCode("123456");
         const passwordState = verifyResult.state as NewPasswordRequiredStateV2;
         const submitResult = await passwordState.submitNewPassword(
-            "N3wP@ssw0rd!"
+            "new-valid-password"
         );
         const signInState = submitResult.state as SignInContinuationStateV2;
         const signInResult = await signInState.signIn();
@@ -294,19 +293,16 @@ describe("Reset password V2 (SSPR)", () => {
             methodState.methods[0]
         );
         expect(challengeResult.isFailed()).toBe(false);
-        expect(challengeResult.state).toBeInstanceOf(
-            CodeRequiredStateV2
-        );
+        expect(challengeResult.state).toBeInstanceOf(CodeRequiredStateV2);
 
-        const codeState =
-            challengeResult.state as CodeRequiredStateV2;
+        const codeState = challengeResult.state as CodeRequiredStateV2;
         const verifyResult = await codeState.submitCode("123456");
         expect(verifyResult.isFailed()).toBe(false);
         expect(verifyResult.state).toBeInstanceOf(NewPasswordRequiredStateV2);
 
         const passwordState = verifyResult.state as NewPasswordRequiredStateV2;
         const submitResult = await passwordState.submitNewPassword(
-            "N3wP@ssw0rd!"
+            "new-valid-password"
         );
         expect(submitResult.isFailed()).toBe(false);
         expect(submitResult.state).toBeInstanceOf(SignInContinuationStateV2);
@@ -358,8 +354,7 @@ describe("Reset password V2 (SSPR)", () => {
         const challengeResult = await methodState.requestChallenge(
             methodState.methods[0]
         );
-        const codeState =
-            challengeResult.state as CodeRequiredStateV2;
+        const codeState = challengeResult.state as CodeRequiredStateV2;
 
         const verifyResult = await codeState.submitCode("000000");
 
@@ -392,8 +387,7 @@ describe("Reset password V2 (SSPR)", () => {
         const challengeResult = await methodState.requestChallenge(
             methodState.methods[0]
         );
-        const codeState =
-            challengeResult.state as CodeRequiredStateV2;
+        const codeState = challengeResult.state as CodeRequiredStateV2;
         const verifyResult = await codeState.submitCode("123456");
         const passwordState = verifyResult.state as NewPasswordRequiredStateV2;
 

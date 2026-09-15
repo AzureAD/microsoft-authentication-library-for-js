@@ -66,7 +66,7 @@ describe("PasswordRequiredStateV2", () => {
             ],
         });
 
-        const result = await buildState().submitPassword("P@ssword1!");
+        const result = await buildState().submitPassword("valid-password");
 
         expect(flowClient.submitSignInPassword).toHaveBeenCalledWith({
             correlationId,
@@ -80,7 +80,7 @@ describe("PasswordRequiredStateV2", () => {
                     scopes: ["User.Read"],
                 },
             },
-            password: "P@ssword1!",
+            password: "valid-password",
         });
         expect(result.isState("mfaRequired")).toBe(true);
         expect(result.state).toBeInstanceOf(MFARequiredStateV2);

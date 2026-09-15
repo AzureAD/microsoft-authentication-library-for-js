@@ -186,7 +186,7 @@ describe("FlowInteractionClientV2", () => {
             const result = await client.signUp({
                 correlationId,
                 username: "user@contoso.com",
-                password: "P@ssword1!",
+                password: "valid-password",
                 attributes: {
                     Email: "wrong@contoso.com",
                     PASSWORD: "wrong-password",
@@ -202,7 +202,7 @@ describe("FlowInteractionClientV2", () => {
                     continuationToken: "ct-start",
                     attributes: {
                         email: "user@contoso.com",
-                        password: "P@ssword1!",
+                        password: "valid-password",
                         displayName: "Test User",
                         username: "test-user",
                     },
@@ -497,7 +497,7 @@ describe("FlowInteractionClientV2", () => {
                 client.signIn({
                     correlationId,
                     username: "user@contoso.com",
-                    password: "P@ssword1!",
+                    password: "valid-password",
                 })
             ).rejects.toMatchObject({
                 error: UNSUPPORTED_FLOW_TRANSITION,
@@ -606,7 +606,7 @@ describe("FlowInteractionClientV2", () => {
             const result = await client.signIn({
                 correlationId,
                 username: "user@contoso.com",
-                password: "P@ssword1!",
+                password: "valid-password",
                 scopes: ["User.Read"],
             });
 
@@ -670,7 +670,7 @@ describe("FlowInteractionClientV2", () => {
             const result = await client.signIn({
                 correlationId,
                 username: "user@contoso.com",
-                password: "P@ssword1!",
+                password: "valid-password",
             });
 
             expect(result.type).toBe(FLOW_MFA_REQUIRED_V2);
@@ -1417,7 +1417,7 @@ describe("FlowInteractionClientV2", () => {
                         verify: "https://endpoint/password/verify",
                     },
                 },
-                password: "P@ssword1!",
+                password: "valid-password",
             });
 
             expect(contextSpy).toHaveBeenCalledWith(
@@ -1450,7 +1450,7 @@ describe("FlowInteractionClientV2", () => {
                             verify: "https://endpoint/password/verify",
                         },
                     },
-                    password: "P@ssword1!",
+                    password: "valid-password",
                 })
             ).rejects.toMatchObject({
                 error: UNSUPPORTED_FLOW_TRANSITION,
@@ -1492,7 +1492,7 @@ describe("FlowInteractionClientV2", () => {
                 correlationId,
                 continuationState,
                 attributes: {
-                    password: "P@ssword1!",
+                    password: "valid-password",
                     jobTitle: "Engineer",
                 },
             });
@@ -1502,7 +1502,7 @@ describe("FlowInteractionClientV2", () => {
                 {
                     continuationToken: "ct-attributes",
                     attributes: {
-                        password: "P@ssword1!",
+                        password: "valid-password",
                         jobTitle: "Engineer",
                     },
                 },
@@ -1778,14 +1778,14 @@ describe("FlowInteractionClientV2", () => {
             const result = await client.submitNewPassword({
                 correlationId,
                 continuationState,
-                newPassword: "P@ssw0rd!",
+                newPassword: "new-valid-password",
             });
 
             expect(apiClient.submitNewPassword).toHaveBeenCalledWith(
                 "https://endpoint/update",
                 {
                     continuationToken: "ct-verify",
-                    newPassword: "P@ssw0rd!",
+                    newPassword: "new-valid-password",
                 },
                 expect.objectContaining({ correlationId })
             );
@@ -1827,7 +1827,7 @@ describe("FlowInteractionClientV2", () => {
             const promise = client.submitNewPassword({
                 correlationId,
                 continuationState,
-                newPassword: "P@ssw0rd!",
+                newPassword: "new-valid-password",
             });
 
             // Advance past the 1.5s inter-attempt delay so the second poll runs.
@@ -1864,7 +1864,7 @@ describe("FlowInteractionClientV2", () => {
             const promise = client.submitNewPassword({
                 correlationId,
                 continuationState,
-                newPassword: "P@ssw0rd!",
+                newPassword: "new-valid-password",
             });
 
             await jest.advanceTimersByTimeAsync(1500);
@@ -1905,7 +1905,7 @@ describe("FlowInteractionClientV2", () => {
             const promise = client.submitNewPassword({
                 correlationId,
                 continuationState,
-                newPassword: "P@ssw0rd!",
+                newPassword: "new-valid-password",
             });
             const assertion = expect(promise).rejects.toMatchObject({
                 error: RESET_PASSWORD_TIMEOUT,
@@ -1930,7 +1930,7 @@ describe("FlowInteractionClientV2", () => {
                         ...continuationState,
                         links: {},
                     },
-                    newPassword: "P@ssw0rd!",
+                    newPassword: "new-valid-password",
                 })
             ).rejects.toThrow();
 

@@ -425,7 +425,7 @@ describe("CustomAuthApiClientV2", () => {
                 continuationToken: "ct-start",
                 attributes: {
                     email: "user@test.com",
-                    password: "P@ssword1!",
+                    password: "valid-password",
                     displayName: "Test User",
                 },
             };
@@ -1041,7 +1041,7 @@ describe("CustomAuthApiClientV2", () => {
                 "/tenant/api/v0.1/password/verify",
                 {
                     continuationToken: "ct-password",
-                    password: "P@ssword1!",
+                    password: "valid-password",
                 },
                 context
             );
@@ -1089,7 +1089,7 @@ describe("CustomAuthApiClientV2", () => {
                 "/tenant/api/v0.1/password/verify",
                 {
                     continuationToken: "ct-password",
-                    password: "P@ssword1!",
+                    password: "valid-password",
                 },
                 context
             );
@@ -1130,7 +1130,7 @@ describe("CustomAuthApiClientV2", () => {
                     "/tenant/api/v0.1/password/verify",
                     {
                         continuationToken: "ct-password",
-                        password: "P@ssword1!",
+                        password: "valid-password",
                     },
                     context
                 );
@@ -1160,7 +1160,7 @@ describe("CustomAuthApiClientV2", () => {
                     "/tenant/api/v0.1/password/verify",
                     {
                         continuationToken: "ct-password",
-                        password: "P@ssword1!",
+                        password: "valid-password",
                     },
                     context
                 )
@@ -1198,7 +1198,10 @@ describe("CustomAuthApiClientV2", () => {
 
             const result = await apiClient.submitNewPassword(
                 "/tenant/api/v0.1/update",
-                { newPassword: "N3wP@ssw0rd", continuationToken: "ct-verify" },
+                {
+                    newPassword: "new-valid-password",
+                    continuationToken: "ct-verify",
+                },
                 context
             );
 

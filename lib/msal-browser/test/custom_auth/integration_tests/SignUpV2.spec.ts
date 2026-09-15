@@ -120,7 +120,7 @@ describe("Sign-up V2 entry", () => {
 
         const result = await app.signUpV2({
             username: "user@contoso.com",
-            password: "P@ssword1!",
+            password: "valid-password",
             attributes: {
                 displayName: "Test User",
                 Email: "wrong@contoso.com",
@@ -174,7 +174,7 @@ describe("Sign-up V2 entry", () => {
             attributes: {
                 displayName: "Test User",
                 email: "user@contoso.com",
-                password: "P@ssword1!",
+                password: "valid-password",
             },
         });
     });
@@ -190,11 +190,11 @@ describe("Sign-up V2 entry", () => {
         {
             name: "email and password",
             inputs: {
-                password: "P@ssword1!",
+                password: "valid-password",
             },
             expectedAttributes: {
                 email: "user@contoso.com",
-                password: "P@ssword1!",
+                password: "valid-password",
             },
         },
         {
@@ -435,9 +435,7 @@ describe("Sign-up V2 entry", () => {
             throw new Error("Expected challenge verification state.");
         }
 
-        const verifyResult = await startResult.state.submitCode(
-            "12345678"
-        );
+        const verifyResult = await startResult.state.submitCode("12345678");
 
         expect(verifyResult.isState("passwordRequired")).toBe(true);
         expect(verifyResult.state).toBeInstanceOf(
@@ -470,7 +468,7 @@ describe("Sign-up V2 entry", () => {
             ]);
 
             const submitResult = await verifyResult.state.submitPassword(
-                "P@ssword1!",
+                "valid-password",
                 {
                     jobTitle: "Engineer",
                 }
@@ -489,7 +487,7 @@ describe("Sign-up V2 entry", () => {
             continuationToken: "ct-verify",
             attributes: {
                 jobTitle: "Engineer",
-                password: "P@ssword1!",
+                password: "valid-password",
             },
         });
     });
@@ -549,15 +547,13 @@ describe("Sign-up V2 entry", () => {
 
         const startResult = await app.signUpV2({
             username: "user@contoso.com",
-            password: "P@ssword1!",
+            password: "valid-password",
         });
         if (!startResult.isState("codeRequired")) {
             throw new Error("Expected challenge verification state.");
         }
 
-        const verifyResult = await startResult.state.submitCode(
-            "12345678"
-        );
+        const verifyResult = await startResult.state.submitCode("12345678");
         expect(verifyResult.state).toBeInstanceOf(AttributesRequiredStateV2);
         if (!verifyResult.isState("attributesRequired")) {
             throw new Error("Expected attributes required state.");
@@ -603,16 +599,14 @@ describe("Sign-up V2 entry", () => {
 
         const startResult = await app.signUpV2({
             username: "user@contoso.com",
-            password: "P@ssword1!",
+            password: "valid-password",
         });
 
         if (!startResult.isState("codeRequired")) {
             throw new Error("Expected challenge verification state.");
         }
 
-        const verifyResult = await startResult.state.submitCode(
-            "12345678"
-        );
+        const verifyResult = await startResult.state.submitCode("12345678");
 
         expect(verifyResult.isState("signInContinuation")).toBe(true);
         expect(verifyResult.state).toBeInstanceOf(SignInContinuationStateV2);
@@ -672,16 +666,14 @@ describe("Sign-up V2 entry", () => {
 
         const startResult = await app.signUpV2({
             username: "user@contoso.com",
-            password: "P@ssword1!",
+            password: "valid-password",
             scopes: ["User.Read"],
         });
         if (!startResult.isState("codeRequired")) {
             throw new Error("Expected challenge verification state.");
         }
 
-        const verifyResult = await startResult.state.submitCode(
-            "12345678"
-        );
+        const verifyResult = await startResult.state.submitCode("12345678");
         if (!verifyResult.isState("attributesRequired")) {
             throw new Error("Expected attributes required state.");
         }
@@ -762,15 +754,13 @@ describe("Sign-up V2 entry", () => {
             throw new Error("Expected challenge verification state.");
         }
 
-        const verifyResult = await startResult.state.submitCode(
-            "12345678"
-        );
+        const verifyResult = await startResult.state.submitCode("12345678");
         if (!verifyResult.isState("passwordRequired")) {
             throw new Error("Expected password required state.");
         }
 
         const passwordResult = await verifyResult.state.submitPassword(
-            "P@ssword1!",
+            "valid-password",
             {
                 givenName: "Test",
                 username: "test-user",
@@ -792,7 +782,7 @@ describe("Sign-up V2 entry", () => {
             attributes: {
                 givenName: "Test",
                 username: "test-user",
-                password: "P@ssword1!",
+                password: "valid-password",
             },
         });
         expect(fetch).toHaveBeenCalledTimes(7);
@@ -854,9 +844,7 @@ describe("Sign-up V2 entry", () => {
             throw new Error("Expected challenge verification state.");
         }
 
-        const verifyResult = await startResult.state.submitCode(
-            "12345678"
-        );
+        const verifyResult = await startResult.state.submitCode("12345678");
         if (!verifyResult.isState("passwordRequired")) {
             throw new Error("Expected password required state.");
         }
