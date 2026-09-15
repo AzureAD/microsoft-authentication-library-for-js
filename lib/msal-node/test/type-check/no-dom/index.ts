@@ -104,7 +104,7 @@ void AuthErrorCodes;
 void ClientAuthErrorCodes;
 void ClientConfigurationErrorCodes;
 void InteractionRequiredAuthErrorCodes;
-void (undefined as
+void (undefined as unknown as
     | IConfidentialClientApplication
     | ITokenCache
     | ICacheClient
