@@ -6,11 +6,8 @@
 import * as path from "path";
 import { spawn, ChildProcess } from "child_process";
 import * as puppeteer from "puppeteer";
-import {
-    BrowserCacheUtils,
-    Screenshot,
-    verifyKmsiFromCache,
-} from "e2e-test-utils";
+import { BrowserCacheUtils, Screenshot } from "e2e-test-utils";
+import { verifyKmsiFromResponse } from "./kmsiTestUtils";
 import {
     createPlatformBrokerProfile,
     launchPlatformBrokerBrowser,
@@ -91,7 +88,7 @@ describe("Platform Broker + Keep Me Signed In Tests", () => {
 
         await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(browserCache);
-        await verifyKmsiFromCache(browserCache);
+        await verifyKmsiFromResponse(page);
 
         await browser.close();
         browser = undefined;
@@ -119,6 +116,6 @@ describe("Platform Broker + Keep Me Signed In Tests", () => {
         expect(popupOpened).toBe(false);
         await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(browserCache);
-        await verifyKmsiFromCache(browserCache);
+        await verifyKmsiFromResponse(page);
     }, 300000);
 });

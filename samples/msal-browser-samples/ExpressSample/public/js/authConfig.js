@@ -50,11 +50,6 @@ export function createMsalConfig() {
     };
 
     const earEnabled = isEarEnabled();
-    const kmsiTestEnabled =
-        new URLSearchParams(window.location.search).get("kmsi") === "true";
-    if (kmsiTestEnabled) {
-        msalConfig.cache.cacheLocation = "sessionStorage";
-    }
 
     if (earEnabled || isPlatformBrokerEnabled()) {
         msalConfig.auth.clientId = platformBrokerConfig.auth.clientId;

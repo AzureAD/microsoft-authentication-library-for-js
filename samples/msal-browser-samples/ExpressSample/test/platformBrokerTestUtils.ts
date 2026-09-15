@@ -74,11 +74,7 @@ export async function verifyPlatformBrokerResponse(
     target: puppeteer.Page
 ): Promise<void> {
     const fromPlatformBroker = await target.evaluate(
-        async (modulePath) => {
-            const authModule = await import(modulePath);
-            return authModule.lastResponseFromPlatformBroker;
-        },
-        "/js/auth.js"
+        "import('/js/auth.js').then((authModule) => authModule.lastResponseFromPlatformBroker)"
     );
     expect(fromPlatformBroker).toBe(true);
 }

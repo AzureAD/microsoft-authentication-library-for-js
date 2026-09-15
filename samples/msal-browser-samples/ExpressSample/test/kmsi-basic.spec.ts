@@ -10,18 +10,16 @@ import * as puppeteer from "puppeteer";
 import {
     AppTypes,
     AzureEnvironments,
-    BrowserCacheUtils,
     enterCredentials,
     LabApiQueryParams,
     LabClient,
     Screenshot,
     setupCredentials,
-    verifyKmsiFromCache,
 } from "e2e-test-utils";
+import { verifyKmsiFromResponse } from "./kmsiTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/kmsiBasic`;
-const KMSI_URL = "http://localhost:3000/?kmsi=true";
-const CACHE_LOCATION = "sessionStorage";
+const KMSI_URL = "http://localhost:3000/";
 const LOGIN_TIMEOUT = 120000;
 
 describe("Keep Me Signed In Tests", () => {
@@ -75,7 +73,6 @@ describe("Keep Me Signed In Tests", () => {
 
         browser = await launchBrowser();
         let page = await browser.newPage();
-        let browserCache = new BrowserCacheUtils(page, CACHE_LOCATION);
 
         await page.goto(KMSI_URL, { timeout: 10000 });
         await page.locator("button#signInButton").click();
@@ -85,14 +82,13 @@ describe("Keep Me Signed In Tests", () => {
             visible: true,
             timeout: LOGIN_TIMEOUT,
         });
-        await verifyKmsiFromCache(browserCache);
+        await verifyKmsiFromResponse(page);
 
         await browser.close();
         browser = undefined;
 
         browser = await launchBrowser();
         page = await browser.newPage();
-        browserCache = new BrowserCacheUtils(page, CACHE_LOCATION);
 
         await page.goto(KMSI_URL, { timeout: 10000 });
         await page.waitForSelector("button#ssoSilentButton");
@@ -118,6 +114,6 @@ describe("Keep Me Signed In Tests", () => {
             visible: true,
             timeout: LOGIN_TIMEOUT,
         });
-        await verifyKmsiFromCache(browserCache);
+        await verifyKmsiFromResponse(page);
     }, 180000);
 });

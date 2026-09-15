@@ -12,16 +12,19 @@ import { createMsalConfig, loginRequest } from "./authConfig.js";
 // MSAL instance
 export let msalInstance;
 export let lastResponseFromPlatformBroker;
+export let lastSigninState;
 
 // Retry state tracking
 let retryRequested = false;
 
 function recordAuthenticationResult(response) {
     lastResponseFromPlatformBroker = response.fromPlatformBroker === true;
+    lastSigninState = response.idTokenClaims?.signin_state;
 }
 
 function resetAuthenticationResult() {
     lastResponseFromPlatformBroker = undefined;
+    lastSigninState = undefined;
 }
 
 // Initialize MSAL
