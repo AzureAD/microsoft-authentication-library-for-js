@@ -165,7 +165,7 @@ End-to-end tests must run over HTTPS. The Jest configuration starts the HTTPS
 servers automatically.
 
 ```bash
-npm run test:e2e        # all web and broker suites
+npm run test:e2e        # all web and broker suites, run sequentially
 ```
 
 The e2e specs consume the shared browser, cache, credential, and screenshot

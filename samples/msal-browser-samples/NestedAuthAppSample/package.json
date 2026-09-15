@@ -10,7 +10,7 @@
         "start:all": "node server.js",
         "start:build": "npm run build:package && npm start",
         "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-browser",
-        "test:e2e": "jest",
+        "test:e2e": "npm run test:e2e:basic && npm run test:e2e:ear && npm run test:e2e:broker && npm run test:e2e:ear-broker",
         "test:e2e:basic": "jest naa-basic",
         "test:e2e:broker": "jest naa-platform-broker",
         "test:e2e:ear": "jest naa-ear.spec",
