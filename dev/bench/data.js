@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789508328035,
+  "lastUpdate": 1789516541065,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23389,6 +23389,44 @@ window.BENCHMARK_DATA = {
             "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
             "value": 396670,
             "range": "±0.78%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "05185ab80148461018d5a4242ae55c8d2a6b8c9f",
+          "message": "Add WAM DPoP broker contract fields (#8772)\n\n## Summary\n- Add const-derived WAM broker request types for canonical `dpop+proof`,\nbinding preference, and `sw`/`hw`/`kg` enclave selection while retaining\n`dpop` for the L1 fallback response.\n- Preserve generic internal no-cache parameters and map canonical proof\ncontext to `pop_method`, `pop_url`, and `pop_nonce` on both extension\nand Edge DOM transports.\n- Normalize the documented Edge DOM response properties (`token_type`,\n`dpop_proof`, string `binding_attested`) to the shared WAM response\ncontract (`token_type`, `DPoP`, boolean `binding_attested`).\n- Keep WI-1 contract-only: public `AuthenticationResult.dpopProof`,\nbroker-outcome interpretation, caching, and fallback remain WI-2 work.\n\n## Validation\n- `npm run build:types`\n- `npm run lint`\n- `npm test -- --runInBand test/broker/PlatformAuthDOMHandler.spec.ts\ntest/broker/PlatformAuthExtensionHandler.spec.ts`\n- `npm run format:check`\n- `npm run apiExtractor`\n- `npm run beachball:check`\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: feature\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#3715427\n<!-- END pr-telemetry -->\n\n---------\n\nCo-authored-by: Forge <forge-bot@entra.github.io>\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCo-authored-by: msal-js-release-automation[bot] <152663010+msal-js-release-automation[bot]@users.noreply.github.com>\nCo-authored-by: MSAL.js Release Automation <msaljsbuilds@microsoft.com>\nCo-authored-by: Lalima Sharda <lalima.sharda@gmail.com>\nCo-authored-by: Konstantin <kshabelko@microsoft.com>\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>\nCopilot-Session: edf273d3-ad5a-479e-8062-7c7ee8b1db37\nCopilot-Session: 78f9666b-ef4d-4799-bc77-e060b95c5158\nCopilot-Session: d9ccc5f1-36f3-4786-a416-e2afe65eb259",
+          "timestamp": "2026-09-15T16:47:16-07:00",
+          "tree_id": "fb56bf136d9cda74d2d23d31a7db52c2a8bfdd4d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/05185ab80148461018d5a4242ae55c8d2a6b8c9f"
+        },
+        "date": 1789516537668,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 377547,
+            "range": "±0.85%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 369530,
+            "range": "±0.83%",
             "unit": "ops/sec",
             "extra": "220 samples"
           }
