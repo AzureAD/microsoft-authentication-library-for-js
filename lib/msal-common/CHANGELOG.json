@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 15 Sep 2026 19:42:08 GMT",
+      "version": "16.14.1",
+      "tag": "@azure/msal-common_v16.14.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c97d44c4eed672ff43d7b7836a7c82df7795f455",
+            "comment": "Enforce bidirectional nonce validation for authorization code token responses [#8801](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8801)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 28 Aug 2026 21:29:53 GMT",
       "version": "16.14.0",
       "tag": "@azure/msal-common_v16.14.0",
