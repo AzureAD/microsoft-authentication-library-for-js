@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Refresh bounded eviction order after successful selected access-token hits [#PR_NUMBER](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/PR_NUMBER)",
+    "comment": "Refresh bounded eviction order after successful selected access-token hits [#8828](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8828)",
     "packageName": "@azure/msal-node",
     "email": "nugetaad@microsoft.com",
     "dependentChangeType": "patch"
