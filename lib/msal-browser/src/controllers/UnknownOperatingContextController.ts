@@ -285,6 +285,18 @@ export class UnknownOperatingContextController implements IController {
         return this.config;
     }
 
+    async resolveTokenEndpoint(): Promise<string> {
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment();
+        return "";
+    }
+
+    async validateTokenEndpoint(): Promise<string> {
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment();
+        return "";
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
         blockAPICallsBeforeInitialize(this.initialized);
