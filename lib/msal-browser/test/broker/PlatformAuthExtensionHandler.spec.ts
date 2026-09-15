@@ -8,9 +8,13 @@ import {
     AuthError,
     AuthErrorCodes,
     IPerformanceClient,
+    PerformanceEvent,
 } from "@azure/msal-common";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
-import { NativeExtensionMethod } from "../../src/utils/BrowserConstants.js";
+import {
+    NativeExtensionMethod,
+    PlatformAuthConstants,
+} from "../../src/utils/BrowserConstants.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
@@ -21,6 +25,7 @@ import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError.js";
+import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 
 let performanceClient: IPerformanceClient;
 
@@ -56,6 +61,10 @@ describe("PlatformAuthExtensionHandler Tests", () => {
 
     describe("createProvider", () => {
         it("Sends handshake request to preferred extension which responds", async () => {
+            const events: PerformanceEvent[] = [];
+            performanceClient.addPerformanceCallback((emittedEvents) => {
+                events.push(...emittedEvents);
+            });
             const eventHandler = function (event: MessageEvent) {
                 event.stopImmediatePropagation();
                 const request = event.data;
@@ -88,6 +97,22 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             expect(wamMessageHandler).toBeInstanceOf(
                 PlatformAuthExtensionHandler
             );
+            expect(
+                events.find(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.PlatformAuthExtensionCreateProvider
+                )
+            ).toMatchObject({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                success: true,
+                platformAuthPreferredExtensionAttempted: true,
+                platformAuthExtensionFallbackAttempted: false,
+                platformAuthProviderAvailable: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                platformAuthOutcome: "preferred_extension_selected",
+            });
 
             window.removeEventListener("message", eventHandler, true);
         });
@@ -332,6 +357,45 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             const response = await wamMessageHandler.sendMessage(TEST_REQUEST);
             expect(response).toEqual(testResponse.result);
 
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
+            const secondResponse = await wamMessageHandler.sendMessage(
+                TEST_REQUEST
+            );
+            expect(secondResponse).toEqual(testResponse.result);
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.PlatformAuthExtensionValidateResponse
+                    )
+            ).toMatchObject({
+                correlationId: TEST_REQUEST.correlationId,
+                success: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                platformAuthResponseCategory: "success",
+            });
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.PlatformAuthExtensionSendMessage
+                    )
+            ).toMatchObject({
+                correlationId: TEST_REQUEST.correlationId,
+                success: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                platformAuthResponseCategory: "success",
+            });
+
             window.removeEventListener("message", eventHandler, true);
         });
 
@@ -464,6 +528,10 @@ describe("PlatformAuthExtensionHandler Tests", () => {
         });
 
         it("Sends message to WAM extension and throws if response does not contain a result property", (done) => {
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
             const testResponse = {
                 status: "Success",
             };
@@ -518,12 +586,89 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                         expect(e.errorMessage).toContain(
                             "Event does not contain result"
                         );
+                        expect(
+                            endMeasurementSpy.mock.calls
+                                .map(([event]) => event)
+                                .find(
+                                    (event) =>
+                                        event.name ===
+                                        BrowserPerformanceEvents.PlatformAuthExtensionSendMessage
+                                )
+                        ).toMatchObject({
+                            correlationId: TEST_REQUEST.correlationId,
+                            success: false,
+                            platformAuthProviderType:
+                                PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                            platformAuthResponseCategory: "invalid_response",
+                        });
                         done();
                     });
                 })
                 .finally(() => {
                     window.removeEventListener("message", eventHandler, true);
                 });
+        });
+
+        it("ends send telemetry once when a matched extension response cannot be parsed", async () => {
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
+            const eventHandler = function (event: MessageEvent) {
+                event.stopImmediatePropagation();
+                const request = event.data;
+                const req = {
+                    channel: "53ee284d-920a-4b59-9d30-a60315b26836",
+                    extensionId: "test-ext-id",
+                    responseId: request.responseId,
+                    body: {
+                        method: "HandshakeResponse",
+                        version: 3,
+                    },
+                };
+
+                mcPort = postMessageSpy.mock.calls[0][2][0];
+                if (!mcPort) {
+                    throw new Error("MessageChannel port was not transferred");
+                }
+                mcPort.onmessage = (messageEvent) => {
+                    mcPort.postMessage({
+                        responseId: messageEvent.data.responseId,
+                    });
+                };
+                mcPort.postMessage(req);
+            };
+
+            window.addEventListener("message", eventHandler, true);
+            const wamMessageHandler =
+                await PlatformAuthExtensionHandler.createProvider(
+                    new Logger({}),
+                    2000,
+                    performanceClient,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+            await expect(
+                wamMessageHandler.sendMessage(TEST_REQUEST)
+            ).rejects.toBeInstanceOf(AuthError);
+
+            const sendEvents = endMeasurementSpy.mock.calls
+                .map(([event]) => event)
+                .filter(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.PlatformAuthExtensionSendMessage
+                );
+            expect(sendEvents).toHaveLength(1);
+            expect(sendEvents[0]).toMatchObject({
+                correlationId: TEST_REQUEST.correlationId,
+                success: false,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                platformAuthResponseCategory: "parse_error",
+            });
+
+            window.removeEventListener("message", eventHandler, true);
         });
     });
 });

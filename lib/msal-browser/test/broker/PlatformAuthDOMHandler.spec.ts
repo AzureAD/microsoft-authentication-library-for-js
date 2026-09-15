@@ -16,6 +16,7 @@ import {
 } from "../utils/StringConstants.js";
 import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
+import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 
 describe("PlatformAuthDOMHandler tests", () => {
     let performanceClient: IPerformanceClient;
@@ -47,6 +48,10 @@ describe("PlatformAuthDOMHandler tests", () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
             const platformAuthDOMHandler =
                 await PlatformAuthDOMHandler.createProvider(
                     logger,
@@ -57,6 +62,36 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(platformAuthDOMHandler).toBeInstanceOf(
                 PlatformAuthDOMHandler
             );
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.PlatformAuthDOMGetSupportedContracts
+                    )
+            ).toMatchObject({
+                correlationId: "test-correlation-id",
+                success: true,
+            });
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.PlatformAuthDOMCreateProvider
+                    )
+            ).toMatchObject({
+                correlationId: "test-correlation-id",
+                success: true,
+                platformAuthDomApiAvailable: true,
+                platformAuthDomContractSupported: true,
+                platformAuthProviderAvailable: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                platformAuthOutcome: "contract_supported",
+            });
         });
 
         it("should return undefined when DOM APIs are not available for platform auth", async () => {
@@ -187,6 +222,10 @@ describe("PlatformAuthDOMHandler tests", () => {
                 shr: undefined,
             };
             executeGetTokenMock.mockResolvedValue(testDOMResponse);
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
 
             const platformAuthDOMHandler =
                 await PlatformAuthDOMHandler.createProvider(
@@ -197,6 +236,36 @@ describe("PlatformAuthDOMHandler tests", () => {
             const platformBrokerResponse =
                 await platformAuthDOMHandler?.sendMessage(testRequest);
             expect(platformBrokerResponse).toEqual(validatedResponse);
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
+                    )
+            ).toMatchObject({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                success: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                platformAuthResponseCategory: "success",
+            });
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.PlatformAuthDOMSendMessage
+                    )
+            ).toMatchObject({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                success: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                platformAuthResponseCategory: "success",
+            });
         });
 
         it("returns unexpected_error when token response is missing required properties with isSuccess = true", async () => {
@@ -235,6 +304,10 @@ describe("PlatformAuthDOMHandler tests", () => {
             };
 
             executeGetTokenMock.mockResolvedValue(testDOMResponse);
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
 
             const platformAuthDOMHandler =
                 await PlatformAuthDOMHandler.createProvider(
@@ -254,6 +327,32 @@ describe("PlatformAuthDOMHandler tests", () => {
                 expect((e as AuthError).errorMessage).toContain(
                     "Response missing expected properties."
                 );
+                expect(
+                    endMeasurementSpy.mock.calls
+                        .map(([event]) => event)
+                        .find(
+                            (event) =>
+                                event.name ===
+                                BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
+                        )
+                ).toMatchObject({
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    success: false,
+                    platformAuthResponseCategory: "invalid_response",
+                });
+                expect(
+                    endMeasurementSpy.mock.calls
+                        .map(([event]) => event)
+                        .find(
+                            (event) =>
+                                event.name ===
+                                BrowserPerformanceEvents.PlatformAuthDOMSendMessage
+                        )
+                ).toMatchObject({
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    success: false,
+                    platformAuthResponseCategory: "invalid_response",
+                });
             }
         });
 

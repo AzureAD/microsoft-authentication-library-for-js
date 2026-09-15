@@ -36,6 +36,7 @@ type ResponseResolvers<T> = {
     reject: (
         value: AuthError | Error | PromiseLike<Error> | PromiseLike<AuthError>
     ) => void;
+    correlationId: string;
 };
 
 export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
@@ -50,13 +51,15 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     private readonly windowListener: (event: MessageEvent) => void;
     private readonly performanceClient: IPerformanceClient;
     private readonly handshakeEvent: InProgressPerformanceEvent;
+    private readonly correlationId: string;
     platformAuthType: string;
 
     constructor(
         logger: Logger,
         handshakeTimeoutMs: number,
         performanceClient: IPerformanceClient,
-        extensionId?: string
+        extensionId?: string,
+        correlationId?: string
     ) {
         this.logger = logger;
         this.handshakeTimeoutMs = handshakeTimeoutMs;
@@ -66,6 +69,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         this.messageChannel = new MessageChannel();
         this.windowListener = this.onWindowMessage.bind(this); // Window event callback doesn't have access to 'this' unless it's bound
         this.performanceClient = performanceClient;
+        this.correlationId = correlationId || createNewGuid();
         this.handshakeEvent = this.performanceClient.startMeasurement(
             BrowserPerformanceEvents.NativeMessageHandlerHandshake
         );
@@ -80,46 +84,71 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     async sendMessage(
         request: PlatformAuthRequest
     ): Promise<PlatformAuthResponse> {
+        const correlationId = request.correlationId || this.correlationId;
+        const sendMessageMeasurement = this.performanceClient.startMeasurement(
+            BrowserPerformanceEvents.PlatformAuthExtensionSendMessage,
+            correlationId
+        );
         this.logger.trace(
             `'${this.platformAuthType}' - sendMessage called.`,
-            request.correlationId
+            correlationId
         );
 
-        // fall back to native calls
-        const messageBody: NativeExtensionRequestBody = {
-            method: NativeExtensionMethod.GetToken,
-            request: request,
-        };
+        try {
+            // fall back to native calls
+            const messageBody: NativeExtensionRequestBody = {
+                method: NativeExtensionMethod.GetToken,
+                request: request,
+            };
 
-        const req: NativeExtensionRequest = {
-            channel: PlatformAuthConstants.CHANNEL_ID,
-            extensionId: this.extensionId,
-            responseId: createNewGuid(),
-            body: messageBody,
-        };
+            const req: NativeExtensionRequest = {
+                channel: PlatformAuthConstants.CHANNEL_ID,
+                extensionId: this.extensionId,
+                responseId: createNewGuid(),
+                body: messageBody,
+            };
 
-        this.logger.trace(
-            `'${this.platformAuthType}' - Sending request to browser extension`,
-            request.correlationId
-        );
-        this.logger.tracePii(
-            `'${
-                this.platformAuthType
-            }' - Sending request to browser extension: '${JSON.stringify(
-                req
-            )}'`,
-            request.correlationId
-        );
-        this.messageChannel.port1.postMessage(req);
+            this.logger.trace(
+                `'${this.platformAuthType}' - Sending request to browser extension`,
+                correlationId
+            );
+            this.logger.tracePii(
+                `'${
+                    this.platformAuthType
+                }' - Sending request to browser extension: '${JSON.stringify(
+                    req
+                )}'`,
+                correlationId
+            );
+            this.messageChannel.port1.postMessage(req);
 
-        const response: object = await new Promise((resolve, reject) => {
-            this.resolvers.set(req.responseId, { resolve, reject });
-        });
+            const response: object = await new Promise((resolve, reject) => {
+                this.resolvers.set(req.responseId, {
+                    resolve,
+                    reject,
+                    correlationId,
+                });
+            });
 
-        const validatedResponse: PlatformAuthResponse =
-            this.validatePlatformBrokerResponse(response);
-
-        return validatedResponse;
+            const validatedResponse: PlatformAuthResponse =
+                this.validatePlatformBrokerResponse(response, correlationId);
+            sendMessageMeasurement.end({
+                success: true,
+                platformAuthProviderType: this.platformAuthType,
+                platformAuthResponseCategory: "success",
+            });
+            return validatedResponse;
+        } catch (e) {
+            sendMessageMeasurement.end(
+                {
+                    success: false,
+                    platformAuthProviderType: this.platformAuthType,
+                    platformAuthResponseCategory: this.getResponseCategory(e),
+                },
+                e
+            );
+            throw e;
+        }
     }
 
     /**
@@ -139,25 +168,66 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             "PlatformAuthExtensionHandler - createProvider called.",
             correlationId
         );
+        const createProviderMeasurement = performanceClient.startMeasurement(
+            BrowserPerformanceEvents.PlatformAuthExtensionCreateProvider,
+            correlationId
+        );
 
         try {
             const preferredProvider = new PlatformAuthExtensionHandler(
                 logger,
                 handshakeTimeoutMs,
                 performanceClient,
-                PlatformAuthConstants.PREFERRED_EXTENSION_ID
+                PlatformAuthConstants.PREFERRED_EXTENSION_ID,
+                correlationId
             );
             await preferredProvider.sendHandshakeRequest(correlationId);
+            createProviderMeasurement.end({
+                success: true,
+                platformAuthPreferredExtensionAttempted: true,
+                platformAuthExtensionFallbackAttempted: false,
+                platformAuthProviderAvailable: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                platformAuthOutcome: "preferred_extension_selected",
+            });
             return preferredProvider;
         } catch (e) {
             // If preferred extension fails for whatever reason, fallback to using any installed extension
-            const backupProvider = new PlatformAuthExtensionHandler(
-                logger,
-                handshakeTimeoutMs,
-                performanceClient
-            );
-            await backupProvider.sendHandshakeRequest(correlationId);
-            return backupProvider;
+            try {
+                const backupProvider = new PlatformAuthExtensionHandler(
+                    logger,
+                    handshakeTimeoutMs,
+                    performanceClient,
+                    undefined,
+                    correlationId
+                );
+                await backupProvider.sendHandshakeRequest(correlationId);
+                createProviderMeasurement.end({
+                    success: true,
+                    platformAuthPreferredExtensionAttempted: true,
+                    platformAuthExtensionFallbackAttempted: true,
+                    platformAuthProviderAvailable: true,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                    platformAuthOutcome: "backup_extension_selected",
+                });
+                return backupProvider;
+            } catch (backupError) {
+                createProviderMeasurement.end(
+                    {
+                        success: false,
+                        platformAuthPreferredExtensionAttempted: true,
+                        platformAuthExtensionFallbackAttempted: true,
+                        platformAuthProviderAvailable: false,
+                        platformAuthProviderType:
+                            PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                        platformAuthOutcome: "extension_unavailable",
+                    },
+                    backupError
+                );
+                throw backupError;
+            }
         }
     }
 
@@ -192,7 +262,11 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         window.postMessage(req, window.origin, [this.messageChannel.port2]);
 
         return new Promise((resolve, reject) => {
-            this.handshakeResolvers.set(req.responseId, { resolve, reject });
+            this.handshakeResolvers.set(req.responseId, {
+                resolve,
+                reject,
+                correlationId,
+            });
             this.timeoutId = window.setTimeout(() => {
                 /*
                  * Throw an error if neither HandshakeResponse nor original Handshake request are received in a reasonable timeframe.
@@ -225,7 +299,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      * @param event
      */
     private onWindowMessage(event: MessageEvent): void {
-        const correlationId = createGuid();
+        let correlationId = createGuid();
         this.logger.trace(
             `'${this.platformAuthType}' - onWindowMessage called`,
             correlationId
@@ -263,6 +337,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 );
                 return;
             }
+            correlationId = handshakeResolver.correlationId;
 
             // If we receive this message back it means no extension intercepted the request, meaning no extension supporting handshake protocol is installed
             this.logger.verbose(
@@ -282,9 +357,10 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             handshakeResolver.reject(
                 createBrowserAuthError(
                     BrowserAuthErrorCodes.nativeExtensionNotInstalled,
-                    ""
+                    correlationId
                 )
             );
+            this.handshakeResolvers.delete(request.responseId);
         }
     }
 
@@ -293,16 +369,21 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      * @param event
      */
     private onChannelMessage(event: MessageEvent): void {
-        const correlationId = createGuid();
+        const request = event.data;
+        const responseId = request?.responseId;
+        const resolver = responseId
+            ? this.resolvers.get(responseId)
+            : undefined;
+        const handshakeResolver = responseId
+            ? this.handshakeResolvers.get(responseId)
+            : undefined;
+        const correlationId =
+            resolver?.correlationId ||
+            handshakeResolver?.correlationId ||
+            createGuid();
         this.logger.trace(
             `'${this.platformAuthType}' - onChannelMessage called.`,
             correlationId
-        );
-        const request = event.data;
-
-        const resolver = this.resolvers.get(request.responseId);
-        const handshakeResolver = this.handshakeResolvers.get(
-            request.responseId
         );
 
         try {
@@ -312,52 +393,55 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 if (!resolver) {
                     return;
                 }
-                const response = request.body.response;
-                this.logger.trace(
-                    `'${this.platformAuthType}' - Received response from browser extension`,
-                    correlationId
-                );
-                this.logger.tracePii(
-                    `'${
-                        this.platformAuthType
-                    }' - Received response from browser extension: '${JSON.stringify(
-                        response
-                    )}'`,
-                    correlationId
-                );
-                if (response.status !== "Success") {
-                    resolver.reject(
-                        createNativeAuthError(
-                            response.code,
-                            correlationId,
-                            response.description,
-                            response.ext
-                        )
+                try {
+                    const response = request.body.response;
+                    this.logger.trace(
+                        `'${this.platformAuthType}' - Received response from browser extension`,
+                        correlationId
                     );
-                } else if (response.result) {
-                    if (
-                        response.result["code"] &&
-                        response.result["description"]
-                    ) {
+                    this.logger.tracePii(
+                        `'${
+                            this.platformAuthType
+                        }' - Received response from browser extension: '${JSON.stringify(
+                            response
+                        )}'`,
+                        correlationId
+                    );
+                    if (response.status !== "Success") {
                         resolver.reject(
                             createNativeAuthError(
-                                response.result["code"],
+                                response.code,
                                 correlationId,
-                                response.result["description"],
-                                response.result["ext"]
+                                response.description,
+                                response.ext
                             )
                         );
+                    } else if (response.result) {
+                        if (
+                            response.result["code"] &&
+                            response.result["description"]
+                        ) {
+                            resolver.reject(
+                                createNativeAuthError(
+                                    response.result["code"],
+                                    correlationId,
+                                    response.result["description"],
+                                    response.result["ext"]
+                                )
+                            );
+                        } else {
+                            resolver.resolve(response.result);
+                        }
                     } else {
-                        resolver.resolve(response.result);
+                        throw createAuthError(
+                            AuthErrorCodes.unexpectedError,
+                            correlationId,
+                            "Event does not contain result."
+                        );
                     }
-                } else {
-                    throw createAuthError(
-                        AuthErrorCodes.unexpectedError,
-                        correlationId,
-                        "Event does not contain result."
-                    );
+                } finally {
+                    this.resolvers.delete(request.responseId);
                 }
-                this.resolvers.delete(request.responseId);
             } else if (method === NativeExtensionMethod.HandshakeResponse) {
                 if (!handshakeResolver) {
                     this.logger.trace(
@@ -385,8 +469,16 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
 
                 handshakeResolver.resolve();
                 this.handshakeResolvers.delete(request.responseId);
+            } else if (resolver) {
+                this.resolvers.delete(request.responseId);
+                resolver.reject(
+                    createAuthError(
+                        AuthErrorCodes.unexpectedError,
+                        correlationId,
+                        "Extension response contains an unexpected method."
+                    )
+                );
             }
-            // Do nothing if method is not Response or HandshakeResponse
         } catch (err) {
             this.logger.error(
                 "Error parsing response from WAM Extension",
@@ -399,8 +491,18 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             this.logger.errorPii(`Unable to parse '${event}'`, correlationId);
 
             if (resolver) {
-                resolver.reject(err as AuthError);
+                this.resolvers.delete(responseId);
+                resolver.reject(
+                    err instanceof AuthError
+                        ? err
+                        : createAuthError(
+                              AuthErrorCodes.unexpectedError,
+                              correlationId,
+                              "Unable to parse extension response."
+                          )
+                );
             } else if (handshakeResolver) {
+                this.handshakeResolvers.delete(responseId);
                 handshakeResolver.reject(err as AuthError);
             }
         }
@@ -411,24 +513,65 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      * @param response
      */
     private validatePlatformBrokerResponse(
-        response: object
+        response: object,
+        correlationId: string = this.correlationId
     ): PlatformAuthResponse {
+        const validationMeasurement = this.performanceClient.startMeasurement(
+            BrowserPerformanceEvents.PlatformAuthExtensionValidateResponse,
+            correlationId
+        );
         if (
-            response.hasOwnProperty("access_token") &&
-            response.hasOwnProperty("id_token") &&
-            response.hasOwnProperty("client_info") &&
-            response.hasOwnProperty("account") &&
-            response.hasOwnProperty("scope") &&
-            response.hasOwnProperty("expires_in")
+            response &&
+            Object.prototype.hasOwnProperty.call(response, "access_token") &&
+            Object.prototype.hasOwnProperty.call(response, "id_token") &&
+            Object.prototype.hasOwnProperty.call(response, "client_info") &&
+            Object.prototype.hasOwnProperty.call(response, "account") &&
+            Object.prototype.hasOwnProperty.call(response, "scope") &&
+            Object.prototype.hasOwnProperty.call(response, "expires_in")
         ) {
+            validationMeasurement.end({
+                success: true,
+                platformAuthProviderType: this.platformAuthType,
+                platformAuthResponseCategory: "success",
+            });
             return response as PlatformAuthResponse;
         } else {
-            throw createAuthError(
+            const error = createAuthError(
                 AuthErrorCodes.unexpectedError,
-                "",
+                correlationId,
                 "Response missing expected properties."
             );
+            validationMeasurement.end(
+                {
+                    success: false,
+                    platformAuthProviderType: this.platformAuthType,
+                    platformAuthResponseCategory: "invalid_response",
+                },
+                error
+            );
+            throw error;
         }
+    }
+
+    private getResponseCategory(error: unknown): string {
+        if (!(error instanceof Error)) {
+            return "message_port_error";
+        }
+        if (error.message.includes("Unable to parse extension response")) {
+            return "parse_error";
+        }
+        if (error.name === "NativeAuthError") {
+            return "broker_error";
+        }
+        if (error instanceof AuthError) {
+            if (error.errorCode === BrowserAuthErrorCodes.userCancelled) {
+                return "cancelled";
+            }
+            return error.errorCode === AuthErrorCodes.unexpectedError
+                ? "invalid_response"
+                : "broker_error";
+        }
+        return "message_port_error";
     }
 
     /**

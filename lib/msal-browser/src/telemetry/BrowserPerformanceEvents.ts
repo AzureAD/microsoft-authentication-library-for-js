@@ -159,6 +159,25 @@ export const HandleNativeRedirectPromiseMeasurement =
 
 export const NativeMessageHandlerHandshake = "nativeMessageHandlerHandshake";
 export const NativeGenerateAuthResult = "nativeGenerateAuthResult";
+export const PlatformAuthProviderDiscovery = "platformAuthProviderDiscovery";
+export const PlatformAuthDOMCreateProvider = "platformAuthDOMCreateProvider";
+export const PlatformAuthDOMGetSupportedContracts =
+    "platformAuthDOMGetSupportedContracts";
+export const PlatformAuthDOMSendMessage = "platformAuthDOMSendMessage";
+export const PlatformAuthDOMValidateResponse =
+    "platformAuthDOMValidateResponse";
+export const PlatformAuthExtensionCreateProvider =
+    "platformAuthExtensionCreateProvider";
+export const PlatformAuthExtensionSendMessage =
+    "platformAuthExtensionSendMessage";
+export const PlatformAuthExtensionValidateResponse =
+    "platformAuthExtensionValidateResponse";
+export const PlatformAuthInteractionClientInitializeRequest =
+    "platformAuthInteractionClientInitializeRequest";
+export const PlatformAuthHandleNativeResponse =
+    "platformAuthHandleNativeResponse";
+export const PlatformAuthCacheAccount = "platformAuthCacheAccount";
+export const PlatformAuthCacheNativeTokens = "platformAuthCacheNativeTokens";
 export const RemoveHiddenIframe = "removeHiddenIframe";
 
 export const ImportExistingCache = "importExistingCache";
