@@ -8,10 +8,14 @@ import {
     AccountEntity,
     AccountEntityUtils,
     CacheManager,
+    ClientConfiguration,
+    CommonSilentFlowRequest,
     IdTokenEntity,
     Logger,
     LogLevel,
     RefreshTokenEntity,
+    SilentFlowClient,
+    StubPerformanceClient,
 } from "@azure/msal-common";
 import { NodeStorage } from "../../src/cache/NodeStorage.js";
 import { TokenCache } from "../../src/cache/TokenCache.js";
@@ -27,6 +31,17 @@ import {
 } from "../utils/TestConstants.js";
 import { name, version } from "../../package.json";
 import { ConfidentialClientApplication } from "../../src/index.js";
+import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
+import { OnBehalfOfClient } from "../../src/client/OnBehalfOfClient.js";
+import { ClientTestUtils } from "../client/ClientTestUtils.js";
+import {
+    AUTHENTICATION_RESULT,
+    DEFAULT_OPENID_CONFIG_RESPONSE,
+    TEST_CONFIG,
+} from "../test_kit/StringConstants.js";
+import { mockNetworkClient } from "../utils/MockNetworkClient.js";
+import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest.js";
+import { CommonOnBehalfOfRequest } from "../../src/request/CommonOnBehalfOfRequest.js";
 
 const NOW_SECONDS = 2_000_000_000;
 
@@ -345,6 +360,256 @@ describe("Bounded NodeStorage", () => {
                 storage.generateCredentialKey(newer)
             )
         ).toEqual(newer);
+    });
+
+    it.each([
+        ["disabled", undefined],
+        ["enabled", { evictionEnabled: true, maxEntries: 2 }],
+    ] satisfies Array<[string, InMemoryCacheOptions | undefined]>)(
+        "does not dirty serializable state, emit changes, or invoke plugins when selected-hit tracking is %s",
+        async (_name, options) => {
+            const storage = createStorage(options);
+            const cachePlugin = {
+                beforeCacheAccess: jest.fn(),
+                afterCacheAccess: jest.fn(),
+            };
+            const tokenCache = new TokenCache(storage, logger, cachePlugin);
+            const changeEmitter = jest.fn();
+            const accessToken = createAccessToken("selected");
+
+            storage.registerChangeEmitter(changeEmitter);
+            await storage.setAccessTokenCredential(accessToken, "", false);
+            tokenCache.serialize();
+            changeEmitter.mockClear();
+            const cacheBeforeHit = { ...storage.getCache() };
+            const writeSequenceBeforeHit = (
+                storage as unknown as { writeSequence: number }
+            ).writeSequence;
+
+            storage.updateAccessTokenLastAccessed(accessToken);
+
+            expect(storage.getCache()).toEqual(cacheBeforeHit);
+            expect(changeEmitter).not.toHaveBeenCalled();
+            expect(tokenCache.hasChanged()).toBe(false);
+            expect(cachePlugin.beforeCacheAccess).not.toHaveBeenCalled();
+            expect(cachePlugin.afterCacheAccess).not.toHaveBeenCalled();
+            expect(
+                (storage as unknown as { writeSequence: number }).writeSequence
+            ).toBe(
+                options?.evictionEnabled
+                    ? writeSequenceBeforeHit + 1
+                    : writeSequenceBeforeHit
+            );
+        }
+    );
+
+    describe("selected access-token hit recency", () => {
+        async function createClientConfiguration(
+            storage: NodeStorage
+        ): Promise<ClientConfiguration> {
+            const clientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration(
+                    undefined,
+                    mockNetworkClient(
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                        AUTHENTICATION_RESULT
+                    )
+                );
+            clientConfiguration.storageInterface = storage;
+            return clientConfiguration;
+        }
+
+        function createClientStorage(clientId: string): NodeStorage {
+            return new NodeStorage(
+                logger,
+                clientId,
+                DEFAULT_CRYPTO_IMPLEMENTATION,
+                undefined,
+                {
+                    evictionEnabled: true,
+                    maxEntries: 2,
+                }
+            );
+        }
+
+        async function expectSelectedTokenToSurviveNextEviction(
+            storage: NodeStorage,
+            selectedToken: AccessTokenEntity,
+            unselectedToken: AccessTokenEntity,
+            acquireFromCache: () => Promise<unknown>,
+            selectedTokenHash?: string
+        ): Promise<void> {
+            await storage.setAccessTokenCredential(
+                selectedToken,
+                "",
+                false,
+                selectedTokenHash
+            );
+            await storage.setAccessTokenCredential(unselectedToken, "", false);
+
+            await acquireFromCache();
+            await storage.setAccessTokenCredential(
+                createAccessToken("replacement", {
+                    homeAccountId: "",
+                    clientId: selectedToken.clientId,
+                    environment: selectedToken.environment,
+                    realm: selectedToken.realm,
+                    target: "api://replacement/.default",
+                }),
+                "",
+                false
+            );
+
+            expect(
+                storage.getAccessTokenCredential(
+                    storage.generateCredentialKey(
+                        selectedToken,
+                        selectedTokenHash
+                    )
+                )
+            ).toEqual(selectedToken);
+            expect(
+                storage.getAccessTokenCredential(
+                    storage.generateCredentialKey(unselectedToken)
+                )
+            ).toBeNull();
+        }
+
+        it("refreshes eviction order after a successful silent cache response", async () => {
+            const storage = createClientStorage(TEST_CONFIG.MSAL_CLIENT_ID);
+            const clientConfiguration = await createClientConfiguration(
+                storage
+            );
+            const account = createAccount("silent", {
+                environment:
+                    clientConfiguration.authOptions.authority
+                        .canonicalAuthorityUrlComponents.HostNameAndPort,
+                realm: clientConfiguration.authOptions.authority.tenant,
+            });
+            const accountInfo = AccountEntityUtils.getAccountInfo(account);
+            const selectedToken = createAccessToken("silent-selected", {
+                homeAccountId: account.homeAccountId,
+                environment: account.environment,
+                clientId: clientConfiguration.authOptions.clientId,
+                realm: account.realm,
+                target: TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
+            });
+            const unselectedToken = createAccessToken("silent-unselected", {
+                homeAccountId: account.homeAccountId,
+                environment: account.environment,
+                clientId: clientConfiguration.authOptions.clientId,
+                realm: account.realm,
+                target: "api://unselected/.default",
+            });
+            const request: CommonSilentFlowRequest = {
+                account: accountInfo,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            };
+            const client = new SilentFlowClient(
+                clientConfiguration,
+                new StubPerformanceClient()
+            );
+
+            await storage.setAccount(account);
+            await expectSelectedTokenToSurviveNextEviction(
+                storage,
+                selectedToken,
+                unselectedToken,
+                async () => client.acquireCachedToken(request)
+            );
+        });
+
+        it("refreshes eviction order after a successful client-credential cache response", async () => {
+            const storage = createClientStorage(TEST_CONFIG.MSAL_CLIENT_ID);
+            const clientConfiguration = await createClientConfiguration(
+                storage
+            );
+            const additionalCacheKeyComponents = {
+                fmi_path: "agent-a",
+            };
+            const selectedTokenHash =
+                await clientConfiguration.cryptoInterface.hashString(
+                    JSON.stringify(additionalCacheKeyComponents)
+                );
+            const selectedToken = createAccessToken(
+                "client-credential-selected",
+                {
+                    homeAccountId: "",
+                    environment:
+                        clientConfiguration.authOptions.authority
+                            .canonicalAuthorityUrlComponents.HostNameAndPort,
+                    clientId: clientConfiguration.authOptions.clientId,
+                    realm: clientConfiguration.authOptions.authority.tenant,
+                    target: TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
+                    additionalCacheKeyComponents,
+                }
+            );
+            const unselectedToken = createAccessToken(
+                "client-credential-unselected",
+                {
+                    homeAccountId: "",
+                    environment: selectedToken.environment,
+                    clientId: selectedToken.clientId,
+                    realm: selectedToken.realm,
+                    target: "api://unselected/.default",
+                }
+            );
+            const request: CommonClientCredentialRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                fmiPath: additionalCacheKeyComponents.fmi_path,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            };
+            const client = new ClientCredentialClient(clientConfiguration);
+
+            await expectSelectedTokenToSurviveNextEviction(
+                storage,
+                selectedToken,
+                unselectedToken,
+                async () => client.acquireToken(request),
+                selectedTokenHash
+            );
+        });
+
+        it("refreshes eviction order after a successful OBO cache response", async () => {
+            const storage = createClientStorage(TEST_CONFIG.MSAL_CLIENT_ID);
+            const clientConfiguration = await createClientConfiguration(
+                storage
+            );
+            const oboAssertion = "obo-assertion";
+            const userAssertionHash =
+                await clientConfiguration.cryptoInterface.hashString(
+                    oboAssertion
+                );
+            const selectedToken = createAccessToken("obo-selected", {
+                clientId: clientConfiguration.authOptions.clientId,
+                target: TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
+                userAssertionHash,
+            });
+            const unselectedToken = createAccessToken("obo-unselected", {
+                clientId: selectedToken.clientId,
+                target: "api://unselected/.default",
+                userAssertionHash,
+            });
+            const request: CommonOnBehalfOfRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                oboAssertion,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                skipCache: false,
+            };
+            const client = new OnBehalfOfClient(clientConfiguration);
+
+            await expectSelectedTokenToSurviveNextEviction(
+                storage,
+                selectedToken,
+                unselectedToken,
+                async () => client.acquireToken(request)
+            );
+        });
     });
 
     it("compacts write order before the monotonic sequence exceeds safe integers", async () => {

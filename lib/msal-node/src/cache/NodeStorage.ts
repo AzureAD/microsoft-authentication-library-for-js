@@ -54,6 +54,7 @@ export class NodeStorage extends CacheManager {
     private readonly maxTokenEntries?: number;
     private writeSequence = 0;
     private tokenWriteOrder = new Map<string, number>();
+    private accessTokenKeysByEntity = new WeakMap<AccessTokenEntity, string>();
 
     constructor(
         logger: Logger,
@@ -232,6 +233,9 @@ export class NodeStorage extends CacheManager {
 
         this.cache[key] = value;
         if (this.isTokenCredential(value)) {
+            if (CacheHelpers.isAccessTokenEntity(value)) {
+                this.accessTokenKeysByEntity.set(value, key);
+            }
             this.recordTokenWrite(key);
             this.enforceTokenCacheBounds();
         }
@@ -243,6 +247,28 @@ export class NodeStorage extends CacheManager {
         additionalCacheKeyHash?: string
     ): string {
         return generateCredentialKey(credential, additionalCacheKeyHash);
+    }
+
+    /**
+     * Updates process-private eviction order after an access token is selected
+     * for a successful cache response.
+     *
+     * @internal
+     */
+    updateAccessTokenLastAccessed(accessToken: AccessTokenEntity): void {
+        if (!this.evictionEnabled) {
+            return;
+        }
+
+        const accessTokenKey = this.accessTokenKeysByEntity.get(accessToken);
+        if (!accessTokenKey) {
+            return;
+        }
+        if (this.cache[accessTokenKey] !== accessToken) {
+            return;
+        }
+
+        this.recordTokenWrite(accessTokenKey);
     }
 
     generateAccountKey(account: AccountInfo): string {
@@ -646,8 +672,7 @@ export class NodeStorage extends CacheManager {
     private compactTokenWriteOrder(): void {
         const entries = Array.from(this.tokenWriteOrder.entries()).sort(
             ([firstKey, firstOrder], [secondKey, secondOrder]) =>
-                firstOrder - secondOrder ||
-                firstKey.localeCompare(secondKey)
+                firstOrder - secondOrder || firstKey.localeCompare(secondKey)
         );
         this.writeSequence = 0;
         entries.forEach(([key]) => {
@@ -658,6 +683,7 @@ export class NodeStorage extends CacheManager {
 
     private reconcileTokenWriteOrder(): void {
         const nextWriteOrder = new Map<string, number>();
+        this.accessTokenKeysByEntity = new WeakMap<AccessTokenEntity, string>();
         this.writeSequence = 0;
         if (!this.evictionEnabled) {
             this.tokenWriteOrder = nextWriteOrder;
@@ -668,6 +694,9 @@ export class NodeStorage extends CacheManager {
             if (this.isTokenCredential(value)) {
                 this.writeSequence += 1;
                 nextWriteOrder.set(key, this.writeSequence);
+                if (CacheHelpers.isAccessTokenEntity(value)) {
+                    this.accessTokenKeysByEntity.set(value, key);
+                }
             }
         });
         this.tokenWriteOrder = nextWriteOrder;
@@ -823,9 +852,7 @@ export class NodeStorage extends CacheManager {
                 typeof value === "object" &&
                 AccountEntityUtils.isAccountEntity(value) &&
                 evictedAccountPartitions.has(this.getAccountPartition(value)) &&
-                !remainingAccountPartitions.has(
-                    this.getAccountPartition(value)
-                )
+                !remainingAccountPartitions.has(this.getAccountPartition(value))
             ) {
                 if (this.removeItem(key)) {
                     orphanCount += 1;

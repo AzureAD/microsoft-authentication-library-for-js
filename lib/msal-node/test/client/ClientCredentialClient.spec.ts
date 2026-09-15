@@ -78,6 +78,10 @@ describe("ClientCredentialClient unit tests", () => {
         const client: ClientCredentialClient = new ClientCredentialClient(
             config
         );
+        const selectedHitSpy = jest.spyOn(
+            CacheManager.prototype,
+            "updateAccessTokenLastAccessed"
+        );
 
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
@@ -94,6 +98,7 @@ describe("ClientCredentialClient unit tests", () => {
             CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
         );
         expect(authResult.state).toHaveLength(0);
+        expect(selectedHitSpy).not.toHaveBeenCalled();
 
         expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
             clientCredentialRequest
@@ -623,6 +628,10 @@ describe("ClientCredentialClient unit tests", () => {
             ClientCredentialClient.prototype,
             <any>"readAccessTokenFromCache"
         ).mockReturnValueOnce(expectedAtEntity);
+        const selectedHitSpy = jest.spyOn(
+            CacheManager.prototype,
+            "updateAccessTokenLastAccessed"
+        );
 
         const client: ClientCredentialClient = new ClientCredentialClient(
             config
@@ -644,6 +653,8 @@ describe("ClientCredentialClient unit tests", () => {
         expect(authResult.fromCache).toBe(true);
         expect(authResult.uniqueId).toHaveLength(0);
         expect(authResult.state).toHaveLength(0);
+        expect(selectedHitSpy).toHaveBeenCalledTimes(1);
+        expect(selectedHitSpy).toHaveBeenCalledWith(expectedAtEntity);
     });
 
     it("acquires a token from the cache and its refresh_in value is expired. A new token is successfully requested in the background via a network request.", async () => {
@@ -845,6 +856,10 @@ describe("ClientCredentialClient unit tests", () => {
             CacheManager.prototype,
             <any>"getAccessTokensByFilter"
         ).mockReturnValueOnce([mockedAtEntity, mockedAtEntity2]);
+        const selectedHitSpy = jest.spyOn(
+            CacheManager.prototype,
+            "updateAccessTokenLastAccessed"
+        );
 
         const client: ClientCredentialClient = new ClientCredentialClient(
             config
@@ -864,6 +879,7 @@ describe("ClientCredentialClient unit tests", () => {
                 ""
             )
         );
+        expect(selectedHitSpy).not.toHaveBeenCalled();
     });
 
     it("Uses the extensibility AppTokenProvider callback to get a token", async () => {

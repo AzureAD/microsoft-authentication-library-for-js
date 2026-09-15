@@ -91,12 +91,13 @@ plugins should continue to partition blobs by application and user, tenant, or
 OBO assertion as described in [Performance and security](#performance-and-security).
 
 When enabled, MSAL removes expired credentials before evicting the oldest
-token entries by write or hydration order. Cache reads do not change this
-order. This option does not infer access recency from internal cache scans
-because those scans do not consistently identify the credential selected by
-confidential-client acquisition flows. Access tokens are expired according to
-their `expiresOn` value or when their `cachedAt` value indicates that the system
-clock moved backwards. `refreshOn` requests proactive refresh and
+token entries by write, hydration, or selected access-token hit order.
+Successful silent, client-credential, and on-behalf-of cache responses refresh
+the order of the access token selected for that response. Internal scans,
+ambiguous lookups, misses, account access, and ID-token or refresh-token reads
+do not refresh eviction order. Access tokens are expired according to their
+`expiresOn` value or when their `cachedAt` value indicates that the system clock
+moved backwards. `refreshOn` requests proactive refresh and
 `extendedExpiresOn` describes an extended lifetime, so neither field changes
 expired-first pruning. Refresh
 tokens are pruned when their optional `expiresOn` value is present in the live
@@ -132,7 +133,8 @@ enablement are not changed by this option.
 > serializes the bounded cache, those evictions can then be written to durable
 > storage and cause tokens to be reacquired on future requests. Configure
 > `maxEntries` with that behavior in mind. Persistence write coordination and
-> selected-hit recency are not enabled by this option.
+> durable selected-hit recency are not enabled by this option; selected-hit
+> order remains process-private and does not trigger plugin writeback.
 
 ## Persistent cache
 

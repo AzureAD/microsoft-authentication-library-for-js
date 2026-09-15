@@ -284,6 +284,19 @@ export abstract class CacheManager implements ICacheManager {
     ): string;
 
     /**
+     * Notifies the platform cache that an access token was selected for a
+     * successful cache response. Platform caches that do not track selected-hit
+     * recency intentionally ignore this notification.
+     * Implementations must not throw because notification happens after the
+     * authentication result has been constructed.
+     *
+     * @param _accessToken - selected access token
+     */
+    updateAccessTokenLastAccessed(_accessToken: AccessTokenEntity): void {
+        // No-op by default.
+    }
+
+    /**
      * Returns the account cache key from the account info
      * @param account
      */

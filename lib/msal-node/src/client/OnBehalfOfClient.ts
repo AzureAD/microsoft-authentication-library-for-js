@@ -189,24 +189,28 @@ export class OnBehalfOfClient extends BaseClient {
             this.config.serverTelemetryManager.incrementCacheHits();
         }
 
-        return ResponseHandler.generateAuthenticationResult(
-            this.cryptoUtils,
-            this.authority,
-            {
-                account: cachedAccount,
-                accessToken: cachedAccessToken,
-                idToken: cachedIdToken,
-                refreshToken: null,
-                appMetadata: null,
-            },
-            true,
-            request,
-            this.performanceClient,
-            {
-                idTokenClaims,
-                tokenBindingKeyManager: this.config.tokenBindingKeyManager,
-            }
-        );
+        const authenticationResult =
+            await ResponseHandler.generateAuthenticationResult(
+                this.cryptoUtils,
+                this.authority,
+                {
+                    account: cachedAccount,
+                    accessToken: cachedAccessToken,
+                    idToken: cachedIdToken,
+                    refreshToken: null,
+                    appMetadata: null,
+                },
+                true,
+                request,
+                this.performanceClient,
+                {
+                    idTokenClaims,
+                    tokenBindingKeyManager: this.config.tokenBindingKeyManager,
+                }
+            );
+        this.cacheManager.updateAccessTokenLastAccessed(cachedAccessToken);
+
+        return authenticationResult;
     }
 
     /**

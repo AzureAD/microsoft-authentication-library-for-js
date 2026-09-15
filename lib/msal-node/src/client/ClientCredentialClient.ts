@@ -225,7 +225,7 @@ export class ClientCredentialClient extends BaseClient {
             );
         }
 
-        return [
+        const authenticationResult =
             await ResponseHandler.generateAuthenticationResult(
                 cryptoUtils,
                 authority,
@@ -242,9 +242,10 @@ export class ClientCredentialClient extends BaseClient {
                 {
                     tokenBindingKeyManager: this.config.tokenBindingKeyManager,
                 }
-            ),
-            lastCacheOutcome,
-        ];
+            );
+        cacheManager.updateAccessTokenLastAccessed(cachedAccessToken);
+
+        return [authenticationResult, lastCacheOutcome];
     }
 
     /**
