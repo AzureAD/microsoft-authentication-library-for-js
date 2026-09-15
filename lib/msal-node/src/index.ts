@@ -37,6 +37,7 @@ export {
     BrokerOptions,
     NodeTelemetryOptions,
     CacheOptions,
+    InMemoryCacheOptions,
 } from "./config/Configuration.js";
 export { ClientAssertion } from "./client/ClientAssertion.js";
 

@@ -58,7 +58,8 @@ export abstract class BaseClientApplication {
             this.logger,
             this.config.auth.clientId,
             this.cryptoProvider,
-            buildStaticAuthorityOptions(this.config.auth)
+            buildStaticAuthorityOptions(this.config.auth),
+            this.config.cache.inMemoryCache
         );
         this.tokenCache = new TokenCache(
             this.storage,

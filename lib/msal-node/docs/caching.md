@@ -61,6 +61,79 @@ Note that the in-memory cache is not scalable for server-side applications and p
 
 > :warning: We recommend **persisting** the cache with **encryption** for all production applications both for security and desired cache longevity. If you choose not to persist the cache, the [TokenCache](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.tokencache.html) interface is still available to access the cached entities.
 
+### Bounded in-memory cache
+
+The in-memory cache remains unbounded by default. Applications can opt into a
+token-entry limit:
+
+```typescript
+const client = new ConfidentialClientApplication({
+    auth: {
+        clientId: "enter_client_id_here",
+        clientSecret: process.env.clientSecret,
+    },
+    cache: {
+        inMemoryCache: {
+            evictionEnabled: true,
+            maxEntries: 1000,
+        },
+    },
+});
+```
+
+`maxEntries` counts access tokens, ID tokens, and refresh tokens. Accounts,
+application metadata, authority metadata, throttling entries, and telemetry
+entries do not count toward the limit. This unit keeps the configured capacity
+aligned with the credentials that drive token-cache growth while avoiding
+unpredictable capacity consumption from supporting entities. The limit applies
+to all token entries in the cache blob loaded for the application. Cache
+plugins should continue to partition blobs by application and user, tenant, or
+OBO assertion as described in [Performance and security](#performance-and-security).
+
+When enabled, MSAL removes expired credentials before evicting the oldest
+token entries by write or hydration order. Cache reads do not change this
+order. This option does not infer access recency from internal cache scans
+because those scans do not consistently identify the credential selected by
+confidential-client acquisition flows. Access tokens are expired according to
+their `expiresOn` value or when their `cachedAt` value indicates that the system
+clock moved backwards. `refreshOn` requests proactive refresh and
+`extendedExpiresOn` describes an extended lifetime, so neither field changes
+expired-first pruning. Refresh
+tokens are pruned when their optional `expiresOn` value is present in the live
+entity and has passed. The persisted MSAL Node cache schema does not serialize
+that optional refresh-token field, and this option does not change the schema,
+so a rehydrated refresh token participates in oldest-token eviction unless
+existing schema data proves it expired. ID tokens do not have an independent
+cache expiry field and participate only in oldest-token eviction.
+
+Eviction operates on individual token entries so that a valid refresh token or
+access token is not removed with another credential in the same family. An
+account is removed only after one of its tokens is evicted and no access, ID,
+or refresh token remains for that home account. Application metadata is
+retained because its family relationship can remain relevant after a refresh
+token is removed. These support entities are therefore intentionally outside
+the configured bound.
+
+Write-order information is process-private and is not included in serialized
+cache data. Deserializing or overwriting a cache enforces the configured bound
+before the cache is used, and subsequent serialization reflects any entries
+removed by that enforcement. `evictionEnabled: false` (with or without
+`maxEntries`) preserves the existing unbounded behavior. Enabling eviction
+without a positive integer `maxEntries`, or providing any invalid
+`maxEntries`, throws a configuration error. `inMemoryCache` must be a plain
+object; malformed containers are rejected even if they would otherwise leave
+eviction disabled. Persistence-plugin transaction coordination and default
+enablement are not changed by this option.
+
+> :warning: This limit applies to MSAL's in-process cache, not directly to the
+> durable store behind a cache plugin. A read-only plugin cycle can reload and
+> prune the same oversized persisted blob again because this layer does not
+> force a persistence write after pruning. If a later mutating plugin cycle
+> serializes the bounded cache, those evictions can then be written to durable
+> storage and cause tokens to be reacquired on future requests. Configure
+> `maxEntries` with that behavior in mind. Persistence write coordination and
+> selected-hit recency are not enabled by this option.
+
 ## Persistent cache
 
 MSAL Node fires events when the in-memory cache is accessed and apps can choose whether to persist the cache (see: [TokenCacheContext](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_common.tokencachecontext.html)) (e.g. to a file, a SQL database and etc.). This constitutes two actions:

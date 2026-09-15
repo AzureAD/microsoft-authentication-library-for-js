@@ -58,11 +58,34 @@ export type NodeAuthOptions = {
 /**
  * Use this to configure the below cache configuration options:
  *
- * - cachePlugin   - Plugin for reading and writing token cache to disk.
+ * - cachePlugin          - Plugin for reading and writing token cache to disk.
+ * - inMemoryCache        - Options for bounding the in-memory token cache.
  * @public
  */
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
+    inMemoryCache?: InMemoryCacheOptions;
+};
+
+/**
+ * Options for bounding the in-memory token cache. Capacity is measured in
+ * access token, ID token, and refresh token entries. Accounts and metadata do
+ * not count toward the limit.
+ *
+ * @public
+ */
+export type InMemoryCacheOptions = {
+    /**
+     * Enables expired-first pruning and oldest-token eviction.
+     * Defaults to false.
+     */
+    evictionEnabled?: boolean;
+    /**
+     * Maximum number of token entries retained when eviction is enabled.
+     * Must be a positive integer. The value is retained but not enforced when
+     * evictionEnabled is false or omitted.
+     */
+    maxEntries?: number;
 };
 
 /**
@@ -199,6 +222,8 @@ export function buildAppConfiguration({
     system,
     telemetry,
 }: Configuration): NodeConfiguration {
+    validateInMemoryCacheOptions(cache?.inMemoryCache);
+
     const systemOptions: Required<NodeSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
         networkClient: new HttpClient(),
@@ -222,6 +247,54 @@ export function buildAppConfiguration({
         system: { ...systemOptions, ...system },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
     };
+}
+
+/**
+ * Validates bounded in-memory cache configuration.
+ *
+ * @internal
+ */
+export function validateInMemoryCacheOptions(
+    options?: InMemoryCacheOptions
+): void {
+    if (options === undefined) {
+        return;
+    }
+
+    if (
+        options === null ||
+        typeof options !== "object" ||
+        Array.isArray(options) ||
+        ![Object.prototype, null].includes(Object.getPrototypeOf(options))
+    ) {
+        throw NodeAuthError.createInvalidInMemoryCacheConfigurationError(
+            "inMemoryCache must be a plain object."
+        );
+    }
+
+    if (
+        options.evictionEnabled !== undefined &&
+        typeof options.evictionEnabled !== "boolean"
+    ) {
+        throw NodeAuthError.createInvalidInMemoryCacheConfigurationError(
+            "evictionEnabled must be a boolean."
+        );
+    }
+
+    if (
+        options.maxEntries !== undefined &&
+        (!Number.isSafeInteger(options.maxEntries) || options.maxEntries <= 0)
+    ) {
+        throw NodeAuthError.createInvalidInMemoryCacheConfigurationError(
+            "maxEntries must be a positive integer."
+        );
+    }
+
+    if (options.evictionEnabled && options.maxEntries === undefined) {
+        throw NodeAuthError.createInvalidInMemoryCacheConfigurationError(
+            "maxEntries is required when evictionEnabled is true."
+        );
+    }
 }
 
 /** @internal */

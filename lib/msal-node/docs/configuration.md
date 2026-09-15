@@ -46,7 +46,11 @@ const msalConfig = {
         }
     },
     cache: {
-        cachePlugin // your implementation of cache plugin
+        cachePlugin, // your implementation of cache plugin
+        inMemoryCache: {
+            evictionEnabled: true,
+            maxEntries: 1000
+        }
     },
     system: {
         loggerOptions: {
@@ -75,13 +79,14 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `authorityMetadata`      | A string containing the .well-known/openid-configuration endpoint response. See [Performance](../../msal-common/docs/performance.md) for more info                                                             | string                                                                                                                                       | Empty string `""`                                                          |
 | `clientCapabilities`     | Array of capabilities to be added to all network requests as part of the `xms_cc` claims request (see: [Client capability in MSAL](../../msal-common/docs/client-capability.md))                               | Array of strings                                                                                                                             | []                                                                         |
 | `azureCloudOptions`      | A defined set of azure cloud options for developers to default to their specific cloud authorities, for specific clouds supported please refer to the [AzureCloudInstance](aka.ms/msaljs/azure_cloud_instance) | [AzureCloudOptions](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#azurecloudoptions) | [AzureCloudInstance.None](msaljs/azure_cloud_instance)                     |
-| `isMcp`                  | If true, a `resource` parameter is required on all token requests. Used for MCP flows. See [MCP documentation](mcp.md) for more details.                                                                                               | boolean                                                                                                                                      | `false`                                                                    |
+| `isMcp`                  | If true, a `resource` parameter is required on all token requests. Used for MCP flows. See [MCP documentation](mcp.md) for more details.                                                                       | boolean                                                                                                                                      | `false`                                                                    |
 
 ### Cache Config Options
 
-| Option        | Description                                                                                                      | Format                                                                                                                           | Default Value |
-| ------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| `cachePlugin` | Cache plugin with call backs to reading and writing into the cache persistence (see also: [caching](caching.md)) | [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#icacheplugin) | null          |
+| Option          | Description                                                                                                                                                                                 | Format                                                                                                                           | Default Value     |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| `cachePlugin`   | Cache plugin with call backs to reading and writing into the cache persistence (see also: [caching](caching.md))                                                                            | [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#icacheplugin) | null              |
+| `inMemoryCache` | Optional bounded-cache configuration. Set `evictionEnabled: true` and a positive integer `maxEntries` to bound token entries as described in [caching](caching.md#bounded-in-memory-cache). | `{ evictionEnabled?: boolean; maxEntries?: number }`                                                                             | Eviction disabled |
 
 ### Broker Config Options
 
