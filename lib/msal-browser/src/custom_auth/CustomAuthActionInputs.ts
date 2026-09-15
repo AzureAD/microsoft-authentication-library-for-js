@@ -38,3 +38,15 @@ export type SignInWithContinuationTokenInputs = {
     scopes?: Array<string>;
     claims?: string;
 };
+
+export type SignInInputsV2 = SignInInputs;
+
+export type ResetPasswordInputsV2 = ResetPasswordInputs;
+
+export type SignUpInputsV2 = SignUpInputs & {
+    scopes?: Array<string>;
+    claims?: string;
+};
+
+export type SignInContinuationInputsV2 =
+    SignInWithContinuationTokenInputs;
