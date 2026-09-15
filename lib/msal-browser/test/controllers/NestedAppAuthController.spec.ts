@@ -367,6 +367,28 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             expect(hydrateCacheSpy).toHaveBeenCalledTimes(1);
         });
 
+        it("stores bridge-returned ID and access tokens in configured storage", async () => {
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+
+            await pca.acquireTokenSilent({
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                cacheLookupPolicy: CacheLookupPolicy.Skip,
+                correlationId: NAA_CORRELATION_ID,
+            });
+
+            const cacheKeys = Object.keys(window.sessionStorage);
+            expect(
+                cacheKeys.filter((key) => key.includes("idtoken"))
+            ).toHaveLength(1);
+            expect(
+                cacheKeys.filter((key) => key.includes("accesstoken"))
+            ).toHaveLength(1);
+            expect(
+                cacheKeys.filter((key) => key.includes("refreshtoken"))
+            ).toHaveLength(0);
+        });
+
         it("acquireTokenSilent ignores cache if forceRefresh is on", async () => {
             mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
 

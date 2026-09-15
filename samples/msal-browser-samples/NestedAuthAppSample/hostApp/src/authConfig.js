@@ -1,6 +1,17 @@
-import { LogLevel } from "@azure/msal-browser";
+import { LogLevel, ProtocolMode } from "@azure/msal-browser";
 
 const HOST_APP_CLIENT_ID = import.meta.env.VITE_HOST_CLIENT_ID;
+
+/**
+ * Encrypted Authorize Response (EAR) is toggled per-page with `?ear=true`, so
+ * the same host serves both the standard NAA flow and the NAA + EAR flow without
+ * a second app. The e2e specs open the host with `?ear=true` to exercise EAR.
+ */
+export function isEarEnabled() {
+    return new URLSearchParams(window.location.search).get("ear") === "true";
+}
+
+const earEnabled = isEarEnabled();
 
 export const msalConfig = {
     auth: {
@@ -18,6 +29,7 @@ export const msalConfig = {
     },
     system: {
         allowPlatformBroker: true,
+        ...(earEnabled ? { protocolMode: ProtocolMode.EAR } : {}),
         loggerOptions: {
             loggerCallback: (level, message, containsPii) => {
                 if (containsPii) {
@@ -43,7 +55,7 @@ export const msalConfig = {
 // ESTS test slice used for manual validation. Passed on BOTH the authorize
 // request (extraQueryParameters) and the token request (extraParameters) so
 // every ESTS call — authorize and token — is routed to the same slice.
-const TEST_SLICE = { dc: "ESTS-PUB-SCUS-FD000-TEST3-100" };
+const TEST_SLICE = { dc: "ESTS-PUB-EUS-FD000-TEST1-100" };
 
 export const loginRequest = {
     scopes: ["User.Read"],
@@ -60,5 +72,4 @@ export const brokerExtraParams = {
 
 // Port the nested app is served on; injected by server.js.
 export const nestedAppPort = import.meta.env.VITE_NESTED_APP_PORT;
-export const nestedAppProtocol =
-    import.meta.env.VITE_NESTED_APP_PROTOCOL;
+export const nestedAppProtocol = import.meta.env.VITE_NESTED_APP_PROTOCOL;
