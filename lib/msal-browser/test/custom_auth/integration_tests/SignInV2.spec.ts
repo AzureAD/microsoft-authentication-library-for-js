@@ -253,8 +253,7 @@ describe("Sign-in V2 entry", () => {
         expect(result.isState("codeRequired")).toBe(true);
         expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
 
-        const challengeState =
-            result.state as CodeRequiredStateV2;
+        const challengeState = result.state as CodeRequiredStateV2;
         expect(challengeState.method?.id).toBe("email-1");
         expect(challengeState.channel).toBe("email");
         expect(challengeState.sentTo).toBe("u***@contoso.com");
@@ -263,19 +262,18 @@ describe("Sign-in V2 entry", () => {
         );
     });
 
-    it("falls back to email OTP without submitting a supplied password", async () => {
+    it("rejects a supplied password when no password method is available", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE));
+            .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE));
 
         const result = await app.signInV2({
             username: "user@contoso.com",
             password: "P@ssword1!",
         });
 
-        expect(result.isState("codeRequired")).toBe(true);
-        expect(fetch).toHaveBeenCalledTimes(3);
+        expect(result.isFailed()).toBe(true);
+        expect(fetch).toHaveBeenCalledTimes(2);
     });
 
     it("completes sign-in after first-factor email OTP", async () => {
