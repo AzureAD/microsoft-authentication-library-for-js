@@ -1,6 +1,6 @@
 {
     "type": "minor",
-    "comment": "Add opt-in bounded in-memory token cache configuration [#0000](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/0000)",
+    "comment": "Add opt-in bounded in-memory token cache configuration [#8827](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8827)",
     "packageName": "@azure/msal-node",
     "email": "nugetaad@microsoft.com",
     "dependentChangeType": "patch"
