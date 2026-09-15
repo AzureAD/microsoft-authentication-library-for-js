@@ -103,7 +103,8 @@ extends:
                               dir: "NestedAuthAppSample"
                               testFilter: "naa-ear\\.spec"
                             # Platform-broker specs require a self-hosted WAM-enabled
-                            # machine and must not run on the hosted E2E agents.
+                            # machine which will be available in the future.
+                            # Until then, tests can be run locally with WAM enabled.
                             # - name: "NestedAuthAppSample-PlatformBroker"
                             #   dir: "NestedAuthAppSample"
                             #   testFilter: "naa-platform-broker\\.spec"
