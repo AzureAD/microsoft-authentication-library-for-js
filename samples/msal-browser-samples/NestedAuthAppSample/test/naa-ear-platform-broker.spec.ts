@@ -12,13 +12,15 @@ import {
     accessTokenForScopesExists,
     closeBrokerContext,
     enterAadCredentials,
-    getEarDecryptCount,
-    installEarDecryptSpy,
     launchBrokerContext,
     readAccountKeys,
     readSessionTokenStore,
 } from "./brokerHarness";
-import { getLabCredentials } from "./naaTestUtils";
+import {
+    getEarDecryptCount,
+    getLabCredentials,
+    installEarDecryptSpy,
+} from "./naaTestUtils";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serverUtils = require("../../../e2eTestUtils/jest-puppeteer-utils/serverUtils");

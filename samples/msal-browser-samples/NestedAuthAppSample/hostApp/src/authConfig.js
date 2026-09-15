@@ -37,9 +37,6 @@ export const msalConfig = {
     },
     system: {
         allowPlatformBroker: true,
-        // EAR switches the host to the encrypted-authorize-response protocol so
-        // its own login AND the tokens it brokers for the nested app come back
-        // as an encrypted `ear_jwe`. Only applied when the page opts in.
         ...(earEnabled ? { protocolMode: ProtocolMode.EAR } : {}),
         loggerOptions: {
             loggerCallback: (level, message, containsPii) => {
