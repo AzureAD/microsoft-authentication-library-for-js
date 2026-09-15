@@ -129,6 +129,10 @@ main {
     border-radius: 4px;
     cursor: pointer;
     font-size: 1rem;
+    font-family: inherit;
+    line-height: 1.2;
+    text-align: center;
+    box-sizing: border-box;
     transition: background-color 0.3s;
 }
 
@@ -158,6 +162,11 @@ main {
     gap: 1rem;
     max-width: 300px;
     margin: 0 auto;
+}
+
+.btn-group .btn {
+    width: 100%;
+    margin: 0;
 }
 
 /* Messages */
@@ -930,4 +939,3 @@ main {
         max-width: none;
     }
 }
-

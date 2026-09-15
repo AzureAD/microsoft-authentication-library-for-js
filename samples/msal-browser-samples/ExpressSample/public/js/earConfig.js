@@ -3,8 +3,8 @@
  * See LICENSE in the source repository root for complete license information.
  */
 
-// Separate EAR (Encrypted Authorize Response) config, applied only with ?ear=true
-// (see authConfig.js). Keeps EAR test-app credentials in one place.
+// Applied only with ?ear=true. This app registration is allow-listed for
+// Encrypted Authorize Response (EAR) flows.
 export const earConfig = {
     auth: {
         clientId: "9f33d0de-fdfd-431b-a565-af47c697a4c4",
@@ -17,7 +17,7 @@ export const earConfig = {
         cacheLocation: "sessionStorage",
     },
     system: {
-        allowPlatformBroker: true,
+        allowPlatformBroker: false,
     },
     request: {
         scopes: ["User.Read"],
@@ -27,4 +27,12 @@ export const earConfig = {
 // True when the page was loaded with ?ear=true.
 export function isEarEnabled() {
     return new URLSearchParams(window.location.search).get("ear") === "true";
+}
+
+// True when the page was loaded with ?platformBroker=true.
+export function isPlatformBrokerEnabled() {
+    return (
+        new URLSearchParams(window.location.search).get("platformBroker") ===
+        "true"
+    );
 }

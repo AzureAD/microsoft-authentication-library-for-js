@@ -11,9 +11,22 @@ import { createMsalConfig, loginRequest } from "./authConfig.js";
 
 // MSAL instance
 export let msalInstance;
+export let lastResponseFromPlatformBroker;
+export let lastSigninState;
 
 // Retry state tracking
 let retryRequested = false;
+
+function processAuthenticationResult(response) {
+    msalInstance.setActiveAccount(response.account);
+    lastResponseFromPlatformBroker = response.fromPlatformBroker === true;
+    lastSigninState = response.idTokenClaims?.signin_state;
+}
+
+function resetAuthenticationResult() {
+    lastResponseFromPlatformBroker = undefined;
+    lastSigninState = undefined;
+}
 
 // Initialize MSAL
 export async function initializeMsal() {
@@ -25,7 +38,7 @@ export async function initializeMsal() {
         if (window.location.pathname !== "/playground") {
             await msalInstance.handleRedirectPromise().then((response) => {
                 if (response) {
-                    msalInstance.setActiveAccount(response.account);
+                    processAuthenticationResult(response);
                 }
             });
         }
@@ -39,6 +52,7 @@ export async function initializeMsal() {
 // Handle authentication for protected routes
 export async function handleProtectedRouteAuth(path) {
     console.log(`Attempting authentication for protected route: ${path}`);
+    resetAuthenticationResult();
 
     // First attempt SSO silent
     return msalInstance
@@ -46,8 +60,9 @@ export async function handleProtectedRouteAuth(path) {
             scopes: loginRequest.scopes,
         })
         .then((response) => {
-            msalInstance.setActiveAccount(response.account);
+            processAuthenticationResult(response);
             updateUI(response.account);
+            return true;
         })
         .catch(async (error) => {
             console.error("SSO silent failed:", error);
@@ -66,6 +81,7 @@ export async function handleProtectedRouteAuth(path) {
 export async function signInPopup() {
     // Show warning message when popup is about to open
     showPopupWarning();
+    resetAuthenticationResult();
 
     try {
         const response = await msalInstance.loginPopup({
@@ -78,7 +94,7 @@ export async function signInPopup() {
         hidePopupWarning();
         retryRequested = false;
 
-        msalInstance.setActiveAccount(response.account);
+        processAuthenticationResult(response);
         updateUI(response.account);
         showSuccess("Successfully signed in!");
     } catch (error) {
@@ -100,6 +116,7 @@ export async function signInPopup() {
 // Sign in with redirect
 export async function signInRedirect() {
     try {
+        resetAuthenticationResult();
         await msalInstance.loginRedirect(loginRequest);
     } catch (error) {
         console.error("Redirect sign in failed:", error);
@@ -139,11 +156,13 @@ export async function signOutRedirect() {
 
 // Get access token silently
 export async function getAccessToken() {
+    resetAuthenticationResult();
     return msalInstance
         .acquireTokenSilent({
             ...loginRequest,
         })
         .then((response) => {
+            processAuthenticationResult(response);
             return response;
         })
         .catch(async (error) => {
@@ -174,6 +193,7 @@ function setSilentStatus(status) {
 // this exercises the silent EAR authorize path.
 export async function ssoSilent() {
     setSilentStatus('ssoSilent:pending');
+    resetAuthenticationResult();
     try {
         const account = msalInstance.getActiveAccount();
         const response = await msalInstance.ssoSilent({
@@ -181,7 +201,8 @@ export async function ssoSilent() {
             account,
             loginHint: account && account.username
         });
-        msalInstance.setActiveAccount(response.account);
+        processAuthenticationResult(response);
+        updateUI(response.account);
         setSilentStatus('ssoSilent:success');
         showSuccess('ssoSilent succeeded');
     } catch (error) {
@@ -196,13 +217,14 @@ export async function ssoSilent() {
 // rather than returning a cached access token.
 export async function acquireTokenSilent() {
     setSilentStatus('acquireTokenSilent:pending');
+    resetAuthenticationResult();
     try {
         const response = await msalInstance.acquireTokenSilent({
             ...loginRequest,
             account: msalInstance.getActiveAccount(),
             forceRefresh: true
         });
-        msalInstance.setActiveAccount(response.account);
+        processAuthenticationResult(response);
         setSilentStatus('acquireTokenSilent:success');
         showSuccess('acquireTokenSilent succeeded');
     } catch (error) {
