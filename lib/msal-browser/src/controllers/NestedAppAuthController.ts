@@ -21,10 +21,9 @@ import {
     AccountEntityUtils,
     AuthToken,
     enforceResourceParameter,
-    CacheHelpers,
 } from "@azure/msal-common/browser";
 import * as RootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
-import { BrowserConfiguration, CacheOptions } from "../config/Configuration.js";
+import { BrowserConfiguration } from "../config/Configuration.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
@@ -39,7 +38,6 @@ import {
     DEFAULT_REQUEST,
     CacheLookupPolicy,
     ApiId,
-    BrowserCacheLocation,
 } from "../utils/BrowserConstants.js";
 import { IController } from "./IController.js";
 import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatingContext.js";
@@ -62,7 +60,6 @@ import { AccountContext } from "../naa/BridgeAccountContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
-import { base64Decode } from "../encode/Base64Decode.js";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
@@ -79,9 +76,6 @@ export class NestedAppAuthController implements IController {
 
     // Storage interface implementation
     protected readonly browserStorage!: BrowserCacheManager;
-
-    // Access tokens are kept in memory for the lifetime of the nested page.
-    protected readonly internalStorage!: BrowserCacheManager;
 
     // Logger
     protected logger: Logger;
@@ -146,21 +140,6 @@ export class NestedAppAuthController implements IController {
                   tokenBindingKeyManager
               );
 
-        const internalCacheOptions: Required<CacheOptions> = {
-            cacheLocation: BrowserCacheLocation.MemoryStorage,
-            cacheRetentionDays: 5,
-        };
-        this.internalStorage = new BrowserCacheManager(
-            this.config.auth.clientId,
-            internalCacheOptions,
-            this.browserCrypto,
-            this.logger,
-            this.performanceClient,
-            this.eventHandler,
-            buildStaticAuthorityOptions(this.config.auth),
-            tokenBindingKeyManager
-        );
-
         this.nestedAppAuthAdapter = new NestedAppAuthAdapter(
             this.config.auth.clientId,
             this.config.auth.clientCapabilities,
@@ -196,7 +175,6 @@ export class NestedAppAuthController implements IController {
     ): Promise<void> {
         const initCorrelationId = request?.correlationId || createNewGuid();
         await this.browserStorage.initialize(initCorrelationId);
-        await this.internalStorage.initialize(initCorrelationId);
         return Promise.resolve();
     }
 
@@ -585,11 +563,11 @@ export class NestedAppAuthController implements IController {
         };
 
         // fetch access token and check for expiry
-        const accessTokenKeys = this.internalStorage.getTokenKeys();
-        const cachedAccessToken = this.internalStorage.getAccessToken(
+        const tokenKeys = this.browserStorage.getTokenKeys();
+        const cachedAccessToken = this.browserStorage.getAccessToken(
             currentAccount,
             authRequest,
-            accessTokenKeys,
+            tokenKeys,
             currentAccount.tenantId
         );
 
@@ -622,11 +600,10 @@ export class NestedAppAuthController implements IController {
             }
         }
 
-        const idTokenKeys = this.browserStorage.getTokenKeys();
         const cachedIdToken = this.browserStorage.getIdToken(
             currentAccount,
             authRequest.correlationId,
-            idTokenKeys,
+            tokenKeys,
             currentAccount.tenantId
         );
 
@@ -902,63 +879,6 @@ export class NestedAppAuthController implements IController {
             AuthToken.isKmsi(result.idTokenClaims),
             ApiId.hydrateCache
         );
-
-        const idTokenEntity = CacheHelpers.createIdTokenEntity(
-            result.account.homeAccountId,
-            result.account.environment,
-            result.idToken,
-            this.config.auth.clientId,
-            result.tenantId
-        );
-        const attributeTokenPartition = CacheHelpers.serializeAttributeTokens(
-            request.attributeTokens
-        );
-        const additionalCacheKeyComponents = attributeTokenPartition
-            ? { attribute_tokens: attributeTokenPartition }
-            : undefined;
-        const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
-            result.account.homeAccountId,
-            result.account.environment,
-            result.accessToken,
-            this.config.auth.clientId,
-            result.tenantId,
-            result.scopes.join(" "),
-            result.expiresOn
-                ? TimeUtils.toSecondsFromDate(result.expiresOn)
-                : 0,
-            result.extExpiresOn
-                ? TimeUtils.toSecondsFromDate(result.extExpiresOn)
-                : 0,
-            base64Decode,
-            request.correlationId || "",
-            undefined,
-            result.tokenType as Constants.AuthenticationScheme,
-            undefined,
-            request.sshKid,
-            additionalCacheKeyComponents
-        );
-
-        if (request.resource) {
-            accessTokenEntity.resource = request.resource;
-        }
-
-        const additionalCacheKeyHash = additionalCacheKeyComponents
-            ? await this.browserCrypto.hashString(
-                  JSON.stringify(additionalCacheKeyComponents)
-              )
-            : undefined;
-        const kmsi = AuthToken.isKmsi(result.idTokenClaims);
-
-        await this.browserStorage.setIdTokenCredential(
-            idTokenEntity,
-            result.correlationId,
-            kmsi
-        );
-        await this.internalStorage.setAccessTokenCredential(
-            accessTokenEntity,
-            result.correlationId,
-            kmsi,
-            additionalCacheKeyHash
-        );
+        return this.browserStorage.hydrateCache(result, request);
     }
 }

@@ -68,7 +68,7 @@ async function verifyHostTokenStore(page: Page): Promise<void> {
 async function verifyNestedTokenStore(frame: Frame): Promise<void> {
     const tokenStore = await readSessionTokenStore(frame);
     expect(tokenStore.idTokens.length).toBe(1);
-    expect(tokenStore.accessTokens.length).toBe(0);
+    expect(tokenStore.accessTokens.length).toBe(1);
     expect(tokenStore.refreshTokens.length).toBe(0);
     expect(await readAccountKeys(frame)).not.toBeNull();
 }
@@ -138,7 +138,8 @@ describe("Nested App Authentication + EAR brokered through the host app", () => 
                     document.querySelector(
                         "table[data-testid='lastApi'][data-api='acquireTokenSilent']"
                     )
-                ) || Boolean(document.querySelector("pre[data-testid='apiError']")),
+                ) ||
+                Boolean(document.querySelector("pre[data-testid='apiError']")),
             undefined,
             { timeout: ACTION_TIMEOUT }
         );

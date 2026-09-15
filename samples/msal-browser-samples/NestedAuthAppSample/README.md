@@ -24,8 +24,8 @@ This sample demonstrates a 3P **Nested Authentication App (NAA)** brokered throu
 -   **nestedApp** — the embedded child. It creates its client with
     `createNestablePublicClientApplication()` and acquires tokens **through the
     host bridge**, never contacting the identity provider directly. Its account
-    and ID token use the configured browser storage, while its access token is
-    limited to the iframe's in-memory page session.
+    and returned tokens follow the nested app's configured MSAL cache location.
+    The host bridge does not return a refresh token to the nested app.
 
 ## The NAA bridge
 
@@ -141,8 +141,11 @@ which also has an **Encrypted Authorize Response (EAR)** combination variant:
 The base suites exercise Nested App Authentication through the **host-supplied**
 `window.nestedAppAuthBridge`: the host brokers the nested app's token and the
 test asserts the nested app stores its account and ID token in the configured
-browser storage, keeps the access token in page memory, and never holds a
-refresh token.
+browser storage, stores the returned access token according to its configured
+cache location, and never receives a refresh token. When the host uses WAM,
+MSAL keeps the host's access token in internal memory while account and ID-token
+artifacts use the host's configured cache; native credential state remains
+owned by the platform broker.
 
 The **EAR** suites open the host with `?ear=true` so it runs in
 `ProtocolMode.EAR`; the host's login and the token it brokers for the nested app

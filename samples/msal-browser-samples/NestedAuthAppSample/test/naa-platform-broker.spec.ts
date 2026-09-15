@@ -72,7 +72,7 @@ async function resetNestedFrame(hostPage: Page): Promise<Frame> {
 
 function assertNestedTokenStore(store: TokenStore): void {
     expect(store.idTokens.length).toBe(1);
-    expect(store.accessTokens.length).toBe(0);
+    expect(store.accessTokens.length).toBe(1);
     expect(store.refreshTokens.length).toBe(0);
 }
 
@@ -164,6 +164,7 @@ describe("NAA token APIs brokered through the platform broker", () => {
             .waitFor({ timeout: ACTION_TIMEOUT });
 
         const hostStore = await readSessionTokenStore(hostPage);
+        expect(hostStore.accessTokens.length).toBe(0);
         expect(hostStore.refreshTokens.length).toBe(0);
         expect(hostStore.idTokens.length).toBe(1);
         expect(await readAccountKeys(hostPage)).not.toBeNull();

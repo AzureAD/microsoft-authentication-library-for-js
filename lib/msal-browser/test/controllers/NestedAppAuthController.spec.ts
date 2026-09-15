@@ -367,7 +367,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             expect(hydrateCacheSpy).toHaveBeenCalledTimes(1);
         });
 
-        it("stores the ID token in configured storage and the access token in memory", async () => {
+        it("stores bridge-returned ID and access tokens in configured storage", async () => {
             mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
 
             await pca.acquireTokenSilent({
@@ -383,7 +383,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             ).toHaveLength(1);
             expect(
                 cacheKeys.filter((key) => key.includes("accesstoken"))
-            ).toHaveLength(0);
+            ).toHaveLength(1);
             expect(
                 cacheKeys.filter((key) => key.includes("refreshtoken"))
             ).toHaveLength(0);
@@ -667,10 +667,6 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 mcpController.browserStorage,
                 "getTokenKeys"
             ).mockReturnValue(tokenKeys);
-            jest.spyOn(
-                mcpController.internalStorage,
-                "getTokenKeys"
-            ).mockReturnValue(tokenKeys);
 
             const cachedAccessToken = {
                 secret: TEST_TOKENS.ACCESS_TOKEN,
@@ -681,7 +677,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 target: NAA_SCOPE,
             };
             const getAccessTokenSpy = jest
-                .spyOn(mcpController.internalStorage, "getAccessToken")
+                .spyOn(mcpController.browserStorage, "getAccessToken")
                 .mockReturnValue(cachedAccessToken);
 
             const cachedIdToken = {
@@ -783,10 +779,6 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 mcpController.browserStorage,
                 "getTokenKeys"
             ).mockReturnValue(tokenKeys);
-            jest.spyOn(
-                mcpController.internalStorage,
-                "getTokenKeys"
-            ).mockReturnValue(tokenKeys);
 
             const cachedAccessToken = {
                 secret: TEST_TOKENS.ACCESS_TOKEN,
@@ -797,7 +789,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 target: NAA_SCOPE,
             };
             jest.spyOn(
-                mcpController.internalStorage,
+                mcpController.browserStorage,
                 "getAccessToken"
             ).mockReturnValue(cachedAccessToken);
 
@@ -863,10 +855,6 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 mcpController.browserStorage,
                 "getTokenKeys"
             ).mockReturnValue(tokenKeys);
-            jest.spyOn(
-                mcpController.internalStorage,
-                "getTokenKeys"
-            ).mockReturnValue(tokenKeys);
 
             const cachedAccessToken = {
                 secret: TEST_TOKENS.ACCESS_TOKEN,
@@ -876,7 +864,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                 target: NAA_SCOPE,
             };
             jest.spyOn(
-                mcpController.internalStorage,
+                mcpController.browserStorage,
                 "getAccessToken"
             ).mockReturnValue(cachedAccessToken);
 
