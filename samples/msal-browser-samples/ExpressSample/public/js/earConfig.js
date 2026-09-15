@@ -17,7 +17,7 @@ export const earConfig = {
         cacheLocation: "sessionStorage",
     },
     system: {
-        allowPlatformBroker: true,
+        allowPlatformBroker: false,
     },
     request: {
         scopes: ["User.Read"],

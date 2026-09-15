@@ -25,8 +25,8 @@ const EAR_PORT = 3443;
 const EAR_START_CMD = "npm run start:ear:e2e";
 const EXPRESS_SAMPLE_ROOT = path.join(__dirname, "..");
 
-// ?ear=true forces EAR protocol (see earConfig.js).
-const EAR_QUERY_STRING = "?ear=true";
+// Enable both EAR protocol and the platform broker for this suite.
+const EAR_QUERY_STRING = "?ear=true&platformBroker=true";
 const EAR_CACHE_LOCATION = "sessionStorage";
 const EAR_ORIGIN = `https://localhost:${EAR_PORT}`;
 // sessionStorage key for the decrypt spy count.
