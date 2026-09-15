@@ -141,7 +141,7 @@ which also has an **Encrypted Authorize Response (EAR)** combination variant:
 
 | Spec / suite | Host flow | Runs in CI? | Command |
 | ------------ | --------- | ----------- | ------- |
-| `naa-basic.spec.ts` | Web flow (Puppeteer) | Yes (`naa-basic` filter) | `npm run test:e2e:basic` |
+| `naa-basic.spec.ts` | Web flow (Puppeteer) | Yes (`naa-basic` filter) | `npm run test:e2e:naa-basic` |
 | `naa-ear.spec.ts` | Web flow + `ProtocolMode.EAR` | No (opt-in) | `npm run test:e2e:ear` |
 | `naa-platform-broker.spec.ts` | Platform broker / WAM (Playwright) | No (self-hosted) | `npm run test:e2e:broker` |
 | `naa-ear-platform-broker.spec.ts` | Platform broker + `ProtocolMode.EAR` | No (self-hosted) | `npm run test:e2e:ear-broker` |
@@ -163,10 +163,6 @@ account, so they are excluded from CI by the `naa-basic` pipeline filter.
 
 End-to-end tests must run over HTTPS. The Jest configuration starts the HTTPS
 servers automatically.
-
-```bash
-npm run test:e2e        # all web and broker suites, run sequentially
-```
 
 The e2e specs consume the shared browser, cache, credential, and screenshot
 utilities from `samples/e2eTestUtils`.
