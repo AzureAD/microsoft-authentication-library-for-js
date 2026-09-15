@@ -60,6 +60,7 @@ export async function handleProtectedRouteAuth(path) {
             recordAuthenticationResult(response);
             msalInstance.setActiveAccount(response.account);
             updateUI(response.account);
+            return true;
         })
         .catch(async (error) => {
             console.error("SSO silent failed:", error);
