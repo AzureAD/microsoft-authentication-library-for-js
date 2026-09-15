@@ -25,6 +25,7 @@ import {
     AccountInfo,
     StubPerformanceClient,
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+    TimeUtils,
 } from "@azure/msal-common/node";
 
 import { Deserializer } from "./serializer/Deserializer.js";
@@ -35,6 +36,10 @@ import {
     CacheKVStore,
 } from "./serializer/SerializerTypes.js";
 import { generateAccountKey, generateCredentialKey } from "./CacheHelpers.js";
+import {
+    InMemoryCacheOptions,
+    validateInMemoryCacheOptions,
+} from "../config/Configuration.js";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
@@ -45,13 +50,19 @@ export class NodeStorage extends CacheManager {
     private logger: Logger;
     private cache: CacheKVStore = {};
     private changeEmitters: Array<Function> = [];
+    private readonly evictionEnabled: boolean;
+    private readonly maxTokenEntries?: number;
+    private writeSequence = 0;
+    private tokenWriteOrder = new Map<string, number>();
 
     constructor(
         logger: Logger,
         clientId: string,
         cryptoImpl: ICrypto,
-        staticAuthorityOptions?: StaticAuthorityOptions
+        staticAuthorityOptions?: StaticAuthorityOptions,
+        inMemoryCacheOptions?: InMemoryCacheOptions
     ) {
+        validateInMemoryCacheOptions(inMemoryCacheOptions);
         super(
             clientId,
             cryptoImpl,
@@ -61,6 +72,8 @@ export class NodeStorage extends CacheManager {
             DEFAULT_TOKEN_BINDING_KEY_MANAGER
         );
         this.logger = logger;
+        this.evictionEnabled = inMemoryCacheOptions?.evictionEnabled === true;
+        this.maxTokenEntries = inMemoryCacheOptions?.maxEntries;
     }
 
     /**
@@ -142,7 +155,7 @@ export class NodeStorage extends CacheManager {
         this.logger.trace("Getting in-memory cache", "");
 
         // convert the cache key value store to inMemoryCache
-        const inMemoryCache = this.cacheToInMemoryCache(this.getCache());
+        const inMemoryCache = this.cacheToInMemoryCache(this.cache);
         return inMemoryCache;
     }
 
@@ -153,8 +166,9 @@ export class NodeStorage extends CacheManager {
     setInMemoryCache(inMemoryCache: InMemoryCache): void {
         this.logger.trace("Setting in-memory cache", "");
 
-        // convert and append the inMemoryCache to cacheKVStore
-        const cache = this.inMemoryCacheToCache(inMemoryCache);
+        const cache = this.evictionEnabled
+            ? this.replaceSerializableCache(inMemoryCache)
+            : this.inMemoryCacheToCache(inMemoryCache);
         this.setCache(cache);
 
         this.emitChange();
@@ -165,7 +179,7 @@ export class NodeStorage extends CacheManager {
      */
     getCache(): CacheKVStore {
         this.logger.trace("Getting cache key-value store", "");
-        return this.cache;
+        return this.evictionEnabled ? { ...this.cache } : this.cache;
     }
 
     /**
@@ -174,10 +188,21 @@ export class NodeStorage extends CacheManager {
      */
     setCache(cache: CacheKVStore): void {
         this.logger.trace("Setting cache key value store", "");
-        this.cache = cache;
+        this.cache = this.evictionEnabled ? { ...cache } : cache;
+        this.reconcileTokenWriteOrder();
+        this.enforceTokenCacheBounds();
 
         // mark change in cache
         this.emitChange();
+    }
+
+    /**
+     * Returns whether token-cache bounding is enabled.
+     *
+     * @internal
+     */
+    isCacheBounded(): boolean {
+        return this.evictionEnabled;
     }
 
     /**
@@ -187,9 +212,7 @@ export class NodeStorage extends CacheManager {
     getItem(key: string): ValidCacheType {
         this.logger.tracePii(`Item key: ${key}`, "");
 
-        // read cache
-        const cache = this.getCache();
-        return cache[key];
+        return this.cache[key];
     }
 
     /**
@@ -200,12 +223,19 @@ export class NodeStorage extends CacheManager {
     setItem(key: string, value: ValidCacheType): void {
         this.logger.tracePii(`Item key: ${key}`, "");
 
-        // read cache
-        const cache = this.getCache();
-        cache[key] = value;
+        if (!this.evictionEnabled) {
+            const cache = this.getCache();
+            cache[key] = value;
+            this.setCache(cache);
+            return;
+        }
 
-        // write to cache
-        this.setCache(cache);
+        this.cache[key] = value;
+        if (this.isTokenCredential(value)) {
+            this.recordTokenWrite(key);
+            this.enforceTokenCacheBounds();
+        }
+        this.emitChange();
     }
 
     generateCredentialKey(
@@ -469,21 +499,28 @@ export class NodeStorage extends CacheManager {
     removeItem(key: string): boolean {
         this.logger.tracePii(`Item key: ${key}`, "");
 
-        // read inMemoryCache
-        let result: boolean = false;
-        const cache = this.getCache();
-
-        if (!!cache[key]) {
-            delete cache[key];
-            result = true;
+        if (!this.evictionEnabled) {
+            let result = false;
+            const cache = this.getCache();
+            if (cache[key]) {
+                delete cache[key];
+                result = true;
+            }
+            if (result) {
+                this.setCache(cache);
+                this.emitChange();
+            }
+            return result;
         }
 
-        // write to the cache after removal
-        if (result) {
-            this.setCache(cache);
+        if (this.cache[key]) {
+            delete this.cache[key];
+            this.tokenWriteOrder.delete(key);
             this.emitChange();
+            return true;
         }
-        return result;
+
+        return false;
     }
 
     /**
@@ -508,9 +545,7 @@ export class NodeStorage extends CacheManager {
     getKeys(): string[] {
         this.logger.trace("Retrieving all cache keys", "");
 
-        // read cache
-        const cache = this.getCache();
-        return [...Object.keys(cache)];
+        return [...Object.keys(this.cache)];
     }
 
     /**
@@ -529,6 +564,8 @@ export class NodeStorage extends CacheManager {
             }
             this.removeItem(key);
         });
+        this.tokenWriteOrder.clear();
+        this.writeSequence = 0;
         this.emitChange();
     }
 
@@ -578,5 +615,236 @@ export class NodeStorage extends CacheManager {
         }
 
         return currentCacheKey;
+    }
+
+    private isTokenCredential(
+        value: ValidCacheType
+    ): value is IdTokenEntity | AccessTokenEntity | RefreshTokenEntity {
+        if (typeof value !== "object") {
+            return false;
+        }
+
+        return (
+            CacheHelpers.isIdTokenEntity(value) ||
+            CacheHelpers.isAccessTokenEntity(value) ||
+            CacheHelpers.isRefreshTokenEntity(value)
+        );
+    }
+
+    private recordTokenWrite(key: string): void {
+        if (!this.evictionEnabled) {
+            return;
+        }
+
+        if (this.writeSequence >= Number.MAX_SAFE_INTEGER) {
+            this.compactTokenWriteOrder();
+        }
+        this.writeSequence += 1;
+        this.tokenWriteOrder.set(key, this.writeSequence);
+    }
+
+    private compactTokenWriteOrder(): void {
+        const entries = Array.from(this.tokenWriteOrder.entries()).sort(
+            ([firstKey, firstOrder], [secondKey, secondOrder]) =>
+                firstOrder - secondOrder ||
+                firstKey.localeCompare(secondKey)
+        );
+        this.writeSequence = 0;
+        entries.forEach(([key]) => {
+            this.writeSequence += 1;
+            this.tokenWriteOrder.set(key, this.writeSequence);
+        });
+    }
+
+    private reconcileTokenWriteOrder(): void {
+        const nextWriteOrder = new Map<string, number>();
+        this.writeSequence = 0;
+        if (!this.evictionEnabled) {
+            this.tokenWriteOrder = nextWriteOrder;
+            return;
+        }
+
+        Object.entries(this.cache).forEach(([key, value]) => {
+            if (this.isTokenCredential(value)) {
+                this.writeSequence += 1;
+                nextWriteOrder.set(key, this.writeSequence);
+            }
+        });
+        this.tokenWriteOrder = nextWriteOrder;
+    }
+
+    private replaceSerializableCache(
+        inMemoryCache: InMemoryCache
+    ): CacheKVStore {
+        const preservedCacheEntries = Object.fromEntries(
+            Object.entries(this.cache).filter(([key, value]) => {
+                if (typeof value !== "object") {
+                    return true;
+                }
+
+                return (
+                    !AccountEntityUtils.isAccountEntity(value) &&
+                    !this.isTokenCredential(value) &&
+                    !CacheHelpers.isAppMetadataEntity(key, value)
+                );
+            })
+        );
+
+        return {
+            ...preservedCacheEntries,
+            ...inMemoryCache.accounts,
+            ...inMemoryCache.idTokens,
+            ...inMemoryCache.accessTokens,
+            ...inMemoryCache.refreshTokens,
+            ...inMemoryCache.appMetadata,
+        };
+    }
+
+    private enforceTokenCacheBounds(): void {
+        if (!this.evictionEnabled || this.maxTokenEntries === undefined) {
+            return;
+        }
+
+        const evictedTokens: Array<
+            IdTokenEntity | AccessTokenEntity | RefreshTokenEntity
+        > = [];
+        let expiredCount = 0;
+        this.getTokenEntries().forEach(([key, token]) => {
+            if (this.isTokenExpired(token)) {
+                this.evictToken(key, token);
+                evictedTokens.push(token);
+                expiredCount += 1;
+            }
+        });
+
+        let capacityCount = 0;
+        const remainingTokens = this.getTokenEntries();
+        const excessCount = remainingTokens.length - this.maxTokenEntries;
+        if (excessCount > 0) {
+            remainingTokens
+                .sort(([firstKey], [secondKey]) => {
+                    const orderDifference =
+                        (this.tokenWriteOrder.get(firstKey) ?? 0) -
+                        (this.tokenWriteOrder.get(secondKey) ?? 0);
+                    return orderDifference || firstKey.localeCompare(secondKey);
+                })
+                .slice(0, excessCount)
+                .forEach(([key, token]) => {
+                    this.evictToken(key, token);
+                    evictedTokens.push(token);
+                    capacityCount += 1;
+                });
+        }
+
+        if (evictedTokens.length > 0) {
+            this.removeOrphanedAccounts(evictedTokens);
+        }
+        if (expiredCount > 0) {
+            this.logger.verbose(
+                `NodeStorage pruned ${expiredCount} expired token cache entries.`,
+                ""
+            );
+        }
+        if (capacityCount > 0) {
+            this.logger.verbose(
+                `NodeStorage evicted ${capacityCount} oldest token cache entries to enforce the configured capacity.`,
+                ""
+            );
+        }
+    }
+
+    private getTokenEntries(): Array<
+        [string, IdTokenEntity | AccessTokenEntity | RefreshTokenEntity]
+    > {
+        return Object.entries(this.cache).filter(
+            (
+                entry
+            ): entry is [
+                string,
+                IdTokenEntity | AccessTokenEntity | RefreshTokenEntity
+            ] => this.isTokenCredential(entry[1])
+        );
+    }
+
+    private isTokenExpired(
+        token: IdTokenEntity | AccessTokenEntity | RefreshTokenEntity
+    ): boolean {
+        if (CacheHelpers.isAccessTokenEntity(token)) {
+            return (
+                TimeUtils.wasClockTurnedBack(token.cachedAt) ||
+                TimeUtils.isTokenExpired(token.expiresOn, 0)
+            );
+        }
+
+        return (
+            CacheHelpers.isRefreshTokenEntity(token) &&
+            !!token.expiresOn &&
+            TimeUtils.isTokenExpired(token.expiresOn, 0)
+        );
+    }
+
+    private evictToken(
+        key: string,
+        token: IdTokenEntity | AccessTokenEntity | RefreshTokenEntity
+    ): void {
+        if (CacheHelpers.isAccessTokenEntity(token)) {
+            this.removeAccessToken(key, "");
+        } else if (CacheHelpers.isIdTokenEntity(token)) {
+            this.removeIdToken(key, "");
+        } else {
+            this.removeRefreshToken(key, "");
+        }
+    }
+
+    private removeOrphanedAccounts(
+        evictedTokens: Array<
+            IdTokenEntity | AccessTokenEntity | RefreshTokenEntity
+        >
+    ): void {
+        const evictedAccountPartitions = new Set(
+            evictedTokens
+                .filter((token) => !!token.homeAccountId)
+                .map((token) => this.getAccountPartition(token))
+        );
+        if (evictedAccountPartitions.size === 0) {
+            return;
+        }
+
+        const remainingAccountPartitions = new Set(
+            this.getTokenEntries()
+                .map(([, token]) => token)
+                .filter((token) => !!token.homeAccountId)
+                .map((token) => this.getAccountPartition(token))
+        );
+        let orphanCount = 0;
+
+        Object.entries(this.cache).forEach(([key, value]) => {
+            if (
+                typeof value === "object" &&
+                AccountEntityUtils.isAccountEntity(value) &&
+                evictedAccountPartitions.has(this.getAccountPartition(value)) &&
+                !remainingAccountPartitions.has(
+                    this.getAccountPartition(value)
+                )
+            ) {
+                if (this.removeItem(key)) {
+                    orphanCount += 1;
+                }
+            }
+        });
+
+        if (orphanCount > 0) {
+            this.logger.verbose(
+                `NodeStorage removed ${orphanCount} orphaned account cache entries after token eviction.`,
+                ""
+            );
+        }
+    }
+
+    private getAccountPartition(entity: {
+        homeAccountId: string;
+        environment: string;
+    }): string {
+        return `${entity.homeAccountId.toLowerCase()}|${entity.environment.toLowerCase()}`;
     }
 }

@@ -45,6 +45,10 @@ export const NodeAuthErrorMessage = {
         code: "redirect_uri_not_supported",
         desc: "RedirectUri is not supported in this scenario. Please remove redirectUri from the request.",
     },
+    invalidInMemoryCacheConfiguration: {
+        code: "invalid_in_memory_cache_configuration",
+        desc: "The in-memory cache configuration is invalid.",
+    },
 };
 
 export class NodeAuthError extends AuthError {
@@ -159,6 +163,19 @@ export class NodeAuthError extends AuthError {
             NodeAuthErrorMessage.redirectUriNotSupported.code,
             correlationId,
             NodeAuthErrorMessage.redirectUriNotSupported.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when bounded in-memory cache options are invalid.
+     */
+    static createInvalidInMemoryCacheConfigurationError(
+        reason: string
+    ): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.invalidInMemoryCacheConfiguration.code,
+            "",
+            `${NodeAuthErrorMessage.invalidInMemoryCacheConfiguration.desc} ${reason}`
         );
     }
 }

@@ -119,6 +119,7 @@ export type CacheKVStore = Record<string, ValidCacheType>;
 // @public
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
+    inMemoryCache?: InMemoryCacheOptions;
 };
 
 // @public
@@ -162,6 +163,12 @@ export type Configuration = {
     cache?: CacheOptions;
     system?: NodeSystemOptions;
     telemetry?: NodeTelemetryOptions;
+};
+
+// @public
+export type InMemoryCacheOptions = {
+    evictionEnabled?: boolean;
+    maxEntries?: number;
 };
 
 // @public

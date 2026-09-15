@@ -105,6 +105,14 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 this.overlayDefaults(JSON.parse(this.cacheSnapshot))
             );
             this.storage.setInMemoryCache(deserializedCache);
+        } else if (this.storage.isCacheBounded()) {
+            this.storage.setInMemoryCache({
+                accounts: {},
+                idTokens: {},
+                accessTokens: {},
+                refreshTokens: {},
+                appMetadata: {},
+            });
         } else {
             this.logger.trace("No cache snapshot to deserialize", "");
         }

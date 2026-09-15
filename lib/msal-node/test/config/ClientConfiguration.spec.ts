@@ -6,6 +6,7 @@
 import {
     buildAppConfiguration,
     Configuration,
+    InMemoryCacheOptions,
 } from "../../src/config/Configuration.js";
 import { HttpClient } from "../../src/network/HttpClient.js";
 import {
@@ -17,6 +18,7 @@ import {
     LogLevel,
     NetworkRequestOptions,
     AzureCloudInstance,
+    AuthError,
 } from "@azure/msal-common";
 import {
     ClientCredentialRequest,
@@ -24,8 +26,111 @@ import {
 } from "../../src/index.js";
 import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest.js";
 import { RANDOM_TEST_GUID } from "../test_kit/StringConstants.js";
+import { NodeAuthError } from "../../src/error/NodeAuthError.js";
 
 describe("ClientConfiguration tests", () => {
+    describe("bounded in-memory cache configuration", () => {
+        const buildConfig = (inMemoryCache?: unknown) => {
+            const configuration: Configuration = {
+                auth: { clientId: TEST_CONSTANTS.CLIENT_ID },
+            };
+            if (inMemoryCache !== undefined) {
+                configuration.cache = {
+                    inMemoryCache: inMemoryCache as InMemoryCacheOptions,
+                };
+            }
+            return buildAppConfiguration(configuration);
+        };
+        const expectInvalidConfig = (callback: () => void) => {
+            let thrownError: unknown;
+            try {
+                callback();
+            } catch (error) {
+                thrownError = error;
+            }
+
+            expect((thrownError as NodeAuthError).errorCode).toBe(
+                "invalid_in_memory_cache_configuration"
+            );
+            expect((thrownError as NodeAuthError).name).toBe("NodeAuthError");
+            expect(thrownError).toBeInstanceOf(AuthError);
+        };
+
+        it.each([
+            ["omitted", undefined],
+            ["empty options", {}],
+            ["disabled without maxEntries", { evictionEnabled: false }],
+            [
+                "disabled with maxEntries",
+                { evictionEnabled: false, maxEntries: 100 },
+            ],
+            ["maxEntries without enablement", { maxEntries: 100 }],
+            [
+                "enabled with maxEntries",
+                { evictionEnabled: true, maxEntries: 100 },
+            ],
+            [
+                "enabled at the safe-integer boundary",
+                {
+                    evictionEnabled: true,
+                    maxEntries: Number.MAX_SAFE_INTEGER,
+                },
+            ],
+        ])("accepts %s", (_name, inMemoryCache) => {
+            expect(() => buildConfig(inMemoryCache)).not.toThrow();
+        });
+
+        it.each([
+            ["missing", undefined],
+            ["zero", 0],
+            ["negative", -1],
+            ["fractional", 1.5],
+            ["positive infinity", Number.POSITIVE_INFINITY],
+            ["negative infinity", Number.NEGATIVE_INFINITY],
+            ["NaN", Number.NaN],
+        ])("rejects enabled cache with %s maxEntries", (_name, maxEntries) => {
+            expectInvalidConfig(() => {
+                buildConfig({ evictionEnabled: true, maxEntries });
+            });
+        });
+
+        it("rejects a non-boolean evictionEnabled value", () => {
+            expectInvalidConfig(() =>
+                buildConfig({
+                    evictionEnabled: "true",
+                    maxEntries: 100,
+                } as unknown as InMemoryCacheOptions)
+            );
+        });
+
+        it.each([
+            0,
+            -1,
+            1.5,
+            Number.POSITIVE_INFINITY,
+            Number.NaN,
+            Number.MAX_SAFE_INTEGER + 1,
+        ])(
+            "rejects invalid maxEntries %p even when eviction is disabled",
+            (maxEntries) => {
+                expectInvalidConfig(() =>
+                    buildConfig({ evictionEnabled: false, maxEntries })
+                );
+            }
+        );
+
+        it.each([
+            ["null", null],
+            ["boolean", true],
+            ["number", 1],
+            ["string", "enabled"],
+            ["array", []],
+            ["non-plain object", new Date(0)],
+        ])("rejects a %s options container", (_name, options) => {
+            expectInvalidConfig(() => buildConfig(options));
+        });
+    });
+
     test("builds configuration and assigns default functions", () => {
         const config: Configuration = buildAppConfiguration({
             auth: {
