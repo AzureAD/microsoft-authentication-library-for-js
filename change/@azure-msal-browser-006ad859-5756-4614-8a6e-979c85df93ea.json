@@ -2,6 +2,6 @@
   "type": "minor",
   "comment": "Add Native Auth V2 password reset, sign-in, sign-up, and SMS MFA flows. [#8830](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8830)",
   "packageName": "@azure/msal-browser",
-  "email": "ydi.w127@gmail.com",
+  "email": "yongdiwang@microsoft.com",
   "dependentChangeType": "patch"
 }
