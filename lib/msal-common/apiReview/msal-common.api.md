@@ -871,6 +871,7 @@ export abstract class CacheManager implements ICacheManager {
     // (undocumented)
     protected tokenBindingKeyManager: ITokenBindingKeyManager;
     static toObject<T>(obj: T, json: object): T;
+    updateAccessTokenLastAccessed(_accessToken: AccessTokenEntity): void;
 }
 
 // @public

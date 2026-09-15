@@ -247,16 +247,16 @@ export class SilentFlowClient {
             this.config.serverTelemetryManager.incrementCacheHits();
         }
 
-        return [
-            await invokeAsync(
-                this.generateResultFromCacheRecord.bind(this),
-                PerformanceEvents.SilentFlowClientGenerateResultFromCacheRecord,
-                this.logger,
-                this.performanceClient,
-                request.correlationId
-            )(cacheRecord, request),
-            lastCacheOutcome,
-        ];
+        const authenticationResult = await invokeAsync(
+            this.generateResultFromCacheRecord.bind(this),
+            PerformanceEvents.SilentFlowClientGenerateResultFromCacheRecord,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(cacheRecord, request);
+        this.cacheManager.updateAccessTokenLastAccessed(cachedAccessToken);
+
+        return [authenticationResult, lastCacheOutcome];
     }
 
     private setCacheOutcome(

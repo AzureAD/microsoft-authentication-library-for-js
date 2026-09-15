@@ -69,6 +69,10 @@ describe("OnBehalfOf unit tests", () => {
     describe("OnBehalfOfClient.ts Class Unit Tests", () => {
         it("Adds claims when provided", async () => {
             const client = new OnBehalfOfClient(config);
+            const selectedHitSpy = jest.spyOn(
+                CacheManager.prototype,
+                "updateAccessTokenLastAccessed"
+            );
 
             const oboRequest: CommonOnBehalfOfRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
@@ -87,6 +91,7 @@ describe("OnBehalfOf unit tests", () => {
             );
             expect(authResult.state).toBe("");
             expect(authResult.fromCache).toBe(false);
+            expect(selectedHitSpy).not.toHaveBeenCalled();
 
             expect(createTokenRequestBodySpy.mock.lastCall[0]).toEqual(
                 oboRequest
@@ -370,6 +375,10 @@ describe("OnBehalfOf unit tests", () => {
                 CacheManager.prototype,
                 <any>"getAccessTokensByFilter"
             ).mockReturnValueOnce([testAccessTokenEntity]);
+            const selectedHitSpy = jest.spyOn(
+                CacheManager.prototype,
+                "updateAccessTokenLastAccessed"
+            );
 
             const authResult = (await client.acquireToken(
                 oboRequest
@@ -391,6 +400,8 @@ describe("OnBehalfOf unit tests", () => {
             expect(authResult.account!.tenantId).toBe(
                 expectedAccountEntity.realm
             );
+            expect(selectedHitSpy).toHaveBeenCalledTimes(1);
+            expect(selectedHitSpy).toHaveBeenCalledWith(testAccessTokenEntity);
 
             if (!mockIdTokenCached.mock.lastCall) {
                 fail("executePostToTokenEndpointMock was not called");

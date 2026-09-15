@@ -153,6 +153,10 @@ describe("SilentFlowClient unit tests", () => {
                 CacheManager.prototype,
                 "getRefreshToken"
             ).mockReturnValue(testRefreshTokenEntity);
+            const selectedHitSpy = jest.spyOn(
+                CacheManager.prototype,
+                "updateAccessTokenLastAccessed"
+            );
 
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -182,6 +186,8 @@ describe("SilentFlowClient unit tests", () => {
                 testAccessTokenEntity.secret
             );
             expect(authResult.state).toHaveLength(0);
+            expect(selectedHitSpy).toHaveBeenCalledTimes(1);
+            expect(selectedHitSpy).toHaveBeenCalledWith(testAccessTokenEntity);
         });
 
         it("acquireCachedToken does not throw when given empty object string for claims", async () => {
@@ -547,6 +553,10 @@ describe("SilentFlowClient unit tests", () => {
                 CacheManager.prototype,
                 "getRefreshToken"
             ).mockReturnValue(testRefreshTokenEntity);
+            const selectedHitSpy = jest.spyOn(
+                CacheManager.prototype,
+                "updateAccessTokenLastAccessed"
+            );
 
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -561,7 +571,7 @@ describe("SilentFlowClient unit tests", () => {
                 forceRefresh: true,
             };
 
-            expect(
+            await expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
                 createClientAuthError(
@@ -569,6 +579,7 @@ describe("SilentFlowClient unit tests", () => {
                     ""
                 )
             );
+            expect(selectedHitSpy).not.toHaveBeenCalled();
         });
 
         it("acquireCachedToken throws refresh requiredError if access token is expired", async () => {
@@ -591,6 +602,10 @@ describe("SilentFlowClient unit tests", () => {
                 CacheManager.prototype,
                 "getRefreshToken"
             ).mockReturnValue(testRefreshTokenEntity);
+            const selectedHitSpy = jest.spyOn(
+                CacheManager.prototype,
+                "updateAccessTokenLastAccessed"
+            );
             const config =
                 await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config, stubPerformanceClient);
@@ -604,7 +619,7 @@ describe("SilentFlowClient unit tests", () => {
                 forceRefresh: false,
             };
 
-            expect(
+            await expect(
                 client.acquireCachedToken(silentFlowRequest)
             ).rejects.toMatchObject(
                 createClientAuthError(
@@ -612,6 +627,7 @@ describe("SilentFlowClient unit tests", () => {
                     ""
                 )
             );
+            expect(selectedHitSpy).not.toHaveBeenCalled();
         });
 
         it("acquireCachedToken throws refresh requiredError if access token was cached after the current time", async () => {
