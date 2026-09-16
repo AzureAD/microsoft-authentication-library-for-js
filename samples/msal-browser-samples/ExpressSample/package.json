@@ -9,6 +9,8 @@
         "start:e2e": "env-cmd -f .env.e2e npm start",
         "start:ear:e2e": "env-cmd -f .env.ear.e2e npm start",
         "test:e2e": "jest",
+        "test:e2e:kmsi": "jest kmsi-basic",
+        "test:e2e:platform-broker-kmsi": "jest platform-broker-kmsi",
         "build:package": "npm run build:all --workspace=lib/msal-browser"
     },
     "dependencies": {
