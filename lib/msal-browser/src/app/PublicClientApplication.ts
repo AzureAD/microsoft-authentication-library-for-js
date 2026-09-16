@@ -47,6 +47,10 @@ import type {
 } from "../interaction_client/SilentIframeClient.js";
 import type { ITokenCache } from "../cache/TokenCache.js";
 
+/**
+ * Controller compatibility boundary for legacy injected controllers that may
+ * not yet provide instance-bound token cache access.
+ */
 type TokenCacheController = IController & {
     getTokenCache?: () => ITokenCache;
 };

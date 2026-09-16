@@ -43,6 +43,8 @@ MSAL JS API for [loadExternalTokens](../testing.md#the-loadexternaltokens-api) i
 -   The `loadExternalTokens()` API is now a separate export and requires `Configuration` as a parameter.
 -   `getTokenCache()` remains available for dedicated cache operations such as
     [`loadDpopNonce()`](./caching.md#dpop-resource-server-nonce-challenges).
+-   Custom `IPublicClientApplication` implementations must provide
+    `getTokenCache()` and return their instance-bound `ITokenCache`.
 
 ```js
 // BEFORE
