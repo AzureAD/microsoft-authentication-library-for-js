@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Fri, 28 Aug 2026 21:29:53 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 15 Sep 2026 19:42:08 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 6.0.1
+
+Tue, 15 Sep 2026 19:42:08 GMT
+
+### Patches
+
+- Document strict authorization code nonce validation behavior [#8801](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8801) (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v16.14.1
 
 ## 6.0.0
 
