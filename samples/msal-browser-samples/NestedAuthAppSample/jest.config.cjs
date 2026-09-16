@@ -5,7 +5,7 @@ module.exports = {
     testTimeout: 120000,
     globals: {
         __PORT__: HOST_APP_PORT,
-        __STARTCMD__: "env-cmd -f .env.e2e npm run start:https",
+        __STARTCMD__: "npm run start:e2e",
     },
     preset: "../../e2eTestUtils/jest-puppeteer-utils/jest-preset.js",
     globalSetup: "<rootDir>/test/jestSetup.cjs",

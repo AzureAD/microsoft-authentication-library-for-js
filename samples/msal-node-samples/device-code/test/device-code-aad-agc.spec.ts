@@ -42,7 +42,7 @@ config.resourceApi = {
 };
 
 describe("Device Code AAD AGC Tests", () => {
-    jest.setTimeout(90000);
+    jest.setTimeout(120000);
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;

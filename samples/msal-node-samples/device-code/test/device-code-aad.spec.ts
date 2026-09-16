@@ -35,7 +35,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 const config = require("../config/AAD.json");
 
 describe("Device Code AAD Prod Tests", () => {
-    jest.setTimeout(90000);
+    jest.setTimeout(120000);
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;

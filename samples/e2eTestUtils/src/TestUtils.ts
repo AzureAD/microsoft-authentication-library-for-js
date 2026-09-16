@@ -350,7 +350,12 @@ export async function approveRemoteConnect(
     screenshot: Screenshot
 ): Promise<void> {
     try {
-        await page.waitForSelector(HtmlSelectors.REMOTE_LOCATION_DESCRPITION);
+        // This confirmation page is optional in the device-code flow. Use a
+        // short timeout so a run where it doesn't appear doesn't burn the full
+        // default timeout (which starves the rest of the login chain of time).
+        await page.waitForSelector(HtmlSelectors.REMOTE_LOCATION_DESCRPITION, {
+            timeout: 5000,
+        });
         await clickSubmitButton(page, screenshot);
     } catch (e) {
         return;

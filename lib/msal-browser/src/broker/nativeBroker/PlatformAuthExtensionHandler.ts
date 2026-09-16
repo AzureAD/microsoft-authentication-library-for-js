@@ -19,7 +19,6 @@ import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEve
 import {
     NativeExtensionRequest,
     NativeExtensionRequestBody,
-    isProofOfPossessionTokenType,
     PlatformAuthRequest,
 } from "./PlatformAuthRequest.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
@@ -40,7 +39,6 @@ type ResponseResolvers<T> = {
 };
 
 export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
-    private static readonly PROOF_CONTEXT_EXTENSION_VERSION = 3;
     private extensionId: string | undefined;
     private extensionVersion: string | undefined;
     private logger: Logger;
@@ -88,9 +86,12 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         );
 
         // fall back to native calls
+        const extensionRequest = { ...request };
+        delete extensionRequest.resourceRequestMethod;
+        delete extensionRequest.resourceRequestUri;
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
-            request: this.initializeNativeExtensionRequest(request),
+            request: extensionRequest,
         };
 
         const req: NativeExtensionRequest = {
@@ -104,6 +105,14 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             `'${this.platformAuthType}' - Sending request to browser extension`,
             request.correlationId
         );
+        this.logger.tracePii(
+            `'${
+                this.platformAuthType
+            }' - Sending request to browser extension: '${JSON.stringify(
+                req
+            )}'`,
+            request.correlationId
+        );
         this.messageChannel.port1.postMessage(req);
 
         const response: object = await new Promise((resolve, reject) => {
@@ -114,57 +123,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             this.validatePlatformBrokerResponse(response);
 
         return validatedResponse;
-    }
-
-    private initializeNativeExtensionRequest(
-        request: PlatformAuthRequest
-    ): PlatformAuthRequest {
-        const extensionVersionParts =
-            this.extensionVersion === undefined
-                ? undefined
-                : String(this.extensionVersion).split(".");
-        const extensionMajorVersion =
-            extensionVersionParts?.every((part) => /^\d+$/.test(part)) === true
-                ? Number(extensionVersionParts[0])
-                : NaN;
-        if (
-            !Number.isSafeInteger(extensionMajorVersion) ||
-            extensionMajorVersion <
-                PlatformAuthExtensionHandler.PROOF_CONTEXT_EXTENSION_VERSION
-        ) {
-            return request;
-        }
-
-        const {
-            resourceRequestMethod,
-            resourceRequestUri,
-            extraParametersNoCache,
-            ...extensionRequest
-        } = request;
-
-        const isProofOfPossessionRequest = isProofOfPossessionTokenType(
-            request.tokenType
-        );
-
-        const nativeExtraParametersNoCache = isProofOfPossessionRequest
-            ? {
-                  ...extraParametersNoCache,
-                  ...(resourceRequestMethod && {
-                      pop_method: resourceRequestMethod,
-                  }),
-                  ...(resourceRequestUri && {
-                      pop_uri: resourceRequestUri,
-                  }),
-              }
-            : undefined;
-
-        return {
-            ...extensionRequest,
-            ...(nativeExtraParametersNoCache &&
-                Object.keys(nativeExtraParametersNoCache).length > 0 && {
-                    extraParametersNoCache: nativeExtraParametersNoCache,
-                }),
-        };
     }
 
     /**
@@ -362,6 +320,14 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                     `'${this.platformAuthType}' - Received response from browser extension`,
                     correlationId
                 );
+                this.logger.tracePii(
+                    `'${
+                        this.platformAuthType
+                    }' - Received response from browser extension: '${JSON.stringify(
+                        response
+                    )}'`,
+                    correlationId
+                );
                 if (response.status !== "Success") {
                     resolver.reject(
                         createNativeAuthError(
@@ -429,6 +395,11 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 "Error parsing response from WAM Extension",
                 correlationId
             );
+            this.logger.errorPii(
+                `Error parsing response from WAM Extension: '${err as string}'`,
+                correlationId
+            );
+            this.logger.errorPii(`Unable to parse '${event}'`, correlationId);
 
             if (resolver) {
                 resolver.reject(err as AuthError);

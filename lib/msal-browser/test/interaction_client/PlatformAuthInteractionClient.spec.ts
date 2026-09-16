@@ -39,7 +39,10 @@ import {
     NativeAuthError,
     NativeAuthErrorCodes,
 } from "../../src/error/NativeAuthError.js";
-import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
+import {
+    PlatformAuthRequest,
+    PlatformAuthTokenType,
+} from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { BrowserPerformanceClient } from "../../src/index.js";
@@ -300,9 +303,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 brokerRequest = { ...request };
                 return Promise.resolve({
                     ...MOCK_WAM_RESPONSE,
-                    token_type: Constants.AuthenticationScheme.DPOP,
+                    token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
                     DPoP: "test-dpop-proof",
-                    attested_chosen: true,
+                    binding_attested: true,
                 });
             });
             const saveCacheRecordSpy = jest.spyOn(
@@ -329,7 +332,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
             expect(brokerRequest).toEqual(
                 expect.objectContaining({
-                    tokenType: Constants.AuthenticationScheme.DPOP,
+                    tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
                     keyId: "local-dpop-key",
                     preferBinding: "attested",
                     resourceRequestMethod: "POST",
@@ -372,7 +375,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 ...MOCK_WAM_RESPONSE,
                 token_type: Constants.AuthenticationScheme.DPOP,
                 DPoP: "test-dpop-proof",
-                attested_chosen: true,
+                binding_attested: true,
             });
             const setAccountSpy = jest.spyOn(browserCacheManager, "setAccount");
             const setIdTokenSpy = jest.spyOn(
@@ -438,7 +441,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
                 token_type: Constants.AuthenticationScheme.DPOP,
-                attested_chosen: false,
+                binding_attested: false,
             });
             const saveCacheRecordSpy = jest.spyOn(
                 internalStorage,
@@ -526,7 +529,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
                 token_type: Constants.AuthenticationScheme.DPOP,
-                attested_chosen: false,
+                binding_attested: false,
             });
 
             await platformAuthInteractionClient.acquireToken({
@@ -599,7 +602,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
                 token_type: Constants.AuthenticationScheme.DPOP,
-                attested_chosen: false,
+                binding_attested: false,
             });
             const setAccountSpy = jest.spyOn(browserCacheManager, "setAccount");
             const setIdTokenSpy = jest.spyOn(
@@ -669,7 +672,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
                 token_type: Constants.AuthenticationScheme.DPOP,
-                attested_chosen: false,
+                binding_attested: false,
             });
             const removeAccessTokenSpy = jest.spyOn(
                 internalStorage,
@@ -738,24 +741,24 @@ describe("PlatformAuthInteractionClient Tests", () => {
             {
                 name: "L3 outcome with an empty proof",
                 response: {
-                    token_type: Constants.AuthenticationScheme.DPOP,
+                    token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
                     DPoP: " ",
-                    attested_chosen: true,
+                    binding_attested: true,
                 },
             },
             {
                 name: "L3 outcome without affirmative attestation",
                 response: {
-                    token_type: Constants.AuthenticationScheme.DPOP,
+                    token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
                     DPoP: "test-dpop-proof",
                 },
             },
             {
                 name: "L3 outcome with rejected attestation",
                 response: {
-                    token_type: Constants.AuthenticationScheme.DPOP,
+                    token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
                     DPoP: "unexpected-proof",
-                    attested_chosen: false,
+                    binding_attested: false,
                 },
             },
             {
@@ -766,7 +769,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 name: "attested L1 fallback",
                 response: {
                     token_type: Constants.AuthenticationScheme.DPOP,
-                    attested_chosen: true,
+                    binding_attested: true,
                 },
             },
             {
@@ -839,13 +842,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             },
             {
                 name: "attested binding indicator",
-                response: { attested_chosen: true },
-            },
-            {
-                name: "token binding key indicator",
-                response: {
-                    token_binding_key_id: "unexpected-token-binding-key",
-                },
+                response: { binding_attested: true },
             },
         ])(
             "Extension: rejects cross-scheme DPoP $name on a Bearer request",
@@ -956,7 +953,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
             await expect(
                 clientInternals.prepareDpopBrokerRequest({
-                    tokenType: Constants.AuthenticationScheme.DPOP,
+                    tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
                     keyId: "unexpected-dpop-key",
                 } as PlatformAuthRequest)
             ).rejects.toMatchObject({
@@ -984,7 +981,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     authority: TEST_CONFIG.validAuthority,
                     correlationId: RANDOM_TEST_GUID,
                     scope: "User.Read",
-                    tokenType: Constants.AuthenticationScheme.DPOP,
+                    tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
                     keyId: "generated-dpop-key",
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
@@ -1052,9 +1049,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "sendMessage"
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
-                token_type: Constants.AuthenticationScheme.DPOP,
+                token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
                 DPoP: "test-dpop-proof",
-                attested_chosen: true,
+                binding_attested: true,
             });
 
             const response = await platformAuthInteractionClient.acquireToken({
@@ -2176,9 +2173,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "sendMessage"
             ).mockResolvedValue({
                 ...MOCK_WAM_RESPONSE,
-                token_type: Constants.AuthenticationScheme.DPOP,
+                token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
                 DPoP: "broker-dpop-proof",
-                attested_chosen: true,
+                binding_attested: true,
             });
 
             await platformAuthInteractionClient.acquireTokenRedirect(
@@ -2897,35 +2894,57 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(nativeRequest.redirectUri).toEqual("localhost");
         });
 
-        it("preserves proof context as canonical params for PoP broker requests", async () => {
-            const nativeRequest =
-                // @ts-ignore
-                await platformAuthInteractionClient.initializePlatformRequest({
+        it.each([
+            {
+                authenticationScheme: Constants.AuthenticationScheme.POP,
+                preservesResourceContext: true,
+            },
+            {
+                authenticationScheme:
+                    PlatformAuthTokenType.DPOP_WITH_PROOF,
+                preservesResourceContext: false,
+            },
+        ])(
+            "constructs shared proof no-cache parameters for token type $authenticationScheme",
+            async ({ authenticationScheme, preservesResourceContext }) => {
+                const request: any = {
                     scopes: ["User.Read"],
-                    authenticationScheme: Constants.AuthenticationScheme.POP,
-                    popKid: "test-pop-kid",
+                    authenticationScheme,
+                    popKid: "test-kid",
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                    extraParameters: {
-                        userEQP: "customUserParam",
+                    dpopNonce: "test-dpop-nonce",
+                    extraParametersNoCache: {
+                        custom_no_cache: "test-value",
                     },
-                });
-            expect(nativeRequest).not.toHaveProperty("preferBinding");
-            expect(decodeReqCnf(nativeRequest.reqCnf)).toEqual({
-                kid: "test-pop-kid",
-            });
-            expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
-            expect(nativeRequest.extraParameters?.userEQP).toBe(
-                "customUserParam"
-            );
-            expect(nativeRequest.resourceRequestMethod).toBe("POST");
-            expect(nativeRequest.resourceRequestUri).toBe(
-                "https://graph.microsoft.com/v1.0/me"
-            );
-            expect(nativeRequest).not.toHaveProperty("dpopNonce");
-        });
+                };
+                const nativeRequest =
+                    // @ts-ignore
+                    await platformAuthInteractionClient.initializePlatformRequest(
+                        request
+                    );
 
-        it("normalizes proof context as canonical params for DPoP broker requests", async () => {
+                expect(nativeRequest.extraParametersNoCache).toEqual({
+                    custom_no_cache: "test-value",
+                    pop_method: "POST",
+                    pop_url: "https://graph.microsoft.com/v1.0/me",
+                    pop_nonce: "test-dpop-nonce",
+                });
+                expect(nativeRequest.resourceRequestMethod).toEqual(
+                    preservesResourceContext
+                        ? request.resourceRequestMethod
+                        : undefined
+                );
+                expect(nativeRequest.resourceRequestUri).toEqual(
+                    preservesResourceContext
+                        ? request.resourceRequestUri
+                        : undefined
+                );
+                expect(nativeRequest).not.toHaveProperty("dpopNonce");
+            }
+        );
+
+        it("normalizes public DPoP intent to the canonical broker proof request", async () => {
             const nativeRequest =
                 // @ts-ignore
                 await platformAuthInteractionClient.initializePlatformRequest({
@@ -2935,77 +2954,51 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     resourceRequestUri:
                         "https://graph.microsoft.com/v1.0/me?user=alice#profile",
                 });
-            expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
+
             expect(nativeRequest.tokenType).toBe(
-                Constants.AuthenticationScheme.DPOP
+                PlatformAuthTokenType.DPOP_WITH_PROOF
             );
             expect(nativeRequest.preferBinding).toBe("attested");
+            expect(nativeRequest.extraParametersNoCache).toEqual({
+                pop_method: "POST",
+                pop_url: "https://graph.microsoft.com/v1.0/me",
+            });
             expect(nativeRequest.resourceRequestMethod).toBe("POST");
             expect(nativeRequest.resourceRequestUri).toBe(
                 "https://graph.microsoft.com/v1.0/me"
             );
+            expect(nativeRequest).not.toHaveProperty("enclave");
         });
 
-        it("preserves proof context as original params for DOM requests", async () => {
-            const domPlatformAuthInteractionClient =
-                new PlatformAuthInteractionClient(
-                    // @ts-ignore
-                    pca.config,
-                    // @ts-ignore
-                    pca.browserStorage,
-                    // @ts-ignore
-                    pca.browserCrypto,
-                    pca.getLogger(),
-                    // @ts-ignore
-                    pca.eventHandler,
-                    // @ts-ignore
-                    pca.navigationClient,
-                    ApiId.acquireTokenRedirect,
-                    perfClient,
-                    new PlatformAuthDOMHandler(
-                        pca.getLogger(),
-                        getDefaultPerformanceClient(),
-                        RANDOM_TEST_GUID
-                    ),
-                    "nativeAccountId",
-                    // @ts-ignore
-                    pca.nativeInternalStorage,
-                    RANDOM_TEST_GUID
-                );
-
+        it("preserves no-cache parameters without adding proof fields for bearer requests", async () => {
+            const request: any = {
+                scopes: ["User.Read"],
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                dpopNonce: "test-dpop-nonce",
+                extraParametersNoCache: {
+                    custom_no_cache: "test-value",
+                },
+            };
             const nativeRequest =
                 // @ts-ignore
-                await domPlatformAuthInteractionClient.initializePlatformRequest(
-                    {
-                        scopes: ["User.Read"],
-                        authenticationScheme:
-                            Constants.AuthenticationScheme.DPOP,
-                        resourceRequestMethod: "POST",
-                        resourceRequestUri:
-                            "https://graph.microsoft.com/v1.0/me",
-                    }
+                await platformAuthInteractionClient.initializePlatformRequest(
+                    request
                 );
 
-            expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
-            expect(nativeRequest.resourceRequestMethod).toBe("POST");
-            expect(nativeRequest.resourceRequestUri).toBe(
-                "https://graph.microsoft.com/v1.0/me"
+            expect(nativeRequest.extraParametersNoCache).toEqual({
+                custom_no_cache: "test-value",
+            });
+            expect(nativeRequest.extraParametersNoCache).not.toHaveProperty(
+                "pop_method"
             );
-        });
-
-        it("does not map proof context to no-cache extra params for bearer extension requests", async () => {
-            const nativeRequest =
-                // @ts-ignore
-                await platformAuthInteractionClient.initializePlatformRequest({
-                    scopes: ["User.Read"],
-                    authenticationScheme: Constants.AuthenticationScheme.BEARER,
-                    resourceRequestMethod: "POST",
-                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                });
-
-            expect(nativeRequest).not.toHaveProperty("extraParametersNoCache");
-            expect(nativeRequest.resourceRequestMethod).toBe(undefined);
-            expect(nativeRequest.resourceRequestUri).toBe(undefined);
+            expect(nativeRequest.extraParametersNoCache).not.toHaveProperty(
+                "pop_url"
+            );
+            expect(nativeRequest.extraParametersNoCache).not.toHaveProperty(
+                "pop_nonce"
+            );
         });
 
         it("forwards resource via extraParameters when provided", async () => {

@@ -44,7 +44,15 @@ import {
     updateAccountTenantProfileData,
 } from "@azure/msal-common/browser";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
+import {
+    createPlatformAuthExtraParametersNoCache,
+    isProofOfPossessionTokenType,
+    PlatformAuthBindingPreference,
+    PlatformAuthEnclave,
+    PlatformAuthExtraParametersNoCache,
+    PlatformAuthRequest,
+    PlatformAuthTokenType,
+} from "../broker/nativeBroker/PlatformAuthRequest.js";
 import {
     MATS,
     PlatformAuthResponse,
@@ -98,8 +106,16 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected skus: string;
 
     private static readonly DPOP_BROKER_REQUEST_TOKEN_TYPE =
-        Constants.AuthenticationScheme.DPOP;
-    private static readonly DPOP_BROKER_REQUEST_KEY_LOCATION = "sw";
+        PlatformAuthTokenType.DPOP_WITH_PROOF;
+    private static readonly DPOP_BROKER_PROOF_RESPONSE_TOKEN_TYPES = [
+        PlatformAuthTokenType.DPOP_WITH_PROOF,
+        "dpop_proof",
+        Constants.AuthenticationScheme.DPOP.toLowerCase(),
+    ];
+    private static readonly DPOP_BROKER_FALLBACK_RESPONSE_TOKEN_TYPE =
+        Constants.AuthenticationScheme.DPOP.toLowerCase();
+    private static readonly DPOP_BROKER_REQUEST_KEY_LOCATION =
+        PlatformAuthEnclave.SOFTWARE;
 
     constructor(
         config: BrowserConfiguration,
@@ -718,8 +734,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         // cache accounts and tokens in the appropriate storage
         const isL3DpopResponse =
-            response.token_type?.toLowerCase() ===
-                PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE.toLowerCase() &&
+            PlatformAuthInteractionClient.DPOP_BROKER_PROOF_RESPONSE_TOKEN_TYPES.includes(
+                response.token_type?.toLowerCase() || ""
+            ) &&
             response.DPoP !== undefined;
         const shouldRemoveGeneratedDpopKey =
             isL3DpopResponse ||
@@ -1285,7 +1302,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
          * scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
          * attributeTokens is destructured out because PlatformAuthRequest represents it as a pre-serialized string, not the caller-provided Array<string>.
          */
-        const { scopes, claims } = request;
+        const { scopes, claims, extraParametersNoCache, dpopNonce } =
+            request as (PopupRequest | SsoSilentRequest) & {
+                extraParametersNoCache?: PlatformAuthExtraParametersNoCache;
+                dpopNonce?: string;
+            };
         const scopeSet = new ScopeSet(scopes || [], this.correlationId);
         scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
 
@@ -1339,6 +1360,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             }),
             shrClaims: request.shrClaims,
             shrNonce: request.shrNonce,
+            extraParametersNoCache: createPlatformAuthExtraParametersNoCache(
+                extraParametersNoCache,
+                isProofOfPossessionTokenType(request.authenticationScheme),
+                request.resourceRequestMethod,
+                request.resourceRequestUri,
+                dpopNonce
+            ),
         };
 
         if (
@@ -1376,10 +1404,19 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 );
             validatedRequest.resourceRequestUri = resourceProofClaims.htu;
             validatedRequest.resourceRequestMethod = resourceProofClaims.htm;
+            validatedRequest.extraParametersNoCache =
+                createPlatformAuthExtraParametersNoCache(
+                    extraParametersNoCache,
+                    true,
+                    resourceProofClaims.htm,
+                    resourceProofClaims.htu,
+                    dpopNonce
+                );
 
             validatedRequest.tokenType =
                 PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE;
-            validatedRequest.preferBinding = "attested";
+            validatedRequest.preferBinding =
+                PlatformAuthBindingPreference.ATTESTED;
         }
 
         if (hasAttributeTokens) {
@@ -1494,14 +1531,18 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             request.tokenType ===
             PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE;
         const responseTokenType = response.token_type?.toLowerCase();
-        const isDpopResponseToken =
+        const isDpopProofResponseToken =
+            PlatformAuthInteractionClient.DPOP_BROKER_PROOF_RESPONSE_TOKEN_TYPES.includes(
+                responseTokenType || ""
+            );
+        const isDpopFallbackResponseToken =
             responseTokenType ===
-            PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE.toLowerCase();
+            PlatformAuthInteractionClient.DPOP_BROKER_FALLBACK_RESPONSE_TOKEN_TYPE;
         const hasDpopResponse =
-            isDpopResponseToken ||
+            isDpopProofResponseToken ||
+            isDpopFallbackResponseToken ||
             response.DPoP !== undefined ||
-            response.attested_chosen !== undefined ||
-            response.token_binding_key_id !== undefined;
+            response.binding_attested !== undefined;
 
         if (!isDpopRequest) {
             if (hasDpopResponse) {
@@ -1514,7 +1555,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return;
         }
 
-        if (!isDpopResponseToken) {
+        if (!isDpopProofResponseToken && !isDpopFallbackResponseToken) {
             throw createAuthError(
                 AuthErrorCodes.unexpectedError,
                 this.correlationId,
@@ -1524,10 +1565,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         if (response.DPoP !== undefined) {
             if (
+                !isDpopProofResponseToken ||
                 !response.DPoP.trim() ||
-                response.attested_chosen !== true ||
-                (response.token_binding_key_id !== undefined &&
-                    response.token_binding_key_id === request.keyId)
+                response.binding_attested !== true
             ) {
                 throw createAuthError(
                     AuthErrorCodes.unexpectedError,
@@ -1546,11 +1586,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
 
         if (
+            !isDpopFallbackResponseToken ||
             !request.reqCnf ||
             !request.keyId ||
-            response.attested_chosen !== false ||
-            (response.token_binding_key_id !== undefined &&
-                response.token_binding_key_id !== request.keyId)
+            response.binding_attested !== false
         ) {
             throw createAuthError(
                 AuthErrorCodes.unexpectedError,

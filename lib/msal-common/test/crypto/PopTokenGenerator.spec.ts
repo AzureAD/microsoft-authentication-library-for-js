@@ -67,17 +67,28 @@ describe("PopTokenGenerator Unit Tests", () => {
     });
 
     describe("signPopToken", () => {
-        let currTime: number;
         let testRequest: BaseAuthRequest;
 
         beforeAll(() => {
-            currTime = TimeUtils.nowSeconds();
             testRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
             };
-            jest.spyOn(TimeUtils, "nowSeconds").mockReturnValue(currTime);
+        });
+
+        beforeEach(() => {
+            /*
+             * Freeze the clock so the timestamp signPopToken generates
+             * internally matches the one each test reads for its expectation.
+             * Without this the two reads race and disagree whenever they
+             * straddle a second boundary.
+             */
+            jest.useFakeTimers();
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
         });
 
         it("Signs the proof-of-possession JWT token with all PoP parameters in the request", (done) => {

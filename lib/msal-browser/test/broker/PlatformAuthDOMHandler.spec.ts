@@ -14,7 +14,12 @@ import {
     TEST_TOKENS,
     TEST_URIS,
 } from "../utils/StringConstants.js";
-import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
+import {
+    PlatformAuthBindingPreference,
+    PlatformAuthEnclave,
+    PlatformAuthRequest,
+    PlatformAuthTokenType,
+} from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
 
 describe("PlatformAuthDOMHandler tests", () => {
@@ -462,7 +467,10 @@ describe("PlatformAuthDOMHandler tests", () => {
             });
         });
 
-        it("maps proof binding fields to top-level DOM request properties", async () => {
+        it.each([
+            Constants.AuthenticationScheme.POP,
+            PlatformAuthTokenType.DPOP_WITH_PROOF,
+        ])("forwards proof fields for token type %s", async (tokenType) => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
@@ -481,12 +489,16 @@ describe("PlatformAuthDOMHandler tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 windowTitleSubstring: "test-window-substring",
                 isSts: false,
-                preferBinding: "test-prefer-binding",
+                preferBinding: PlatformAuthBindingPreference.ATTESTED,
+                enclave: PlatformAuthEnclave.HARDWARE,
                 reqCnf: "test-req-cnf",
-                tokenType: Constants.AuthenticationScheme.DPOP,
+                tokenType,
                 resourceRequestMethod: "POST",
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 extraParametersNoCache: {
+                    custom_no_cache: "test-value",
+                    pop_method: "POST",
+                    pop_url: "https://graph.microsoft.com/v1.0/me",
                     pop_nonce: "test-dpop-nonce",
                 },
                 extraParameters: {
@@ -510,14 +522,16 @@ describe("PlatformAuthDOMHandler tests", () => {
                 extraParameters: {
                     customUserInput: "test-user-input",
                     windowTitleSubstring: "test-window-substring",
-                    tokenType: Constants.AuthenticationScheme.DPOP,
+                    tokenType,
                 },
                 extraParametersNoCache: {
                     pop_method: "POST",
-                    pop_uri: "https://graph.microsoft.com/v1.0/me",
+                    pop_url: "https://graph.microsoft.com/v1.0/me",
                     pop_nonce: "test-dpop-nonce",
+                    custom_no_cache: "test-value",
                 },
-                preferBinding: "test-prefer-binding",
+                preferBinding: PlatformAuthBindingPreference.ATTESTED,
+                enclave: PlatformAuthEnclave.HARDWARE,
                 requestConfirmation: "test-req-cnf",
                 redirectUri: testRequest.redirectUri,
                 scope: testRequest.scope,
@@ -584,52 +598,71 @@ describe("PlatformAuthDOMHandler tests", () => {
             });
         });
 
-        it("should map DOM DPoP response fields to PlatformBrokerResponse fields", async () => {
-            getSupportedContractsMock.mockResolvedValue([
-                PlatformAuthConstants.PLATFORM_DOM_APIS,
-            ]);
-            const platformAuthDOMHandler =
-                await PlatformAuthDOMHandler.createProvider(
-                    logger,
-                    performanceClient,
-                    "test-correlation-id"
-                );
-            const testResponse: object = {
-                isSuccess: true,
-                state: "",
-                accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                expiresIn: 6000,
-                account: {
-                    id: "test-id",
-                    userName: "test-user",
-                    properties: {},
-                },
-                clientInfo: "test-client-info",
-                idToken: TEST_TOKENS.IDTOKEN_V1,
-                scopes: "read openid",
-                error: {},
-                properties: {},
-                tokenType: Constants.AuthenticationScheme.DPOP,
-                DPoP: "test-dpop-proof",
-                tokenBindingKeyId: "test-token-binding-key-id",
-                attestedChosen: true,
-            };
+        it.each([
+            { bindingAttested: "true", expectedBindingAttested: true },
+            { bindingAttested: "false", expectedBindingAttested: false },
+            { bindingAttested: "invalid", expectedBindingAttested: undefined },
+        ])(
+            "maps DOM DPoP response fields when binding_attested is $bindingAttested",
+            async ({ bindingAttested, expectedBindingAttested }) => {
+                getSupportedContractsMock.mockResolvedValue([
+                    PlatformAuthConstants.PLATFORM_DOM_APIS,
+                ]);
+                const platformAuthDOMHandler =
+                    await PlatformAuthDOMHandler.createProvider(
+                        logger,
+                        performanceClient,
+                        "test-correlation-id"
+                    );
+                const testResponse: object = {
+                    isSuccess: true,
+                    state: "",
+                    accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                    expiresIn: 6000,
+                    account: {
+                        id: "test-id",
+                        userName: "test-user",
+                        properties: {},
+                    },
+                    clientInfo: "test-client-info",
+                    idToken: TEST_TOKENS.IDTOKEN_V1,
+                    scopes: "read openid",
+                    error: {},
+                    properties: {
+                        token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
+                        dpop_proof: "test-dpop-proof",
+                        binding_attested: bindingAttested,
+                    },
+                };
 
-            const validatedResponse =
-                //@ts-ignore
-                platformAuthDOMHandler.validatePlatformBrokerResponse(
-                    testResponse
-                );
+                if (expectedBindingAttested === undefined) {
+                    expect(() =>
+                        //@ts-ignore
+                        platformAuthDOMHandler.validatePlatformBrokerResponse(
+                            testResponse,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
+                    ).toThrow(
+                        "Platform broker returned invalid binding_attested value."
+                    );
+                    return;
+                }
 
-            expect(validatedResponse).toEqual(
-                expect.objectContaining({
-                    token_type: Constants.AuthenticationScheme.DPOP,
-                    DPoP: "test-dpop-proof",
-                    token_binding_key_id: "test-token-binding-key-id",
-                    attested_chosen: true,
-                })
-            );
-        });
+                const validatedResponse =
+                    //@ts-ignore
+                    platformAuthDOMHandler.validatePlatformBrokerResponse(
+                        testResponse,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                expect(validatedResponse).toEqual(
+                    expect.objectContaining({
+                        token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
+                        DPoP: "test-dpop-proof",
+                        binding_attested: expectedBindingAttested,
+                    })
+                );
+            }
+        );
     });
 
     describe("getDOMExtraParams tests", () => {
@@ -703,7 +736,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(domExtraParams).not.toHaveProperty("instanceAware");
         });
 
-        it("should catch JSON.stringify error without PII logging and return empty object", async () => {
+        it("should catch JSON.stringify error and return empty object", async () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
@@ -734,7 +767,10 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(loggerErrorSpy.mock.calls[0][0]).toContain(
                 "'PlatformAuthDOMHandler' - Error stringifying extra parameters"
             );
-            expect(loggerErrorPiiSpy).not.toHaveBeenCalled();
+            expect(loggerErrorPiiSpy).toHaveBeenCalled();
+            expect(loggerErrorPiiSpy.mock.calls[0][0]).toContain(
+                "'PlatformAuthDOMHandler' - Error stringifying extra parameters"
+            );
         });
     });
 });
