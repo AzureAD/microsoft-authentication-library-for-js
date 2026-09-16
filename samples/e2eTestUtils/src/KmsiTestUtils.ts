@@ -168,24 +168,32 @@ export function assertSigninStateContains(
 }
 
 /**
- * Reads the signin_state claim captured from the latest authentication response
- * and asserts that it represents a KMSI session.
+ * Reads the authentication response displayed by the sample and asserts that
+ * its ID token represents a KMSI session.
  */
 export async function verifyKmsiFromResponse(target: Page): Promise<void> {
-    const signinState = await target.evaluate(
-        "import('/js/auth.js').then((authModule) => authModule.lastSigninState)"
-    );
+    if (!target.url().endsWith("profile")) {
+        await target.locator("a#viewProfileButton").click();
+    }
 
-    if (
-        !Array.isArray(signinState) ||
-        !signinState.every((value) => typeof value === "string")
-    ) {
+    const authDataText = await target
+        .locator("pre#auth-json")
+        .filter(
+            (value) => !!value.textContent && value.textContent !== "Loading..."
+        )
+        .map((value) => value.textContent)
+        .wait();
+    const authData = JSON.parse(authDataText || "") as {
+        idTokenClaims?: IdTokenClaims;
+    };
+
+    if (!authData.idTokenClaims) {
         throw new Error(
-            "Authentication response did not contain the signin_state claim"
+            "Authentication response did not contain ID token claims"
         );
     }
 
-    assertKmsiSigninState({ signin_state: signinState });
+    assertKmsiSigninState(authData.idTokenClaims);
 }
 
 /**

@@ -73,15 +73,26 @@ export function removePlatformBrokerProfile(
 export async function verifyPlatformBrokerResponse(
     target: puppeteer.Page
 ): Promise<void> {
-    const fromPlatformBroker = await target.evaluate(
-        "import('/js/auth.js').then((authModule) => authModule.lastResponseFromPlatformBroker)"
-    );
-    const nativeAccountId = await target.evaluate(
-        "import('/js/auth.js').then((authModule) => authModule.msalInstance.getActiveAccount()?.nativeAccountId)"
-    );
+    if (!target.url().endsWith("profile")) {
+        await target.locator("a#viewProfileButton").click();
+    }
 
-    expect(fromPlatformBroker).toBe(true);
-    expect(nativeAccountId).toBeTruthy();
+    const authDataText = await target
+        .locator("pre#auth-json")
+        .filter(
+            (value) => !!value.textContent && value.textContent !== "Loading..."
+        )
+        .map((value) => value.textContent)
+        .wait();
+    const authData = JSON.parse(authDataText || "") as {
+        account?: {
+            nativeAccountId?: string;
+        };
+        fromPlatformBroker?: boolean;
+    };
+
+    expect(authData.fromPlatformBroker).toBe(true);
+    expect(authData.account?.nativeAccountId).toBeTruthy();
 }
 
 export async function verifyPlatformBrokerTokenStore(
