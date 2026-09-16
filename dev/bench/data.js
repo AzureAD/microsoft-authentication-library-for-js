@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789592340193,
+  "lastUpdate": 1789599736363,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23467,6 +23467,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.86%",
             "unit": "ops/sec",
             "extra": "230 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5c78da100bf526d4510cbd6b56f1373100afd4b4",
+          "message": " Platform Broker + Keep Me Signed In e2e tests (#8822)\n\n## Summary\n\nAdds a headless web-flow KMSI baseline for ExpressSample and local-only\nWAM/platform-broker KMSI coverage for AB#3688359. Both suites validate\nKMSI from the `signin_state` claim returned in\n`AuthenticationResult.idTokenClaims`. The web test verifies persistence\nacross a complete browser restart by confirming that the account and\nKMSI ID token remain available in `localStorage`.\n\n## Implements\n\n- AB#3688359 — A1: Platform Broker + Keep Me Signed In\n\n## How to validate\n\n- `npm run test:e2e:kmsi`\n- Set `SSO_EXTENSION_PATH` and run `npm run\ntest:e2e:platform-broker-kmsi` in a local WAM-enabled environment.\n\n## Notes\n\n- MSAL requests `signin_state` as a default optional ID-token claim, so\nthe sample does not require a KMSI-specific query flag or claims\nconfiguration.\n- The web KMSI suite uses the sample's normal `localStorage` cache\nconfiguration. KMSI cache entries remain unencrypted and available\nacross browser sessions without switching the sample to\n`sessionStorage`.\n- Browser-restart validation reads the restored account and KMSI\nID-token claim from the persisted cache. It does not depend on\n`ssoSilent` iframe-cookie behavior.\n- The web KMSI suite passes headlessly with a Lab account retrieved at\nruntime and is the only KMSI suite enabled in the 3P pipeline.\n- The local WAM suite remains excluded from CI and currently reproduces\nthe missing KMSI state while confirming that each response came from the\nplatform broker.\n\n<!-- BEGIN wit-telemetry -->\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol-fast\nwork-item: AB#3688359\n<!-- END wit-telemetry -->\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: test\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol-fast\nwork-item: AB#3688359\n<!-- END pr-telemetry -->\n\n---------\n\nCopilot-Session: 7155fa61-5730-4d8d-9553-a89e8768e478",
+          "timestamp": "2026-09-16T15:55:02-07:00",
+          "tree_id": "ffbdd1791bbf3f36319aff15f5fe93a566b86777",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5c78da100bf526d4510cbd6b56f1373100afd4b4"
+        },
+        "date": 1789599732790,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 526056,
+            "range": "±1.58%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 547097,
+            "range": "±1.60%",
+            "unit": "ops/sec",
+            "extra": "205 samples"
           }
         ]
       }
