@@ -146,6 +146,7 @@ type DpopNonceWriteLock = {
 const DPOP_NONCE_COORDINATION_PREFIX = "msal.dpop-nonce-coordination";
 const DPOP_NONCE_WRITE_LOCK_DURATION_MS = 5_000;
 const DPOP_NONCE_WRITE_LOCK_RETRY_MS = 10;
+const DPOP_NONCE_WRITE_LOCK_TIMEOUT_MS = 10_000;
 
 const dpopNonceCacheStates = new WeakMap<
     object,
@@ -193,6 +194,8 @@ export class BrowserCacheManager extends CacheManager {
     protected cacheConfig: Required<CacheOptions>;
     // Window storage object (either local or sessionStorage)
     protected browserStorage: IWindowStorage<string>;
+    // DPoP nonces are never persisted beyond the browser session.
+    private readonly dpopNonceStorage: IWindowStorage<string>;
     // Internal in-memory storage object used for data used by msal that does not need to persist across page loads
     protected internalStorage: MemoryStorage<string>;
     // Temporary cache
@@ -239,15 +242,19 @@ export class BrowserCacheManager extends CacheManager {
                 logger,
                 performanceClient
             );
-        this.dpopNonceCacheState = getDpopNonceCacheState(
-            clientId,
-            this.browserStorage
-        );
         this.temporaryCacheStorage = getStorageImplementation(
             clientId,
             BrowserCacheLocation.SessionStorage,
             logger,
             performanceClient
+        );
+        this.dpopNonceStorage =
+            this.browserStorage instanceof LocalStorage
+                ? this.temporaryCacheStorage
+                : this.browserStorage;
+        this.dpopNonceCacheState = getDpopNonceCacheState(
+            clientId,
+            this.dpopNonceStorage
         );
         this.cookieStorage = new CookieStorage();
 
@@ -264,7 +271,16 @@ export class BrowserCacheManager extends CacheManager {
         );
         await this.browserStorage.initialize(correlationId);
         await this.migrateExistingCache(correlationId);
-        this.getDpopNonceEntries();
+        try {
+            this.removePersistedDpopNoncesFromLocalStorage();
+        } catch {
+            // Removal of nonce entries written by earlier versions is best effort.
+        }
+        try {
+            this.getDpopNonceEntries();
+        } catch {
+            // Initialization scavenging is best effort.
+        }
         this.trackVersionChanges(correlationId);
     }
 
@@ -1130,7 +1146,7 @@ export class BrowserCacheManager extends CacheManager {
     ): void {
         let persistedEntity: object | null = null;
         try {
-            const persistedValue = this.browserStorage.getItem(cacheKey);
+            const persistedValue = this.dpopNonceStorage.getItem(cacheKey);
             persistedEntity = persistedValue
                 ? this.validateAndParseJson(persistedValue)
                 : null;
@@ -1155,7 +1171,7 @@ export class BrowserCacheManager extends CacheManager {
             retainedEntries.length >= DPOP_NONCE_MAX_ENTRIES_PER_TYPE;
 
         try {
-            this.browserStorage.setItem(cacheKey, serializedEntity);
+            this.dpopNonceStorage.setItem(cacheKey, serializedEntity);
             if (requiresCapacityEviction) {
                 this.enforceDpopNonceCapacity(
                     cacheKey,
@@ -1176,7 +1192,7 @@ export class BrowserCacheManager extends CacheManager {
             validationTime
         ).filter((entry) => entry.key !== cacheKey);
         try {
-            this.browserStorage.setItem(cacheKey, serializedEntity);
+            this.dpopNonceStorage.setItem(cacheKey, serializedEntity);
             if (requiresCapacityEviction) {
                 this.enforceDpopNonceCapacity(
                     cacheKey,
@@ -1196,7 +1212,7 @@ export class BrowserCacheManager extends CacheManager {
         for (const entry of nonceEntries) {
             let value: string | null;
             try {
-                value = this.browserStorage.getItem(entry.key);
+                value = this.dpopNonceStorage.getItem(entry.key);
             } catch (error) {
                 this.restoreDpopNonceEntries(removedEntries);
                 const cacheError = createCacheError(error);
@@ -1209,7 +1225,7 @@ export class BrowserCacheManager extends CacheManager {
             this.removeDpopNonceEntryForWrite(entry.key);
             removedEntries.push({ key: entry.key, value });
             try {
-                this.browserStorage.setItem(cacheKey, serializedEntity);
+                this.dpopNonceStorage.setItem(cacheKey, serializedEntity);
                 if (requiresCapacityEviction) {
                     this.enforceDpopNonceCapacity(
                         cacheKey,
@@ -1240,7 +1256,7 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     private getDpopNonceCoordinationState(): DpopNonceCoordinationState {
-        if (!(this.browserStorage instanceof LocalStorage)) {
+        if (!(this.dpopNonceStorage instanceof LocalStorage)) {
             return { generation: "", clearing: false, expiresAt: 0 };
         }
 
@@ -1259,7 +1275,11 @@ export class BrowserCacheManager extends CacheManager {
             "clearing" in parsedState &&
             typeof parsedState.clearing === "boolean" &&
             "expiresAt" in parsedState &&
-            typeof parsedState.expiresAt === "number"
+            typeof parsedState.expiresAt === "number" &&
+            Number.isFinite(parsedState.expiresAt) &&
+            parsedState.expiresAt >= 0 &&
+            parsedState.expiresAt <=
+                Date.now() + DPOP_NONCE_WRITE_LOCK_DURATION_MS
         ) {
             return {
                 generation: parsedState.generation,
@@ -1274,7 +1294,7 @@ export class BrowserCacheManager extends CacheManager {
     private setDpopNonceCoordinationState(
         state: DpopNonceCoordinationState
     ): void {
-        if (!(this.browserStorage instanceof LocalStorage)) {
+        if (!(this.dpopNonceStorage instanceof LocalStorage)) {
             return;
         }
 
@@ -1310,13 +1330,15 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     private async acquireDpopNonceWriteLock(): Promise<() => void> {
-        if (!(this.browserStorage instanceof LocalStorage)) {
+        if (!(this.dpopNonceStorage instanceof LocalStorage)) {
             return () => undefined;
         }
 
         const lockKey = this.getDpopNonceCoordinationKey("lock");
         const owner = createNewGuid();
-        while (true) {
+        const acquisitionDeadline =
+            Date.now() + DPOP_NONCE_WRITE_LOCK_TIMEOUT_MS;
+        while (Date.now() < acquisitionDeadline) {
             try {
                 const coordinationState = this.getDpopNonceCoordinationState();
                 const rawLock = window.localStorage.getItem(lockKey);
@@ -1328,6 +1350,9 @@ export class BrowserCacheManager extends CacheManager {
                     !parsedLock ||
                     !("expiresAt" in parsedLock) ||
                     typeof parsedLock.expiresAt !== "number" ||
+                    !Number.isFinite(parsedLock.expiresAt) ||
+                    parsedLock.expiresAt >
+                        now + DPOP_NONCE_WRITE_LOCK_DURATION_MS ||
                     parsedLock.expiresAt <= now;
 
                 const clearCompleted =
@@ -1360,6 +1385,8 @@ export class BrowserCacheManager extends CacheManager {
                 setTimeout(resolve, DPOP_NONCE_WRITE_LOCK_RETRY_MS);
             });
         }
+
+        throw new CacheError(CacheErrorCodes.cacheErrorUnknown);
     }
 
     /**
@@ -1384,7 +1411,7 @@ export class BrowserCacheManager extends CacheManager {
         const removedEntries: Array<{ key: string; value: string }> = [];
         try {
             for (const entry of evictionCandidates.slice(0, entriesToRemove)) {
-                const value = this.browserStorage.getItem(entry.key);
+                const value = this.dpopNonceStorage.getItem(entry.key);
                 if (value === null) {
                     continue;
                 }
@@ -1411,7 +1438,7 @@ export class BrowserCacheManager extends CacheManager {
     ): void {
         entries.forEach((entry) => {
             try {
-                this.browserStorage.setItem(entry.key, entry.value);
+                this.dpopNonceStorage.setItem(entry.key, entry.value);
             } catch {
                 // Preserve the original sanitized cache failure.
             }
@@ -1441,7 +1468,7 @@ export class BrowserCacheManager extends CacheManager {
                 candidate.issuerHash === currentKey?.issuerHash
             ) {
                 try {
-                    this.browserStorage.removeItem(candidateKey);
+                    this.dpopNonceStorage.removeItem(candidateKey);
                 } catch {
                     /*
                      * Old-schema nonce cache entries are treated as misses
@@ -1454,7 +1481,7 @@ export class BrowserCacheManager extends CacheManager {
 
         let rawEntity: string | null;
         try {
-            rawEntity = this.browserStorage.getItem(cacheKey);
+            rawEntity = this.dpopNonceStorage.getItem(cacheKey);
         } catch {
             return null;
         }
@@ -1466,7 +1493,7 @@ export class BrowserCacheManager extends CacheManager {
         const entity = this.validateAndParseJson(rawEntity);
         if (!isDpopNonceEntityValid(entity, this.clientId, nonceType, now)) {
             try {
-                this.browserStorage.removeItem(cacheKey);
+                this.dpopNonceStorage.removeItem(cacheKey);
             } catch {
                 /*
                  * Invalid nonce cache entries are treated as misses even when
@@ -1497,12 +1524,25 @@ export class BrowserCacheManager extends CacheManager {
      * write cannot report false success.
      */
     private getDpopNonceKeysForWrite(nonceType?: DpopNonceType): string[] {
-        return this.browserStorage.getKeys().filter((cacheKey) => {
+        return this.dpopNonceStorage.getKeys().filter((cacheKey) => {
             const parsedKey = parseDpopNonceCacheKey(cacheKey);
             return (
                 parsedKey?.clientId === this.clientId &&
                 (!nonceType || parsedKey.nonceType === nonceType)
             );
+        });
+    }
+
+    private removePersistedDpopNoncesFromLocalStorage(): void {
+        if (!(this.browserStorage instanceof LocalStorage)) {
+            return;
+        }
+
+        this.browserStorage.getKeys().forEach((cacheKey) => {
+            const parsedKey = parseDpopNonceCacheKey(cacheKey);
+            if (parsedKey?.clientId === this.clientId) {
+                this.browserStorage.removeItem(cacheKey);
+            }
         });
     }
 
@@ -1534,7 +1574,7 @@ export class BrowserCacheManager extends CacheManager {
         let firstError: CacheError | null = null;
         cacheKeys.forEach((cacheKey) => {
             try {
-                this.browserStorage.removeItem(cacheKey);
+                this.dpopNonceStorage.removeItem(cacheKey);
             } catch (error) {
                 firstError =
                     firstError ||
@@ -1566,7 +1606,7 @@ export class BrowserCacheManager extends CacheManager {
 
     private removeDpopNonceEntryForWrite(cacheKey: string): void {
         try {
-            this.browserStorage.removeItem(cacheKey);
+            this.dpopNonceStorage.removeItem(cacheKey);
         } catch (error) {
             const cacheError = createCacheError(error);
             throw new CacheError(cacheError.errorCode);
@@ -1583,7 +1623,7 @@ export class BrowserCacheManager extends CacheManager {
             const parsedKey = parseDpopNonceCacheKey(cacheKey);
             let rawEntity: string | null = null;
             try {
-                rawEntity = this.browserStorage.getItem(cacheKey);
+                rawEntity = this.dpopNonceStorage.getItem(cacheKey);
             } catch {
                 return;
             }
@@ -1600,7 +1640,7 @@ export class BrowserCacheManager extends CacheManager {
                 )
             ) {
                 try {
-                    this.browserStorage.removeItem(cacheKey);
+                    this.dpopNonceStorage.removeItem(cacheKey);
                 } catch {
                     /*
                      * Treat malformed entries as misses even if removal fails.
@@ -2759,7 +2799,13 @@ export class BrowserCacheManager extends CacheManager {
 
         // Remove temp storage first to make sure any cookies are cleared
         this.temporaryCacheStorage.getKeys().forEach((cacheKey: string) => {
-            if (parseDpopNonceCacheKey(cacheKey)) {
+            const parsedDpopNonceKey = parseDpopNonceCacheKey(cacheKey);
+            if (parsedDpopNonceKey?.clientId === this.clientId) {
+                try {
+                    this.removeTemporaryItem(cacheKey);
+                } catch {
+                    // Nonce cleanup is best effort during a full clear.
+                }
                 return;
             }
             if (

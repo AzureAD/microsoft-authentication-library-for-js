@@ -84,26 +84,53 @@ describe("DPoP nonce cache", () => {
         BrowserCacheLocation.MemoryStorage,
         BrowserCacheLocation.SessionStorage,
         BrowserCacheLocation.LocalStorage,
-    ])("stores opaque resource nonces in %s", async (cacheLocation) => {
-        const cacheManager = createCacheManager(cacheLocation);
-        const nonce = "  opaque%2Fnonce+/=  ";
+    ])(
+        "stores opaque resource nonces with %s configured",
+        async (cacheLocation) => {
+            const cacheManager = createCacheManager(cacheLocation);
+            const nonce = "  opaque%2Fnonce+/=  ";
+
+            await cacheManager.setDpopNonce(
+                DpopNonceType.ResourceServer,
+                "https://GRAPH.microsoft.com:443/v1.0/me?query=1#fragment",
+                nonce,
+                DpopNonceSource.ResourceServer
+            );
+
+            await expect(
+                cacheManager.getDpopNonce(
+                    DpopNonceType.ResourceServer,
+                    "https://graph.microsoft.com/another/path"
+                )
+            ).resolves.toBe(nonce);
+            expect(cacheManager.getKeys().join("|")).not.toContain(
+                "graph.microsoft.com"
+            );
+        }
+    );
+
+    it("uses sessionStorage for nonces when localStorage is configured", async () => {
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.LocalStorage
+        );
 
         await cacheManager.setDpopNonce(
             DpopNonceType.ResourceServer,
-            "https://GRAPH.microsoft.com:443/v1.0/me?query=1#fragment",
-            nonce,
+            "https://resource.example/path",
+            "session-only-nonce",
             DpopNonceSource.ResourceServer
         );
 
-        await expect(
-            cacheManager.getDpopNonce(
-                DpopNonceType.ResourceServer,
-                "https://graph.microsoft.com/another/path"
+        expect(
+            Object.keys(window.localStorage).some((key) =>
+                key.startsWith(DPOP_NONCE_CACHE_KEY_PREFIX)
             )
-        ).resolves.toBe(nonce);
-        expect(cacheManager.getKeys().join("|")).not.toContain(
-            "graph.microsoft.com"
-        );
+        ).toBe(false);
+        expect(
+            Object.keys(window.sessionStorage).some((key) =>
+                key.startsWith(DPOP_NONCE_CACHE_KEY_PREFIX)
+            )
+        ).toBe(true);
     });
 
     it("works with a custom IWindowStorage implementation", async () => {
@@ -419,6 +446,38 @@ describe("DPoP nonce cache", () => {
         await pca.initialize();
 
         expect(cacheManager.getDpopNonceKeys()).toHaveLength(0);
+    });
+
+    it("does not fail initialization when nonce scavenging throws", async () => {
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage
+        );
+        jest.spyOn(
+            cacheManager as unknown as {
+                getDpopNonceEntries: () => [];
+            },
+            "getDpopNonceEntries"
+        ).mockImplementation(() => {
+            throw new Error("enumeration failed");
+        });
+
+        await expect(
+            cacheManager.initialize(TEST_CONFIG.CORRELATION_ID)
+        ).resolves.toBeUndefined();
+    });
+
+    it("removes legacy plaintext localStorage nonce entries on initialization", async () => {
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.LocalStorage
+        );
+        const legacyKey = `${DPOP_NONCE_CACHE_KEY_PREFIX}.1|${encodeURIComponent(
+            clientId
+        )}|${DpopNonceType.ResourceServer}|legacy-hash`;
+        window.localStorage.setItem(legacyKey, "plaintext-nonce");
+
+        await cacheManager.initialize(TEST_CONFIG.CORRELATION_ID);
+
+        expect(window.localStorage.getItem(legacyKey)).toBeNull();
     });
 
     it("purges only a matching old-schema key when the current key is absent", async () => {
@@ -918,45 +977,24 @@ describe("DPoP nonce cache", () => {
         expect(writingCacheManager.getDpopNonceKeys()).toHaveLength(0);
     });
 
-    it("uses shared localStorage generation state to reject a pre-clear write", async () => {
+    it("does not use localStorage coordination for session-only nonce writes", async () => {
         const cacheManager = createCacheManager(
             BrowserCacheLocation.LocalStorage
         );
-        let resolvePendingHash: (hash: string) => void = () => undefined;
-        const pendingHash = new Promise<string>((resolve) => {
-            resolvePendingHash = resolve;
-        });
-        jest.spyOn(crypto, "hashString").mockImplementationOnce(
-            () => pendingHash
-        );
 
-        const pendingWrite = cacheManager.setDpopNonce(
+        await cacheManager.setDpopNonce(
             DpopNonceType.ResourceServer,
-            "https://before-clear.example.com/path",
-            "before-clear-nonce",
+            "https://resource.example.com/path",
+            "session-only-nonce",
             DpopNonceSource.ResourceServer
         );
-        await Promise.resolve();
 
-        const generationKey = Object.keys(window.localStorage).find((key) =>
-            key.startsWith("msal.dpop-nonce-coordination")
-        );
-        expect(generationKey).toBeUndefined();
-        window.localStorage.setItem(
-            `msal.dpop-nonce-coordination.${encodeURIComponent(
-                clientId
-            )}.generation`,
-            JSON.stringify({
-                generation: "new-generation",
-                clearing: false,
-                expiresAt: 0,
-            })
-        );
-
-        resolvePendingHash("pre-clear-hash");
-        await pendingWrite;
-
-        expect(cacheManager.getDpopNonceKeys()).toHaveLength(0);
+        expect(
+            Object.keys(window.localStorage).some((key) =>
+                key.startsWith(DPOP_NONCE_CACHE_KEY_PREFIX)
+            )
+        ).toBe(false);
+        expect(cacheManager.getDpopNonceKeys()).toHaveLength(1);
     });
 
     it("full clear removes current-client nonces but preserves another client's nonces", async () => {

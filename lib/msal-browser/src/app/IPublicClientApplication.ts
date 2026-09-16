@@ -63,7 +63,7 @@ export interface IPublicClientApplication {
     /**
      * Returns the token cache bound to this PublicClientApplication instance.
      */
-    getTokenCache(): ITokenCache;
+    getTokenCache?(): ITokenCache;
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;
     getActiveAccount(): AccountInfo | null;
