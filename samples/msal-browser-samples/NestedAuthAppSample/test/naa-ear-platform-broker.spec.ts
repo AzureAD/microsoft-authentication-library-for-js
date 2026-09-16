@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+// Tests the NAA, EAR, and platform broker end-to-end flow.
+
 import { ChildProcess, spawn } from "child_process";
 import * as path from "path";
 import { BrowserContext, Frame, Page } from "playwright-core";

@@ -1,3 +1,5 @@
+// Tests the NAA and EAR end-to-end flow.
+
 import { Browser, BrowserContext, Frame, Page } from "playwright-core";
 import {
     Screenshot,
