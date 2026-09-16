@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 02 Sep 2026 21:15:30 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 15 Sep 2026 19:42:08 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.22.0
+
+Tue, 15 Sep 2026 19:42:08 GMT
+
+### Minor changes
+
+- Export shared web broker bridge runtime utilities from the package root. [#8792](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8792) (shylasummers@microsoft.com)
+- Bump @azure/msal-common to v16.14.1
+
+### Patches
+
+- Fix flaky timestamp validation in unit tests [#8796](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8796) (kshabelko@microsoft.com)
 
 ## 5.21.0
 

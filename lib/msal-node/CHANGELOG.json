@@ -2,6 +2,27 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 15 Sep 2026 19:42:08 GMT",
+      "version": "6.0.1",
+      "tag": "@azure/msal-node_v6.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "c97d44c4eed672ff43d7b7836a7c82df7795f455",
+            "comment": "Document strict authorization code nonce validation behavior [#8801](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8801)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.14.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 28 Aug 2026 21:29:53 GMT",
       "version": "6.0.0",
       "tag": "@azure/msal-node_v6.0.0",
