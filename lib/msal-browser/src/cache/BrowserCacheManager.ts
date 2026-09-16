@@ -107,22 +107,37 @@ type UpdateOldEntryResult =
     | { entry: CredentialEntity; removalReason?: undefined }
     | { entry: null; removalReason: MigrationRemovalReason };
 
+/**
+ * In-realm write queue and clear generation shared by cache managers for one
+ * client and backing storage instance.
+ */
 type DpopNonceCacheState = {
     writeQueue: Promise<void>;
     generation: number;
 };
 
+/**
+ * Snapshot of the in-realm and cross-tab clear generations captured when a
+ * nonce write begins.
+ */
 type DpopNonceGeneration = {
     local: number;
     shared: string;
 };
 
+/**
+ * Cross-tab clear state persisted for one client; writes proceed only when the
+ * captured generation is current and clearing is inactive.
+ */
 type DpopNonceCoordinationState = {
     generation: string;
     clearing: boolean;
     expiresAt: number;
 };
 
+/**
+ * Short-lived cross-tab write lease owned by one nonce writer at a time.
+ */
 type DpopNonceWriteLock = {
     owner: string;
     expiresAt: number;
@@ -1142,7 +1157,11 @@ export class BrowserCacheManager extends CacheManager {
         try {
             this.browserStorage.setItem(cacheKey, serializedEntity);
             if (requiresCapacityEviction) {
-                this.enforceDpopNonceCapacity(cacheKey, retainedEntries);
+                this.enforceDpopNonceCapacity(
+                    cacheKey,
+                    entity,
+                    retainedEntries
+                );
             }
             return;
         } catch (error) {
@@ -1159,7 +1178,11 @@ export class BrowserCacheManager extends CacheManager {
         try {
             this.browserStorage.setItem(cacheKey, serializedEntity);
             if (requiresCapacityEviction) {
-                this.enforceDpopNonceCapacity(cacheKey, retainedEntries);
+                this.enforceDpopNonceCapacity(
+                    cacheKey,
+                    entity,
+                    retainedEntries
+                );
             }
             return;
         } catch (error) {
@@ -1188,7 +1211,11 @@ export class BrowserCacheManager extends CacheManager {
             try {
                 this.browserStorage.setItem(cacheKey, serializedEntity);
                 if (requiresCapacityEviction) {
-                    this.enforceDpopNonceCapacity(cacheKey, retainedEntries);
+                    this.enforceDpopNonceCapacity(
+                        cacheKey,
+                        entity,
+                        retainedEntries
+                    );
                 }
                 return;
             } catch (error) {
@@ -1341,13 +1368,22 @@ export class BrowserCacheManager extends CacheManager {
      */
     private enforceDpopNonceCapacity(
         cacheKey: string,
+        entity: DpopNonceEntity,
         retainedEntries: Array<{ key: string; entity: DpopNonceEntity }>
     ): void {
         const entriesToRemove =
             retainedEntries.length - DPOP_NONCE_MAX_ENTRIES_PER_TYPE + 1;
+        const evictionCandidates = [
+            ...retainedEntries,
+            { key: cacheKey, entity },
+        ].sort(
+            (left, right) =>
+                left.entity.lastUpdatedAt - right.entity.lastUpdatedAt ||
+                (left.key < right.key ? -1 : left.key > right.key ? 1 : 0)
+        );
         const removedEntries: Array<{ key: string; value: string }> = [];
         try {
-            for (const entry of retainedEntries.slice(0, entriesToRemove)) {
+            for (const entry of evictionCandidates.slice(0, entriesToRemove)) {
                 const value = this.browserStorage.getItem(entry.key);
                 if (value === null) {
                     continue;

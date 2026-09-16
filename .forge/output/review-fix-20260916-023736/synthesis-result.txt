@@ -1,7 +1,0 @@
-**Blocked:** the required `remove_finding`/`forge-tools-remove_finding` tool is unavailable in this session, so the FindingStore could not be modified.
-
-Detected semantic duplicates:
-- Remove `token-cache-missing-from-public-interface`; keep `token-cache-missing-from-pca-interface`.
-- Remove `dpop-nonce-cross-tab-race`; keep `dpop-nonce-cross-tab-clear-race`.
-
-No prior-decision data was provided to identify resolved findings.

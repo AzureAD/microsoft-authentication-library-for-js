@@ -519,6 +519,51 @@ describe("DPoP nonce cache", () => {
         ).resolves.toBe("nonce-1");
     });
 
+    it("discards a stale incoming entry when the cache is at capacity", async () => {
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.MemoryStorage
+        );
+        const now = 2_000_000_000_000;
+        const oldestTimestamp = now - DPOP_NONCE_MAX_ENTRIES_PER_TYPE;
+        jest.spyOn(Date, "now").mockReturnValue(now);
+
+        for (let i = 0; i < DPOP_NONCE_MAX_ENTRIES_PER_TYPE; i++) {
+            await cacheManager.setDpopNonce(
+                DpopNonceType.ResourceServer,
+                `https://resource-${i}.example/path`,
+                `nonce-${i}`,
+                DpopNonceSource.ResourceServer,
+                oldestTimestamp + i
+            );
+        }
+
+        await cacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://stale.example/path",
+            "stale-nonce",
+            DpopNonceSource.ResourceServer,
+            oldestTimestamp - 1
+        );
+
+        expect(
+            cacheManager.getDpopNonceKeys(DpopNonceType.ResourceServer)
+        ).toHaveLength(DPOP_NONCE_MAX_ENTRIES_PER_TYPE);
+        await expect(
+            cacheManager.getDpopNonce(
+                DpopNonceType.ResourceServer,
+                "https://stale.example/path",
+                now
+            )
+        ).resolves.toBeNull();
+        await expect(
+            cacheManager.getDpopNonce(
+                DpopNonceType.ResourceServer,
+                "https://resource-0.example/path",
+                now
+            )
+        ).resolves.toBe("nonce-0");
+    });
+
     it("uses ordinal cache-key ordering to break equal-timestamp eviction ties", async () => {
         const cacheManager = createCacheManager(
             BrowserCacheLocation.MemoryStorage
