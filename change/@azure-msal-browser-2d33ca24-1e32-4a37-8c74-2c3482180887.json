@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Treat bfcache restoration during redirects as user cancellation [#8838](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8838)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
