@@ -398,6 +398,29 @@ describe("DPoP nonce cache", () => {
         expect(storage.containsKey(schemaKey)).toBe(false);
     });
 
+    it("purges expired nonce entries during initialization", async () => {
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.LocalStorage
+        );
+        const expiredAt = Date.now() - DPOP_NONCE_TTL_MS - 1;
+        await cacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://expired.example/path",
+            "expired-nonce",
+            DpopNonceSource.ResourceServer,
+            expiredAt
+        );
+        expect(cacheManager.getDpopNonceKeys()).toHaveLength(1);
+
+        const pca = new PublicClientApplication({
+            auth: { clientId },
+            cache: { cacheLocation: BrowserCacheLocation.LocalStorage },
+        });
+        await pca.initialize();
+
+        expect(cacheManager.getDpopNonceKeys()).toHaveLength(0);
+    });
+
     it("purges only a matching old-schema key when the current key is absent", async () => {
         const storage = new MemoryStorage<string>();
         const cacheManager = createCacheManager(
@@ -848,6 +871,47 @@ describe("DPoP nonce cache", () => {
         await pendingWrite;
 
         expect(writingCacheManager.getDpopNonceKeys()).toHaveLength(0);
+    });
+
+    it("uses shared localStorage generation state to reject a pre-clear write", async () => {
+        const cacheManager = createCacheManager(
+            BrowserCacheLocation.LocalStorage
+        );
+        let resolvePendingHash: (hash: string) => void = () => undefined;
+        const pendingHash = new Promise<string>((resolve) => {
+            resolvePendingHash = resolve;
+        });
+        jest.spyOn(crypto, "hashString").mockImplementationOnce(
+            () => pendingHash
+        );
+
+        const pendingWrite = cacheManager.setDpopNonce(
+            DpopNonceType.ResourceServer,
+            "https://before-clear.example.com/path",
+            "before-clear-nonce",
+            DpopNonceSource.ResourceServer
+        );
+        await Promise.resolve();
+
+        const generationKey = Object.keys(window.localStorage).find((key) =>
+            key.startsWith("msal.dpop-nonce-coordination")
+        );
+        expect(generationKey).toBeUndefined();
+        window.localStorage.setItem(
+            `msal.dpop-nonce-coordination.${encodeURIComponent(
+                clientId
+            )}.generation`,
+            JSON.stringify({
+                generation: "new-generation",
+                clearing: false,
+                expiresAt: 0,
+            })
+        );
+
+        resolvePendingHash("pre-clear-hash");
+        await pendingWrite;
+
+        expect(cacheManager.getDpopNonceKeys()).toHaveLength(0);
     });
 
     it("full clear removes current-client nonces but preserves another client's nonces", async () => {

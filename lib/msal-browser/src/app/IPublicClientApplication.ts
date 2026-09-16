@@ -29,6 +29,7 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+import { ITokenCache } from "../cache/TokenCache.js";
 
 export interface IPublicClientApplication {
     // TODO: Make request mandatory in the next major version?
@@ -59,6 +60,10 @@ export interface IPublicClientApplication {
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
     getLogger(): Logger;
+    /**
+     * Returns the token cache bound to this PublicClientApplication instance.
+     */
+    getTokenCache(): ITokenCache;
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;
     getActiveAccount(): AccountInfo | null;
@@ -185,6 +190,12 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         return false;
     },
     getLogger: () => {
+        throw createBrowserConfigurationAuthError(
+            BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
+            ""
+        );
+    },
+    getTokenCache: () => {
         throw createBrowserConfigurationAuthError(
             BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
             ""

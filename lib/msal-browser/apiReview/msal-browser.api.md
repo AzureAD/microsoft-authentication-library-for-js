@@ -684,6 +684,7 @@ export interface IPublicClientApplication {
     getConfiguration(): BrowserConfiguration;
     // (undocumented)
     getLogger(): Logger;
+    getTokenCache(): ITokenCache;
     // (undocumented)
     handleRedirectPromise(options?: HandleRedirectPromiseOptions): Promise<AuthenticationResult | null>;
     // (undocumented)

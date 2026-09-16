@@ -1,0 +1,25 @@
+I’m establishing the privacy/security baseline and reviewing the nonce flow’s changed implementation surfaces first.
+
+The change persists opaque server-provided nonces in browser storage, so I’m now checking retention/cleanup guarantees, telemetry fields, and every public wiring path for exposure or orphaned data.
+
+I’m validating the implementation against the mandatory identity/TypeScript guardrails and checking whether “24-hour expiry” and logout actually remove persisted nonce material rather than only making it unreadable.
+
+The remaining material risk is retention: cached nonces become unusable after 24 hours, but local-storage records are only purged when that origin is read or another nonce operation happens. I’m pinning the finding to the exact changed logic.
+
+```json:findings
+[
+  {
+    "id": "dpop-nonce-ttl-not-enforced-at-rest",
+    "severity": "🟡",
+    "file": "lib/msal-browser/src/cache/BrowserCacheManager.ts",
+    "line": 1213,
+    "action": "fix",
+    "details": {
+      "problem": "Expired DPoP nonce values can remain indefinitely in persistent browser storage because TTL cleanup is only triggered by later nonce reads or writes.",
+      "reasoning": "[RETENTION] [PII] The nonce is opaque and can be a pseudonymous session/browser identifier; `getDpopNonce` cleans only the requested issuer key, while full nonce enumeration occurs only in write paths. If no later nonce operation or logout occurs, localStorage retains the value beyond the stated 24-hour retention period, violating storage-limitation expectations.",
+      "suggestion": "Purge all expired nonce entries belonging to the client during cache/PCA initialization, while keeping read/write cleanup, and add a prior-session localStorage test proving expiry is enforced without another nonce operation."
+    },
+    "confidence": "high"
+  }
+]
+```

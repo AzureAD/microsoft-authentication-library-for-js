@@ -1,0 +1,130 @@
+{
+  "iteration": 1,
+  "stepsTotal": 5,
+  "stepsCompleted": [
+    "review",
+    "fix",
+    "test-fix"
+  ],
+  "stepsFailed": [],
+  "stepsSkipped": [],
+  "stepsRunning": [
+    "commit-push",
+    "commit-push-tests"
+  ],
+  "stepsWaiting": [],
+  "findingsCount": 8,
+  "elapsedSeconds": 943.0366981,
+  "lastCompletedStep": "test-fix",
+  "lastUpdate": "2026-09-16T02:53:19.4468829Z",
+  "findings": [
+    {
+      "id": "dpop-nonce-cross-tab-clear-race",
+      "severity": "\uD83D\uDFE1",
+      "file": "lib/msal-browser/src/cache/BrowserCacheManager.ts",
+      "action": "fix",
+      "details": "The new WeakMap coordination works only for cache managers in the same realm. Separate tabs have separate maps but shared localStorage, allowing a pending pre-logout write to repopulate the nonce after another tab clears it and allowing stale cross-tab writes to win. Use a shared per-client generation/order marker or equivalent cross-tab coordination.",
+      "stepId": "review-logic",
+      "iteration": 1
+    },
+    {
+      "id": "dpop-nonce-cross-tab-race",
+      "severity": "\uD83D\uDFE1",
+      "file": "lib/msal-browser/src/cache/BrowserCacheManager.ts",
+      "action": "fix",
+      "details": "The module-local WeakMap serializes only managers in one JavaScript realm. Because localStorage is shared across tabs, concurrent deposits or a logout racing a pending write in another tab can leave an older or post-logout nonce in the shared cache.",
+      "stepId": "review-fresh-eyes",
+      "iteration": 1
+    },
+    {
+      "id": "dpop-nonce-ttl-not-enforced-at-rest",
+      "severity": "\uD83D\uDFE1",
+      "file": "lib/msal-browser/src/cache/BrowserCacheManager.ts",
+      "action": "fix",
+      "details": "[RETENTION] [PII] The 24-hour DPoP nonce TTL is enforced only when the same issuer is read or when a later nonce write enumerates cache entries; there is no purge when a PCA initializes or during ordinary non-nonce use. DPoP nonces are opaque server-provided values and may act as pseudonymous session/browser identifiers, so an expired entry in localStorage can remain physically stored indefinitely if the app receives no further nonce challenge and the user does not explicitly clear/logout, despite the documented 24-hour expiry. Purge all expired nonce entries for the current client during cache/PCA initialization (and retain the existing read/write cleanup), with a test that seeds an expired localStorage entry from a prior session and verifies a newly initialized PCA removes it without a nonce read or write.",
+      "stepId": "privacy-review",
+      "iteration": 1
+    },
+    {
+      "id": "dpop-storage-change-missing-compatibility-map-entry",
+      "severity": "\uD83D\uDFE1",
+      "file": "lib/msal-browser/src/cache/BrowserCacheManager.ts",
+      "action": "fix",
+      "details": "This change adds DPoP nonce persistence through the browser storage implementations but does not update \u0060lib/msal-browser/docs/browser-compat-map.md\u0060. The applicable documented instruction requires map updates when browser Web API usage changes; its Storage table currently describes only interaction state/token cache and does not identify nonce persistence, its fallback, or the same private-browsing/storage-partitioning limitations. Add the nonce use and fallback behavior to the relevant storage rows so consumers can assess the persistence guarantees of this new API.",
+      "stepId": "review-standards",
+      "iteration": 1
+    },
+    {
+      "id": "token-cache-missing-from-pca-interface",
+      "severity": "\uD83D\uDFE1",
+      "file": "lib/msal-browser/src/app/PublicClientApplication.ts",
+      "action": "fix",
+      "details": "The new getTokenCache API is not declared on IPublicClientApplication, although createStandardPublicClientApplication returns Promise\u003CIPublicClientApplication\u003E. Consumers that follow the supported factory API receive the interface type and cannot call getTokenCache(). This makes the newly documented DPoP nonce deposit API unavailable at compile time for the primary PCA construction path, despite it being present at runtime.",
+      "stepId": "validate-pr",
+      "iteration": 1
+    },
+    {
+      "id": "token-cache-missing-from-public-interface",
+      "severity": "\uD83D\uDFE1",
+      "file": "lib/msal-browser/src/app/PublicClientApplication.ts",
+      "action": "fix",
+      "details": "The new getTokenCache() API is added only to the concrete PublicClientApplication class, not to IPublicClientApplication. Public factory callers therefore cannot access it through their declared return type; add the method to IPublicClientApplication and its stub implementation.\n\n_Flagged by: review-fresh-eyes, review-standards, review-logic_\n\n_Merged from: public-token-cache-api-missing-from-interface, token-cache-missing-from-public-interface_",
+      "stepId": "review-fresh-eyes",
+      "iteration": 1
+    },
+    {
+      "id": "unknown-controller-does-not-sync-token-cache-logger",
+      "severity": "\uD83D\uDFE1",
+      "file": "lib/msal-browser/src/controllers/UnknownOperatingContextController.ts",
+      "action": "fix",
+      "details": "\u0060UnknownOperatingContextController.setLogger()\u0060 does not call \u0060this.tokenCache.setLogger(logger)\u0060, unlike the newly updated \u0060StandardController.setLogger()\u0060 and \u0060NestedAppAuthController.setLogger()\u0060. If a caller retrieves the instance-bound token cache, replaces the PCA logger, then invokes \u0060loadDpopNonce\u0060, performance/error logging continues through the stale logger only for this controller. Update this method to synchronize the token cache after the normal guards, matching the sibling controllers.",
+      "stepId": "review-standards",
+      "iteration": 1
+    },
+    {
+      "id": "validate-pr-pbi-unavailable",
+      "severity": "\uD83D\uDFE1",
+      "action": "info",
+      "details": "Could not retrieve PBI AB#3677519, so acceptance-criteria and expected-file coverage could not be validated. The available ADO work-item MCP scope returned no matching work item.",
+      "stepId": "validate-pr",
+      "iteration": 1
+    }
+  ],
+  "fileChanges": [
+    {
+      "path": "lib/msal-browser/apiReview/msal-browser.api.md",
+      "added": 1,
+      "removed": 0
+    },
+    {
+      "path": "lib/msal-browser/docs/browser-compat-map.md",
+      "added": 3,
+      "removed": 2
+    },
+    {
+      "path": "lib/msal-browser/src/app/IPublicClientApplication.ts",
+      "added": 11,
+      "removed": 0
+    },
+    {
+      "path": "lib/msal-browser/src/cache/BrowserCacheManager.ts",
+      "added": 190,
+      "removed": 4
+    },
+    {
+      "path": "lib/msal-browser/src/controllers/UnknownOperatingContextController.ts",
+      "added": 3,
+      "removed": 1
+    },
+    {
+      "path": "lib/msal-browser/test/app/IPublicClientApplication.spec.ts",
+      "added": 8,
+      "removed": 0
+    },
+    {
+      "path": "lib/msal-browser/test/cache/DpopNonceCache.spec.ts",
+      "added": 64,
+      "removed": 0
+    }
+  ]
+}
