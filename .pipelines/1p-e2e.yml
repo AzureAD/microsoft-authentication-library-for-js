@@ -24,6 +24,7 @@ variables:
     DEBIAN_FRONTEND: noninteractive
     sourceBranch: $[coalesce(replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', ''), replace(variables['Build.SourceBranch'], 'refs/heads/', ''))]
     sourceRepo: "microsoft-authentication-library-for-js"
+    NODE_OPTIONS: "--max-old-space-size=4096"
 
 resources:
     repositories:

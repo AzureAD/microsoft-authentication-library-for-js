@@ -96,9 +96,7 @@ describe("MFARequiredStateV2", () => {
             },
         });
         expect(result.isState("mfaVerificationRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(
-            MFAVerificationRequiredStateV2
-        );
+        expect(result.state).toBeInstanceOf(MFAVerificationRequiredStateV2);
     });
 
     it("rejects a method not returned by the server", async () => {

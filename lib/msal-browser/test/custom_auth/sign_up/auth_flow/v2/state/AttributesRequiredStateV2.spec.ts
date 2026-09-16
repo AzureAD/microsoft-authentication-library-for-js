@@ -106,9 +106,7 @@ describe("AttributesRequiredStateV2", () => {
         });
 
         expect(result.isState("codeRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(
-            CodeRequiredStateV2
-        );
+        expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
     });
 
     it("identifies an existing account from an attribute-submission error", async () => {

@@ -12,9 +12,7 @@ import type { FailedStateV2 } from "../state/FailedStateV2.js";
  * The states a password-reset request-challenge action can resolve to.
  * Password reset supports email one-time-code verification only.
  */
-export type RequestChallengeResultStateV2 =
-    | CodeRequiredStateV2
-    | FailedStateV2;
+export type RequestChallengeResultStateV2 = CodeRequiredStateV2 | FailedStateV2;
 
 /**
  * Result of requesting (or resending) a challenge. It wraps one of

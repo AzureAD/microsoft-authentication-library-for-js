@@ -228,7 +228,9 @@ describe("CustomAuthPublicClientApplication", () => {
                 username: "testuser",
             };
 
-            const mockResetPasswordV2Result = { state: { stateType: "failed" } };
+            const mockResetPasswordV2Result = {
+                state: { stateType: "failed" },
+            };
 
             const app = await CustomAuthPublicClientApplication.create(
                 customAuthConfig
@@ -241,9 +243,7 @@ describe("CustomAuthPublicClientApplication", () => {
             };
             (app as any)["customAuthController"] = controllerMock;
 
-            const result = await app.resetPasswordV2(
-                mockResetPasswordV2Inputs
-            );
+            const result = await app.resetPasswordV2(mockResetPasswordV2Inputs);
 
             expect(controllerMock.resetPasswordV2).toHaveBeenCalledWith(
                 mockResetPasswordV2Inputs

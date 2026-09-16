@@ -48,5 +48,4 @@ export type SignUpInputsV2 = SignUpInputs & {
     claims?: string;
 };
 
-export type SignInContinuationInputsV2 =
-    SignInWithContinuationTokenInputs;
+export type SignInContinuationInputsV2 = SignInWithContinuationTokenInputs;
