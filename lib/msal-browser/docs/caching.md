@@ -107,12 +107,13 @@ response-header value unchanged. Empty values, control characters, and values
 larger than 1024 UTF-8 bytes are rejected, as are invalid or non-HTTPS resource
 URIs.
 
-The nonce uses the PCA's configured cache location (`sessionStorage`,
-`localStorage`, or memory) and expires after 24 hours. `loadDpopNonce()` only
-deposits the nonce; MSAL does not retry the resource request or automatically
-attach the nonce to a DPoP proof. MSAL removes these entries when `clearCache()`
-or logout clears the PCA cache. Storage and validation failures reject
-`loadDpopNonce()` with an MSAL error.
+The nonce uses memory when the PCA cache is configured for memory and
+`sessionStorage` otherwise, and expires after 24 hours. Nonces are never
+persisted in `localStorage`. `loadDpopNonce()` only deposits the nonce; MSAL
+does not retry the resource request or automatically attach the nonce to a DPoP
+proof. MSAL removes these entries when `clearCache()` or logout clears the PCA
+cache. Storage and validation failures reject `loadDpopNonce()` with an MSAL
+error.
 
 ## Cache persistence during MSAL.js upgrades and rollbacks
 

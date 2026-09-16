@@ -11,11 +11,7 @@ import {
 import { TEST_CONFIG, RANDOM_TEST_GUID } from "../utils/StringConstants.js";
 import { NestedAppOperatingContext } from "../../src/operatingcontext/NestedAppOperatingContext.js";
 import { NestedAppAuthController } from "../../src/controllers/NestedAppAuthController.js";
-import {
-    Configuration,
-    IPublicClientApplication,
-    ITokenCache,
-} from "../../src/index.js";
+import { Configuration, IPublicClientApplication } from "../../src/index.js";
 import { IController } from "../../src/controllers/IController.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import { stubbedPublicClientApplication } from "../../src/app/IPublicClientApplication.js";
@@ -89,10 +85,8 @@ describe("createNestablePublicClientApplication tests", () => {
     });
 
     it("throws a deterministic MSAL error for a legacy injected controller without token cache support", () => {
-        const {
-            getTokenCache: _getTokenCache,
-            ...legacyController
-        } = stubbedPublicClientApplication;
+        const { getTokenCache: _getTokenCache, ...legacyController } =
+            stubbedPublicClientApplication;
         const pca = new PublicClientApplication(
             testConfig,
             legacyController as IController
@@ -277,7 +271,6 @@ describe("createNestablePublicClientApplication tests", () => {
                     logoutPopup = jest.fn();
                     ssoSilent = jest.fn();
                     getLogger = jest.fn();
-                    getTokenCache = jest.fn<ITokenCache, []>();
                     setLogger = jest.fn();
                     setActiveAccount = jest.fn();
                     getActiveAccount = jest.fn();

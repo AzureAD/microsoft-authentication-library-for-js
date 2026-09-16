@@ -20,7 +20,7 @@ This document catalogs browser Web APIs that MSAL Browser depends on, their role
 - Safari ITP: 7-day cap on script-writable `localStorage`/cookies — tokens evicted without user interaction
 - Firefox PB: `indexedDB.open()` throws `SecurityError` — PoP/DPoP key storage falls back to memory
 - Chrome 115+ / Safari 16.1+: storage partitioned in cross-origin iframes — affects NAA and embedded apps
-- DPoP nonce persistence follows the configured cache location and its private-browsing, eviction, and storage-partitioning limitations; memory fallback retains nonces only for the current page lifetime
+- DPoP nonces are restricted to session or memory storage and are not shared across tabs
 
 ### Crypto
 
