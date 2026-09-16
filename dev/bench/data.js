@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789516541065,
+  "lastUpdate": 1789592340193,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23429,6 +23429,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.83%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5b44551e4944fc92a6d63a8a630a9dd4bd518ed3",
+          "message": "Pin GitHub Actions to full-length commit SHAs (#8821)\n\n## Summary\n\nBridges the approved fork contribution in #8812 into an upstream branch\nso the repository's full Azure Pipelines CI can validate it before\nmerging to `dev`.\n\nThis change pins GitHub Actions to full-length commit SHAs and adds a\nseven-day Dependabot cooldown for GitHub Actions updates, reducing\nsupply-chain risk from mutable or newly compromised action releases.\n\n## Contribution\n\n- Original PR: #8812 by @danfiedler-msft\n- The squash commit records the original contributor in its commit\nmetadata and message.\n\n## How to validate\n\n- Confirm all required GitHub Actions and Azure Pipelines checks\ncomplete successfully.\n- Confirm each pinned SHA resolves to the intended action version\ndocumented by its adjacent version comment.\n- Confirm Dependabot accepts the `github-actions` cooldown\nconfiguration.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-mixed\ntype: security\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\nCo-authored-by: Dan Fiedler <151573964+danfiedler-msft@users.noreply.github.com>",
+          "timestamp": "2026-09-16T20:51:02Z",
+          "tree_id": "296d6e99a9cd95c9247c05cd4c20f25ef9e8ae3c",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5b44551e4944fc92a6d63a8a630a9dd4bd518ed3"
+        },
+        "date": 1789592336438,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 352082,
+            "range": "±1.05%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 352317,
+            "range": "±0.86%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
           }
         ]
       }
