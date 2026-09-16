@@ -128,30 +128,21 @@ expected for local use.
 
 ## Running the end-to-end tests
 
-The end-to-end suites live in `test/` and cover two host configurations, each of
-which also has an **Encrypted Authorize Response (EAR)** combination variant:
+The end-to-end suites live in `test/`:
 
-| Spec / suite                      | Host flow                            | Runs in CI?              | Command                       |
-| --------------------------------- | ------------------------------------ | ------------------------ | ----------------------------- |
-| `naa-basic.spec.ts`               | Web flow (Playwright)                | Yes (`naa-basic` filter) | `npm run test:e2e:naa-basic`  |
-| `naa-ear.spec.ts`                 | Web flow + `ProtocolMode.EAR`        | Yes (`naa-ear` filter)   | `npm run test:e2e:ear`        |
-| `naa-platform-broker.spec.ts`     | Platform broker / WAM (Playwright)   | No (self-hosted)         | `npm run test:e2e:broker`     |
-| `naa-ear-platform-broker.spec.ts` | Platform broker + `ProtocolMode.EAR` | No (self-hosted)         | `npm run test:e2e:ear-broker` |
+| Spec / suite                      | Flows tested                          | Runs in CI?              | Command                       |
+| --------------------------------- | ------------------------------------- | ------------------------ | ----------------------------- |
+| `naa-basic.spec.ts`               | Basic NAA e2e tests                   | Yes (`naa-basic` filter) | `npm run test:e2e:naa-basic`  |
+| `naa-ear.spec.ts`                 | NAA + EAR e2e tests                   | Yes (`naa-ear` filter)   | `npm run test:e2e:ear`        |
+| `naa-platform-broker.spec.ts`     | NAA + platform broker e2e tests       | No (self-hosted)         | `npm run test:e2e:broker`     |
+| `naa-ear-platform-broker.spec.ts` | NAA + EAR + platform broker e2e tests | No (self-hosted)         | `npm run test:e2e:ear-broker` |
 
-The base suites exercise Nested App Authentication through the **host-supplied**
-`window.nestedAppAuthBridge`: the host brokers the nested app's token and the
-test asserts the nested app stores its account and ID token in the configured
-browser storage, stores the returned access token according to its configured
-cache location, and never receives a refresh token. When the host uses WAM,
-MSAL keeps the host's access token in internal memory while account and ID-token
-artifacts use the host's configured cache; native credential state remains
-owned by the platform broker.
+The nested app receives tokens through `window.nestedAppAuthBridge`, stores
+account artifacts and returned tokens according to its MSAL cache configuration,
+and does not receive a refresh token.
 
-The **EAR** suites open the host with `?ear=true` so it runs in
-`ProtocolMode.EAR`; the host's login and the token it brokers for the nested app
-use the same client IDs as the base NAA suites and are routed through the
-EAR-allow-listed test slice. A `crypto.subtle.decrypt` spy asserts the response
-was actually decrypted (i.e. EAR was used, not a plaintext auth-code fallback).
+EAR is enabled with `?ear=true` and `ProtocolMode.EAR`. The EAR suites use the
+allow-listed test slice and verify decryption with a `crypto.subtle.decrypt` spy.
 
 The platform-broker suites are **self-hosted only**: they require branded
 Chrome, the Microsoft SSO extension, WAM, and a brokerable signed-in Windows
