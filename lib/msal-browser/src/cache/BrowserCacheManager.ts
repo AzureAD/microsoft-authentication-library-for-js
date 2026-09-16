@@ -86,6 +86,7 @@ import { clearHash } from "../utils/BrowserUtils.js";
 import { version } from "../packageMetadata.js";
 import { removeElementFromArray } from "../utils/Helpers.js";
 import { EncryptedData, isEncrypted } from "./EncryptedData.js";
+import { createNewGuid } from "../crypto/BrowserCrypto.js";
 
 type KmsiMap = { [homeAccountId: string]: boolean };
 
@@ -110,6 +111,26 @@ type DpopNonceCacheState = {
     writeQueue: Promise<void>;
     generation: number;
 };
+
+type DpopNonceGeneration = {
+    local: number;
+    shared: string;
+};
+
+type DpopNonceCoordinationState = {
+    generation: string;
+    clearing: boolean;
+    expiresAt: number;
+};
+
+type DpopNonceWriteLock = {
+    owner: string;
+    expiresAt: number;
+};
+
+const DPOP_NONCE_COORDINATION_PREFIX = "msal.dpop-nonce-coordination";
+const DPOP_NONCE_WRITE_LOCK_DURATION_MS = 5_000;
+const DPOP_NONCE_WRITE_LOCK_RETRY_MS = 10;
 
 const dpopNonceCacheStates = new WeakMap<
     object,
@@ -228,6 +249,7 @@ export class BrowserCacheManager extends CacheManager {
         );
         await this.browserStorage.initialize(correlationId);
         await this.migrateExistingCache(correlationId);
+        this.getDpopNonceEntries();
         this.trackVersionChanges(correlationId);
     }
 
@@ -1046,7 +1068,7 @@ export class BrowserCacheManager extends CacheManager {
             nonce,
             lastUpdatedAt
         );
-        const cacheGeneration = this.dpopNonceCacheState.generation;
+        const cacheGeneration = this.getDpopNonceGeneration();
         const writeOperation = this.dpopNonceCacheState.writeQueue.then(() =>
             this.setDpopNonceInternal(
                 nonceType,
@@ -1065,16 +1087,32 @@ export class BrowserCacheManager extends CacheManager {
         nonceType: DpopNonceType,
         issuerUri: string,
         entity: DpopNonceEntity,
-        cacheGeneration: number
+        cacheGeneration: DpopNonceGeneration
     ): Promise<void> {
         const cacheKey = await this.generateDpopNonceCacheKey(
             nonceType,
             issuerUri
         );
-        if (cacheGeneration !== this.dpopNonceCacheState.generation) {
-            return;
-        }
+        const releaseLock = await this.acquireDpopNonceWriteLock();
+        try {
+            if (!this.isDpopNonceGenerationCurrent(cacheGeneration)) {
+                return;
+            }
 
+            this.setDpopNonceByCacheKey(nonceType, cacheKey, entity);
+            if (!this.isDpopNonceGenerationCurrent(cacheGeneration)) {
+                this.removeDpopNonceEntryForWrite(cacheKey);
+            }
+        } finally {
+            releaseLock();
+        }
+    }
+
+    private setDpopNonceByCacheKey(
+        nonceType: DpopNonceType,
+        cacheKey: string,
+        entity: DpopNonceEntity
+    ): void {
         let persistedEntity: object | null = null;
         try {
             const persistedValue = this.browserStorage.getItem(cacheKey);
@@ -1166,6 +1204,135 @@ export class BrowserCacheManager extends CacheManager {
 
         this.restoreDpopNonceEntries(removedEntries);
         throw new CacheError(CacheErrorCodes.cacheQuotaExceeded);
+    }
+
+    private getDpopNonceCoordinationKey(suffix: string): string {
+        return `${DPOP_NONCE_COORDINATION_PREFIX}.${encodeURIComponent(
+            this.clientId
+        )}.${suffix}`;
+    }
+
+    private getDpopNonceCoordinationState(): DpopNonceCoordinationState {
+        if (!(this.browserStorage instanceof LocalStorage)) {
+            return { generation: "", clearing: false, expiresAt: 0 };
+        }
+
+        const rawState = window.localStorage.getItem(
+            this.getDpopNonceCoordinationKey("generation")
+        );
+        if (!rawState) {
+            return { generation: "", clearing: false, expiresAt: 0 };
+        }
+
+        const parsedState = this.validateAndParseJson(rawState);
+        if (
+            parsedState &&
+            "generation" in parsedState &&
+            typeof parsedState.generation === "string" &&
+            "clearing" in parsedState &&
+            typeof parsedState.clearing === "boolean" &&
+            "expiresAt" in parsedState &&
+            typeof parsedState.expiresAt === "number"
+        ) {
+            return {
+                generation: parsedState.generation,
+                clearing: parsedState.clearing,
+                expiresAt: parsedState.expiresAt,
+            };
+        }
+
+        return { generation: "", clearing: false, expiresAt: 0 };
+    }
+
+    private setDpopNonceCoordinationState(
+        state: DpopNonceCoordinationState
+    ): void {
+        if (!(this.browserStorage instanceof LocalStorage)) {
+            return;
+        }
+
+        try {
+            window.localStorage.setItem(
+                this.getDpopNonceCoordinationKey("generation"),
+                JSON.stringify(state)
+            );
+        } catch (error) {
+            throw new CacheError(createCacheError(error).errorCode);
+        }
+    }
+
+    private getDpopNonceGeneration(): DpopNonceGeneration {
+        try {
+            return {
+                local: this.dpopNonceCacheState.generation,
+                shared: this.getDpopNonceCoordinationState().generation,
+            };
+        } catch (error) {
+            throw new CacheError(createCacheError(error).errorCode);
+        }
+    }
+
+    private isDpopNonceGenerationCurrent(
+        generation: DpopNonceGeneration
+    ): boolean {
+        return (
+            generation.local === this.dpopNonceCacheState.generation &&
+            generation.shared ===
+                this.getDpopNonceCoordinationState().generation
+        );
+    }
+
+    private async acquireDpopNonceWriteLock(): Promise<() => void> {
+        if (!(this.browserStorage instanceof LocalStorage)) {
+            return () => undefined;
+        }
+
+        const lockKey = this.getDpopNonceCoordinationKey("lock");
+        const owner = createNewGuid();
+        while (true) {
+            try {
+                const coordinationState = this.getDpopNonceCoordinationState();
+                const rawLock = window.localStorage.getItem(lockKey);
+                const parsedLock = rawLock
+                    ? this.validateAndParseJson(rawLock)
+                    : null;
+                const now = Date.now();
+                const lockExpired =
+                    !parsedLock ||
+                    !("expiresAt" in parsedLock) ||
+                    typeof parsedLock.expiresAt !== "number" ||
+                    parsedLock.expiresAt <= now;
+
+                const clearCompleted =
+                    !coordinationState.clearing ||
+                    coordinationState.expiresAt <= now;
+                if (clearCompleted && lockExpired) {
+                    const lock: DpopNonceWriteLock = {
+                        owner,
+                        expiresAt: now + DPOP_NONCE_WRITE_LOCK_DURATION_MS,
+                    };
+                    const serializedLock = JSON.stringify(lock);
+                    window.localStorage.setItem(lockKey, serializedLock);
+                    if (
+                        window.localStorage.getItem(lockKey) === serializedLock
+                    ) {
+                        return () => {
+                            const currentLock =
+                                window.localStorage.getItem(lockKey);
+                            if (currentLock === serializedLock) {
+                                window.localStorage.removeItem(lockKey);
+                            }
+                        };
+                    }
+                }
+            } catch (error) {
+                throw new CacheError(createCacheError(error).errorCode);
+            }
+
+            await new Promise<void>((resolve) => {
+                setTimeout(resolve, DPOP_NONCE_WRITE_LOCK_RETRY_MS);
+            });
+        }
     }
 
     /**
@@ -1310,10 +1477,21 @@ export class BrowserCacheManager extends CacheManager {
      */
     clearDpopNonces(): void {
         this.dpopNonceCacheState.generation++;
+        const sharedGeneration = createNewGuid();
+        this.setDpopNonceCoordinationState({
+            generation: sharedGeneration,
+            clearing: true,
+            expiresAt: Date.now() + DPOP_NONCE_WRITE_LOCK_DURATION_MS,
+        });
         let cacheKeys: string[];
         try {
             cacheKeys = this.getDpopNonceKeysForWrite();
         } catch (error) {
+            this.setDpopNonceCoordinationState({
+                generation: sharedGeneration,
+                clearing: false,
+                expiresAt: 0,
+            });
             throw new CacheError(createCacheError(error).errorCode);
         }
 
@@ -1326,6 +1504,11 @@ export class BrowserCacheManager extends CacheManager {
                     firstError ||
                     new CacheError(createCacheError(error).errorCode);
             }
+        });
+        this.setDpopNonceCoordinationState({
+            generation: sharedGeneration,
+            clearing: false,
+            expiresAt: 0,
         });
 
         if (firstError) {
@@ -2553,6 +2736,9 @@ export class BrowserCacheManager extends CacheManager {
 
         // Removes all remaining MSAL cache items
         this.browserStorage.getKeys().forEach((cacheKey: string) => {
+            if (cacheKey.startsWith(DPOP_NONCE_COORDINATION_PREFIX)) {
+                return;
+            }
             const parsedDpopNonceKey = parseDpopNonceCacheKey(cacheKey);
             if (parsedDpopNonceKey) {
                 if (parsedDpopNonceKey.clientId === this.clientId) {

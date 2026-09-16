@@ -67,7 +67,7 @@ export class UnknownOperatingContextController implements IController {
 
     // Storage interface implementation
     protected readonly browserStorage: BrowserCacheManager;
-    private readonly tokenCache: ITokenCache;
+    private readonly tokenCache: TokenCache;
 
     // Input configuration by developer/user
     protected readonly config: BrowserConfiguration;
@@ -271,6 +271,8 @@ export class UnknownOperatingContextController implements IController {
     setLogger(logger: Logger): void {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
+        this.logger = logger;
+        this.tokenCache.setLogger(logger);
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setActiveAccount(account: AccountInfo | null): void {

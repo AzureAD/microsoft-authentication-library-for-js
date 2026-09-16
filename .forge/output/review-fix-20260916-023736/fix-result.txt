@@ -1,0 +1,19 @@
+I’m loading the authoritative findings, decisions, diffs, and repository rules, then I’ll apply the fixes as one coherent cache/API update.
+
+The cache races require shared-storage coordination rather than another in-memory queue. I’m reading the storage abstractions and existing nonce tests now so the lock/generation marker integrates without changing credential cleanup semantics.
+
+I’ve settled on a storage-backed generation marker plus a short-lived localStorage write lock: clears invalidate pending writes across tabs, and deposits are serialized across realms. I’m applying that with initialization-time TTL purging, the public interface/stub update, logger synchronization, tests, and compatibility documentation.
+
+The fixes are in place. I’m running formatting, the focused nonce/interface tests, and the package build/API checks; any type or behavioral failures will be corrected before decisions are recorded.
+
+Validation found one concrete typing mismatch: the unknown controller stored its concrete `TokenCache` as the public `ITokenCache`, hiding the internal logger setter. I’m correcting that, formatting the package, then rerunning checks sequentially now that `msal-common` has been rebuilt.
+
+Focused tests and the dependency-ordered build pass. API Extractor only requires the repository’s local-report update, so I’m regenerating that canonical report and reviewing the final diff before lint/format verification and finding decisions.
+
+Final inspection exposed a crash-recovery edge case in the new coordination marker: a tab closing mid-clear could otherwise leave writers waiting indefinitely. I’m making the clear marker lease-based and adding direct shared-localStorage race coverage before the last test run.
+
+All targeted tests now pass (40/40), type generation succeeds, formatting is clean, and lint has no errors. I’m recording each upstream finding as fixed and leaving the pipeline-generated `.forge/` state untouched.
+
+**Fixed all 7 actionable findings.** Added cross-tab nonce write/clear coordination, initialization-time TTL purging, `getTokenCache()` to the public interface and stub, unknown-controller logger synchronization, compatibility documentation, API report updates, and regression coverage.
+
+Validation passed: 40 focused tests, TypeScript build, API Extractor, formatting, and lint with no errors. All findings were recorded as fixed.
