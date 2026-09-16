@@ -1,5 +1,0 @@
-I’m loading the actionable review findings and prior decisions, then I’ll patch only the cited files.
-
-The only upstream item is informational and contains no code defect or actionable file; I’m recording it as not fixable in this step without making unrelated edits.
-
-No source changes were made because the upstream step produced only the informational `source-code-mcp-tool-missing` finding, with no actionable code issue or target file. Recorded it as `wontfix`; unrelated edits would be unsafe.
