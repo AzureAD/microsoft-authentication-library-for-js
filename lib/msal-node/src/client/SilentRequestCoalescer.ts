@@ -6,7 +6,6 @@
 import {
     AADServerParamKeys,
     AuthenticationResult,
-    AuthError,
     CommonSilentFlowRequest,
     Logger,
     NativeRequest,
@@ -56,7 +55,10 @@ export function acquireTokenSilentDeduped(
             "acquireTokenSilent has been called previously, returning the result from the first call",
             correlationId
         );
-        return applyCallerCorrelationId(inProgressRequest, correlationId);
+        return applyCallerCorrelationIdToResult(
+            inProgressRequest,
+            correlationId
+        );
     }
 
     logger.verbose(
@@ -73,7 +75,7 @@ export function acquireTokenSilentDeduped(
         });
     activeRequests.set(silentRequestKey, activeRequest);
 
-    return applyCallerCorrelationId(activeRequest, correlationId);
+    return applyCallerCorrelationIdToResult(activeRequest, correlationId);
 }
 
 /**
@@ -181,39 +183,15 @@ function canonicalizeRequestValues(
 }
 
 /**
- * Applies the caller's correlation ID without mutating a result or shared error.
+ * Applies the caller's correlation ID to successful results.
+ * Shared failures retain the original error and underlying operation correlation ID.
  */
-function applyCallerCorrelationId(
+function applyCallerCorrelationIdToResult(
     activeRequest: Promise<AuthenticationResult>,
     correlationId: string
 ): Promise<AuthenticationResult> {
-    return activeRequest
-        .then((result) => ({
-            ...result,
-            correlationId,
-        }))
-        .catch((error: unknown) => {
-            if (error instanceof AuthError) {
-                if (error.correlationId === correlationId) {
-                    throw error;
-                }
-
-                const callerError = Object.create(
-                    Object.getPrototypeOf(error),
-                    {
-                        ...Object.getOwnPropertyDescriptors(error),
-                        // Materialize the original stack; copying V8's stack accessor does not copy its backing state.
-                        stack: {
-                            value: error.stack,
-                            writable: true,
-                            configurable: true,
-                        },
-                    }
-                ) as AuthError;
-                callerError.correlationId = correlationId;
-                throw callerError;
-            }
-
-            throw error;
-        });
+    return activeRequest.then((result) => ({
+        ...result,
+        correlationId,
+    }));
 }

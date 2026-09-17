@@ -993,23 +993,15 @@ describe("PublicClientApplication", () => {
             rejectRequest(requestError);
 
             const [firstResult, secondResult] = await settledRequests;
-            expect(firstResult).toEqual({
-                status: "rejected",
-                reason: expect.objectContaining({
-                    correlationId: "first-correlation-id",
-                }),
-            });
-            expect(secondResult).toEqual({
-                status: "rejected",
-                reason: expect.objectContaining({
-                    correlationId: "second-correlation-id",
-                }),
-            });
             if (
                 firstResult.status === "rejected" &&
                 secondResult.status === "rejected"
             ) {
-                expect(firstResult.reason).not.toBe(secondResult.reason);
+                expect(firstResult.reason).toBe(requestError);
+                expect(secondResult.reason).toBe(requestError);
+                expect(requestError.correlationId).toBe("first-correlation-id");
+            } else {
+                throw new Error("Both silent callers must receive the failure");
             }
 
             await expect(authApp.acquireTokenSilent(request)).resolves.toEqual(

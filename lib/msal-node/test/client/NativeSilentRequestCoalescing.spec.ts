@@ -5,6 +5,7 @@
 
 import {
     AADServerParamKeys,
+    AuthError,
     AuthenticationResult,
     AzureCloudInstance,
     Constants,
@@ -25,6 +26,24 @@ import {
     mockNativeAuthenticationResult,
     TEST_CONSTANTS,
 } from "../utils/TestConstants.js";
+
+const privateErrorDetails = new WeakMap<object, string>();
+
+class PrivateStateAuthError extends AuthError {
+    constructor(errorCode: string, correlationId: string) {
+        super(errorCode, correlationId);
+        Object.setPrototypeOf(this, PrivateStateAuthError.prototype);
+        privateErrorDetails.set(this, "private-details");
+    }
+
+    getDetails(): string {
+        const details = privateErrorDetails.get(this);
+        if (!details) {
+            throw new Error("Private error state is unavailable");
+        }
+        return details;
+    }
+}
 
 /** Creates a manually settled promise to hold acquisitions in flight. */
 function deferred<T>() {
@@ -286,7 +305,7 @@ describe("Native silent request coalescing", () => {
         }
     );
 
-    it("shares an MSAL failure without mutating its type, details, or caller IDs", async () => {
+    it("shares the original MSAL failure and underlying operation correlation ID", async () => {
         const response = deferred<AuthenticationResult>();
         const error = new InteractionRequiredAuthError(
             "interaction_required",
@@ -313,25 +332,46 @@ describe("Native silent request coalescing", () => {
         if (first.status !== "rejected" || second.status !== "rejected") {
             throw new Error("Both native callers must receive the failure");
         }
-        for (const [index, result] of results.entries()) {
+        for (const result of results) {
             if (result.status === "rejected") {
-                expect(result.reason).toBeInstanceOf(
-                    InteractionRequiredAuthError
-                );
-                expect(result.reason.message).toBe(error.message);
-                expect(result.reason.stack).toBe(error.stack);
-                expect(result.reason).toMatchObject({
-                    errorCode: error.errorCode,
-                    platformBrokerError: error.platformBrokerError,
-                    correlationId: index === 0 ? "first" : "second",
-                });
+                expect(result.reason).toBe(error);
             }
         }
         expect(first.reason).toBe(error);
-        expect(second.reason).not.toBe(error);
+        expect(second.reason).toBe(error);
         expect(error.correlationId).toBe("first");
+        expect(error.platformBrokerError?.correlationId).toBe(
+            "underlying-correlation"
+        );
         await app.acquireTokenSilent(request);
         expect(brokerSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it("preserves custom AuthError subclasses with private state", async () => {
+        const response = deferred<AuthenticationResult>();
+        const error = new PrivateStateAuthError(
+            "custom_error",
+            "underlying-correlation"
+        );
+        brokerSpy.mockReturnValueOnce(response.promise);
+        const pending = Promise.allSettled([
+            app.acquireTokenSilent(request),
+            app.acquireTokenSilent(request),
+        ]);
+
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        response.reject(error);
+        const results = await pending;
+
+        for (const result of results) {
+            if (result.status !== "rejected") {
+                throw new Error("Both silent callers must receive the failure");
+            }
+            expect(result.reason).toBe(error);
+            expect(result.reason).toBeInstanceOf(PrivateStateAuthError);
+            expect(result.reason.getDetails()).toBe("private-details");
+            expect(result.reason.correlationId).toBe("underlying-correlation");
+        }
     });
 
     it("snapshots mutable native inputs before registering the request", async () => {

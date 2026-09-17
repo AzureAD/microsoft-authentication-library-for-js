@@ -35,7 +35,7 @@ Please note that `msal-node` will _not_ fallback to the non-brokered flow in the
 
 A working sample can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-cli-brokered-app)
 
-Concurrent equivalent `acquireTokenSilent` calls on the same `PublicClientApplication` instance share a single native broker plugin call. Native account IDs and proof-of-possession parameters, including `shrNonce`, are part of request equivalence. Each caller receives its own correlation ID on the result or MSAL error. This does not change the broker's cache policy or add fallback after a broker failure.
+Concurrent equivalent `acquireTokenSilent` calls on the same `PublicClientApplication` instance share a single native broker plugin call. Native account IDs and proof-of-possession parameters, including `shrNonce`, are part of request equivalence. Each successful caller receives its own correlation ID in the result. A shared failure returns the original error to every caller, preserving the correlation ID and nested diagnostics of the underlying broker operation. This does not change the broker's cache policy or add fallback after a broker failure.
 
 ## Window Parenting
 
