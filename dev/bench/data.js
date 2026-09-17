@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789599736363,
+  "lastUpdate": 1789675501083,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23505,6 +23505,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.60%",
             "unit": "ops/sec",
             "extra": "205 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f791edc1f4fc2d1f8aeaa6467bddb964c9215168",
+          "message": "Coalesce msal-node silent requests (#8811)\n\nThis pull request introduces a significant enhancement to the\n`@azure/msal-node` package by implementing coalescing (deduplication) of\nconcurrent `acquireTokenSilent` requests with equivalent parameters.\nThis prevents redundant network or broker calls by sharing a single\nin-progress operation among callers, improving efficiency and\nconsistency. The change is well-documented, includes robust keying logic\nfor equivalence, and is covered by new and updated tests.\n\n**Silent Token Request Coalescing:**\n\n* Introduced a new module, `SilentRequestCoalescer.ts`, which\ndeduplicates concurrent `acquireTokenSilent` requests with equivalent\nparameters, ensuring only one underlying operation is performed and all\ncallers receive the result with their own correlation ID.\n* Added logic in `ClientApplication` and `PublicClientApplication` to\nuse the coalescing mechanism for both non-brokered and native broker\nsilent token requests, with careful handling of request equivalence and\ncorrelation IDs.\n[[1]](diffhunk://#diff-e330935e213aa272a095e53b5a28fe103ed5a0969b3a92cbf5b0728474b9b299R57-R60)\n[[2]](diffhunk://#diff-e330935e213aa272a095e53b5a28fe103ed5a0969b3a92cbf5b0728474b9b299R315-R348)\n[[3]](diffhunk://#diff-bc92c1b640d421f70d58153aee839cf9937a8d7c2be58a13216f5d3864cff7ceR43-R47)\n[[4]](diffhunk://#diff-bc92c1b640d421f70d58153aee839cf9937a8d7c2be58a13216f5d3864cff7ceL294-R300)\n[[5]](diffhunk://#diff-bc92c1b640d421f70d58153aee839cf9937a8d7c2be58a13216f5d3864cff7ceL308-R325)\n\n**Documentation Updates:**\n\n* Updated `brokering.md` and `request.md` to document the new coalescing\nbehavior, including details about how requests are considered equivalent\nand how errors/correlation IDs are handled.\n[[1]](diffhunk://#diff-be47f979871882e25a7ebc4a3a5e3255db0cc6c3e6237151a085c7d2ce2e820aR38-R39)\n[[2]](diffhunk://#diff-8031a25774a99ac1d9b5273646e94379212bc5fa4f7e455cdabf85930cb7ea14R175-R176)\n* Added clarifying comments in code and documentation to describe the\nimpact and scope of the change.\n\n**Testing and Compatibility:**\n\n* Added new tests to verify that requests with different parameters\n(such as redirect URIs) are not coalesced, ensuring correctness of the\ndeduplication logic.\n* Ensured module-scoped implementation to avoid breaking existing\nsubclasses, with type-checking tests for source compatibility.\n\n**Release and Metadata:**\n\n* Marked this as a minor release in the change file, indicating a new\nfeature with backward compatibility.\n\n---------\n\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-09-17T15:56:35-04:00",
+          "tree_id": "f151c1bc08d6005d6b8e97957af3cbb7f42800ff",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f791edc1f4fc2d1f8aeaa6467bddb964c9215168"
+        },
+        "date": 1789675496764,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 378003,
+            "range": "±0.64%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 364684,
+            "range": "±1.16%",
+            "unit": "ops/sec",
+            "extra": "216 samples"
           }
         ]
       }
