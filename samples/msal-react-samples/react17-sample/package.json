@@ -12,7 +12,7 @@
         "@mui/material": "^5.10.17",
         "react": "^17.0.0",
         "react-dom": "^17.0.0",
-        "react-router-dom": "^6.7.0"
+        "react-router-dom": "^6.30.6"
     },
     "scripts": {
         "start": "vite",
