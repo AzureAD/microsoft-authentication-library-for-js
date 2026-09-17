@@ -110,6 +110,24 @@ describe("RequestThumbprint.ts Unit Tests", () => {
         );
     });
 
+    it("produces distinct thumbprints for requests that differ only by popKid", () => {
+        const thumbprintA = getRequestThumbprint(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            { ...baseRequest, popKid: "kid-a" },
+            "uid.utid"
+        );
+        const thumbprintB = getRequestThumbprint(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            { ...baseRequest, popKid: "kid-b" },
+            "uid.utid"
+        );
+
+        expect(thumbprintA.popKid).toBe("kid-a");
+        expect(JSON.stringify(thumbprintA)).not.toEqual(
+            JSON.stringify(thumbprintB)
+        );
+    });
+
     it("normalizes attribute token ordering and isolates distinct attribute token sets", () => {
         const sameSetDifferentOrderA = getRequestThumbprint(
             TEST_CONFIG.MSAL_CLIENT_ID,

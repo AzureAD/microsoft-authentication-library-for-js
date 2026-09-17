@@ -6197,6 +6197,81 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(resultB.accessToken).toBe("shr-for(nonce-B)");
         });
 
+        it("makes a network request per key when PoP acquireTokenSilent is called in parallel with different popKid values", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+            };
+            const baseTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: "00000000-0000-0000-66f3-3332eca7ea81",
+                tenantId: testAccount.tenantId,
+                scopes: ["User.Read"],
+                idToken: TEST_TOKENS.IDTOKEN_V2,
+                idTokenClaims: {},
+                accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(
+                    TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
+                ),
+                account: testAccount,
+                tokenType: Constants.AuthenticationScheme.POP,
+            };
+
+            jest.spyOn(BrowserCrypto, "createNewGuid").mockReturnValue(
+                RANDOM_TEST_GUID
+            );
+
+            // Each underlying acquisition returns a token bound to the key id it
+            // was requested with. The delay keeps both requests in flight.
+            const silentATStub: jest.SpyInstance = jest
+                .spyOn(
+                    RefreshTokenClient.prototype,
+                    "acquireTokenByRefreshToken"
+                )
+                .mockImplementation(
+                    async (request: CommonSilentFlowRequest) => {
+                        await new Promise((resolve) => setTimeout(resolve, 50));
+                        return {
+                            ...baseTokenResponse,
+                            accessToken: `token-for(${request.popKid})`,
+                        };
+                    }
+                );
+
+            const requestA: SilentRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: Constants.AuthenticationScheme.POP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://testUri.com/user.read",
+                correlationId: "corr-A",
+                forceRefresh: false,
+                popKid: "kid-A",
+            };
+            const requestB: SilentRequest = {
+                ...requestA,
+                correlationId: "corr-B",
+                popKid: "kid-B",
+            };
+
+            const [resultA, resultB] = await Promise.all([
+                pca.acquireTokenSilent(requestA),
+                pca.acquireTokenSilent(requestB),
+            ]);
+
+            // With popKid the token's cnf is bound to the caller's key, so a
+            // caller must never receive the token issued for another key.
+            expect(silentATStub).toHaveBeenCalledTimes(2);
+            expect(resultA.accessToken).toBe("token-for(kid-A)");
+            expect(resultB.accessToken).toBe("token-for(kid-B)");
+        });
+
         it("makes network requests for identical requests for different embedded apps when acquireTokenSilent is called in parallel", async () => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
