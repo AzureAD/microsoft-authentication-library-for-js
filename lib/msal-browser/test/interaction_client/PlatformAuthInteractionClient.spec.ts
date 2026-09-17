@@ -38,7 +38,10 @@ import {
     NativeAuthError,
     NativeAuthErrorCodes,
 } from "../../src/error/NativeAuthError.js";
-import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
+import {
+    PlatformAuthRequest,
+    PlatformAuthTokenType,
+} from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { BrowserPerformanceClient } from "../../src/index.js";
@@ -1864,6 +1867,77 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "customUserParam2"
             );
             expect(nativeRequest.redirectUri).toEqual("localhost");
+        });
+
+        it.each([
+            Constants.AuthenticationScheme.POP,
+            Constants.AuthenticationScheme.DPOP,
+            PlatformAuthTokenType.DPOP_WITH_PROOF,
+        ])(
+            "constructs shared proof no-cache parameters for token type %s",
+            async (authenticationScheme) => {
+                const request: any = {
+                    scopes: ["User.Read"],
+                    authenticationScheme,
+                    popKid: "test-kid",
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                    dpopNonce: "test-dpop-nonce",
+                    extraParametersNoCache: {
+                        custom_no_cache: "test-value",
+                    },
+                };
+                const nativeRequest =
+                    // @ts-ignore
+                    await platformAuthInteractionClient.initializePlatformRequest(
+                        request
+                    );
+
+                expect(nativeRequest.extraParametersNoCache).toEqual({
+                    custom_no_cache: "test-value",
+                    pop_method: "POST",
+                    pop_url: "https://graph.microsoft.com/v1.0/me",
+                    pop_nonce: "test-dpop-nonce",
+                });
+                expect(nativeRequest.resourceRequestMethod).toEqual(
+                    request.resourceRequestMethod
+                );
+                expect(nativeRequest.resourceRequestUri).toEqual(
+                    request.resourceRequestUri
+                );
+                expect(nativeRequest).not.toHaveProperty("dpopNonce");
+            }
+        );
+
+        it("preserves no-cache parameters without adding proof fields for bearer requests", async () => {
+            const request: any = {
+                scopes: ["User.Read"],
+                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                dpopNonce: "test-dpop-nonce",
+                extraParametersNoCache: {
+                    custom_no_cache: "test-value",
+                },
+            };
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializePlatformRequest(
+                    request
+                );
+
+            expect(nativeRequest.extraParametersNoCache).toEqual({
+                custom_no_cache: "test-value",
+            });
+            expect(nativeRequest.extraParametersNoCache).not.toHaveProperty(
+                "pop_method"
+            );
+            expect(nativeRequest.extraParametersNoCache).not.toHaveProperty(
+                "pop_url"
+            );
+            expect(nativeRequest.extraParametersNoCache).not.toHaveProperty(
+                "pop_nonce"
+            );
         });
 
         it("forwards resource via extraParameters when provided", async () => {

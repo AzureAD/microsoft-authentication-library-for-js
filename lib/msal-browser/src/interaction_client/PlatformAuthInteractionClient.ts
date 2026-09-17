@@ -38,7 +38,12 @@ import {
     updateAccountTenantProfileData,
 } from "@azure/msal-common/browser";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
+import {
+    createPlatformAuthExtraParametersNoCache,
+    isProofOfPossessionTokenType,
+    PlatformAuthExtraParametersNoCache,
+    PlatformAuthRequest,
+} from "../broker/nativeBroker/PlatformAuthRequest.js";
 import {
     MATS,
     PlatformAuthResponse,
@@ -1104,7 +1109,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
          * scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
          * attributeTokens is destructured out because PlatformAuthRequest represents it as a pre-serialized string, not the caller-provided Array<string>.
          */
-        const { scopes, claims } = request;
+        const { scopes, claims, extraParametersNoCache, dpopNonce } =
+            request as (PopupRequest | SsoSilentRequest) & {
+                extraParametersNoCache?: PlatformAuthExtraParametersNoCache;
+                dpopNonce?: string;
+            };
         const scopeSet = new ScopeSet(scopes || [], this.correlationId);
         scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
 
@@ -1151,6 +1160,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
             shrNonce: request.shrNonce,
+            extraParametersNoCache: createPlatformAuthExtraParametersNoCache(
+                extraParametersNoCache,
+                isProofOfPossessionTokenType(request.authenticationScheme),
+                request.resourceRequestMethod,
+                request.resourceRequestUri,
+                dpopNonce
+            ),
         };
 
         if (hasAttributeTokens) {
