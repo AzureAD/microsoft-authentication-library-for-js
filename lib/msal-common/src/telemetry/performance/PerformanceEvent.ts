@@ -318,6 +318,7 @@ export type PerformanceEvent = {
     extensionInstalled?: boolean;
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;
+    platformAuthRequestCorrelationId?: string;
     platformAuthAllowed?: boolean;
     platformAuthEligibilityReason?: string;
     platformAuthProviderType?: string;

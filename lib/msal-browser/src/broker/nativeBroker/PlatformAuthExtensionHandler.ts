@@ -256,6 +256,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         this.handshakeEvent.add({
             extensionId: this.extensionId,
             extensionHandshakeTimeoutMs: this.handshakeTimeoutMs,
+            platformAuthRequestCorrelationId: correlationId,
         });
 
         this.messageChannel.port1.onmessage = (event) => {
@@ -289,7 +290,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 reject(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.nativeHandshakeTimeout,
-                        ""
+                        correlationId
                     )
                 );
                 this.handshakeResolvers.delete(req.responseId);

@@ -156,6 +156,9 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                     );
                     expect(event.extensionInstalled).toBeTruthy();
                     expect(event.extensionHandshakeTimedOut).toBeUndefined();
+                    expect(event.platformAuthRequestCorrelationId).toEqual(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
                     expect(event.success).toBeTruthy();
                     performanceClient.removePerformanceCallback(callbackId);
                     done();
@@ -257,6 +260,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                             BrowserAuthErrorCodes.nativeHandshakeTimeout
                         )
                     );
+                    expect(e.correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
                     done();
                 })
                 .finally(() => {
@@ -276,6 +280,9 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                     );
                     expect(event.extensionInstalled).toBeFalsy();
                     expect(event.extensionHandshakeTimedOut).toBeUndefined();
+                    expect(event.platformAuthRequestCorrelationId).toEqual(
+                        TEST_CONFIG.CORRELATION_ID
+                    );
                     expect(event.success).toBeFalsy();
                     performanceClient.removePerformanceCallback(callbackId);
                     callbackDone = true;
