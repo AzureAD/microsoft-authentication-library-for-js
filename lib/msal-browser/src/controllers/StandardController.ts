@@ -7,6 +7,7 @@ import { CryptoOps } from "../crypto/CryptoOps.js";
 import {
     InteractionRequiredAuthError,
     AccountInfo,
+    AzureCloudOptions,
     INetworkModule,
     Logger,
     CommonSilentFlowRequest,
@@ -21,6 +22,9 @@ import {
     invokeAsync,
     createClientAuthError,
     ClientAuthErrorCodes,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
+    normalizeDpopHtu,
     AccountFilter,
     buildStaticAuthorityOptions,
     InteractionRequiredAuthErrorCodes,
@@ -33,6 +37,7 @@ import {
     TimeUtils,
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     ITokenBindingKeyManager,
+    StringDict,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -69,6 +74,7 @@ import { PopupClient } from "../interaction_client/PopupClient.js";
 import { RedirectClient } from "../interaction_client/RedirectClient.js";
 import { SilentIframeClient } from "../interaction_client/SilentIframeClient.js";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient.js";
+import { getDiscoveredAuthority } from "../interaction_client/BaseInteractionClient.js";
 import { PlatformAuthInteractionClient } from "../interaction_client/PlatformAuthInteractionClient.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import {
@@ -2149,6 +2155,109 @@ export class StandardController implements IController {
      */
     public getConfiguration(): BrowserConfiguration {
         return this.config;
+    }
+
+    /**
+     * Resolves the token endpoint using the controller-owned authority metadata cache.
+     * @internal
+     */
+    public async resolveTokenEndpoint(request: {
+        authority?: string;
+        azureCloudOptions?: AzureCloudOptions;
+        extraQueryParameters?: StringDict;
+        account?: AccountInfo;
+        correlationId: string;
+    }): Promise<string> {
+        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
+        const authority = await getDiscoveredAuthority(
+            this.config,
+            request.correlationId,
+            this.performanceClient,
+            this.browserStorage,
+            this.logger,
+            request.authority,
+            request.azureCloudOptions,
+            request.extraQueryParameters,
+            request.account
+        );
+
+        return authority.tokenEndpoint;
+    }
+
+    /**
+     * Validates a candidate token endpoint against the metadata and alias set
+     * of the request's original authority, using the controller-owned authority
+     * metadata cache.
+     *
+     * The candidate is accepted only when, after DPoP htu normalization of both
+     * the candidate and the discovered token endpoint:
+     *  - the candidate hostname is a trusted alias of the discovered authority, and
+     *  - the candidate protocol, port, and path exactly match the discovered
+     *    token endpoint.
+     *
+     * No token path, host, or alias is hardcoded or reconstructed; trust derives
+     * entirely from discovered authority metadata. Returns the normalized,
+     * validated candidate endpoint.
+     * @internal
+     */
+    public async validateTokenEndpoint(request: {
+        candidateTokenEndpoint: string;
+        authority?: string;
+        azureCloudOptions?: AzureCloudOptions;
+        extraQueryParameters?: StringDict;
+        account?: AccountInfo;
+        correlationId: string;
+    }): Promise<string> {
+        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
+
+        const authority = await getDiscoveredAuthority(
+            this.config,
+            request.correlationId,
+            this.performanceClient,
+            this.browserStorage,
+            this.logger,
+            request.authority,
+            request.azureCloudOptions,
+            request.extraQueryParameters,
+            request.account
+        );
+
+        // Normalize both endpoints with the same DPoP htu semantics used for
+        // proof binding. This enforces HTTPS + no userinfo and strips
+        // query/fragment; it throws on malformed/non-HTTPS/credential-bearing
+        // candidates.
+        const normalizedCandidate = normalizeDpopHtu(
+            request.candidateTokenEndpoint,
+            request.correlationId
+        );
+        const normalizedDiscovered = normalizeDpopHtu(
+            authority.tokenEndpoint,
+            request.correlationId
+        );
+
+        const candidateUrl = new URL(normalizedCandidate);
+        const discoveredUrl = new URL(normalizedDiscovered);
+
+        // Candidate hostname must be a trusted alias of the discovered authority.
+        const candidateHostname = candidateUrl.hostname.toLowerCase();
+        const isTrustedAlias =
+            authority.isAlias(candidateHostname) ||
+            candidateHostname === discoveredUrl.hostname.toLowerCase();
+
+        // Require exact protocol/port/path agreement with the discovered endpoint.
+        const protocolMatches =
+            candidateUrl.protocol === discoveredUrl.protocol;
+        const portMatches = candidateUrl.port === discoveredUrl.port;
+        const pathMatches = candidateUrl.pathname === discoveredUrl.pathname;
+
+        if (!isTrustedAlias || !protocolMatches || !portMatches || !pathMatches) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.untrustedAuthority,
+                request.correlationId
+            );
+        }
+
+        return normalizedCandidate;
     }
 
     /**

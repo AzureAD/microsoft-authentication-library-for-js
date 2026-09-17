@@ -82,6 +82,7 @@ import {
     getDefaultErrorMessage,
 } from "../../src/error/BrowserAuthError.js";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
+import * as BaseInteractionClient from "../../src/interaction_client/BaseInteractionClient.js";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient.js";
@@ -298,6 +299,138 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             jest.spyOn(MessageEvent.prototype, "source", "get").mockReturnValue(
                 window
             ); // source property not set by jsdom window messaging APIs
+        });
+
+        it("blocks token endpoint resolution before initialization", async () => {
+            const uninitializedPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+
+            await expect(
+                uninitializedPca.resolveTokenEndpoint({
+                    correlationId: RANDOM_TEST_GUID,
+                })
+            ).rejects.toMatchObject(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                    ""
+                )
+            );
+        });
+
+        it("blocks token endpoint validation before initialization", async () => {
+            const uninitializedPca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                },
+            });
+
+            await expect(
+                uninitializedPca.validateTokenEndpoint({
+                    candidateTokenEndpoint:
+                        "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                    correlationId: RANDOM_TEST_GUID,
+                })
+            ).rejects.toMatchObject(
+                createBrowserAuthError(
+                    BrowserAuthErrorCodes.uninitializedPublicClientApplication,
+                    ""
+                )
+            );
+        });
+
+        describe("validateTokenEndpoint trust checks", () => {
+            const discoveredTokenEndpoint =
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token";
+
+            let trustPca: PublicClientApplication;
+
+            beforeEach(async () => {
+                trustPca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                });
+                await trustPca.initialize();
+
+                jest.spyOn(
+                    BaseInteractionClient,
+                    "getDiscoveredAuthority"
+                ).mockResolvedValue({
+                    tokenEndpoint: discoveredTokenEndpoint,
+                    isAlias: (host: string) =>
+                        host === "login.microsoftonline.com" ||
+                        host === "login.windows.net",
+                } as any);
+            });
+
+            const validate = (candidateTokenEndpoint: string) =>
+                trustPca.validateTokenEndpoint({
+                    candidateTokenEndpoint,
+                    correlationId: RANDOM_TEST_GUID,
+                });
+
+            it("accepts the exact discovered endpoint", async () => {
+                await expect(validate(discoveredTokenEndpoint)).resolves.toBe(
+                    discoveredTokenEndpoint
+                );
+            });
+
+            it("accepts a trusted alias host with matching path/port", async () => {
+                await expect(
+                    validate(
+                        "https://login.windows.net/common/oauth2/v2.0/token"
+                    )
+                ).resolves.toBe(
+                    "https://login.windows.net/common/oauth2/v2.0/token"
+                );
+            });
+
+            it("rejects an untrusted host", async () => {
+                await expect(
+                    validate(
+                        "https://evil.example.com/common/oauth2/v2.0/token"
+                    )
+                ).rejects.toBeDefined();
+            });
+
+            it("rejects a wrong path/tenant", async () => {
+                await expect(
+                    validate(
+                        "https://login.microsoftonline.com/other/oauth2/v2.0/token"
+                    )
+                ).rejects.toBeDefined();
+            });
+
+            it("rejects a non-default port", async () => {
+                await expect(
+                    validate(
+                        "https://login.microsoftonline.com:8443/common/oauth2/v2.0/token"
+                    )
+                ).rejects.toBeDefined();
+            });
+
+            it("rejects a non-HTTPS candidate", async () => {
+                await expect(
+                    validate(
+                        "http://login.microsoftonline.com/common/oauth2/v2.0/token"
+                    )
+                ).rejects.toBeDefined();
+            });
+
+            it("rejects a credential-bearing candidate", async () => {
+                await expect(
+                    validate(
+                        "https://user:pass@login.microsoftonline.com/common/oauth2/v2.0/token"
+                    )
+                ).rejects.toBeDefined();
+            });
+
+            it("rejects a malformed candidate", async () => {
+                await expect(validate("not-a-url")).rejects.toBeDefined();
+            });
         });
 
         /**
