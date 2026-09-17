@@ -9,54 +9,33 @@ import {
  * Checks that tokens can be retrieved from the cache
  * @param page
  * @param screenshot
- * @param allowAuthenticationNetworkRequests Whether authentication requests triggered by cache migration are allowed
  */
-export async function verifyCacheWasUsed(
-    page: puppeteer.Page,
-    screenshot: Screenshot,
-    allowAuthenticationNetworkRequests: boolean = false
-) {
+export async function verifyCacheWasUsed(page: puppeteer.Page, screenshot: Screenshot) {
     // Track network requests to verify cached tokens are used
     const networkRequests: puppeteer.HTTPRequest[] = [];
-    const requestListener = (request: puppeteer.HTTPRequest) => {
+    page.on('request', (request) => {
         // Track all requests to authentication endpoints
-        if (
-            request.url().includes("login.microsoftonline.com") ||
-            request.url().includes("/token") ||
-            request.url().includes("/authorize")
-        ) {
+        if (request.url().includes('login.microsoftonline.com') ||
+            request.url().includes('/token') ||
+            request.url().includes('/authorize')) {
             networkRequests.push(request);
         }
-    };
-    page.on("request", requestListener);
+    });
 
-    try {
-        if (!page.url().endsWith("profile")) {
-            await page.locator("a#viewProfileButton").click();
-            await screenshot.takeScreenshot(page, "Profile button clicked");
-        }
-
-        // Verify the Raw Authentication Data section is populated
-        const authDataText = await page
-            .locator("pre#auth-json")
-            .filter(
-                (value) =>
-                    !!value.textContent && value.textContent !== "Loading..."
-            )
-            .map((value) => value.textContent)
-            .wait();
-        await screenshot.takeScreenshot(page, "Authentication data displayed");
-        const authData = JSON.parse(authDataText || "");
-        expect(authData).toHaveProperty("fromCache");
-        expect(authData.fromCache).toBe(true); // Should be from cache after upgrade
-
-        if (!allowAuthenticationNetworkRequests) {
-            // Verify no authentication network requests were made (indicating cached tokens were used)
-            expect(networkRequests.length).toBe(0);
-        }
-    } finally {
-        page.off("request", requestListener);
+    if (!page.url().endsWith("profile")) {
+        await page.locator("a#viewProfileButton").click();
+        await screenshot.takeScreenshot(page, "Profile button clicked");
     }
+
+    // Verify the Raw Authentication Data section is populated
+    const authDataText = await page.locator("pre#auth-json").filter((value) => !!value.textContent && value.textContent !== 'Loading...').map(value => value.textContent).wait();
+    await screenshot.takeScreenshot(page, "Authentication data displayed");
+    const authData = JSON.parse(authDataText || "");
+    expect(authData).toHaveProperty('fromCache');
+    expect(authData.fromCache).toBe(true); // Should be from cache after upgrade
+
+    // Verify no authentication network requests were made (indicating cached tokens were used)
+    expect(networkRequests.length).toBe(0);
 }
 
 /**

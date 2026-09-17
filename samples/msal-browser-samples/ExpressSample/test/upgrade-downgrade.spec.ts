@@ -210,7 +210,7 @@ describe("Upgrade/Downgrade Tests", () => {
             // That silent request rides the existing Entra session cookie and
             // hydrates the cache with v3-format tokens without any interactive
             // sign-in, so the user is already signed in and the cache is used.
-            await verifyCacheWasUsed(page, screenshot, true);
+            await verifyCacheWasUsed(page, screenshot);
 
             await switchToVersion("local", page, screenshot);
 
