@@ -64,6 +64,7 @@ export {
     selectKmsiOption,
     assertKmsiSigninState,
     assertSigninStateContains,
+    verifyKmsiFromResponse,
     verifyKmsiFromCache,
 } from "./KmsiTestUtils";
 export { Browser, Page, BrowserContext, Frame } from "puppeteer";

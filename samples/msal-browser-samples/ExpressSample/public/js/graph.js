@@ -105,6 +105,7 @@ export function displayAuthData(authResponse) {
             scopes: authResponse.scopes,
             correlationId: authResponse.correlationId,
             fromCache: authResponse.fromCache,
+            fromPlatformBroker: authResponse.fromPlatformBroker,
             idToken: authResponse.idToken,
             idTokenClaims: authResponse.idTokenClaims,
             uniqueId: authResponse.uniqueId,

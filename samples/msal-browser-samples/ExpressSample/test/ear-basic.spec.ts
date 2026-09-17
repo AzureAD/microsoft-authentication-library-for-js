@@ -242,8 +242,19 @@ describe("EAR Tests", () => {
 
         await page.locator("button#signInButton").click();
 
+        let authorizeWasPost = false;
         const newPopupWindowPromise = new Promise<puppeteer.Page | null>(
-            (resolve) => page.once("popup", resolve)
+            (resolve) =>
+                page.once("popup", (popupPage) => {
+                    if (popupPage) {
+                        popupPage.on("request", (request) => {
+                            if (isAuthorizePost(request)) {
+                                authorizeWasPost = true;
+                            }
+                        });
+                    }
+                    resolve(popupPage);
+                })
         );
         await page.locator("a#signInPopup").click();
         await screenshot.takeScreenshot(page, "Sign in popup clicked");
@@ -252,14 +263,6 @@ describe("EAR Tests", () => {
         if (!popupPage) {
             throw new Error("Popup window was not opened");
         }
-
-        // EAR posts /authorize from the popup window; attach before creds.
-        let authorizeWasPost = false;
-        popupPage.on("request", (request) => {
-            if (isAuthorizePost(request)) {
-                authorizeWasPost = true;
-            }
-        });
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
 
