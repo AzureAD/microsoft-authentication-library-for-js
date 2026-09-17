@@ -195,7 +195,19 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // initialize native request (statically builds the request; does not contact the broker)
         let nativeRequest: PlatformAuthRequest;
         try {
-            nativeRequest = await this.initializePlatformRequest(request);
+            this.performanceClient.addFields(
+                {
+                    platformAuthStage: "initialize_request",
+                },
+                this.correlationId
+            );
+            nativeRequest = await invokeAsync(
+                this.initializePlatformRequest.bind(this),
+                BrowserPerformanceEvents.PlatformAuthInteractionClientInitializeRequest,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(request);
         } catch (e) {
             /*
              * Request initialization (e.g. PoP token generation or authority
@@ -217,6 +229,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         // check if the tokens can be retrieved from internal cache
         try {
+            this.performanceClient.addFields(
+                {
+                    platformAuthStage: "cache_lookup",
+                },
+                this.correlationId
+            );
             const result = await this.acquireTokensFromCache(
                 this.accountId,
                 nativeRequest
@@ -253,10 +271,28 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         // dispatch the request to the broker
         try {
+            this.performanceClient.addFields(
+                {
+                    platformAuthStage: "broker_request",
+                },
+                this.correlationId
+            );
             const validatedResponse: PlatformAuthResponse =
                 await this.platformAuthProvider.sendMessage(nativeRequest);
 
-            const result = await this.handleNativeResponse(
+            this.performanceClient.addFields(
+                {
+                    platformAuthStage: "handle_response",
+                },
+                this.correlationId
+            );
+            const result = await invokeAsync(
+                this.handleNativeResponse.bind(this),
+                BrowserPerformanceEvents.PlatformAuthHandleNativeResponse,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(
                 validatedResponse,
                 nativeRequest,
                 reqTimestamp,
@@ -426,11 +462,29 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.correlationId
         );
 
-        const nativeRequest = await this.initializePlatformRequest(request);
+        this.performanceClient.addFields(
+            {
+                platformAuthStage: "initialize_request",
+            },
+            this.correlationId
+        );
+        const nativeRequest = await invokeAsync(
+            this.initializePlatformRequest.bind(this),
+            BrowserPerformanceEvents.PlatformAuthInteractionClientInitializeRequest,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(request);
         const navigateToLoginRequestUrl =
             options?.navigateToLoginRequestUrl ?? true;
 
         try {
+            this.performanceClient.addFields(
+                {
+                    platformAuthStage: "broker_request",
+                },
+                this.correlationId
+            );
             await this.platformAuthProvider.sendMessage(nativeRequest);
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
@@ -505,6 +559,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 "handleRedirectPromise called but there is no interaction in progress, returning null.",
                 this.correlationId
             );
+            this.performanceClient.addFields(
+                {
+                    platformAuthCachedRequestAvailable: false,
+                    platformAuthBrokerResendAttempted: false,
+                },
+                this.correlationId
+            );
             return null;
         }
 
@@ -516,7 +577,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.correlationId
             );
             this.performanceClient?.addFields(
-                { errorCode: "no_cached_request" },
+                {
+                    errorCode: "no_cached_request",
+                    platformAuthCachedRequestAvailable: false,
+                    platformAuthBrokerResendAttempted: false,
+                },
                 this.correlationId
             );
             return null;
@@ -546,18 +611,33 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const reqTimestamp = TimeUtils.nowSeconds();
 
         try {
+            this.performanceClient.addFields(
+                {
+                    platformAuthCachedRequestAvailable: true,
+                    platformAuthBrokerResendAttempted: true,
+                    platformAuthStage: "broker_resend",
+                },
+                this.correlationId
+            );
             this.logger.verbose(
                 "NativeInteractionClient - handleRedirectPromise sending message to native broker.",
                 this.correlationId
             );
             const response: PlatformAuthResponse =
                 await this.platformAuthProvider.sendMessage(request);
-            const authResult = await this.handleNativeResponse(
-                response,
-                request,
-                reqTimestamp,
-                storeInCache
+            this.performanceClient.addFields(
+                {
+                    platformAuthStage: "handle_response",
+                },
+                this.correlationId
             );
+            const authResult = await invokeAsync(
+                this.handleNativeResponse.bind(this),
+                BrowserPerformanceEvents.PlatformAuthHandleNativeResponse,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(response, request, reqTimestamp, storeInCache);
 
             const serverTelemetryManager = initializeServerTelemetryManager(
                 this.apiId,
@@ -675,7 +755,19 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         response.expires_in = Number(response.expires_in);
 
         // generate authenticationResult
-        const result = await this.generateAuthenticationResult(
+        this.performanceClient.addFields(
+            {
+                platformAuthStage: "generate_auth_result",
+            },
+            this.correlationId
+        );
+        const result = await invokeAsync(
+            this.generateAuthenticationResult.bind(this),
+            BrowserPerformanceEvents.NativeGenerateAuthResult,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(
             response,
             request,
             idTokenClaims,
@@ -685,8 +777,32 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         // cache accounts and tokens in the appropriate storage
-        await this.cacheAccount(baseAccount, AuthToken.isKmsi(idTokenClaims));
-        await this.cacheNativeTokens(
+        this.performanceClient.addFields(
+            {
+                platformAuthStage: "cache_account",
+            },
+            this.correlationId
+        );
+        await invokeAsync(
+            this.cacheAccount.bind(this),
+            BrowserPerformanceEvents.PlatformAuthCacheAccount,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(baseAccount, AuthToken.isKmsi(idTokenClaims));
+        this.performanceClient.addFields(
+            {
+                platformAuthStage: "cache_tokens",
+            },
+            this.correlationId
+        );
+        await invokeAsync(
+            this.cacheNativeTokens.bind(this),
+            BrowserPerformanceEvents.PlatformAuthCacheNativeTokens,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(
             response,
             request,
             homeAccountIdentifier,
@@ -933,6 +1049,15 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         environment: string,
         storeInCache?: StoreInCache
     ): Promise<void> {
+        this.performanceClient.addFields(
+            {
+                storeInCacheAccessToken: storeInCache?.accessToken !== false,
+                storeInCacheIdToken: storeInCache?.idToken !== false,
+                storeInCacheRefreshToken: storeInCache?.refreshToken !== false,
+            },
+            this.correlationId
+        );
+
         const cachedIdToken: IdTokenEntity | null =
             CacheHelpers.createIdTokenEntity(
                 homeAccountIdentifier,
@@ -1126,6 +1251,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         this.performanceClient?.addFields(
             {
                 hasAttributeTokens,
+                platformAuthIsPopRequest:
+                    request.authenticationScheme ===
+                    Constants.AuthenticationScheme.POP,
+                platformAuthPromptCategory: this.getPlatformAuthPromptCategory(
+                    request.prompt
+                ),
             },
             this.correlationId
         );
@@ -1312,6 +1443,28 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     BrowserAuthErrorCodes.nativePromptNotSupported,
                     this.correlationId
                 );
+        }
+    }
+
+    private getPlatformAuthPromptCategory(prompt?: string): string {
+        switch (this.apiId) {
+            case ApiId.ssoSilent:
+            case ApiId.acquireTokenSilent_silentFlow:
+                return "silent";
+            default:
+                break;
+        }
+
+        switch (prompt) {
+            case undefined:
+                return "not_provided";
+            case Constants.PromptValue.NONE:
+                return "none";
+            case Constants.PromptValue.CONSENT:
+            case Constants.PromptValue.LOGIN:
+                return "interactive";
+            default:
+                return "unsupported";
         }
     }
 

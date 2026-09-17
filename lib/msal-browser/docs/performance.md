@@ -81,16 +81,44 @@ const event: PerformanceEvent = {
 
 The complete details for `PerformanceEvents` objects can be found [here](../../msal-common/src/telemetry/performance/PerformanceEvent.ts). Below is a list of some notable properties:
 
-| **Property**                       | Type      | Description                                                            |
-| ---------------------------------- | --------- | ---------------------------------------------------------------------- |
+| **Property**                       | Type      | Description                                                                                                                   |
+| ---------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `name`                             | `string`  | Name of the operation, usually matches the top-level API name (e.g. `acquireTokenSilent`, `acquireTokenByCode`, `ssoSilent`). |
-| `durationMs`                       | `number`  | End-to-end duration in milliseconds for the operation.                 |
-| `success`                          | `boolean` | Whether the operation was successful or not.                           |
-| `fromCache`                        | `boolean` | Whether the operation retrieved the result from the cache.             |
-| `correlationId`                    | `string`  | Correlation ID used for the operation (preferably unique per request). |
-| `libraryVersion`                   | `string`  | Version of MSAL.js used for the operation.                             |
-| `authority`                        | `string`  | Authority used for the operation.                                      |
-| `<internalFunctionName>DurationMs` | `number`  | Duration in milliseconds for an internal operation.                    |
+| `durationMs`                       | `number`  | End-to-end duration in milliseconds for the operation.                                                                        |
+| `success`                          | `boolean` | Whether the operation was successful or not.                                                                                  |
+| `fromCache`                        | `boolean` | Whether the operation retrieved the result from the cache.                                                                    |
+| `correlationId`                    | `string`  | Correlation ID used for the operation (preferably unique per request).                                                        |
+| `libraryVersion`                   | `string`  | Version of MSAL.js used for the operation.                                                                                    |
+| `authority`                        | `string`  | Authority used for the operation.                                                                                             |
+| `<internalFunctionName>DurationMs` | `number`  | Duration in milliseconds for an internal operation.                                                                           |
+
+### Platform broker measurements
+
+When platform brokering is enabled, MSAL emits measurements for provider discovery, extension or DOM transport, response validation, request initialization, response processing, and cache updates. Use `correlationId` to join child measurements to the top-level authentication event. The independently emitted extension handshake event uses `platformAuthRequestCorrelationId` for this join.
+
+The platform broker fields use low-cardinality values intended for aggregation:
+
+| Field                              | Stable values and meaning                                                                                                                               |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `platformAuthProviderType`         | `PlatformAuthDOMHandler` or `PlatformAuthExtensionHandler`.                                                                                             |
+| `platformAuthRequestCorrelationId` | Request correlation ID used to join the extension handshake event to the broker request.                                                                |
+| `platformAuthEligibilityReason`    | `eligible`, `platform_auth_not_allowed`, `prompt_not_supported`, or `native_account_unavailable`.                                                       |
+| `platformAuthPromptCategory`       | `not_provided`, `none`, `interactive`, or `unsupported`.                                                                                                |
+| `platformAuthStage`                | `initialize_request`, `cache_lookup`, `broker_request`, `broker_resend`, `handle_response`, `generate_auth_result`, `cache_account`, or `cache_tokens`. |
+| `platformAuthOutcome`              | Provider discovery result, such as `dom_selected`, `contract_unsupported`, `extension_selected_after_dom_unavailable`, or `provider_unavailable`.       |
+| `platformAuthResponseCategory`     | `success`, `broker_error`, `cancelled`, `invalid_response`, `parse_error`, `timeout`, `api_error`, or `message_port_error`.                             |
+
+Boolean fields describe the configuration and capability checks used for routing, including whether platform brokering was enabled, a provider was available, DOM or extension discovery was attempted, the prompt and authentication scheme were supported, and each cache operation was requested.
+
+For troubleshooting:
+
+1. Filter for a failed top-level authentication event and collect events with the same `correlationId`.
+2. Inspect `platformAuthEligibilityReason` to determine why the request did or did not route to the broker.
+3. Inspect provider discovery events and `platformAuthOutcome` to determine whether DOM discovery, extension discovery, or fallback failed.
+4. Compare transport and response-validation events. A failed transport event identifies the provider boundary; a successful transport followed by failed validation identifies an invalid broker response.
+5. Inspect `platformAuthStage` to isolate request initialization, response handling, redirect resend, or cache failures.
+
+Platform broker telemetry does not include tokens, claims, account identifiers, request or response payloads, URLs, or exception messages.
 
 ### removePerformanceCallback
 
