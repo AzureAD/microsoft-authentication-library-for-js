@@ -74,13 +74,13 @@ npm run build:package
 
 The Puppeteer e2e tests live in [`./test`](./test). The EAR (Encrypted Authorize Response) web-flow suite is in [`./test/ear-basic.spec.ts`](./test/ear-basic.spec.ts).
 
-A basic [`./test/kmsi-basic.spec.ts`](./test/kmsi-basic.spec.ts) suite verifies that a standard web sign-in with KMSI persists across a complete browser restart:
+The [`./test/kmsi-basic.spec.ts`](./test/kmsi-basic.spec.ts) suite verifies that both standard web and Encrypted Authorize Response sign-ins with KMSI persist across a complete browser restart:
 
 ```powershell
 npm run test:e2e:kmsi
 ```
 
-This web-flow KMSI suite is the only KMSI suite enabled in the 3P e2e pipeline.
+These web-flow KMSI scenarios are enabled in the 3P e2e pipeline.
 
 A separate [`./test/ear-platform-broker.spec.ts`](./test/ear-platform-broker.spec.ts) suite exercises EAR combined with the platform broker. It is excluded from CI (the pipeline `testFilter` runs only `ear-basic`) because the platform broker is only available locally. To run it locally, set `SSO_EXTENSION_PATH` to the unpacked "Microsoft Single Sign On" extension directory (the folder containing its `manifest.json`):
 
