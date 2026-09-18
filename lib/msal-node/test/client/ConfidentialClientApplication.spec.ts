@@ -70,6 +70,7 @@ import { ClientApplication } from "../../src/client/ClientApplication.js";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
 import { HttpClient } from "../../src/network/HttpClient.js";
 import { NodeStorage } from "../../src/cache/NodeStorage.js";
+import { generateCredentialKey } from "../../src/cache/CacheHelpers.js";
 
 jest.mock("jsonwebtoken");
 
@@ -769,6 +770,88 @@ describe("ConfidentialClientApplication", () => {
                 CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
             );
             expect(acquireTokenByClientCredentialSpy).toHaveBeenCalledTimes(1);
+        });
+
+        test("cached acquisition does not scale with unrelated credentials", async () => {
+            const runAcquisition = async (
+                unrelatedCredentialCount: number
+            ): Promise<{
+                credentialReads: number;
+                authorityWrites: number;
+            }> => {
+                const client = new ConfidentialClientApplication(config);
+                const request: ClientCredentialRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    skipCache: false,
+                };
+                await client.acquireTokenByClientCredential(request);
+
+                const storage = (client as unknown as { storage: NodeStorage })
+                    .storage;
+                const cache = { ...storage.getCache() };
+                for (let i = 0; i < unrelatedCredentialCount; i++) {
+                    const token: AccessTokenEntity = {
+                        homeAccountId: "",
+                        environment: "login.microsoftonline.com",
+                        credentialType:
+                            CommonConstants.CredentialType.ACCESS_TOKEN,
+                        clientId: `unrelated-client-${i}`,
+                        secret: `unrelated-token-${i}`,
+                        realm: TEST_CONFIG.TENANT,
+                        target: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE.join(" "),
+                        cachedAt: "1000",
+                        expiresOn: "4102444800",
+                        lastUpdatedAt: "1000",
+                    };
+                    cache[generateCredentialKey(token)] = token;
+                }
+                storage.setCache(cache);
+
+                const rebuildSpy = jest.spyOn(
+                    storage as unknown as { rebuildIndexes: () => void },
+                    "rebuildIndexes"
+                );
+                const getKeysSpy = jest.spyOn(storage, "getKeys");
+                const getTokenKeysSpy = jest.spyOn(storage, "getTokenKeys");
+                const credentialReadSpy = jest.spyOn(
+                    storage,
+                    "getAccessTokenCredential"
+                );
+                const authorityWriteSpy = jest.spyOn(
+                    storage,
+                    "setAuthorityMetadata"
+                );
+
+                const result = await client.acquireTokenByClientCredential(
+                    request
+                );
+                expect(result?.fromCache).toBe(true);
+                expect(rebuildSpy).not.toHaveBeenCalled();
+                expect(getKeysSpy).not.toHaveBeenCalled();
+                expect(getTokenKeysSpy).not.toHaveBeenCalled();
+                expect(
+                    credentialReadSpy.mock.calls.some(([key]) =>
+                        key.includes("unrelated-client-")
+                    )
+                ).toBe(false);
+                expect(authorityWriteSpy).toHaveBeenCalled();
+
+                const counts = {
+                    credentialReads: credentialReadSpy.mock.calls.length,
+                    authorityWrites: authorityWriteSpy.mock.calls.length,
+                };
+                rebuildSpy.mockRestore();
+                getKeysSpy.mockRestore();
+                getTokenKeysSpy.mockRestore();
+                credentialReadSpy.mockRestore();
+                authorityWriteSpy.mockRestore();
+                return counts;
+            };
+
+            const smallCache = await runAcquisition(0);
+            const largeCache = await runAcquisition(5001);
+
+            expect(largeCache).toEqual(smallCache);
         });
 
         describe("clientAssertion is used to acquire a token after being provided in the request", () => {
