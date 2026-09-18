@@ -46,12 +46,7 @@ cca.acquireTokenSilent(silentTokenRequest)
     });
 ```
 
-In production, you would most likely want to serialize and persist the token cache. Depending on the type of application, you can:
-
--   Desktop apps, console apps (public clients apps (PCA)):
-    -   Use [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md), which provides persistence and encryption at rest solutions on Windows, Linux and Mac OS
--   Web apps, web APIs, daemon apps (confidential client apps (CCA)):
-    -   MSAL's in-memory token cache does not scale for production. Use the [distributed token caching](#performance-and-security) pattern to persist the cache in your choice of storage environment (Redis, MongoDB, SQL databases etc. -keep in mind that you can use these in tandem _e.g._ a Redis-like memory cache as a first layer of persistence, and a SQL database as a second, more stable persistence layer)
+In production, MSAL's in-memory token cache does not scale. Use the [distributed token caching](#performance-and-security) pattern to persist the cache in your choice of storage environment (Redis, MongoDB, SQL databases, and so on).
 
 ## In-memory cache
 
@@ -104,14 +99,11 @@ class MyCachePlugin implements ICachePlugin {
 }
 ```
 
--   If you are developing a public client app, [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) handles this for you.
--   If you are developing a confidential client app, you should persist the cache via a separate service, since a single, _per-server_ cache instance isn't suitable for a cloud environment with many servers and app instances.
+Confidential client applications should persist the cache via a separate service, since a single, _per-server_ cache instance isn't suitable for a cloud environment with many servers and app instances.
 
-> :warning: We strongly recommend to encrypt the token cache when persisting it on disk. For public client apps, this is offered out-of-box with [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md). For confidential clients however, you are responsible for devising an appropriate encryption solution.
+> :warning: We strongly recommend encrypting the token cache when persisting it on disk.
 
 ## Performance and security
-
-On public client apps, [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) ensures performance and security for you.
 
 On confidential client apps that handle users (web apps that sign in users and call web APIs, and web APIs calling downstream web APIs), there can be many users active concurrently for a given application. Our recommendation is to serialize one cache blob (see [CacheRecord](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/src/cache/entities/CacheRecord.ts)) per user. This would help with scaling the cache across a distributed system. Use a key for partitioning the cache (_i.e._ **partition key**), such as:
 
@@ -134,8 +126,6 @@ Please refer to the [Web app using DistributedCachePlugin](../../../samples/msal
 
 See the samples below for more about how to handle caching in MSAL Node apps:
 
--   [(PCA) Console app using MSAL Node Extensions](../../../extensions/samples/msal-node-extensions/index.js)
--   [(PCA) Dektop app using MSAL Node Extensions](../../../extensions/samples/electron-webpack/README.md)
 -   [(CCA) Web app using DistributedCachePlugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)
 -   [(CCA) Web API using a custom distributed cache plugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)
 -   [(CCA) Daemon app using a custom distributed cache plugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)

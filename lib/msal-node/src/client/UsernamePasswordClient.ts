@@ -27,7 +27,7 @@ import { BaseClient } from "./BaseClient.js";
 
 /**
  * Oauth2.0 Password grant client
- * Note: We are only supporting public clients for password grant and for purely testing purposes
+ * Retained for compatibility with existing password grant integrations.
  * @public
  * @deprecated - Use a more secure flow instead
  */
