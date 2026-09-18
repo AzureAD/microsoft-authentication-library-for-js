@@ -87,7 +87,7 @@ const msalInstance = new ConfidentialClientApplication(msalConfig);
 | `maxTokenCacheEntries`     | Maximum combined number of access token, refresh token, and ID token credentials retained in memory. Must be a positive integer no greater than `1_000_000`.                                      | number                                                                                                                           | `10_000`                    |
 | `maxTokenCacheSizeInBytes` | Maximum combined logical weight of access token, refresh token, and ID token credentials retained in memory. Must be a positive safe integer. See [caching](caching.md#bounded-credential-cache). | number                                                                                                                           | `20 * 1024 * 1024` (20 MiB) |
 
-Both limits apply simultaneously, and neither can be disabled. These defaults are provisional and may be calibrated using benchmark evidence.
+Both limits apply simultaneously, and neither can be disabled. The logical-weight limit constrains typical token data and generated indexes, while the entry limit separately guards against many small credential objects. Logical weight is deterministic cache accounting rather than a guarantee of process heap or RSS; see [caching](caching.md#bounded-credential-cache).
 
 `ManagedIdentityApplication` accepts the same two properties in its `cache` configuration. Managed Identity applications share a process-wide cache. The first instance owns the process-wide limits; later instances may omit them or specify matching values. A later instance that explicitly specifies a different value throws `managed_identity_cache_configuration_mismatch` without changing the existing cache.
 
