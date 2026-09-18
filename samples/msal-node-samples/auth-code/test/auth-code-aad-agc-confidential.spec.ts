@@ -12,8 +12,12 @@ import {
     validateCacheLocation,
     SAMPLE_HOME_URL,
     NodeCacheTestUtils,
-    getKeyVaultSecretClient,
-    getCredentials,
+    AppTypes,
+    LabApiQueryParams,
+    LabClient,
+    UserTypes,
+    retrieveAppConfiguration,
+    setupCredentials,
 } from "e2e-test-utils";
 import { ConfidentialClientApplication } from "@azure/msal-node";
 import path from "path";
@@ -29,16 +33,8 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
 // Load scenario configuration
 const config = require("../config/AAD-AGC-Confidential.json");
-config.authOptions = {
-    clientId: process.env.AZURE_CLIENT_ID,
-    clientSecret: process.env.AZURE_CLIENT_SECRET,
-    authority: `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
-    knownAuthorities: [
-        `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
-    ],
-};
 config.resourceApi = {
-    endpoint: `${process.env.GRAPH_URL}/v1.0/me`,
+    endpoint: "https://graph.microsoft.com/v1.0/me",
 };
 
 describe("Auth Code AAD AGC Confidential Tests", () => {
@@ -53,7 +49,10 @@ describe("Auth Code AAD AGC Confidential Tests", () => {
     let username: string;
     let password: string;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/auth-code/aad-agc-confidential");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/auth-code/aad-agc-confidential"
+    );
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -65,8 +64,34 @@ describe("Auth Code AAD AGC Confidential Tests", () => {
 
         createFolder(screenshotFolder);
 
-        const keyVaultSecretClient = await getKeyVaultSecretClient();
-        [username, password] = await getCredentials(keyVaultSecretClient);
+        const labClient = new LabClient();
+        const userParams: LabApiQueryParams = {
+            userType: UserTypes.GUEST,
+        };
+        const appParams: LabApiQueryParams = {
+            appType: AppTypes.CLOUD,
+            publicClient: "no",
+            signInAudience: "azureadmyorg",
+        };
+        const [userConfig] = await labClient.getVarsByCloudEnvironment(
+            userParams
+        );
+        const [appConfig] = await labClient.getVarsByCloudEnvironment(
+            appParams
+        );
+
+        expect(appConfig.lab.tenantId).toBe(userConfig.lab.tenantId);
+        [username, password] = await setupCredentials(userConfig, labClient);
+        const [clientId, clientSecret, authority] =
+            await retrieveAppConfiguration(appConfig, labClient, true);
+
+        config.authOptions = {
+            clientId,
+            clientSecret,
+            authority,
+        };
+        config.request.authCodeUrlParameters.redirectUri = homeRoute;
+        config.request.tokenRequest.redirectUri = homeRoute;
     });
 
     afterAll(async () => {
@@ -106,8 +131,12 @@ describe("Auth Code AAD AGC Confidential Tests", () => {
         });
 
         afterEach(async () => {
-            await page.close();
-            await context.close();
+            if (page) {
+                await page.close();
+            }
+            if (context) {
+                await context.close();
+            }
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
@@ -191,16 +220,21 @@ describe("Auth Code AAD AGC Confidential Tests", () => {
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
 
-        it("Performs acquire token with state", async () => {
+        it("Generates state server-side", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/WithState`);
-            const STATE_VALUE = "value_on_state";
-            await page.goto(`${homeRoute}/?prompt=login&state=${STATE_VALUE}`);
+            const attackerSelectedState = "value_on_state";
+            await page.goto(
+                `${homeRoute}/?prompt=login&state=${attackerSelectedState}`
+            );
+            const generatedState = new URL(page.url()).searchParams.get(
+                "state"
+            );
+            expect(generatedState).toBeTruthy();
+            expect(generatedState).not.toBe(attackerSelectedState);
             await enterCredentials(page, screenshot, username, password);
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
-            const url = page.url();
-            expect(url.includes(`state=${STATE_VALUE}`)).toBe(true);
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(
                 TEST_CACHE_LOCATION,
                 2000
@@ -210,36 +244,36 @@ describe("Auth Code AAD AGC Confidential Tests", () => {
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
 
-        it("Performs acquire token with login hint", async () => {
-            const USERNAME = "test@domain.abc";
+        it("Rejects an authorization response with mismatched state", async () => {
+            await page.goto(homeRoute);
+            const response = await page.goto(
+                `${homeRoute}/redirect?code=fake-code&state=invalid-state`
+            );
+
+            expect(response?.status()).toBe(400);
+        });
+
+        it("Passes login hint to the authorization request", async () => {
+            const loginHint = "test@domain.abc";
+            const authorizationRequest = page.waitForRequest((request) =>
+                new URL(request.url()).pathname.endsWith(
+                    "/oauth2/v2.0/authorize"
+                )
+            );
+
             await page.goto(
-                `${homeRoute}/?prompt=login&loginHint=${USERNAME}`,
-                { waitUntil: "networkidle0" }
+                `${homeRoute}/?prompt=login&loginHint=${encodeURIComponent(
+                    loginHint
+                )}`,
+                { waitUntil: "domcontentloaded" }
             );
 
-            // agce: which type of account do you want to use
-            try {
-                await page.waitForSelector("#aadTile", { timeout: 1000 });
-                await Promise.all([
-                    page.waitForNavigation({
-                        waitUntil: ["load", "domcontentloaded", "networkidle0"],
-                    }),
-                    page.click("#aadTile"),
-                ]).catch(async (e) => {
-                    throw e;
-                });
-            } catch (e) {
-                //
-            }
-
-            await page.waitForSelector("#displayName");
-            const emailInput = await page.$("#displayName");
-            const email = await page.evaluate(
-                (element) => element.innerText,
-                emailInput
+            const authorizationUrl = new URL(
+                (await authorizationRequest).url()
             );
-            expect(email).toBe(USERNAME);
+            expect(authorizationUrl.searchParams.get("login_hint")).toBe(
+                loginHint
+            );
         });
     });
 });
-

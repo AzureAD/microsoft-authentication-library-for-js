@@ -40,7 +40,6 @@ import {
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
-    DEVICE_CODE_RESPONSE,
     ID_TOKEN_CLAIMS,
     RANDOM_TEST_GUID,
     TEST_CONFIG,
@@ -435,7 +434,7 @@ export class ClientTestUtils {
                 authorityMetadata: "",
                 clientCapabilities,
             },
-            // broker, cache
+            // cache
             system: {
                 loggerOptions,
                 networkClient: mockHttpClient,
@@ -472,7 +471,6 @@ interface checks {
     responseType?: boolean;
     username?: string;
     password?: string;
-    deviceCode?: boolean;
     queryString?: boolean;
 }
 
@@ -634,10 +632,6 @@ export const checkMockedNetworkRequest = (
                 `${Constants.PasswordGrantConstants.password}=${checks.password}`
             )
         ).toBe(true);
-    }
-
-    if (checks.deviceCode) {
-        expect(returnVal.includes(DEVICE_CODE_RESPONSE.deviceCode)).toBe(true);
     }
 
     if (checks.queryString) {

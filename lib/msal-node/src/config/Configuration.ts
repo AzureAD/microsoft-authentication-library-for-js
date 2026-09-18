@@ -12,7 +12,6 @@ import {
     AzureCloudInstance,
     AzureCloudOptions,
     ApplicationTelemetry,
-    INativeBrokerPlugin,
     ClientAssertionCallback,
     Constants,
 } from "@azure/msal-common/node";
@@ -49,10 +48,6 @@ export type NodeAuthOptions = {
     authorityMetadata?: string;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
-    /**
-     * Flag on whether a resource parameter is required for token requests. Used for MCP flows.
-     */
-    isMcp?: boolean;
 };
 
 /**
@@ -63,17 +58,6 @@ export type NodeAuthOptions = {
  */
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
-};
-
-/**
- * Use this to configure the below broker options:
- * - nativeBrokerPlugin - Native broker implementation (should be imported from msal-node-extensions)
- *
- * Note: These options are only available for PublicClientApplications using the Authorization Code Flow
- * @public
- */
-export type BrokerOptions = {
-    nativeBrokerPlugin?: INativeBrokerPlugin;
 };
 
 /**
@@ -100,7 +84,6 @@ export type NodeTelemetryOptions = {
  * Use the configuration object to configure MSAL and initialize the client application object
  *
  * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
- * - broker: this is where you configure broker options
  * - cache: this is where you configure cache location
  * - system: this is where you can configure the network client, logger
  * - telemetry: this is where you can configure telemetry options
@@ -108,7 +91,6 @@ export type NodeTelemetryOptions = {
  */
 export type Configuration = {
     auth: NodeAuthOptions;
-    broker?: BrokerOptions;
     cache?: CacheOptions;
     system?: NodeSystemOptions;
     telemetry?: NodeTelemetryOptions;
@@ -147,7 +129,6 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
         azureCloudInstance: AzureCloudInstance.None,
         tenant: "",
     },
-    isMcp: false,
 };
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
@@ -175,7 +156,6 @@ const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
 /** @internal */
 export type NodeConfiguration = {
     auth: Required<NodeAuthOptions>;
-    broker: BrokerOptions;
     cache: CacheOptions;
     system: Required<NodeSystemOptions>;
     telemetry: Required<NodeTelemetryOptions>;
@@ -194,7 +174,6 @@ export type NodeConfiguration = {
  */
 export function buildAppConfiguration({
     auth,
-    broker,
     cache,
     system,
     telemetry,
@@ -217,7 +196,6 @@ export function buildAppConfiguration({
 
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
-        broker: { ...broker },
         cache: { ...cache },
         system: { ...systemOptions, ...system },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },

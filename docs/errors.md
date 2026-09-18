@@ -20,7 +20,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 **Mitigation**:
 
-1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](./caching.md#cached-artifacts).
+1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](../lib/msal-browser/docs/caching.md#cached-artifacts).
 
 ### `cache_error_unknown`
 
@@ -503,7 +503,7 @@ msalInstance
 If you are using one of our wrapper libraries (React or Angular), please see the error docs in those specific libraries for additional reasons you may be receiving this error:
 
 -   [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md#interaction_in_progress)
--   [msal-angular errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md#interaction_in_progress)
+-   [msal-angular errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/errors.md#interaction_in_progress)
 
 If you are not using any of the wrapper libraries but concerned that your application might trigger concurrent interactive requests, you should check if any other interaction is in progress prior to invoking an interaction in your token acquisition method. You can achieve this by implementing a global application state or a broadcast service etc. that emits the current MSAL interaction status via [MSAL Events API](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs/events.md).
 
@@ -1042,11 +1042,11 @@ const msalConfig = {
 
 ### `resource_parameter_required`
 
--   `isMcp` is set as `true` in the configuration, yet the request does not have a `resource` parameter. See the MCP documentation for [msal-browser](../lib/msal-browser/docs/mcp.md) or [msal-node](../lib/msal-node/docs/mcp.md).
+-   `isMcp` is set as `true` in the configuration, yet the request does not have a `resource` parameter. See the [msal-browser MCP documentation](../lib/msal-browser/docs/mcp.md).
 
 ### `misplaced_resource_parameter`
 
--   A resource was found both directly in the `resource` parameter and in `extraQueryParameters` or `extraParameters`. Please only include the resource in one location. See the MCP documentation for [msal-browser](../lib/msal-browser/docs/mcp.md) or [msal-node](../lib/msal-node/docs/mcp.md).
+-   A resource was found both directly in the `resource` parameter and in `extraQueryParameters` or `extraParameters`. Please only include the resource in one location. See the [msal-browser MCP documentation](../lib/msal-browser/docs/mcp.md).
 
 ## Browser configuration errors
 
