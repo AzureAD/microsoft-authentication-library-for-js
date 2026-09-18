@@ -3,29 +3,21 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AADServerParamKeys,
-    AuthenticationResult,
-    CommonSilentFlowRequest,
-    Logger,
-    NativeRequest,
-    getRequestThumbprint,
-} from "@azure/msal-common/node";
+import * as AADServerParamKeys from "../common/constants/AADServerParamKeys.js";
+import { Logger } from "../common/logger/Logger.js";
+import { getRequestThumbprint } from "../common/network/RequestThumbprint.js";
+import { CommonSilentFlowRequest } from "../common/request/CommonSilentFlowRequest.js";
+import { AuthenticationResult } from "../common/response/AuthenticationResult.js";
 
 /**
  * Prepared silent requests and the acquisition path whose parameters determine their key.
  */
-export type SilentRequestKeyInput =
-    | {
-          requestType: "non-native";
-          request: CommonSilentFlowRequest;
-          authority: string;
-          clientId: string;
-      }
-    | {
-          requestType: "native";
-          request: NativeRequest;
-      };
+export type SilentRequestKeyInput = {
+    requestType: "non-native";
+    request: CommonSilentFlowRequest;
+    authority: string;
+    clientId: string;
+};
 
 const activeSilentTokenRequests = new WeakMap<
     object,
@@ -83,80 +75,49 @@ export function acquireTokenSilentDeduped(
  */
 export function getSilentRequestKey(input: SilentRequestKeyInput): string {
     const { request } = input;
-    const authority =
-        input.requestType === "native" ? request.authority : input.authority;
+    const authority = input.authority;
     const commonKeyFields = {
         requestType: input.requestType,
-        clientId:
-            input.requestType === "native"
-                ? input.request.clientId
-                : input.clientId,
+        clientId: input.clientId,
         authority,
         scopes: canonicalizeRequestValues(request.scopes),
         claims: request.claims,
         authenticationScheme: request.authenticationScheme,
         resourceRequestMethod: request.resourceRequestMethod,
         resourceRequestUri: request.resourceRequestUri,
+        shrNonce: request.shrNonce,
+        shrOptions: request.shrOptions,
+        sshJwk: request.sshJwk,
+        popKid: request.popKid,
+        dpopJkt: request.dpopJkt,
         forceRefresh: request.forceRefresh,
         redirectUri: request.redirectUri || "",
         resource: request.resource,
         extraParameters: canonicalizeRequestValues(request.extraParameters),
     };
 
-    if (input.requestType === "native") {
-        return JSON.stringify({
-            ...commonKeyFields,
-            accountId: input.request.accountId,
-            shrNonce: input.request.shrNonce,
-            extraScopesToConsent: canonicalizeRequestValues(
-                input.request.extraScopesToConsent
-            ),
-            loginHint: input.request.loginHint,
-            prompt: input.request.prompt,
-        });
-    }
-
-    const nonNativeRequest = input.request;
     const thumbprint = getRequestThumbprint(
         input.clientId,
-        { ...nonNativeRequest, authority },
-        nonNativeRequest.account.homeAccountId
+        { ...request, authority },
+        request.account.homeAccountId
     );
 
     return JSON.stringify({
         ...thumbprint,
         ...commonKeyFields,
-        accountTenantId: nonNativeRequest.account.tenantId,
-        accountEnvironment: nonNativeRequest.account.environment,
+        accountTenantId: request.account.tenantId,
+        accountEnvironment: request.account.environment,
         refreshTokenExpirationOffsetSeconds:
-            nonNativeRequest.refreshTokenExpirationOffsetSeconds,
+            request.refreshTokenExpirationOffsetSeconds,
         extraQueryParameters: canonicalizeRequestValues(
-            nonNativeRequest.extraQueryParameters
+            request.extraQueryParameters
         ),
         skipBrokerClaims:
             thumbprint.embeddedClientId ||
-            nonNativeRequest.extraParameters?.[
-                AADServerParamKeys.BROKER_CLIENT_ID
-            ]
-                ? nonNativeRequest.skipBrokerClaims
+            request.extraParameters?.[AADServerParamKeys.BROKER_CLIENT_ID]
+                ? request.skipBrokerClaims
                 : undefined,
     });
-}
-
-/**
- * Copies mutable native request values so execution cannot diverge from the stored key.
- */
-export function snapshotNativeRequest(request: NativeRequest): NativeRequest {
-    return {
-        ...request,
-        scopes: [...request.scopes],
-        extraParameters: request.extraParameters
-            ? { ...request.extraParameters }
-            : undefined,
-        extraScopesToConsent: request.extraScopesToConsent
-            ? [...request.extraScopesToConsent]
-            : undefined,
-    };
 }
 
 /**

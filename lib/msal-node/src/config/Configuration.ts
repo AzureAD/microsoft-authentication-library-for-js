@@ -5,20 +5,42 @@
 
 import {
     LoggerOptions,
-    INetworkModule,
-    LogLevel,
-    ProtocolMode,
-    ICachePlugin,
-    AzureCloudInstance,
     AzureCloudOptions,
     ApplicationTelemetry,
-    INativeBrokerPlugin,
-    ClientAssertionCallback,
-    Constants,
-} from "@azure/msal-common/node";
+} from "../common/config/ClientConfiguration.js";
+import { INetworkModule } from "../common/network/INetworkModule.js";
+import { LogLevel } from "../common/logger/Logger.js";
+import { ProtocolMode } from "../common/authority/ProtocolMode.js";
+import { ICachePlugin } from "../common/cache/interface/ICachePlugin.js";
+import { AzureCloudInstance } from "../common/authority/AuthorityOptions.js";
+import { ClientAssertionCallback } from "../common/account/ClientCredentials.js";
+import * as Constants from "../common/utils/Constants.js";
 import { HttpClient } from "../network/HttpClient.js";
 import { ManagedIdentityId } from "./ManagedIdentityId.js";
 import { NodeAuthError } from "../error/NodeAuthError.js";
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../common/error/ClientConfigurationError.js";
+
+export const DEFAULT_MAX_TOKEN_CACHE_ENTRIES = 10_000;
+export const DEFAULT_MAX_TOKEN_CACHE_SIZE_IN_BYTES = 20 * 1024 * 1024;
+const MAX_LRU_CACHE_ENTRIES = 1_000_000;
+
+/** @public */
+export type InMemoryCacheOptions = {
+    /**
+     * Maximum number of access token, refresh token, and ID token credentials retained in memory. Must not exceed 1,000,000.
+     */
+    maxTokenCacheEntries?: number;
+    /**
+     * Maximum logical weight of access token, refresh token, and ID token credentials retained in memory.
+     */
+    maxTokenCacheSizeInBytes?: number;
+};
+
+/** @internal */
+export type ResolvedInMemoryCacheOptions = Required<InMemoryCacheOptions>;
 
 /**
  * - clientId               - Client id of the application.
@@ -49,10 +71,6 @@ export type NodeAuthOptions = {
     authorityMetadata?: string;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
-    /**
-     * Flag on whether a resource parameter is required for token requests. Used for MCP flows.
-     */
-    isMcp?: boolean;
 };
 
 /**
@@ -61,19 +79,8 @@ export type NodeAuthOptions = {
  * - cachePlugin   - Plugin for reading and writing token cache to disk.
  * @public
  */
-export type CacheOptions = {
+export type CacheOptions = InMemoryCacheOptions & {
     cachePlugin?: ICachePlugin;
-};
-
-/**
- * Use this to configure the below broker options:
- * - nativeBrokerPlugin - Native broker implementation (should be imported from msal-node-extensions)
- *
- * Note: These options are only available for PublicClientApplications using the Authorization Code Flow
- * @public
- */
-export type BrokerOptions = {
-    nativeBrokerPlugin?: INativeBrokerPlugin;
 };
 
 /**
@@ -100,7 +107,6 @@ export type NodeTelemetryOptions = {
  * Use the configuration object to configure MSAL and initialize the client application object
  *
  * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
- * - broker: this is where you configure broker options
  * - cache: this is where you configure cache location
  * - system: this is where you can configure the network client, logger
  * - telemetry: this is where you can configure telemetry options
@@ -108,7 +114,6 @@ export type NodeTelemetryOptions = {
  */
 export type Configuration = {
     auth: NodeAuthOptions;
-    broker?: BrokerOptions;
     cache?: CacheOptions;
     system?: NodeSystemOptions;
     telemetry?: NodeTelemetryOptions;
@@ -125,6 +130,7 @@ export type ManagedIdentityIdParams = {
 export type ManagedIdentityConfiguration = {
     clientCapabilities?: Array<string>;
     managedIdentityIdParams?: ManagedIdentityIdParams;
+    cache?: InMemoryCacheOptions;
     system?: NodeSystemOptions;
 };
 
@@ -147,7 +153,6 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
         azureCloudInstance: AzureCloudInstance.None,
         tenant: "",
     },
-    isMcp: false,
 };
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
@@ -175,8 +180,7 @@ const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
 /** @internal */
 export type NodeConfiguration = {
     auth: Required<NodeAuthOptions>;
-    broker: BrokerOptions;
-    cache: CacheOptions;
+    cache: CacheOptions & ResolvedInMemoryCacheOptions;
     system: Required<NodeSystemOptions>;
     telemetry: Required<NodeTelemetryOptions>;
 };
@@ -194,7 +198,6 @@ export type NodeConfiguration = {
  */
 export function buildAppConfiguration({
     auth,
-    broker,
     cache,
     system,
     telemetry,
@@ -217,8 +220,10 @@ export function buildAppConfiguration({
 
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
-        broker: { ...broker },
-        cache: { ...cache },
+        cache: {
+            ...cache,
+            ...resolveInMemoryCacheOptions(cache),
+        },
         system: { ...systemOptions, ...system },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
     };
@@ -226,6 +231,7 @@ export function buildAppConfiguration({
 
 /** @internal */
 export type ManagedIdentityNodeConfiguration = {
+    cache: ResolvedInMemoryCacheOptions;
     clientCapabilities?: Array<string>;
     disableInternalRetries: boolean;
     managedIdentityId: ManagedIdentityId;
@@ -235,6 +241,7 @@ export type ManagedIdentityNodeConfiguration = {
 };
 
 export function buildManagedIdentityConfiguration({
+    cache,
     clientCapabilities,
     managedIdentityIdParams,
     system,
@@ -256,6 +263,7 @@ export function buildManagedIdentityConfiguration({
     }
 
     return {
+        cache: resolveInMemoryCacheOptions(cache),
         clientCapabilities: clientCapabilities || [],
         managedIdentityId: managedIdentityId,
         system: {
@@ -263,5 +271,43 @@ export function buildManagedIdentityConfiguration({
             networkClient,
         },
         disableInternalRetries: system?.disableInternalRetries || false,
+    };
+}
+
+function validateCacheLimit(errorCode: string, value: number): void {
+    if (!Number.isSafeInteger(value) || !Number.isFinite(value) || value <= 0) {
+        throw createClientConfigurationError(errorCode, "");
+    }
+}
+
+/** @internal */
+export function resolveInMemoryCacheOptions(
+    options?: InMemoryCacheOptions
+): ResolvedInMemoryCacheOptions {
+    if (options?.maxTokenCacheEntries !== undefined) {
+        validateCacheLimit(
+            ClientConfigurationErrorCodes.invalidMaxTokenCacheEntries,
+            options.maxTokenCacheEntries
+        );
+        if (options.maxTokenCacheEntries > MAX_LRU_CACHE_ENTRIES) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidMaxTokenCacheEntries,
+                ""
+            );
+        }
+    }
+    if (options?.maxTokenCacheSizeInBytes !== undefined) {
+        validateCacheLimit(
+            ClientConfigurationErrorCodes.invalidMaxTokenCacheSizeInBytes,
+            options.maxTokenCacheSizeInBytes
+        );
+    }
+
+    return {
+        maxTokenCacheEntries:
+            options?.maxTokenCacheEntries ?? DEFAULT_MAX_TOKEN_CACHE_ENTRIES,
+        maxTokenCacheSizeInBytes:
+            options?.maxTokenCacheSizeInBytes ??
+            DEFAULT_MAX_TOKEN_CACHE_SIZE_IN_BYTES,
     };
 }

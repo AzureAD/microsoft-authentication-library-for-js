@@ -4,88 +4,107 @@
 
 ```ts
 
-/// <reference types="node" />
+// @public
+export type AccountInfo = {
+    homeAccountId: string;
+    environment: string;
+    tenantId: string;
+    username: string;
+    localAccountId: string;
+    loginHint?: string;
+    name?: string;
+    upn?: string;
+    idToken?: string;
+    idTokenClaims?: IdTokenClaims & {
+        [key: string]: string | number | string[] | object | undefined | unknown;
+    };
+    nativeAccountId?: string;
+    authorityType?: string;
+    tenantProfiles?: Map<string, TenantProfile>;
+    dataBoundary?: DataBoundary;
+    kmsi?: boolean;
+};
 
-import { AccessTokenCache } from '@azure/msal-common/node';
-import { AccessTokenEntity } from '@azure/msal-common/node';
-import { AccountCache } from '@azure/msal-common/node';
-import { AccountEntity } from '@azure/msal-common/node';
-import { AccountInfo } from '@azure/msal-common/node';
-import { ApplicationTelemetry } from '@azure/msal-common/node';
-import { AppMetadataCache } from '@azure/msal-common/node';
-import { AppMetadataEntity } from '@azure/msal-common/node';
-import { AppTokenProviderParameters } from '@azure/msal-common/node';
-import { AppTokenProviderResult } from '@azure/msal-common/node';
-import { AuthenticationResult } from '@azure/msal-common/node';
-import { AuthError } from '@azure/msal-common/node';
-import { AuthErrorCodes } from '@azure/msal-common/node';
-import { Authority } from '@azure/msal-common/node';
-import { AuthorityMetadataEntity } from '@azure/msal-common/node';
-import { AuthorizationCodePayload } from '@azure/msal-common/node';
-import { AuthorizeResponse } from '@azure/msal-common/node';
-import { AzureCloudInstance } from '@azure/msal-common/node';
-import { AzureCloudOptions } from '@azure/msal-common/node';
-import { AzureRegion } from '@azure/msal-common/node';
-import { AzureRegionConfiguration } from '@azure/msal-common/node';
-import { BaseAuthRequest } from '@azure/msal-common/node';
-import { CacheManager } from '@azure/msal-common/node';
-import { ClientAssertion as ClientAssertion_2 } from '@azure/msal-common/node';
-import { ClientAssertionCallback } from '@azure/msal-common/node';
-import { ClientAuthError } from '@azure/msal-common/node';
-import { ClientAuthErrorCodes } from '@azure/msal-common/node';
-import { ClientConfiguration } from '@azure/msal-common/node';
-import { ClientConfigurationError } from '@azure/msal-common/node';
-import { ClientConfigurationErrorCodes } from '@azure/msal-common/node';
-import { CommonAuthorizationCodeRequest } from '@azure/msal-common/node';
-import { CommonAuthorizationUrlRequest } from '@azure/msal-common/node';
-import { CommonRefreshTokenRequest } from '@azure/msal-common/node';
-import { CommonSilentFlowRequest } from '@azure/msal-common/node';
-import { CredentialEntity } from '@azure/msal-common/node';
-import { DeviceCodeResponse } from '@azure/msal-common/node';
-import { IAppTokenProvider } from '@azure/msal-common/node';
-import { ICachePlugin } from '@azure/msal-common/node';
-import { ICrypto } from '@azure/msal-common/node';
-import { IdTokenCache } from '@azure/msal-common/node';
-import { IdTokenClaims } from '@azure/msal-common/node';
-import { IdTokenEntity } from '@azure/msal-common/node';
-import { INativeBrokerPlugin } from '@azure/msal-common/node';
-import { INetworkModule } from '@azure/msal-common/node';
-import { InteractionRequiredAuthError } from '@azure/msal-common/node';
-import { InteractionRequiredAuthErrorCodes } from '@azure/msal-common/node';
-import { ISerializableTokenCache } from '@azure/msal-common/node';
-import { Logger } from '@azure/msal-common/node';
-import { LoggerOptions } from '@azure/msal-common/node';
-import { LogLevel } from '@azure/msal-common/node';
-import { NetworkRequestOptions } from '@azure/msal-common/node';
-import { NetworkResponse } from '@azure/msal-common/node';
-import type { PkceCodes } from '@azure/msal-common/node';
-import { ProtocolMode } from '@azure/msal-common/node';
-import { RefreshTokenCache } from '@azure/msal-common/node';
-import { RefreshTokenEntity } from '@azure/msal-common/node';
-import { ServerError } from '@azure/msal-common/node';
-import { ServerTelemetryEntity } from '@azure/msal-common/node';
-import { ServerTelemetryManager } from '@azure/msal-common/node';
-import { StaticAuthorityOptions } from '@azure/msal-common/node';
-import { StringDict } from '@azure/msal-common/node';
-import { ThrottlingEntity } from '@azure/msal-common/node';
-import { TokenCacheContext } from '@azure/msal-common/node';
-import { TokenKeys } from '@azure/msal-common/node';
-import { ValidCacheType } from '@azure/msal-common/node';
-import { ValidCredentialType } from '@azure/msal-common/node';
+// @public
+export type AppTokenProviderParameters = {
+    readonly correlationId?: string;
+    readonly tenantId: string;
+    readonly scopes: Array<string>;
+    readonly claims?: string;
+};
 
-export { AccountInfo }
+// @public
+export type AppTokenProviderResult = {
+    accessToken: string;
+    expiresInSeconds: number;
+    refreshInSeconds?: number;
+};
 
-export { AppTokenProviderParameters }
+// @public
+export type AuthenticationResult = {
+    authority: string;
+    uniqueId: string;
+    tenantId: string;
+    scopes: Array<string>;
+    account: AccountInfo | null;
+    idToken: string;
+    idTokenClaims: object;
+    accessToken: string;
+    dpopProof?: string;
+    fromCache: boolean;
+    expiresOn: Date | null;
+    extExpiresOn?: Date;
+    refreshOn?: Date;
+    tokenType: string;
+    correlationId: string;
+    requestId?: string;
+    state?: string;
+    familyId?: string;
+    cloudGraphHostName?: string;
+    msGraphHost?: string;
+    code?: string;
+    fromPlatformBroker?: boolean;
+    resource?: string;
+};
 
-export { AppTokenProviderResult }
+// @public
+export class AuthError extends Error {
+    constructor(errorCode: string, correlationId: string, errorMessage?: string, suberror?: string);
+    correlationId: string;
+    errorCode: string;
+    errorMessage: string;
+    platformBrokerError?: PlatformBrokerError;
+    subError: string;
+}
 
-export { AuthenticationResult }
-
-export { AuthError }
-
+declare namespace AuthErrorCodes {
+    export {
+        unexpectedError,
+        postRequestFailed
+    }
+}
 export { AuthErrorCodes }
 
-export { AuthorizationCodePayload }
+// @public (undocumented)
+const authorityMismatch = "authority_mismatch";
+
+// @public (undocumented)
+const authorityUriInsecure = "authority_uri_insecure";
+
+// @public (undocumented)
+const authorizationCodeMissingFromServerResponse = "authorization_code_missing_from_server_response";
+
+// @public
+export type AuthorizationCodePayload = {
+    code: string;
+    cloud_instance_name?: string;
+    cloud_instance_host_name?: string;
+    cloud_graph_host_name?: string;
+    msgraph_host?: string;
+    state?: string;
+    nonce?: string;
+    client_info?: string;
+};
 
 // @public
 export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "scopes" | "redirectUri" | "code" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
@@ -102,24 +121,74 @@ export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest
     redirectUri: string;
 };
 
-export { AuthorizeResponse }
+// @public
+export type AuthorizeResponse = {
+    code?: string;
+    ear_jwe?: string;
+    client_info?: string;
+    state?: string;
+    cloud_instance_name?: string;
+    cloud_instance_host_name?: string;
+    cloud_graph_host_name?: string;
+    msgraph_host?: string;
+    error?: string;
+    error_uri?: string;
+    error_description?: string;
+    suberror?: string;
+    timestamp?: string;
+    trace_id?: string;
+    correlation_id?: string;
+    claims?: string;
+    accountId?: string;
+    clientdata?: string;
+};
 
-export { AzureCloudInstance }
+// @public (undocumented)
+export const AzureCloudInstance: {
+    readonly None: "none";
+    readonly AzurePublic: "https://login.microsoftonline.com";
+    readonly AzureChina: "https://login.chinacloudapi.cn";
+    readonly AzureGermany: "https://login.microsoftonline.de";
+    readonly AzureUsGovernment: "https://login.microsoftonline.us";
+};
 
-export { AzureCloudOptions }
+// @public (undocumented)
+export type AzureCloudInstance = (typeof AzureCloudInstance)[keyof typeof AzureCloudInstance];
 
 // @public
-export type BrokerOptions = {
-    nativeBrokerPlugin?: INativeBrokerPlugin;
+export type AzureCloudOptions = {
+    azureCloudInstance: AzureCloudInstance;
+    tenant?: string;
 };
+
+// @public
+const badToken = "bad_token";
+
+// @public (undocumented)
+const bindingKeyNotRemoved = "binding_key_not_removed";
 
 // @public
 export type CacheKVStore = Record<string, ValidCacheType>;
 
 // @public
-export type CacheOptions = {
+export type CacheOptions = InMemoryCacheOptions & {
     cachePlugin?: ICachePlugin;
 };
+
+// @public (undocumented)
+const cannotAllowPlatformBroker = "cannot_allow_platform_broker";
+
+// @public (undocumented)
+const cannotAppendScopeSet = "cannot_append_scopeset";
+
+// @public (undocumented)
+const cannotRemoveEmptyScope = "cannot_remove_empty_scope";
+
+// @public (undocumented)
+const cannotSetOIDCOptions = "cannot_set_OIDCOptions";
+
+// @public (undocumented)
+const claimsRequestParsingError = "claims_request_parsing_error";
 
 // @public
 export class ClientAssertion {
@@ -131,20 +200,112 @@ export class ClientAssertion {
     static parseCertificate(publicCertificate: string): Array<string>;
 }
 
-export { ClientAssertionCallback }
+// @public (undocumented)
+export type ClientAssertionCallback = (config: ClientAssertionConfig) => Promise<string>;
 
-export { ClientAuthError }
+// @public
+export class ClientAuthError extends AuthError {
+    constructor(errorCode: string, correlationId: string, additionalMessage?: string);
+}
 
+declare namespace ClientAuthErrorCodes {
+    export {
+        clientInfoDecodingError,
+        clientInfoEmptyError,
+        tokenParsingError,
+        nullOrEmptyToken,
+        endpointResolutionError,
+        networkError,
+        openIdConfigError,
+        hashNotDeserialized,
+        invalidState,
+        stateMismatch,
+        stateNotFound,
+        nonceMismatch,
+        multipleMatchingTokens,
+        multipleMatchingAppMetadata,
+        requestCannotBeMade,
+        cannotRemoveEmptyScope,
+        cannotAppendScopeSet,
+        emptyInputScopeSet,
+        noAccountInSilentRequest,
+        invalidCacheRecord,
+        invalidCacheEnvironment,
+        noAccountFound,
+        noCryptoObject,
+        unexpectedCredentialType,
+        dpopTokenTypeMismatch,
+        tokenRefreshRequired,
+        tokenClaimsCnfRequiredForSignedJwt,
+        authorizationCodeMissingFromServerResponse,
+        bindingKeyNotRemoved,
+        endSessionEndpointNotSupported,
+        keyIdMissing,
+        noNetworkConnectivity,
+        userCanceled,
+        methodNotImplemented,
+        nestedAppAuthBridgeDisabled,
+        platformBrokerError,
+        resourceParameterRequired,
+        misplacedResourceParam
+    }
+}
 export { ClientAuthErrorCodes }
 
-export { ClientConfigurationError }
+// @public
+export class ClientConfigurationError extends AuthError {
+    constructor(errorCode: string, correlationId: string);
+}
 
+declare namespace ClientConfigurationErrorCodes {
+    export {
+        redirectUriEmpty,
+        claimsRequestParsingError,
+        authorityUriInsecure,
+        urlParseError,
+        urlEmptyError,
+        emptyInputScopesError,
+        invalidClaims,
+        tokenRequestEmpty,
+        logoutRequestEmpty,
+        invalidCodeChallengeMethod,
+        pkceParamsMissing,
+        invalidCloudDiscoveryMetadata,
+        invalidAuthorityMetadata,
+        untrustedAuthority,
+        missingSshJwk,
+        missingSshKid,
+        unsupportedAuthenticationScheme,
+        missingNonceAuthenticationHeader,
+        invalidAuthenticationHeader,
+        cannotSetOIDCOptions,
+        cannotAllowPlatformBroker,
+        authorityMismatch,
+        invalidRequestMethodForEAR,
+        invalidPlatformBrokerConfiguration,
+        issuerValidationFailed,
+        invalidResponseMode,
+        invalidDpopHtm,
+        invalidDpopHtu,
+        invalidDpopNonce,
+        dpopMissingResourceContext,
+        invalidMaxTokenCacheEntries,
+        invalidMaxTokenCacheSizeInBytes,
+        managedIdentityCacheConfigurationMismatch
+    }
+}
 export { ClientConfigurationErrorCodes }
 
 // @public
 export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest, "resourceRequestMethod" | "resourceRequestUri" | "clientAssertion" | "storeInCache">> & {
     clientAssertion?: string | ClientAssertionCallback;
 };
+
+// @public (undocumented)
+const clientInfoDecodingError = "client_info_decoding_error";
+
+// @public (undocumented)
+const clientInfoEmptyError = "client_info_empty_error";
 
 // @public
 export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication {
@@ -158,11 +319,13 @@ export class ConfidentialClientApplication extends ClientApplication implements 
 // @public
 export type Configuration = {
     auth: NodeAuthOptions;
-    broker?: BrokerOptions;
     cache?: CacheOptions;
     system?: NodeSystemOptions;
     telemetry?: NodeTelemetryOptions;
 };
+
+// @public
+const consentRequired = "consent_required";
 
 // @public
 export class CryptoProvider implements ICrypto {
@@ -191,19 +354,38 @@ class Deserializer {
 }
 
 // @public
-export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes" | "deviceCodeCallback" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
-    scopes: Array<string>;
-    deviceCodeCallback: (response: DeviceCodeResponse) => void;
-};
-
-// @public
 export class DistributedCachePlugin implements ICachePlugin {
     constructor(client: ICacheClient, partitionManager: IPartitionManager);
     afterCacheAccess(cacheContext: TokenCacheContext): Promise<void>;
     beforeCacheAccess(cacheContext: TokenCacheContext): Promise<void>;
 }
 
-export { IAppTokenProvider }
+// @public (undocumented)
+const dpopMissingResourceContext = "dpop_missing_resource_context";
+
+// @public (undocumented)
+const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
+
+// @public (undocumented)
+const emptyInputScopesError = "empty_input_scopes_error";
+
+// @public (undocumented)
+const emptyInputScopeSet = "empty_input_scopeset";
+
+// @public (undocumented)
+const endpointResolutionError = "endpoints_resolution_error";
+
+// @public (undocumented)
+const endSessionEndpointNotSupported = "end_session_endpoint_not_supported";
+
+// @public (undocumented)
+const hashNotDeserialized = "hash_not_deserialized";
+
+// @public
+export interface IAppTokenProvider {
+    // (undocumented)
+    (appTokenProviderParameters: AppTokenProviderParameters): Promise<AppTokenProviderResult>;
+}
 
 // @public
 export interface ICacheClient {
@@ -211,7 +393,13 @@ export interface ICacheClient {
     set(key: string, value: string): Promise<string>;
 }
 
-export { ICachePlugin }
+// @public (undocumented)
+export interface ICachePlugin {
+    // (undocumented)
+    afterCacheAccess: (tokenCacheContext: TokenCacheContext) => Promise<void>;
+    // (undocumented)
+    beforeCacheAccess: (tokenCacheContext: TokenCacheContext) => Promise<void>;
+}
 
 // @public
 export interface IConfidentialClientApplication {
@@ -230,11 +418,51 @@ export interface IConfidentialClientApplication {
     setLogger(logger: Logger): void;
 }
 
-export { IdTokenClaims }
+// @public
+export type IdTokenClaims = {
+    aud?: string;
+    iss?: string;
+    iat?: number;
+    nbf?: number;
+    oid?: string;
+    sub?: string;
+    tid?: string;
+    tfp?: string;
+    acr?: string;
+    ver?: string;
+    upn?: string;
+    preferred_username?: string;
+    login_hint?: string;
+    signin_state?: Array<string>;
+    emails?: string[];
+    name?: string;
+    nonce?: string;
+    exp?: number;
+    home_oid?: string;
+    sid?: string;
+    cloud_instance_host_name?: string;
+    cnf?: {
+        kid: string;
+    };
+    x5c_ca?: string[];
+    ts?: number;
+    at?: string;
+    u?: string;
+    p?: string;
+    m?: string;
+    roles?: string[];
+    amr?: string[];
+    idp?: string;
+    auth_time?: number;
+    tenant_region_scope?: string;
+    tenant_region_sub_scope?: string;
+};
 
-export { INativeBrokerPlugin }
-
-export { INetworkModule }
+// @public
+export interface INetworkModule {
+    sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions, timeout?: number): Promise<NetworkResponse<T>>;
+    sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>>;
+}
 
 // @public
 export type InMemoryCache = {
@@ -245,19 +473,38 @@ export type InMemoryCache = {
     appMetadata: AppMetadataCache;
 };
 
-export { InteractionRequiredAuthError }
-
-export { InteractionRequiredAuthErrorCodes }
+// @public (undocumented)
+export type InMemoryCacheOptions = {
+    maxTokenCacheEntries?: number;
+    maxTokenCacheSizeInBytes?: number;
+};
 
 // @public
-export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "storeInCache">> & {
-    openBrowser: (url: string) => Promise<void>;
-    scopes?: Array<string>;
-    successTemplate?: string;
-    errorTemplate?: string;
-    windowHandle?: Buffer;
-    preferredPort?: number;
-};
+const interactionRequired = "interaction_required";
+
+// @public
+export class InteractionRequiredAuthError extends AuthError {
+    constructor(errorCode: string, correlationId: string, errorMessage?: string, subError?: string, timestamp?: string, traceId?: string, claims?: string, errorNo?: string);
+    claims: string;
+    readonly errorNo?: string;
+    timestamp: string;
+    traceId: string;
+}
+
+declare namespace InteractionRequiredAuthErrorCodes {
+    export {
+        noTokensFound,
+        nativeAccountUnavailable,
+        refreshTokenExpired,
+        uiNotAllowed,
+        interactionRequired,
+        consentRequired,
+        loginRequired,
+        badToken,
+        interruptedUser
+    }
+}
+export { InteractionRequiredAuthErrorCodes }
 
 declare namespace internals {
     export {
@@ -268,30 +515,72 @@ declare namespace internals {
 export { internals }
 
 // @public
+const interruptedUser = "interrupted_user";
+
+// @public (undocumented)
+const invalidAuthenticationHeader = "invalid_authentication_header";
+
+// @public (undocumented)
+const invalidAuthorityMetadata = "invalid_authority_metadata";
+
+// @public (undocumented)
+const invalidCacheEnvironment = "invalid_cache_environment";
+
+// @public (undocumented)
+const invalidCacheRecord = "invalid_cache_record";
+
+// @public (undocumented)
+const invalidClaims = "invalid_claims";
+
+// @public (undocumented)
+const invalidCloudDiscoveryMetadata = "invalid_cloud_discovery_metadata";
+
+// @public (undocumented)
+const invalidCodeChallengeMethod = "invalid_code_challenge_method";
+
+// @public (undocumented)
+const invalidDpopHtm = "invalid_dpop_htm";
+
+// @public (undocumented)
+const invalidDpopHtu = "invalid_dpop_htu";
+
+// @public (undocumented)
+const invalidDpopNonce = "invalid_dpop_nonce";
+
+// @public (undocumented)
+const invalidMaxTokenCacheEntries = "invalid_max_token_cache_entries";
+
+// @public (undocumented)
+const invalidMaxTokenCacheSizeInBytes = "invalid_max_token_cache_size_in_bytes";
+
+// @public (undocumented)
+const invalidPlatformBrokerConfiguration = "invalid_platform_broker_configuration";
+
+// @public (undocumented)
+const invalidRequestMethodForEAR = "invalid_request_method_for_EAR";
+
+// @public (undocumented)
+const invalidResponseMode = "invalid_response_mode";
+
+// @public (undocumented)
+const invalidState = "invalid_state";
+
+// @public
 export interface IPartitionManager {
     extractKey(accountEntity: AccountEntity): Promise<string>;
     getKey(): Promise<string>;
 }
 
-// @public
-export interface IPublicClientApplication {
-    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
-    acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
-    acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
-    // @deprecated
-    acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
-    acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult>;
-    acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
-    clearCache(): void;
-    getAllAccounts(): Promise<AccountInfo[]>;
-    getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
-    getLogger(): Logger;
-    getTokenCache(): TokenCache;
-    setLogger(logger: Logger): void;
-    signOut(request: SignOutRequest): Promise<void>;
+// @public (undocumented)
+export interface ISerializableTokenCache {
+    // (undocumented)
+    deserialize: (cache: string) => void;
+    // (undocumented)
+    serialize: () => string;
 }
 
-export { ISerializableTokenCache }
+// @public (undocumented)
+const issuerValidationFailed = "issuer_validation_failed";
 
 // @public
 export interface ITokenCache {
@@ -310,9 +599,46 @@ export type JsonCache = {
     AppMetadata: Record<string, SerializedAppMetadataEntity>;
 };
 
-export { Logger }
+// @public (undocumented)
+const keyIdMissing = "key_id_missing";
 
-export { LogLevel }
+// @public
+export class Logger {
+    constructor(loggerOptions: LoggerOptions, packageName?: string, packageVersion?: string);
+    clone(packageName: string, packageVersion: string): Logger;
+    error(message: string, correlationId: string): void;
+    errorPii(message: string, correlationId: string): void;
+    executeCallback(level: LogLevel, message: string, containsPii: boolean): void;
+    info(message: string, correlationId: string): void;
+    infoPii(message: string, correlationId: string): void;
+    isPiiLoggingEnabled(): boolean;
+    trace(message: string, correlationId: string): void;
+    tracePii(message: string, correlationId: string): void;
+    verbose(message: string, correlationId: string): void;
+    verbosePii(message: string, correlationId: string): void;
+    warning(message: string, correlationId: string): void;
+    warningPii(message: string, correlationId: string): void;
+}
+
+// @public
+const loginRequired = "login_required";
+
+// @public
+export enum LogLevel {
+    // (undocumented)
+    Error = 0,
+    // (undocumented)
+    Info = 2,
+    // (undocumented)
+    Trace = 4,
+    // (undocumented)
+    Verbose = 3,
+    // (undocumented)
+    Warning = 1
+}
+
+// @public (undocumented)
+const logoutRequestEmpty = "logout_request_empty";
 
 // @public
 export class ManagedIdentityApplication {
@@ -322,9 +648,13 @@ export class ManagedIdentityApplication {
 }
 
 // @public (undocumented)
+const managedIdentityCacheConfigurationMismatch = "managed_identity_cache_configuration_mismatch";
+
+// @public (undocumented)
 export type ManagedIdentityConfiguration = {
     clientCapabilities?: Array<string>;
     managedIdentityIdParams?: ManagedIdentityIdParams;
+    cache?: InMemoryCacheOptions;
     system?: NodeSystemOptions;
 };
 
@@ -356,9 +686,59 @@ export const ManagedIdentitySourceNames: {
 // @public
 export type ManagedIdentitySourceNames = (typeof ManagedIdentitySourceNames)[keyof typeof ManagedIdentitySourceNames];
 
-export { NetworkRequestOptions }
+// @public (undocumented)
+const methodNotImplemented = "method_not_implemented";
 
-export { NetworkResponse }
+// @public (undocumented)
+const misplacedResourceParam = "misplaced_resource_parameter";
+
+// @public (undocumented)
+const missingNonceAuthenticationHeader = "missing_nonce_authentication_header";
+
+// @public (undocumented)
+const missingSshJwk = "missing_ssh_jwk";
+
+// @public (undocumented)
+const missingSshKid = "missing_ssh_kid";
+
+// @public (undocumented)
+const multipleMatchingAppMetadata = "multiple_matching_appMetadata";
+
+// @public (undocumented)
+const multipleMatchingTokens = "multiple_matching_tokens";
+
+// @public
+const nativeAccountUnavailable = "native_account_unavailable";
+
+// @public (undocumented)
+const nestedAppAuthBridgeDisabled = "nested_app_auth_bridge_disabled";
+
+// @public (undocumented)
+const networkError = "network_error";
+
+// @public
+export type NetworkRequestOptions = {
+    headers?: Record<string, string>;
+    body?: string;
+    correlationId?: string;
+    performanceClient?: IPerformanceClient;
+};
+
+// @public (undocumented)
+export type NetworkResponse<T> = {
+    headers: Record<string, string>;
+    body: T;
+    status: number;
+};
+
+// @public (undocumented)
+const noAccountFound = "no_account_found";
+
+// @public (undocumented)
+const noAccountInSilentRequest = "no_account_in_silent_request";
+
+// @public (undocumented)
+const noCryptoObject = "no_crypto_object";
 
 // @public
 export type NodeAuthOptions = {
@@ -377,7 +757,6 @@ export type NodeAuthOptions = {
     authorityMetadata?: string;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
-    isMcp?: boolean;
 };
 
 // @public
@@ -393,11 +772,35 @@ export type NodeTelemetryOptions = {
     application?: ApplicationTelemetry;
 };
 
+// @public (undocumented)
+const nonceMismatch = "nonce_mismatch";
+
+// @public (undocumented)
+const noNetworkConnectivity = "no_network_connectivity";
+
+// @public
+const noTokensFound = "no_tokens_found";
+
+// @public (undocumented)
+const nullOrEmptyToken = "null_or_empty_token";
+
 // @public
 export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion" | "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
     oboAssertion: string;
     scopes: Array<string>;
 };
+
+// @public (undocumented)
+const openIdConfigError = "openid_config_error";
+
+// @public (undocumented)
+const pkceParamsMissing = "pkce_params_missing";
+
+// @public (undocumented)
+const platformBrokerError = "platform_broker_error";
+
+// @public (undocumented)
+const postRequestFailed = "post_request_failed";
 
 // @public (undocumented)
 export const PromptValue: {
@@ -409,19 +812,21 @@ export const PromptValue: {
     NO_SESSION: string;
 };
 
-export { ProtocolMode }
+// @public
+export const ProtocolMode: {
+    readonly AAD: "AAD";
+    readonly OIDC: "OIDC";
+    readonly EAR: "EAR";
+};
+
+// @public (undocumented)
+export type ProtocolMode = (typeof ProtocolMode)[keyof typeof ProtocolMode];
+
+// @public (undocumented)
+const redirectUriEmpty = "redirect_uri_empty";
 
 // @public
-export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
-    constructor(configuration: Configuration);
-    acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult>;
-    acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
-    acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
-    acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult>;
-    acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
-    getAllAccounts(): Promise<AccountInfo[]>;
-    signOut(request: SignOutRequest): Promise<void>;
-}
+const refreshTokenExpired = "refresh_token_expired";
 
 // @public
 export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
@@ -429,6 +834,12 @@ export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scope
     refreshToken: string;
     forceCache?: boolean;
 };
+
+// @public (undocumented)
+const requestCannotBeMade = "request_cannot_be_made";
+
+// @public (undocumented)
+const resourceParameterRequired = "resource_parameter_required";
 
 // @public (undocumented)
 export const ResponseMode: {
@@ -512,19 +923,24 @@ class Serializer {
     static serializeRefreshTokens(rtCache: RefreshTokenCache): Record<string, SerializedRefreshTokenEntity>;
 }
 
-export { ServerError }
-
-// @public (undocumented)
-export type SignOutRequest = {
-    account: AccountInfo;
-    correlationId?: string;
-};
+// @public
+export class ServerError extends AuthError {
+    constructor(errorCode: string, correlationId: string, errorMessage?: string, subError?: string, errorNo?: string, status?: number);
+    readonly errorNo?: string;
+    readonly status?: number;
+}
 
 // @public
 export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "storeInCache">> & {
     account: AccountInfo;
     scopes: Array<string>;
 };
+
+// @public (undocumented)
+const stateMismatch = "state_mismatch";
+
+// @public (undocumented)
+const stateNotFound = "state_not_found";
 
 // @public
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
@@ -543,7 +959,50 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     serialize(): string;
 }
 
-export { TokenCacheContext }
+// @public
+export class TokenCacheContext {
+    constructor(tokenCache: ISerializableTokenCache, hasChanged: boolean);
+    cache: ISerializableTokenCache;
+    get cacheHasChanged(): boolean;
+    hasChanged: boolean;
+    get tokenCache(): ISerializableTokenCache;
+}
+
+// @public (undocumented)
+const tokenClaimsCnfRequiredForSignedJwt = "token_claims_cnf_required_for_signedjwt";
+
+// @public (undocumented)
+const tokenParsingError = "token_parsing_error";
+
+// @public (undocumented)
+const tokenRefreshRequired = "token_refresh_required";
+
+// @public (undocumented)
+const tokenRequestEmpty = "token_request_empty";
+
+// @public
+const uiNotAllowed = "ui_not_allowed";
+
+// @public (undocumented)
+const unexpectedCredentialType = "unexpected_credential_type";
+
+// @public
+const unexpectedError = "unexpected_error";
+
+// @public (undocumented)
+const unsupportedAuthenticationScheme = "unsupported_authentication_scheme";
+
+// @public (undocumented)
+const untrustedAuthority = "untrusted_authority";
+
+// @public (undocumented)
+const urlEmptyError = "empty_url_error";
+
+// @public (undocumented)
+const urlParseError = "url_parse_error";
+
+// @public (undocumented)
+const userCanceled = "user_canceled";
 
 // @public
 export type UserFederatedIdentityCredentialRequest = Partial<Omit<CommonUserFederatedIdentityCredentialRequest, "scopes" | "assertion" | "resourceRequestMethod" | "resourceRequestUri" | "clientAssertion">> & {
@@ -561,7 +1020,8 @@ export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest
     password: string;
 };
 
-export { ValidCacheType }
+// @public
+export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity | AuthorityMetadataEntity | ServerTelemetryEntity | ThrottlingEntity | string;
 
 // @public (undocumented)
 export const version = "6.0.1";

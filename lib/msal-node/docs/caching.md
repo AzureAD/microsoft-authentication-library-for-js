@@ -46,20 +46,38 @@ cca.acquireTokenSilent(silentTokenRequest)
     });
 ```
 
-In production, you would most likely want to serialize and persist the token cache. Depending on the type of application, you can:
-
--   Desktop apps, console apps (public clients apps (PCA)):
-    -   Use [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md), which provides persistence and encryption at rest solutions on Windows, Linux and Mac OS
--   Web apps, web APIs, daemon apps (confidential client apps (CCA)):
-    -   MSAL's in-memory token cache does not scale for production. Use the [distributed token caching](#performance-and-security) pattern to persist the cache in your choice of storage environment (Redis, MongoDB, SQL databases etc. -keep in mind that you can use these in tandem _e.g._ a Redis-like memory cache as a first layer of persistence, and a SQL database as a second, more stable persistence layer)
+In production, MSAL's in-memory token cache does not scale. Use the [distributed token caching](#performance-and-security) pattern to persist the cache in your choice of storage environment (Redis, MongoDB, SQL databases, and so on).
 
 ## In-memory cache
 
 MSAL maintains an in-memory cache. The in-memory cache is representative of the application cache state. The lifetime of in-memory cache is the same as the MSAL application object. If the process using MSAL restarts, the cache is erased when the process lifecycle finishes. If the in-memory cache is empty and there is no persistent cache to restore the cache from, users will have to re-authenticate. When this happens, if the user still has an active session with Azure AD, they might re-authenticate without any prompts, however this still degrades the user experience. Service-to-service scenarios (i.e. client credentials flow, on-behalf-of flow) also suffer because getting a token from Azure AD involves HTTP requests, and is much slower than getting a token from cache.
 
-Note that the in-memory cache is not scalable for server-side applications and performance will degrade after holding a few 100 tokens in cache. For web app and web API scenarios, this approximates to serving a few 100 users. For daemon app scenarios using client credentials grant to call other apps, this means a few 100 tenants. See [performance](#performance-and-security) below for more.
+### Bounded credential cache
+
+MSAL Node bounds in-memory access token, refresh token, and ID token credentials by both entry count and logical weight. The default limits are 10,000 credentials and 20 MiB of logical weight. Both limits apply simultaneously: the logical-weight limit constrains typical token data and generated indexes, while the entry limit separately guards against many small credential objects. Configure them with `cache.maxTokenCacheEntries` and `cache.maxTokenCacheSizeInBytes`; both must use the finite positive ranges described in [configuration](./configuration.md#cache-config-options), and neither limit can be disabled.
+
+The least recently used credential is evicted when admitting or updating a credential would exceed either limit. A credential returned by a structurally successful cache selection becomes most recently used before later authentication validation, even if that validation rejects it because of expiry, resource, or token-binding-key requirements. Cache misses, filter failures, and ambiguous duplicate selections do not promote a credential. A credential whose individual logical weight exceeds the configured byte limit is not retained. Replacing an existing credential with an oversized value removes the old value without evicting unrelated credentials.
+
+Logical weight is deterministic cache accounting, not a measurement or guarantee of process heap or RSS. For each credential it includes:
+
+-   the UTF-8 byte length of the serialized persisted cache key and credential value;
+-   the UTF-8 byte lengths of the tuple and normalized scope strings actually stored for that credential (access-token scopes are represented in both the standard and OBO indexes); and
+-   one logical byte for each generated index posting.
+
+The entry-count limit provides a separate guard for object overhead not represented by this formula. Account, application metadata, authority metadata, telemetry, throttling, and unrecognized records are not credential entries and are not evicted when credential capacity is reached. The persisted cache schema, keys, and value shapes are unchanged.
+
+Each `ConfidentialClientApplication` owns its in-memory limits. Managed Identity preserves its process-wide shared cache: the first `ManagedIdentityApplication` instance owns an immutable process-wide policy, and later instances must omit limits or specify matching values. Explicit conflicts fail without resizing or replacing the shared cache.
+
+When a cache plugin loads more credentials than the configured limits, MSAL deterministically trims the in-memory state and reports `cacheHasChanged` during the corresponding `afterCacheAccess` callback. Plugins that follow the standard `cacheHasChanged` contract persist the trimmed state, preventing evicted credentials from being restored by the next plugin load.
+
+These limits are safeguards, not a scaling target. Server-side applications should still partition and persist cache data as described in [performance and security](#performance-and-security).
 
 > :warning: We recommend **persisting** the cache with **encryption** for all production applications both for security and desired cache longevity. If you choose not to persist the cache, the [TokenCache](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.tokencache.html) interface is still available to access the cached entities.
+
+In MSAL Node v7, `TokenCache.getKVStore()` returns a defensive snapshot for
+inspection. Mutating that object does not update MSAL's in-memory cache. Cache
+persistence and replacement must use the supported `serialize()` and
+`deserialize()` APIs through a cache plugin.
 
 ## Persistent cache
 
@@ -104,14 +122,11 @@ class MyCachePlugin implements ICachePlugin {
 }
 ```
 
--   If you are developing a public client app, [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) handles this for you.
--   If you are developing a confidential client app, you should persist the cache via a separate service, since a single, _per-server_ cache instance isn't suitable for a cloud environment with many servers and app instances.
+Confidential client applications should persist the cache via a separate service, since a single, _per-server_ cache instance isn't suitable for a cloud environment with many servers and app instances.
 
-> :warning: We strongly recommend to encrypt the token cache when persisting it on disk. For public client apps, this is offered out-of-box with [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md). For confidential clients however, you are responsible for devising an appropriate encryption solution.
+> :warning: We strongly recommend encrypting the token cache when persisting it on disk.
 
 ## Performance and security
-
-On public client apps, [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) ensures performance and security for you.
 
 On confidential client apps that handle users (web apps that sign in users and call web APIs, and web APIs calling downstream web APIs), there can be many users active concurrently for a given application. Our recommendation is to serialize one cache blob (see [CacheRecord](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/src/cache/entities/CacheRecord.ts)) per user. This would help with scaling the cache across a distributed system. Use a key for partitioning the cache (_i.e._ **partition key**), such as:
 
@@ -134,8 +149,6 @@ Please refer to the [Web app using DistributedCachePlugin](../../../samples/msal
 
 See the samples below for more about how to handle caching in MSAL Node apps:
 
--   [(PCA) Console app using MSAL Node Extensions](../../../extensions/samples/msal-node-extensions/index.js)
--   [(PCA) Dektop app using MSAL Node Extensions](../../../extensions/samples/electron-webpack/README.md)
 -   [(CCA) Web app using DistributedCachePlugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)
 -   [(CCA) Web API using a custom distributed cache plugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)
 -   [(CCA) Daemon app using a custom distributed cache plugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)

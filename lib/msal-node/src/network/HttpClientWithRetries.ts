@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 
+import * as Constants from "../common/utils/Constants.js";
 import {
-    Constants,
     INetworkModule,
-    Logger,
     NetworkRequestOptions,
-    NetworkResponse,
-} from "@azure/msal-common/node";
+} from "../common/network/INetworkModule.js";
+import { Logger } from "../common/logger/Logger.js";
+import { NetworkResponse } from "../common/network/NetworkResponse.js";
 import { IHttpRetryPolicy } from "../retry/IHttpRetryPolicy.js";
 import { HttpMethod } from "../utils/Constants.js";
 

@@ -3,12 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AccountEntity,
-    ICachePlugin,
-    AccountEntityUtils,
-    TokenCacheContext,
-} from "@azure/msal-common/node";
+import { AccountEntity } from "../../common/cache/entities/AccountEntity.js";
+import { ICachePlugin } from "../../common/cache/interface/ICachePlugin.js";
+import * as AccountEntityUtils from "../../common/cache/utils/AccountEntityUtils.js";
+import { TokenCacheContext } from "../../common/cache/persistence/TokenCacheContext.js";
 import { TokenCache } from "../TokenCache.js";
 import { IPartitionManager } from "./IPartitionManager.js";
 import { ICacheClient } from "./ICacheClient.js";

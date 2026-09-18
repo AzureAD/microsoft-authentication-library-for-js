@@ -3,15 +3,14 @@
  * Licensed under the MIT License.
  */
 
+import { AuthError, createAuthError } from "../common/error/AuthError.js";
+import { ClientAuthErrorCodes } from "../common/error/ClientAuthError.js";
 import {
-    AuthError,
-    ClientAuthErrorCodes,
     INetworkModule,
     NetworkRequestOptions,
-    NetworkResponse,
-    createAuthError,
-    createNetworkError,
-} from "@azure/msal-common/node";
+} from "../common/network/INetworkModule.js";
+import { NetworkResponse } from "../common/network/NetworkResponse.js";
+import { createNetworkError } from "../common/error/NetworkError.js";
 import { HttpMethod } from "../utils/Constants.js";
 
 /**

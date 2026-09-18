@@ -5,20 +5,24 @@
 
 import {
     AuthOptions,
-    Authority,
-    AuthorityOptions,
     ClientConfiguration,
-    DEFAULT_CRYPTO_IMPLEMENTATION,
-    INetworkModule,
-    Logger,
-    ProtocolMode,
+} from "../common/config/ClientConfiguration.js";
+import { Authority } from "../common/authority/Authority.js";
+import {
+    AuthorityOptions,
     StaticAuthorityOptions,
-    AuthenticationResult,
+} from "../common/authority/AuthorityOptions.js";
+import { DEFAULT_CRYPTO_IMPLEMENTATION } from "../common/crypto/ICrypto.js";
+import { INetworkModule } from "../common/network/INetworkModule.js";
+import { Logger } from "../common/logger/Logger.js";
+import { ProtocolMode } from "../common/authority/ProtocolMode.js";
+import { AuthenticationResult } from "../common/response/AuthenticationResult.js";
+import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
-    Constants,
-    StubPerformanceClient,
-} from "@azure/msal-common/node";
+} from "../common/error/ClientConfigurationError.js";
+import * as Constants from "../common/utils/Constants.js";
+import { StubPerformanceClient } from "../common/telemetry/performance/StubPerformanceClient.js";
 import {
     ManagedIdentityConfiguration,
     ManagedIdentityNodeConfiguration,
@@ -82,7 +86,17 @@ export class ManagedIdentityApplication {
                 this.logger,
                 this.config.managedIdentityId.id,
                 DEFAULT_CRYPTO_IMPLEMENTATION,
-                fakeStatusAuthorityOptions
+                fakeStatusAuthorityOptions,
+                this.config.cache
+            );
+        } else if (
+            !ManagedIdentityApplication.nodeStorage.isCacheConfigurationCompatible(
+                configuration?.cache
+            )
+        ) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.managedIdentityCacheConfigurationMismatch,
+                ""
             );
         }
 

@@ -38,7 +38,7 @@ For other supported account types, review the other [Authority options](https://
 
 #### **Client Secret**
 
-If your AzureAD app registration is configured as a Confidential Client Application, you'll have to add a `clientSecret` attribute to a `.env` file and change the `PublicClientApplication` object in the sample's `index.js` file into a `ConfidentialClientApplication` object.
+Add a `clientSecret` attribute to a `.env` file for the Confidential Client Application.
 
 This secret helps prevent third parties from using your app registration.
 
@@ -74,16 +74,12 @@ This secret helps prevent third parties from using your app registration.
 
 ```
 CLIENT_SECRET=<your client secret here>
+SESSION_SECRET=<a random secret used to protect the login session>
 ```
 
 **auth-code/index.js**
 
 ```javascript
-// Change this
-const publicClientApplication = new msal.PublicClientApplication(clientConfig);
-return getTokenAuthCode(config, publicClientApplication, null);
-
-// To this
 const confidentialClientApplication = new msal.ConfidentialClientApplication(
     clientConfig
 );
@@ -148,14 +144,6 @@ const msal = require("@azure/msal-node");
 ### Initialize MSAL Node at runtime
 
 Initialize the app object within your web app.
-
-If you've configured a Public Client Application:
-
-```js
-const pca = new msal.PublicClientApplication(config);
-```
-
-If you've configured a Confidential Client Application:
 
 ```js
 const cca = new msal.ConfidentialClientApplication(config);

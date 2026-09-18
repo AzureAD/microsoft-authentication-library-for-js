@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { PkceCodes, Constants } from "@azure/msal-common/node";
+import { PkceCodes } from "../common/crypto/ICrypto.js";
+import * as Constants from "../common/utils/Constants.js";
 import { CharSet, RANDOM_OCTET_SIZE } from "../utils/Constants.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { HashUtils } from "./HashUtils.js";

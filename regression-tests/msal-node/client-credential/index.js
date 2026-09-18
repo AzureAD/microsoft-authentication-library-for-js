@@ -6,12 +6,30 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import benchmark from "benchmark";
+import { realpathSync } from "node:fs";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 import * as msal from "@azure/msal-node";
 import {
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     NetworkUtils,
 } from "../Constants.js";
+
+const require = createRequire(import.meta.url);
+const resolvedPackage = realpathSync(
+    require.resolve("@azure/msal-node/package.json"),
+);
+const workspacePackage = realpathSync(
+    fileURLToPath(
+        new URL("../../../lib/msal-node/package.json", import.meta.url),
+    ),
+);
+if (resolvedPackage !== workspacePackage) {
+    throw new Error(
+        "The client-credential benchmark must use the current msal-node workspace build.",
+    );
+}
 
 const clientConfig = {
     auth: {
@@ -46,42 +64,85 @@ const clientConfig = {
     },
 };
 
-const NUM_CACHE_ITEMS = 10;
+const SMALL_CACHE_ITEMS = 10;
+const LARGE_CACHE_ITEMS = 5_000;
+const MIN_BENCHMARK_SAMPLES = 30;
 
-const confidentialClientApplication = new msal.ConfidentialClientApplication(clientConfig);
-const firstResourceRequest = {
-    scopes: ["resource-1/.default"],
-};
-const lastResourceRequest = {
-    scopes: [`resource-${NUM_CACHE_ITEMS}/.default`],
-};
+async function createPopulatedClient(cacheItems) {
+    const client = new msal.ConfidentialClientApplication(clientConfig);
+    for (let i = 1; i <= cacheItems; i++) {
+        await client.acquireTokenByClientCredential({
+            scopes: [`resource-${i}/.default`],
+        });
+    }
+
+    return client;
+}
+
+function cacheHitBenchmark(client, request) {
+    return {
+        defer: true,
+        fn: (deferred) => {
+            client.acquireTokenByClientCredential(request).then(
+                () => deferred.resolve(),
+                (error) => {
+                    deferred.benchmark.error = error;
+                    deferred.resolve();
+                },
+            );
+        },
+        minSamples: MIN_BENCHMARK_SAMPLES,
+    };
+}
 
 (async () => {
-    // pre populate the cache
-    for (let i = 1; i <= NUM_CACHE_ITEMS; i++) {
-        const request = {
-            scopes: [`resource-${i}/.default`],
-        };
-        await confidentialClientApplication.acquireTokenByClientCredential(request);
-    }
+    const smallCacheClient = await createPopulatedClient(SMALL_CACHE_ITEMS);
+    const largeCacheClient = await createPopulatedClient(LARGE_CACHE_ITEMS);
+    const firstResourceRequest = {
+        scopes: ["resource-1/.default"],
+    };
+    const smallCacheLastResourceRequest = {
+        scopes: [`resource-${SMALL_CACHE_ITEMS}/.default`],
+    };
+    const largeCacheLastResourceRequest = {
+        scopes: [`resource-${LARGE_CACHE_ITEMS}/.default`],
+    };
 
     const suite = new benchmark.Suite();
     suite
-        .add("ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache", {
-            "fn": async () => {
-                await confidentialClientApplication.acquireTokenByClientCredential(firstResourceRequest);
-            },
-            "minSamples": 150,
-        })
-        .add("ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache", {
-            "fn": async () => {
-                await confidentialClientApplication.acquireTokenByClientCredential(lastResourceRequest);
-            },
-            "minSamples": 150,
-        })
+        .add(
+            "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            cacheHitBenchmark(smallCacheClient, firstResourceRequest),
+        )
+        .add(
+            "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            cacheHitBenchmark(
+                smallCacheClient,
+                smallCacheLastResourceRequest,
+            ),
+        )
+        .add(
+            "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-largeCache-resourceIsFirstItemInTheCache",
+            cacheHitBenchmark(largeCacheClient, firstResourceRequest),
+        )
+        .add(
+            "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-largeCache-resourceIsLastItemInTheCache",
+            cacheHitBenchmark(
+                largeCacheClient,
+                largeCacheLastResourceRequest,
+            ),
+        )
         .on("cycle", (event) => {
             // eslint-disable-next-line no-console
             console.log(String(event.target));
+        })
+        .on("error", (event) => {
+            process.exitCode = 1;
+            // eslint-disable-next-line no-console
+            console.error(
+                `Benchmark failed: ${event.target.name}`,
+                event.target.error,
+            );
         })
         .run({ "async": true });
 })();

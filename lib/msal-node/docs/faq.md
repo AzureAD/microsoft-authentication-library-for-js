@@ -4,7 +4,7 @@
 
 ### When is MSAL Node used?
 
-MSAL Node supports server based authentication for public/confidential apps. This is more applicable for server based authentication scenarios/Web APIs that need authentication. A full list of supported scenarios can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node#scenarios-supported) and supported flows are listed [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node#oauth20-grant-types-supported)
+MSAL Node supports server-based authentication for confidential applications. A full list of supported scenarios can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node#scenarios-supported) and supported flows are listed [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node#oauth20-grant-types-supported).
 
 ### What is the status of ADAL Node? Is a migration guide available?
 
@@ -12,13 +12,9 @@ ADAL Node is currently in maintanence and we advise all users to move to MSAL No
 
 ### What are the services supported?
 
-MSAL Node supports AAD, MSA, ADFS and B2C. Our samples demonstrate the usage [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples). MSAL Node also supports [single and multi tenanted apps](https://docs.microsoft.com/azure/active-directory/develop/single-and-multi-tenant-apps).
+MSAL Node supports AAD, MSA, ADFS and B2C. Our [samples](../../../samples/msal-node-samples/README.md) demonstrate supported usage. MSAL Node also supports [single and multi tenanted apps](https://docs.microsoft.com/azure/active-directory/develop/single-and-multi-tenant-apps).
 
 Note: ADFS is currently supported, a standalone sample is not yet published. Please checkout this space for an update soon.
-
-### What is a Public App or a Confidential App? What do I need to know during app registration?
-
-Please find this in the [MSAL basics](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node#msal-basics)
 
 ## What does authority string default to if I provide "authority" and "azureCloudOptions"?
 
@@ -31,27 +27,15 @@ If the developer provides `azureCloudOptions`, MSAL.js will overwrite any value 
 
 ### How do I get the Refresh Token?
 
-MSAL Node does not expose refresh tokens for security reasons. Instead, we manage the refresh token through the cache and update it as required to fetch the corresponding Id Token and Access Token for the developer. Use the appropriate `acquireToken*` API to obtain access tokens, and MSAL will ensure they are renewed if necessary. If you have a refresh token acquired by other means, you can use the [acquireTokenByRefreshToken](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.confidentialclientapplication.html#acquiretokenbyrefreshtoken) API (see also: [Refresh Token sample](../../../samples/msal-node-samples/refresh-token/README.md)). More details on AAD tokens can be found [here](https://learn.microsoft.com/azure/active-directory/develop/security-tokens)
-
-### Is Electron supported?
-
-Yes. Please refer to [MSAL Node samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples).
-
-### Is interactive flow supported?
-
-Yes, there is an all-in-one `acquireTokenInteractive` API available for `PublicClientApplication` scenarios. Please read more about this API [here](./request.md#acquireTokenInteractive)
+MSAL Node does not expose refresh tokens for security reasons. Instead, we manage the refresh token through the cache and update it as required to fetch the corresponding Id Token and Access Token for the developer. Use the appropriate `acquireToken*` API to obtain access tokens, and MSAL will ensure they are renewed if necessary. If you have a refresh token acquired by other means, you can use the [acquireTokenByRefreshToken](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.confidentialclientapplication.html#acquiretokenbyrefreshtoken) API. More details on AAD tokens can be found [here](https://learn.microsoft.com/azure/active-directory/develop/security-tokens)
 
 ### Are SPAs supported by MSAL Node?
 
-Please refer to [MSAL Browser](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser) for SPA based use cases. MSAL Node should be a choice for desktop apps, web apps, web APIs or server side authentication scenarios.
+Please refer to [MSAL Browser](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser) for SPA based use cases. MSAL Node supports web apps, web APIs, and server-side authentication scenarios.
 
 ### What is MSAL Node extensions? What is a Cache Plugin?
 
 MSAL Node extensions is a support library for MSAL Node which offers secure mechanisms for client applications to perform cross-platform token cache serialization and persistence. Please find the usage, samples and more about this [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions)
-
-### Can the cache plugin provided in MSAL Node extensions be used in Electron applications?
-
-Yes, it can. In case you run into node version related issues, refer to this [note](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/docs/msal-node-extensions.md#note-for-electron-developers) that provides the steps to troubleshoot.
 
 ### What versions of Node.js are supported? How do I bypass the installation error if I want to use an active development Node.js version?
 
@@ -83,38 +67,3 @@ Our recommendation is to move to the new password reset experience since it simp
 ## Can I use MSAL Node with Microsoft Graph JavaScript SDK?
 
 Yes, MSAL Node can be used as a custom authentication provider for the [Microsoft Graph JavaScript SDK](https://github.com/microsoftgraph/msgraph-sdk-javascript). For an implementation, please refer to the sample: [Express Web App calling Graph API](https://github.com/Azure-Samples/ms-identity-javascript-nodejs-tutorial/tree/main/2-Authorization/1-call-graph).
-
-## Can I provision MSAL Node apps via command-line?
-
-Yes, we recommend the new [Powershell Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-powershell) for doing so. For instance, the script below creates an Azure AD application with a custom redirect URI of type **Mobile and Desktop apps** (aka _InstalledClient_) and **User.Read** permission for Microsoft Graph in a tenant specified by the user, and then provisions a service principal in the same tenant based on this application object:
-
-```Powershell
-Import-Module Microsoft.Graph.Applications
-
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-
-Connect-MgGraph -TenantId "ENTER_TENANT_ID_HERE" -Scopes "Application.ReadWrite.All"
-
-# User.Read delegated permission for Microsoft Graph
-$mgUserReadScope = @{
-    "Id" = "e1fe6dd8-ba31-4d61-89e7-88639da4683d" # permission Id
-    "Type" = "Scope"
-}
-
-# Add additional permissions to array below
-$mgResourceAccess = @($mgUserReadScope)
-
-[object[]]$requiredResourceAccess = @{
-    "ResourceAppId" = "00000003-0000-0000-c000-000000000000" # MS Graph App Id
-    "ResourceAccess" = $mgResourceAccess
-}
-
-# Create the application
-$msalApplication = New-MgApplication -displayName myMsalDesktopApp `
-    -SignInAudience AzureADMyOrg `
-    -PublicClient @{RedirectUris = "msal://redirect"} `
-    -RequiredResourceAccess $requiredResourceAccess
-
-# Provision the service principal
-New-MgServicePrincipal -AppId $msalApplication.AppId
-```

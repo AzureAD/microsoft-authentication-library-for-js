@@ -3,31 +3,29 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AuthenticationResult,
-    Authority,
-    CcsCredentialType,
-    ClientAssertion,
-    ClientConfiguration,
-    NetworkResponse,
-    Constants,
-    RequestParameterBuilder,
-    RequestThumbprint,
-    ResponseHandler,
-    ServerAuthorizationTokenResponse,
-    StringUtils,
-    TimeUtils,
-    UrlString,
-    UrlUtils,
-    getClientAssertion,
-} from "@azure/msal-common/node";
+import { AuthenticationResult } from "../common/response/AuthenticationResult.js";
+import { Authority } from "../common/authority/Authority.js";
+import { CcsCredentialType } from "../common/account/CcsCredential.js";
+import { ClientAssertion } from "../common/account/ClientCredentials.js";
+import { ClientConfiguration } from "../common/config/ClientConfiguration.js";
+import { NetworkResponse } from "../common/network/NetworkResponse.js";
+import * as Constants from "../common/utils/Constants.js";
+import * as RequestParameterBuilder from "../common/request/RequestParameterBuilder.js";
+import { RequestThumbprint } from "../common/network/RequestThumbprint.js";
+import { ResponseHandler } from "../common/response/ResponseHandler.js";
+import { ServerAuthorizationTokenResponse } from "../common/response/ServerAuthorizationTokenResponse.js";
+import { StringUtils } from "../common/utils/StringUtils.js";
+import * as TimeUtils from "../common/utils/TimeUtils.js";
+import { UrlString } from "../common/url/UrlString.js";
+import * as UrlUtils from "../common/utils/UrlUtils.js";
+import { getClientAssertion } from "../common/utils/ClientAssertionUtils.js";
 import { ApiId } from "../utils/Constants.js";
 import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePasswordRequest.js";
 import { BaseClient } from "./BaseClient.js";
 
 /**
  * Oauth2.0 Password grant client
- * Note: We are only supporting public clients for password grant and for purely testing purposes
+ * Retained for compatibility with existing password grant integrations.
  * @public
  * @deprecated - Use a more secure flow instead
  */

@@ -3,31 +3,41 @@
  * Licensed under the MIT License.
  */
 
+import { LogLevel, Logger } from "../../src/common/logger/Logger.js";
+import { AccountEntity } from "../../src/common/cache/entities/AccountEntity.js";
+import { CacheManager } from "../../src/common/cache/CacheManager.js";
+import { AuthorityMetadataEntity } from "../../src/common/cache/entities/AuthorityMetadataEntity.js";
+import { AccessTokenEntity } from "../../src/common/cache/entities/AccessTokenEntity.js";
+import { IdTokenEntity } from "../../src/common/cache/entities/IdTokenEntity.js";
+import { RefreshTokenEntity } from "../../src/common/cache/entities/RefreshTokenEntity.js";
+import * as CacheHelpers from "../../src/common/cache/utils/CacheHelpers.js";
+import * as AccountEntityUtils from "../../src/common/cache/utils/AccountEntityUtils.js";
 import {
-    LogLevel,
-    Logger,
-    AccountEntity,
-    CacheManager,
-    AuthorityMetadataEntity,
-    AccessTokenEntity,
-    IdTokenEntity,
-    RefreshTokenEntity,
-    CacheHelpers,
-    AccountEntityUtils,
-} from "@azure/msal-common";
-import {
+    CacheKVStore,
     JsonCache,
     InMemoryCache,
 } from "./../../src/cache/serializer/SerializerTypes.js";
 import { Deserializer } from "./../../src/cache/serializer/Deserializer.js";
 import { NodeStorage } from "../../src/cache/NodeStorage.js";
+import { TokenCache } from "../../src/cache/TokenCache.js";
 import { version, name } from "../../package.json";
 import {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONSTANTS,
 } from "../utils/TestConstants.js";
-import { generateAccountKey } from "../../src/cache/CacheHelpers.js";
+import {
+    generateAccountKey,
+    generateCredentialKey,
+} from "../../src/cache/CacheHelpers.js";
+import { ScopeSet } from "../../src/common/request/ScopeSet.js";
+import * as Constants from "../../src/common/utils/Constants.js";
+import {
+    AppMetadataCache,
+    AppMetadataFilter,
+    CredentialFilter,
+    TokenKeys,
+} from "../../src/common/cache/utils/CacheTypes.js";
 
 const cacheJson = require("./serializer/cache.json");
 const clientId = TEST_CONSTANTS.CLIENT_ID;
@@ -412,6 +422,918 @@ describe("Storage tests for msal-node: ", () => {
         expect(nodeStorage.getAuthorityMetadataKeys()).toContain(
             authorityMetadataKey
         );
+    });
+
+    describe("Indexed credential lookup", () => {
+        function createAccessToken(
+            overrides: Partial<AccessTokenEntity> = {}
+        ): AccessTokenEntity {
+            return {
+                homeAccountId: "uid.utid",
+                environment: "login.windows.net",
+                credentialType: Constants.CredentialType.ACCESS_TOKEN,
+                clientId,
+                secret: "access-token",
+                realm: "tenant-id",
+                target: "scope.read scope.write",
+                cachedAt: "1000",
+                expiresOn: "4600",
+                tokenType: Constants.AuthenticationScheme.BEARER,
+                lastUpdatedAt: "1000",
+                ...overrides,
+            };
+        }
+
+        function createIndexedStorage(): NodeStorage {
+            return new NodeStorage(
+                logger,
+                clientId,
+                DEFAULT_CRYPTO_IMPLEMENTATION,
+                {
+                    canonicalAuthority:
+                        "https://login.microsoftonline.com/tenant-id",
+                }
+            );
+        }
+
+        class ScanOracleStorage extends NodeStorage {
+            getAccessTokensByFilter(
+                filter: CredentialFilter,
+                correlationId: string
+            ): AccessTokenEntity[] {
+                return Array.from(
+                    super
+                        .getAccessTokenEntriesByFilter(
+                            filter,
+                            correlationId,
+                            this.getTokenKeys()
+                        )
+                        .values()
+                );
+            }
+
+            getIdTokensByFilter(
+                filter: CredentialFilter,
+                correlationId: string
+            ): Map<string, IdTokenEntity> {
+                return CacheManager.prototype.getIdTokensByFilter.call(
+                    this,
+                    filter,
+                    correlationId,
+                    this.getTokenKeys()
+                );
+            }
+
+            protected getRefreshTokensByFilter(
+                filter: CredentialFilter,
+                correlationId: string,
+                _tokenKeys?: TokenKeys
+            ): RefreshTokenEntity[] {
+                return super.getRefreshTokensByFilter(
+                    filter,
+                    correlationId,
+                    this.getTokenKeys()
+                );
+            }
+
+            getAppMetadataFilteredBy(
+                filter: AppMetadataFilter,
+                correlationId: string
+            ): AppMetadataCache {
+                return CacheManager.prototype.getAppMetadataFilteredBy.call(
+                    this,
+                    filter,
+                    correlationId
+                );
+            }
+
+            getAuthorityMetadataByAlias(
+                host: string,
+                correlationId: string
+            ): AuthorityMetadataEntity | null {
+                return CacheManager.prototype.getAuthorityMetadataByAlias.call(
+                    this,
+                    host,
+                    correlationId
+                );
+            }
+        }
+
+        function createScanOracleStorage(): ScanOracleStorage {
+            return new ScanOracleStorage(
+                logger,
+                clientId,
+                DEFAULT_CRYPTO_IMPLEMENTATION,
+                {
+                    canonicalAuthority:
+                        "https://login.microsoftonline.com/tenant-id",
+                }
+            );
+        }
+
+        it("does not inspect unrelated access tokens on hit or miss", () => {
+            const nodeStorage = createIndexedStorage();
+            const matchingToken = createAccessToken();
+            const cache: Record<string, AccessTokenEntity> = {
+                [generateCredentialKey(matchingToken)]: matchingToken,
+            };
+
+            for (let i = 0; i < 1000; i++) {
+                const unrelatedToken = createAccessToken({
+                    clientId: `unrelated-client-${i}`,
+                    secret: `unrelated-token-${i}`,
+                });
+                cache[generateCredentialKey(unrelatedToken)] = unrelatedToken;
+            }
+            nodeStorage.setCache(cache);
+
+            const getCredentialSpy = jest.spyOn(
+                nodeStorage,
+                "getAccessTokenCredential"
+            );
+            const getTokenKeysSpy = jest.spyOn(nodeStorage, "getTokenKeys");
+            const getInMemoryCacheSpy = jest.spyOn(
+                nodeStorage,
+                "getInMemoryCache"
+            );
+            const filter = {
+                homeAccountId: matchingToken.homeAccountId,
+                environment: "login.microsoftonline.com",
+                credentialType: matchingToken.credentialType,
+                clientId: matchingToken.clientId,
+                realm: matchingToken.realm,
+                target: ScopeSet.fromString("scope.read", ""),
+            };
+
+            expect(nodeStorage.getAccessTokensByFilter(filter, "")).toEqual([
+                matchingToken,
+            ]);
+            expect(getCredentialSpy).toHaveBeenCalledTimes(1);
+            expect(getTokenKeysSpy).not.toHaveBeenCalled();
+            expect(getInMemoryCacheSpy).not.toHaveBeenCalled();
+
+            getCredentialSpy.mockClear();
+            expect(
+                nodeStorage.getAccessTokensByFilter(
+                    {
+                        ...filter,
+                        clientId: "missing-client",
+                    },
+                    ""
+                )
+            ).toEqual([]);
+            expect(getCredentialSpy).not.toHaveBeenCalled();
+            expect(getTokenKeysSpy).not.toHaveBeenCalled();
+            expect(getInMemoryCacheSpy).not.toHaveBeenCalled();
+        });
+
+        it("uses the OBO assertion partition without inspecting unrelated tokens", () => {
+            const nodeStorage = createIndexedStorage();
+            const matchingToken = createAccessToken({
+                userAssertionHash: "matching-assertion",
+            });
+            const cache: Record<string, AccessTokenEntity> = {
+                [generateCredentialKey(matchingToken)]: matchingToken,
+            };
+
+            for (let i = 0; i < 1000; i++) {
+                const unrelatedToken = createAccessToken({
+                    homeAccountId: `unrelated-home-${i}`,
+                    secret: `unrelated-token-${i}`,
+                    userAssertionHash: `unrelated-assertion-${i}`,
+                });
+                cache[generateCredentialKey(unrelatedToken)] = unrelatedToken;
+            }
+            nodeStorage.setCache(cache);
+            const getCredentialSpy = jest.spyOn(
+                nodeStorage,
+                "getAccessTokenCredential"
+            );
+
+            expect(
+                nodeStorage.getAccessTokensByFilter(
+                    {
+                        credentialType: matchingToken.credentialType,
+                        clientId: matchingToken.clientId,
+                        target: ScopeSet.fromString("scope.read", ""),
+                        tokenType: Constants.AuthenticationScheme.BEARER,
+                        userAssertionHash: matchingToken.userAssertionHash,
+                    },
+                    ""
+                )
+            ).toEqual([matchingToken]);
+            expect(getCredentialSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("preserves scope superset matching and duplicate insertion order", () => {
+            const nodeStorage = createIndexedStorage();
+            const firstToken = createAccessToken({
+                secret: "first-token",
+                target: "scope.read scope.write",
+            });
+            const secondToken = createAccessToken({
+                secret: "second-token",
+                target: "scope.read scope.extra",
+            });
+            const firstKey = generateCredentialKey(firstToken);
+            const secondKey = generateCredentialKey(secondToken);
+            nodeStorage.setCache({
+                [firstKey]: firstToken,
+                [secondKey]: secondToken,
+            });
+
+            expect(
+                nodeStorage
+                    .getAccessTokensByFilter(
+                        {
+                            homeAccountId: firstToken.homeAccountId,
+                            environment: "login.microsoftonline.com",
+                            credentialType: firstToken.credentialType,
+                            clientId: firstToken.clientId,
+                            realm: firstToken.realm,
+                            target: ScopeSet.fromString("SCOPE.READ", ""),
+                        },
+                        ""
+                    )
+                    .map((token) => token.secret)
+            ).toEqual(["first-token", "second-token"]);
+        });
+
+        it("indexes ID tokens, refresh tokens, and app metadata by aliases", async () => {
+            const nodeStorage = createIndexedStorage();
+            const unrelatedCache: Record<string, AccessTokenEntity> = {};
+            for (let i = 0; i < 1000; i++) {
+                const unrelatedToken = createAccessToken({
+                    clientId: `unrelated-client-${i}`,
+                    secret: `unrelated-token-${i}`,
+                });
+                unrelatedCache[generateCredentialKey(unrelatedToken)] =
+                    unrelatedToken;
+            }
+            nodeStorage.setCache(unrelatedCache);
+            const idToken: IdTokenEntity = {
+                homeAccountId: "uid.utid",
+                environment: "login.windows.net",
+                credentialType: Constants.CredentialType.ID_TOKEN,
+                clientId,
+                secret: "id-token",
+                realm: "tenant-id",
+                lastUpdatedAt: "1000",
+            };
+            const refreshToken: RefreshTokenEntity = {
+                homeAccountId: "uid.utid",
+                environment: "login.windows.net",
+                credentialType: Constants.CredentialType.REFRESH_TOKEN,
+                clientId,
+                secret: "refresh-token",
+                familyId: Constants.THE_FAMILY_ID,
+                lastUpdatedAt: "1000",
+            };
+            const appMetadata = {
+                environment: "login.windows.net",
+                clientId,
+                familyId: Constants.THE_FAMILY_ID,
+            };
+
+            await nodeStorage.setIdTokenCredential(idToken);
+            await nodeStorage.setRefreshTokenCredential(refreshToken);
+            nodeStorage.setAppMetadata(appMetadata);
+            const getIdTokenSpy = jest.spyOn(
+                nodeStorage,
+                "getIdTokenCredential"
+            );
+            const getRefreshTokenSpy = jest.spyOn(
+                nodeStorage,
+                "getRefreshTokenCredential"
+            );
+            const getAppMetadataSpy = jest.spyOn(nodeStorage, "getAppMetadata");
+
+            expect(
+                Array.from(
+                    nodeStorage
+                        .getIdTokensByFilter(
+                            {
+                                homeAccountId: idToken.homeAccountId,
+                                environment: "login.microsoftonline.com",
+                                credentialType: idToken.credentialType,
+                                clientId,
+                                realm: idToken.realm,
+                            },
+                            ""
+                        )
+                        .values()
+                )
+            ).toEqual([idToken]);
+            expect(
+                nodeStorage.getRefreshToken(
+                    {
+                        homeAccountId: refreshToken.homeAccountId,
+                        environment: "login.microsoftonline.com",
+                        tenantId: "tenant-id",
+                        localAccountId: "uid",
+                        username: "",
+                    },
+                    true,
+                    ""
+                )
+            ).toEqual(refreshToken);
+            expect(
+                nodeStorage.readAppMetadataFromCache(
+                    "login.microsoftonline.com",
+                    ""
+                )
+            ).toEqual(appMetadata);
+            expect(getIdTokenSpy).toHaveBeenCalledTimes(1);
+            expect(getRefreshTokenSpy).toHaveBeenCalledTimes(1);
+            expect(getAppMetadataSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("returns a defensive snapshot from the public token cache", () => {
+            const nodeStorage = createIndexedStorage();
+            const firstToken = createAccessToken();
+            nodeStorage.setCache({
+                [generateCredentialKey(firstToken)]: firstToken,
+            });
+            const snapshot = new TokenCache(nodeStorage, logger).getKVStore();
+            const filter = {
+                homeAccountId: firstToken.homeAccountId,
+                environment: "login.microsoftonline.com",
+                credentialType: firstToken.credentialType,
+                clientId: firstToken.clientId,
+                realm: firstToken.realm,
+                target: ScopeSet.fromString("scope.read", ""),
+            };
+
+            const snapshotToken = Object.values(
+                snapshot
+            )[0] as AccessTokenEntity;
+            snapshotToken.clientId = "mutated-client";
+            delete snapshot[generateCredentialKey(firstToken)];
+            expect(
+                nodeStorage.getAccessTokensByFilter(filter, "")
+            ).toHaveLength(1);
+        });
+
+        it("validates indexed candidates against the current flat store", () => {
+            const nodeStorage = createIndexedStorage();
+            const indexedToken = createAccessToken();
+            const cacheKey = generateCredentialKey(indexedToken);
+            const filter = {
+                homeAccountId: indexedToken.homeAccountId,
+                environment: "login.microsoftonline.com",
+                credentialType: indexedToken.credentialType,
+                clientId: indexedToken.clientId,
+                realm: indexedToken.realm,
+                target: ScopeSet.fromString("scope.read", ""),
+            };
+            nodeStorage.setCache({ [cacheKey]: indexedToken });
+
+            nodeStorage.getCache()[cacheKey] = createAccessToken({
+                clientId: "replacement-client",
+            });
+
+            expect(nodeStorage.getAccessTokensByFilter(filter, "")).toEqual([]);
+        });
+
+        it("matches the scan oracle across seeded cache combinations", () => {
+            let seed = 0x5eed1234;
+            const next = (maximum: number): number => {
+                seed = (seed * 1664525 + 1013904223) >>> 0;
+                return seed % maximum;
+            };
+            const choose = <T>(values: T[]): T => values[next(values.length)];
+            const cache: CacheKVStore = {};
+            const environments = [
+                "login.windows.net",
+                "login.microsoftonline.com",
+                "unrelated.example.com",
+            ];
+            const realms = ["tenant-id", "other-tenant", ""];
+            const targets = [
+                "scope.read",
+                "scope.read scope.write",
+                "SCOPE.WRITE scope.read",
+                "scope.extra scope.read",
+            ];
+            const schemes = [
+                Constants.AuthenticationScheme.BEARER,
+                Constants.AuthenticationScheme.POP,
+                Constants.AuthenticationScheme.SSH,
+            ];
+            const components: Array<Record<string, string> | undefined> = [
+                undefined,
+                { client_claims: "claims-a" },
+                { attribute_tokens: "fmi-a" },
+            ];
+            const assertionHashes = [undefined, "assertion-a", "assertion-b"];
+
+            for (let i = 0; i < 160; i++) {
+                const scheme = choose(schemes);
+                const token = createAccessToken({
+                    homeAccountId: `uid${next(4)}.utid${next(3)}`,
+                    environment: choose(environments),
+                    credentialType:
+                        scheme === Constants.AuthenticationScheme.BEARER
+                            ? Constants.CredentialType.ACCESS_TOKEN
+                            : Constants.CredentialType
+                                  .ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                    clientId: next(3) === 0 ? `client-${next(3)}` : clientId,
+                    realm: choose(realms),
+                    target: choose(targets),
+                    tokenType: scheme,
+                    keyId:
+                        scheme === Constants.AuthenticationScheme.SSH
+                            ? `ssh-key-${next(2)}`
+                            : `pop-key-${next(2)}`,
+                    userAssertionHash: choose(assertionHashes),
+                    additionalCacheKeyComponents: choose(components),
+                    secret: `access-token-${i}`,
+                    expiresOn: String(2000 + next(5000)),
+                    refreshOn: String(1500 + next(3000)),
+                });
+                cache[generateCredentialKey(token)] = token;
+            }
+
+            for (let i = 0; i < 30; i++) {
+                const idToken: IdTokenEntity = {
+                    homeAccountId: `uid${next(4)}.utid${next(3)}`,
+                    environment: choose(environments),
+                    credentialType: Constants.CredentialType.ID_TOKEN,
+                    clientId: next(3) === 0 ? `client-${next(3)}` : clientId,
+                    secret: `id-token-${i}`,
+                    realm: choose(realms),
+                    lastUpdatedAt: String(i),
+                };
+                cache[generateCredentialKey(idToken)] = idToken;
+
+                const refreshToken: RefreshTokenEntity = {
+                    homeAccountId: `uid${next(4)}.utid${next(3)}`,
+                    environment: choose(environments),
+                    credentialType: Constants.CredentialType.REFRESH_TOKEN,
+                    clientId,
+                    secret: `refresh-token-${i}`,
+                    familyId:
+                        next(2) === 0 ? Constants.THE_FAMILY_ID : undefined,
+                    lastUpdatedAt: String(i),
+                };
+                cache[generateCredentialKey(refreshToken)] = refreshToken;
+            }
+
+            environments.forEach((environment, index) => {
+                const metadata = {
+                    environment,
+                    clientId,
+                    familyId:
+                        index % 2 === 0 ? Constants.THE_FAMILY_ID : undefined,
+                };
+                cache[CacheHelpers.generateAppMetadataKey(metadata)] = metadata;
+            });
+
+            const indexed = createIndexedStorage();
+            const oracle = createScanOracleStorage();
+            indexed.setCache({ ...cache });
+            oracle.setCache({ ...cache });
+
+            const outcome = <T>(
+                operation: () => T
+            ): { value: T } | { error: string } => {
+                try {
+                    return { value: operation() };
+                } catch (error) {
+                    return {
+                        error:
+                            error instanceof Error
+                                ? `${error.name}:${error.message}`
+                                : String(error),
+                    };
+                }
+            };
+
+            for (let i = 0; i < 100; i++) {
+                const scheme = choose(schemes);
+                const filter: CredentialFilter = {
+                    homeAccountId: `uid${next(4)}.utid${next(3)}`,
+                    environment: choose(environments),
+                    credentialType:
+                        scheme === Constants.AuthenticationScheme.BEARER
+                            ? Constants.CredentialType.ACCESS_TOKEN
+                            : Constants.CredentialType
+                                  .ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                    clientId: next(3) === 0 ? `client-${next(3)}` : clientId,
+                    realm: choose(realms),
+                    target: ScopeSet.fromString(choose(targets), ""),
+                    tokenType: scheme,
+                    keyId:
+                        scheme === Constants.AuthenticationScheme.SSH
+                            ? `ssh-key-${next(2)}`
+                            : undefined,
+                    additionalCacheKeyComponents: choose(components),
+                };
+                if (next(4) === 0) {
+                    delete filter.homeAccountId;
+                    delete filter.environment;
+                    delete filter.realm;
+                    filter.userAssertionHash = choose(assertionHashes);
+                }
+
+                const indexedResult = outcome(() =>
+                    indexed
+                        .getAccessTokensByFilter(filter, "")
+                        .map((token) => token.secret)
+                );
+                const oracleResult = outcome(() =>
+                    oracle
+                        .getAccessTokensByFilter(filter, "")
+                        .map((token) => token.secret)
+                );
+                if (
+                    JSON.stringify(indexedResult) !==
+                    JSON.stringify(oracleResult)
+                ) {
+                    throw new Error(
+                        JSON.stringify({
+                            case: i,
+                            filter,
+                            indexedResult,
+                            oracleResult,
+                        })
+                    );
+                }
+            }
+
+            for (let i = 0; i < 40; i++) {
+                const filter: CredentialFilter = {
+                    homeAccountId: `uid${next(4)}.utid${next(3)}`,
+                    environment: choose(environments),
+                    credentialType: Constants.CredentialType.ID_TOKEN,
+                    clientId,
+                    realm: next(3) === 0 ? undefined : choose(realms),
+                };
+                expect(
+                    outcome(() =>
+                        Array.from(
+                            indexed.getIdTokensByFilter(filter, "").values()
+                        ).map((token) => token.secret)
+                    )
+                ).toEqual(
+                    outcome(() =>
+                        Array.from(
+                            oracle.getIdTokensByFilter(filter, "").values()
+                        ).map((token) => token.secret)
+                    )
+                );
+
+                const account = {
+                    homeAccountId: filter.homeAccountId!,
+                    environment: filter.environment!,
+                    tenantId: filter.realm || "tenant-id",
+                    localAccountId: "local",
+                    username: "",
+                };
+                const familyRT = next(2) === 0;
+                expect(
+                    outcome(
+                        () =>
+                            indexed.getRefreshToken(account, familyRT, "")
+                                ?.secret
+                    )
+                ).toEqual(
+                    outcome(
+                        () =>
+                            oracle.getRefreshToken(account, familyRT, "")
+                                ?.secret
+                    )
+                );
+            }
+
+            environments.forEach((environment) => {
+                expect(
+                    indexed.getAppMetadataFilteredBy(
+                        { environment, clientId },
+                        ""
+                    )
+                ).toEqual(
+                    oracle.getAppMetadataFilteredBy(
+                        { environment, clientId },
+                        ""
+                    )
+                );
+            });
+
+            const malformed = createAccessToken();
+            const malformedKey = generateCredentialKey(malformed);
+            const malformedValue = {
+                ...malformed,
+                target: undefined,
+            } as unknown as AccessTokenEntity;
+            indexed.getCache()[malformedKey] = malformedValue;
+            oracle.getCache()[malformedKey] = malformedValue;
+            const malformedFilter: CredentialFilter = {
+                homeAccountId: malformed.homeAccountId,
+                environment: "login.microsoftonline.com",
+                credentialType: malformed.credentialType,
+                clientId: malformed.clientId,
+                realm: malformed.realm,
+                target: ScopeSet.fromString("scope.read", ""),
+            };
+            expect(
+                outcome(() =>
+                    indexed.getAccessTokensByFilter(malformedFilter, "")
+                )
+            ).toEqual(
+                outcome(() =>
+                    oracle.getAccessTokensByFilter(malformedFilter, "")
+                )
+            );
+
+            const malformedAuthorityKey = `authority-metadata-${clientId}-malformed.example.com`;
+            const malformedAuthority = {
+                aliases: undefined,
+                preferred_cache: "malformed.example.com",
+                preferred_network: "malformed.example.com",
+                canonical_authority: "https://malformed.example.com/tenant-id",
+                authorization_endpoint:
+                    "https://malformed.example.com/authorize",
+                token_endpoint: "https://malformed.example.com/token",
+                issuer: "https://malformed.example.com/tenant-id",
+                aliasesFromNetwork: true,
+                endpointsFromNetwork: true,
+                expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
+                jwks_uri: "https://malformed.example.com/keys",
+            } as unknown as AuthorityMetadataEntity;
+            indexed.getCache()[malformedAuthorityKey] = malformedAuthority;
+            oracle.getCache()[malformedAuthorityKey] = malformedAuthority;
+            expect(indexed.getAuthorityMetadata(malformedAuthorityKey)).toEqual(
+                expect.objectContaining({
+                    aliases: [],
+                })
+            );
+            expect(
+                outcome(() =>
+                    indexed.getAuthorityMetadataByAlias(
+                        "malformed.example.com",
+                        ""
+                    )
+                )
+            ).toEqual(
+                outcome(() =>
+                    oracle.getAuthorityMetadataByAlias(
+                        "malformed.example.com",
+                        ""
+                    )
+                )
+            );
+        });
+
+        it("preserves last-match authority alias semantics across mutation", () => {
+            const nodeStorage = new NodeStorage(
+                logger,
+                clientId,
+                DEFAULT_CRYPTO_IMPLEMENTATION
+            );
+            const token = createAccessToken({
+                environment: "cache.example.com",
+            });
+            const firstKey = `authority-metadata-${clientId}-first.example.com`;
+            const lastKey = `authority-metadata-${clientId}-last.example.com`;
+            const authorityBase = {
+                preferred_cache: "cache.example.com",
+                preferred_network: "query.example.com",
+                canonical_authority: "https://query.example.com/tenant-id",
+                authorization_endpoint: "https://query.example.com/authorize",
+                token_endpoint: "https://query.example.com/token",
+                end_session_endpoint: "https://query.example.com/logout",
+                issuer: "https://query.example.com/tenant-id",
+                jwks_uri: "https://query.example.com/keys",
+                aliasesFromNetwork: true,
+                endpointsFromNetwork: true,
+                expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
+            };
+            nodeStorage.setCache({
+                [generateCredentialKey(token)]: token,
+                [firstKey]: {
+                    ...authorityBase,
+                    aliases: ["query.example.com", "cache.example.com"],
+                },
+                [lastKey]: {
+                    ...authorityBase,
+                    aliases: ["query.example.com", "other.example.com"],
+                },
+            });
+            const filter: CredentialFilter = {
+                homeAccountId: token.homeAccountId,
+                environment: "query.example.com",
+                credentialType: token.credentialType,
+                clientId: token.clientId,
+                realm: token.realm,
+                target: ScopeSet.fromString("scope.read", ""),
+            };
+
+            expect(nodeStorage.getAccessTokensByFilter(filter, "")).toEqual([]);
+            nodeStorage.setAuthorityMetadata(firstKey, {
+                ...nodeStorage.getAuthorityMetadata(firstKey)!,
+                token_endpoint: "https://query.example.com/updated-token",
+            });
+            expect(
+                nodeStorage.getAuthorityMetadataByAlias("query.example.com", "")
+            ).toEqual(nodeStorage.getAuthorityMetadata(lastKey));
+            expect(nodeStorage.getAccessTokensByFilter(filter, "")).toEqual([]);
+
+            nodeStorage.removeItem(lastKey);
+            expect(nodeStorage.getAccessTokensByFilter(filter, "")).toEqual([
+                token,
+            ]);
+
+            const firstMetadata = nodeStorage.getAuthorityMetadata(firstKey)!;
+            firstMetadata.aliases.push("mutated-query.example.com");
+            nodeStorage.setAuthorityMetadata(firstKey, firstMetadata);
+            expect(
+                nodeStorage.getAccessTokensByFilter(
+                    {
+                        ...filter,
+                        environment: "mutated-query.example.com",
+                    },
+                    ""
+                )
+            ).toEqual([token]);
+        });
+
+        it("updates only authority indexes when metadata changes", () => {
+            const nodeStorage = new NodeStorage(
+                logger,
+                clientId,
+                DEFAULT_CRYPTO_IMPLEMENTATION
+            );
+            const token = createAccessToken({
+                environment: "cache.example.com",
+            });
+            const metadataKey = `authority-metadata-${clientId}-query.example.com`;
+            const metadata: AuthorityMetadataEntity = {
+                aliases: ["query.example.com", "cache.example.com"],
+                preferred_cache: "cache.example.com",
+                preferred_network: "query.example.com",
+                canonical_authority: "https://query.example.com/tenant-id",
+                authorization_endpoint: "https://query.example.com/authorize",
+                token_endpoint: "https://query.example.com/token",
+                end_session_endpoint: "https://query.example.com/logout",
+                issuer: "https://query.example.com/tenant-id",
+                jwks_uri: "https://query.example.com/keys",
+                aliasesFromNetwork: true,
+                endpointsFromNetwork: true,
+                expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
+            };
+            nodeStorage.setCache({
+                [generateCredentialKey(token)]: token,
+                [metadataKey]: metadata,
+            });
+            const rebuildSpy = jest.spyOn(
+                nodeStorage as unknown as { rebuildIndexes: () => void },
+                "rebuildIndexes"
+            );
+            const credentialCache = (
+                nodeStorage as unknown as {
+                    credentialCache: {
+                        clear(): void;
+                        rkeys(): Generator<string>;
+                        set(key: string, value: AccessTokenEntity): unknown;
+                    };
+                }
+            ).credentialCache;
+            const credentialOrder = Array.from(credentialCache.rkeys());
+            const credentialCacheClearSpy = jest.spyOn(
+                credentialCache,
+                "clear"
+            );
+            const credentialCacheSetSpy = jest.spyOn(credentialCache, "set");
+            const changeEmitter = jest.fn();
+            nodeStorage.registerChangeEmitter(changeEmitter);
+
+            nodeStorage.setAuthorityMetadata(metadataKey, { ...metadata });
+            expect(rebuildSpy).not.toHaveBeenCalled();
+            expect(credentialCacheClearSpy).not.toHaveBeenCalled();
+            expect(credentialCacheSetSpy).not.toHaveBeenCalled();
+            expect(Array.from(credentialCache.rkeys())).toEqual(
+                credentialOrder
+            );
+            expect(changeEmitter).not.toHaveBeenCalled();
+
+            const updatedMetadata = {
+                ...metadata,
+                aliases: ["updated.example.com", "cache.example.com"],
+            };
+            nodeStorage.setAuthorityMetadata(metadataKey, updatedMetadata);
+            expect(rebuildSpy).not.toHaveBeenCalled();
+            expect(credentialCacheClearSpy).not.toHaveBeenCalled();
+            expect(credentialCacheSetSpy).not.toHaveBeenCalled();
+            expect(Array.from(credentialCache.rkeys())).toEqual(
+                credentialOrder
+            );
+            expect(changeEmitter).toHaveBeenCalledTimes(1);
+            expect(
+                nodeStorage.getAuthorityMetadataByAlias("query.example.com", "")
+            ).toBeNull();
+            expect(
+                nodeStorage.getAuthorityMetadataByAlias(
+                    "updated.example.com",
+                    ""
+                )
+            ).toEqual(updatedMetadata);
+            expect(
+                nodeStorage.getAccessTokensByFilter(
+                    {
+                        homeAccountId: token.homeAccountId,
+                        environment: "updated.example.com",
+                        credentialType: token.credentialType,
+                        clientId: token.clientId,
+                        realm: token.realm,
+                        target: ScopeSet.fromString("scope.read", ""),
+                    },
+                    ""
+                )
+            ).toEqual([token]);
+        });
+
+        it("rolls back an externally supplied entry when indexing fails", () => {
+            const nodeStorage = createIndexedStorage();
+            const malformedToken = createAccessToken();
+            const malformedKey = generateCredentialKey(malformedToken);
+            Object.defineProperty(malformedToken, "target", {
+                enumerable: true,
+                get: () => {
+                    throw new Error("malformed target");
+                },
+            });
+
+            expect(() =>
+                nodeStorage.setItem(malformedKey, malformedToken)
+            ).toThrow("malformed target");
+            expect(nodeStorage.getItem(malformedKey)).toBeUndefined();
+
+            const token = createAccessToken();
+            nodeStorage.setItem(generateCredentialKey(token), token);
+            expect(
+                nodeStorage.getAccessTokensByFilter(
+                    {
+                        homeAccountId: token.homeAccountId,
+                        environment: "login.microsoftonline.com",
+                        credentialType: token.credentialType,
+                        clientId: token.clientId,
+                        realm: token.realm,
+                        target: ScopeSet.fromString("scope.read", ""),
+                    },
+                    ""
+                )
+            ).toEqual([token]);
+        });
+
+        it("finds authority metadata without inspecting unrelated entries", () => {
+            const nodeStorage = new NodeStorage(
+                logger,
+                clientId,
+                DEFAULT_CRYPTO_IMPLEMENTATION
+            );
+            const authorityMetadataKey = `authority-metadata-${clientId}-login.microsoftonline.com`;
+            const authorityMetadata: AuthorityMetadataEntity = {
+                aliases: ["login.microsoftonline.com", "login.windows.net"],
+                preferred_cache: "login.windows.net",
+                preferred_network: "login.microsoftonline.com",
+                canonical_authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
+                authorization_endpoint:
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint,
+                token_endpoint:
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint,
+                end_session_endpoint:
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint,
+                issuer: DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer,
+                jwks_uri: DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri,
+                aliasesFromNetwork: true,
+                endpointsFromNetwork: true,
+                expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
+            };
+            const cache: Record<
+                string,
+                AccessTokenEntity | AuthorityMetadataEntity
+            > = {
+                [authorityMetadataKey]: authorityMetadata,
+            };
+            for (let i = 0; i < 1000; i++) {
+                const unrelatedToken = createAccessToken({
+                    clientId: `unrelated-client-${i}`,
+                    secret: `unrelated-token-${i}`,
+                });
+                cache[generateCredentialKey(unrelatedToken)] = unrelatedToken;
+            }
+            nodeStorage.setCache(cache);
+            const getAuthorityMetadataSpy = jest.spyOn(
+                nodeStorage,
+                "getAuthorityMetadata"
+            );
+
+            expect(
+                nodeStorage.getAuthorityMetadataByAlias("login.windows.net", "")
+            ).toEqual(authorityMetadata);
+            expect(getAuthorityMetadataSpy).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe("Getters and Setters", () => {
