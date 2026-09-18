@@ -1190,11 +1190,31 @@ describe("Storage tests for msal-node: ", () => {
                 nodeStorage as unknown as { rebuildIndexes: () => void },
                 "rebuildIndexes"
             );
+            const credentialCache = (
+                nodeStorage as unknown as {
+                    credentialCache: {
+                        clear(): void;
+                        rkeys(): Generator<string>;
+                        set(key: string, value: AccessTokenEntity): unknown;
+                    };
+                }
+            ).credentialCache;
+            const credentialOrder = Array.from(credentialCache.rkeys());
+            const credentialCacheClearSpy = jest.spyOn(
+                credentialCache,
+                "clear"
+            );
+            const credentialCacheSetSpy = jest.spyOn(credentialCache, "set");
             const changeEmitter = jest.fn();
             nodeStorage.registerChangeEmitter(changeEmitter);
 
             nodeStorage.setAuthorityMetadata(metadataKey, { ...metadata });
             expect(rebuildSpy).not.toHaveBeenCalled();
+            expect(credentialCacheClearSpy).not.toHaveBeenCalled();
+            expect(credentialCacheSetSpy).not.toHaveBeenCalled();
+            expect(Array.from(credentialCache.rkeys())).toEqual(
+                credentialOrder
+            );
             expect(changeEmitter).not.toHaveBeenCalled();
 
             const updatedMetadata = {
@@ -1203,6 +1223,11 @@ describe("Storage tests for msal-node: ", () => {
             };
             nodeStorage.setAuthorityMetadata(metadataKey, updatedMetadata);
             expect(rebuildSpy).not.toHaveBeenCalled();
+            expect(credentialCacheClearSpy).not.toHaveBeenCalled();
+            expect(credentialCacheSetSpy).not.toHaveBeenCalled();
+            expect(Array.from(credentialCache.rkeys())).toEqual(
+                credentialOrder
+            );
             expect(changeEmitter).toHaveBeenCalledTimes(1);
             expect(
                 nodeStorage.getAuthorityMetadataByAlias("query.example.com", "")

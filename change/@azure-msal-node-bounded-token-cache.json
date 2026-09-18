@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Bound the Node in-memory token credential cache by count and logical weight [#8843](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8843)",
+    "packageName": "@azure/msal-node",
+    "email": "223556219+Copilot@users.noreply.github.com",
+    "dependentChangeType": "patch"
+}
