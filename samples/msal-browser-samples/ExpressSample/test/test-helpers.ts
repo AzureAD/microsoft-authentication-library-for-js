@@ -14,7 +14,7 @@ export async function verifyCacheWasUsed(
     page: puppeteer.Page,
     screenshot: Screenshot
 ) {
-    if (page.url().endsWith("profile")) {
+    if (new URL(page.url()).pathname === "/profile") {
         await page
             .locator("pre#auth-json")
             .filter(
