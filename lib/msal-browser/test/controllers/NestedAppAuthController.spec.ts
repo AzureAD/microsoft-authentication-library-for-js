@@ -367,7 +367,7 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             expect(hydrateCacheSpy).toHaveBeenCalledTimes(1);
         });
 
-        it("stores bridge-returned ID and access tokens in configured storage", async () => {
+        it("stores bridge-returned tokens (ID and access tokens) in configured storage", async () => {
             mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
 
             await pca.acquireTokenSilent({
