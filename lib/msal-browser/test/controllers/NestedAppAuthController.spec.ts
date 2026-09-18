@@ -16,6 +16,7 @@ import {
 } from "@azure/msal-common/browser";
 import {
     AuthError,
+    BrowserCacheLocation,
     CacheLookupPolicy,
     ClientAuthError,
     ClientAuthErrorCodes,
@@ -80,6 +81,9 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
+            },
+            cache: {
+                cacheLocation: BrowserCacheLocation.SessionStorage,
             },
         };
 
@@ -378,6 +382,13 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             });
 
             const cacheKeys = Object.keys(window.sessionStorage);
+            const localStorageKeys = Object.keys(window.localStorage);
+            const internalMemoryKeys = (
+                (pca as any).controller.browserStorage.internalStorage as {
+                    getKeys: () => string[];
+                }
+            ).getKeys();
+
             expect(
                 cacheKeys.filter((key) => key.includes("idtoken"))
             ).toHaveLength(1);
@@ -386,6 +397,22 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             ).toHaveLength(1);
             expect(
                 cacheKeys.filter((key) => key.includes("refreshtoken"))
+            ).toHaveLength(0);
+            expect(
+                localStorageKeys.filter(
+                    (key) =>
+                        key.includes("idtoken") ||
+                        key.includes("accesstoken") ||
+                        key.includes("refreshtoken")
+                )
+            ).toHaveLength(0);
+            expect(
+                internalMemoryKeys.filter(
+                    (key) =>
+                        key.includes("idtoken") ||
+                        key.includes("accesstoken") ||
+                        key.includes("refreshtoken")
+                )
             ).toHaveLength(0);
         });
 
