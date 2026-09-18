@@ -3,41 +3,43 @@
  * Licensed under the MIT License.
  */
 
+import * as AADServerParamKeys from "../../src/common/constants/AADServerParamKeys.js";
+import { ServerTelemetryEntity } from "../../src/common/cache/entities/ServerTelemetryEntity.js";
+import { CacheManager } from "../../src/common/cache/CacheManager.js";
+import { ClientConfiguration } from "../../src/common/config/ClientConfiguration.js";
+import { PkceCodes, ICrypto } from "../../src/common/crypto/ICrypto.js";
+import { AccountEntity } from "../../src/common/cache/entities/AccountEntity.js";
+import { AppMetadataEntity } from "../../src/common/cache/entities/AppMetadataEntity.js";
+import { ThrottlingEntity } from "../../src/common/cache/entities/ThrottlingEntity.js";
+import { IdTokenEntity } from "../../src/common/cache/entities/IdTokenEntity.js";
+import { AccessTokenEntity } from "../../src/common/cache/entities/AccessTokenEntity.js";
+import { RefreshTokenEntity } from "../../src/common/cache/entities/RefreshTokenEntity.js";
+import { ProtocolMode } from "../../src/common/authority/ProtocolMode.js";
 import {
-    AADServerParamKeys,
-    ServerTelemetryEntity,
-    CacheManager,
-    ClientConfiguration,
-    PkceCodes,
-    AccountEntity,
-    AppMetadataEntity,
-    ThrottlingEntity,
-    IdTokenEntity,
-    AccessTokenEntity,
-    RefreshTokenEntity,
-    ProtocolMode,
     AuthorityOptions,
-    AuthorityMetadataEntity,
-    Logger,
-    LogLevel,
-    TokenKeys,
+    StaticAuthorityOptions,
+} from "../../src/common/authority/AuthorityOptions.js";
+import { AuthorityMetadataEntity } from "../../src/common/cache/entities/AuthorityMetadataEntity.js";
+import { Logger, LogLevel } from "../../src/common/logger/Logger.js";
+import { TokenKeys } from "../../src/common/cache/utils/CacheTypes.js";
+import {
     createClientAuthError,
     ClientAuthErrorCodes,
-    CacheHelpers,
-    Authority,
-    INetworkModule,
+} from "../../src/common/error/ClientAuthError.js";
+import * as CacheHelpers from "../../src/common/cache/utils/CacheHelpers.js";
+import { Authority } from "../../src/common/authority/Authority.js";
+import { INetworkModule } from "../../src/common/network/INetworkModule.js";
+import {
     ClientAssertionCallback,
     ClientAssertionConfig,
-    AccountEntityUtils,
-    Constants,
-    StubPerformanceClient,
-    AccountInfo,
-    CredentialEntity,
-    ICrypto,
-    IPerformanceClient,
-    StaticAuthorityOptions,
-    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
-} from "@azure/msal-common";
+} from "../../src/common/account/ClientCredentials.js";
+import * as AccountEntityUtils from "../../src/common/cache/utils/AccountEntityUtils.js";
+import * as Constants from "../../src/common/utils/Constants.js";
+import { StubPerformanceClient } from "../../src/common/telemetry/performance/StubPerformanceClient.js";
+import { AccountInfo } from "../../src/common/account/AccountInfo.js";
+import { CredentialEntity } from "../../src/common/cache/entities/CredentialEntity.js";
+import { IPerformanceClient } from "../../src/common/telemetry/performance/IPerformanceClient.js";
+import { DEFAULT_TOKEN_BINDING_KEY_MANAGER } from "../../src/common/crypto/ITokenBindingKeyManager.js";
 import {
     AUTHENTICATION_RESULT,
     ID_TOKEN_CLAIMS,

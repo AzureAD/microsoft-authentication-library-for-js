@@ -6,8 +6,8 @@
 import {
     INetworkModule,
     NetworkRequestOptions,
-    NetworkResponse,
-} from "@azure/msal-common";
+} from "../../src/common/network/INetworkModule.js";
+import { NetworkResponse } from "../../src/common/network/NetworkResponse.js";
 
 export const mockNetworkClient = (
     getRequestResult: Object,

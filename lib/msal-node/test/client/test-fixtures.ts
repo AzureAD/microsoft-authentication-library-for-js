@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ServerTelemetryManager } from "@azure/msal-common";
+import { ServerTelemetryManager } from "../../src/common/telemetry/server/ServerTelemetryManager.js";
 
 // @ts-ignore
 const mockServerTelemetryManager: ServerTelemetryManager = {
@@ -31,15 +31,17 @@ const mockServerTelemetryManager: ServerTelemetryManager = {
 };
 
 export const setupServerTelemetryManagerMock = () => {
-    jest.doMock("@azure/msal-common", () => ({
-        ...jest.requireActual("@azure/msal-common"),
-        ServerTelemetryManager: jest
-            .fn()
-            .mockImplementation(
-                () =>
-                    mockServerTelemetryManager as unknown as ServerTelemetryManager
-            ),
-    }));
+    jest.doMock(
+        "../../src/common/telemetry/server/ServerTelemetryManager.js",
+        () => ({
+            ServerTelemetryManager: jest
+                .fn()
+                .mockImplementation(
+                    () =>
+                        mockServerTelemetryManager as unknown as ServerTelemetryManager
+                ),
+        })
+    );
 
     return mockServerTelemetryManager;
 };

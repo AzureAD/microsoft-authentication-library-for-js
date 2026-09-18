@@ -3,27 +3,33 @@
  * Licensed under the MIT License.
  */
 
+import { AuthorizationCodeClient } from "../../src/common/client/AuthorizationCodeClient.js";
+import { AuthenticationResult } from "../../src/common/response/AuthenticationResult.js";
+import * as CommonConstants from "../../src/common/utils/Constants.js";
 import {
-    AuthorizationCodeClient,
-    AuthenticationResult,
-    Constants as CommonConstants,
     createClientAuthError,
-    AccountEntity,
+    ClientAuthErrorCodes,
+} from "../../src/common/error/ClientAuthError.js";
+import { AccountEntity } from "../../src/common/cache/entities/AccountEntity.js";
+import {
     AccountInfo,
+    buildTenantProfile,
+} from "../../src/common/account/AccountInfo.js";
+import { TokenClaims } from "../../src/common/account/TokenClaims.js";
+import {
     createInteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
-    ClientAssertion,
-    AccountEntityUtils,
-    INetworkModule,
-    ClientAuthErrorCodes,
-    Authority,
-    CacheManager,
-    CommonSilentFlowRequest,
-    AccessTokenEntity,
-    IdTokenEntity,
-    RefreshTokenEntity,
-    TimeUtils,
-} from "@azure/msal-common";
+} from "../../src/common/error/InteractionRequiredAuthError.js";
+import { ClientAssertion } from "../../src/common/account/ClientCredentials.js";
+import * as AccountEntityUtils from "../../src/common/cache/utils/AccountEntityUtils.js";
+import { INetworkModule } from "../../src/common/network/INetworkModule.js";
+import { Authority } from "../../src/common/authority/Authority.js";
+import { CacheManager } from "../../src/common/cache/CacheManager.js";
+import { CommonSilentFlowRequest } from "../../src/common/request/CommonSilentFlowRequest.js";
+import { AccessTokenEntity } from "../../src/common/cache/entities/AccessTokenEntity.js";
+import { IdTokenEntity } from "../../src/common/cache/entities/IdTokenEntity.js";
+import { RefreshTokenEntity } from "../../src/common/cache/entities/RefreshTokenEntity.js";
+import * as TimeUtils from "../../src/common/utils/TimeUtils.js";
 import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     ID_TOKEN_CLAIMS,
@@ -55,7 +61,6 @@ import {
     ClientTestUtils,
     getClientAssertionCallback,
 } from "./ClientTestUtils.js";
-import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { Constants, MSAL_FORCE_REGION } from "../../src/utils/Constants.js";
 import jwt from "jsonwebtoken";
 import { NodeAuthError } from "../../src/error/NodeAuthError.js";
@@ -74,6 +79,40 @@ function createIdToken(idTokenClaims: Record<string, unknown>): string {
         Buffer.from(JSON.stringify(idTokenClaims)).toString("base64url"),
         "signature",
     ].join(".");
+}
+
+function buildAccountFromIdTokenClaims(
+    idTokenClaims: TokenClaims
+): AccountEntity {
+    const { oid, tid, preferred_username, emails, name, login_hint, upn } =
+        idTokenClaims;
+    const tenantId = tid || "";
+    const homeAccountId = `${oid}.${tid}`;
+    const accountInfo: AccountInfo = {
+        homeAccountId,
+        username: preferred_username || upn || emails?.[0] || "",
+        localAccountId: oid || "",
+        tenantId,
+        environment: "login.windows.net",
+        authorityType: "MSSTS",
+        name,
+        loginHint: login_hint,
+        upn,
+        tenantProfiles: new Map([
+            [
+                tenantId,
+                buildTenantProfile(
+                    homeAccountId,
+                    oid || "",
+                    tenantId,
+                    undefined,
+                    idTokenClaims
+                ),
+            ],
+        ]),
+    };
+
+    return AccountEntityUtils.createAccountEntityFromAccountInfo(accountInfo);
 }
 
 function createAuthCodeNetworkClient(

@@ -7,7 +7,7 @@
     "scripts": {
         "start": "node ./index.js",
         "test:e2e": "jest",
-        "test:agc": "jest --testMatch [ '**/test/**/*agc*.spec.ts' ]",
+        "test:agc": "jest --runInBand --runTestsByPath test/auth-code-aad-agc-confidential.spec.ts",
         "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-node",
         "start:build": "npm run build:package && npm start"
     },

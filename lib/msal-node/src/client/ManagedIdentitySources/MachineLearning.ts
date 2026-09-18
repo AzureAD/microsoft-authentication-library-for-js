@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, Logger } from "@azure/msal-common/node";
+import { INetworkModule } from "../../common/network/INetworkModule.js";
+import { Logger } from "../../common/logger/Logger.js";
 import {
     BaseManagedIdentitySource,
     ManagedIdentityUserAssignedIdQueryParameterNames,
