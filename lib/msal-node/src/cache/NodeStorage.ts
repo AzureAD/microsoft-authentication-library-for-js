@@ -28,9 +28,20 @@ import * as AccountEntityUtils from "../common/cache/utils/AccountEntityUtils.js
 import { CredentialEntity } from "../common/cache/entities/CredentialEntity.js";
 import { AccountInfo } from "../common/account/AccountInfo.js";
 import { StubPerformanceClient } from "../common/telemetry/performance/StubPerformanceClient.js";
-import { DEFAULT_TOKEN_BINDING_KEY_MANAGER } from "../common/crypto/ITokenBindingKeyManager.js";
+import {
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+    ITokenBindingKeyManager,
+} from "../common/crypto/ITokenBindingKeyManager.js";
 import { getAliasesFromStaticSources } from "../common/authority/AuthorityMetadata.js";
 import * as Constants from "../common/utils/Constants.js";
+import { Buffer } from "node:buffer";
+import { LRUCache } from "lru-cache";
+import { BaseAuthRequest } from "../common/request/BaseAuthRequest.js";
+import {
+    InMemoryCacheOptions,
+    ResolvedInMemoryCacheOptions,
+    resolveInMemoryCacheOptions,
+} from "../config/Configuration.js";
 
 import { Deserializer } from "./serializer/Deserializer.js";
 import { Serializer } from "./serializer/Serializer.js";
@@ -77,12 +88,23 @@ export class NodeStorage extends CacheManager {
     private idTokenWithoutRealmIndex = new Map<string, Set<string>>();
     private refreshTokenIndex = new Map<string, Set<string>>();
     private accessTokenIndex = new Map<string, AccessTokenIndex>();
+    private readonly credentialCache: LRUCache<string, ValidCredentialType>;
+    private readonly cacheOptions: ResolvedInMemoryCacheOptions;
+    private suppressCredentialDisposal = false;
+    private evictingCredentialKeys = new Set<string>();
+    private credentialEvictionCount = 0;
+    private selectedAccessTokenKey?: string;
 
     constructor(
         logger: Logger,
         clientId: string,
         cryptoImpl: ICrypto,
-        staticAuthorityOptions?: StaticAuthorityOptions
+        staticAuthorityOptions?: StaticAuthorityOptions,
+        cacheOptions?: InMemoryCacheOptions,
+        tokenBindingKeyManager: Pick<
+            ITokenBindingKeyManager,
+            "removeTokenBindingKey"
+        > = DEFAULT_TOKEN_BINDING_KEY_MANAGER
     ) {
         super(
             clientId,
@@ -90,17 +112,63 @@ export class NodeStorage extends CacheManager {
             logger,
             new StubPerformanceClient(),
             staticAuthorityOptions,
-            DEFAULT_TOKEN_BINDING_KEY_MANAGER
+            {
+                ...DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+                removeTokenBindingKey:
+                    tokenBindingKeyManager.removeTokenBindingKey.bind(
+                        tokenBindingKeyManager
+                    ),
+            }
         );
         this.logger = logger;
         this.nodeStaticAuthorityOptions = staticAuthorityOptions;
+        this.cacheOptions = resolveInMemoryCacheOptions(cacheOptions);
+        this.credentialCache = new LRUCache<string, ValidCredentialType>({
+            max: this.cacheOptions.maxTokenCacheEntries,
+            maxSize: this.cacheOptions.maxTokenCacheSizeInBytes,
+            maxEntrySize: this.cacheOptions.maxTokenCacheSizeInBytes,
+            sizeCalculation: (credential, key) =>
+                this.getCredentialLogicalWeight(key, credential),
+            disposeAfter: (credential, key) => {
+                if (!this.suppressCredentialDisposal) {
+                    this.removeEvictedCredential(key, credential);
+                }
+            },
+        });
     }
 
     getCacheSnapshot(): CacheKVStore {
         return JSON.parse(JSON.stringify(this.cache)) as CacheKVStore;
     }
 
-    private rebuildIndexes(): void {
+    isCacheConfigurationCompatible(options?: InMemoryCacheOptions): boolean {
+        return (
+            (options?.maxTokenCacheEntries === undefined ||
+                options.maxTokenCacheEntries ===
+                    this.cacheOptions.maxTokenCacheEntries) &&
+            (options?.maxTokenCacheSizeInBytes === undefined ||
+                options.maxTokenCacheSizeInBytes ===
+                    this.cacheOptions.maxTokenCacheSizeInBytes)
+        );
+    }
+
+    getCredentialEvictionCount(): number {
+        return this.credentialEvictionCount;
+    }
+
+    private rebuildIndexes(
+        previousRecency: string[] = Array.from(this.credentialCache.rkeys())
+    ): void {
+        Object.entries(this.cache).forEach(([key, value]) => {
+            if (
+                value &&
+                typeof value === "object" &&
+                this.isBoundedCredential(value)
+            ) {
+                this.getCredentialLogicalWeight(key, value);
+            }
+        });
+        this.withoutCredentialDisposal(() => this.credentialCache.clear());
         this.accountKeys.clear();
         this.idTokenKeys.clear();
         this.accessTokenKeys.clear();
@@ -125,6 +193,153 @@ export class NodeStorage extends CacheManager {
         cacheKeys.forEach((key) => {
             this.addToIndexes(key, this.cache[key]);
         });
+        const credentialKeys = new Set(
+            cacheKeys.filter((key) => {
+                const value = this.cache[key];
+                return (
+                    value &&
+                    typeof value === "object" &&
+                    this.isBoundedCredential(value)
+                );
+            })
+        );
+        const credentialOrder = previousRecency.filter((key) =>
+            credentialKeys.has(key)
+        );
+        const orderedCredentialKeys = new Set(credentialOrder);
+        credentialKeys.forEach((key) => {
+            if (!orderedCredentialKeys.has(key)) {
+                credentialOrder.push(key);
+            }
+        });
+        credentialOrder.forEach((key) => {
+            this.admitCredential(key, this.cache[key] as ValidCredentialType);
+        });
+    }
+
+    private isBoundedCredential(value: object): value is ValidCredentialType {
+        return (
+            CacheHelpers.isAccessTokenEntity(value) ||
+            CacheHelpers.isRefreshTokenEntity(value) ||
+            CacheHelpers.isIdTokenEntity(value)
+        );
+    }
+
+    private getCredentialLogicalWeight(
+        key: string,
+        credential: ValidCredentialType
+    ): number {
+        let serializedCredential: object;
+        const indexStrings: string[] = [];
+        let postingCount = 2;
+
+        if (CacheHelpers.isIdTokenEntity(credential)) {
+            serializedCredential = Serializer.serializeIdTokens({
+                [key]: credential,
+            })[key];
+            indexStrings.push(
+                this.idTokenIndexKey(credential),
+                this.idTokenIndexKey(credential, credential.environment, false)
+            );
+            postingCount += 2;
+        } else if (CacheHelpers.isAccessTokenEntity(credential)) {
+            serializedCredential = Serializer.serializeAccessTokens({
+                [key]: credential,
+            })[key];
+            const scopes = this.normalizeScopes(credential.target);
+            indexStrings.push(
+                this.accessTokenStandardIndexKey(credential),
+                this.accessTokenOboIndexKey(credential),
+                ...scopes,
+                ...scopes
+            );
+            postingCount += 2 * (1 + scopes.length);
+            if (typeof credential.target !== "string") {
+                postingCount += 2;
+            }
+        } else {
+            serializedCredential = Serializer.serializeRefreshTokens({
+                [key]: credential,
+            })[key];
+            indexStrings.push(this.refreshTokenIndexKey(credential));
+            postingCount += 1;
+        }
+
+        return (
+            Buffer.byteLength(
+                JSON.stringify({ [key]: serializedCredential }),
+                Constants.EncodingTypes.UTF8
+            ) +
+            indexStrings.reduce(
+                (total, indexString) =>
+                    total +
+                    Buffer.byteLength(
+                        indexString,
+                        Constants.EncodingTypes.UTF8
+                    ),
+                0
+            ) +
+            postingCount
+        );
+    }
+
+    private admitCredential(
+        key: string,
+        credential: ValidCredentialType
+    ): void {
+        this.credentialCache.set(key, credential);
+        if (!this.credentialCache.has(key)) {
+            if (this.cache[key] === credential) {
+                delete this.cache[key];
+                this.removeFromIndexes(key, credential);
+                this.removeTokenBindingKeyForCredential(credential, "");
+                this.credentialEvictionCount += 1;
+                this.emitChange();
+            }
+            this.logger.warning(
+                "A token credential exceeded the configured logical cache size and was not retained.",
+                ""
+            );
+        }
+    }
+
+    private removeEvictedCredential(
+        key: string,
+        credential: ValidCredentialType
+    ): void {
+        if (
+            this.evictingCredentialKeys.has(key) ||
+            this.cache[key] !== credential
+        ) {
+            return;
+        }
+
+        this.evictingCredentialKeys.add(key);
+        try {
+            delete this.cache[key];
+            this.removeFromIndexes(key, credential);
+            this.removeTokenBindingKeyForCredential(credential, "");
+            this.credentialEvictionCount += 1;
+            this.emitChange();
+        } finally {
+            this.evictingCredentialKeys.delete(key);
+        }
+    }
+
+    private withoutCredentialDisposal<T>(action: () => T): T {
+        const previousValue = this.suppressCredentialDisposal;
+        this.suppressCredentialDisposal = true;
+        try {
+            return action();
+        } finally {
+            this.suppressCredentialDisposal = previousValue;
+        }
+    }
+
+    private touchCredentialKey(key: string | undefined): void {
+        if (key) {
+            this.credentialCache.get(key);
+        }
     }
 
     private addToIndexes(key: string, value: ValidCacheType): void {
@@ -608,6 +823,7 @@ export class NodeStorage extends CacheManager {
         environment: string,
         _correlationId: string
     ): string {
+        void _correlationId;
         return this.normalizeString(environment);
     }
 
@@ -702,11 +918,16 @@ export class NodeStorage extends CacheManager {
         tokenKeys?: TokenKeys
     ): Map<string, AccessTokenEntity> {
         if (tokenKeys) {
-            return super.getAccessTokenEntriesByFilter(
+            const accessTokens = super.getAccessTokenEntriesByFilter(
                 filter,
                 correlationId,
                 tokenKeys
             );
+            this.selectedAccessTokenKey =
+                accessTokens.size === 1
+                    ? accessTokens.keys().next().value
+                    : undefined;
+            return accessTokens;
         }
 
         const candidateKeys = this.getAccessTokenCandidates(
@@ -714,7 +935,15 @@ export class NodeStorage extends CacheManager {
             correlationId
         );
         if (!candidateKeys) {
-            return super.getAccessTokenEntriesByFilter(filter, correlationId);
+            const accessTokens = super.getAccessTokenEntriesByFilter(
+                filter,
+                correlationId
+            );
+            this.selectedAccessTokenKey =
+                accessTokens.size === 1
+                    ? accessTokens.keys().next().value
+                    : undefined;
+            return accessTokens;
         }
 
         const accessTokens = new Map<string, AccessTokenEntity>();
@@ -730,7 +959,48 @@ export class NodeStorage extends CacheManager {
                 accessTokens.set(key, accessToken);
             }
         });
+        this.selectedAccessTokenKey =
+            accessTokens.size === 1
+                ? accessTokens.keys().next().value
+                : undefined;
         return accessTokens;
+    }
+
+    getAccessTokensByFilter(
+        filter: CredentialFilter,
+        correlationId: string
+    ): AccessTokenEntity[] {
+        const accessTokens = this.getAccessTokenEntriesByFilter(
+            filter,
+            correlationId
+        );
+        if (accessTokens.size === 1) {
+            this.touchCredentialKey(accessTokens.keys().next().value);
+        }
+        return Array.from(accessTokens.values());
+    }
+
+    getAccessToken(
+        account: AccountInfo,
+        request: BaseAuthRequest,
+        tokenKeys?: TokenKeys,
+        targetRealm?: string
+    ): AccessTokenEntity | null {
+        this.selectedAccessTokenKey = undefined;
+        try {
+            const accessToken = super.getAccessToken(
+                account,
+                request,
+                tokenKeys,
+                targetRealm
+            );
+            if (accessToken) {
+                this.touchCredentialKey(this.selectedAccessTokenKey);
+            }
+            return accessToken;
+        } finally {
+            this.selectedAccessTokenKey = undefined;
+        }
     }
 
     getIdTokensByFilter(
@@ -745,7 +1015,15 @@ export class NodeStorage extends CacheManager {
             !filter.credentialType ||
             !filter.clientId
         ) {
-            return super.getIdTokensByFilter(filter, correlationId, tokenKeys);
+            const idTokens = super.getIdTokensByFilter(
+                filter,
+                correlationId,
+                tokenKeys
+            );
+            if (idTokens.size === 1) {
+                this.touchCredentialKey(idTokens.keys().next().value);
+            }
+            return idTokens;
         }
 
         const index = !filter.realm
@@ -782,7 +1060,28 @@ export class NodeStorage extends CacheManager {
                 idTokens.set(key, idToken);
             }
         });
+        if (idTokens.size === 1) {
+            this.touchCredentialKey(idTokens.keys().next().value);
+        }
         return idTokens;
+    }
+
+    getIdToken(
+        account: AccountInfo,
+        correlationId: string,
+        tokenKeys?: TokenKeys,
+        targetRealm?: string
+    ): IdTokenEntity | null {
+        const idToken = super.getIdToken(
+            account,
+            correlationId,
+            tokenKeys,
+            targetRealm
+        );
+        if (idToken) {
+            this.touchCredentialKey(this.generateCredentialKey(idToken));
+        }
+        return idToken;
     }
 
     protected getRefreshTokensByFilter(
@@ -797,11 +1096,12 @@ export class NodeStorage extends CacheManager {
             !filter.credentialType ||
             !filter.clientId
         ) {
-            return super.getRefreshTokensByFilter(
+            const refreshTokens = super.getRefreshTokensByFilter(
                 filter,
                 correlationId,
                 tokenKeys
             );
+            return refreshTokens;
         }
 
         const candidates = new Set<string>();
@@ -838,17 +1138,36 @@ export class NodeStorage extends CacheManager {
         return refreshTokens;
     }
 
+    getRefreshToken(
+        account: AccountInfo,
+        familyRT: boolean,
+        correlationId: string,
+        tokenKeys?: TokenKeys
+    ): RefreshTokenEntity | null {
+        const refreshToken = super.getRefreshToken(
+            account,
+            familyRT,
+            correlationId,
+            tokenKeys
+        );
+        if (refreshToken) {
+            this.touchCredentialKey(this.generateCredentialKey(refreshToken));
+        }
+        return refreshToken;
+    }
+
     getAppMetadataFilteredBy(
         filter: AppMetadataFilter,
         correlationId: string
     ): AppMetadataCache {
-        if (!filter.environment || !filter.clientId) {
+        const environment = filter.environment;
+        if (!environment || !filter.clientId) {
             return super.getAppMetadataFilteredBy(filter, correlationId);
         }
 
         const candidates = new Set<string>();
         const clientId = filter.clientId;
-        this.getEnvironmentAliases(filter.environment, correlationId).forEach(
+        this.getEnvironmentAliases(environment, correlationId).forEach(
             (environment) => {
                 this.appMetadataIndex
                     .get(
@@ -870,7 +1189,7 @@ export class NodeStorage extends CacheManager {
                 entity.clientId === filter.clientId &&
                 this.environmentMatches(
                     entity.environment,
-                    filter.environment!,
+                    environment,
                     correlationId
                 )
             ) {
@@ -884,6 +1203,7 @@ export class NodeStorage extends CacheManager {
         host: string,
         _correlationId: string
     ): AuthorityMetadataEntity | null {
+        void _correlationId;
         return this.getAuthorityMetadataByAliasFromIndex(host);
     }
 
@@ -1018,12 +1338,13 @@ export class NodeStorage extends CacheManager {
     setCache(cache: CacheKVStore): void {
         this.logger.trace("Setting cache key value store", "");
         const previousCache = this.cache;
+        const previousRecency = Array.from(this.credentialCache.rkeys());
         this.cache = cache;
         try {
-            this.rebuildIndexes();
+            this.rebuildIndexes(previousRecency);
         } catch (error) {
             this.cache = previousCache;
-            this.rebuildIndexes();
+            this.rebuildIndexes(previousRecency);
             throw error;
         }
 
@@ -1055,8 +1376,25 @@ export class NodeStorage extends CacheManager {
         const hadItem = Object.prototype.hasOwnProperty.call(cache, key);
         const previousValue = cache[key];
         const previousOrder = this.cacheKeyOrder.get(key);
+        const previousRecency = Array.from(this.credentialCache.rkeys());
         try {
+            if (
+                value &&
+                typeof value === "object" &&
+                this.isBoundedCredential(value)
+            ) {
+                this.getCredentialLogicalWeight(key, value);
+            }
             if (hadItem) {
+                if (
+                    previousValue &&
+                    typeof previousValue === "object" &&
+                    this.isBoundedCredential(previousValue)
+                ) {
+                    this.withoutCredentialDisposal(() =>
+                        this.credentialCache.delete(key)
+                    );
+                }
                 this.removeFromIndexes(key, previousValue);
                 if (previousOrder !== undefined) {
                     this.cacheKeyOrder.set(key, previousOrder);
@@ -1064,18 +1402,27 @@ export class NodeStorage extends CacheManager {
             }
             cache[key] = value;
             this.addToIndexes(key, value);
+            if (
+                value &&
+                typeof value === "object" &&
+                this.isBoundedCredential(value)
+            ) {
+                this.admitCredential(key, value);
+            }
         } catch (error) {
             if (hadItem) {
                 cache[key] = previousValue;
             } else {
                 delete cache[key];
             }
-            this.rebuildIndexes();
+            this.rebuildIndexes(previousRecency);
             throw error;
         }
 
         // mark change in cache
-        this.emitChange();
+        if (Object.prototype.hasOwnProperty.call(cache, key)) {
+            this.emitChange();
+        }
     }
 
     generateCredentialKey(
@@ -1374,6 +1721,15 @@ export class NodeStorage extends CacheManager {
                     typeof value === "object" &&
                     CacheHelpers.isAuthorityMetadataEntity(key, value));
             delete cache[key];
+            if (
+                value &&
+                typeof value === "object" &&
+                this.isBoundedCredential(value)
+            ) {
+                this.withoutCredentialDisposal(() =>
+                    this.credentialCache.delete(key)
+                );
+            }
             if (isAuthorityMetadata) {
                 this.removeAuthorityMetadataFromIndexes(key);
                 this.cacheKeyOrder.delete(key);

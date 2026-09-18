@@ -5,10 +5,8 @@
 
 import { ISerializableTokenCache } from "../interface/ISerializableTokenCache.js";
 
-/*
- * Monotonic versions prevent overlapping cache accesses from clearing an
- * earlier context's obligation to persist a bounded-cache trim.
- */
+// Monotonic versions prevent overlapping cache accesses from clearing an
+// earlier context's obligation to persist a bounded-cache trim.
 const persistenceChangeVersions = new WeakMap<
     ISerializableTokenCache,
     number

@@ -286,6 +286,14 @@ describe("SilentRequestCoalescer", () => {
             { refreshTokenExpirationOffsetSeconds: 60 },
         ],
         ["redirect URI", { redirectUri: "http://localhost:3000/other" }],
+        ["SHR nonce", { shrNonce: "different-shr-nonce" }],
+        [
+            "SHR options",
+            { shrOptions: { header: { alg: "RS256", kid: "different-kid" } } },
+        ],
+        ["SSH JWK", { sshJwk: '{"kty":"RSA","kid":"different-ssh-key"}' }],
+        ["PoP key ID", { popKid: "different-pop-key" }],
+        ["DPoP JKT", { dpopJkt: "different-dpop-thumbprint" }],
         ["extra parameters", { extraParameters: { custom: "value" } }],
         [
             "extra query parameters",

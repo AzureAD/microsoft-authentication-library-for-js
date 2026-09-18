@@ -8,7 +8,10 @@ import { AccountInfo } from "../common/account/AccountInfo.js";
 import { Logger } from "../common/logger/Logger.js";
 import { ISerializableTokenCache } from "../common/cache/interface/ISerializableTokenCache.js";
 import { ICachePlugin } from "../common/cache/interface/ICachePlugin.js";
-import { TokenCacheContext } from "../common/cache/persistence/TokenCacheContext.js";
+import {
+    notifyTokenCacheContextPersistenceChanged,
+    TokenCacheContext,
+} from "../common/cache/persistence/TokenCacheContext.js";
 import {
     InMemoryCache,
     JsonCache,
@@ -99,10 +102,14 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
         if (this.cacheSnapshot) {
             this.logger.trace("Reading cache snapshot from disk", "");
+            const evictionCount = this.storage.getCredentialEvictionCount();
             const deserializedCache = Deserializer.deserializeAllCache(
                 this.overlayDefaults(JSON.parse(this.cacheSnapshot))
             );
             this.storage.setInMemoryCache(deserializedCache);
+            if (this.storage.getCredentialEvictionCount() > evictionCount) {
+                notifyTokenCacheContextPersistenceChanged(this);
+            }
         } else {
             this.logger.trace("No cache snapshot to deserialize", "");
         }

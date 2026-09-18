@@ -1111,10 +1111,18 @@ export abstract class CacheManager implements ICacheManager {
             correlationId
         );
 
+        this.removeTokenBindingKeyForCredential(credential, correlationId);
+    }
+
+    protected removeTokenBindingKeyForCredential(
+        credential: ValidCredentialType,
+        correlationId: string
+    ): void {
         // Remove Token Binding Key from key store for token-bound access token credentials
         if (
+            CacheHelpers.isAccessTokenEntity(credential) &&
             credential.credentialType.toLowerCase() ===
-            Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
+                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
         ) {
             const tokenType = credential.tokenType?.toLowerCase();
             switch (tokenType) {
@@ -1125,8 +1133,13 @@ export abstract class CacheManager implements ICacheManager {
                     const kid = accessTokenWithAuthSchemeEntity.keyId;
 
                     if (kid) {
-                        void this.tokenBindingKeyManager
-                            .removeTokenBindingKey(kid, correlationId)
+                        void Promise.resolve()
+                            .then(() =>
+                                this.tokenBindingKeyManager.removeTokenBindingKey(
+                                    kid,
+                                    correlationId
+                                )
+                            )
                             .catch(() => {
                                 this.commonLogger.error(
                                     "Failed to remove token binding key",
