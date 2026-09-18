@@ -41,7 +41,7 @@ export const msalConfig = {
     },
 };
 
-const TEST_SLICE = { dc: "ESTS-PUB-SCUS-FD000-TEST3-100" };
+const TEST_SLICE = { dc: "ESTS-PUB-EUS-FD000-TEST1-100" };
 
 // The nested app requests tokens through the host bridge, so these extra params
 // do not themselves reach ESTS (the host applies its own `brokerExtraParams` to

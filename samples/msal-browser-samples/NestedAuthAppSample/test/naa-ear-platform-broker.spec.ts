@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-// Tests the NAA and platform broker end-to-end flow.
+// Tests the NAA, EAR, and platform broker end-to-end flow.
 
 import { ChildProcess, spawn } from "child_process";
 import * as path from "path";
@@ -16,7 +16,9 @@ import {
 import {
     TokenStore,
     enterAadCredentials,
+    getEarDecryptCount,
     getLabCredentials,
+    installEarDecryptSpy,
     readAccountKeys,
     readSessionTokenStore,
 } from "./naaTestUtils";
@@ -31,7 +33,7 @@ const { HOST_APP_PORT, NESTED_APP_PORT } = require("../sampleConfig.cjs") as {
 };
 
 const SAMPLE_ROOT = path.join(__dirname, "..");
-const HOST_URL = `https://localhost:${HOST_APP_PORT}`;
+const HOST_URL = `https://localhost:${HOST_APP_PORT}/?ear=true`;
 const NESTED_IFRAME = "iframe[title='nestedApp']";
 const ACTION_TIMEOUT = 60000;
 const SERVER_READY_TIMEOUT_MS = 120000;
@@ -78,7 +80,7 @@ function assertNestedTokenStore(store: TokenStore): void {
     expect(store.refreshTokens.length).toBe(0);
 }
 
-describe("NAA token APIs brokered through the platform broker", () => {
+describe("NAA token APIs + EAR brokered through the platform broker", () => {
     jest.setTimeout(300000);
 
     let broker: BrokerContext;
@@ -136,6 +138,7 @@ describe("NAA token APIs brokered through the platform broker", () => {
             );
         }
         context = broker.context;
+        await installEarDecryptSpy(context);
 
         hostPage = await context.newPage();
         await hostPage.goto(HOST_URL, {
@@ -161,15 +164,27 @@ describe("NAA token APIs brokered through the platform broker", () => {
             }
         }
 
-        await hostPage
-            .getByText("Signed in as", { exact: false })
-            .waitFor({ timeout: ACTION_TIMEOUT });
+        await hostPage.waitForFunction(
+            () =>
+                document.body.textContent?.includes("Signed in as") ||
+                Boolean(document.querySelector("pre")),
+            undefined,
+            { timeout: ACTION_TIMEOUT }
+        );
+        const hostError = await hostPage
+            .locator("pre")
+            .textContent()
+            .catch(() => null);
+        if (hostError) {
+            throw new Error(`Host authentication failed: ${hostError}`);
+        }
 
         const hostStore = await readSessionTokenStore(hostPage);
         expect(hostStore.accessTokens.length).toBe(0);
         expect(hostStore.refreshTokens.length).toBe(0);
         expect(hostStore.idTokens.length).toBe(1);
         expect(await readAccountKeys(hostPage)).not.toBeNull();
+        expect(await getEarDecryptCount(hostPage)).toBeGreaterThan(0);
 
         autoCompleteAadPopups();
         nestedFrame = await getNestedFrame(hostPage);

@@ -10,32 +10,56 @@ import {
  * @param page
  * @param screenshot
  */
-export async function verifyCacheWasUsed(page: puppeteer.Page, screenshot: Screenshot) {
-    // Track network requests to verify cached tokens are used
-    const networkRequests: puppeteer.HTTPRequest[] = [];
-    page.on('request', (request) => {
-        // Track all requests to authentication endpoints
-        if (request.url().includes('login.microsoftonline.com') ||
-            request.url().includes('/token') ||
-            request.url().includes('/authorize')) {
-            networkRequests.push(request);
-        }
-    });
-
-    if (!page.url().endsWith("profile")) {
-        await page.locator("a#viewProfileButton").click();
-        await screenshot.takeScreenshot(page, "Profile button clicked");
+export async function verifyCacheWasUsed(
+    page: puppeteer.Page,
+    screenshot: Screenshot
+) {
+    if (new URL(page.url()).pathname === "/profile") {
+        await page
+            .locator("pre#auth-json")
+            .filter(
+                (value) =>
+                    !!value.textContent && value.textContent !== "Loading..."
+            )
+            .wait();
+        await page.locator('a.nav-link[href="/"]').click();
+        await page.waitForFunction(() => window.location.pathname === "/");
     }
 
-    // Verify the Raw Authentication Data section is populated
-    const authDataText = await page.locator("pre#auth-json").filter((value) => !!value.textContent && value.textContent !== 'Loading...').map(value => value.textContent).wait();
-    await screenshot.takeScreenshot(page, "Authentication data displayed");
-    const authData = JSON.parse(authDataText || "");
-    expect(authData).toHaveProperty('fromCache');
-    expect(authData.fromCache).toBe(true); // Should be from cache after upgrade
+    await page.locator("a#viewProfileButton").waitHandle();
 
-    // Verify no authentication network requests were made (indicating cached tokens were used)
-    expect(networkRequests.length).toBe(0);
+    const networkRequests: puppeteer.HTTPRequest[] = [];
+    const requestListener = (request: puppeteer.HTTPRequest) => {
+        if (
+            request.url().includes("login.microsoftonline.com") ||
+            request.url().includes("/token") ||
+            request.url().includes("/authorize")
+        ) {
+            networkRequests.push(request);
+        }
+    };
+    page.on("request", requestListener);
+
+    try {
+        await page.locator("a#viewProfileButton").click();
+        await screenshot.takeScreenshot(page, "Profile button clicked");
+
+        const authDataText = await page
+            .locator("pre#auth-json")
+            .filter(
+                (value) =>
+                    !!value.textContent && value.textContent !== "Loading..."
+            )
+            .map((value) => value.textContent)
+            .wait();
+        await screenshot.takeScreenshot(page, "Authentication data displayed");
+        const authData = JSON.parse(authDataText || "");
+        expect(authData).toHaveProperty("fromCache");
+        expect(authData.fromCache).toBe(true);
+        expect(networkRequests.map((request) => request.url())).toEqual([]);
+    } finally {
+        page.off("request", requestListener);
+    }
 }
 
 /**
