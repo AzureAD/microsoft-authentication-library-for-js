@@ -1628,6 +1628,16 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 scopes: ["User.Read"],
                 resource: resourceA,
             });
+            const resourceAAccessTokenKeys =
+                internalStorage.getTokenKeys().accessToken;
+            expect(resourceAAccessTokenKeys).toHaveLength(1);
+            expect(
+                internalStorage.getAccessTokenCredential(
+                    resourceAAccessTokenKeys[0],
+                    RANDOM_TEST_GUID
+                )?.resource
+            ).toEqual(resourceA);
+
             const resourceBResult =
                 await platformAuthInteractionClient.acquireToken({
                     scopes: ["User.Read"],
@@ -1637,10 +1647,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(sendMessageSpy).toHaveBeenCalledTimes(2);
             expect(resourceBResult.accessToken).toEqual(resourceBAccessToken);
 
-            const accessTokenKeys = internalStorage.getTokenKeys().accessToken;
-            expect(accessTokenKeys).toHaveLength(1);
+            const resourceBAccessTokenKeys =
+                internalStorage.getTokenKeys().accessToken;
+            expect(resourceBAccessTokenKeys).toHaveLength(1);
             const cachedAccessToken = internalStorage.getAccessTokenCredential(
-                accessTokenKeys[0],
+                resourceBAccessTokenKeys[0],
                 RANDOM_TEST_GUID
             );
             expect(cachedAccessToken?.resource).toEqual(resourceB);
