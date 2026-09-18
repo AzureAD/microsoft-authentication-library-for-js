@@ -25,13 +25,13 @@ jobs:
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
 
       - name: Install
-        run: npm i --workspace=lib/** --workspace=@azure/msal-node-extensions --include-workspace-root
+        run: npm i --workspace=lib/msal-common --workspace=lib/msal-node --workspace=extensions/msal-node-extensions --include-workspace-root
 
       - name: Build
-        run: npm run build --workspace=lib/**
+        run: npm run build --workspace=lib/msal-common --workspace=lib/msal-node
 
       - name: Build extensions
-        run: npm run build:js --workspace=@azure/msal-node-extensions
+        run: npm run build:js --workspace=extensions/msal-node-extensions
 
       - name: Generate
         run: npm run doc:generate

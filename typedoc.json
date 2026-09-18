@@ -1,6 +1,7 @@
 {
     "entryPoints": [
-        "lib/*",
+        "lib/msal-common",
+        "lib/msal-node",
         "extensions/msal-node-extensions"
     ],
     "entryPointStrategy": "packages",

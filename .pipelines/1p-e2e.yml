@@ -1,29 +1,7 @@
-parameters:
-    - name: "debug"
-      displayName: "Debug Variables"
-      type: boolean
-      default: false
-    - name: "poolType"
-      displayName: "Pool Type"
-      type: string
-      default: "windows"
-      values:
-        - "windows"
-        - "linux"
-    - name: "npmInstallTimeout"
-      displayName: "NPM Install Timeout (Tests)"
-      type: number
-      default: 15
-    - name: "enableScreenshots"
-      displayName: "Enable E2E Screenshots"
-      type: boolean
-      default: false
 variables:
     CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
-    LinuxContainerImage: "mcr.microsoft.com/onebranch/cbl-mariner/build:2.0" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
+    WindowsContainerImage: "onebranch.azurecr.io/windows/ltsc2022/vse2022:latest" # Docker image which is used to build the project https://aka.ms/obpipelines/containers
     DEBIAN_FRONTEND: noninteractive
-    sourceBranch: $[coalesce(replace(variables['System.PullRequest.SourceBranch'], 'refs/heads/', ''), replace(variables['Build.SourceBranch'], 'refs/heads/', ''))]
-    sourceRepo: "microsoft-authentication-library-for-js"
 
 resources:
     repositories:
@@ -31,10 +9,6 @@ resources:
           type: git
           name: OneBranch.Pipelines/GovernedTemplates
           ref: refs/heads/main
-        - repository: 1P
-          type: git
-          name: IDDP/msal-javascript-1p
-          ref: dev
 
 extends:
     template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
@@ -42,27 +16,19 @@ extends:
         globalSdl:
             policheck:
                 break: true
+        featureFlags:
+            WindowsHostVersion:
+                Version: 2022
         stages:
             - stage: e2e_test
               displayName: "E2E Tests"
-              variables:
-                  Codeql.Enabled: true
               jobs:
-                  - template: .pipelines/templates/e2e-tests.yml@1P
-                    parameters:
-                        jobName: "msal_browser_1p_3p_e2e_tests"
-                        targetLib: "msal-browser-1p"
-                        poolType: ${{ parameters.poolType }}
-                        stage: "CI"
-                        sourceRepo: ${{ variables.sourceRepo }}
-                        sourceBranch: ${{ variables.sourceBranch }}
-                        workspace: "samples/"
-                        samples:
-                            - name: "Broker_WAMTestApp"
-                            - name: "PerformanceTelemetrySample"
-                            - name: "BrokerTestApp-React"
-                            - name: "BrokerSingleFrameTestApp"
-                            - name: "LegacyPollingSample"
-                        debug: ${{ parameters.debug }}
-                        npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
-                        enableScreenshots: ${{ parameters.enableScreenshots }}
+                  - job: browser_e2e_not_applicable
+                    displayName: "Browser E2E not applicable"
+                    pool:
+                        type: windows
+                    variables:
+                        ob_outputDirectory: "./out"
+                    steps:
+                        - script: echo "Browser E2E validation is not applicable to the Node-only standalone-repository prototype; this job preserves the current monorepo required status context."
+                          displayName: "Report browser E2E not applicable"

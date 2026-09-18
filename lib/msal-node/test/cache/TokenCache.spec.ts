@@ -65,7 +65,7 @@ describe("TokenCache tests", () => {
         expect(await tokenCache.getAllAccounts()).toEqual([]);
     });
 
-    it("TokenCache serialize/deserialize", () => {
+    it("round-trips a pre-v7 persisted cache without schema changes", () => {
         const cache = require("./cache-test-files/default-cache.json");
         const tokenCache = new TokenCache(storage, logger);
 
