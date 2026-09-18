@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import { AccessTokenCache } from '@azure/msal-common/node';
 import { AccessTokenEntity } from '@azure/msal-common/node';
 import { AccountCache } from '@azure/msal-common/node';
@@ -41,14 +39,12 @@ import { CommonAuthorizationUrlRequest } from '@azure/msal-common/node';
 import { CommonRefreshTokenRequest } from '@azure/msal-common/node';
 import { CommonSilentFlowRequest } from '@azure/msal-common/node';
 import { CredentialEntity } from '@azure/msal-common/node';
-import { DeviceCodeResponse } from '@azure/msal-common/node';
 import { IAppTokenProvider } from '@azure/msal-common/node';
 import { ICachePlugin } from '@azure/msal-common/node';
 import { ICrypto } from '@azure/msal-common/node';
 import { IdTokenCache } from '@azure/msal-common/node';
 import { IdTokenClaims } from '@azure/msal-common/node';
 import { IdTokenEntity } from '@azure/msal-common/node';
-import { INativeBrokerPlugin } from '@azure/msal-common/node';
 import { INetworkModule } from '@azure/msal-common/node';
 import { InteractionRequiredAuthError } from '@azure/msal-common/node';
 import { InteractionRequiredAuthErrorCodes } from '@azure/msal-common/node';
@@ -66,7 +62,6 @@ import { ServerError } from '@azure/msal-common/node';
 import { ServerTelemetryEntity } from '@azure/msal-common/node';
 import { ServerTelemetryManager } from '@azure/msal-common/node';
 import { StaticAuthorityOptions } from '@azure/msal-common/node';
-import { StringDict } from '@azure/msal-common/node';
 import { ThrottlingEntity } from '@azure/msal-common/node';
 import { TokenCacheContext } from '@azure/msal-common/node';
 import { TokenKeys } from '@azure/msal-common/node';
@@ -107,11 +102,6 @@ export { AuthorizeResponse }
 export { AzureCloudInstance }
 
 export { AzureCloudOptions }
-
-// @public
-export type BrokerOptions = {
-    nativeBrokerPlugin?: INativeBrokerPlugin;
-};
 
 // @public
 export type CacheKVStore = Record<string, ValidCacheType>;
@@ -158,7 +148,6 @@ export class ConfidentialClientApplication extends ClientApplication implements 
 // @public
 export type Configuration = {
     auth: NodeAuthOptions;
-    broker?: BrokerOptions;
     cache?: CacheOptions;
     system?: NodeSystemOptions;
     telemetry?: NodeTelemetryOptions;
@@ -189,12 +178,6 @@ class Deserializer {
     static deserializeJSONBlob(jsonFile: string): JsonCache;
     static deserializeRefreshTokens(refreshTokens: Record<string, SerializedRefreshTokenEntity>): RefreshTokenCache;
 }
-
-// @public
-export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes" | "deviceCodeCallback" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
-    scopes: Array<string>;
-    deviceCodeCallback: (response: DeviceCodeResponse) => void;
-};
 
 // @public
 export class DistributedCachePlugin implements ICachePlugin {
@@ -232,8 +215,6 @@ export interface IConfidentialClientApplication {
 
 export { IdTokenClaims }
 
-export { INativeBrokerPlugin }
-
 export { INetworkModule }
 
 // @public
@@ -249,16 +230,6 @@ export { InteractionRequiredAuthError }
 
 export { InteractionRequiredAuthErrorCodes }
 
-// @public
-export type InteractiveRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "storeInCache">> & {
-    openBrowser: (url: string) => Promise<void>;
-    scopes?: Array<string>;
-    successTemplate?: string;
-    errorTemplate?: string;
-    windowHandle?: Buffer;
-    preferredPort?: number;
-};
-
 declare namespace internals {
     export {
         Serializer,
@@ -271,24 +242,6 @@ export { internals }
 export interface IPartitionManager {
     extractKey(accountEntity: AccountEntity): Promise<string>;
     getKey(): Promise<string>;
-}
-
-// @public
-export interface IPublicClientApplication {
-    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
-    acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
-    acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
-    // @deprecated
-    acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
-    acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult>;
-    acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
-    clearCache(): void;
-    getAllAccounts(): Promise<AccountInfo[]>;
-    getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
-    getLogger(): Logger;
-    getTokenCache(): TokenCache;
-    setLogger(logger: Logger): void;
-    signOut(request: SignOutRequest): Promise<void>;
 }
 
 export { ISerializableTokenCache }
@@ -377,7 +330,6 @@ export type NodeAuthOptions = {
     authorityMetadata?: string;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
-    isMcp?: boolean;
 };
 
 // @public
@@ -410,18 +362,6 @@ export const PromptValue: {
 };
 
 export { ProtocolMode }
-
-// @public
-export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
-    constructor(configuration: Configuration);
-    acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult>;
-    acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
-    acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
-    acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult>;
-    acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
-    getAllAccounts(): Promise<AccountInfo[]>;
-    signOut(request: SignOutRequest): Promise<void>;
-}
 
 // @public
 export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri" | "storeInCache">> & {
@@ -513,12 +453,6 @@ class Serializer {
 }
 
 export { ServerError }
-
-// @public (undocumented)
-export type SignOutRequest = {
-    account: AccountInfo;
-    correlationId?: string;
-};
 
 // @public
 export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "storeInCache">> & {
