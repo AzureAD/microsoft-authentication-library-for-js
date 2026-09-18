@@ -1612,6 +1612,40 @@ describe("PlatformAuthInteractionClient Tests", () => {
     });
 
     describe("handleRedirectPromise tests", () => {
+        it("does not return a cached native access token for a different resource", async () => {
+            const resourceA = "https://resource-a.example";
+            const resourceB = "https://resource-b.example";
+            const resourceBAccessToken = "resource-b-access-token";
+            const sendMessageSpy = jest
+                .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
+                .mockResolvedValueOnce(MOCK_WAM_RESPONSE)
+                .mockResolvedValueOnce({
+                    ...MOCK_WAM_RESPONSE,
+                    access_token: resourceBAccessToken,
+                });
+
+            await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                resource: resourceA,
+            });
+            const resourceBResult =
+                await platformAuthInteractionClient.acquireToken({
+                    scopes: ["User.Read"],
+                    resource: resourceB,
+                });
+
+            expect(sendMessageSpy).toHaveBeenCalledTimes(2);
+            expect(resourceBResult.accessToken).toEqual(resourceBAccessToken);
+
+            const accessTokenKeys = internalStorage.getTokenKeys().accessToken;
+            expect(accessTokenKeys).toHaveLength(1);
+            const cachedAccessToken = internalStorage.getAccessTokenCredential(
+                accessTokenKeys[0],
+                RANDOM_TEST_GUID
+            );
+            expect(cachedAccessToken?.resource).toEqual(resourceB);
+        });
+
         it("successfully returns response from native broker", async () => {
             jest.spyOn(
                 NavigationClient.prototype,
