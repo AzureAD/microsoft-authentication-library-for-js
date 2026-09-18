@@ -3,15 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AccessTokenEntity,
-    IdTokenEntity,
-    RefreshTokenEntity,
-    AccountEntity,
-    AppMetadataEntity,
-    CacheHelpers,
-    AccountEntityUtils,
-} from "@azure/msal-common";
+import { AccessTokenEntity } from "../../src/common/cache/entities/AccessTokenEntity.js";
+import { IdTokenEntity } from "../../src/common/cache/entities/IdTokenEntity.js";
+import { RefreshTokenEntity } from "../../src/common/cache/entities/RefreshTokenEntity.js";
+import { AccountEntity } from "../../src/common/cache/entities/AccountEntity.js";
+import { AppMetadataEntity } from "../../src/common/cache/entities/AppMetadataEntity.js";
+import * as CacheHelpers from "../../src/common/cache/utils/CacheHelpers.js";
+import * as AccountEntityUtils from "../../src/common/cache/utils/AccountEntityUtils.js";
 import {
     generateAccountKey,
     generateCredentialKey,

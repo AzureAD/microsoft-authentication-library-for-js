@@ -3,11 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AuthenticationResult,
-    IAppTokenProvider,
-    Logger,
-} from "@azure/msal-common/node";
+import { AuthenticationResult } from "../common/response/AuthenticationResult.js";
+import { IAppTokenProvider } from "../common/config/AppTokenProvider.js";
+import { Logger } from "../common/logger/Logger.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest.js";

@@ -3,12 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import {
-    Authority,
-    INetworkModule,
-    Logger,
-    AuthenticationResult,
-} from "@azure/msal-common/node";
+import { Authority } from "../common/authority/Authority.js";
+import { INetworkModule } from "../common/network/INetworkModule.js";
+import { Logger } from "../common/logger/Logger.js";
+import { AuthenticationResult } from "../common/response/AuthenticationResult.js";
 import { AppService } from "./ManagedIdentitySources/AppService.js";
 import { AzureArc } from "./ManagedIdentitySources/AzureArc.js";
 import { CloudShell } from "./ManagedIdentitySources/CloudShell.js";

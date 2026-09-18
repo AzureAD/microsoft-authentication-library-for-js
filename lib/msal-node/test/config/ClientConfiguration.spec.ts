@@ -13,11 +13,9 @@ import {
     AUTHENTICATION_RESULT,
     DEFAULT_OPENID_CONFIG_RESPONSE,
 } from "../utils/TestConstants.js";
-import {
-    LogLevel,
-    NetworkRequestOptions,
-    AzureCloudInstance,
-} from "@azure/msal-common";
+import { LogLevel } from "../../src/common/logger/Logger.js";
+import { NetworkRequestOptions } from "../../src/common/network/INetworkModule.js";
+import { AzureCloudInstance } from "../../src/common/authority/AuthorityOptions.js";
 import {
     ClientCredentialRequest,
     ConfidentialClientApplication,

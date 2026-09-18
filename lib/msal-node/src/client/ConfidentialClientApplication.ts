@@ -14,18 +14,16 @@ import {
     REGION_ENVIRONMENT_VARIABLE,
     MSAL_FORCE_REGION,
 } from "../utils/Constants.js";
-import {
-    AuthenticationResult,
-    AzureRegionConfiguration,
-    AuthError,
-    IAppTokenProvider,
-    Constants,
-    UrlString,
-    createClientAuthError,
-    ClientAssertion as ClientAssertionType,
-    getClientAssertion,
-    AzureRegion,
-} from "@azure/msal-common/node";
+import { AuthenticationResult } from "../common/response/AuthenticationResult.js";
+import { AzureRegionConfiguration } from "../common/authority/AzureRegionConfiguration.js";
+import { AuthError } from "../common/error/AuthError.js";
+import { IAppTokenProvider } from "../common/config/AppTokenProvider.js";
+import * as Constants from "../common/utils/Constants.js";
+import { UrlString } from "../common/url/UrlString.js";
+import { createClientAuthError } from "../common/error/ClientAuthError.js";
+import { ClientAssertion as ClientAssertionType } from "../common/account/ClientCredentials.js";
+import { getClientAssertion } from "../common/utils/ClientAssertionUtils.js";
+import { AzureRegion } from "../common/authority/AzureRegion.js";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication.js";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest.js";

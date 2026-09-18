@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError } from "@azure/msal-common/node";
+import { AuthError } from "../common/error/AuthError.js";
 
 /**
  * NodeAuthErrorMessage class containing string constants used by error codes and messages.

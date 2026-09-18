@@ -3,19 +3,17 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AccessTokenEntity,
-    AccountEntity,
-    Constants,
-    AuthToken,
-    CacheManager,
-    ClientConfiguration,
-    AccountEntityUtils,
-    IdTokenEntity,
-    ScopeSet,
-    TimeUtils,
-    AuthenticationResult,
-} from "@azure/msal-common";
+import { AccessTokenEntity } from "../../src/common/cache/entities/AccessTokenEntity.js";
+import { AccountEntity } from "../../src/common/cache/entities/AccountEntity.js";
+import * as Constants from "../../src/common/utils/Constants.js";
+import * as AuthToken from "../../src/common/account/AuthToken.js";
+import { CacheManager } from "../../src/common/cache/CacheManager.js";
+import { ClientConfiguration } from "../../src/common/config/ClientConfiguration.js";
+import * as AccountEntityUtils from "../../src/common/cache/utils/AccountEntityUtils.js";
+import { IdTokenEntity } from "../../src/common/cache/entities/IdTokenEntity.js";
+import { ScopeSet } from "../../src/common/request/ScopeSet.js";
+import * as TimeUtils from "../../src/common/utils/TimeUtils.js";
+import { AuthenticationResult } from "../../src/common/response/AuthenticationResult.js";
 import {
     AUTHENTICATION_RESULT,
     CAE_CONSTANTS,
