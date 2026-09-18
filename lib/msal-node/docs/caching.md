@@ -54,7 +54,7 @@ MSAL maintains an in-memory cache. The in-memory cache is representative of the 
 
 ### Bounded credential cache
 
-MSAL Node bounds in-memory access token, refresh token, and ID token credentials by both entry count and logical weight. The default limits are 10,000 credentials and 20 MiB of logical weight. Both limits apply simultaneously and are provisional pending benchmark calibration. Configure them with `cache.maxTokenCacheEntries` and `cache.maxTokenCacheSizeInBytes`; both must use the finite positive ranges described in [configuration](./configuration.md#cache-config-options), and neither limit can be disabled.
+MSAL Node bounds in-memory access token, refresh token, and ID token credentials by both entry count and logical weight. The default limits are 10,000 credentials and 20 MiB of logical weight. Both limits apply simultaneously: the logical-weight limit constrains typical token data and generated indexes, while the entry limit separately guards against many small credential objects. Configure them with `cache.maxTokenCacheEntries` and `cache.maxTokenCacheSizeInBytes`; both must use the finite positive ranges described in [configuration](./configuration.md#cache-config-options), and neither limit can be disabled.
 
 The least recently used credential is evicted when admitting or updating a credential would exceed either limit. A credential returned by a structurally successful cache selection becomes most recently used before later authentication validation, even if that validation rejects it because of expiry, resource, or token-binding-key requirements. Cache misses, filter failures, and ambiguous duplicate selections do not promote a credential. A credential whose individual logical weight exceeds the configured byte limit is not retained. Replacing an existing credential with an oversized value removes the old value without evicting unrelated credentials.
 
@@ -70,7 +70,7 @@ Each `ConfidentialClientApplication` owns its in-memory limits. Managed Identity
 
 When a cache plugin loads more credentials than the configured limits, MSAL deterministically trims the in-memory state and reports `cacheHasChanged` during the corresponding `afterCacheAccess` callback. Plugins that follow the standard `cacheHasChanged` contract persist the trimmed state, preventing evicted credentials from being restored by the next plugin load.
 
-Note that the in-memory cache is not scalable for server-side applications and performance will degrade after holding a few 100 tokens in cache. For web app and web API scenarios, this approximates to serving a few 100 users. For daemon app scenarios using client credentials grant to call other apps, this means a few 100 tenants. See [performance](#performance-and-security) below for more.
+These limits are safeguards, not a scaling target. Server-side applications should still partition and persist cache data as described in [performance and security](#performance-and-security).
 
 > :warning: We recommend **persisting** the cache with **encryption** for all production applications both for security and desired cache longevity. If you choose not to persist the cache, the [TokenCache](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.tokencache.html) interface is still available to access the cached entities.
 
