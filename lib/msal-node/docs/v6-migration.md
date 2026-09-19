@@ -6,7 +6,7 @@ MSAL Node v6 is a breaking release focused on the interactive authentication flo
 
 | Change | Impact |
 | --- | --- |
-| Default `responseMode` for `acquireTokenInteractive` changed from `query` to `form_post` | Applications that relied on the authorization code arriving as a URL query parameter must either handle the `form_post` POST callback (handled automatically by the built-in loopback server) or opt back into `query` |
+| `acquireTokenInteractive` uses only `form_post` | Remove any explicit `responseMode: "query"` setting; the built-in loopback server handles the POST callback |
 | `loopbackClient` request option removed | Custom loopback server implementations are no longer supported; use the built-in loopback server |
 | `ILoopbackClient` interface removed | The exported `ILoopbackClient` type is no longer available |
 
@@ -14,7 +14,7 @@ MSAL Node v6 is a breaking release focused on the interactive authentication flo
 
 In v5, `acquireTokenInteractive` defaulted to `query`, delivering the authorization code as a URL query parameter (`GET /?code=...`). In v6, the default is `form_post`, delivering the code in a URL-encoded POST body (`POST /` with `code=...`).
 
-The built-in loopback server already handles both `query` and `form_post` callbacks, so **applications that use the built-in loopback server require no code changes** to adopt the new default. `form_post` keeps the authorization code out of the URL by returning it in the POST body.
+The built-in loopback server handles the `form_post` callback, so applications that did not explicitly request `query` require no code changes. `form_post` keeps the authorization code out of the URL by returning it in the POST body.
 
 ```ts
 // BEFORE (v5): responseMode defaulted to "query"
@@ -34,11 +34,13 @@ const result = await pca.acquireTokenInteractive({
 });
 ```
 
-### Opting back into `query`
+### Remove explicit `query` configuration
 
-If your application depends on the `query` response mode, set `responseMode` explicitly:
+Later v6 releases enforce the original security decision that interactive authentication must use
+`form_post`. Remove `responseMode: "query"` from interactive requests:
 
 ```ts
+// BEFORE: no longer supported
 const result = await pca.acquireTokenInteractive({
     scopes: ["User.Read"],
     openBrowser: async (url) => {
@@ -46,9 +48,20 @@ const result = await pca.acquireTokenInteractive({
     },
     responseMode: "query",
 });
+
+// AFTER
+const result = await pca.acquireTokenInteractive({
+    scopes: ["User.Read"],
+    openBrowser: async (url) => {
+        /* open url */
+    },
+});
 ```
 
-Only `query` and `form_post` are supported. Any other value (for example `fragment`) throws a `ClientConfigurationError` with the code `invalid_response_mode`.
+Callers may explicitly pass `responseMode: "form_post"` for source compatibility, but it is
+unnecessary. Supplying `query`, `fragment`, or any other runtime value throws a
+`ClientConfigurationError` with the code `invalid_response_mode`. Manual authorization URL APIs,
+including confidential-client flows, are unchanged.
 
 ## `loopbackClient` option and `ILoopbackClient` interface removed
 

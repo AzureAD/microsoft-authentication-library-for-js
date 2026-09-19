@@ -10,8 +10,15 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common/node";
  * @public
  */
 export type InteractiveRequest = Partial<
-    Omit<CommonAuthorizationUrlRequest, "scopes" | "storeInCache">
+    Omit<
+        CommonAuthorizationUrlRequest,
+        "scopes" | "storeInCache" | "responseMode"
+    >
 > & {
+    /**
+     * Interactive authentication uses form_post to keep the authorization code out of the URL.
+     */
+    responseMode?: "form_post";
     /**
      * Function to open a browser instance on user's system.
      */

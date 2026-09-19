@@ -167,6 +167,17 @@ export class PublicClientApplication
             ...remainingProperties
         } = request;
 
+        if (
+            remainingProperties.responseMode !== undefined &&
+            remainingProperties.responseMode !==
+                CommonConstants.ResponseMode.FORM_POST
+        ) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidResponseMode,
+                correlationId
+            );
+        }
+
         if (this.nativeBrokerPlugin) {
             const brokerRequest: NativeRequest = {
                 ...remainingProperties,
@@ -204,21 +215,6 @@ export class PublicClientApplication
 
         const loopbackClient = new LoopbackClient(preferredPort);
 
-        // Validate and resolve responseMode
-        const responseMode =
-            remainingProperties.responseMode ??
-            CommonConstants.ResponseMode.FORM_POST;
-
-        if (
-            responseMode !== CommonConstants.ResponseMode.QUERY &&
-            responseMode !== CommonConstants.ResponseMode.FORM_POST
-        ) {
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidResponseMode,
-                correlationId
-            );
-        }
-
         let authCodeResponse: AuthorizeResponse = {};
         let authCodeListenerError: AuthError | null = null;
         try {
@@ -243,7 +239,7 @@ export class PublicClientApplication
                 correlationId: correlationId,
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
                 redirectUri: redirectUri,
-                responseMode: responseMode,
+                responseMode: CommonConstants.ResponseMode.FORM_POST,
                 codeChallenge: challenge,
                 codeChallengeMethod:
                     CommonConstants.CodeChallengeMethodValues.S256,

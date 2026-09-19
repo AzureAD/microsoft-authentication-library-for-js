@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Require form_post for acquireTokenInteractive and reject query response mode",
+  "packageName": "@azure/msal-node",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
