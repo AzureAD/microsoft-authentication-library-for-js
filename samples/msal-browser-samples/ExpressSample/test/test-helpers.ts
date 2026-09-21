@@ -6,39 +6,6 @@ import {
 } from "e2e-test-utils";
 
 /**
- * Checks that tokens can be retrieved from the cache
- * @param page
- * @param screenshot
- */
-export async function verifyCacheWasUsed(page: puppeteer.Page, screenshot: Screenshot) {
-    // Track network requests to verify cached tokens are used
-    const networkRequests: puppeteer.HTTPRequest[] = [];
-    page.on('request', (request) => {
-        // Track all requests to authentication endpoints
-        if (request.url().includes('login.microsoftonline.com') ||
-            request.url().includes('/token') ||
-            request.url().includes('/authorize')) {
-            networkRequests.push(request);
-        }
-    });
-
-    if (!page.url().endsWith("profile")) {
-        await page.locator("a#viewProfileButton").click();
-        await screenshot.takeScreenshot(page, "Profile button clicked");
-    }
-
-    // Verify the Raw Authentication Data section is populated
-    const authDataText = await page.locator("pre#auth-json").filter((value) => !!value.textContent && value.textContent !== 'Loading...').map(value => value.textContent).wait();
-    await screenshot.takeScreenshot(page, "Authentication data displayed");
-    const authData = JSON.parse(authDataText || "");
-    expect(authData).toHaveProperty('fromCache');
-    expect(authData.fromCache).toBe(true); // Should be from cache after upgrade
-
-    // Verify no authentication network requests were made (indicating cached tokens were used)
-    expect(networkRequests.length).toBe(0);
-}
-
-/**
  * Switches versions and verifies that profile authentication uses cached tokens.
  * @param version
  * @param page
@@ -63,6 +30,11 @@ export async function switchToVersionAndVerifyCacheWasUsed(
 
     try {
         await switchToVersion(version, page, screenshot);
+
+        if (new URL(page.url()).pathname !== "/profile") {
+            await page.locator("a#viewProfileButton").click();
+            await screenshot.takeScreenshot(page, "Profile button clicked");
+        }
 
         const authDataText = await page
             .locator("pre#auth-json")
