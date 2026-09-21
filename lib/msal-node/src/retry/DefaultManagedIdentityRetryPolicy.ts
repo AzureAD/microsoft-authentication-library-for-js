@@ -4,7 +4,8 @@
  */
 
 import { IncomingHttpHeaders } from "http";
-import { Constants, Logger } from "@azure/msal-common/node";
+import * as Constants from "../common/utils/Constants.js";
+import { Logger } from "../common/logger/Logger.js";
 import { IHttpRetryPolicy } from "./IHttpRetryPolicy.js";
 import { LinearRetryStrategy } from "./LinearRetryStrategy.js";
 

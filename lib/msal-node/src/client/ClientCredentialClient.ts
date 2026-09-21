@@ -3,33 +3,33 @@
  * Licensed under the MIT License.
  */
 
+import * as AADServerParamKeys from "../common/constants/AADServerParamKeys.js";
+import { AccessTokenEntity } from "../common/cache/entities/AccessTokenEntity.js";
+import { AuthenticationResult } from "../common/response/AuthenticationResult.js";
+import { Authority } from "../common/authority/Authority.js";
+import { CacheManager } from "../common/cache/CacheManager.js";
 import {
-    AADServerParamKeys,
-    AccessTokenEntity,
-    AuthenticationResult,
-    Authority,
-    CacheManager,
     ClientAuthErrorCodes,
-    ClientConfiguration,
-    Constants,
-    CredentialFilter,
-    IAppTokenProvider,
-    ICrypto,
-    RequestParameterBuilder,
-    RequestThumbprint,
-    ResponseHandler,
-    ScopeSet,
-    ServerAuthorizationTokenResponse,
-    ServerTelemetryManager,
-    StringUtils,
-    TimeUtils,
-    TokenCacheContext,
-    UrlString,
     createClientAuthError,
-    ClientAssertion,
-    getClientAssertion,
-    UrlUtils,
-} from "@azure/msal-common/node";
+} from "../common/error/ClientAuthError.js";
+import { ClientConfiguration } from "../common/config/ClientConfiguration.js";
+import * as Constants from "../common/utils/Constants.js";
+import { CredentialFilter } from "../common/cache/utils/CacheTypes.js";
+import { IAppTokenProvider } from "../common/config/AppTokenProvider.js";
+import { ICrypto } from "../common/crypto/ICrypto.js";
+import * as RequestParameterBuilder from "../common/request/RequestParameterBuilder.js";
+import { RequestThumbprint } from "../common/network/RequestThumbprint.js";
+import { ResponseHandler } from "../common/response/ResponseHandler.js";
+import { ScopeSet } from "../common/request/ScopeSet.js";
+import { ServerAuthorizationTokenResponse } from "../common/response/ServerAuthorizationTokenResponse.js";
+import { ServerTelemetryManager } from "../common/telemetry/server/ServerTelemetryManager.js";
+import { StringUtils } from "../common/utils/StringUtils.js";
+import * as TimeUtils from "../common/utils/TimeUtils.js";
+import { TokenCacheContext } from "../common/cache/persistence/TokenCacheContext.js";
+import { UrlString } from "../common/url/UrlString.js";
+import { ClientAssertion } from "../common/account/ClientCredentials.js";
+import { getClientAssertion } from "../common/utils/ClientAssertionUtils.js";
+import * as UrlUtils from "../common/utils/UrlUtils.js";
 import { ApiId } from "../utils/Constants.js";
 import {
     ManagedIdentityConfiguration,

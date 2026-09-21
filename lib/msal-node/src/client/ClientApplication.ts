@@ -3,37 +3,43 @@
  * Licensed under the MIT License.
  */
 
+import { AuthorizationCodeClient } from "../common/client/AuthorizationCodeClient.js";
 import {
-    AuthorizationCodeClient,
     ClientConfiguration,
-    RefreshTokenClient,
-    AuthenticationResult,
-    Authority,
-    AuthorityFactory,
-    BaseAuthRequest,
-    SilentFlowClient,
-    Logger,
-    ServerTelemetryManager,
-    ServerTelemetryRequest,
-    CommonSilentFlowRequest,
-    CommonRefreshTokenRequest,
-    CommonAuthorizationCodeRequest,
-    CommonAuthorizationUrlRequest,
-    AuthorityOptions,
-    AzureRegionConfiguration,
-    AuthError,
     AzureCloudOptions,
-    AuthorizationCodePayload,
+} from "../common/config/ClientConfiguration.js";
+import { RefreshTokenClient } from "../common/client/RefreshTokenClient.js";
+import { AuthenticationResult } from "../common/response/AuthenticationResult.js";
+import {
+    Authority,
+    buildStaticAuthorityOptions,
+} from "../common/authority/Authority.js";
+import * as AuthorityFactory from "../common/authority/AuthorityFactory.js";
+import { BaseAuthRequest } from "../common/request/BaseAuthRequest.js";
+import { SilentFlowClient } from "../common/client/SilentFlowClient.js";
+import { Logger } from "../common/logger/Logger.js";
+import { ServerTelemetryManager } from "../common/telemetry/server/ServerTelemetryManager.js";
+import { ServerTelemetryRequest } from "../common/telemetry/server/ServerTelemetryRequest.js";
+import { CommonSilentFlowRequest } from "../common/request/CommonSilentFlowRequest.js";
+import { CommonRefreshTokenRequest } from "../common/request/CommonRefreshTokenRequest.js";
+import { CommonAuthorizationCodeRequest } from "../common/request/CommonAuthorizationCodeRequest.js";
+import { CommonAuthorizationUrlRequest } from "../common/request/CommonAuthorizationUrlRequest.js";
+import { AuthorityOptions } from "../common/authority/AuthorityOptions.js";
+import { AzureRegionConfiguration } from "../common/authority/AzureRegionConfiguration.js";
+import { AuthError } from "../common/error/AuthError.js";
+import { AuthorizationCodePayload } from "../common/response/AuthorizationCodePayload.js";
+import {
     createClientAuthError,
     ClientAuthErrorCodes,
-    buildStaticAuthorityOptions,
-    ClientAssertion as ClientAssertionType,
-    getClientAssertion,
-    ClientAssertionCallback,
-    Constants,
     ClientAuthError,
-    StubPerformanceClient,
-} from "@azure/msal-common/node";
+} from "../common/error/ClientAuthError.js";
+import {
+    ClientAssertion as ClientAssertionType,
+    ClientAssertionCallback,
+} from "../common/account/ClientCredentials.js";
+import { getClientAssertion } from "../common/utils/ClientAssertionUtils.js";
+import * as Constants from "../common/utils/Constants.js";
+import { StubPerformanceClient } from "../common/telemetry/performance/StubPerformanceClient.js";
 import {
     Configuration,
     buildAppConfiguration,
