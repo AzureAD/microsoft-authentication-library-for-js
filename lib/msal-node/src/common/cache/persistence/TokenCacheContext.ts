@@ -13,6 +13,29 @@ const persistenceChangeVersions = new WeakMap<
     ISerializableTokenCache,
     number
 >();
+const cacheAccessTails = new WeakMap<ISerializableTokenCache, Promise<void>>();
+
+/** @internal */
+export async function acquireTokenCacheAccessLock(
+    tokenCache: ISerializableTokenCache
+): Promise<() => void> {
+    const previousTail = cacheAccessTails.get(tokenCache) || Promise.resolve();
+    let releaseCurrent!: () => void;
+    const currentAccess = new Promise<void>((resolve) => {
+        releaseCurrent = resolve;
+    });
+    const currentTail = previousTail.then(() => currentAccess);
+    cacheAccessTails.set(tokenCache, currentTail);
+
+    await previousTail;
+
+    return () => {
+        releaseCurrent();
+        if (cacheAccessTails.get(tokenCache) === currentTail) {
+            cacheAccessTails.delete(tokenCache);
+        }
+    };
+}
 
 /** @internal */
 export function notifyTokenCacheContextPersistenceChanged(

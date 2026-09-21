@@ -2,6 +2,8 @@
 
 MSAL Node v7 removes public client support from `@azure/msal-node`. The package now contains confidential client and Managed Identity functionality only.
 
+Package metadata supports Node.js 20 and Node.js 22 or later. Node.js 21 is not accepted; use a supported LTS release.
+
 ## Removed APIs
 
 The following public-client-only APIs are no longer available:
@@ -28,7 +30,15 @@ Applications importing these APIs must remove those imports and configuration be
 -   the deprecated username/password flow
 -   token cache and distributed cache APIs
 
-`ManagedIdentityApplication` and all supported Managed Identity sources remain available. This release does not change cache keys, serialized cache values, or persistence behavior.
+`ManagedIdentityApplication` and all supported Managed Identity sources remain available. This release does not change cache keys or serialized cache value shapes.
+
+## Bounded in-memory token credentials
+
+MSAL Node now retains at most 10,000 access token, refresh token, and ID token credentials with a combined logical-weight limit of 20 MiB by default. The least recently used credentials are evicted when either limit is reached. Accounts, metadata, telemetry, and unrecognized records are not subject to these limits.
+
+Applications can set lower or higher finite limits with `cache.maxTokenCacheEntries` and `cache.maxTokenCacheSizeInBytes`. See [token caching](./caching.md#bounded-credential-cache) for logical-weight and eviction details. Persistent cache plugins may receive `cacheHasChanged` after loading a cache that exceeds the limits and should save the trimmed state during `afterCacheAccess`.
+
+Managed Identity continues to share its cache across application instances in a process. The first `ManagedIdentityApplication` instance owns the immutable process-wide limits. Later instances must omit these options or use matching values; conflicting explicit values throw `managed_identity_cache_configuration_mismatch`.
 
 ### Token cache key-value snapshots
 
