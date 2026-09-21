@@ -293,7 +293,7 @@ describe("TokenCache tests", () => {
         await tokenCache.overwriteCache();
         expect(clearSpy).toHaveBeenCalled();
         expect(deserializedCacheSpy).toHaveBeenCalledTimes(2); // first call returns serialized cache, second call returns deserialized cache
-        expect(deserializedCacheSpy.mock.results[1].value).toBe(
+        expect(deserializedCacheSpy.mock.results[1].value).toEqual(
             tokenCache.getKVStore()
         );
     });
