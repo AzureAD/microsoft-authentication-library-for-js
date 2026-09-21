@@ -47,7 +47,9 @@ const msalConfig = {
         }
     },
     cache: {
-        cachePlugin // your implementation of cache plugin
+        cachePlugin, // your implementation of cache plugin
+        maxTokenCacheEntries: 10_000,
+        maxTokenCacheSizeInBytes: 20 * 1024 * 1024
     },
     system: {
         loggerOptions: {
@@ -79,9 +81,15 @@ const msalInstance = new ConfidentialClientApplication(msalConfig);
 
 ### Cache Config Options
 
-| Option        | Description                                                                                                      | Format                                                                                                                           | Default Value |
-| ------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| `cachePlugin` | Cache plugin with call backs to reading and writing into the cache persistence (see also: [caching](caching.md)) | [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#icacheplugin) | null          |
+| Option                     | Description                                                                                                                                                                                       | Format                                                                                                                           | Default Value               |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| `cachePlugin`              | Cache plugin with call backs to reading and writing into the cache persistence (see also: [caching](caching.md))                                                                                  | [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#icacheplugin) | null                        |
+| `maxTokenCacheEntries`     | Maximum combined number of access token, refresh token, and ID token credentials retained in memory. Must be a positive integer no greater than `1_000_000`.                                      | number                                                                                                                           | `10_000`                    |
+| `maxTokenCacheSizeInBytes` | Maximum combined logical weight of access token, refresh token, and ID token credentials retained in memory. Must be a positive safe integer. See [caching](caching.md#bounded-credential-cache). | number                                                                                                                           | `20 * 1024 * 1024` (20 MiB) |
+
+Both limits apply simultaneously, and neither can be disabled. These defaults are provisional and may be calibrated using benchmark evidence.
+
+`ManagedIdentityApplication` accepts the same two properties in its `cache` configuration. Managed Identity applications share a process-wide cache. The first instance owns the process-wide limits; later instances may omit them or specify matching values. A later instance that explicitly specifies a different value throws `managed_identity_cache_configuration_mismatch` without changing the existing cache.
 
 ### System Config Options
 

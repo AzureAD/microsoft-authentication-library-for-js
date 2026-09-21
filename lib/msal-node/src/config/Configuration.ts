@@ -18,6 +18,29 @@ import * as Constants from "../common/utils/Constants.js";
 import { HttpClient } from "../network/HttpClient.js";
 import { ManagedIdentityId } from "./ManagedIdentityId.js";
 import { NodeAuthError } from "../error/NodeAuthError.js";
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../common/error/ClientConfigurationError.js";
+
+export const DEFAULT_MAX_TOKEN_CACHE_ENTRIES = 10_000;
+export const DEFAULT_MAX_TOKEN_CACHE_SIZE_IN_BYTES = 20 * 1024 * 1024;
+const MAX_LRU_CACHE_ENTRIES = 1_000_000;
+
+/** @public */
+export type InMemoryCacheOptions = {
+    /**
+     * Maximum number of access token, refresh token, and ID token credentials retained in memory. Must not exceed 1,000,000.
+     */
+    maxTokenCacheEntries?: number;
+    /**
+     * Maximum logical weight of access token, refresh token, and ID token credentials retained in memory.
+     */
+    maxTokenCacheSizeInBytes?: number;
+};
+
+/** @internal */
+export type ResolvedInMemoryCacheOptions = Required<InMemoryCacheOptions>;
 
 /**
  * - clientId               - Client id of the application.
@@ -56,7 +79,7 @@ export type NodeAuthOptions = {
  * - cachePlugin   - Plugin for reading and writing token cache to disk.
  * @public
  */
-export type CacheOptions = {
+export type CacheOptions = InMemoryCacheOptions & {
     cachePlugin?: ICachePlugin;
 };
 
@@ -107,6 +130,7 @@ export type ManagedIdentityIdParams = {
 export type ManagedIdentityConfiguration = {
     clientCapabilities?: Array<string>;
     managedIdentityIdParams?: ManagedIdentityIdParams;
+    cache?: InMemoryCacheOptions;
     system?: NodeSystemOptions;
 };
 
@@ -156,7 +180,7 @@ const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
 /** @internal */
 export type NodeConfiguration = {
     auth: Required<NodeAuthOptions>;
-    cache: CacheOptions;
+    cache: CacheOptions & ResolvedInMemoryCacheOptions;
     system: Required<NodeSystemOptions>;
     telemetry: Required<NodeTelemetryOptions>;
 };
@@ -196,7 +220,10 @@ export function buildAppConfiguration({
 
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
-        cache: { ...cache },
+        cache: {
+            ...cache,
+            ...resolveInMemoryCacheOptions(cache),
+        },
         system: { ...systemOptions, ...system },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
     };
@@ -204,6 +231,7 @@ export function buildAppConfiguration({
 
 /** @internal */
 export type ManagedIdentityNodeConfiguration = {
+    cache: ResolvedInMemoryCacheOptions;
     clientCapabilities?: Array<string>;
     disableInternalRetries: boolean;
     managedIdentityId: ManagedIdentityId;
@@ -213,6 +241,7 @@ export type ManagedIdentityNodeConfiguration = {
 };
 
 export function buildManagedIdentityConfiguration({
+    cache,
     clientCapabilities,
     managedIdentityIdParams,
     system,
@@ -234,6 +263,7 @@ export function buildManagedIdentityConfiguration({
     }
 
     return {
+        cache: resolveInMemoryCacheOptions(cache),
         clientCapabilities: clientCapabilities || [],
         managedIdentityId: managedIdentityId,
         system: {
@@ -241,5 +271,43 @@ export function buildManagedIdentityConfiguration({
             networkClient,
         },
         disableInternalRetries: system?.disableInternalRetries || false,
+    };
+}
+
+function validateCacheLimit(errorCode: string, value: number): void {
+    if (!Number.isSafeInteger(value) || !Number.isFinite(value) || value <= 0) {
+        throw createClientConfigurationError(errorCode, "");
+    }
+}
+
+/** @internal */
+export function resolveInMemoryCacheOptions(
+    options?: InMemoryCacheOptions
+): ResolvedInMemoryCacheOptions {
+    if (options?.maxTokenCacheEntries !== undefined) {
+        validateCacheLimit(
+            ClientConfigurationErrorCodes.invalidMaxTokenCacheEntries,
+            options.maxTokenCacheEntries
+        );
+        if (options.maxTokenCacheEntries > MAX_LRU_CACHE_ENTRIES) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidMaxTokenCacheEntries,
+                ""
+            );
+        }
+    }
+    if (options?.maxTokenCacheSizeInBytes !== undefined) {
+        validateCacheLimit(
+            ClientConfigurationErrorCodes.invalidMaxTokenCacheSizeInBytes,
+            options.maxTokenCacheSizeInBytes
+        );
+    }
+
+    return {
+        maxTokenCacheEntries:
+            options?.maxTokenCacheEntries ?? DEFAULT_MAX_TOKEN_CACHE_ENTRIES,
+        maxTokenCacheSizeInBytes:
+            options?.maxTokenCacheSizeInBytes ??
+            DEFAULT_MAX_TOKEN_CACHE_SIZE_IN_BYTES,
     };
 }

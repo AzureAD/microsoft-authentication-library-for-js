@@ -171,7 +171,7 @@ const bindingKeyNotRemoved = "binding_key_not_removed";
 export type CacheKVStore = Record<string, ValidCacheType>;
 
 // @public
-export type CacheOptions = {
+export type CacheOptions = InMemoryCacheOptions & {
     cachePlugin?: ICachePlugin;
 };
 
@@ -288,7 +288,10 @@ declare namespace ClientConfigurationErrorCodes {
         invalidDpopHtm,
         invalidDpopHtu,
         invalidDpopNonce,
-        dpopMissingResourceContext
+        dpopMissingResourceContext,
+        invalidMaxTokenCacheEntries,
+        invalidMaxTokenCacheSizeInBytes,
+        managedIdentityCacheConfigurationMismatch
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -470,6 +473,12 @@ export type InMemoryCache = {
     appMetadata: AppMetadataCache;
 };
 
+// @public (undocumented)
+export type InMemoryCacheOptions = {
+    maxTokenCacheEntries?: number;
+    maxTokenCacheSizeInBytes?: number;
+};
+
 // @public
 const interactionRequired = "interaction_required";
 
@@ -537,6 +546,12 @@ const invalidDpopHtu = "invalid_dpop_htu";
 
 // @public (undocumented)
 const invalidDpopNonce = "invalid_dpop_nonce";
+
+// @public (undocumented)
+const invalidMaxTokenCacheEntries = "invalid_max_token_cache_entries";
+
+// @public (undocumented)
+const invalidMaxTokenCacheSizeInBytes = "invalid_max_token_cache_size_in_bytes";
 
 // @public (undocumented)
 const invalidPlatformBrokerConfiguration = "invalid_platform_broker_configuration";
@@ -633,9 +648,13 @@ export class ManagedIdentityApplication {
 }
 
 // @public (undocumented)
+const managedIdentityCacheConfigurationMismatch = "managed_identity_cache_configuration_mismatch";
+
+// @public (undocumented)
 export type ManagedIdentityConfiguration = {
     clientCapabilities?: Array<string>;
     managedIdentityIdParams?: ManagedIdentityIdParams;
+    cache?: InMemoryCacheOptions;
     system?: NodeSystemOptions;
 };
 
