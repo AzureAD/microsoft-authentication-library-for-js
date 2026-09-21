@@ -10,8 +10,8 @@ import {
 } from "e2e-test-utils";
 import {
     forceRefreshAndVerifyTokenCountsDoNotChange,
-    verifyCacheWasUsed,
     switchToVersion,
+    switchToVersionAndVerifyCacheWasUsed,
     signIn,
 } from "./test-helpers";
 
@@ -107,9 +107,11 @@ describe("Upgrade/Downgrade Tests", () => {
 
             await switchToVersion("latest", page, screenshot);
             await signIn(page, screenshot, username, accountPwd);
-            await switchToVersion("local", page, screenshot);
-
-            await verifyCacheWasUsed(page, screenshot);
+            await switchToVersionAndVerifyCacheWasUsed(
+                "local",
+                page,
+                screenshot
+            );
             await forceRefreshAndVerifyTokenCountsDoNotChange(
                 page,
                 screenshot,
@@ -126,9 +128,11 @@ describe("Upgrade/Downgrade Tests", () => {
 
             await switchToVersion("latest-v4", page, screenshot);
             await signIn(page, screenshot, username, accountPwd);
-            await switchToVersion("local", page, screenshot);
-
-            await verifyCacheWasUsed(page, screenshot);
+            await switchToVersionAndVerifyCacheWasUsed(
+                "local",
+                page,
+                screenshot
+            );
             await forceRefreshAndVerifyTokenCountsDoNotChange(
                 page,
                 screenshot,
@@ -145,9 +149,11 @@ describe("Upgrade/Downgrade Tests", () => {
 
             await switchToVersion("5.7.0", page, screenshot);
             await signIn(page, screenshot, username, accountPwd);
-            await switchToVersion("local", page, screenshot);
-
-            await verifyCacheWasUsed(page, screenshot);
+            await switchToVersionAndVerifyCacheWasUsed(
+                "local",
+                page,
+                screenshot
+            );
             await forceRefreshAndVerifyTokenCountsDoNotChange(
                 page,
                 screenshot,
@@ -164,9 +170,11 @@ describe("Upgrade/Downgrade Tests", () => {
 
             await switchToVersion("4.25.0", page, screenshot);
             await signIn(page, screenshot, username, accountPwd);
-            await switchToVersion("local", page, screenshot);
-
-            await verifyCacheWasUsed(page, screenshot);
+            await switchToVersionAndVerifyCacheWasUsed(
+                "local",
+                page,
+                screenshot
+            );
             await forceRefreshAndVerifyTokenCountsDoNotChange(
                 page,
                 screenshot,
@@ -183,9 +191,11 @@ describe("Upgrade/Downgrade Tests", () => {
 
             await switchToVersion("4.18.0", page, screenshot);
             await signIn(page, screenshot, username, accountPwd);
-            await switchToVersion("local", page, screenshot);
-
-            await verifyCacheWasUsed(page, screenshot);
+            await switchToVersionAndVerifyCacheWasUsed(
+                "local",
+                page,
+                screenshot
+            );
             await forceRefreshAndVerifyTokenCountsDoNotChange(
                 page,
                 screenshot,
@@ -203,18 +213,19 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("local", page, screenshot);
             await signIn(page, screenshot, username, accountPwd);
 
-            await switchToVersion("latest-v3", page, screenshot);
-            // v3 cannot read the local build's schema-versioned cache directly.
-            // However, switching versions reloads the /profile page, which
-            // triggers a silent token request (ssoSilent/acquireTokenSilent).
-            // That silent request rides the existing Entra session cookie and
-            // hydrates the cache with v3-format tokens without any interactive
-            // sign-in, so the user is already signed in and the cache is used.
-            await verifyCacheWasUsed(page, screenshot);
+            // v3 and the local build share the schema-versioned token cache.
+            await switchToVersionAndVerifyCacheWasUsed(
+                "latest-v3",
+                page,
+                screenshot
+            );
 
-            await switchToVersion("local", page, screenshot);
+            await switchToVersionAndVerifyCacheWasUsed(
+                "local",
+                page,
+                screenshot
+            );
 
-            await verifyCacheWasUsed(page, screenshot);
             await forceRefreshAndVerifyTokenCountsDoNotChange(
                 page,
                 screenshot,
@@ -222,7 +233,7 @@ describe("Upgrade/Downgrade Tests", () => {
             );
         });
     });
-    
+
     /**
      * Since older versions can't read new cache these tests should verify that the old cache is still there when downgrading back to an older version
      * The general flow should be: 
@@ -242,11 +253,16 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("latest", page, screenshot);
             await signIn(page, screenshot, username, accountPwd);
 
-            await switchToVersion("local", page, screenshot);
-            await verifyCacheWasUsed(page, screenshot);
-
-            await switchToVersion("latest", page, screenshot);
-            await verifyCacheWasUsed(page, screenshot);
+            await switchToVersionAndVerifyCacheWasUsed(
+                "local",
+                page,
+                screenshot
+            );
+            await switchToVersionAndVerifyCacheWasUsed(
+                "latest",
+                page,
+                screenshot
+            );
         });
 
         test("acquireTokenSilent can return tokens from the cache after downgrading back to v4", async () => {
@@ -259,11 +275,16 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("latest-v4", page, screenshot);
             await signIn(page, screenshot, username, accountPwd);
 
-            await switchToVersion("local", page, screenshot);
-            await verifyCacheWasUsed(page, screenshot);
-
-            await switchToVersion("latest-v4", page, screenshot);
-            await verifyCacheWasUsed(page, screenshot);
+            await switchToVersionAndVerifyCacheWasUsed(
+                "local",
+                page,
+                screenshot
+            );
+            await switchToVersionAndVerifyCacheWasUsed(
+                "latest-v4",
+                page,
+                screenshot
+            );
         });
 
         test("acquireTokenSilent can return tokens from the cache after downgrading back to 5.7.0 (cache schema v2)", async () => {
@@ -276,11 +297,16 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("5.7.0", page, screenshot);
             await signIn(page, screenshot, username, accountPwd);
 
-            await switchToVersion("local", page, screenshot);
-            await verifyCacheWasUsed(page, screenshot);
-
-            await switchToVersion("5.7.0", page, screenshot);
-            await verifyCacheWasUsed(page, screenshot);
+            await switchToVersionAndVerifyCacheWasUsed(
+                "local",
+                page,
+                screenshot
+            );
+            await switchToVersionAndVerifyCacheWasUsed(
+                "5.7.0",
+                page,
+                screenshot
+            );
         });
 
         test("acquireTokenSilent can return tokens from the cache after downgrading back to 4.25.0 (cache schema v1)", async () => {
@@ -293,11 +319,16 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("4.25.0", page, screenshot);
             await signIn(page, screenshot, username, accountPwd);
 
-            await switchToVersion("local", page, screenshot);
-            await verifyCacheWasUsed(page, screenshot);
-
-            await switchToVersion("4.25.0", page, screenshot);
-            await verifyCacheWasUsed(page, screenshot);
+            await switchToVersionAndVerifyCacheWasUsed(
+                "local",
+                page,
+                screenshot
+            );
+            await switchToVersionAndVerifyCacheWasUsed(
+                "4.25.0",
+                page,
+                screenshot
+            );
         });
 
         test("acquireTokenSilent can return tokens from the cache after downgrading back to 4.18.0 (cache schema v0)", async () => {
@@ -310,11 +341,16 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("4.18.0", page, screenshot);
             await signIn(page, screenshot, username, accountPwd);
 
-            await switchToVersion("local", page, screenshot);
-            await verifyCacheWasUsed(page, screenshot);
-
-            await switchToVersion("4.18.0", page, screenshot);
-            await verifyCacheWasUsed(page, screenshot);
+            await switchToVersionAndVerifyCacheWasUsed(
+                "local",
+                page,
+                screenshot
+            );
+            await switchToVersionAndVerifyCacheWasUsed(
+                "4.18.0",
+                page,
+                screenshot
+            );
         });
 
         test("acquireTokenSilent can return tokens from the cache after downgrading back to v3", async () => {
@@ -327,11 +363,16 @@ describe("Upgrade/Downgrade Tests", () => {
             await switchToVersion("latest-v3", page, screenshot);
             await signIn(page, screenshot, username, accountPwd);
 
-            await switchToVersion("local", page, screenshot);
-            await verifyCacheWasUsed(page, screenshot);
-
-            await switchToVersion("latest-v3", page, screenshot);
-            await verifyCacheWasUsed(page, screenshot);
+            await switchToVersionAndVerifyCacheWasUsed(
+                "local",
+                page,
+                screenshot
+            );
+            await switchToVersionAndVerifyCacheWasUsed(
+                "latest-v3",
+                page,
+                screenshot
+            );
         });
     });
 });
