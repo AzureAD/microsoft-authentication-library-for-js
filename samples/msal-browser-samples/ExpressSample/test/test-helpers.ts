@@ -6,36 +6,51 @@ import {
 } from "e2e-test-utils";
 
 /**
- * Checks that tokens can be retrieved from the cache
+ * Switches versions and verifies that profile authentication uses cached tokens.
+ * @param version
  * @param page
  * @param screenshot
  */
-export async function verifyCacheWasUsed(page: puppeteer.Page, screenshot: Screenshot) {
-    // Track network requests to verify cached tokens are used
+export async function switchToVersionAndVerifyCacheWasUsed(
+    version: string,
+    page: puppeteer.Page,
+    screenshot: Screenshot
+) {
     const networkRequests: puppeteer.HTTPRequest[] = [];
-    page.on('request', (request) => {
-        // Track all requests to authentication endpoints
-        if (request.url().includes('login.microsoftonline.com') ||
-            request.url().includes('/token') ||
-            request.url().includes('/authorize')) {
+    const requestListener = (request: puppeteer.HTTPRequest) => {
+        if (
+            request.url().includes("login.microsoftonline.com") ||
+            request.url().includes("/token") ||
+            request.url().includes("/authorize")
+        ) {
             networkRequests.push(request);
         }
-    });
+    };
+    page.on("request", requestListener);
 
-    if (!page.url().endsWith("profile")) {
-        await page.locator("a#viewProfileButton").click();
-        await screenshot.takeScreenshot(page, "Profile button clicked");
+    try {
+        await switchToVersion(version, page, screenshot);
+
+        if (new URL(page.url()).pathname !== "/profile") {
+            await page.locator("a#viewProfileButton").click();
+            await screenshot.takeScreenshot(page, "Profile button clicked");
+        }
+
+        const authDataText = await page
+            .locator("pre#auth-json")
+            .filter(
+                (value) =>
+                    !!value.textContent && value.textContent !== "Loading..."
+            )
+            .map((value) => value.textContent)
+            .wait();
+        const authData = JSON.parse(authDataText || "");
+
+        expect(authData.fromCache).toBe(true);
+        expect(networkRequests.map((request) => request.url())).toEqual([]);
+    } finally {
+        page.off("request", requestListener);
     }
-
-    // Verify the Raw Authentication Data section is populated
-    const authDataText = await page.locator("pre#auth-json").filter((value) => !!value.textContent && value.textContent !== 'Loading...').map(value => value.textContent).wait();
-    await screenshot.takeScreenshot(page, "Authentication data displayed");
-    const authData = JSON.parse(authDataText || "");
-    expect(authData).toHaveProperty('fromCache');
-    expect(authData.fromCache).toBe(true); // Should be from cache after upgrade
-
-    // Verify no authentication network requests were made (indicating cached tokens were used)
-    expect(networkRequests.length).toBe(0);
 }
 
 /**
@@ -147,6 +162,7 @@ export async function switchToVersion(version: string, page: puppeteer.Page, scr
         await screenshot.takeScreenshot(page, "Custom version entered");
         await page.locator("button#customVersionSubmit").click();
     }
+
 
 
     const selectedVersion = await page.locator(`span#currentVersionText`)
