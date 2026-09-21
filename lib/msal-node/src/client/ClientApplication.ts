@@ -54,6 +54,10 @@ import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePassword
 import { NodeAuthError } from "../error/NodeAuthError.js";
 import { UsernamePasswordClient } from "./UsernamePasswordClient.js";
 import { getAuthCodeRequestUrl } from "../protocol/Authorize.js";
+import {
+    acquireTokenSilentDeduped,
+    getSilentRequestKey,
+} from "./SilentRequestCoalescer.js";
 
 /**
  * Base abstract class for all ClientApplications - public and confidential
@@ -295,6 +299,7 @@ export abstract class ClientApplication {
      *
      * This API expects the user to provide an account object and looks into the cache to retrieve the token if present.
      * There is also an optional "forceRefresh" boolean the user can send to bypass the cache for access_token and id_token.
+     * Concurrent requests with the same request thumbprint return the same in-progress result.
      * In case the refresh_token is expired or not found, an error is thrown
      * and the guidance is for the user to call any interactive token acquisition API (eg: `acquireTokenByCode()`).
      */
@@ -307,6 +312,40 @@ export abstract class ClientApplication {
             forceRefresh: request.forceRefresh || false,
         };
 
+        if (!validRequest.account) {
+            return this.acquireTokenSilentAsync(
+                validRequest,
+                request.azureCloudOptions
+            );
+        }
+
+        const authorityForThumbprint = Authority.generateAuthority(
+            validRequest.authority,
+            request.azureCloudOptions || this.config.auth.azureCloudOptions
+        );
+        const silentRequestKey = getSilentRequestKey({
+            requestType: "non-native",
+            request: validRequest,
+            authority: authorityForThumbprint,
+            clientId: this.config.auth.clientId,
+        });
+        return acquireTokenSilentDeduped(
+            this,
+            this.logger,
+            silentRequestKey,
+            validRequest.correlationId,
+            () =>
+                this.acquireTokenSilentAsync(
+                    validRequest,
+                    request.azureCloudOptions
+                )
+        );
+    }
+
+    private async acquireTokenSilentAsync(
+        validRequest: CommonSilentFlowRequest,
+        azureCloudOptions?: AzureCloudOptions
+    ): Promise<AuthenticationResult> {
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenSilent,
             validRequest.correlationId,
@@ -318,7 +357,7 @@ export abstract class ClientApplication {
                 validRequest.authority,
                 validRequest.correlationId,
                 undefined,
-                request.azureCloudOptions
+                azureCloudOptions
             );
             const clientConfiguration =
                 await this.buildOauthClientConfiguration(
