@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1789675501083,
+  "lastUpdate": 1790026104818,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23543,6 +23543,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.16%",
             "unit": "ops/sec",
             "extra": "216 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8228a8ba0396be29296c3391facb2b2b26ae3708",
+          "message": "Fix cache-only upgrade and downgrade transitions (#8853)\n\n## Summary\n\nFixes the ExpressSample upgrade/downgrade test failure by restoring the\nsole cached account as active after MSAL initialization. This allows the\nv3-to-local transition to use the preserved account and access token\ndirectly instead of unnecessarily invoking `ssoSilent`, `/authorize`,\nand `/token`.\n\nEvery version transition that is expected to reuse cached tokens now\nbegins observing authentication traffic before the switch and verifies\nthat the transition result comes from cache with no authentication\nnetwork requests. Initial version-selection steps that occur before\nsign-in remain unchanged.\n\n## Root cause\n\nAfter switching versions, MSAL successfully found the persisted account\nand token entries, but the sample had no active account selected. The\nprotected `/profile` route interpreted this as an unauthenticated state\nand called `ssoSilent`.\n\nInstrumentation showed:\n\n- one cached account;\n- no active account;\n- a hidden-iframe `prompt=none` `/authorize` request;\n- a subsequent `/token` code exchange.\n\n## How to validate\n\n```powershell\ncd samples\\msal-browser-samples\\ExpressSample\nnpm run test:e2e -- upgrade-downgrade --runInBand\n```\n\nExpected result: all 13 upgrade/downgrade tests pass, and all\ncache-dependent version transitions make no `/authorize` or `/token`\nrequests.\n\n## Validation performed\n\n- Targeted v3-to-local transition test: passed.\n- Expanded suite run: all 18 cache-dependent transition assertions\npassed. One unrelated initial 4.18 sign-in timed out before its\ntransition; that exact test passed on immediate rerun.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: bug\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\n---------\n\nCopilot-Session: 80a81e22-5306-426c-b5e7-4ae919f1838d",
+          "timestamp": "2026-09-21T21:20:38Z",
+          "tree_id": "fdd3d167f63b431c87a4dae4654f848d5c9e3cd1",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8228a8ba0396be29296c3391facb2b2b26ae3708"
+        },
+        "date": 1790026101367,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 390562,
+            "range": "±0.78%",
+            "unit": "ops/sec",
+            "extra": "238 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 383707,
+            "range": "±0.54%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
           }
         ]
       }
