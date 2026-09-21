@@ -167,13 +167,6 @@ export class PublicClientApplication
             ...remainingProperties
         } = request;
 
-        if (remainingProperties.responseMode !== undefined) {
-            this.logger.warning(
-                "The responseMode option for acquireTokenInteractive is deprecated and will be removed in MSAL Node v7. Omit responseMode to use the default form_post response mode.",
-                correlationId
-            );
-        }
-
         if (this.nativeBrokerPlugin) {
             const brokerRequest: NativeRequest = {
                 ...remainingProperties,
@@ -211,13 +204,14 @@ export class PublicClientApplication
 
         const loopbackClient = new LoopbackClient(preferredPort);
 
-        // Validate and resolve responseMode
-        const responseMode =
-            remainingProperties.responseMode ??
-            CommonConstants.ResponseMode.FORM_POST;
+        const responseMode = (
+            remainingProperties as typeof remainingProperties & {
+                responseMode?: unknown;
+            }
+        ).responseMode;
 
         if (
-            responseMode !== CommonConstants.ResponseMode.QUERY &&
+            responseMode !== undefined &&
             responseMode !== CommonConstants.ResponseMode.FORM_POST
         ) {
             throw createClientConfigurationError(
@@ -250,7 +244,7 @@ export class PublicClientApplication
                 correlationId: correlationId,
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
                 redirectUri: redirectUri,
-                responseMode: responseMode,
+                responseMode: CommonConstants.ResponseMode.FORM_POST,
                 codeChallenge: challenge,
                 codeChallengeMethod:
                     CommonConstants.CodeChallengeMethodValues.S256,
