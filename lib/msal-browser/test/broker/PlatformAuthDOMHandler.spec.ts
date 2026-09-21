@@ -90,12 +90,8 @@ describe("PlatformAuthDOMHandler tests", () => {
             ).toMatchObject({
                 correlationId: "test-correlation-id",
                 success: true,
-                platformAuthDomApiAvailable: true,
-                platformAuthDomContractSupported: true,
-                platformAuthProviderAvailable: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
-                platformAuthOutcome: "contract_supported",
             });
         });
 
@@ -254,7 +250,6 @@ describe("PlatformAuthDOMHandler tests", () => {
                 success: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
-                platformAuthResponseCategory: "success",
             });
             expect(
                 endMeasurementSpy.mock.calls
@@ -269,7 +264,6 @@ describe("PlatformAuthDOMHandler tests", () => {
                 success: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
-                platformAuthResponseCategory: "success",
             });
         });
 
@@ -343,7 +337,8 @@ describe("PlatformAuthDOMHandler tests", () => {
                 ).toMatchObject({
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     success: false,
-                    platformAuthResponseCategory: "invalid_response",
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
                 });
                 expect(
                     endMeasurementSpy.mock.calls
@@ -356,7 +351,8 @@ describe("PlatformAuthDOMHandler tests", () => {
                 ).toMatchObject({
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     success: false,
-                    platformAuthResponseCategory: "invalid_response",
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
                 });
             }
         });

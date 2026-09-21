@@ -171,12 +171,8 @@ describe("PlatformAuthProvider tests", () => {
             ).toMatchObject({
                 correlationId: "test-correlation-id",
                 success: true,
-                platformAuthDomAttempted: true,
-                platformAuthExtensionAttempted: false,
-                platformAuthProviderAvailable: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
-                platformAuthOutcome: "dom_selected",
             });
         });
 
@@ -204,12 +200,8 @@ describe("PlatformAuthProvider tests", () => {
             ).toMatchObject({
                 correlationId: "test-correlation-id",
                 success: true,
-                platformAuthDomAttempted: false,
-                platformAuthExtensionAttempted: true,
-                platformAuthProviderAvailable: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
-                platformAuthOutcome: "extension_selected",
             });
         });
 
@@ -243,12 +235,8 @@ describe("PlatformAuthProvider tests", () => {
             ).toMatchObject({
                 correlationId: "test-correlation-id",
                 success: true,
-                platformAuthDomAttempted: true,
-                platformAuthExtensionAttempted: true,
-                platformAuthProviderAvailable: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
-                platformAuthOutcome: "extension_selected_after_dom_error",
             });
         });
     });
@@ -344,12 +332,8 @@ describe("PlatformAuthProvider tests", () => {
             expect(result).toBe(true);
             expect(addFieldsSpy).toHaveBeenCalledWith(
                 {
-                    allowPlatformBroker: true,
-                    platformAuthDomEnabled: false,
-                    platformAuthProviderAvailable: true,
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
-                    platformAuthSchemeSupported: true,
                 },
                 TEST_CONFIG.CORRELATION_ID
             );

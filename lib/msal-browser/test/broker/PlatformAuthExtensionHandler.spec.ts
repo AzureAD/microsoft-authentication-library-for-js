@@ -112,12 +112,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             ).toMatchObject({
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 success: true,
-                platformAuthPreferredExtensionAttempted: true,
-                platformAuthExtensionFallbackAttempted: false,
-                platformAuthProviderAvailable: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
-                platformAuthOutcome: "preferred_extension_selected",
             });
 
             window.removeEventListener("message", eventHandler, true);
@@ -420,7 +416,6 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 success: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
-                platformAuthResponseCategory: "success",
             });
             expect(
                 endMeasurementSpy.mock.calls
@@ -435,7 +430,6 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 success: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
-                platformAuthResponseCategory: "success",
             });
 
             window.removeEventListener("message", eventHandler, true);
@@ -641,7 +635,6 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                             success: false,
                             platformAuthProviderType:
                                 PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
-                            platformAuthResponseCategory: "invalid_response",
                         });
                         done();
                     });
@@ -707,7 +700,6 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 success: false,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
-                platformAuthResponseCategory: "parse_error",
             });
 
             window.removeEventListener("message", eventHandler, true);

@@ -1882,58 +1882,42 @@ export class StandardController implements IController {
             request.authenticationScheme,
             this.performanceClient
         );
-        const nativeAccountAvailable = !!(
-            accountId || this.getNativeAccountId(request)
-        );
-        const promptCategory = this.getPlatformAuthPromptCategory(
-            request.prompt
-        );
-        const promptSupported = promptCategory !== "unsupported";
-
-        let eligibilityReason = "eligible";
         if (!platformAuthAllowed) {
-            eligibilityReason = "platform_auth_not_allowed";
-        } else if (!promptSupported) {
-            eligibilityReason = "prompt_not_supported";
-        } else if (!nativeAccountAvailable) {
-            eligibilityReason = "native_account_unavailable";
-        }
-
-        const canUsePlatformBroker =
-            platformAuthAllowed && promptSupported && nativeAccountAvailable;
-        this.performanceClient.addFields(
-            {
-                platformAuthNativeAccountAvailable: nativeAccountAvailable,
-                platformAuthPromptSupported: promptSupported,
-                platformAuthAllowed: canUsePlatformBroker,
-                platformAuthEligibilityReason: eligibilityReason,
-                platformAuthPromptCategory: promptCategory,
-            },
-            correlationId
-        );
-
-        if (!canUsePlatformBroker) {
             this.logger.trace(
-                `canUsePlatformBroker: returning false ('${eligibilityReason}')`,
+                "canUsePlatformBroker: isPlatformAuthAllowed returned false, returning false",
                 correlationId
             );
+            return false;
         }
 
-        return canUsePlatformBroker;
-    }
-
-    private getPlatformAuthPromptCategory(prompt?: string): string {
-        switch (prompt) {
-            case undefined:
-                return "not_provided";
-            case Constants.PromptValue.NONE:
-                return "none";
-            case Constants.PromptValue.CONSENT:
-            case Constants.PromptValue.LOGIN:
-                return "interactive";
-            default:
-                return "unsupported";
+        if (request.prompt) {
+            switch (request.prompt) {
+                case Constants.PromptValue.NONE:
+                case Constants.PromptValue.CONSENT:
+                case Constants.PromptValue.LOGIN:
+                    this.logger.trace(
+                        "canUsePlatformBroker: prompt is compatible with platform broker flow",
+                        correlationId
+                    );
+                    break;
+                default:
+                    this.logger.trace(
+                        `canUsePlatformBroker: prompt = '${request.prompt}' is not compatible with platform broker flow, returning false`,
+                        correlationId
+                    );
+                    return false;
+            }
         }
+
+        if (!accountId && !this.getNativeAccountId(request)) {
+            this.logger.trace(
+                "canUsePlatformBroker: nativeAccountId is not available, returning false",
+                correlationId
+            );
+            return false;
+        }
+
+        return true;
     }
 
     /**

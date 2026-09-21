@@ -138,7 +138,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             sendMessageMeasurement.end({
                 success: true,
                 platformAuthProviderType: this.platformAuthType,
-                platformAuthResponseCategory: "success",
             });
             return validatedResponse;
         } catch (e) {
@@ -146,7 +145,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 {
                     success: false,
                     platformAuthProviderType: this.platformAuthType,
-                    platformAuthResponseCategory: this.getResponseCategory(e),
                 },
                 e
             );
@@ -187,12 +185,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             await preferredProvider.sendHandshakeRequest(correlationId);
             createProviderMeasurement.end({
                 success: true,
-                platformAuthPreferredExtensionAttempted: true,
-                platformAuthExtensionFallbackAttempted: false,
-                platformAuthProviderAvailable: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
-                platformAuthOutcome: "preferred_extension_selected",
             });
             return preferredProvider;
         } catch (e) {
@@ -208,24 +202,16 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 await backupProvider.sendHandshakeRequest(correlationId);
                 createProviderMeasurement.end({
                     success: true,
-                    platformAuthPreferredExtensionAttempted: true,
-                    platformAuthExtensionFallbackAttempted: true,
-                    platformAuthProviderAvailable: true,
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
-                    platformAuthOutcome: "backup_extension_selected",
                 });
                 return backupProvider;
             } catch (backupError) {
                 createProviderMeasurement.end(
                     {
                         success: false,
-                        platformAuthPreferredExtensionAttempted: true,
-                        platformAuthExtensionFallbackAttempted: true,
-                        platformAuthProviderAvailable: false,
                         platformAuthProviderType:
                             PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
-                        platformAuthOutcome: "extension_unavailable",
                     },
                     backupError
                 );
@@ -536,7 +522,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             validationMeasurement.end({
                 success: true,
                 platformAuthProviderType: this.platformAuthType,
-                platformAuthResponseCategory: "success",
             });
             return response as PlatformAuthResponse;
         } else {
@@ -549,33 +534,11 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 {
                     success: false,
                     platformAuthProviderType: this.platformAuthType,
-                    platformAuthResponseCategory: "invalid_response",
                 },
                 error
             );
             throw error;
         }
-    }
-
-    private getResponseCategory(error: unknown): string {
-        if (!(error instanceof Error)) {
-            return "message_port_error";
-        }
-        if (error.message.includes("Unable to parse extension response")) {
-            return "parse_error";
-        }
-        if (error.name === "NativeAuthError") {
-            return "broker_error";
-        }
-        if (error instanceof AuthError) {
-            if (error.errorCode === BrowserAuthErrorCodes.userCancelled) {
-                return "cancelled";
-            }
-            return error.errorCode === AuthErrorCodes.unexpectedError
-                ? "invalid_response"
-                : "broker_error";
-        }
-        return "message_port_error";
     }
 
     /**

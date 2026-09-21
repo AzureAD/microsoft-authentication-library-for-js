@@ -1785,51 +1785,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         it("returns null if native request is not cached", async () => {
-            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
             const response =
                 await platformAuthInteractionClient.handleRedirectPromise();
             expect(response).toBe(null);
-            expect(addFieldsSpy).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    platformAuthCachedRequestAvailable: false,
-                    platformAuthBrokerResendAttempted: false,
-                }),
-                RANDOM_TEST_GUID
-            );
-        });
-
-        it("records that a cached request was resent to the broker", async () => {
-            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
-            jest.spyOn(
-                PlatformAuthExtensionHandler.prototype,
-                "sendMessage"
-            ).mockResolvedValue(MOCK_WAM_RESPONSE);
-            // @ts-ignore
-            pca.browserStorage.setInteractionInProgress(true);
-            // @ts-ignore
-            pca.browserStorage.setTemporaryCache(
-                "request.native",
-                JSON.stringify({
-                    accountId: "nativeAccountId",
-                    authority: TEST_CONFIG.validAuthority,
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    correlationId: RANDOM_TEST_GUID,
-                    scope: "User.Read",
-                }),
-                true
-            );
-
-            await platformAuthInteractionClient.handleRedirectPromise();
-
-            expect(addFieldsSpy).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    platformAuthCachedRequestAvailable: true,
-                    platformAuthBrokerResendAttempted: true,
-                }),
-                RANDOM_TEST_GUID
-            );
         });
     });
 
@@ -2860,16 +2820,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(performanceSpy).toHaveBeenCalledWith(
                 {
                     hasAttributeTokens: true,
-                    platformAuthIsPopRequest: false,
-                    platformAuthPromptCategory: "interactive",
-                },
-                RANDOM_TEST_GUID
-            );
-            expect(performanceSpy).toHaveBeenCalledWith(
-                {
-                    storeInCacheAccessToken: false,
-                    storeInCacheIdToken: true,
-                    storeInCacheRefreshToken: false,
                 },
                 RANDOM_TEST_GUID
             );

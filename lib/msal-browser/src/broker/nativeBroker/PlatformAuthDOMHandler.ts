@@ -9,7 +9,6 @@ import {
     AuthErrorCodes,
     IPerformanceClient,
     StringDict,
-    AuthError,
     invokeAsync,
 } from "@azure/msal-common/browser";
 import {
@@ -22,13 +21,9 @@ import {
     PlatformAuthResponse,
     PlatformDOMTokenResponse,
 } from "./PlatformAuthResponse.js";
-import {
-    createNativeAuthError,
-    NativeAuthError,
-} from "../../error/NativeAuthError.js";
+import { createNativeAuthError } from "../../error/NativeAuthError.js";
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
-import { BrowserAuthErrorCodes } from "../../error/BrowserAuthError.js";
 
 export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     protected logger: Logger;
@@ -74,12 +69,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             if (!platformAuthentication) {
                 createProviderMeasurement.end({
                     success: true,
-                    platformAuthDomApiAvailable: false,
-                    platformAuthDomContractSupported: false,
-                    platformAuthProviderAvailable: false,
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
-                    platformAuthOutcome: "api_unavailable",
                 });
                 return undefined;
             }
@@ -103,12 +94,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 );
                 createProviderMeasurement.end({
                     success: true,
-                    platformAuthDomApiAvailable: true,
-                    platformAuthDomContractSupported: true,
-                    platformAuthProviderAvailable: true,
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
-                    platformAuthOutcome: "contract_supported",
                 });
                 return new PlatformAuthDOMHandler(
                     logger,
@@ -119,23 +106,16 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
 
             createProviderMeasurement.end({
                 success: true,
-                platformAuthDomApiAvailable: true,
-                platformAuthDomContractSupported: false,
-                platformAuthProviderAvailable: false,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
-                platformAuthOutcome: "contract_unsupported",
             });
             return undefined;
         } catch (e) {
             createProviderMeasurement.end(
                 {
                     success: false,
-                    platformAuthDomApiAvailable: true,
-                    platformAuthProviderAvailable: false,
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
-                    platformAuthOutcome: "contract_lookup_error",
                 },
                 e
             );
@@ -192,7 +172,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             sendMessageMeasurement.end({
                 success: true,
                 platformAuthProviderType: this.platformAuthType,
-                platformAuthResponseCategory: "success",
             });
             return validatedResponse;
         } catch (e) {
@@ -204,7 +183,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 {
                     success: false,
                     platformAuthProviderType: this.platformAuthType,
-                    platformAuthResponseCategory: this.getResponseCategory(e),
                 },
                 e
             );
@@ -297,7 +275,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 validationMeasurement.end({
                     success: true,
                     platformAuthProviderType: this.platformAuthType,
-                    platformAuthResponseCategory: "success",
                 });
                 return validatedResponse;
             } else if (
@@ -316,7 +293,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                     validationMeasurement.end({
                         success: true,
                         platformAuthProviderType: this.platformAuthType,
-                        platformAuthResponseCategory: "broker_error",
                     });
                     throw createNativeAuthError(
                         errorResponse.error.code,
@@ -341,32 +317,10 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             {
                 success: false,
                 platformAuthProviderType: this.platformAuthType,
-                platformAuthResponseCategory: "invalid_response",
             },
             error
         );
         throw error;
-    }
-
-    private getResponseCategory(error: unknown): string {
-        if (error instanceof NativeAuthError) {
-            return "broker_error";
-        }
-        if (error instanceof AuthError) {
-            if (error.errorCode === BrowserAuthErrorCodes.userCancelled) {
-                return "cancelled";
-            }
-            return error.errorCode === AuthErrorCodes.unexpectedError
-                ? "invalid_response"
-                : "broker_error";
-        }
-        if (error instanceof Error && error.name === "AbortError") {
-            return "cancelled";
-        }
-        if (error instanceof Error && error.name === "TimeoutError") {
-            return "timeout";
-        }
-        return "api_error";
     }
 
     private convertToPlatformBrokerResponse(
