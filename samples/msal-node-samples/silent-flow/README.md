@@ -36,7 +36,7 @@ For other supported account types, review the other [Authority options](https://
 
 #### **Client Secret**
 
-If your AzureAD app registration is configured as a Confidential Client Application, you'll have to add a `clientSecret` attribute to a `.env` file and change the `PublicClientApplication` object in the sample's `index.js` file into a `ConfidentialClientApplication` object.
+Add a `clientSecret` attribute to a `.env` file for the Confidential Client Application.
 
 This secret helps prevent third parties from using your app registration.
 
@@ -75,17 +75,12 @@ This secret helps prevent third parties from using your app registration.
 
 ```
 CLIENT_SECRET=<your client secret here>
+SESSION_SECRET=<a random secret used to protect the login session>
 ```
 
 **silent-flow/index.js**
 
 ```javascript
-// Change this
-const publicClientApplication = new msal.PublicClientApplication(clientConfig);
-const msalTokenCache = publicClientApplication.getTokenCache();
-return getTokenSilent(config, publicClientApplication, null, msalTokenCache);
-
-// To this
 const confidentialClientApplication = new msal.ConfidentialClientApplication(
     clientConfig
 );

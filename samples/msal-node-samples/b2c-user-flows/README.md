@@ -59,7 +59,7 @@ const confidentialClientConfig = {
     },
 };
 
-// Create an MSAL PublicClientApplication object
+// Create an MSAL ConfidentialClientApplication object
 const confidentialClientApp = new msal.ConfidentialClientApplication(
     confidentialClientConfig
 );

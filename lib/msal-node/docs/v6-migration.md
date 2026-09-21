@@ -4,11 +4,11 @@ MSAL Node v6 is a breaking release focused on the interactive authentication flo
 
 ## Summary of breaking changes
 
-| Change | Impact |
-| --- | --- |
+| Change                                                                                   | Impact                                                                                                                                                                                                                 |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Default `responseMode` for `acquireTokenInteractive` changed from `query` to `form_post` | Applications that relied on the authorization code arriving as a URL query parameter must either handle the `form_post` POST callback (handled automatically by the built-in loopback server) or opt back into `query` |
-| `loopbackClient` request option removed | Custom loopback server implementations are no longer supported; use the built-in loopback server |
-| `ILoopbackClient` interface removed | The exported `ILoopbackClient` type is no longer available |
+| `loopbackClient` request option removed                                                  | Custom loopback server implementations are no longer supported; use the built-in loopback server                                                                                                                       |
+| `ILoopbackClient` interface removed                                                      | The exported `ILoopbackClient` type is no longer available                                                                                                                                                             |
 
 ## `form_post` is now the default response mode
 
@@ -88,6 +88,5 @@ Remove any `import { ILoopbackClient } from "@azure/msal-node";` statements — 
 
 ## Related resources
 
-- [Loopback Server](./loopback-server.md)
-- [Request Configuration](./request.md)
-- [OAuth 2.0 Form Post Response Mode (OpenID Foundation)](https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html)
+-   [Request Configuration](./request.md)
+-   [OAuth 2.0 Form Post Response Mode (OpenID Foundation)](https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html)
