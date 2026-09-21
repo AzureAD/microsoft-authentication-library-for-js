@@ -87,10 +87,8 @@ brk-multihub://localhost:30667
 
 ### Configuring the app registrations
 
-The sample ships with placeholder values only — no app registrations are
-provided. Before running, edit `.env` (used by `npm start` / `npm run
-start:https`) and, if you run the e2e tests, `.env.e2e`, replacing the
-placeholders with your own registrations:
+For manual runs with `npm start` or `npm run start:https`, create a local
+`.env` file with your own linked host and nested app registrations:
 
 | Variable                | Value                                                             |
 | ----------------------- | ----------------------------------------------------------------- |
@@ -98,10 +96,14 @@ placeholders with your own registrations:
 | `VITE_NESTED_CLIENT_ID` | Application (client) id of the **nested** app.                    |
 | `VITE_AUTHORITY`        | Authority URL, e.g. `https://login.microsoftonline.com/<tenant>`. |
 
-The same host and nested app registrations are used for the NAA and NAA + EAR
-flows. The test registrations are allow-listed for EAR in the
-`ESTS-PUB-EUS-FD000-TEST1-100` test slice. The sample adds that slice as the
-`dc` parameter to both authorize and token requests.
+The checked-in `.env.e2e` contains the concrete public test registrations used
+by the automated suites. Those registrations are linked for NAA and allow-listed
+for EAR in the `ESTS-PUB-EUS-FD000-TEST1-100` test slice. The sample adds that
+slice as the `dc` parameter to both authorize and token requests.
+
+Do not replace or commit changes to `.env.e2e` for a manual run. If you need to
+run the e2e suites with different registrations, use registrations that are
+linked for NAA and independently allow-listed for EAR.
 
 ## Running the sample
 

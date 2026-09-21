@@ -15,6 +15,7 @@ import {
 } from "./brokerHarness";
 import {
     TokenStore,
+    accessTokenForScopesExists,
     enterAadCredentials,
     getEarDecryptCount,
     getLabCredentials,
@@ -38,6 +39,7 @@ const NESTED_IFRAME = "iframe[title='nestedApp']";
 const ACTION_TIMEOUT = 60000;
 const SERVER_READY_TIMEOUT_MS = 120000;
 const UNSUPPORTED_METHOD_CODE = "unsupported_method";
+const SCOPES = ["User.Read"];
 const TOKEN_APIS = [
     { name: "acquireTokenSilent", bridge: "GetToken" },
     { name: "ssoSilent", bridge: "GetToken" },
@@ -78,6 +80,7 @@ function assertNestedTokenStore(store: TokenStore): void {
     expect(store.idTokens.length).toBe(1);
     expect(store.accessTokens.length).toBe(1);
     expect(store.refreshTokens.length).toBe(0);
+    expect(accessTokenForScopesExists(store.accessTokens, SCOPES)).toBe(true);
 }
 
 describe("NAA token APIs + EAR brokered through the platform broker", () => {

@@ -73,6 +73,9 @@ async function verifyNestedTokenStore(frame: Frame): Promise<void> {
     expect(tokenStore.accessTokens.length).toBe(1);
     expect(tokenStore.refreshTokens.length).toBe(0);
     expect(await readAccountKeys(frame)).not.toBeNull();
+    expect(accessTokenForScopesExists(tokenStore.accessTokens, SCOPES)).toBe(
+        true
+    );
 }
 
 describe("Nested App Authentication + EAR brokered through the host app", () => {
