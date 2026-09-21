@@ -39,6 +39,49 @@ export async function verifyCacheWasUsed(page: puppeteer.Page, screenshot: Scree
 }
 
 /**
+ * Switches versions and verifies that profile authentication uses cached tokens.
+ * @param version
+ * @param page
+ * @param screenshot
+ */
+export async function switchToVersionAndVerifyCacheWasUsed(
+    version: string,
+    page: puppeteer.Page,
+    screenshot: Screenshot
+) {
+    const networkRequests: puppeteer.HTTPRequest[] = [];
+    const requestListener = (request: puppeteer.HTTPRequest) => {
+        if (
+            request.url().includes("login.microsoftonline.com") ||
+            request.url().includes("/token") ||
+            request.url().includes("/authorize")
+        ) {
+            networkRequests.push(request);
+        }
+    };
+    page.on("request", requestListener);
+
+    try {
+        await switchToVersion(version, page, screenshot);
+
+        const authDataText = await page
+            .locator("pre#auth-json")
+            .filter(
+                (value) =>
+                    !!value.textContent && value.textContent !== "Loading..."
+            )
+            .map((value) => value.textContent)
+            .wait();
+        const authData = JSON.parse(authDataText || "");
+
+        expect(authData.fromCache).toBe(true);
+        expect(networkRequests.map((request) => request.url())).toEqual([]);
+    } finally {
+        page.off("request", requestListener);
+    }
+}
+
+/**
  * Force refresh tokens after an upgrade and verify the cache does not contain more or less token entries than before.
  * @param page
  * @param screenshot
@@ -147,6 +190,7 @@ export async function switchToVersion(version: string, page: puppeteer.Page, scr
         await screenshot.takeScreenshot(page, "Custom version entered");
         await page.locator("button#customVersionSubmit").click();
     }
+
 
 
     const selectedVersion = await page.locator(`span#currentVersionText`)

@@ -12,6 +12,7 @@ import {
     forceRefreshAndVerifyTokenCountsDoNotChange,
     verifyCacheWasUsed,
     switchToVersion,
+    switchToVersionAndVerifyCacheWasUsed,
     signIn,
 } from "./test-helpers";
 
@@ -204,15 +205,14 @@ describe("Upgrade/Downgrade Tests", () => {
             await signIn(page, screenshot, username, accountPwd);
 
             await switchToVersion("latest-v3", page, screenshot);
-            // v3 cannot read the local build's schema-versioned cache directly.
-            // However, switching versions reloads the /profile page, which
-            // triggers a silent token request (ssoSilent/acquireTokenSilent).
-            // That silent request rides the existing Entra session cookie and
-            // hydrates the cache with v3-format tokens without any interactive
-            // sign-in, so the user is already signed in and the cache is used.
+            // v3 and the local build share the schema-versioned token cache.
             await verifyCacheWasUsed(page, screenshot);
 
-            await switchToVersion("local", page, screenshot);
+            await switchToVersionAndVerifyCacheWasUsed(
+                "local",
+                page,
+                screenshot
+            );
 
             await verifyCacheWasUsed(page, screenshot);
             await forceRefreshAndVerifyTokenCountsDoNotChange(
@@ -222,7 +222,7 @@ describe("Upgrade/Downgrade Tests", () => {
             );
         });
     });
-    
+
     /**
      * Since older versions can't read new cache these tests should verify that the old cache is still there when downgrading back to an older version
      * The general flow should be: 
