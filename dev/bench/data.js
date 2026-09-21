@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790026104818,
+  "lastUpdate": 1790029320054,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23581,6 +23581,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.54%",
             "unit": "ops/sec",
             "extra": "237 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "thomas.norling@microsoft.com",
+            "name": "Thomas Norling",
+            "username": "tnorling"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "68759474e5e6dfad644ab5355c26d91008161ca9",
+          "message": "Fix redirect cancellation after bfcache restore (#8839)\n\n## Summary\n\n- Treat restoring the redirect start page from the back-forward cache as\nuser cancellation\n- Reject `acquireTokenRedirect` with the existing `user_cancelled` error\ninstead of a delayed `timed_out` error\n- Preserve redirect request-cache cleanup and the `RESTORE_FROM_BFCACHE`\nevent\n\n## Validation\n\n- `npm run build:all`\n- `npm test` (100 suites, 1895 tests passed)\n- `npm run lint`\n- `npm run format:check`\n- `npm run apiExtractor`\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: bug\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\n---------\n\nCo-authored-by: Copilot App <223556219+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-09-21T22:14:56Z",
+          "tree_id": "03954e7f58caacb020e4c8999ff0483acab4ac36",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/68759474e5e6dfad644ab5355c26d91008161ca9"
+        },
+        "date": 1790029314900,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 360375,
+            "range": "±1.03%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 361085,
+            "range": "±0.79%",
+            "unit": "ops/sec",
+            "extra": "238 samples"
           }
         ]
       }
