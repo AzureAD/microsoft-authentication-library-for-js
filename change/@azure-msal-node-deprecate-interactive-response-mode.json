@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Deprecate responseMode for acquireTokenInteractive ahead of its removal in MSAL Node v7",
+  "packageName": "@azure/msal-node",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}

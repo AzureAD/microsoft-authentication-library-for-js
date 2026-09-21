@@ -167,6 +167,13 @@ export class PublicClientApplication
             ...remainingProperties
         } = request;
 
+        if (remainingProperties.responseMode !== undefined) {
+            this.logger.warning(
+                "The responseMode option for acquireTokenInteractive is deprecated and will be removed in MSAL Node v7. Omit responseMode to use the default form_post response mode.",
+                correlationId
+            );
+        }
+
         if (this.nativeBrokerPlugin) {
             const brokerRequest: NativeRequest = {
                 ...remainingProperties,
