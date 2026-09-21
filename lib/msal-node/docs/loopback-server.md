@@ -39,6 +39,8 @@ const result = await pca.acquireTokenInteractive({
 
 Only `form_post` is supported for `acquireTokenInteractive`. Supplying `query`, `fragment`, or any other value throws a `ClientConfigurationError` with the code `invalid_response_mode`. This restriction does not apply to manual authorization URL APIs such as `getAuthCodeUrl`.
 
+The built-in loopback server rejects OAuth responses containing `code` or `error` in a GET query string. Harmless GET requests, such as loading the root success page or requesting a browser resource, do not complete the authentication flow.
+
 ## Preferred Port
 
 By default, the loopback server binds to a random available port. If your application requires a specific port (e.g., for a fixed redirect URI registered in your app registration), use the `preferredPort` option:
@@ -65,6 +67,7 @@ If the preferred port is unavailable, the server falls back to a random port aut
 - No CORS headers are added — while a cross-origin page may still be able to send a request to the loopback address, it cannot read the response, so it cannot obtain the authorization code
 - The server validates HTTP methods (only GET and POST are accepted)
 - The server validates `Content-Type` on POST requests (only `application/x-www-form-urlencoded` is accepted)
+- The server rejects OAuth responses delivered through GET query parameters
 - The server only resolves the authentication promise when a valid OAuth response (`code` or `error`) is received
 - Interactive authorization codes are delivered with `form_post` and are never placed in the URL
 

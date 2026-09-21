@@ -63,6 +63,10 @@ unnecessary. Supplying `query`, `fragment`, or any other runtime value throws a
 `ClientConfigurationError` with the code `invalid_response_mode`. Manual authorization URL APIs,
 including confidential-client flows, are unchanged.
 
+The built-in interactive loopback server also rejects OAuth responses delivered through GET query
+parameters. Requests to the loopback server that do not contain OAuth response parameters remain
+harmless and do not complete authentication.
+
 ## `loopbackClient` option and `ILoopbackClient` interface removed
 
 The `loopbackClient` request option and the `ILoopbackClient` interface — both deprecated in v5 — have been removed. Applications must use MSAL's built-in loopback server.
