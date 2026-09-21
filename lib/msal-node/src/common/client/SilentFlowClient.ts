@@ -125,11 +125,10 @@ export class SilentFlowClient {
                 request.authority,
                 request.correlationId
             );
-        const tokenKeys = this.cacheManager.getTokenKeys();
         const cachedAccessToken = this.cacheManager.getAccessToken(
             request.account,
             request,
-            tokenKeys,
+            undefined,
             requestTenantId
         );
 
@@ -231,7 +230,7 @@ export class SilentFlowClient {
             idToken: this.cacheManager.getIdToken(
                 request.account,
                 request.correlationId,
-                tokenKeys,
+                undefined,
                 requestTenantId
             ),
             refreshToken: null,

@@ -1391,53 +1391,28 @@ export abstract class CacheManager implements ICacheManager {
                     : undefined,
             additionalCacheKeyComponents: additionalCacheKeyComponents,
         };
-        const accessTokenKeys =
-            (tokenKeys && tokenKeys.accessToken) ||
-            this.getTokenKeys().accessToken;
-        const accessTokens: AccessTokenEntity[] = [];
-        const matchedKeys: string[] = [];
+        const accessTokens = this.getAccessTokenEntriesByFilter(
+            accessTokenFilter,
+            correlationId,
+            tokenKeys
+        );
 
-        accessTokenKeys.forEach((key) => {
-            // Validate key
-            if (
-                this.accessTokenKeyMatchesFilter(key, accessTokenFilter, true)
-            ) {
-                const accessToken = this.getAccessTokenCredential(
-                    key,
-                    correlationId
-                );
-
-                // Validate value
-                if (
-                    accessToken &&
-                    this.credentialMatchesFilter(
-                        accessToken,
-                        accessTokenFilter,
-                        correlationId
-                    )
-                ) {
-                    accessTokens.push(accessToken);
-                    matchedKeys.push(key);
-                }
-            }
-        });
-
-        if (accessTokens.length < 1) {
+        if (accessTokens.size < 1) {
             this.commonLogger.info(
                 "CacheManager:getAccessToken - No token found",
                 correlationId
             );
             return null;
-        } else if (accessTokens.length > 1) {
+        } else if (accessTokens.size > 1) {
             this.commonLogger.info(
                 "CacheManager:getAccessToken - Multiple access tokens found, clearing them",
                 correlationId
             );
-            matchedKeys.forEach((key) => {
+            accessTokens.forEach((_accessToken, key) => {
                 this.removeAccessToken(key, correlationId);
             });
             this.performanceClient.addFields(
-                { multiMatchedAT: accessTokens.length },
+                { multiMatchedAT: accessTokens.size },
                 correlationId
             );
             return null;
@@ -1447,7 +1422,7 @@ export abstract class CacheManager implements ICacheManager {
             "CacheManager:getAccessToken - Returning access token",
             correlationId
         );
-        return accessTokens[0];
+        return accessTokens.values().next().value ?? null;
     }
 
     /**
@@ -1512,10 +1487,20 @@ export abstract class CacheManager implements ICacheManager {
         filter: CredentialFilter,
         correlationId: string
     ): AccessTokenEntity[] {
-        const tokenKeys = this.getTokenKeys();
+        return Array.from(
+            this.getAccessTokenEntriesByFilter(filter, correlationId).values()
+        );
+    }
 
-        const accessTokens: AccessTokenEntity[] = [];
-        tokenKeys.accessToken.forEach((key) => {
+    protected getAccessTokenEntriesByFilter(
+        filter: CredentialFilter,
+        correlationId: string,
+        tokenKeys?: TokenKeys
+    ): Map<string, AccessTokenEntity> {
+        const accessTokenKeys =
+            tokenKeys?.accessToken || this.getTokenKeys().accessToken;
+        const accessTokens = new Map<string, AccessTokenEntity>();
+        accessTokenKeys.forEach((key) => {
             if (!this.accessTokenKeyMatchesFilter(key, filter, true)) {
                 return;
             }
@@ -1528,7 +1513,7 @@ export abstract class CacheManager implements ICacheManager {
                 accessToken &&
                 this.credentialMatchesFilter(accessToken, filter, correlationId)
             ) {
-                accessTokens.push(accessToken);
+                accessTokens.set(key, accessToken);
             }
         });
 
@@ -1562,31 +1547,11 @@ export abstract class CacheManager implements ICacheManager {
             familyId: id,
         };
 
-        const refreshTokenKeys =
-            (tokenKeys && tokenKeys.refreshToken) ||
-            this.getTokenKeys().refreshToken;
-        const refreshTokens: RefreshTokenEntity[] = [];
-
-        refreshTokenKeys.forEach((key) => {
-            // Validate key
-            if (this.refreshTokenKeyMatchesFilter(key, refreshTokenFilter)) {
-                const refreshToken = this.getRefreshTokenCredential(
-                    key,
-                    correlationId
-                );
-                // Validate value
-                if (
-                    refreshToken &&
-                    this.credentialMatchesFilter(
-                        refreshToken,
-                        refreshTokenFilter,
-                        correlationId
-                    )
-                ) {
-                    refreshTokens.push(refreshToken);
-                }
-            }
-        });
+        const refreshTokens = this.getRefreshTokensByFilter(
+            refreshTokenFilter,
+            correlationId,
+            tokenKeys
+        );
 
         const numRefreshTokens = refreshTokens.length;
         if (numRefreshTokens < 1) {
@@ -1610,6 +1575,38 @@ export abstract class CacheManager implements ICacheManager {
             correlationId
         );
         return refreshTokens[0] as RefreshTokenEntity;
+    }
+
+    protected getRefreshTokensByFilter(
+        filter: CredentialFilter,
+        correlationId: string,
+        tokenKeys?: TokenKeys
+    ): RefreshTokenEntity[] {
+        const refreshTokenKeys =
+            tokenKeys?.refreshToken || this.getTokenKeys().refreshToken;
+        const refreshTokens: RefreshTokenEntity[] = [];
+
+        refreshTokenKeys.forEach((key) => {
+            if (!this.refreshTokenKeyMatchesFilter(key, filter)) {
+                return;
+            }
+            const refreshToken = this.getRefreshTokenCredential(
+                key,
+                correlationId
+            );
+            if (
+                refreshToken &&
+                this.credentialMatchesFilter(
+                    refreshToken,
+                    filter,
+                    correlationId
+                )
+            ) {
+                refreshTokens.push(refreshToken);
+            }
+        });
+
+        return refreshTokens;
     }
 
     /**
