@@ -4,6 +4,21 @@
     "license": "MIT",
     "private": true,
     "main": "src/index.ts",
+    "exports": {
+        ".": "./src/index.ts",
+        "./node": "./src/node.ts",
+        "./src/*": "./src/*.ts"
+    },
+    "typesVersions": {
+        "*": {
+            "node": [
+                "src/node.ts"
+            ],
+            "src/*": [
+                "src/*"
+            ]
+        }
+    },
     "dependencies": {
         "@azure/identity": "^4.13.1",
         "@azure/keyvault-certificates": "^4.10.0",

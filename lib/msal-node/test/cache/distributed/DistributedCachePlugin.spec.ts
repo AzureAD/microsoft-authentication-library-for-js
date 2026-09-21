@@ -4,11 +4,9 @@
  */
 
 import { DistributedCachePlugin } from "../../../src/cache/distributed/DistributedCachePlugin.js";
-import {
-    AccountEntity,
-    ICachePlugin,
-    TokenCacheContext,
-} from "@azure/msal-common";
+import { AccountEntity } from "../../../src/common/cache/entities/AccountEntity.js";
+import { ICachePlugin } from "../../../src/common/cache/interface/ICachePlugin.js";
+import { TokenCacheContext } from "../../../src/common/cache/persistence/TokenCacheContext.js";
 import { TokenCache } from "../../../src/cache/TokenCache.js";
 import {
     MockCache,

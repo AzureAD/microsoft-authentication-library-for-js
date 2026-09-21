@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Make msal-node runtime and declarations independent of msal-common [#8837](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8837)",
+  "packageName": "@azure/msal-node",
+  "email": "223556219+Copilot@users.noreply.github.com",
+  "dependentChangeType": "patch"
+}

@@ -17,7 +17,7 @@ import {
     LabApiQueryParams,
     B2cProviders,
     UserTypes,
-} from "e2e-test-utils";
+} from "e2e-test-utils/node";
 import path from "path";
 
 import { ConfidentialClientApplication } from "@azure/msal-node";
@@ -158,4 +158,3 @@ describe("B2C User Flow Tests", () => {
         });
     });
 });
-

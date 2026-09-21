@@ -4,13 +4,11 @@
  */
 
 import { NodeStorage } from "./NodeStorage.js";
-import {
-    AccountInfo,
-    Logger,
-    ISerializableTokenCache,
-    ICachePlugin,
-    TokenCacheContext,
-} from "@azure/msal-common/node";
+import { AccountInfo } from "../common/account/AccountInfo.js";
+import { Logger } from "../common/logger/Logger.js";
+import { ISerializableTokenCache } from "../common/cache/interface/ISerializableTokenCache.js";
+import { ICachePlugin } from "../common/cache/interface/ICachePlugin.js";
+import { TokenCacheContext } from "../common/cache/persistence/TokenCacheContext.js";
 import {
     InMemoryCache,
     JsonCache,

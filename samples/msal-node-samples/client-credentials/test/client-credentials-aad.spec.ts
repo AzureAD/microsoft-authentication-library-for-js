@@ -8,7 +8,7 @@ import {
     getCertificateInfo,
     LAB_KEY_VAULT_URL,
     LAB_CERT_NAME,
-} from "e2e-test-utils";
+} from "e2e-test-utils/node";
 import { DefaultAzureCredential } from "@azure/identity";
 import { ConfidentialClientApplication } from "@azure/msal-node";
 import config from "../config/AAD.json";

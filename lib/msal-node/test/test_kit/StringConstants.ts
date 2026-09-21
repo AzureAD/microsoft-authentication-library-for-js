@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Constants } from "@azure/msal-common";
+import { AuthenticationResult } from "../../src/common/response/AuthenticationResult.js";
+import * as Constants from "../../src/common/utils/Constants.js";
 import {
     DEFAULT_AUTHORITY_FOR_MANAGED_IDENTITY,
     DEFAULT_MANAGED_IDENTITY_ID,

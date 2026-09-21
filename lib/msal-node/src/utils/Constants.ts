@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AADServerParamKeys } from "@azure/msal-common/node";
+import * as AADServerParamKeys from "../common/constants/AADServerParamKeys.js";
 import { DefaultManagedIdentityRetryPolicy } from "../retry/DefaultManagedIdentityRetryPolicy.js";
 import { ImdsRetryPolicy } from "../retry/ImdsRetryPolicy.js";
 

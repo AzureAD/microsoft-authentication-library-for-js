@@ -18,7 +18,7 @@ import {
     UserTypes,
     retrieveAppConfiguration,
     setupCredentials,
-} from "e2e-test-utils";
+} from "e2e-test-utils/node";
 import { ConfidentialClientApplication } from "@azure/msal-node";
 import path from "path";
 

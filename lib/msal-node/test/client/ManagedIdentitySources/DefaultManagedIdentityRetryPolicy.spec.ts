@@ -18,11 +18,9 @@ import {
     ManagedIdentityNetworkErrorClient,
     networkClient,
 } from "../../test_kit/ManagedIdentityTestUtils.js";
-import {
-    AuthenticationResult,
-    Constants,
-    ServerError,
-} from "@azure/msal-common";
+import { AuthenticationResult } from "../../../src/common/response/AuthenticationResult.js";
+import * as Constants from "../../../src/common/utils/Constants.js";
+import { ServerError } from "../../../src/common/error/ServerError.js";
 import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient.js";
 import {
     ManagedIdentityEnvironmentVariableNames,
