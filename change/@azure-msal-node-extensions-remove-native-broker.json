@@ -1,0 +1,7 @@
+{
+    "type": "major",
+    "comment": "Remove native broker support from MSAL Node Extensions [#8836](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8836)",
+    "packageName": "@azure/msal-node-extensions",
+    "email": "nugetaad@microsoft.com",
+    "dependentChangeType": "major"
+}

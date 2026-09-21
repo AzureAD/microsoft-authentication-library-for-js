@@ -3,11 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AuthenticationResult,
-    ClientConfiguration,
-    AADServerParamKeys,
-} from "@azure/msal-common";
+import { AuthenticationResult } from "../../src/common/response/AuthenticationResult.js";
+import { ClientConfiguration } from "../../src/common/config/ClientConfiguration.js";
+import * as AADServerParamKeys from "../../src/common/constants/AADServerParamKeys.js";
 import {
     AUTHENTICATION_RESULT,
     DEFAULT_OPENID_CONFIG_RESPONSE,

@@ -13,18 +13,16 @@
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
 import * as internals from "./internals.js";
-import { Constants as CommonConstants } from "@azure/msal-common/node";
+import * as CommonConstants from "./common/utils/Constants.js";
 export { internals };
 
 // Interfaces
-export { IPublicClientApplication } from "./client/IPublicClientApplication.js";
 export { IConfidentialClientApplication } from "./client/IConfidentialClientApplication.js";
 export { ITokenCache } from "./cache/ITokenCache.js";
 export { ICacheClient } from "./cache/distributed/ICacheClient.js";
 export { IPartitionManager } from "./cache/distributed/IPartitionManager.js";
 
 // Clients and Configuration
-export { PublicClientApplication } from "./client/PublicClientApplication.js";
 export { ConfidentialClientApplication } from "./client/ConfidentialClientApplication.js";
 export { ManagedIdentityApplication } from "./client/ManagedIdentityApplication.js";
 
@@ -34,9 +32,9 @@ export {
     ManagedIdentityIdParams,
     NodeAuthOptions,
     NodeSystemOptions,
-    BrokerOptions,
     NodeTelemetryOptions,
     CacheOptions,
+    InMemoryCacheOptions,
 } from "./config/Configuration.js";
 export { ClientAssertion } from "./client/ClientAssertion.js";
 
@@ -61,14 +59,11 @@ export { ManagedIdentitySourceNames } from "./utils/Constants.js";
 export type { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest.js";
 export type { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest.js";
 export type { ClientCredentialRequest } from "./request/ClientCredentialRequest.js";
-export type { DeviceCodeRequest } from "./request/DeviceCodeRequest.js";
 export type { OnBehalfOfRequest } from "./request/OnBehalfOfRequest.js";
 export type { UserFederatedIdentityCredentialRequest } from "./request/UserFederatedIdentityCredentialRequest.js";
 export type { UsernamePasswordRequest } from "./request/UsernamePasswordRequest.js";
 export type { RefreshTokenRequest } from "./request/RefreshTokenRequest.js";
 export type { SilentFlowRequest } from "./request/SilentFlowRequest.js";
-export type { InteractiveRequest } from "./request/InteractiveRequest.js";
-export type { SignOutRequest } from "./request/SignOutRequest.js";
 export type { ManagedIdentityRequestParams } from "./request/ManagedIdentityRequestParams.js";
 
 const PromptValue = CommonConstants.PromptValue;
@@ -78,46 +73,43 @@ export { PromptValue, ResponseMode };
 export { CryptoProvider } from "./crypto/CryptoProvider.js";
 
 // Common Object Formats
+export { AuthorizationCodePayload } from "./common/response/AuthorizationCodePayload.js";
+export { AuthenticationResult } from "./common/response/AuthenticationResult.js";
+export { AuthorizeResponse } from "./common/response/AuthorizeResponse.js";
+export { TokenClaims as IdTokenClaims } from "./common/account/TokenClaims.js";
+export { AccountInfo } from "./common/account/AccountInfo.js";
+export { ValidCacheType } from "./common/cache/utils/CacheTypes.js";
+export { AuthError, AuthErrorCodes } from "./common/error/AuthError.js";
 export {
-    AuthorizationCodePayload,
-    // Response
-    AuthenticationResult,
-    AuthorizeResponse,
-    IdTokenClaims,
-    // Cache
-    AccountInfo,
-    ValidCacheType,
-    // Error
-    AuthError,
-    AuthErrorCodes,
     ClientAuthError,
     ClientAuthErrorCodes,
+} from "./common/error/ClientAuthError.js";
+export {
     ClientConfigurationError,
     ClientConfigurationErrorCodes,
+} from "./common/error/ClientConfigurationError.js";
+export {
     InteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
-    ServerError,
-    // Network Interface
+} from "./common/error/InteractionRequiredAuthError.js";
+export { ServerError } from "./common/error/ServerError.js";
+export {
     INetworkModule,
     NetworkRequestOptions,
-    NetworkResponse,
-    // Logger
-    Logger,
-    LogLevel,
-    // ProtocolMode enum
-    ProtocolMode,
-    ICachePlugin,
-    TokenCacheContext,
-    ISerializableTokenCache,
-    // AzureCloudInstance enum
-    AzureCloudInstance,
-    AzureCloudOptions,
-    // IAppTokenProvider
+} from "./common/network/INetworkModule.js";
+export { NetworkResponse } from "./common/network/NetworkResponse.js";
+export { Logger, LogLevel } from "./common/logger/Logger.js";
+export { ProtocolMode } from "./common/authority/ProtocolMode.js";
+export { ICachePlugin } from "./common/cache/interface/ICachePlugin.js";
+export { TokenCacheContext } from "./common/cache/persistence/TokenCacheContext.js";
+export { ISerializableTokenCache } from "./common/cache/interface/ISerializableTokenCache.js";
+export { AzureCloudInstance } from "./common/authority/AuthorityOptions.js";
+export { AzureCloudOptions } from "./common/config/ClientConfiguration.js";
+export {
     IAppTokenProvider,
     AppTokenProviderParameters,
     AppTokenProviderResult,
-    INativeBrokerPlugin,
-    ClientAssertionCallback,
-} from "@azure/msal-common/node";
+} from "./common/config/AppTokenProvider.js";
+export { ClientAssertionCallback } from "./common/account/ClientCredentials.js";
 
 export { version } from "./packageMetadata.js";

@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, ClientAssertion } from "@azure/msal-common/node";
+import { BaseAuthRequest } from "../common/request/BaseAuthRequest.js";
+import { ClientAssertion } from "../common/account/ClientCredentials.js";
 
 /**
  * Internal request type for the user_fic grant.

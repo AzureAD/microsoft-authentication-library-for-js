@@ -1,0 +1,58 @@
+# MSAL Node v7 migration
+
+MSAL Node v7 removes public client support from `@azure/msal-node`. The package now contains confidential client and Managed Identity functionality only.
+
+Package metadata supports Node.js 20 and Node.js 22 or later. Node.js 21 is not accepted; use a supported LTS release.
+
+## Removed APIs
+
+The following public-client-only APIs are no longer available:
+
+-   `PublicClientApplication` and `IPublicClientApplication`
+-   device code and interactive token acquisition
+-   public client sign-out
+-   loopback server support
+-   native broker configuration and integration
+
+Applications importing these APIs must remove those imports and configuration before upgrading. This package does not provide a public client replacement.
+
+`@azure/msal-node-extensions` also removes `NativeBrokerPlugin` in its corresponding major release. Its persistent cache, secure storage, and cross-platform locking APIs remain available.
+
+## Retained APIs
+
+`ConfidentialClientApplication` continues to support:
+
+-   authorization code URL generation and code exchange
+-   silent and refresh-token acquisition
+-   client credentials
+-   on-behalf-of acquisition
+-   user federated identity credentials
+-   the deprecated username/password flow
+-   token cache and distributed cache APIs
+
+`ManagedIdentityApplication` and all supported Managed Identity sources remain available. This release does not change cache keys or serialized cache value shapes.
+
+## Bounded in-memory token credentials
+
+MSAL Node now retains at most 10,000 access token, refresh token, and ID token credentials with a combined logical-weight limit of 20 MiB by default. The least recently used credentials are evicted when either limit is reached. Accounts, metadata, telemetry, and unrecognized records are not subject to these limits.
+
+Applications can set lower or higher finite limits with `cache.maxTokenCacheEntries` and `cache.maxTokenCacheSizeInBytes`. See [token caching](./caching.md#bounded-credential-cache) for logical-weight and eviction details. Persistent cache plugins may receive `cacheHasChanged` after loading a cache that exceeds the limits and should save the trimmed state during `afterCacheAccess`.
+
+Managed Identity continues to share its cache across application instances in a process. The first `ManagedIdentityApplication` instance owns the immutable process-wide limits. Later instances must omit these options or use matching values; conflicting explicit values throw `managed_identity_cache_configuration_mismatch`.
+
+### Token cache key-value snapshots
+
+`TokenCache.getKVStore()` now returns a defensive snapshot for inspection.
+Mutating the returned object no longer changes MSAL's in-memory cache. Replace
+code that mutated this object with a cache plugin that uses `serialize()` and
+`deserialize()` in its `beforeCacheAccess` and `afterCacheAccess` callbacks.
+Persisted cache keys, serialized values, and plugin callback behavior are
+unchanged.
+
+## `msal-common` package independence
+
+`@azure/msal-node` no longer depends on or re-exports runtime objects from `@azure/msal-common`. Applications that import `@azure/msal-common` directly must declare it as their own dependency.
+
+Use error classes and `Logger` exported by `@azure/msal-node` with MSAL Node APIs. Runtime constructor identity is package-specific, so an error thrown by MSAL Node is not an `instanceof` an error class imported from `@azure/msal-common`; compare stable error codes when handling errors across package boundaries. Similarly, pass the `Logger` exported by `@azure/msal-node` to `setLogger`.
+
+Cache serialization remains compatible with previous MSAL Node versions and `@azure/msal-node-extensions`.

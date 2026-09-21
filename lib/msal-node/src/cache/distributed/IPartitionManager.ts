@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountEntity } from "@azure/msal-common/node";
+import { AccountEntity } from "../../common/cache/entities/AccountEntity.js";
 
 /**
  * Interface that defines getter methods to get keys used to identity data in the cache

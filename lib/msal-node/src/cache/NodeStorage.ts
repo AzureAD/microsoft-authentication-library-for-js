@@ -3,29 +3,45 @@
  * Licensed under the MIT License.
  */
 
+import { AccessTokenEntity } from "../common/cache/entities/AccessTokenEntity.js";
 import {
+    AppMetadataCache,
+    AppMetadataFilter,
+    CredentialFilter,
     TokenKeys,
-    AccountEntity,
-    IdTokenEntity,
-    AccessTokenEntity,
-    RefreshTokenEntity,
-    AppMetadataEntity,
-    ServerTelemetryEntity,
-    ThrottlingEntity,
-    CacheManager,
-    Logger,
     ValidCacheType,
-    ICrypto,
-    AuthorityMetadataEntity,
     ValidCredentialType,
-    StaticAuthorityOptions,
-    CacheHelpers,
-    AccountEntityUtils,
-    CredentialEntity,
-    AccountInfo,
-    StubPerformanceClient,
+} from "../common/cache/utils/CacheTypes.js";
+import { AccountEntity } from "../common/cache/entities/AccountEntity.js";
+import { IdTokenEntity } from "../common/cache/entities/IdTokenEntity.js";
+import { RefreshTokenEntity } from "../common/cache/entities/RefreshTokenEntity.js";
+import { AppMetadataEntity } from "../common/cache/entities/AppMetadataEntity.js";
+import { ServerTelemetryEntity } from "../common/cache/entities/ServerTelemetryEntity.js";
+import { ThrottlingEntity } from "../common/cache/entities/ThrottlingEntity.js";
+import { CacheManager } from "../common/cache/CacheManager.js";
+import { Logger } from "../common/logger/Logger.js";
+import { ICrypto } from "../common/crypto/ICrypto.js";
+import { AuthorityMetadataEntity } from "../common/cache/entities/AuthorityMetadataEntity.js";
+import { StaticAuthorityOptions } from "../common/authority/AuthorityOptions.js";
+import * as CacheHelpers from "../common/cache/utils/CacheHelpers.js";
+import * as AccountEntityUtils from "../common/cache/utils/AccountEntityUtils.js";
+import { CredentialEntity } from "../common/cache/entities/CredentialEntity.js";
+import { AccountInfo } from "../common/account/AccountInfo.js";
+import { StubPerformanceClient } from "../common/telemetry/performance/StubPerformanceClient.js";
+import {
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
-} from "@azure/msal-common/node";
+    ITokenBindingKeyManager,
+} from "../common/crypto/ITokenBindingKeyManager.js";
+import { getAliasesFromStaticSources } from "../common/authority/AuthorityMetadata.js";
+import * as Constants from "../common/utils/Constants.js";
+import { Buffer } from "node:buffer";
+import { LRUCache } from "lru-cache";
+import { BaseAuthRequest } from "../common/request/BaseAuthRequest.js";
+import {
+    InMemoryCacheOptions,
+    ResolvedInMemoryCacheOptions,
+    resolveInMemoryCacheOptions,
+} from "../config/Configuration.js";
 
 import { Deserializer } from "./serializer/Deserializer.js";
 import { Serializer } from "./serializer/Serializer.js";
@@ -34,7 +50,17 @@ import {
     JsonCache,
     CacheKVStore,
 } from "./serializer/SerializerTypes.js";
-import { generateAccountKey, generateCredentialKey } from "./CacheHelpers.js";
+import {
+    computeAdditionalCacheKeyHash,
+    generateAccountKey,
+    generateCredentialKey,
+} from "./CacheHelpers.js";
+
+type AccessTokenIndex = {
+    allKeys: Set<string>;
+    scopeKeys: Map<string, Set<string>>;
+    malformedScopeKeys: Set<string>;
+};
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
@@ -45,12 +71,41 @@ export class NodeStorage extends CacheManager {
     private logger: Logger;
     private cache: CacheKVStore = {};
     private changeEmitters: Array<Function> = [];
+    private readonly nodeStaticAuthorityOptions?: StaticAuthorityOptions;
+    private accountKeys = new Set<string>();
+    private idTokenKeys = new Set<string>();
+    private accessTokenKeys = new Set<string>();
+    private refreshTokenKeys = new Set<string>();
+    private appMetadataKeys = new Set<string>();
+    private authorityMetadataKeys = new Set<string>();
+    private authorityAliasIndex = new Map<string, Set<string>>();
+    private authorityAliasesByKey = new Map<string, string[]>();
+    private authorityMetadataSnapshots = new Map<string, string>();
+    private cacheKeyOrder = new Map<string, number>();
+    private nextCacheKeyOrder = 0;
+    private appMetadataIndex = new Map<string, Set<string>>();
+    private idTokenIndex = new Map<string, Set<string>>();
+    private idTokenWithoutRealmIndex = new Map<string, Set<string>>();
+    private refreshTokenIndex = new Map<string, Set<string>>();
+    private accessTokenIndex = new Map<string, AccessTokenIndex>();
+    private tokenBindingKeyReferences = new Map<string, number>();
+    private readonly credentialCache: LRUCache<string, ValidCredentialType>;
+    private readonly cacheOptions: ResolvedInMemoryCacheOptions;
+    private suppressCredentialDisposal = false;
+    private evictingCredentialKeys = new Set<string>();
+    private credentialEvictionCount = 0;
+    private selectedAccessTokenKey?: string;
 
     constructor(
         logger: Logger,
         clientId: string,
         cryptoImpl: ICrypto,
-        staticAuthorityOptions?: StaticAuthorityOptions
+        staticAuthorityOptions?: StaticAuthorityOptions,
+        cacheOptions?: InMemoryCacheOptions,
+        tokenBindingKeyManager: Pick<
+            ITokenBindingKeyManager,
+            "removeTokenBindingKey"
+        > = DEFAULT_TOKEN_BINDING_KEY_MANAGER
     ) {
         super(
             clientId,
@@ -58,9 +113,1209 @@ export class NodeStorage extends CacheManager {
             logger,
             new StubPerformanceClient(),
             staticAuthorityOptions,
-            DEFAULT_TOKEN_BINDING_KEY_MANAGER
+            {
+                ...DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+                removeTokenBindingKey:
+                    tokenBindingKeyManager.removeTokenBindingKey.bind(
+                        tokenBindingKeyManager
+                    ),
+            }
         );
         this.logger = logger;
+        this.nodeStaticAuthorityOptions = staticAuthorityOptions;
+        this.cacheOptions = resolveInMemoryCacheOptions(cacheOptions);
+        this.credentialCache = new LRUCache<string, ValidCredentialType>({
+            max: this.cacheOptions.maxTokenCacheEntries,
+            maxSize: this.cacheOptions.maxTokenCacheSizeInBytes,
+            maxEntrySize: this.cacheOptions.maxTokenCacheSizeInBytes,
+            sizeCalculation: (credential, key) =>
+                this.getCredentialLogicalWeight(key, credential),
+            disposeAfter: (credential, key) => {
+                if (!this.suppressCredentialDisposal) {
+                    this.removeEvictedCredential(key, credential);
+                }
+            },
+        });
+    }
+
+    getCacheSnapshot(): CacheKVStore {
+        return this.cloneCacheValue(this.cache);
+    }
+
+    private cloneCacheValue<T>(value: T): T {
+        if (Array.isArray(value)) {
+            return value.map((item) => this.cloneCacheValue(item)) as T;
+        }
+        if (value && typeof value === "object") {
+            const clone: Record<string, unknown> = {};
+            Object.keys(value).forEach((key) => {
+                clone[key] = this.cloneCacheValue(
+                    (value as Record<string, unknown>)[key]
+                );
+            });
+            return clone as T;
+        }
+        return value;
+    }
+
+    isCacheConfigurationCompatible(options?: InMemoryCacheOptions): boolean {
+        return (
+            (options?.maxTokenCacheEntries === undefined ||
+                options.maxTokenCacheEntries ===
+                    this.cacheOptions.maxTokenCacheEntries) &&
+            (options?.maxTokenCacheSizeInBytes === undefined ||
+                options.maxTokenCacheSizeInBytes ===
+                    this.cacheOptions.maxTokenCacheSizeInBytes)
+        );
+    }
+
+    getCredentialEvictionCount(): number {
+        return this.credentialEvictionCount;
+    }
+
+    private rebuildIndexes(
+        previousRecency: string[] = Array.from(this.credentialCache.rkeys())
+    ): void {
+        Object.entries(this.cache).forEach(([key, value]) => {
+            if (
+                value &&
+                typeof value === "object" &&
+                this.isBoundedCredential(value)
+            ) {
+                this.getCredentialLogicalWeight(key, value);
+            }
+        });
+        this.withoutCredentialDisposal(() => this.credentialCache.clear());
+        this.accountKeys.clear();
+        this.idTokenKeys.clear();
+        this.accessTokenKeys.clear();
+        this.refreshTokenKeys.clear();
+        this.appMetadataKeys.clear();
+        this.authorityMetadataKeys.clear();
+        this.authorityAliasIndex.clear();
+        this.authorityAliasesByKey.clear();
+        this.authorityMetadataSnapshots.clear();
+        this.cacheKeyOrder.clear();
+        this.nextCacheKeyOrder = 0;
+        this.appMetadataIndex.clear();
+        this.idTokenIndex.clear();
+        this.idTokenWithoutRealmIndex.clear();
+        this.refreshTokenIndex.clear();
+        this.accessTokenIndex.clear();
+        this.tokenBindingKeyReferences.clear();
+
+        const cacheKeys = Object.keys(this.cache);
+        cacheKeys.forEach((key) => {
+            this.cacheKeyOrder.set(key, this.nextCacheKeyOrder++);
+        });
+        cacheKeys.forEach((key) => {
+            this.addToIndexes(key, this.cache[key]);
+        });
+        const credentialKeys = new Set(
+            cacheKeys.filter((key) => {
+                const value = this.cache[key];
+                return (
+                    value &&
+                    typeof value === "object" &&
+                    this.isBoundedCredential(value)
+                );
+            })
+        );
+        const credentialOrder = previousRecency.filter((key) =>
+            credentialKeys.has(key)
+        );
+        const orderedCredentialKeys = new Set(credentialOrder);
+        credentialKeys.forEach((key) => {
+            if (!orderedCredentialKeys.has(key)) {
+                credentialOrder.push(key);
+            }
+        });
+        credentialOrder.forEach((key) => {
+            this.admitCredential(key, this.cache[key] as ValidCredentialType);
+        });
+    }
+
+    private isBoundedCredential(value: object): value is ValidCredentialType {
+        return (
+            CacheHelpers.isAccessTokenEntity(value) ||
+            CacheHelpers.isRefreshTokenEntity(value) ||
+            CacheHelpers.isIdTokenEntity(value)
+        );
+    }
+
+    private getCredentialLogicalWeight(
+        key: string,
+        credential: ValidCredentialType
+    ): number {
+        let serializedCredential: object;
+        const indexStrings: string[] = [];
+        let postingCount = 2;
+
+        if (CacheHelpers.isIdTokenEntity(credential)) {
+            serializedCredential = Serializer.serializeIdTokens({
+                [key]: credential,
+            })[key];
+            indexStrings.push(
+                this.idTokenIndexKey(credential),
+                this.idTokenIndexKey(credential, credential.environment, false)
+            );
+            postingCount += 2;
+        } else if (CacheHelpers.isAccessTokenEntity(credential)) {
+            serializedCredential = Serializer.serializeAccessTokens({
+                [key]: credential,
+            })[key];
+            const scopes = this.normalizeScopes(credential.target);
+            indexStrings.push(
+                this.accessTokenStandardIndexKey(credential),
+                this.accessTokenOboIndexKey(credential),
+                ...scopes,
+                ...scopes
+            );
+            postingCount += 2 * (1 + scopes.length);
+            if (typeof credential.target !== "string") {
+                postingCount += 2;
+            }
+        } else {
+            serializedCredential = Serializer.serializeRefreshTokens({
+                [key]: credential,
+            })[key];
+            indexStrings.push(this.refreshTokenIndexKey(credential));
+            postingCount += 1;
+        }
+
+        return (
+            Buffer.byteLength(
+                JSON.stringify({ [key]: serializedCredential }),
+                Constants.EncodingTypes.UTF8
+            ) +
+            indexStrings.reduce(
+                (total, indexString) =>
+                    total +
+                    Buffer.byteLength(
+                        indexString,
+                        Constants.EncodingTypes.UTF8
+                    ),
+                0
+            ) +
+            postingCount
+        );
+    }
+
+    private admitCredential(
+        key: string,
+        credential: ValidCredentialType
+    ): void {
+        this.credentialCache.set(key, credential);
+        if (!this.credentialCache.has(key)) {
+            if (this.cache[key] === credential) {
+                delete this.cache[key];
+                this.removeFromIndexes(key, credential);
+                this.removeTokenBindingKeyForCredential(credential, "");
+                this.credentialEvictionCount += 1;
+                this.emitChange();
+            }
+            this.logger.warning(
+                "A token credential exceeded the configured logical cache size and was not retained.",
+                ""
+            );
+        }
+    }
+
+    private removeEvictedCredential(
+        key: string,
+        credential: ValidCredentialType
+    ): void {
+        if (
+            this.evictingCredentialKeys.has(key) ||
+            this.cache[key] !== credential
+        ) {
+            return;
+        }
+
+        this.evictingCredentialKeys.add(key);
+        try {
+            delete this.cache[key];
+            this.removeFromIndexes(key, credential);
+            this.removeTokenBindingKeyForCredential(credential, "");
+            this.credentialEvictionCount += 1;
+            this.emitChange();
+        } finally {
+            this.evictingCredentialKeys.delete(key);
+        }
+    }
+
+    private withoutCredentialDisposal<T>(action: () => T): T {
+        const previousValue = this.suppressCredentialDisposal;
+        this.suppressCredentialDisposal = true;
+        try {
+            return action();
+        } finally {
+            this.suppressCredentialDisposal = previousValue;
+        }
+    }
+
+    private touchCredentialKey(key: string | undefined): void {
+        if (key) {
+            this.credentialCache.get(key);
+        }
+    }
+
+    private addToIndexes(key: string, value: ValidCacheType): void {
+        if (!this.cacheKeyOrder.has(key)) {
+            this.cacheKeyOrder.set(key, this.nextCacheKeyOrder++);
+        }
+        if (this.isAuthorityMetadata(key)) {
+            this.authorityMetadataKeys.add(key);
+            if (
+                value &&
+                typeof value === "object" &&
+                CacheHelpers.isAuthorityMetadataEntity(key, value)
+            ) {
+                this.addAuthorityMetadataToIndexes(
+                    key,
+                    value as AuthorityMetadataEntity
+                );
+                return;
+            }
+        }
+        if (!value || typeof value !== "object") {
+            return;
+        }
+        if (AccountEntityUtils.isAccountEntity(value)) {
+            this.accountKeys.add(key);
+        } else if (CacheHelpers.isIdTokenEntity(value)) {
+            this.idTokenKeys.add(key);
+            this.addIdTokenToIndexes(key, value);
+        } else if (CacheHelpers.isAccessTokenEntity(value)) {
+            this.accessTokenKeys.add(key);
+            this.addAccessTokenToIndexes(key, value);
+            this.addTokenBindingKeyReference(value);
+        } else if (CacheHelpers.isRefreshTokenEntity(value)) {
+            this.refreshTokenKeys.add(key);
+            this.addRefreshTokenToIndexes(key, value);
+        } else if (CacheHelpers.isAppMetadataEntity(key, value)) {
+            const appMetadata = value as AppMetadataEntity;
+            this.appMetadataKeys.add(key);
+            this.addKeyToIndex(
+                this.appMetadataIndex,
+                this.appMetadataIndexKey(
+                    appMetadata.environment,
+                    appMetadata.clientId
+                ),
+                key
+            );
+        }
+    }
+
+    private removeFromIndexes(key: string, value: ValidCacheType): void {
+        this.cacheKeyOrder.delete(key);
+        if (this.isAuthorityMetadata(key)) {
+            this.removeAuthorityMetadataFromIndexes(key);
+        }
+        if (!value || typeof value !== "object") {
+            return;
+        }
+        if (AccountEntityUtils.isAccountEntity(value)) {
+            this.accountKeys.delete(key);
+        } else if (CacheHelpers.isIdTokenEntity(value)) {
+            this.idTokenKeys.delete(key);
+            this.removeIdTokenFromIndexes(key, value);
+        } else if (CacheHelpers.isAccessTokenEntity(value)) {
+            this.accessTokenKeys.delete(key);
+            this.removeAccessTokenFromIndexes(key, value);
+            this.removeTokenBindingKeyReference(value);
+        } else if (CacheHelpers.isRefreshTokenEntity(value)) {
+            this.refreshTokenKeys.delete(key);
+            this.removeRefreshTokenFromIndexes(key, value);
+        } else if (CacheHelpers.isAppMetadataEntity(key, value)) {
+            const appMetadata = value as AppMetadataEntity;
+            this.appMetadataKeys.delete(key);
+            this.removeKeyFromIndex(
+                this.appMetadataIndex,
+                this.appMetadataIndexKey(
+                    appMetadata.environment,
+                    appMetadata.clientId
+                ),
+                key
+            );
+        }
+    }
+
+    private getTokenBindingKeyId(
+        credential: ValidCredentialType
+    ): string | undefined {
+        if (
+            !CacheHelpers.isAccessTokenEntity(credential) ||
+            credential.credentialType.toLowerCase() !==
+                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
+        ) {
+            return undefined;
+        }
+
+        const tokenType = credential.tokenType?.toLowerCase();
+        if (
+            tokenType !== Constants.AuthenticationScheme.POP.toLowerCase() &&
+            tokenType !== Constants.AuthenticationScheme.DPOP.toLowerCase()
+        ) {
+            return undefined;
+        }
+
+        return credential.keyId;
+    }
+
+    private addTokenBindingKeyReference(credential: AccessTokenEntity): void {
+        const keyId = this.getTokenBindingKeyId(credential);
+        if (keyId) {
+            this.tokenBindingKeyReferences.set(
+                keyId,
+                (this.tokenBindingKeyReferences.get(keyId) || 0) + 1
+            );
+        }
+    }
+
+    private removeTokenBindingKeyReference(
+        credential: AccessTokenEntity
+    ): void {
+        const keyId = this.getTokenBindingKeyId(credential);
+        if (!keyId) {
+            return;
+        }
+
+        const referenceCount =
+            (this.tokenBindingKeyReferences.get(keyId) || 0) - 1;
+        if (referenceCount > 0) {
+            this.tokenBindingKeyReferences.set(keyId, referenceCount);
+        } else {
+            this.tokenBindingKeyReferences.delete(keyId);
+        }
+    }
+
+    protected removeTokenBindingKeyForCredential(
+        credential: ValidCredentialType,
+        correlationId: string
+    ): void {
+        const keyId = this.getTokenBindingKeyId(credential);
+        if (keyId && (this.tokenBindingKeyReferences.get(keyId) || 0) > 0) {
+            return;
+        }
+
+        super.removeTokenBindingKeyForCredential(credential, correlationId);
+    }
+
+    private addAuthorityMetadataToIndexes(
+        key: string,
+        metadata: AuthorityMetadataEntity,
+        snapshot: string = this.stableStringify(metadata)
+    ): void {
+        const aliases = Array.isArray(metadata.aliases)
+            ? metadata.aliases.filter(
+                  (alias): alias is string => typeof alias === "string"
+              )
+            : [];
+        this.authorityMetadataKeys.add(key);
+        this.authorityAliasesByKey.set(key, aliases);
+        this.authorityMetadataSnapshots.set(key, snapshot);
+        aliases.forEach((alias) => {
+            this.addKeyToIndex(
+                this.authorityAliasIndex,
+                alias.toLowerCase(),
+                key
+            );
+        });
+    }
+
+    private removeAuthorityMetadataFromIndexes(key: string): void {
+        this.authorityMetadataKeys.delete(key);
+        (this.authorityAliasesByKey.get(key) || []).forEach((alias) => {
+            this.removeKeyFromIndex(
+                this.authorityAliasIndex,
+                alias.toLowerCase(),
+                key
+            );
+        });
+        this.authorityAliasesByKey.delete(key);
+        this.authorityMetadataSnapshots.delete(key);
+    }
+
+    private addKeyToIndex(
+        index: Map<string, Set<string>>,
+        indexKey: string,
+        cacheKey: string
+    ): void {
+        let cacheKeys = index.get(indexKey);
+        if (!cacheKeys) {
+            cacheKeys = new Set<string>();
+            index.set(indexKey, cacheKeys);
+        }
+        cacheKeys.add(cacheKey);
+    }
+
+    private removeKeyFromIndex(
+        index: Map<string, Set<string>>,
+        indexKey: string,
+        cacheKey: string
+    ): void {
+        const cacheKeys = index.get(indexKey);
+        if (!cacheKeys) {
+            return;
+        }
+        cacheKeys.delete(cacheKey);
+        if (cacheKeys.size === 0) {
+            index.delete(indexKey);
+        }
+    }
+
+    private tuple(...values: string[]): string {
+        return JSON.stringify(values);
+    }
+
+    private stableStringify(value: unknown): string {
+        if (Array.isArray(value)) {
+            return `[${value
+                .map((item) => this.stableStringify(item))
+                .join(",")}]`;
+        }
+        if (value && typeof value === "object") {
+            return `{${Object.keys(value)
+                .sort()
+                .map(
+                    (key) =>
+                        `${JSON.stringify(key)}:${this.stableStringify(
+                            (value as Record<string, unknown>)[key]
+                        )}`
+                )
+                .join(",")}}`;
+        }
+        return JSON.stringify(value) ?? "undefined";
+    }
+
+    private orderCandidateKeys(keys: Iterable<string>): string[] {
+        return Array.from(new Set(keys)).sort(
+            (left, right) =>
+                (this.cacheKeyOrder.get(left) ?? Number.MAX_SAFE_INTEGER) -
+                (this.cacheKeyOrder.get(right) ?? Number.MAX_SAFE_INTEGER)
+        );
+    }
+
+    private normalizeString(value: unknown): string {
+        return typeof value === "string" ? value.toLowerCase() : "";
+    }
+
+    private normalizeScheme(tokenType?: string): string {
+        return this.normalizeString(
+            tokenType || Constants.AuthenticationScheme.BEARER
+        );
+    }
+
+    private additionalComponentsKey(
+        components?: Record<string, string>
+    ): string {
+        if (
+            !components ||
+            typeof components !== "object" ||
+            Object.keys(components).length === 0
+        ) {
+            return "none";
+        }
+        if (
+            !Object.entries(components).every(
+                ([key, value]) =>
+                    typeof key === "string" && typeof value === "string"
+            )
+        ) {
+            return "invalid";
+        }
+        return `hash:${computeAdditionalCacheKeyHash(components)}`;
+    }
+
+    private normalizeScopes(target: string): string[] {
+        if (typeof target !== "string") {
+            return [];
+        }
+        return Array.from(
+            new Set(
+                target
+                    .split(" ")
+                    .map((scope) => scope.trim().toLowerCase())
+                    .filter((scope) => scope.length > 0)
+            )
+        );
+    }
+
+    private accessTokenStandardIndexKey(
+        value: {
+            homeAccountId?: string;
+            environment?: string;
+            credentialType?: string;
+            clientId?: string;
+            tokenType?: string;
+            additionalCacheKeyComponents?: Record<string, string>;
+        },
+        environment: string = value.environment || "",
+        correlationId: string = ""
+    ): string {
+        return this.tuple(
+            "standard",
+            value.homeAccountId || "",
+            this.environmentIndexKey(environment, correlationId),
+            this.normalizeString(value.credentialType),
+            value.clientId || "",
+            this.normalizeScheme(value.tokenType),
+            this.additionalComponentsKey(value.additionalCacheKeyComponents)
+        );
+    }
+
+    private accessTokenOboIndexKey(value: {
+        credentialType?: string;
+        clientId?: string;
+        tokenType?: string;
+        userAssertionHash?: string;
+        additionalCacheKeyComponents?: Record<string, string>;
+    }): string {
+        return this.tuple(
+            "obo",
+            this.normalizeString(value.credentialType),
+            value.clientId || "",
+            this.normalizeScheme(value.tokenType),
+            value.userAssertionHash || "",
+            this.additionalComponentsKey(value.additionalCacheKeyComponents)
+        );
+    }
+
+    private addAccessTokenToIndexes(
+        cacheKey: string,
+        entity: AccessTokenEntity
+    ): void {
+        this.addAccessTokenToIndex(
+            this.accessTokenStandardIndexKey(entity),
+            cacheKey,
+            entity.target
+        );
+        if (entity.userAssertionHash) {
+            this.addAccessTokenToIndex(
+                this.accessTokenOboIndexKey(entity),
+                cacheKey,
+                entity.target
+            );
+        }
+    }
+
+    private removeAccessTokenFromIndexes(
+        cacheKey: string,
+        entity: AccessTokenEntity
+    ): void {
+        this.removeAccessTokenFromIndex(
+            this.accessTokenStandardIndexKey(entity),
+            cacheKey,
+            entity.target
+        );
+        if (entity.userAssertionHash) {
+            this.removeAccessTokenFromIndex(
+                this.accessTokenOboIndexKey(entity),
+                cacheKey,
+                entity.target
+            );
+        }
+    }
+
+    private addAccessTokenToIndex(
+        indexKey: string,
+        cacheKey: string,
+        target: string
+    ): void {
+        let index = this.accessTokenIndex.get(indexKey);
+        if (!index) {
+            index = {
+                allKeys: new Set<string>(),
+                scopeKeys: new Map<string, Set<string>>(),
+                malformedScopeKeys: new Set<string>(),
+            };
+            this.accessTokenIndex.set(indexKey, index);
+        }
+        const accessTokenIndex = index;
+        accessTokenIndex.allKeys.add(cacheKey);
+        if (typeof target !== "string") {
+            accessTokenIndex.malformedScopeKeys.add(cacheKey);
+            return;
+        }
+        this.normalizeScopes(target).forEach((scope) => {
+            this.addKeyToIndex(accessTokenIndex.scopeKeys, scope, cacheKey);
+        });
+    }
+
+    private removeAccessTokenFromIndex(
+        indexKey: string,
+        cacheKey: string,
+        target: string
+    ): void {
+        const index = this.accessTokenIndex.get(indexKey);
+        if (!index) {
+            return;
+        }
+        index.allKeys.delete(cacheKey);
+        index.malformedScopeKeys.delete(cacheKey);
+        this.normalizeScopes(target).forEach((scope) => {
+            this.removeKeyFromIndex(index.scopeKeys, scope, cacheKey);
+        });
+        if (index.allKeys.size === 0) {
+            this.accessTokenIndex.delete(indexKey);
+        }
+    }
+
+    private idTokenIndexKey(
+        value: {
+            homeAccountId?: string;
+            environment?: string;
+            credentialType?: string;
+            clientId?: string;
+            realm?: string;
+        },
+        environment: string = value.environment || "",
+        includeRealm: boolean = true,
+        correlationId: string = ""
+    ): string {
+        const components = [
+            value.homeAccountId || "",
+            this.environmentIndexKey(environment, correlationId),
+            this.normalizeString(value.credentialType),
+            value.clientId || "",
+        ];
+        if (includeRealm) {
+            components.push(this.normalizeString(value.realm));
+        }
+        return this.tuple(...components);
+    }
+
+    private addIdTokenToIndexes(cacheKey: string, entity: IdTokenEntity): void {
+        this.addKeyToIndex(
+            this.idTokenIndex,
+            this.idTokenIndexKey(entity),
+            cacheKey
+        );
+        this.addKeyToIndex(
+            this.idTokenWithoutRealmIndex,
+            this.idTokenIndexKey(entity, entity.environment, false),
+            cacheKey
+        );
+    }
+
+    private removeIdTokenFromIndexes(
+        cacheKey: string,
+        entity: IdTokenEntity
+    ): void {
+        this.removeKeyFromIndex(
+            this.idTokenIndex,
+            this.idTokenIndexKey(entity),
+            cacheKey
+        );
+        this.removeKeyFromIndex(
+            this.idTokenWithoutRealmIndex,
+            this.idTokenIndexKey(entity, entity.environment, false),
+            cacheKey
+        );
+    }
+
+    private refreshTokenIndexKey(
+        value: {
+            homeAccountId?: string;
+            environment?: string;
+            credentialType?: string;
+            clientId?: string;
+            familyId?: string;
+        },
+        environment: string = value.environment || "",
+        correlationId: string = ""
+    ): string {
+        return this.tuple(
+            value.homeAccountId || "",
+            this.environmentIndexKey(environment, correlationId),
+            this.normalizeString(value.credentialType),
+            value.clientId || "",
+            value.familyId || ""
+        );
+    }
+
+    private addRefreshTokenToIndexes(
+        cacheKey: string,
+        entity: RefreshTokenEntity
+    ): void {
+        this.addKeyToIndex(
+            this.refreshTokenIndex,
+            this.refreshTokenIndexKey(entity),
+            cacheKey
+        );
+    }
+
+    private removeRefreshTokenFromIndexes(
+        cacheKey: string,
+        entity: RefreshTokenEntity
+    ): void {
+        this.removeKeyFromIndex(
+            this.refreshTokenIndex,
+            this.refreshTokenIndexKey(entity),
+            cacheKey
+        );
+    }
+
+    private appMetadataIndexKey(
+        environment: string,
+        clientId: string,
+        correlationId: string = ""
+    ): string {
+        return this.tuple(
+            this.environmentIndexKey(environment, correlationId),
+            clientId
+        );
+    }
+
+    private getEnvironmentAliases(
+        environment: string,
+        correlationId: string
+    ): Set<string> {
+        const normalizedEnvironment = this.normalizeString(environment);
+        const aliases = new Set<string>([normalizedEnvironment]);
+
+        if (this.nodeStaticAuthorityOptions) {
+            const staticAliases = getAliasesFromStaticSources(
+                this.nodeStaticAuthorityOptions,
+                this.logger,
+                correlationId
+            );
+            if (staticAliases.includes(normalizedEnvironment)) {
+                staticAliases.forEach((alias) => {
+                    if (typeof alias === "string") {
+                        aliases.add(alias.toLowerCase());
+                    }
+                });
+            }
+        }
+
+        const metadata = this.getAuthorityMetadataByAliasFromIndex(environment);
+        if (metadata?.aliases.includes(environment)) {
+            metadata.aliases.forEach((alias) => {
+                if (typeof alias === "string") {
+                    aliases.add(alias.toLowerCase());
+                }
+            });
+        }
+
+        return aliases;
+    }
+
+    private environmentIndexKey(
+        environment: string,
+        _correlationId: string
+    ): string {
+        void _correlationId;
+        return this.normalizeString(environment);
+    }
+
+    private environmentMatches(
+        entityEnvironment: string,
+        environment: string,
+        correlationId: string
+    ): boolean {
+        if (this.nodeStaticAuthorityOptions) {
+            const staticAliases = getAliasesFromStaticSources(
+                this.nodeStaticAuthorityOptions,
+                this.logger,
+                correlationId
+            );
+            if (
+                staticAliases.includes(environment) &&
+                staticAliases.includes(entityEnvironment)
+            ) {
+                return true;
+            }
+        }
+
+        const metadata = this.getAuthorityMetadataByAlias(
+            environment,
+            correlationId
+        );
+        return !!metadata?.aliases.includes(entityEnvironment);
+    }
+
+    private getAccessTokenCandidates(
+        filter: CredentialFilter,
+        correlationId: string
+    ): string[] | null {
+        if (!filter.target || !filter.credentialType || !filter.clientId) {
+            return null;
+        }
+        if (
+            !filter.tokenType &&
+            this.normalizeString(filter.credentialType) ===
+                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()
+        ) {
+            return null;
+        }
+
+        const indexKeys: string[] = [];
+
+        if (filter.homeAccountId !== undefined && filter.environment) {
+            this.getEnvironmentAliases(
+                filter.environment,
+                correlationId
+            ).forEach((environment) => {
+                indexKeys.push(
+                    this.accessTokenStandardIndexKey(
+                        filter,
+                        environment,
+                        correlationId
+                    )
+                );
+            });
+        } else if (filter.userAssertionHash) {
+            indexKeys.push(this.accessTokenOboIndexKey(filter));
+        } else {
+            return null;
+        }
+
+        const requestedScopes = this.normalizeScopes(
+            filter.target.printScopes()
+        );
+        const candidates = new Set<string>();
+        indexKeys.forEach((indexKey) => {
+            const index = this.accessTokenIndex.get(indexKey);
+            if (!index) {
+                return;
+            }
+            if (requestedScopes.length === 0) {
+                index.allKeys.forEach((key) => candidates.add(key));
+                return;
+            }
+            const postings = requestedScopes.map(
+                (scope) => index.scopeKeys.get(scope) || new Set<string>()
+            );
+            const smallestPosting = postings.reduce((smallest, current) =>
+                current.size < smallest.size ? current : smallest
+            );
+            smallestPosting.forEach((key) => {
+                if (postings.every((posting) => posting.has(key))) {
+                    candidates.add(key);
+                }
+            });
+            index.malformedScopeKeys.forEach((key) => candidates.add(key));
+        });
+
+        return this.orderCandidateKeys(candidates);
+    }
+
+    protected getAccessTokenEntriesByFilter(
+        filter: CredentialFilter,
+        correlationId: string,
+        tokenKeys?: TokenKeys
+    ): Map<string, AccessTokenEntity> {
+        if (tokenKeys) {
+            const accessTokens = super.getAccessTokenEntriesByFilter(
+                filter,
+                correlationId,
+                tokenKeys
+            );
+            this.selectedAccessTokenKey =
+                accessTokens.size === 1
+                    ? accessTokens.keys().next().value
+                    : undefined;
+            return accessTokens;
+        }
+
+        const candidateKeys = this.getAccessTokenCandidates(
+            filter,
+            correlationId
+        );
+        if (!candidateKeys) {
+            const accessTokens = super.getAccessTokenEntriesByFilter(
+                filter,
+                correlationId
+            );
+            this.selectedAccessTokenKey =
+                accessTokens.size === 1
+                    ? accessTokens.keys().next().value
+                    : undefined;
+            return accessTokens;
+        }
+
+        const accessTokens = new Map<string, AccessTokenEntity>();
+        candidateKeys.forEach((key) => {
+            if (!this.accessTokenKeyMatchesFilter(key, filter, true)) {
+                return;
+            }
+            const accessToken = this.getAccessTokenCredential(key);
+            if (
+                accessToken &&
+                this.credentialMatchesFilter(accessToken, filter, correlationId)
+            ) {
+                accessTokens.set(key, accessToken);
+            }
+        });
+        this.selectedAccessTokenKey =
+            accessTokens.size === 1
+                ? accessTokens.keys().next().value
+                : undefined;
+        return accessTokens;
+    }
+
+    getAccessTokensByFilter(
+        filter: CredentialFilter,
+        correlationId: string
+    ): AccessTokenEntity[] {
+        const accessTokens = this.getAccessTokenEntriesByFilter(
+            filter,
+            correlationId
+        );
+        if (accessTokens.size === 1) {
+            this.touchCredentialKey(accessTokens.keys().next().value);
+        }
+        return Array.from(accessTokens.values());
+    }
+
+    getAccessToken(
+        account: AccountInfo,
+        request: BaseAuthRequest,
+        tokenKeys?: TokenKeys,
+        targetRealm?: string
+    ): AccessTokenEntity | null {
+        this.selectedAccessTokenKey = undefined;
+        try {
+            const accessToken = super.getAccessToken(
+                account,
+                request,
+                tokenKeys,
+                targetRealm
+            );
+            if (accessToken) {
+                this.touchCredentialKey(this.selectedAccessTokenKey);
+            }
+            return accessToken;
+        } finally {
+            this.selectedAccessTokenKey = undefined;
+        }
+    }
+
+    getIdTokensByFilter(
+        filter: CredentialFilter,
+        correlationId: string,
+        tokenKeys?: TokenKeys
+    ): Map<string, IdTokenEntity> {
+        if (
+            tokenKeys ||
+            filter.homeAccountId === undefined ||
+            !filter.environment ||
+            !filter.credentialType ||
+            !filter.clientId
+        ) {
+            const idTokens = super.getIdTokensByFilter(
+                filter,
+                correlationId,
+                tokenKeys
+            );
+            if (idTokens.size === 1) {
+                this.touchCredentialKey(idTokens.keys().next().value);
+            }
+            return idTokens;
+        }
+
+        const index = !filter.realm
+            ? this.idTokenWithoutRealmIndex
+            : this.idTokenIndex;
+        const candidates = new Set<string>();
+        this.getEnvironmentAliases(filter.environment, correlationId).forEach(
+            (environment) => {
+                const indexKey = this.idTokenIndexKey(
+                    filter,
+                    environment,
+                    !!filter.realm,
+                    correlationId
+                );
+                index.get(indexKey)?.forEach((key) => candidates.add(key));
+            }
+        );
+
+        const idTokens = new Map<string, IdTokenEntity>();
+        this.orderCandidateKeys(candidates).forEach((key) => {
+            if (
+                !this.idTokenKeyMatchesFilter(key, {
+                    clientId: this.clientId,
+                    ...filter,
+                })
+            ) {
+                return;
+            }
+            const idToken = this.getIdTokenCredential(key);
+            if (
+                idToken &&
+                this.credentialMatchesFilter(idToken, filter, correlationId)
+            ) {
+                idTokens.set(key, idToken);
+            }
+        });
+        if (idTokens.size === 1) {
+            this.touchCredentialKey(idTokens.keys().next().value);
+        }
+        return idTokens;
+    }
+
+    getIdToken(
+        account: AccountInfo,
+        correlationId: string,
+        tokenKeys?: TokenKeys,
+        targetRealm?: string
+    ): IdTokenEntity | null {
+        const idToken = super.getIdToken(
+            account,
+            correlationId,
+            tokenKeys,
+            targetRealm
+        );
+        if (idToken) {
+            this.touchCredentialKey(this.generateCredentialKey(idToken));
+        }
+        return idToken;
+    }
+
+    protected getRefreshTokensByFilter(
+        filter: CredentialFilter,
+        correlationId: string,
+        tokenKeys?: TokenKeys
+    ): RefreshTokenEntity[] {
+        if (
+            tokenKeys ||
+            filter.homeAccountId === undefined ||
+            !filter.environment ||
+            !filter.credentialType ||
+            !filter.clientId
+        ) {
+            const refreshTokens = super.getRefreshTokensByFilter(
+                filter,
+                correlationId,
+                tokenKeys
+            );
+            return refreshTokens;
+        }
+
+        const candidates = new Set<string>();
+        this.getEnvironmentAliases(filter.environment, correlationId).forEach(
+            (environment) => {
+                const indexKey = this.refreshTokenIndexKey(
+                    filter,
+                    environment,
+                    correlationId
+                );
+                this.refreshTokenIndex
+                    .get(indexKey)
+                    ?.forEach((key) => candidates.add(key));
+            }
+        );
+
+        const refreshTokens: RefreshTokenEntity[] = [];
+        this.orderCandidateKeys(candidates).forEach((key) => {
+            if (!this.refreshTokenKeyMatchesFilter(key, filter)) {
+                return;
+            }
+            const refreshToken = this.getRefreshTokenCredential(key);
+            if (
+                refreshToken &&
+                this.credentialMatchesFilter(
+                    refreshToken,
+                    filter,
+                    correlationId
+                )
+            ) {
+                refreshTokens.push(refreshToken);
+            }
+        });
+        return refreshTokens;
+    }
+
+    getRefreshToken(
+        account: AccountInfo,
+        familyRT: boolean,
+        correlationId: string,
+        tokenKeys?: TokenKeys
+    ): RefreshTokenEntity | null {
+        const refreshToken = super.getRefreshToken(
+            account,
+            familyRT,
+            correlationId,
+            tokenKeys
+        );
+        if (refreshToken) {
+            this.touchCredentialKey(this.generateCredentialKey(refreshToken));
+        }
+        return refreshToken;
+    }
+
+    getAppMetadataFilteredBy(
+        filter: AppMetadataFilter,
+        correlationId: string
+    ): AppMetadataCache {
+        const environment = filter.environment;
+        if (!environment || !filter.clientId) {
+            return super.getAppMetadataFilteredBy(filter, correlationId);
+        }
+
+        const candidates = new Set<string>();
+        const clientId = filter.clientId;
+        this.getEnvironmentAliases(environment, correlationId).forEach(
+            (environment) => {
+                this.appMetadataIndex
+                    .get(
+                        this.appMetadataIndexKey(
+                            environment,
+                            clientId,
+                            correlationId
+                        )
+                    )
+                    ?.forEach((key) => candidates.add(key));
+            }
+        );
+
+        const appMetadata: AppMetadataCache = {};
+        this.orderCandidateKeys(candidates).forEach((key) => {
+            const entity = this.getAppMetadata(key);
+            if (
+                entity &&
+                entity.clientId === filter.clientId &&
+                this.environmentMatches(
+                    entity.environment,
+                    environment,
+                    correlationId
+                )
+            ) {
+                appMetadata[key] = entity;
+            }
+        });
+        return appMetadata;
+    }
+
+    getAuthorityMetadataByAlias(
+        host: string,
+        _correlationId: string
+    ): AuthorityMetadataEntity | null {
+        void _correlationId;
+        return this.getAuthorityMetadataByAliasFromIndex(host);
+    }
+
+    private getAuthorityMetadataByAliasFromIndex(
+        host: string
+    ): AuthorityMetadataEntity | null {
+        let matchedEntity: AuthorityMetadataEntity | null = null;
+        const candidates = this.authorityAliasIndex.get(host.toLowerCase());
+        if (!candidates) {
+            return null;
+        }
+
+        this.orderCandidateKeys(candidates).forEach((key) => {
+            if (key.indexOf(this.clientId) === -1) {
+                return;
+            }
+            const entity = this.getAuthorityMetadata(key);
+            if (entity?.aliases.includes(host)) {
+                matchedEntity = entity;
+            }
+        });
+        return matchedEntity;
     }
 
     /**
@@ -120,10 +1375,8 @@ export class NodeStorage extends CacheManager {
      */
     inMemoryCacheToCache(inMemoryCache: InMemoryCache): CacheKVStore {
         // convert in memory cache to a flat Key-Value map
-        let cache = this.getCache();
-
-        cache = {
-            ...cache,
+        const cache = {
+            ...this.cache,
             ...inMemoryCache.accounts,
             ...inMemoryCache.idTokens,
             ...inMemoryCache.accessTokens,
@@ -142,7 +1395,9 @@ export class NodeStorage extends CacheManager {
         this.logger.trace("Getting in-memory cache", "");
 
         // convert the cache key value store to inMemoryCache
-        const inMemoryCache = this.cacheToInMemoryCache(this.getCache());
+        const inMemoryCache = this.cacheToInMemoryCache(
+            this.getCacheSnapshot()
+        );
         return inMemoryCache;
     }
 
@@ -165,7 +1420,7 @@ export class NodeStorage extends CacheManager {
      */
     getCache(): CacheKVStore {
         this.logger.trace("Getting cache key-value store", "");
-        return this.cache;
+        return this.getCacheSnapshot();
     }
 
     /**
@@ -174,7 +1429,16 @@ export class NodeStorage extends CacheManager {
      */
     setCache(cache: CacheKVStore): void {
         this.logger.trace("Setting cache key value store", "");
-        this.cache = cache;
+        const previousCache = this.cache;
+        const previousRecency = Array.from(this.credentialCache.rkeys());
+        this.cache = this.cloneCacheValue(cache);
+        try {
+            this.rebuildIndexes(previousRecency);
+        } catch (error) {
+            this.cache = previousCache;
+            this.rebuildIndexes(previousRecency);
+            throw error;
+        }
 
         // mark change in cache
         this.emitChange();
@@ -188,8 +1452,7 @@ export class NodeStorage extends CacheManager {
         this.logger.tracePii(`Item key: ${key}`, "");
 
         // read cache
-        const cache = this.getCache();
-        return cache[key];
+        return this.cache[key];
     }
 
     /**
@@ -201,11 +1464,58 @@ export class NodeStorage extends CacheManager {
         this.logger.tracePii(`Item key: ${key}`, "");
 
         // read cache
-        const cache = this.getCache();
-        cache[key] = value;
+        const cache = this.cache;
+        const ownedValue = this.cloneCacheValue(value);
+        const hadItem = Object.prototype.hasOwnProperty.call(cache, key);
+        const previousValue = cache[key];
+        const previousOrder = this.cacheKeyOrder.get(key);
+        const previousRecency = Array.from(this.credentialCache.rkeys());
+        try {
+            if (
+                ownedValue &&
+                typeof ownedValue === "object" &&
+                this.isBoundedCredential(ownedValue)
+            ) {
+                this.getCredentialLogicalWeight(key, ownedValue);
+            }
+            if (hadItem) {
+                if (
+                    previousValue &&
+                    typeof previousValue === "object" &&
+                    this.isBoundedCredential(previousValue)
+                ) {
+                    this.withoutCredentialDisposal(() =>
+                        this.credentialCache.delete(key)
+                    );
+                }
+                this.removeFromIndexes(key, previousValue);
+                if (previousOrder !== undefined) {
+                    this.cacheKeyOrder.set(key, previousOrder);
+                }
+            }
+            cache[key] = ownedValue;
+            this.addToIndexes(key, ownedValue);
+            if (
+                ownedValue &&
+                typeof ownedValue === "object" &&
+                this.isBoundedCredential(ownedValue)
+            ) {
+                this.admitCredential(key, ownedValue);
+            }
+        } catch (error) {
+            if (hadItem) {
+                cache[key] = previousValue;
+            } else {
+                delete cache[key];
+            }
+            this.rebuildIndexes(previousRecency);
+            throw error;
+        }
 
-        // write to cache
-        this.setCache(cache);
+        // mark change in cache
+        if (Object.prototype.hasOwnProperty.call(cache, key)) {
+            this.emitChange();
+        }
     }
 
     generateCredentialKey(
@@ -220,21 +1530,15 @@ export class NodeStorage extends CacheManager {
     }
 
     getAccountKeys(): string[] {
-        const inMemoryCache = this.getInMemoryCache();
-        const accountKeys = Object.keys(inMemoryCache.accounts);
-
-        return accountKeys;
+        return this.orderCandidateKeys(this.accountKeys);
     }
 
     getTokenKeys(): TokenKeys {
-        const inMemoryCache = this.getInMemoryCache();
-        const tokenKeys = {
-            idToken: Object.keys(inMemoryCache.idTokens),
-            accessToken: Object.keys(inMemoryCache.accessTokens),
-            refreshToken: Object.keys(inMemoryCache.refreshTokens),
+        return {
+            idToken: this.orderCandidateKeys(this.idTokenKeys),
+            accessToken: this.orderCandidateKeys(this.accessTokenKeys),
+            refreshToken: this.orderCandidateKeys(this.refreshTokenKeys),
         };
-
-        return tokenKeys;
     }
 
     /**
@@ -409,7 +1713,12 @@ export class NodeStorage extends CacheManager {
             authorityMetadataEntity &&
             CacheHelpers.isAuthorityMetadataEntity(key, authorityMetadataEntity)
         ) {
-            return authorityMetadataEntity;
+            return {
+                ...authorityMetadataEntity,
+                aliases: Array.isArray(authorityMetadataEntity.aliases)
+                    ? [...authorityMetadataEntity.aliases]
+                    : [],
+            };
         }
         return null;
     }
@@ -418,9 +1727,7 @@ export class NodeStorage extends CacheManager {
      * Get all authority metadata keys
      */
     getAuthorityMetadataKeys(): Array<string> {
-        return this.getKeys().filter((key) => {
-            return this.isAuthorityMetadata(key);
-        });
+        return this.orderCandidateKeys(this.authorityMetadataKeys);
     }
 
     /**
@@ -429,7 +1736,34 @@ export class NodeStorage extends CacheManager {
      * @param metadata - cache value to be set of type AuthorityMetadataEntity
      */
     setAuthorityMetadata(key: string, metadata: AuthorityMetadataEntity): void {
-        this.setItem(key, metadata);
+        const ownedMetadata = this.cloneCacheValue(metadata);
+        const snapshot = this.stableStringify(ownedMetadata);
+        if (this.authorityMetadataSnapshots.get(key) === snapshot) {
+            return;
+        }
+
+        const hadItem = Object.prototype.hasOwnProperty.call(this.cache, key);
+        const previousValue = this.cache[key];
+        const previousOrder = this.cacheKeyOrder.get(key);
+        try {
+            this.removeAuthorityMetadataFromIndexes(key);
+            this.cache[key] = ownedMetadata;
+            if (previousOrder !== undefined) {
+                this.cacheKeyOrder.set(key, previousOrder);
+            } else {
+                this.cacheKeyOrder.set(key, this.nextCacheKeyOrder++);
+            }
+            this.addAuthorityMetadataToIndexes(key, ownedMetadata, snapshot);
+        } catch (error) {
+            if (hadItem) {
+                this.cache[key] = previousValue;
+            } else {
+                delete this.cache[key];
+            }
+            this.rebuildIndexes();
+            throw error;
+        }
+        this.emitChange();
     }
 
     /**
@@ -471,16 +1805,36 @@ export class NodeStorage extends CacheManager {
 
         // read inMemoryCache
         let result: boolean = false;
-        const cache = this.getCache();
+        const cache = this.cache;
 
         if (!!cache[key]) {
+            const value = cache[key];
+            const isAuthorityMetadata =
+                this.isAuthorityMetadata(key) ||
+                (!!value &&
+                    typeof value === "object" &&
+                    CacheHelpers.isAuthorityMetadataEntity(key, value));
             delete cache[key];
+            if (
+                value &&
+                typeof value === "object" &&
+                this.isBoundedCredential(value)
+            ) {
+                this.withoutCredentialDisposal(() =>
+                    this.credentialCache.delete(key)
+                );
+            }
+            if (isAuthorityMetadata) {
+                this.removeAuthorityMetadataFromIndexes(key);
+                this.cacheKeyOrder.delete(key);
+            } else {
+                this.removeFromIndexes(key, value);
+            }
             result = true;
         }
 
         // write to the cache after removal
         if (result) {
-            this.setCache(cache);
             this.emitChange();
         }
         return result;
@@ -509,7 +1863,7 @@ export class NodeStorage extends CacheManager {
         this.logger.trace("Retrieving all cache keys", "");
 
         // read cache
-        const cache = this.getCache();
+        const cache = this.cache;
         return [...Object.keys(cache)];
     }
 

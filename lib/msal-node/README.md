@@ -10,6 +10,7 @@
 1. [About](#about)
 1. [FAQ](#faq)
 1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/CHANGELOG.md)
+1. [Migration from v6 to v7](./docs/v7-migration.md)
 1. [Prerequisites](#prerequisites)
 1. [Installation](#installation)
 1. [Node Version Support](#node-version-support)
@@ -28,14 +29,6 @@ MSAL Node enables applications to authenticate users using [Azure AD](https://do
 
 The current version supports the following ways of acquiring tokens:
 
-#### Public Client:
-
--   [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) with [PKCE](https://oauth.net/2/pkce/)
--   [Device Code Grant](https://oauth.net/2/grant-types/device-code/)
--   [Refresh Token Grant](https://oauth.net/2/grant-types/refresh-token/)
--   [Silent Flow](https://docs.microsoft.com/azure/active-directory/develop/msal-acquire-cache-tokens#acquiring-tokens-silently-from-the-cache)
--   [Username and Password flow](https://docs.microsoft.com/azure/active-directory/develop/msal-authentication-flows#usernamepassword)
-
 #### Confidential Client:
 
 -   [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) with a client credential
@@ -47,13 +40,12 @@ The current version supports the following ways of acquiring tokens:
 
 Note that the username and password flow is deprecated and support will be removed in a future release.
 
-More details on different grant types supported by Microsoft authentication libraries in general can be found [here](https://docs.microsoft.com/azure/active-directory/develop/msal-authentication-flows). 
+More details on different grant types supported by Microsoft authentication libraries in general can be found [here](https://docs.microsoft.com/azure/active-directory/develop/msal-authentication-flows).
 
 ### Scenarios supported:
 
 The scenarios supported with this library are:
 
--   Desktop app that calls web APIs
 -   Web app that calls web APIs
 -   Web APIs that call web APIs
 -   Daemon apps
@@ -90,8 +82,11 @@ Any major MSAL Node release:
 
 | MSAL Node version | MSAL support status | Supported Node versions |
 | ----------------- | ------------------- | ----------------------- |
-| 4.x.x             | Active development  | 20, 22, 24              |
-| 3.x.x             | Active development  | 16, 18, 20, 22, 24      |
+| 7.x.x             | Active development  | 20, 22, 24              |
+| 6.x.x             | In maintenance      | 20, 22, 24              |
+| 5.x.x             | In maintenance      | 20, 22, 24              |
+| 4.x.x             | In maintenance      | 20, 22, 24              |
+| 3.x.x             | In maintenance      | 16, 18, 20, 22, 24      |
 | 2.x.x             | In maintenance      | 16, 18, 20, 22          |
 | 1.x.x             | In maintenance      | 10, 12, 14, 16, 18      |
 
@@ -101,13 +96,10 @@ Any major MSAL Node release:
 
 ### MSAL basics
 
--   [Understand difference in between Public Client and Confidential Clients](https://docs.microsoft.com/azure/active-directory/develop/msal-client-applications)
--   [Initialize a Public Client Application](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-public-client-application.md)
 -   [Initialize a Confidential Client Application](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-confidential-client-application.md)
 -   [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md)
--   [Request](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/request.md)
--   [Response](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Response.md)
--   [MCP Flows](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-v5/lib/msal-node/docs/mcp.md)
+-   [Request](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/request.md)
+-   [Response](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.authenticationresult.html)
 
 ## Samples
 
@@ -116,24 +108,14 @@ There are multiple [samples](https://github.com/AzureAD/microsoft-authentication
 AAD samples:
 
 -   [auth-code](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code): Express app using OAuth2.0 authorization code flow.
--   [auth-code-pkce](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/auth-code-pkce): Express app using OAuth2.0 authorization code flow with PKCE.
--   [device-code](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/device-code): Command line app using OAuth 2.0 device code flow.
--   [refresh-token](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/refresh-token): Command line app using OAuth 2.0 refresh flow.
 -   [silent-flow](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/silent-flow): Express app using OAuth2.0 authorization code flow to acquire a token and store in the token cache, and silent flow to use tokens in the token cache.
 -   [client-credentials](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/client-credentials): Daemon app using OAuth 2.0 client credential grant to acquire a token.
 -   [on-behalf-of](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/on-behalf-of): Web application using OAuth 2.0 auth code flow to acquire a token for a web API. The web API validates the token, and calls Microsoft Graph on behalf of the user who authenticated in the web application.
--   [username-password](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/username-password): Web application using OAuth 2.0 resource owner password credentials (ROPC) flow to acquire a token for a web API.
--   [ElectronTestApp](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/ElectronTestApp): Electron desktop application using OAuth 2.0 auth code with PKCE flow to acquire a token for a web API such as Microsoft Graph.
--   [mcp-flows](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-v5/samples/msal-node-samples/mcp-flows): Express app using OAuth 2.0 authorization code flow with MCP resource isolation. See [MCP Flows documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-v5/lib/msal-node/docs/mcp.md).
 -   [Hybrid Spa Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/HybridSample): Sample demonstrating how to use `enableSpaAuthorizationCode` to perform SSO for applications that leverage server-side and client-side authentication using MSAL Browser and MSAL Node.
 
 B2C samples:
 
 -   [b2c-user-flows](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/b2c-user-flows): Express app using OAuth2.0 authorization code flow.
-
-Others:
-
--   [msal-node-extensions](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/msal-node-extensions): Uses authorization code flow to acquire tokens and the [msal-extensions](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/) library to write the MSAL in-memory token cache to disk.
 
 ## Build and Test
 

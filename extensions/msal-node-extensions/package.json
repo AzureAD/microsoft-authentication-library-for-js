@@ -62,14 +62,8 @@
     "email": "nugetaad@microsoft.com",
     "url": "https://www.microsoft.com"
   },
-  "beachball": {
-    "disallowedChangeTypes": [
-      "major"
-    ]
-  },
   "dependencies": {
     "@azure/msal-common": "16.14.1",
-    "@azure/msal-node-runtime": "^0.20.0",
     "keytar": "^7.8.0"
   },
   "devDependencies": {

@@ -3,24 +3,39 @@
  * Licensed under the MIT License.
  */
 
+import { AuthorizationCodeClient } from "../../src/common/client/AuthorizationCodeClient.js";
+import { AuthenticationResult } from "../../src/common/response/AuthenticationResult.js";
+import * as CommonConstants from "../../src/common/utils/Constants.js";
 import {
-    AuthorizationCodeClient,
-    AuthenticationResult,
-    Constants as CommonConstants,
     createClientAuthError,
-    AccountEntity,
+    ClientAuthErrorCodes,
+} from "../../src/common/error/ClientAuthError.js";
+import { AccountEntity } from "../../src/common/cache/entities/AccountEntity.js";
+import {
     AccountInfo,
+    buildTenantProfile,
+} from "../../src/common/account/AccountInfo.js";
+import { TokenClaims } from "../../src/common/account/TokenClaims.js";
+import {
     createInteractionRequiredAuthError,
     InteractionRequiredAuthErrorCodes,
-    ClientAssertion,
-    AccountEntityUtils,
-    INetworkModule,
-    ClientAuthErrorCodes,
-} from "@azure/msal-common";
+} from "../../src/common/error/InteractionRequiredAuthError.js";
+import { ClientAssertion } from "../../src/common/account/ClientCredentials.js";
+import * as AccountEntityUtils from "../../src/common/cache/utils/AccountEntityUtils.js";
+import { INetworkModule } from "../../src/common/network/INetworkModule.js";
+import { Authority } from "../../src/common/authority/Authority.js";
+import { CacheManager } from "../../src/common/cache/CacheManager.js";
+import { CommonSilentFlowRequest } from "../../src/common/request/CommonSilentFlowRequest.js";
+import { AccessTokenEntity } from "../../src/common/cache/entities/AccessTokenEntity.js";
+import { IdTokenEntity } from "../../src/common/cache/entities/IdTokenEntity.js";
+import { RefreshTokenEntity } from "../../src/common/cache/entities/RefreshTokenEntity.js";
+import { ServerTelemetryManager } from "../../src/common/telemetry/server/ServerTelemetryManager.js";
+import * as TimeUtils from "../../src/common/utils/TimeUtils.js";
 import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     ID_TOKEN_CLAIMS,
     TEST_CONSTANTS,
+    TEST_DATA_CLIENT_INFO,
 } from "../utils/TestConstants.js";
 import {
     ConfidentialClientApplication,
@@ -31,8 +46,12 @@ import {
     AuthorizationCodeRequest,
     RefreshTokenRequest,
     SilentFlowRequest,
+    AuthorizationUrlRequest,
+    CryptoProvider,
+    TokenCache,
 } from "../../src/index.js";
 import {
+    AUTHENTICATION_RESULT,
     CAE_CONSTANTS,
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     TEST_CONFIG,
@@ -43,7 +62,6 @@ import {
     ClientTestUtils,
     getClientAssertionCallback,
 } from "./ClientTestUtils.js";
-import { buildAccountFromIdTokenClaims } from "msal-test-utils";
 import { Constants, MSAL_FORCE_REGION } from "../../src/utils/Constants.js";
 import jwt from "jsonwebtoken";
 import { NodeAuthError } from "../../src/error/NodeAuthError.js";
@@ -51,6 +69,9 @@ import { CommonClientCredentialRequest } from "../../src/request/CommonClientCre
 import * as NodeClientAuthErrorCodes from "../../src/error/ClientAuthErrorCodes.js";
 import { ClientApplication } from "../../src/client/ClientApplication.js";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient.js";
+import { HttpClient } from "../../src/network/HttpClient.js";
+import { NodeStorage } from "../../src/cache/NodeStorage.js";
+import { generateCredentialKey } from "../../src/cache/CacheHelpers.js";
 
 jest.mock("jsonwebtoken");
 
@@ -60,6 +81,40 @@ function createIdToken(idTokenClaims: Record<string, unknown>): string {
         Buffer.from(JSON.stringify(idTokenClaims)).toString("base64url"),
         "signature",
     ].join(".");
+}
+
+function buildAccountFromIdTokenClaims(
+    idTokenClaims: TokenClaims
+): AccountEntity {
+    const { oid, tid, preferred_username, emails, name, login_hint, upn } =
+        idTokenClaims;
+    const tenantId = tid || "";
+    const homeAccountId = `${oid}.${tid}`;
+    const accountInfo: AccountInfo = {
+        homeAccountId,
+        username: preferred_username || upn || emails?.[0] || "",
+        localAccountId: oid || "",
+        tenantId,
+        environment: "login.windows.net",
+        authorityType: "MSSTS",
+        name,
+        loginHint: login_hint,
+        upn,
+        tenantProfiles: new Map([
+            [
+                tenantId,
+                buildTenantProfile(
+                    homeAccountId,
+                    oid || "",
+                    tenantId,
+                    undefined,
+                    idTokenClaims
+                ),
+            ],
+        ]),
+    };
+
+    return AccountEntityUtils.createAccountEntityFromAccountInfo(accountInfo);
 }
 
 function createAuthCodeNetworkClient(
@@ -72,6 +127,64 @@ function createAuthCodeNetworkClient(
             id_token: createIdToken(idTokenClaims),
         },
     });
+}
+
+const refreshTestAccountEntity: AccountEntity =
+    buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+
+function createRefreshTestAccount(): AccountInfo {
+    return {
+        ...AccountEntityUtils.getAccountInfo(refreshTestAccountEntity),
+        idTokenClaims: ID_TOKEN_CLAIMS,
+        idToken: TEST_TOKENS.IDTOKEN_V2,
+    };
+}
+
+function createRefreshTestIdToken(): IdTokenEntity {
+    return {
+        homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+        environment: refreshTestAccountEntity.environment,
+        realm: ID_TOKEN_CLAIMS.tid,
+        secret: AUTHENTICATION_RESULT.body.id_token,
+        credentialType: CommonConstants.CredentialType.ID_TOKEN,
+        lastUpdatedAt: Date.now().toString(),
+    };
+}
+
+function createRefreshTestAccessToken(): AccessTokenEntity {
+    const cachedAt = `${TimeUtils.nowSeconds()}`;
+    return {
+        homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+        environment: refreshTestAccountEntity.environment,
+        realm: ID_TOKEN_CLAIMS.tid,
+        secret: AUTHENTICATION_RESULT.body.access_token,
+        target:
+            TEST_CONFIG.DEFAULT_SCOPES.join(" ") +
+            " " +
+            TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" "),
+        credentialType: CommonConstants.CredentialType.ACCESS_TOKEN,
+        cachedAt,
+        expiresOn: (
+            Number(cachedAt) + AUTHENTICATION_RESULT.body.expires_in
+        ).toString(),
+        refreshOn: `${Number(cachedAt) - 1}`,
+        tokenType: CommonConstants.AuthenticationScheme.BEARER,
+        lastUpdatedAt: Date.now().toString(),
+    };
+}
+
+function createRefreshTestRefreshToken(): RefreshTokenEntity {
+    return {
+        homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+        environment: refreshTestAccountEntity.environment,
+        realm: ID_TOKEN_CLAIMS.tid,
+        secret: AUTHENTICATION_RESULT.body.refresh_token,
+        credentialType: CommonConstants.CredentialType.REFRESH_TOKEN,
+        lastUpdatedAt: Date.now().toString(),
+    };
 }
 
 describe("ConfidentialClientApplication", () => {
@@ -151,6 +264,83 @@ describe("ConfidentialClientApplication", () => {
                 CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
             );
             expect(acquireTokenByCodeSpy).toHaveBeenCalledTimes(1);
+        });
+
+        test("acquireTokenByCode validates matching state", async () => {
+            const state = new CryptoProvider().createNewGuid();
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                state,
+            };
+            const authCodePayload = {
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                state,
+            };
+            const client = new ConfidentialClientApplication(config);
+
+            await expect(
+                client.acquireTokenByCode(request, authCodePayload)
+            ).resolves.toEqual(
+                expect.objectContaining({
+                    accessToken:
+                        CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body
+                            .access_token,
+                })
+            );
+        });
+
+        test("acquireTokenByCode rejects mismatched state", async () => {
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                state: new CryptoProvider().createNewGuid(),
+            };
+            const authCodePayload = {
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                state: new CryptoProvider().createNewGuid(),
+            };
+            const client = new ConfidentialClientApplication(config);
+
+            await expect(
+                client.acquireTokenByCode(request, authCodePayload)
+            ).rejects.toMatchObject(
+                createClientAuthError(ClientAuthErrorCodes.stateMismatch, "")
+            );
+        });
+
+        test("acquireTokenByCode rejects missing callback state", async () => {
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                state: new CryptoProvider().createNewGuid(),
+            };
+            const client = new ConfidentialClientApplication(config);
+
+            await expect(
+                client.acquireTokenByCode(request, {
+                    code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(ClientAuthErrorCodes.stateMismatch, "")
+            );
+        });
+
+        test("creates an authorization code URL", async () => {
+            const request: AuthorizationUrlRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            };
+            const client = new ConfidentialClientApplication(config);
+
+            const url = await client.getAuthCodeUrl(request);
+
+            expect(url).toContain(config.auth.clientId);
+            expect(url).toContain(encodeURIComponent(request.redirectUri));
+            expect(url).toContain(encodeURIComponent(request.scopes.join(" ")));
         });
 
         test.each([undefined, ""])(
@@ -371,6 +561,10 @@ describe("ConfidentialClientApplication", () => {
 
         const client: ConfidentialClientApplication =
             new ConfidentialClientApplication(config);
+        const overwriteCacheSpy = jest.spyOn(
+            TokenCache.prototype,
+            "overwriteCache"
+        );
 
         await expect(client.acquireTokenSilent(request)).rejects.toMatchObject(
             createInteractionRequiredAuthError(
@@ -378,7 +572,145 @@ describe("ConfidentialClientApplication", () => {
                 ""
             )
         );
+        expect(overwriteCacheSpy).toHaveBeenCalledTimes(1);
         expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1);
+    });
+
+    test("preserves failure telemetry when account is missing", async () => {
+        const requestError = createClientAuthError(
+            ClientAuthErrorCodes.noAccountInSilentRequest,
+            TEST_CONFIG.CORRELATION_ID
+        );
+        jest.spyOn(
+            ClientApplication.prototype,
+            <any>"acquireCachedTokenSilent"
+        ).mockRejectedValue(requestError);
+        const cacheFailedRequestSpy = jest
+            .spyOn(ServerTelemetryManager.prototype, "cacheFailedRequest")
+            .mockImplementation();
+        const client = new ConfidentialClientApplication(config);
+        const request = {
+            account: undefined,
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+        } as unknown as SilentFlowRequest;
+
+        await expect(client.acquireTokenSilent(request)).rejects.toMatchObject({
+            errorCode: ClientAuthErrorCodes.noAccountInSilentRequest,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+        });
+        expect(cacheFailedRequestSpy).toHaveBeenCalledWith(requestError);
+    });
+
+    test("acquireTokenSilent refreshes when refreshOn has passed", async () => {
+        jest.spyOn(
+            Authority.prototype,
+            <any>"getEndpointMetadataFromNetwork"
+        ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        AUTHENTICATION_RESULT.body.client_info =
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
+        jest.spyOn(
+            HttpClient.prototype,
+            "sendPostRequestAsync"
+        ).mockResolvedValue(AUTHENTICATION_RESULT);
+        jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
+            createRefreshTestIdToken()
+        );
+        jest.spyOn(CacheManager.prototype, "getAccessToken").mockReturnValue(
+            createRefreshTestAccessToken()
+        );
+        jest.spyOn(CacheManager.prototype, "getRefreshToken").mockReturnValue(
+            createRefreshTestRefreshToken()
+        );
+        jest.spyOn(NodeStorage.prototype, "getAccount").mockReturnValue(
+            refreshTestAccountEntity
+        );
+        jest.spyOn(CacheManager.prototype, "getAllAccounts").mockReturnValue([
+            createRefreshTestAccount(),
+        ]);
+
+        const request: CommonSilentFlowRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            account: createRefreshTestAccount(),
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false,
+        };
+        const client = new ConfidentialClientApplication({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
+                authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
+            },
+        });
+
+        await client.acquireTokenSilent(request);
+
+        const waitForRefreshedAccessToken = async (
+            cache: NodeStorage
+        ): Promise<AccessTokenEntity | null> => {
+            for (let attempt = 0; attempt < 400; attempt++) {
+                const accessTokenKey = cache
+                    .getKeys()
+                    .find((value) => value.includes("accesstoken"));
+                if (accessTokenKey) {
+                    return cache.getAccessTokenCredential(accessTokenKey);
+                }
+                await new Promise((resolve) => setTimeout(resolve, 1));
+            }
+            return null;
+        };
+
+        const refreshedAccessToken = await waitForRefreshedAccessToken(
+            // @ts-expect-error Test verifies the internal cache side effect.
+            client.storage
+        );
+        expect(refreshedAccessToken?.clientId).toEqual(
+            createRefreshTestAccessToken().clientId
+        );
+    });
+
+    test("coalesces equivalent concurrent silent requests", async () => {
+        let releaseRequest: (result: AuthenticationResult) => void = () => {};
+        const requestGate = new Promise<AuthenticationResult>((resolve) => {
+            releaseRequest = resolve;
+        });
+        const acquireTokenSilentAsyncSpy = jest
+            .spyOn(ClientApplication.prototype, <any>"acquireTokenSilentAsync")
+            .mockReturnValue(requestGate);
+        const testAccountEntity: AccountEntity =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        const testAccount: AccountInfo = {
+            ...AccountEntityUtils.getAccountInfo(testAccountEntity),
+            idTokenClaims: ID_TOKEN_CLAIMS,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
+        };
+        const client = new ConfidentialClientApplication(config);
+        const request: SilentFlowRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            account: testAccount,
+            authority: TEST_CONFIG.validAuthority,
+        };
+
+        const firstRequest = client.acquireTokenSilent({
+            ...request,
+            correlationId: "first-correlation-id",
+        });
+        const secondRequest = client.acquireTokenSilent({
+            ...request,
+            correlationId: "second-correlation-id",
+        });
+
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        expect(acquireTokenSilentAsyncSpy).toHaveBeenCalledTimes(1);
+
+        releaseRequest({ correlationId: "" } as AuthenticationResult);
+        await expect(
+            Promise.all([firstRequest, secondRequest])
+        ).resolves.toEqual([
+            { correlationId: "first-correlation-id" },
+            { correlationId: "second-correlation-id" },
+        ]);
     });
 
     test("does not coalesce silent requests with different redirect URIs", async () => {
@@ -465,6 +797,88 @@ describe("ConfidentialClientApplication", () => {
                 CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
             );
             expect(acquireTokenByClientCredentialSpy).toHaveBeenCalledTimes(1);
+        });
+
+        test("cached acquisition does not scale with unrelated credentials", async () => {
+            const runAcquisition = async (
+                unrelatedCredentialCount: number
+            ): Promise<{
+                credentialReads: number;
+                authorityWrites: number;
+            }> => {
+                const client = new ConfidentialClientApplication(config);
+                const request: ClientCredentialRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    skipCache: false,
+                };
+                await client.acquireTokenByClientCredential(request);
+
+                const storage = (client as unknown as { storage: NodeStorage })
+                    .storage;
+                const cache = { ...storage.getCache() };
+                for (let i = 0; i < unrelatedCredentialCount; i++) {
+                    const token: AccessTokenEntity = {
+                        homeAccountId: "",
+                        environment: "login.microsoftonline.com",
+                        credentialType:
+                            CommonConstants.CredentialType.ACCESS_TOKEN,
+                        clientId: `unrelated-client-${i}`,
+                        secret: `unrelated-token-${i}`,
+                        realm: TEST_CONFIG.TENANT,
+                        target: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE.join(" "),
+                        cachedAt: "1000",
+                        expiresOn: "4102444800",
+                        lastUpdatedAt: "1000",
+                    };
+                    cache[generateCredentialKey(token)] = token;
+                }
+                storage.setCache(cache);
+
+                const rebuildSpy = jest.spyOn(
+                    storage as unknown as { rebuildIndexes: () => void },
+                    "rebuildIndexes"
+                );
+                const getKeysSpy = jest.spyOn(storage, "getKeys");
+                const getTokenKeysSpy = jest.spyOn(storage, "getTokenKeys");
+                const credentialReadSpy = jest.spyOn(
+                    storage,
+                    "getAccessTokenCredential"
+                );
+                const authorityWriteSpy = jest.spyOn(
+                    storage,
+                    "setAuthorityMetadata"
+                );
+
+                const result = await client.acquireTokenByClientCredential(
+                    request
+                );
+                expect(result?.fromCache).toBe(true);
+                expect(rebuildSpy).not.toHaveBeenCalled();
+                expect(getKeysSpy).not.toHaveBeenCalled();
+                expect(getTokenKeysSpy).not.toHaveBeenCalled();
+                expect(
+                    credentialReadSpy.mock.calls.some(([key]) =>
+                        key.includes("unrelated-client-")
+                    )
+                ).toBe(false);
+                expect(authorityWriteSpy).toHaveBeenCalled();
+
+                const counts = {
+                    credentialReads: credentialReadSpy.mock.calls.length,
+                    authorityWrites: authorityWriteSpy.mock.calls.length,
+                };
+                rebuildSpy.mockRestore();
+                getKeysSpy.mockRestore();
+                getTokenKeysSpy.mockRestore();
+                credentialReadSpy.mockRestore();
+                authorityWriteSpy.mockRestore();
+                return counts;
+            };
+
+            const smallCache = await runAcquisition(0);
+            const largeCache = await runAcquisition(5001);
+
+            expect(largeCache).toEqual(smallCache);
         });
 
         describe("clientAssertion is used to acquire a token after being provided in the request", () => {

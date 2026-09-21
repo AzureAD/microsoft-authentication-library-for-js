@@ -3,11 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AccountInfo,
-    Constants,
-    CredentialEntity,
-} from "@azure/msal-common/node";
+import { AccountInfo } from "../common/account/AccountInfo.js";
+import * as Constants from "../common/utils/Constants.js";
+import { CredentialEntity } from "../common/cache/entities/CredentialEntity.js";
 import { createHash } from "crypto";
 import { CACHE } from "../utils/Constants.js";
 
@@ -30,7 +28,7 @@ import { CACHE } from "../utils/Constants.js";
  * resulting hash is a stable cross-SDK cache key. The final credential key is lowercased
  * downstream in `generateCredentialKey`.
  */
-function computeAdditionalCacheKeyHash(
+export function computeAdditionalCacheKeyHash(
     components: Record<string, string>
 ): string {
     const sortedKeys = Object.keys(components).sort();

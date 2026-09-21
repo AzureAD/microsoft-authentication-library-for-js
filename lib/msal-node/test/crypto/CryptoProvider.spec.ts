@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { ClientAuthErrorCodes, PkceCodes } from "@azure/msal-common";
+import { ClientAuthErrorCodes } from "../../src/common/error/ClientAuthError.js";
+import { PkceCodes } from "../../src/common/crypto/ICrypto.js";
 import { CryptoProvider } from "./../../src/crypto/CryptoProvider.js";
 import { GuidGenerator } from "./../../src/crypto/GuidGenerator.js";
 import { TEST_CONSTANTS } from "../utils/TestConstants.js";
