@@ -95,7 +95,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             });
         });
 
-        it("should return undefined when DOM APIs are not available for platform auth", async () => {
+        it("should return undefined when the DOM contract is not supported", async () => {
             getSupportedContractsMock.mockResolvedValue([]);
             const platformAuthDOMHandler =
                 await PlatformAuthDOMHandler.createProvider(
@@ -105,6 +105,41 @@ describe("PlatformAuthDOMHandler tests", () => {
                 );
             expect(getSupportedContractsMock).toHaveBeenCalled();
             expect(platformAuthDOMHandler).toBe(undefined);
+        });
+
+        it("should emit a failed measurement when the DOM API is not available", async () => {
+            Object.defineProperty(window.navigator, "platformAuthentication", {
+                value: undefined,
+                writable: true,
+            });
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
+
+            const platformAuthDOMHandler =
+                await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                );
+
+            expect(getSupportedContractsMock).not.toHaveBeenCalled();
+            expect(platformAuthDOMHandler).toBeUndefined();
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.PlatformAuthDOMCreateProvider
+                    )
+            ).toMatchObject({
+                correlationId: "test-correlation-id",
+                success: false,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+            });
         });
     });
 

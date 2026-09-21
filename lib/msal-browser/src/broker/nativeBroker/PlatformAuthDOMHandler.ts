@@ -68,7 +68,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             ).platformAuthentication;
             if (!platformAuthentication) {
                 createProviderMeasurement.end({
-                    success: true,
+                    success: false,
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
                 });
