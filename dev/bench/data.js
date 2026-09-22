@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790102550423,
+  "lastUpdate": 1790117744375,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23771,6 +23771,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.76%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "addecb9215223dac9dca3affcd813ec2487c17c4",
+          "message": "[NAA/PWB One Bridge] PR 6/6 companion: Share bridge performance event names (#8832)\n\n## Summary\n\nAdds the shared web-broker-bridge performance-event vocabulary needed by\nthe final 1P cleanup PR while preserving every existing telemetry event\nname byte-for-byte.\n\n## Changes\n\n- Add `webBrokerBridge/PerfEventNames.ts` with the existing PWB bridge\nevent-name constants.\n- Export the constants from `@azure/msal-browser/web-broker-bridge`.\n- Add literal-equivalence regression coverage for every relocated event\nname.\n\n## Related work\n\n- AB#3696874 — [NAA/PWB One Bridge] PR-6 (1P): perf-event constant\nrelocation + cleanup\n- The matching 1P PR re-exports these constants from its existing\n`PerformanceEvents.ts` surface.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: refactor\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#3696874\n<!-- END pr-telemetry -->\n\n---------\n\nCo-authored-by: Konstantin Shabelko <kshabelko@microsoft.com>\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>\nCopilot-Session: 9dd128c5-5394-41e8-86ff-d941b1db82a7\nCopilot-Session: ca3c10f4-86e2-4013-80ed-39a56f144c36",
+          "timestamp": "2026-09-22T15:46:45-07:00",
+          "tree_id": "0bd095491b94becf19bfb79ac4bb5e24b47db2c2",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/addecb9215223dac9dca3affcd813ec2487c17c4"
+        },
+        "date": 1790117740845,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 392628,
+            "range": "±0.73%",
+            "unit": "ops/sec",
+            "extra": "239 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 395749,
+            "range": "±0.86%",
+            "unit": "ops/sec",
+            "extra": "238 samples"
           }
         ]
       }
