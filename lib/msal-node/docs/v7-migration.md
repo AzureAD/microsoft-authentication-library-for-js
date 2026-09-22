@@ -34,11 +34,12 @@ const result = await pca.acquireTokenInteractive({
 });
 ```
 
-Requests created by `acquireTokenInteractive` always contain `response_mode=form_post`. JavaScript
-applications and applications compiled against an earlier MSAL Node version receive
-`invalid_response_mode` if they supply `query`, `fragment`, or an unrecognized value. A legacy
-explicit `form_post` value remains accepted at runtime, but is no longer part of the TypeScript
-request contract.
+Requests created for the browser-loopback path always contain `response_mode=form_post`.
+JavaScript applications and applications compiled against an earlier MSAL Node version receive
+`invalid_response_mode` if they supply `query`, `fragment`, or an unrecognized value to that path.
+A legacy explicit `form_post` value remains accepted at runtime, but is no longer part of the
+TypeScript request contract. Native-broker requests dispatch before this browser-only validation
+and continue forwarding legacy response-mode values to the broker.
 
 ## Loopback GET callbacks
 
