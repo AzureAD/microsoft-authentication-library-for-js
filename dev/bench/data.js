@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790097401943,
+  "lastUpdate": 1790102550423,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23733,6 +23733,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.80%",
             "unit": "ops/sec",
             "extra": "234 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fe9de8e48959ffac1afab8e6fe626cb679a7d1b4",
+          "message": "Remove acquireTokenInteractive responseMode in v7 (#8852)\n\n## Summary\n\n- remove `responseMode` from `InteractiveRequest`\n- require `form_post` for browser-loopback `acquireTokenInteractive`\n- preserve native-broker dispatch before browser-only validation\n- reject OAuth-bearing loopback GET callbacks while retaining harmless\nGET requests\n\n## Dependency\n\nThe v6 deprecation shipped through #8851. This PR now targets `dev`.\n\nAB#3761328\n\n## Breaking changes\n\n- TypeScript callers can no longer set `responseMode` on\n`InteractiveRequest`.\n- JavaScript and previously compiled browser-loopback callers receive\n`invalid_response_mode` for `query`, `fragment`, and unknown values.\n- Identity providers that ignore `response_mode=form_post` and return\nquery callbacks are rejected.\n\nA legacy explicit `form_post` value remains accepted at runtime, but is\nno longer part of the TypeScript contract. Native-broker requests\ncontinue to dispatch before browser-only validation.\n\n## Unchanged\n\n- native-broker runtime dispatch\n- `getAuthCodeUrl`\n- confidential-client and manually hosted authorization-code flows\n- global response-mode constants\n- harmless loopback GET requests and valid form-post callbacks\n\n## Validation\n\n- `npm run build:all`\n- `npm run lint`\n- `npm test -- --runInBand` — 493 passed, 2 skipped\n- `npm run format:check`\n- `npm run apiExtractor`\n- `npm run beachball:check`\n- `msal-browser-1p` consumer build, lint, and tests — 546 passed\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: security\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#3761328\n<!-- END pr-telemetry -->\n\n---------\n\nCopilot-Session: f601ae89-230d-494e-aa1a-15373efb6698",
+          "timestamp": "2026-09-22T11:32:59-07:00",
+          "tree_id": "83418321468f2eb2425e98b9698053707249be86",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/fe9de8e48959ffac1afab8e6fe626cb679a7d1b4"
+        },
+        "date": 1790102546939,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 380919,
+            "range": "±0.90%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 378239,
+            "range": "±0.76%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
