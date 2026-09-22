@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Persist rejected refresh token removal through the cache plugin without removing a replacement token.",
+    "comment": "Persist rejected refresh token removal through the cache plugin without removing a replacement token. [#8854](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8854)",
     "packageName": "@azure/msal-common",
     "email": "1039553124@qq.com",
     "dependentChangeType": "patch"
