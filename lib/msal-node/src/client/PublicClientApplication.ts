@@ -204,13 +204,14 @@ export class PublicClientApplication
 
         const loopbackClient = new LoopbackClient(preferredPort);
 
-        // Validate and resolve responseMode
-        const responseMode =
-            remainingProperties.responseMode ??
-            CommonConstants.ResponseMode.FORM_POST;
+        const responseMode = (
+            remainingProperties as typeof remainingProperties & {
+                responseMode?: unknown;
+            }
+        ).responseMode;
 
         if (
-            responseMode !== CommonConstants.ResponseMode.QUERY &&
+            responseMode !== undefined &&
             responseMode !== CommonConstants.ResponseMode.FORM_POST
         ) {
             throw createClientConfigurationError(
@@ -243,7 +244,7 @@ export class PublicClientApplication
                 correlationId: correlationId,
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
                 redirectUri: redirectUri,
-                responseMode: responseMode,
+                responseMode: CommonConstants.ResponseMode.FORM_POST,
                 codeChallenge: challenge,
                 codeChallengeMethod:
                     CommonConstants.CodeChallengeMethodValues.S256,

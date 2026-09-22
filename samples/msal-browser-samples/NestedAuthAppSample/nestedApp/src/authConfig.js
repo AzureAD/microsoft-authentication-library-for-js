@@ -41,7 +41,7 @@ export const msalConfig = {
     },
 };
 
-const TEST_SLICE = { dc: "ESTS-PUB-EUS-FD000-TEST1-100" };
+const TEST_SLICE_1 = { dc: "ESTS-PUB-EUS-FD000-TEST1-100" };
 
 // The nested app requests tokens through the host bridge, so these extra params
 // do not themselves reach ESTS (the host applies its own `brokerExtraParams` to
@@ -49,6 +49,6 @@ const TEST_SLICE = { dc: "ESTS-PUB-EUS-FD000-TEST1-100" };
 // to document the intended test slice on both the authorize and token requests.
 export const loginRequest = {
     scopes: ["User.Read"],
-    extraQueryParameters: { ...TEST_SLICE },
-    extraParameters: { ...TEST_SLICE },
+    extraQueryParameters: { ...TEST_SLICE_1 },
+    extraParameters: { ...TEST_SLICE_1 },
 };
