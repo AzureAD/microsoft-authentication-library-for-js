@@ -71,7 +71,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         this.performanceClient = performanceClient;
         this.correlationId = correlationId || createNewGuid();
         this.handshakeEvent = this.performanceClient.startMeasurement(
-            BrowserPerformanceEvents.NativeMessageHandlerHandshake
+            BrowserPerformanceEvents.NativeMessageHandlerHandshake,
+            this.correlationId
         );
         this.platformAuthType =
             PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER;
