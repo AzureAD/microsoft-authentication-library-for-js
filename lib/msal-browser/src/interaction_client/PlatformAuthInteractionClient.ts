@@ -336,6 +336,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             ).asArray(),
             account: cachedAccount,
             forceRefresh: false,
+            resource: request.extraParameters?.resource,
         };
 
         // Preserve FMI partition semantics for silent cache filtering.
@@ -1018,6 +1019,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 request.keyId,
                 additionalCacheKeyComponents
             );
+
+        if (request.extraParameters?.resource) {
+            cachedAccessToken.resource = request.extraParameters.resource;
+        }
 
         // save idtoken credential in configured browser storage
         if (!!cachedIdToken && storeInCache?.idToken !== false) {
