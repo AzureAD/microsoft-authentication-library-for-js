@@ -28,7 +28,7 @@ import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEve
 export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     protected logger: Logger;
     protected performanceClient: IPerformanceClient;
-    protected correlationId: string;
+    protected readonly correlationId: string;
     platformAuthType: string;
 
     constructor(
@@ -147,9 +147,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     async sendMessage(
         request: PlatformAuthRequest
     ): Promise<PlatformAuthResponse> {
-        const correlationId = request.correlationId || this.correlationId;
+        const correlationId = this.getCorrelationId(request.correlationId);
         const sendMessageMeasurement = this.performanceClient.startMeasurement(
-            BrowserPerformanceEvents.PlatformAuthDOMSendMessage,
+            BrowserPerformanceEvents.PlatformAuthDOMGetToken,
             correlationId
         );
         this.logger.trace(
@@ -193,11 +193,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     private initializePlatformDOMRequest(
         request: PlatformAuthRequest
     ): PlatformDOMTokenRequest {
-        this.logger.trace(
-            `'${this.platformAuthType}' - initializeNativeDOMRequest called`,
-            request.correlationId
-        );
-
         const {
             accountId,
             clientId,
@@ -213,19 +208,24 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             extraParameters,
             ...remainingProperties
         } = request;
+        const requestCorrelationId = this.getCorrelationId(correlationId);
+        this.logger.trace(
+            `'${this.platformAuthType}' - initializeNativeDOMRequest called`,
+            requestCorrelationId
+        );
         delete remainingProperties.resourceRequestMethod;
         delete remainingProperties.resourceRequestUri;
 
         const validExtraParameters: DOMExtraParameters = this.getDOMExtraParams(
             remainingProperties,
-            correlationId
+            requestCorrelationId
         );
         const platformDOMRequest: PlatformDOMTokenRequest = {
             accountId: accountId,
             brokerId: this.getExtensionId(),
             authority: authority,
             clientId: clientId,
-            correlationId: correlationId || this.correlationId,
+            correlationId: requestCorrelationId,
             extraParameters: {
                 ...extraParameters,
                 ...validExtraParameters,
@@ -245,9 +245,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
 
     private validatePlatformBrokerResponse(
         response: object,
-        correlationId: string
+        correlationId?: string
     ): PlatformAuthResponse {
-        const responseCorrelationId = correlationId || this.correlationId;
+        const responseCorrelationId = this.getCorrelationId(correlationId);
         const validationMeasurement = this.performanceClient.startMeasurement(
             BrowserPerformanceEvents.PlatformAuthDOMValidateResponse,
             responseCorrelationId
@@ -321,6 +321,10 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             error
         );
         throw error;
+    }
+
+    private getCorrelationId(correlationId?: string): string {
+        return correlationId || this.correlationId;
     }
 
     private convertToPlatformBrokerResponse(

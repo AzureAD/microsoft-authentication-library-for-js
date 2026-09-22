@@ -423,7 +423,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                     .find(
                         (event) =>
                             event.name ===
-                            BrowserPerformanceEvents.PlatformAuthExtensionSendMessage
+                            BrowserPerformanceEvents.PlatformAuthExtensionGetToken
                     )
             ).toMatchObject({
                 correlationId: TEST_REQUEST.correlationId,
@@ -628,7 +628,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                                 .find(
                                     (event) =>
                                         event.name ===
-                                        BrowserPerformanceEvents.PlatformAuthExtensionSendMessage
+                                        BrowserPerformanceEvents.PlatformAuthExtensionGetToken
                                 )
                         ).toMatchObject({
                             correlationId: TEST_REQUEST.correlationId,
@@ -692,7 +692,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 .filter(
                     (event) =>
                         event.name ===
-                        BrowserPerformanceEvents.PlatformAuthExtensionSendMessage
+                        BrowserPerformanceEvents.PlatformAuthExtensionGetToken
                 );
             expect(sendEvents).toHaveLength(1);
             expect(sendEvents[0]).toMatchObject({

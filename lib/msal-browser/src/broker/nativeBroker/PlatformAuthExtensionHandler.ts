@@ -84,9 +84,9 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     async sendMessage(
         request: PlatformAuthRequest
     ): Promise<PlatformAuthResponse> {
-        const correlationId = request.correlationId || this.correlationId;
+        const correlationId = this.getCorrelationId(request.correlationId);
         const sendMessageMeasurement = this.performanceClient.startMeasurement(
-            BrowserPerformanceEvents.PlatformAuthExtensionSendMessage,
+            BrowserPerformanceEvents.PlatformAuthExtensionGetToken,
             correlationId
         );
         this.logger.trace(
@@ -182,7 +182,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 PlatformAuthConstants.PREFERRED_EXTENSION_ID,
                 correlationId
             );
-            await preferredProvider.sendHandshakeRequest(correlationId);
+            await preferredProvider.sendHandshakeRequest();
             createProviderMeasurement.end({
                 success: true,
                 platformAuthProviderType:
@@ -199,7 +199,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                     undefined,
                     correlationId
                 );
-                await backupProvider.sendHandshakeRequest(correlationId);
+                await backupProvider.sendHandshakeRequest();
                 createProviderMeasurement.end({
                     success: true,
                     platformAuthProviderType:
@@ -223,10 +223,10 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
     /**
      * Send handshake request helper.
      */
-    private async sendHandshakeRequest(correlationId: string): Promise<void> {
+    private async sendHandshakeRequest(): Promise<void> {
         this.logger.trace(
             `'${this.platformAuthType}' - sendHandshakeRequest called.`,
-            correlationId
+            this.correlationId
         );
         // Register this event listener before sending handshake
         window.addEventListener("message", this.windowListener, false); // false is important, because content script message processing should work first
@@ -242,7 +242,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         this.handshakeEvent.add({
             extensionId: this.extensionId,
             extensionHandshakeTimeoutMs: this.handshakeTimeoutMs,
-            platformAuthRequestCorrelationId: correlationId,
+            platformAuthRequestCorrelationId: this.correlationId,
         });
 
         this.messageChannel.port1.onmessage = (event) => {
@@ -255,7 +255,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             this.handshakeResolvers.set(req.responseId, {
                 resolve,
                 reject,
-                correlationId,
+                correlationId: this.correlationId,
             });
             this.timeoutId = window.setTimeout(() => {
                 /*
@@ -276,7 +276,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 reject(
                     createBrowserAuthError(
                         BrowserAuthErrorCodes.nativeHandshakeTimeout,
-                        correlationId
+                        this.correlationId
                     )
                 );
                 this.handshakeResolvers.delete(req.responseId);
@@ -504,11 +504,12 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
      */
     private validatePlatformBrokerResponse(
         response: object,
-        correlationId: string = this.correlationId
+        correlationId?: string
     ): PlatformAuthResponse {
+        const responseCorrelationId = this.getCorrelationId(correlationId);
         const validationMeasurement = this.performanceClient.startMeasurement(
             BrowserPerformanceEvents.PlatformAuthExtensionValidateResponse,
-            correlationId
+            responseCorrelationId
         );
         if (
             response &&
@@ -527,7 +528,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         } else {
             const error = createAuthError(
                 AuthErrorCodes.unexpectedError,
-                correlationId,
+                responseCorrelationId,
                 "Response missing expected properties."
             );
             validationMeasurement.end(
@@ -539,6 +540,10 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             );
             throw error;
         }
+    }
+
+    private getCorrelationId(correlationId?: string): string {
+        return correlationId || this.correlationId;
     }
 
     /**

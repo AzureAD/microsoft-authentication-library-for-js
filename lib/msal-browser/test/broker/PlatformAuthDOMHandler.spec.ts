@@ -292,7 +292,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                     .find(
                         (event) =>
                             event.name ===
-                            BrowserPerformanceEvents.PlatformAuthDOMSendMessage
+                            BrowserPerformanceEvents.PlatformAuthDOMGetToken
                     )
             ).toMatchObject({
                 correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -381,7 +381,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                         .find(
                             (event) =>
                                 event.name ===
-                                BrowserPerformanceEvents.PlatformAuthDOMSendMessage
+                                BrowserPerformanceEvents.PlatformAuthDOMGetToken
                         )
                 ).toMatchObject({
                     correlationId: TEST_CONFIG.CORRELATION_ID,
