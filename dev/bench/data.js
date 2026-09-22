@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790072779291,
+  "lastUpdate": 1790094730308,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23657,6 +23657,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.80%",
             "unit": "ops/sec",
             "extra": "213 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sampada.iithawk@gmail.com",
+            "name": "Sampada",
+            "username": "PingaleSampada"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "dc2519196395c2f5b171027e074133ca792a0ebb",
+          "message": "Fix platform broker cache isolation by resource (#8848)\n\n## Summary\n\n- Prevent a cached platform broker access token for one MCP resource\nfrom satisfying a request for another resource with the same scopes.\n- Preserve `resource` when writing native access tokens and when\nconstructing silent cache requests.\n- Add a sequential Resource A/Resource B regression test that verifies a\nsecond broker call and the correct cached resource.\n\n## Root cause\n\nThe platform broker forwarded `resource` to the native token request but\nomitted it from both the cached access-token entity and the silent cache\nrequest. The existing resource-mismatch check therefore had no resource\nvalue to compare and could reuse a token issued for a different\nresource.\n\n## Validation\n\n- `npm run build:all`\n- `npm test` (full `msal-browser` suite)\n- Focused `PlatformAuthInteractionClient` suite (74 tests passed)\n- `npm run lint`\n- `npm run format:check`\n- `npm run apiExtractor`\n- `npm run beachball:check`\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-ide\ntype: security\nagent-tool: copilot-chat\nagent-model: n/a\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\n---------\n\nCo-authored-by: Sampada <spingale@microsoft.com>",
+          "timestamp": "2026-09-22T16:20:33Z",
+          "tree_id": "585cdc784e5af09c2b4796de73c9ccb592f1af89",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/dc2519196395c2f5b171027e074133ca792a0ebb"
+        },
+        "date": 1790094725987,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 462768,
+            "range": "±0.76%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 441667,
+            "range": "±0.95%",
+            "unit": "ops/sec",
+            "extra": "214 samples"
           }
         ]
       }
