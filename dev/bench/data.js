@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790029320054,
+  "lastUpdate": 1790072779291,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23619,6 +23619,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.79%",
             "unit": "ops/sec",
             "extra": "238 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ydi.w127@gmail.com",
+            "name": "Yongdi Wang",
+            "username": "yongdiw"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "193e1008ad667a3781ddc0e2c2e05c6d4a0b8456",
+          "message": "feat(msal-browser): add Native Auth V2 flows (#8830)\n\n## Summary\n\n- add the Native Auth V2 password reset, sign-in, sign-up, and\ncontinuation flows\n- add email OTP and password sign-in with distinct MFA selection and\nverification states\n- add SMS MFA and SMS password-reset challenge handling\n- preserve V1 behavior while exposing the additive V2 public surface\n\n## Validation\n\n- focused V2 network, interaction, sign-in, sign-up, and password-reset\nsuites\n- MSAL Browser declaration build\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCopilot-Session: 73173219-90a6-4d29-8124-d1245009f8ab\nCopilot-Session: 6185ecb7-4d8a-460f-be77-d874223e67cb\nCopilot-Session: 85d0bcba-c75f-4ceb-8ee2-e08150169f39",
+          "timestamp": "2026-09-22T11:17:51+01:00",
+          "tree_id": "58ce2aaf03614cc5acac1f8b32a3621b70974134",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/193e1008ad667a3781ddc0e2c2e05c6d4a0b8456"
+        },
+        "date": 1790072775048,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 367262,
+            "range": "±0.74%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 348827,
+            "range": "±0.80%",
+            "unit": "ops/sec",
+            "extra": "213 samples"
           }
         ]
       }
