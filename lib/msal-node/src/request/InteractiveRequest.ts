@@ -10,8 +10,16 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common/node";
  * @public
  */
 export type InteractiveRequest = Partial<
-    Omit<CommonAuthorizationUrlRequest, "scopes" | "storeInCache">
+    Omit<
+        CommonAuthorizationUrlRequest,
+        "scopes" | "storeInCache" | "responseMode"
+    >
 > & {
+    /**
+     * Selects how the authorization response is returned to the loopback server.
+     * @deprecated Omit this property to use `form_post`. Interactive response-mode selection will be removed in MSAL Node v7.
+     */
+    responseMode?: CommonAuthorizationUrlRequest["responseMode"];
     /**
      * Function to open a browser instance on user's system.
      */

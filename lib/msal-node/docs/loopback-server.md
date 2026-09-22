@@ -12,7 +12,9 @@ The loopback server is a core component of `msal-node`'s interactive authenticat
 
 ## Response Modes
 
-The loopback server supports two response modes that control how the authorization code is delivered. `form_post` is the default as of v6; `query` remains available as an opt-in for backward compatibility.
+The loopback server supports two response modes that control how the authorization code is delivered. `form_post` is the default as of v6; `query` remains available as a deprecated opt-in for backward compatibility and will be removed from `acquireTokenInteractive` in MSAL Node v7.
+
+> **Deprecated:** The `responseMode` option on `acquireTokenInteractive` is deprecated in v6. Omit it to use `form_post`. Interactive response-mode selection will be removed in v7.
 
 ### `form_post` (default)
 
@@ -43,7 +45,7 @@ The authorization code is delivered as a query parameter in a GET request:
 GET /?code=AUTH_CODE&state=STATE HTTP/1.1
 ```
 
-The server performs a 302 redirect once it has received the authorization code. As of v6 `query` is no longer the default; opt in explicitly if you need it:
+The server performs a 302 redirect once it has received the authorization code. As of v6 `query` is no longer the default. Existing applications may still opt in during v6, but should migrate to `form_post` before upgrading to v7:
 
 ```typescript
 const result = await pca.acquireTokenInteractive({

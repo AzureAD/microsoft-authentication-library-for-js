@@ -1592,6 +1592,7 @@ describe("PublicClientApplication", () => {
         });
 
         test("acquireTokenInteractive - defaults responseMode to form_post when omitted", async () => {
+            const warningSpy = jest.spyOn(Logger.prototype, "warning");
             const authApp = new PublicClientApplication(appConfig);
 
             const openBrowser = (url: string) => {
@@ -1657,9 +1658,11 @@ describe("PublicClientApplication", () => {
                 mockAuthenticationResult.accessToken
             );
             expect(getAuthCodeUrlSpy).toHaveBeenCalledTimes(1);
+            expect(warningSpy).not.toHaveBeenCalled();
         });
 
         test("acquireTokenInteractive - honors explicit responseMode of query", async () => {
+            const warningSpy = jest.spyOn(Logger.prototype, "warning");
             const authApp = new PublicClientApplication(appConfig);
 
             const openBrowser = (url: string) => {
@@ -1726,9 +1729,16 @@ describe("PublicClientApplication", () => {
                 mockAuthenticationResult.accessToken
             );
             expect(getAuthCodeUrlSpy).toHaveBeenCalledTimes(1);
+            expect(warningSpy).toHaveBeenCalledWith(
+                expect.stringContaining(
+                    "responseMode option for acquireTokenInteractive is deprecated"
+                ),
+                expect.any(String)
+            );
         });
 
         test("acquireTokenInteractive - honors explicit responseMode of form_post", async () => {
+            const warningSpy = jest.spyOn(Logger.prototype, "warning");
             const authApp = new PublicClientApplication(appConfig);
 
             const openBrowser = (url: string) => {
@@ -1795,6 +1805,47 @@ describe("PublicClientApplication", () => {
                 mockAuthenticationResult.accessToken
             );
             expect(getAuthCodeUrlSpy).toHaveBeenCalledTimes(1);
+            expect(warningSpy).toHaveBeenCalledWith(
+                expect.stringContaining(
+                    "responseMode option for acquireTokenInteractive is deprecated"
+                ),
+                expect.any(String)
+            );
+        });
+
+        test("acquireTokenInteractive - preserves responseMode for native broker requests", async () => {
+            const warningSpy = jest.spyOn(Logger.prototype, "warning");
+            const brokerPlugin = new MockNativeBrokerPlugin();
+            const authApp = new PublicClientApplication({
+                ...appConfig,
+                broker: {
+                    nativeBrokerPlugin: brokerPlugin,
+                },
+            });
+            const brokerSpy = jest.spyOn(
+                brokerPlugin,
+                "acquireTokenInteractive"
+            );
+            const request: InteractiveRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                openBrowser: jest.fn(),
+                responseMode: CommonConstants.ResponseMode.QUERY,
+            };
+
+            await authApp.acquireTokenInteractive(request);
+
+            expect(brokerSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    responseMode: CommonConstants.ResponseMode.QUERY,
+                }),
+                undefined
+            );
+            expect(warningSpy).toHaveBeenCalledWith(
+                expect.stringContaining(
+                    "responseMode option for acquireTokenInteractive is deprecated"
+                ),
+                expect.any(String)
+            );
         });
 
         test("acquireTokenInteractive - calls into NativeBrokerPlugin and returns result", async () => {
@@ -2021,6 +2072,7 @@ describe("PublicClientApplication", () => {
         });
 
         test("acquireTokenInteractive throws invalid_response_mode for fragment responseMode", async () => {
+            const warningSpy = jest.spyOn(Logger.prototype, "warning");
             const authApp = new PublicClientApplication(appConfig);
             const request: InteractiveRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
@@ -2033,9 +2085,16 @@ describe("PublicClientApplication", () => {
             ).rejects.toMatchObject({
                 errorCode: ClientConfigurationErrorCodes.invalidResponseMode,
             });
+            expect(warningSpy).toHaveBeenCalledWith(
+                expect.stringContaining(
+                    "responseMode option for acquireTokenInteractive is deprecated"
+                ),
+                expect.any(String)
+            );
         });
 
         test("acquireTokenInteractive throws invalid_response_mode for an unrecognized responseMode", async () => {
+            const warningSpy = jest.spyOn(Logger.prototype, "warning");
             const authApp = new PublicClientApplication(appConfig);
             const request: InteractiveRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
@@ -2049,6 +2108,12 @@ describe("PublicClientApplication", () => {
             ).rejects.toMatchObject({
                 errorCode: ClientConfigurationErrorCodes.invalidResponseMode,
             });
+            expect(warningSpy).toHaveBeenCalledWith(
+                expect.stringContaining(
+                    "responseMode option for acquireTokenInteractive is deprecated"
+                ),
+                expect.any(String)
+            );
         });
 
         test("acquireTokenInteractive resets redirectUri when broker fallback occurs", async () => {
