@@ -33,6 +33,10 @@ export const NodeAuthErrorMessage = {
         code: "loopback_server_timeout",
         desc: "Timed out waiting for auth code listener to be registered.",
     },
+    loopbackServerQueryResponseNotSupported: {
+        code: "loopback_server_query_response_not_supported",
+        desc: "The loopback server received an OAuth response in the URL. Interactive authentication requires form_post.",
+    },
     stateNotFoundError: {
         code: "state_not_found",
         desc: "State not found. Please verify that the request originated from msal.",
@@ -124,6 +128,17 @@ export class NodeAuthError extends AuthError {
             NodeAuthErrorMessage.loopbackServerTimeout.code,
             correlationId,
             `${NodeAuthErrorMessage.loopbackServerTimeout.desc}`
+        );
+    }
+
+    /**
+     * Creates an error thrown if the loopback server receives an OAuth response in a query string.
+     */
+    static createLoopbackServerQueryResponseNotSupportedError(): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.loopbackServerQueryResponseNotSupported.code,
+            "",
+            NodeAuthErrorMessage.loopbackServerQueryResponseNotSupported.desc
         );
     }
 
