@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790094730308,
+  "lastUpdate": 1790097401943,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23695,6 +23695,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.95%",
             "unit": "ops/sec",
             "extra": "214 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "dad91a37f1c93c83391645b64a3673b1236dbce5",
+          "message": "Deprecate acquireTokenInteractive responseMode (#8851)\n\n## Summary\n\n- deprecate `InteractiveRequest.responseMode` for\n`acquireTokenInteractive`\n- retain existing v6 behavior for omitted, `form_post`, and `query`\nresponse modes\n- log a deprecation warning whenever callers explicitly supply\n`responseMode`\n- preserve native-broker dispatch and announce response-mode removal in\nMSAL Node v7\n\n## Context\n\nThe MSAL Node v6 design review approved hardcoding POST and removing\nquery-string/fragment fallback. That decision was not reflected in the\nmerged design, and released v6 documentation explicitly retained query\nas an opt-in.\n\nRemoving query immediately would therefore break a documented v6\ncontract without a prior deprecation period. This PR introduces the\nnon-breaking v6 phase of the correction. A separate v7 major-version PR\nwill remove interactive response-mode selection and harden the loopback\nserver against OAuth-bearing GET callbacks.\n\nAB#3682357\n\n## Behavior\n\n- omitted `responseMode`: continues to use `form_post` without a warning\n- explicit `form_post`: continues working and logs a deprecation warning\n- explicit `query`: continues working and logs a deprecation warning\n- `fragment` and unknown browser-loopback values: continue to throw\n`invalid_response_mode`\n- native-broker requests: continue to dispatch without browser-loopback\nvalidation\n\nThis PR does not change `getAuthCodeUrl`, confidential-client flows,\nmanual redirect handlers, loopback GET parsing, or global response-mode\nconstants.\n\n## Validation\n\n- `npm run build:all`\n- `npm run lint`\n- `npm test -- --runInBand` — 491 passed, 2 skipped\n- `npm run format:check`\n- `npm run apiExtractor`\n- `npm run beachball:check`\n- `msal-browser-1p` consumer build, lint, and tests — 546 passed\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: security\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#3682357\n<!-- END pr-telemetry -->\n\n---------\n\nCopilot-Session: f601ae89-230d-494e-aa1a-15373efb6698",
+          "timestamp": "2026-09-22T10:07:44-07:00",
+          "tree_id": "81b967d52511513a8414e1112fd51bff09c14086",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/dad91a37f1c93c83391645b64a3673b1236dbce5"
+        },
+        "date": 1790097398155,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 447841,
+            "range": "±0.84%",
+            "unit": "ops/sec",
+            "extra": "224 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 450615,
+            "range": "±0.80%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
           }
         ]
       }
