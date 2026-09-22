@@ -14,6 +14,7 @@ import {
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/nestedAppAuth`;
 const ACTION_TIMEOUT = 15000;
 const AUTHENTICATION_TIMEOUT = 60000;
+const jestTimeout = 120000;
 const SCOPES = ["User.Read"];
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -78,7 +79,7 @@ async function verifyNestedTokenStore(frame: Frame): Promise<void> {
 }
 
 describe("Nested App Authentication brokered through the host app", () => {
-    jest.setTimeout(120000);
+    jest.setTimeout(jestTimeout);
 
     let browser: Browser;
     let context: BrowserContext;
