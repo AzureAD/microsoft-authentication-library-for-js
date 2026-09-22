@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Persist rejected refresh token removal through the cache plugin without removing a replacement token.",
+    "packageName": "@azure/msal-common",
+    "email": "1039553124@qq.com",
+    "dependentChangeType": "patch"
+}
