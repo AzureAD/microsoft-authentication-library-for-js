@@ -2095,6 +2095,29 @@ describe("RefreshTokenClient unit tests", () => {
     });
 
     describe("createTokenRequestBody tests", () => {
+        it("includes resource in refresh token requests", async () => {
+            const config: ClientConfiguration =
+                await ClientTestUtils.createTestClientConfiguration();
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const resource = "https://mcp-resource.example";
+
+            const queryString =
+                // @ts-ignore
+                await client.createTokenRequestBody({
+                    scopes: ["api://scope-resource/read"],
+                    resource,
+                });
+            const parameters = new URLSearchParams(queryString);
+
+            expect(parameters.get(AADServerParamKeys.RESOURCE)).toBe(resource);
+            expect(parameters.get(AADServerParamKeys.SCOPE)).toContain(
+                "api://scope-resource/read"
+            );
+        });
+
         it("pick up broker params", async () => {
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();

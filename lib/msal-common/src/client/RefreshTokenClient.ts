@@ -438,6 +438,7 @@ export class RefreshTokenClient {
             true,
             this.config.authOptions.authority.options.OIDCOptions?.defaultScopes
         );
+        RequestParameterBuilder.addResource(parameters, request.resource);
 
         RequestParameterBuilder.addGrantType(
             parameters,
