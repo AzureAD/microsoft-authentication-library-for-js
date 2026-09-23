@@ -1846,16 +1846,16 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(nativeRequest.redirectUri).toContain("localhost");
         });
 
-        it("adds default scopes when request scopes are empty", async () => {
-            const nativeRequest =
+        it("does not throw when request scopes are empty", async () => {
+            const nativeRequestPromise =
                 // @ts-ignore
-                await platformAuthInteractionClient.initializePlatformRequest({
+                platformAuthInteractionClient.initializePlatformRequest({
                     scopes: [],
                 });
 
-            expect(nativeRequest.scope).toEqual(
-                Constants.OIDC_DEFAULT_SCOPES.join(" ")
-            );
+            await expect(nativeRequestPromise).resolves.toMatchObject({
+                scope: Constants.OIDC_DEFAULT_SCOPES.join(" "),
+            });
         });
 
         it("adds default scopes to requested scopes", async () => {
