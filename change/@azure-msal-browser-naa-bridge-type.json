@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Identify Nested App Auth performance events with the NAA bridge type [#0](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/0)",
+  "comment": "Identify Nested App Auth performance events with the NAA bridge type [#8864](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8864)",
   "packageName": "@azure/msal-browser",
   "email": "Sameera.Gajjarapu@microsoft.com",
   "dependentChangeType": "patch"
