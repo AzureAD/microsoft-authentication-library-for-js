@@ -2887,6 +2887,8 @@ export type RequestThumbprint = {
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
     shrClaims?: string;
+    shrNonce?: string;
+    popKid?: string;
     sshKid?: string;
     shrOptions?: ShrOptions;
     embeddedClientId?: string;
