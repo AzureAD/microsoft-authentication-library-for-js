@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790195289315,
+  "lastUpdate": 1790206789161,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23847,6 +23847,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.95%",
             "unit": "ops/sec",
             "extra": "214 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "243748af608cd8c6eb8499aa38f2b9e20b3dbd2e",
+          "message": "AB#3763811: Fix platform broker empty scope handling (#8863)\n\n## Summary\n\nAllow platform broker token requests with an empty scopes array by\nappending the default OIDC scopes before constructing the `ScopeSet`,\nmatching web-flow behavior.\n\n## Implements\n\n- AB#3763811 — MSAL JS throws empty_scopes error incorrectly\n\n## How to validate\n\n- Run `PlatformAuthInteractionClient.spec.ts` and verify requests with\nempty scopes contain `openid profile offline_access`.\n- Verify requests with caller-provided scopes preserve those scopes and\nappend the default OIDC scopes.\n\n## Validation\n\n- `npm run build:all`: passed\n- `msal-common npm test -- --runInBand`: 48 suites passed; 1169 tests\npassed\n- `msal-browser npm test -- --runInBand`: 120 suites passed; 2171 tests\npassed, 3 skipped\n- `npm run lint`: passed with two pre-existing warnings\n- `npm run format:check`: passed\n- `npm run apiExtractor`: passed\n- `npm run beachball:check`: passed\n\n## Notes\n\nCreated by Forge `create-pr` skill.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: bug\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#3763811\n<!-- END pr-telemetry -->\n\n---------\n\nCopilot-Session: 0d4a2cc6-a164-4c8c-9a2a-3f673d68f893",
+          "timestamp": "2026-09-23T23:32:27Z",
+          "tree_id": "cb52cfd54654582380bea180077032580417d564",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/243748af608cd8c6eb8499aa38f2b9e20b3dbd2e"
+        },
+        "date": 1790206785129,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 597446,
+            "range": "±1.61%",
+            "unit": "ops/sec",
+            "extra": "208 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 571145,
+            "range": "±1.37%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
           }
         ]
       }
