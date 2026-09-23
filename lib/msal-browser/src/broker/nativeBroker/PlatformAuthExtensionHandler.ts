@@ -454,6 +454,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                     correlationId
                 );
                 this.handshakeEvent.end({
+                    extensionId: this.extensionId,
+                    extensionVersion: this.extensionVersion,
                     extensionInstalled: true,
                     success: true,
                 });

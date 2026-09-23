@@ -97,6 +97,10 @@ describe("PlatformAuthDOMHandler tests", () => {
 
         it("should return undefined when the DOM contract is not supported", async () => {
             getSupportedContractsMock.mockResolvedValue([]);
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
             const platformAuthDOMHandler =
                 await PlatformAuthDOMHandler.createProvider(
                     logger,
@@ -105,6 +109,20 @@ describe("PlatformAuthDOMHandler tests", () => {
                 );
             expect(getSupportedContractsMock).toHaveBeenCalled();
             expect(platformAuthDOMHandler).toBe(undefined);
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.PlatformAuthDOMCreateProvider
+                    )
+            ).toMatchObject({
+                correlationId: "test-correlation-id",
+                success: false,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+            });
         });
 
         it("should emit a failed measurement when the DOM API is not available", async () => {

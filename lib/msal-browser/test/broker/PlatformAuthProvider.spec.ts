@@ -261,6 +261,7 @@ describe("PlatformAuthProvider tests", () => {
 
         it("returns false when config is not set to enable paltform broker", () => {
             config.system.allowPlatformBroker = false;
+            const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
@@ -270,9 +271,18 @@ describe("PlatformAuthProvider tests", () => {
                     performanceClient,
                     "test-correlation-id"
                 ),
-                Constants.AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER,
+                performanceClient
             );
             expect(result).toBe(false);
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    allowPlatformBroker: false,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("returns false when platform auth provider is not initialized", () => {
@@ -332,6 +342,7 @@ describe("PlatformAuthProvider tests", () => {
             expect(result).toBe(true);
             expect(addFieldsSpy).toHaveBeenCalledWith(
                 {
+                    allowPlatformBroker: true,
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
                 },

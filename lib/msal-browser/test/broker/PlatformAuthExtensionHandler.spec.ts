@@ -147,9 +147,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                     expect(events.length).toBe(1);
                     const event = events[0];
                     expect(event.extensionHandshakeTimeoutMs).toEqual(2000);
-                    expect(event.extensionId).toEqual(
-                        "ppnbnpeolgkicgegkbkbjmhlideopiji"
-                    );
+                    expect(event.extensionId).toEqual("test-ext-id");
+                    expect(event.extensionVersion).toEqual(3);
                     expect(event.extensionInstalled).toBeTruthy();
                     expect(event.extensionHandshakeTimedOut).toBeUndefined();
                     expect(event.platformAuthRequestCorrelationId).toEqual(
