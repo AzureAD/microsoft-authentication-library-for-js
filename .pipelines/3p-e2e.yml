@@ -99,9 +99,21 @@ extends:
                                     dir: "ExpressSample"
                                     testFilter: "kmsi-basic"
                                   - name: "NativeAuthSample"
-                                  - name: "NestedAuthAppSample"
+                                  - name: "NestedAuthAppSample-Basic"
                                     dir: "NestedAuthAppSample"
-                                    testFilter: "naa-basic"
+                                    testFilter: "naa-basic\\.spec"
+                                  - name: "NestedAuthAppSample-EAR"
+                                    dir: "NestedAuthAppSample"
+                                    testFilter: "naa-ear\\.spec"
+                                  # Platform-broker specs require a self-hosted WAM-enabled
+                                  # machine which will be available in the future.
+                                  # Until then, tests can be run locally with WAM enabled.
+                                  # - name: "NestedAuthAppSample-PlatformBroker"
+                                  #   dir: "NestedAuthAppSample"
+                                  #   testFilter: "naa-platform-broker\\.spec"
+                                  # - name: "NestedAuthAppSample-EAR-PlatformBroker"
+                                  #   dir: "NestedAuthAppSample"
+                                  #   testFilter: "naa-ear-platform-broker\\.spec"
                               debug: ${{ parameters.debug }}
                               npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
                               enableScreenshots: ${{ parameters.enableScreenshots }}
