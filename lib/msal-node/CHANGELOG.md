@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 15 Sep 2026 19:42:08 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 23 Sep 2026 15:49:44 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 7.0.0
+
+Wed, 23 Sep 2026 15:49:44 GMT
+
+### Major changes
+
+- Remove responseMode from acquireTokenInteractive and require form_post for browser-loopback authentication [#8852](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8852) (joarroyo@microsoft.com)
+
+### Minor changes
+
+- Coalesce concurrent non-brokered and native broker silent token requests with matching parameters [#8811](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8811) (kshabelko@microsoft.com)
+- Deprecate responseMode for acquireTokenInteractive ahead of its removal in MSAL Node v7 [#8851](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8851) (joarroyo@microsoft.com)
 
 ## 6.0.1
 

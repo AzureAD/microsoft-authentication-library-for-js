@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Preserve the requested resource when caching platform broker access tokens [#8848](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8848)",
-  "packageName": "@azure/msal-browser",
-  "email": "nugetaad@microsoft.com",
-  "dependentChangeType": "patch"
-}
