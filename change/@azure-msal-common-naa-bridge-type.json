@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add a bridge type field to performance telemetry [#0](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/0)",
+  "packageName": "@azure/msal-common",
+  "email": "Sameera.Gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

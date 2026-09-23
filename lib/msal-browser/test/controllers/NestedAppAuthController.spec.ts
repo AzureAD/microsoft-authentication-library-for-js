@@ -1001,6 +1001,11 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
 
             const result = await localPca.acquireTokenPopup(testRequest);
 
+            expect(mockMeasurement.add).toHaveBeenCalledWith({
+                nestedAppAuthRequest: true,
+                bridgeType: "NAA",
+            });
+
             // Verify measurement.end was called with account parameter
             expect(mockMeasurement.end).toHaveBeenCalledWith(
                 expect.objectContaining({ success: true }),
@@ -1072,6 +1077,11 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
 
             const result = await localPca.acquireTokenSilent(silentRequest);
 
+            expect(mockMeasurement.add).toHaveBeenCalledWith({
+                nestedAppAuthRequest: true,
+                bridgeType: "NAA",
+            });
+
             // Verify measurement.end was called with account parameter
             expect(mockMeasurement.end).toHaveBeenCalledWith(
                 expect.objectContaining({ success: true }),
@@ -1087,6 +1097,41 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
 
             expect(result).toBeDefined();
             expect(result.account).toBeDefined();
+        });
+
+        it("should add the NAA bridge type to silent cache measurements", async () => {
+            const mockMeasurement = {
+                end: jest.fn().mockReturnValue({}),
+                discard: jest.fn(),
+                add: jest.fn(),
+                increment: jest.fn(),
+                event: {
+                    eventId: "test-event-id",
+                    status: "InProgress" as any,
+                    authority: TEST_CONFIG.validAuthority,
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    correlationId: RANDOM_TEST_GUID,
+                    name: "test-event",
+                    startTimeMs: Date.now(),
+                    libraryName: "msal-browser",
+                    libraryVersion: "test-version",
+                },
+                measurement: {},
+            };
+
+            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(
+                mockMeasurement as any
+            );
+
+            await (localPca as any).controller.acquireTokenFromCache({
+                scopes: ["user.read"],
+                forceRefresh: true,
+            });
+
+            expect(mockMeasurement.add).toHaveBeenCalledWith({
+                nestedAppAuthRequest: true,
+                bridgeType: "NAA",
+            });
         });
 
         it("should not pass account when account is not provided in request", async () => {
