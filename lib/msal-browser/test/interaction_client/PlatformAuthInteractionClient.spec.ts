@@ -1846,6 +1846,30 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(nativeRequest.redirectUri).toContain("localhost");
         });
 
+        it("does not throw when request scopes are empty", async () => {
+            const nativeRequestPromise =
+                // @ts-ignore
+                platformAuthInteractionClient.initializePlatformRequest({
+                    scopes: [],
+                });
+
+            await expect(nativeRequestPromise).resolves.toMatchObject({
+                scope: Constants.OIDC_DEFAULT_SCOPES.join(" "),
+            });
+        });
+
+        it("adds default scopes to requested scopes", async () => {
+            const nativeRequest =
+                // @ts-ignore
+                await platformAuthInteractionClient.initializePlatformRequest({
+                    scopes: ["User.Read"],
+                });
+
+            expect(nativeRequest.scope).toEqual(
+                ["User.Read", ...Constants.OIDC_DEFAULT_SCOPES].join(" ")
+            );
+        });
+
         it("pick up broker extra query parameters", async () => {
             const nativeRequest =
                 // @ts-ignore

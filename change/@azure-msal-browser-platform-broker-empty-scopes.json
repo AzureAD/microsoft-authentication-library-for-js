@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Allow platform broker token requests with empty scopes [#8863](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8863)",
+  "packageName": "@azure/msal-browser",
+  "email": "lalima.sharda@gmail.com",
+  "dependentChangeType": "patch"
+}
