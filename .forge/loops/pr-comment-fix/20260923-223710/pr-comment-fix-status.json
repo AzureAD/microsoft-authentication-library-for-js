@@ -1,0 +1,30 @@
+{
+  "iteration": 1,
+  "stepsTotal": 5,
+  "stepsCompleted": [
+    "fetch-comments",
+    "stash-save",
+    "fix-comments",
+    "test-fix"
+  ],
+  "stepsFailed": [],
+  "stepsSkipped": [],
+  "stepsRunning": [
+    "commit-push"
+  ],
+  "stepsWaiting": [],
+  "findingsCount": 1,
+  "elapsedSeconds": 86.4915877,
+  "lastCompletedStep": "test-fix",
+  "lastUpdate": "2026-09-23T22:38:38.2358775Z",
+  "findings": [
+    {
+      "id": "source-code-mcp-thread-listing-missing",
+      "severity": "\uD83D\uDD34",
+      "action": "info",
+      "details": "source-code MCP does not expose pull-request thread listing for this host. Configure a compatible MCP server before running pr-comment-fix.",
+      "stepId": "fetch-comments",
+      "iteration": 1
+    }
+  ]
+}

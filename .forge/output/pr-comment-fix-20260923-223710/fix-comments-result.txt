@@ -1,0 +1,5 @@
+I’m loading the actionable review findings and prior decisions, then I’ll patch only the cited files.
+
+The only upstream finding is informational and reports missing review-thread tooling, not a code defect; I’m recording it as non-actionable without changing source.
+
+No source changes were made. The only upstream item was an `info` finding about unavailable PR review-thread tooling, not an actionable code issue. Recorded it as `by-design` per the fix-loop rules.
