@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 28 Apr 2026 21:30:31 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 23 Sep 2026 22:11:04 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.9.1
+
+Wed, 23 Sep 2026 22:11:04 GMT
+
+### Patches
+
+- Discard local storage events from another client ids [#8795](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8795) (kshabelko@microsoft.com)
 
 ## 5.9.0
 
