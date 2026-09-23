@@ -2,6 +2,21 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 23 Sep 2026 18:30:23 GMT",
+      "version": "5.9.1",
+      "tag": "@azure/msal-browser_v5.9.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "88de5a1cde68aa7d6ecf831b2fca8d33b1bae13c",
+            "comment": "Discard local storage events from another client ids [#8795](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8795)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 28 Apr 2026 21:30:31 GMT",
       "version": "5.9.0",
       "tag": "@azure/msal-browser_v5.9.0",
