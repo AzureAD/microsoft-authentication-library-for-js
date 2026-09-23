@@ -154,6 +154,9 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                     expect(event.platformAuthRequestCorrelationId).toEqual(
                         TEST_CONFIG.CORRELATION_ID
                     );
+                    expect(event.platformAuthProviderType).toEqual(
+                        PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER
+                    );
                     expect(event.success).toBeTruthy();
                     performanceClient.removePerformanceCallback(callbackId);
                     done();
@@ -277,6 +280,9 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                     expect(event.extensionHandshakeTimedOut).toBeUndefined();
                     expect(event.platformAuthRequestCorrelationId).toEqual(
                         TEST_CONFIG.CORRELATION_ID
+                    );
+                    expect(event.platformAuthProviderType).toEqual(
+                        PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER
                     );
                     expect(event.success).toBeFalsy();
                     performanceClient.removePerformanceCallback(callbackId);

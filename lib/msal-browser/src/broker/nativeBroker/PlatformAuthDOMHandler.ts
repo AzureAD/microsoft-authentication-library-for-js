@@ -268,15 +268,27 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                     `'${this.platformAuthType}' - platform broker returned successful and valid response`,
                     responseCorrelationId
                 );
-                const validatedResponse = this.convertToPlatformBrokerResponse(
-                    response as PlatformDOMTokenResponse,
-                    responseCorrelationId
-                );
-                validationMeasurement.end({
-                    success: true,
-                    platformAuthProviderType: this.platformAuthType,
-                });
-                return validatedResponse;
+                try {
+                    const validatedResponse =
+                        this.convertToPlatformBrokerResponse(
+                            response as PlatformDOMTokenResponse,
+                            responseCorrelationId
+                        );
+                    validationMeasurement.end({
+                        success: true,
+                        platformAuthProviderType: this.platformAuthType,
+                    });
+                    return validatedResponse;
+                } catch (e) {
+                    validationMeasurement.end(
+                        {
+                            success: false,
+                            platformAuthProviderType: this.platformAuthType,
+                        },
+                        e
+                    );
+                    throw e;
+                }
             } else if (
                 Object.prototype.hasOwnProperty.call(response, "error")
             ) {

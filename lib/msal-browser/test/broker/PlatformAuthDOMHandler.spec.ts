@@ -784,6 +784,10 @@ describe("PlatformAuthDOMHandler tests", () => {
                 };
 
                 if (expectedBindingAttested === undefined) {
+                    const endMeasurementSpy = jest.spyOn(
+                        performanceClient,
+                        "endMeasurement"
+                    );
                     expect(() =>
                         //@ts-ignore
                         platformAuthDOMHandler.validatePlatformBrokerResponse(
@@ -793,6 +797,20 @@ describe("PlatformAuthDOMHandler tests", () => {
                     ).toThrow(
                         "Platform broker returned invalid binding_attested value."
                     );
+                    expect(
+                        endMeasurementSpy.mock.calls
+                            .map(([event]) => event)
+                            .find(
+                                (event) =>
+                                    event.name ===
+                                    BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
+                            )
+                    ).toMatchObject({
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        success: false,
+                        platformAuthProviderType:
+                            PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                    });
                     return;
                 }
 

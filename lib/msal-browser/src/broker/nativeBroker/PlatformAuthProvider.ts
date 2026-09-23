@@ -94,6 +94,13 @@ export async function getPlatformAuthProvider(
                 );
             }
             if (platformAuthProvider) {
+                performanceClient.addFields(
+                    {
+                        platformAuthProviderType:
+                            PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                    },
+                    correlationId
+                );
                 discoveryMeasurement.end({
                     success: true,
                     platformAuthProviderType:
@@ -120,6 +127,15 @@ export async function getPlatformAuthProvider(
                 correlationId
             );
 
+        if (platformAuthProvider) {
+            performanceClient.addFields(
+                {
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                },
+                correlationId
+            );
+        }
         discoveryMeasurement.end({
             success: !!platformAuthProvider,
             platformAuthProviderType: platformAuthProvider

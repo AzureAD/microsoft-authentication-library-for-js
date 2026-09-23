@@ -244,6 +244,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             extensionId: this.extensionId,
             extensionHandshakeTimeoutMs: this.handshakeTimeoutMs,
             platformAuthRequestCorrelationId: this.correlationId,
+            platformAuthProviderType:
+                PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
         });
 
         this.messageChannel.port1.onmessage = (event) => {

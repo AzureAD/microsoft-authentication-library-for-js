@@ -147,6 +147,7 @@ describe("PlatformAuthProvider tests", () => {
 
         it("returns dom handler when available", async () => {
             const domProviderSpy = stubDOMProvider();
+            const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
             const events: PerformanceEvent[] = [];
             performanceClient.addPerformanceCallback((emittedEvents) => {
                 events.push(...emittedEvents);
@@ -162,6 +163,13 @@ describe("PlatformAuthProvider tests", () => {
             expect(result).not.toBe(undefined);
             expect(result).toBeInstanceOf(PlatformAuthDOMHandler);
             expect(domProviderSpy).toHaveBeenCalled();
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                },
+                "test-correlation-id"
+            );
             expect(
                 events.find(
                     (event) =>
@@ -178,6 +186,7 @@ describe("PlatformAuthProvider tests", () => {
 
         it("returns extension handler if dom APIs are not available and extension is available", async () => {
             const extensionProviderSpy = stubExtensionProvider();
+            const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
             const events: PerformanceEvent[] = [];
             performanceClient.addPerformanceCallback((emittedEvents) => {
                 events.push(...emittedEvents);
@@ -191,6 +200,13 @@ describe("PlatformAuthProvider tests", () => {
             expect(result).not.toBe(undefined);
             expect(result).toBeInstanceOf(PlatformAuthExtensionHandler);
             expect(extensionProviderSpy).toHaveBeenCalled();
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                },
+                "test-correlation-id"
+            );
             expect(
                 events.find(
                     (event) =>
