@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790272066303,
+  "lastUpdate": 1790274102554,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23923,6 +23923,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.53%",
             "unit": "ops/sec",
             "extra": "230 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fb8d5ffca36c1b8a6d6a9c2ad5ba5d71e1a1d6b5",
+          "message": "Include resource in refresh token requests (#8861)\n\n## Summary\n\nEnsures refresh-token grant requests preserve the requested resource and\nadds regression coverage.\n\n## Changes\n\n- Include the requested resource in refresh-token request bodies.\n- Verify resource serialization in `msal-common` request-builder tests.\n- Verify the Node public API sends and caches the requested resource.\n\n## Validation\n\n- `msal-common`: build, lint, tests, formatting, and API Extractor\n- `msal-node`: build, lint, tests, formatting, and API Extractor\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: bug\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\n\n---------\n\nCopilot-Session: a1a071b6-bbda-456c-97af-169dc4199e88",
+          "timestamp": "2026-09-24T18:12:57Z",
+          "tree_id": "38849d4862d2df2b95a22ead149cdc5b131874cc",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/fb8d5ffca36c1b8a6d6a9c2ad5ba5d71e1a1d6b5"
+        },
+        "date": 1790274098927,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 368096,
+            "range": "±0.78%",
+            "unit": "ops/sec",
+            "extra": "205 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 361631,
+            "range": "±0.73%",
+            "unit": "ops/sec",
+            "extra": "213 samples"
           }
         ]
       }
