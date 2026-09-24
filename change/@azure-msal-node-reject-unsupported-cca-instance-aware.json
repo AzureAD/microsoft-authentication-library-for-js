@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Reject unsupported instance-aware inputs for confidential clients.",
+  "comment": "Sanitize authorization code payloads and reject unsupported instance-aware inputs for confidential clients.",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"

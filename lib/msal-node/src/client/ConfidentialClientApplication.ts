@@ -25,6 +25,7 @@ import {
     ClientAssertion as ClientAssertionType,
     getClientAssertion,
     AzureRegion,
+    AuthorizationCodePayload,
 } from "@azure/msal-common/node";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication.js";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
@@ -167,15 +168,18 @@ export class ConfidentialClientApplication
      * Acquires a token by exchanging an authorization code.
      */
     public async acquireTokenByCode(
-        request: AuthorizationCodeRequest
+        request: AuthorizationCodeRequest,
+        authCodePayload?: AuthorizationCodePayload
     ): Promise<AuthenticationResult> {
-        if (arguments.length > 1) {
-            throw NodeAuthError.createUnsupportedCcaAuthorizationCodePayloadError(
-                request.correlationId
-            );
-        }
+        const sanitizedAuthCodePayload = authCodePayload
+            ? {
+                  code: request.code,
+                  state: authCodePayload.state,
+                  nonce: request.nonce,
+              }
+            : undefined;
 
-        return super.acquireTokenByCode(request);
+        return super.acquireTokenByCode(request, sanitizedAuthCodePayload);
     }
 
     /**

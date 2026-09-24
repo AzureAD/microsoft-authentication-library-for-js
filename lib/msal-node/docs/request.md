@@ -82,7 +82,7 @@ cca.getAuthCodeUrl(authCodeUrlParameters)
 
 [acquireTokenByCode()](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_node.IConfidentialClientApplication.html#acquireTokenByCode): This API is the second leg of the authorization code flow. The request is of the type [AuthorizationCodeRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/types/_azure_msal_node.AuthorizationCodeRequest.html). The application should have received an `authorization code` as a part of the above step and can now exchange it for a `token`. If a nonce was sent in the authorization request, the same stored nonce must be provided on `AuthorizationCodeRequest`; do not generate a new nonce for the token exchange. MSAL validates that the ID Token contains a matching nonce claim and rejects an ID Token nonce claim when no expected nonce was supplied. Note that if authorization code flow is being done for a public client application, we recommend using `acquireTokenInteractive` documented above, otherwise the use of [PKCE](https://tools.ietf.org/html/rfc7636) is recommended.
 
-ConfidentialClientApplication accepts only the `AuthorizationCodeRequest` argument. Authorization code response payloads are not supported.
+ConfidentialClientApplication can accept the authorization code response payload as a second argument to preserve state validation. Response routing metadata and the response nonce are ignored; the code and expected nonce are always taken from `AuthorizationCodeRequest`.
 
 ```javascript
 const tokenRequest = {

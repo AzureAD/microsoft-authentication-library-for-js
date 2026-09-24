@@ -16,6 +16,7 @@ import {
     AccountEntityUtils,
     INetworkModule,
     ClientAuthErrorCodes,
+    AuthorizationCodePayload,
 } from "@azure/msal-common";
 import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -164,27 +165,54 @@ describe("ConfidentialClientApplication", () => {
             expect(acquireTokenByCodeSpy).toHaveBeenCalledTimes(1);
         });
 
-        test("rejects a second acquireTokenByCode argument", async () => {
+        test("sanitizes the authorization code payload before delegation", async () => {
             const request: AuthorizationCodeRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 redirectUri: TEST_CONSTANTS.REDIRECT_URI,
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                nonce: "request-nonce",
             };
             const client = new ConfidentialClientApplication(config);
-            const acquireTokenByCodeSpy = jest.spyOn(
-                ClientApplication.prototype,
-                "acquireTokenByCode"
-            );
+            const acquireTokenByCodeSpy = jest
+                .spyOn(ClientApplication.prototype, "acquireTokenByCode")
+                .mockResolvedValue({} as AuthenticationResult);
+            const authCodePayload: AuthorizationCodePayload = {
+                code: "payload-code",
+                state: "returned-state",
+                nonce: "payload-nonce",
+                cloud_instance_host_name: "malicious.example.com",
+                cloud_instance_name: "malicious-cloud",
+                cloud_graph_host_name: "malicious-graph.example.com",
+                msgraph_host: "malicious-msgraph.example.com",
+                client_info: "malicious-client-info",
+            };
+
+            await client.acquireTokenByCode(request, authCodePayload);
+
+            expect(acquireTokenByCodeSpy).toHaveBeenCalledWith(request, {
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                state: "returned-state",
+                nonce: "request-nonce",
+            });
+        });
+
+        test("validates returned state from the authorization code payload", async () => {
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                state: "expected-state",
+            };
+            const client = new ConfidentialClientApplication(config);
 
             await expect(
-                Reflect.apply(client.acquireTokenByCode, client, [
-                    request,
-                    { state: "state" },
-                ])
-            ).rejects.toMatchObject({
-                errorCode: "unsupported_cca_authorization_code_payload",
-            });
-            expect(acquireTokenByCodeSpy).not.toHaveBeenCalled();
+                client.acquireTokenByCode(request, {
+                    code: "payload-code",
+                    state: "returned-state",
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(ClientAuthErrorCodes.stateMismatch, "")
+            );
         });
 
         test.each(["true", "false", ""])(
