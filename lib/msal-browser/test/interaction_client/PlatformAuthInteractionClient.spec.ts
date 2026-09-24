@@ -207,6 +207,47 @@ describe("PlatformAuthInteractionClient Tests", () => {
         localStorage.clear();
     });
 
+    function createPlatformAuthClient(
+        provider: PlatformAuthExtensionHandler | PlatformAuthDOMHandler
+    ): PlatformAuthInteractionClient {
+        return new PlatformAuthInteractionClient(
+            // @ts-ignore
+            pca.config,
+            // @ts-ignore
+            pca.browserStorage,
+            // @ts-ignore
+            pca.browserCrypto,
+            pca.getLogger(),
+            // @ts-ignore
+            pca.eventHandler,
+            // @ts-ignore
+            pca.navigationClient,
+            ApiId.acquireTokenSilent_silentFlow,
+            perfClient,
+            provider,
+            "nativeAccountId",
+            // @ts-ignore
+            pca.nativeInternalStorage,
+            RANDOM_TEST_GUID
+        );
+    }
+
+    function createPlatformAuthProvider(
+        providerType: "Extension" | "DOM"
+    ): PlatformAuthExtensionHandler | PlatformAuthDOMHandler {
+        return providerType === "Extension"
+            ? new PlatformAuthExtensionHandler(
+                  pca.getLogger(),
+                  2000,
+                  getDefaultPerformanceClient()
+              )
+            : new PlatformAuthDOMHandler(
+                  pca.getLogger(),
+                  getDefaultPerformanceClient(),
+                  RANDOM_TEST_GUID
+              );
+    }
+
     describe("acquireTokensFromInternalCache Tests", () => {
         beforeEach(() => {
             jest.spyOn(
@@ -1335,6 +1376,49 @@ describe("PlatformAuthInteractionClient Tests", () => {
             });
             expect(response.resource).toEqual("https://graph.microsoft.com");
         });
+
+        it.each(["Extension", "DOM"] as const)(
+            "%s: stores the resource-bound access token in memory and the id token in persistent storage",
+            async (providerType) => {
+                const resource = "https://resource-a.example";
+                const provider = createPlatformAuthProvider(providerType);
+                const client = createPlatformAuthClient(provider);
+                jest.spyOn(provider, "sendMessage").mockResolvedValue(
+                    MOCK_WAM_RESPONSE
+                );
+
+                await client.acquireToken({
+                    scopes: ["User.Read"],
+                    resource,
+                });
+
+                const memoryTokenKeys = internalStorage.getTokenKeys();
+                expect(memoryTokenKeys.accessToken).toHaveLength(1);
+                expect(memoryTokenKeys.idToken).toHaveLength(0);
+                expect(memoryTokenKeys.refreshToken).toHaveLength(0);
+                const cachedAccessToken =
+                    internalStorage.getAccessTokenCredential(
+                        memoryTokenKeys.accessToken[0],
+                        RANDOM_TEST_GUID
+                    );
+                expect(cachedAccessToken?.secret).toEqual(
+                    MOCK_WAM_RESPONSE.access_token
+                );
+                expect(cachedAccessToken?.resource).toEqual(resource);
+
+                const persistentTokenKeys = browserCacheManager.getTokenKeys();
+                expect(persistentTokenKeys.accessToken).toHaveLength(0);
+                expect(persistentTokenKeys.idToken).toHaveLength(1);
+                expect(persistentTokenKeys.refreshToken).toHaveLength(0);
+                const cachedIdToken = browserCacheManager.getIdTokenCredential(
+                    persistentTokenKeys.idToken[0],
+                    RANDOM_TEST_GUID
+                );
+                expect(cachedIdToken?.secret).toEqual(
+                    MOCK_WAM_RESPONSE.id_token
+                );
+            }
+        );
     });
 
     describe("acquireTokenRedirect tests", () => {
@@ -1612,50 +1696,55 @@ describe("PlatformAuthInteractionClient Tests", () => {
     });
 
     describe("handleRedirectPromise tests", () => {
-        it("does not return a cached native access token for a different resource", async () => {
-            const resourceA = "https://resource-a.example";
-            const resourceB = "https://resource-b.example";
-            const resourceBAccessToken = "resource-b-access-token";
-            const sendMessageSpy = jest
-                .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
-                .mockResolvedValueOnce(MOCK_WAM_RESPONSE)
-                .mockResolvedValueOnce({
-                    ...MOCK_WAM_RESPONSE,
-                    access_token: resourceBAccessToken,
+        it.each(["Extension", "DOM"] as const)(
+            "%s: calls the broker when the requested resource does not match the cached access token",
+            async (providerType) => {
+                const resourceA = "https://resource-a.example";
+                const resourceB = "https://resource-b.example";
+                const resourceBAccessToken = "resource-b-access-token";
+                const provider = createPlatformAuthProvider(providerType);
+                const client = createPlatformAuthClient(provider);
+                const sendMessageSpy = jest
+                    .spyOn(provider, "sendMessage")
+                    .mockResolvedValueOnce(MOCK_WAM_RESPONSE)
+                    .mockResolvedValueOnce({
+                        ...MOCK_WAM_RESPONSE,
+                        access_token: resourceBAccessToken,
+                    });
+
+                await client.acquireToken({
+                    scopes: ["User.Read"],
+                    resource: resourceA,
                 });
 
-            await platformAuthInteractionClient.acquireToken({
-                scopes: ["User.Read"],
-                resource: resourceA,
-            });
-            const resourceAAccessTokenKeys =
-                internalStorage.getTokenKeys().accessToken;
-            expect(resourceAAccessTokenKeys).toHaveLength(1);
-            expect(
-                internalStorage.getAccessTokenCredential(
-                    resourceAAccessTokenKeys[0],
-                    RANDOM_TEST_GUID
-                )?.resource
-            ).toEqual(resourceA);
-
-            const resourceBResult =
-                await platformAuthInteractionClient.acquireToken({
+                const resourceBResult = await client.acquireToken({
                     scopes: ["User.Read"],
                     resource: resourceB,
                 });
 
-            expect(sendMessageSpy).toHaveBeenCalledTimes(2);
-            expect(resourceBResult.accessToken).toEqual(resourceBAccessToken);
+                expect(sendMessageSpy).toHaveBeenCalledTimes(2);
+                expect(sendMessageSpy.mock.calls[1][0].extraParameters).toEqual(
+                    expect.objectContaining({
+                        resource: resourceB,
+                    })
+                );
+                expect(resourceBResult.accessToken).toEqual(
+                    resourceBAccessToken
+                );
+                expect(resourceBResult.resource).toEqual(resourceB);
 
-            const resourceBAccessTokenKeys =
-                internalStorage.getTokenKeys().accessToken;
-            expect(resourceBAccessTokenKeys).toHaveLength(1);
-            const cachedAccessToken = internalStorage.getAccessTokenCredential(
-                resourceBAccessTokenKeys[0],
-                RANDOM_TEST_GUID
-            );
-            expect(cachedAccessToken?.resource).toEqual(resourceB);
-        });
+                const accessTokenKeys =
+                    internalStorage.getTokenKeys().accessToken;
+                expect(accessTokenKeys).toHaveLength(1);
+                const cachedAccessToken =
+                    internalStorage.getAccessTokenCredential(
+                        accessTokenKeys[0],
+                        RANDOM_TEST_GUID
+                    );
+                expect(cachedAccessToken?.secret).toEqual(resourceBAccessToken);
+                expect(cachedAccessToken?.resource).toEqual(resourceB);
+            }
+        );
 
         it("successfully returns response from native broker", async () => {
             jest.spyOn(
