@@ -18,7 +18,7 @@
         "@emotion/styled": "^11.10.5",
         "@mui/icons-material": "^5.10.14",
         "@mui/material": "^5.10.14",
-        "next": "^15.5.21",
+        "next": "^16.3.0",
         "react": "^19.2.1",
         "react-dom": "^19.2.1"
     },
@@ -26,7 +26,7 @@
         "@types/jest": "^29.5.2",
         "e2e-test-utils": "file:../../e2eTestUtils",
         "jest": "^29.5.0",
-        "jest-junit": "^16.0.0",
+        "jest-junit": "^17.0.0",
         "ts-jest": "^29.4.11"
     },
     "jest-junit": {
