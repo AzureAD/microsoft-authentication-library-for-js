@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790206789161,
+  "lastUpdate": 1790272066303,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23885,6 +23885,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.37%",
             "unit": "ops/sec",
             "extra": "231 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9030003ac780fa88ba9340d9fee8f70bfa16850f",
+          "message": "Centralize pipeline Node heap configuration (#8855)\n\n## Summary\n\nRemove the duplicated `NODE_OPTIONS=--max-old-space-size=4096`\ndeclarations from the 3P pipeline entry points. The shared 1P CI and E2E\njob templates now own this configuration, so every consumer receives the\nsame heap limit from a single source of truth.\n\n## Changes\n\n- Remove the redundant declaration from `.pipelines/1p-build.yml`.\n- Remove the redundant declaration from `.pipelines/1p-e2e.yml`.\n- Remove the redundant declaration from `.pipelines/3p-e2e.yml`.\n\n## Dependency\n\nMerge [1P PR\n27388](https://identitydivision.visualstudio.com/IDDP/_git/msal-javascript-1p/pullrequest/27388)\nfirst. That PR adds the heap limit to\n`.pipelines/templates/ci-template.yml` and\n`.pipelines/templates/e2e-tests.yml`, which these pipelines consume from\nthe 1P `dev` branch.\n\n## Validation\n\n- Confirm the 1P Build/Test and E2E jobs inherit `NODE_OPTIONS` from\ntheir shared job templates after 1P PR 27388 merges.\n- Confirm the 3P pipeline entry points no longer define duplicate heap\nconfiguration.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: infra\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\nCopilot-Session: 9dd128c5-5394-41e8-86ff-d941b1db82a7",
+          "timestamp": "2026-09-24T10:40:00-07:00",
+          "tree_id": "8df5b409fad85030abffcb023d80e3626f3de1e5",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/9030003ac780fa88ba9340d9fee8f70bfa16850f"
+        },
+        "date": 1790272062380,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 547237,
+            "range": "±1.26%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 525158,
+            "range": "±1.53%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
           }
         ]
       }
