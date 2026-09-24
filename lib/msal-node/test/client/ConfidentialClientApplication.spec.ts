@@ -29,6 +29,7 @@ import {
     ClientCredentialRequest,
     Configuration,
     AuthorizationCodeRequest,
+    AuthorizationUrlRequest,
     RefreshTokenRequest,
     SilentFlowRequest,
 } from "../../src/index.js";
@@ -122,6 +123,16 @@ describe("ConfidentialClientApplication", () => {
         expect(client).toBeInstanceOf(ConfidentialClientApplication);
     });
 
+    test("rejects instance-aware configuration", () => {
+        Object.assign(config.auth, { instanceAware: true });
+
+        expect(() => new ConfidentialClientApplication(config)).toThrow(
+            expect.objectContaining({
+                errorCode: "unsupported_cca_instance_aware",
+            })
+        );
+    });
+
     describe("auth code flow", () => {
         test("acquireTokenByAuthorizationCode", async () => {
             const acquireTokenByCodeSpy: jest.SpyInstance = jest.spyOn(
@@ -152,6 +163,49 @@ describe("ConfidentialClientApplication", () => {
             );
             expect(acquireTokenByCodeSpy).toHaveBeenCalledTimes(1);
         });
+
+        test("rejects a second acquireTokenByCode argument", async () => {
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            };
+            const client = new ConfidentialClientApplication(config);
+            const acquireTokenByCodeSpy = jest.spyOn(
+                ClientApplication.prototype,
+                "acquireTokenByCode"
+            );
+
+            await expect(
+                Reflect.apply(client.acquireTokenByCode, client, [
+                    request,
+                    { state: "state" },
+                ])
+            ).rejects.toMatchObject({
+                errorCode: "unsupported_cca_authorization_code_payload",
+            });
+            expect(acquireTokenByCodeSpy).not.toHaveBeenCalled();
+        });
+
+        test.each(["true", "false", ""])(
+            "rejects instance_aware extra query parameter value %p",
+            async (instanceAware) => {
+                const request: AuthorizationUrlRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                    extraQueryParameters: {
+                        instance_aware: instanceAware,
+                    },
+                };
+                const client = new ConfidentialClientApplication(config);
+
+                await expect(
+                    client.getAuthCodeUrl(request)
+                ).rejects.toMatchObject({
+                    errorCode: "unsupported_cca_instance_aware",
+                });
+            }
+        );
 
         test.each([undefined, ""])(
             "acquireTokenByCode rejects ID Token nonce when request nonce is %p",
