@@ -288,3 +288,6 @@ junit.xml
 
 # ApiExtractor
 temp/
+
+# Local dependency audit output
+/output.txt
