@@ -2485,6 +2485,7 @@ export type PerformanceEvent = {
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;
     nestedAppAuthRequest?: boolean;
+    bridgeType?: "NAA" | "PWB";
     multiMatchedAT?: number;
     multiMatchedID?: number;
     multiMatchedRT?: number;

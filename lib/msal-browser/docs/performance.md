@@ -90,6 +90,7 @@ The complete details for `PerformanceEvents` objects can be found [here](../../m
 | `correlationId`                    | `string`  | Correlation ID used for the operation (preferably unique per request). |
 | `libraryVersion`                   | `string`  | Version of MSAL.js used for the operation.                             |
 | `authority`                        | `string`  | Authority used for the operation.                                      |
+| `bridgeType`                       | `"NAA" \| "PWB"` | Bridge type used for the operation.                            |
 | `<internalFunctionName>DurationMs` | `number`  | Duration in milliseconds for an internal operation.                    |
 
 ### removePerformanceCallback
