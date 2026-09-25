@@ -466,19 +466,26 @@ export class LocalStorage implements IWindowStorage<string> {
      * @returns
      */
     private getContext(key: string): string {
-        const keySegments = key
-            .toLowerCase()
-            .split(CacheKeys.CACHE_KEY_SEPARATOR);
+        const normalizedKey = key.toLowerCase();
+        const keySegments = normalizedKey.split(CacheKeys.CACHE_KEY_SEPARATOR);
         if (keySegments.length > 1) {
             return keySegments[4] === this.clientId.toLowerCase()
                 ? this.clientId
                 : "";
         }
 
-        return key.includes(this.clientId) ? this.clientId : "";
+        const credentialType = this.getClientBoundCredentialType(normalizedKey);
+        if (credentialType) {
+            const ownerPrefix = `-${credentialType}-${this.clientId.toLowerCase()}-`;
+            return normalizedKey.includes(ownerPrefix) ? this.clientId : "";
+        }
+
+        return normalizedKey.includes(this.clientId.toLowerCase())
+            ? this.clientId
+            : "";
     }
 
-    private isContextValid(key: string, context: string): boolean {
+    private getClientBoundCredentialType(key: string): string | undefined {
         const normalizedKey = key.toLowerCase();
         const keySegments = normalizedKey.split(CacheKeys.CACHE_KEY_SEPARATOR);
         const credentialType = keySegments[3];
@@ -487,9 +494,16 @@ export class LocalStorage implements IWindowStorage<string> {
             Constants.CredentialType.ACCESS_TOKEN,
             Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
         ].map((type) => type.toLowerCase());
-        const isClientBoundCredential = clientBoundCredentialTypes.some(
+
+        return clientBoundCredentialTypes.find(
             (type) =>
                 credentialType === type || normalizedKey.includes(`-${type}-`)
+        );
+    }
+
+    private isContextValid(key: string, context: string): boolean {
+        const isClientBoundCredential = !!this.getClientBoundCredentialType(
+            key.toLowerCase()
         );
 
         return (
