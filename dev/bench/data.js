@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790274102554,
+  "lastUpdate": 1790355594754,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23961,6 +23961,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.73%",
             "unit": "ops/sec",
             "extra": "213 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "863a1843380cac96eaf97b29000d754fdc37ebed",
+          "message": "Test MCP refresh across Node and browser platform brokers (#8866)\n\n## Summary\n\nAdds the platform-broker test coverage requested in #8861 for both Node\nand browser applications.\n\n## Changes\n\n- Exercise Node MCP silent token refresh with a native broker and\n`forceRefresh` enabled.\n- Verify the Node broker request preserves the MCP `resource`, native\naccount ID, and refresh flag.\n- Verify browser platform-broker responses store the resource-bound\naccess token in memory and the ID token in persistent storage, without\ncaching a refresh token.\n- Verify a request for resource B bypasses the resource A access token\nand invokes `sendMessage` again for both `PlatformAuthExtensionHandler`\nand `PlatformAuthDOMHandler`.\n- Verify the refreshed resource B access token replaces the in-memory\ntoken with the correct resource association.\n\n## Validation\n\n- `npm test -- PublicClientApplication.spec.ts --runInBand` in\n`lib/msal-node`\n- `npm test -- PlatformAuthInteractionClient.spec.ts --runInBand` in\n`lib/msal-browser`\n- Prettier checks for both changed test files\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: test\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\n---------\n\nCopilot-Session: a1a071b6-bbda-456c-97af-169dc4199e88\nCopilot-Session: 938c875d-4f33-41ae-bafc-9ba8a27b6aa6",
+          "timestamp": "2026-09-25T09:52:13-07:00",
+          "tree_id": "36687e67bb7789fd06184496cc7497f459c8757a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/863a1843380cac96eaf97b29000d754fdc37ebed"
+        },
+        "date": 1790355590691,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 510656,
+            "range": "±1.06%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 571297,
+            "range": "±1.36%",
+            "unit": "ops/sec",
+            "extra": "205 samples"
           }
         ]
       }
