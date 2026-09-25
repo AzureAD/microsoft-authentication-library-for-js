@@ -506,48 +506,6 @@ describe("LocalStorage tests", () => {
             }
         );
 
-        it("rejects a legacy client-scoped credential broadcast with no context", async () => {
-            const receiver = await createInitializedInstance();
-            const measurement = spyOnCacheUpdateMeasurement();
-            const credentialKey = `home-account-id-login.microsoftonline.com-accesstoken-${OTHER_CLIENT_ID}-tenant-id-scope--`;
-
-            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
-            sender.postMessage({
-                key: credentialKey,
-                value: "foreign-legacy-token",
-                context: "",
-            });
-
-            await waitFor(() => {
-                expect(measurement.discard).toHaveBeenCalled();
-            });
-            expect(measurement.end).not.toHaveBeenCalled();
-            expect(receiver.getUserData(credentialKey)).toBeNull();
-
-            sender.close();
-        });
-
-        it("rejects a legacy credential owned by a client containing this clientId", async () => {
-            const receiver = await createInitializedInstance();
-            const measurement = spyOnCacheUpdateMeasurement();
-            const credentialKey = `home-account-id-login.microsoftonline.com-accesstoken-foreign-${TEST_CONFIG.MSAL_CLIENT_ID}-tenant-id-scope--`;
-
-            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
-            sender.postMessage({
-                key: credentialKey,
-                value: "foreign-legacy-token",
-                context: TEST_CONFIG.MSAL_CLIENT_ID,
-            });
-
-            await waitFor(() => {
-                expect(measurement.discard).toHaveBeenCalled();
-            });
-            expect(measurement.end).not.toHaveBeenCalled();
-            expect(receiver.getUserData(credentialKey)).toBeNull();
-
-            sender.close();
-        });
-
         it("rejects a foreign client credential broadcast with no context", async () => {
             const receiver = await createInitializedInstance();
             const measurement = spyOnCacheUpdateMeasurement();
@@ -567,6 +525,36 @@ describe("LocalStorage tests", () => {
                 key: credentialKey,
                 value: "foreign-token",
                 context: "",
+            });
+
+            await waitFor(() => {
+                expect(measurement.discard).toHaveBeenCalled();
+            });
+            expect(measurement.end).not.toHaveBeenCalled();
+            expect(receiver.getUserData(credentialKey)).toBeNull();
+
+            sender.close();
+        });
+
+        it("rejects a credential whose clientId contains this clientId", async () => {
+            const receiver = await createInitializedInstance();
+            const measurement = spyOnCacheUpdateMeasurement();
+            const credentialKey = [
+                "msal.3",
+                "home-account-id",
+                "login.microsoftonline.com",
+                "accesstoken",
+                `foreign-${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                "tenant-id",
+                "scope",
+                "",
+            ].join("|");
+
+            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+            sender.postMessage({
+                key: credentialKey,
+                value: "foreign-token",
+                context: TEST_CONFIG.MSAL_CLIENT_ID,
             });
 
             await waitFor(() => {
