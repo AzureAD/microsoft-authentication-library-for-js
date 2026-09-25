@@ -566,6 +566,27 @@ describe("LocalStorage tests", () => {
             sender.close();
         });
 
+        it("rejects a legacy credential whose clientId contains this clientId", async () => {
+            const receiver = await createInitializedInstance();
+            const measurement = spyOnCacheUpdateMeasurement();
+            const credentialKey = `home-account-id-login.microsoftonline.com-accesstoken-foreign-${TEST_CONFIG.MSAL_CLIENT_ID}-tenant-id-scope--`;
+
+            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+            sender.postMessage({
+                key: credentialKey,
+                value: "foreign-token",
+                context: TEST_CONFIG.MSAL_CLIENT_ID,
+            });
+
+            await waitFor(() => {
+                expect(measurement.discard).toHaveBeenCalled();
+            });
+            expect(measurement.end).not.toHaveBeenCalled();
+            expect(receiver.getUserData(credentialKey)).toBeNull();
+
+            sender.close();
+        });
+
         it("still reports genuine failures such as a missing key", async () => {
             await createInitializedInstance();
             const measurement = spyOnCacheUpdateMeasurement();
