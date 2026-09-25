@@ -474,22 +474,39 @@ export class LocalStorage implements IWindowStorage<string> {
                 : "";
         }
 
+        const credentialType = this.getClientBoundCredentialType(normalizedKey);
+        if (credentialType) {
+            const ownerPrefix = `-${credentialType}-${this.clientId.toLowerCase()}-`;
+            return normalizedKey.includes(ownerPrefix) ? this.clientId : "";
+        }
+
         return normalizedKey.includes(this.clientId.toLowerCase())
             ? this.clientId
             : "";
     }
 
+    private getClientBoundCredentialType(key: string): string | undefined {
+        const normalizedKey = key.toLowerCase();
+        const credentialType = normalizedKey.split(
+            CacheKeys.CACHE_KEY_SEPARATOR
+        )[3];
+
+        return [
+            Constants.CredentialType.ID_TOKEN,
+            Constants.CredentialType.ACCESS_TOKEN,
+            Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+        ]
+            .map((type) => type.toLowerCase())
+            .find(
+                (type) =>
+                    credentialType === type ||
+                    normalizedKey.includes(`-${type}-`)
+            );
+    }
+
     private isContextValid(key: string, context: string): boolean {
-        const credentialType = key
-            .toLowerCase()
-            .split(CacheKeys.CACHE_KEY_SEPARATOR)[3];
         const isClientBoundCredential =
-            credentialType ===
-                Constants.CredentialType.ID_TOKEN.toLowerCase() ||
-            credentialType ===
-                Constants.CredentialType.ACCESS_TOKEN.toLowerCase() ||
-            credentialType ===
-                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase();
+            !!this.getClientBoundCredentialType(key);
 
         return (
             (!isClientBoundCredential || !!context) &&
