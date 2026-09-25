@@ -163,6 +163,8 @@ export const PlatformAuthProviderDiscovery = "platformAuthProviderDiscovery";
 export const PlatformAuthDOMCreateProvider = "platformAuthDOMCreateProvider";
 export const PlatformAuthDOMGetSupportedContracts =
     "platformAuthDOMGetSupportedContracts";
+export const PlatformAuthDOMInitializeRequest =
+    "platformAuthDOMInitializeRequest";
 export const PlatformAuthDOMGetToken = "platformAuthDOMGetToken";
 export const PlatformAuthDOMValidateResponse =
     "platformAuthDOMValidateResponse";

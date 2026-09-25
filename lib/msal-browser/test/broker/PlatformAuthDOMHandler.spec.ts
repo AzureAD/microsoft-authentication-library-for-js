@@ -296,6 +296,18 @@ describe("PlatformAuthDOMHandler tests", () => {
                     .find(
                         (event) =>
                             event.name ===
+                            BrowserPerformanceEvents.PlatformAuthDOMInitializeRequest
+                    )
+            ).toMatchObject({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                success: true,
+            });
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
                             BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
                     )
             ).toMatchObject({

@@ -9,6 +9,7 @@ import {
     AuthErrorCodes,
     IPerformanceClient,
     StringDict,
+    invoke,
     invokeAsync,
 } from "@azure/msal-common/browser";
 import {
@@ -158,8 +159,13 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         );
 
         try {
-            const platformDOMRequest: PlatformDOMTokenRequest =
-                this.initializePlatformDOMRequest(request);
+            const platformDOMRequest = invoke(
+                this.initializePlatformDOMRequest.bind(this),
+                BrowserPerformanceEvents.PlatformAuthDOMInitializeRequest,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(request);
             const response: object =
                 // @ts-ignore
                 await window.navigator.platformAuthentication.executeGetToken(
