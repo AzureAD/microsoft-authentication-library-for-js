@@ -473,35 +473,38 @@ describe("LocalStorage tests", () => {
             sender.close();
         });
 
-        it("rejects a client-scoped credential broadcast with no context", async () => {
-            const receiver = await createInitializedInstance();
-            const measurement = spyOnCacheUpdateMeasurement();
-            const credentialKey = [
-                "msal.3",
-                "home-account-id",
-                "login.microsoftonline.com",
-                "accesstoken",
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                "tenant-id",
-                "scope",
-                "",
-            ].join("|");
+        it.each(["accesstoken", "accesstoken_with_authscheme"])(
+            "rejects a client-scoped %s broadcast with no context",
+            async (credentialType) => {
+                const receiver = await createInitializedInstance();
+                const measurement = spyOnCacheUpdateMeasurement();
+                const credentialKey = [
+                    "msal.3",
+                    "home-account-id",
+                    "login.microsoftonline.com",
+                    credentialType,
+                    TEST_CONFIG.MSAL_CLIENT_ID,
+                    "tenant-id",
+                    "scope",
+                    "",
+                ].join("|");
 
-            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
-            sender.postMessage({
-                key: credentialKey,
-                value: "poisoned-token",
-                context: "",
-            });
+                const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+                sender.postMessage({
+                    key: credentialKey,
+                    value: "poisoned-token",
+                    context: "",
+                });
 
-            await waitFor(() => {
-                expect(measurement.discard).toHaveBeenCalled();
-            });
-            expect(measurement.end).not.toHaveBeenCalled();
-            expect(receiver.getUserData(credentialKey)).toBeNull();
+                await waitFor(() => {
+                    expect(measurement.discard).toHaveBeenCalled();
+                });
+                expect(measurement.end).not.toHaveBeenCalled();
+                expect(receiver.getUserData(credentialKey)).toBeNull();
 
-            sender.close();
-        });
+                sender.close();
+            }
+        );
 
         it("rejects a foreign client credential broadcast with no context", async () => {
             const receiver = await createInitializedInstance();

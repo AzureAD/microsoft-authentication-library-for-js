@@ -50,12 +50,26 @@ import {
     ValidCredentialType,
 } from "./utils/CacheTypes.js";
 
-function cacheKeyContainsId(inputKey: string, id: string): boolean {
+function cacheKeyContainsId(
+    inputKey: string,
+    id: string,
+    credentialTypes: string[]
+): boolean {
     const key = inputKey.toLowerCase();
     const normalizedId = id.toLowerCase();
 
     if (key.includes(Constants.RESOURCE_DELIM)) {
         return key.split(Constants.RESOURCE_DELIM)[4] === normalizedId;
+    }
+
+    for (const credentialType of credentialTypes) {
+        const ownerPrefix = `-${credentialType.toLowerCase()}-`;
+        if (key.includes(`${ownerPrefix}${normalizedId}-`)) {
+            return true;
+        }
+        if (key.includes(ownerPrefix)) {
+            return false;
+        }
     }
 
     return key.includes(normalizedId);
@@ -1311,7 +1325,12 @@ export abstract class CacheManager implements ICacheManager {
         filter: CredentialFilter
     ): boolean {
         const key = inputKey.toLowerCase();
-        if (filter.clientId && !cacheKeyContainsId(key, filter.clientId)) {
+        if (
+            filter.clientId &&
+            !cacheKeyContainsId(key, filter.clientId, [
+                Constants.CredentialType.ID_TOKEN,
+            ])
+        ) {
             return false;
         }
 
@@ -1471,7 +1490,13 @@ export abstract class CacheManager implements ICacheManager {
         keyMustContainAllScopes: boolean
     ): boolean {
         const key = inputKey.toLowerCase();
-        if (filter.clientId && !cacheKeyContainsId(key, filter.clientId)) {
+        if (
+            filter.clientId &&
+            !cacheKeyContainsId(key, filter.clientId, [
+                Constants.CredentialType.ACCESS_TOKEN,
+                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+            ])
+        ) {
             return false;
         }
 
@@ -1627,7 +1652,12 @@ export abstract class CacheManager implements ICacheManager {
         filter: CredentialFilter
     ): boolean {
         const key = inputKey.toLowerCase();
-        if (filter.familyId && !cacheKeyContainsId(key, filter.familyId)) {
+        if (
+            filter.familyId &&
+            !cacheKeyContainsId(key, filter.familyId, [
+                Constants.CredentialType.REFRESH_TOKEN,
+            ])
+        ) {
             return false;
         }
 
@@ -1635,7 +1665,9 @@ export abstract class CacheManager implements ICacheManager {
         if (
             !filter.familyId &&
             filter.clientId &&
-            !cacheKeyContainsId(key, filter.clientId)
+            !cacheKeyContainsId(key, filter.clientId, [
+                Constants.CredentialType.REFRESH_TOKEN,
+            ])
         ) {
             return false;
         }

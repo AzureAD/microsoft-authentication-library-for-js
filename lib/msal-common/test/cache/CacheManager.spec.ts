@@ -1261,6 +1261,18 @@ describe("CacheManager.ts test cases", () => {
             clientId,
             "",
         ].join("|");
+        const createForeignNodeCredentialKey = (
+            credentialType: CredentialType
+        ): string =>
+            [
+                "home-account-id",
+                "login.microsoftonline.com",
+                credentialType,
+                foreignClientId,
+                "tenant-id",
+                clientId,
+                "",
+            ].join("-");
 
         it("rejects a foreign clientId that contains the requested clientId", () => {
             expect(
@@ -1279,6 +1291,30 @@ describe("CacheManager.ts test cases", () => {
             expect(
                 mockCache.cacheManager.refreshTokenKeyMatchesFilter(
                     foreignCredentialKey,
+                    { clientId }
+                )
+            ).toBe(false);
+        });
+
+        it("rejects a foreign clientId in Node credential keys", () => {
+            expect(
+                mockCache.cacheManager.idTokenKeyMatchesFilter(
+                    createForeignNodeCredentialKey(CredentialType.ID_TOKEN),
+                    { clientId }
+                )
+            ).toBe(false);
+            expect(
+                mockCache.cacheManager.accessTokenKeyMatchesFilter(
+                    createForeignNodeCredentialKey(CredentialType.ACCESS_TOKEN),
+                    { clientId },
+                    true
+                )
+            ).toBe(false);
+            expect(
+                mockCache.cacheManager.refreshTokenKeyMatchesFilter(
+                    createForeignNodeCredentialKey(
+                        CredentialType.REFRESH_TOKEN
+                    ),
                     { clientId }
                 )
             ).toBe(false);
