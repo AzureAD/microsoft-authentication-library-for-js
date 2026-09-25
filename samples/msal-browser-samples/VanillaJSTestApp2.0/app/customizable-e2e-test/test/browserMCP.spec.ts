@@ -148,7 +148,7 @@ describe("MCP Tests", () => {
             expect(cachedAt.resource).toEqual(mcpTokenRequest.resource);
         });
 
-        it("acquireTokenSilent with different resource falls back to network", async () => {
+        it("acquireTokenSilent with different resource sends resource to network", async () => {
             const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/mcpAcquireTokenSilentDifferentResource`);
 
             const differentResourceRequest = {
@@ -169,19 +169,28 @@ describe("MCP Tests", () => {
             await pcaInitializedPoller(page, 10000);
 
             await page.waitForSelector("#acquireTokenSilent");
+            const tokenResponsePromise = page.waitForResponse(
+                (response) =>
+                    response.url().includes("/oauth2/v2.0/token") &&
+                    response.request().method() === "POST"
+            );
             await page.click("#acquireTokenSilent");
-            await page.waitForSelector("#scopes-acquired");
-            await screenshot.takeScreenshot(page, "mcpAcquireTokenSilentDifferentResource-GotTokens");
+            const tokenResponse = await tokenResponsePromise;
+            await screenshot.takeScreenshot(page, "mcpAcquireTokenSilentDifferentResource-Rejected");
 
-            const fromCache = await page.$eval("#fromCache", (el) => el.textContent);
-            expect(fromCache).toContain("false");
+            const requestBody = tokenResponse.request().postData() || "";
+            expect(requestBody).not.toEqual("");
+            expect(new URLSearchParams(requestBody).get("resource")).toEqual(
+                differentResourceRequest.resource
+            );
+            expect(tokenResponse.status()).toEqual(400);
 
             const storage = await BrowserCache.getWindowStorage();
             const newTokenStore = await BrowserCache.getTokens();
             const newCachedAt = newTokenStore.accessTokens
                 .map((key) => JSON.parse(storage[key]))
                 .find((at) => at.resource === differentResourceRequest.resource);
-            expect(newCachedAt).toBeDefined();
+            expect(newCachedAt).toBeUndefined();
         });
     });
 
@@ -225,4 +234,3 @@ describe("MCP Tests", () => {
         });
     });
 });
-

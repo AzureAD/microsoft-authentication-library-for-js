@@ -1158,8 +1158,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 extraParametersNoCache?: PlatformAuthExtraParametersNoCache;
                 dpopNonce?: string;
             };
-        const scopeSet = new ScopeSet(scopes || [], this.correlationId);
-        scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
+        const scopeSet = new ScopeSet(
+            [...(scopes || []), ...Constants.OIDC_DEFAULT_SCOPES],
+            this.correlationId
+        );
 
         const mergedClaims = RequestParameterBuilder.buildMergedClaims(
             claims,

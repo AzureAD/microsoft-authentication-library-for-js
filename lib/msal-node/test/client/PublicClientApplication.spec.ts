@@ -2653,6 +2653,36 @@ describe("MCP flow tests", () => {
             ).resolves.toBeDefined();
         });
 
+        test("sends resource in platform broker refresh requests", async () => {
+            const brokerPlugin = new MockNativeBrokerPlugin();
+            const brokerSpy = jest.spyOn(brokerPlugin, "acquireTokenSilent");
+            const authApp = new PublicClientApplication({
+                ...mcpConfig,
+                broker: {
+                    nativeBrokerPlugin: brokerPlugin,
+                },
+            });
+            const request: SilentFlowRequest = {
+                account: mockNativeAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
+                forceRefresh: true,
+            };
+
+            const result = await authApp.acquireTokenSilent(request);
+
+            expect(brokerSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    accountId: mockNativeAccountInfo.nativeAccountId,
+                    forceRefresh: true,
+                    resource: request.resource,
+                })
+            );
+            expect(result.accessToken).toEqual(
+                mockNativeAuthenticationResult.accessToken
+            );
+        });
+
         test("returns cached token when resource in access token matches resource in request", async () => {
             jest.spyOn(
                 Authority.prototype,
@@ -3178,17 +3208,16 @@ describe("MCP flow tests", () => {
             expect(result).toEqual(mockAuthenticationResult);
         });
 
-        test("stores resource in cached access token", async () => {
+        test("sends resource in refresh request and stores it in cached access token", async () => {
             jest.spyOn(
                 Authority.prototype,
                 <any>"getEndpointMetadataFromNetwork"
             ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             AUTHENTICATION_RESULT.body.client_info =
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
-            jest.spyOn(
-                HttpClient.prototype,
-                "sendPostRequestAsync"
-            ).mockResolvedValue(AUTHENTICATION_RESULT);
+            const sendPostRequestAsyncSpy = jest
+                .spyOn(HttpClient.prototype, "sendPostRequestAsync")
+                .mockResolvedValue(AUTHENTICATION_RESULT);
             jest.spyOn(
                 CacheManager.prototype,
                 "getAllAccounts"
@@ -3206,6 +3235,11 @@ describe("MCP flow tests", () => {
             const authApp = new PublicClientApplication(mcpConfig);
             await authApp.acquireTokenByRefreshToken(request);
 
+            const requestBody =
+                sendPostRequestAsyncSpy.mock.calls[0][1]?.body || "";
+            expect(new URLSearchParams(requestBody).get("resource")).toBe(
+                request.resource
+            );
             expect(saveCacheRecordSpy).toHaveBeenCalled();
             const cacheRecord = saveCacheRecordSpy.mock.calls[0][0];
             expect(cacheRecord.accessToken?.resource).toBe(
