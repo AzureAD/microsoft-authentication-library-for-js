@@ -408,10 +408,20 @@ describe("LocalStorage tests", () => {
         it("emits the measurement when the broadcast targets this clientId", async () => {
             const receiver = await createInitializedInstance();
             const measurement = spyOnCacheUpdateMeasurement();
+            const ownCredentialKey = [
+                "msal.3",
+                "home-account-id",
+                "login.microsoftonline.com",
+                "accesstoken",
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "tenant-id",
+                "scope",
+                "",
+            ].join("|");
 
             const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
             sender.postMessage({
-                key: "ownKey",
+                key: ownCredentialKey,
                 value: "ownVal",
                 context: TEST_CONFIG.MSAL_CLIENT_ID,
             });
@@ -422,7 +432,7 @@ describe("LocalStorage tests", () => {
                 });
             });
             expect(measurement.discard).not.toHaveBeenCalled();
-            expect(receiver.getUserData("ownKey")).toBe("ownVal");
+            expect(receiver.getUserData(ownCredentialKey)).toBe("ownVal");
 
             sender.close();
         });
@@ -432,10 +442,20 @@ describe("LocalStorage tests", () => {
             // every instance, so they must not be swept up by the discard path.
             const receiver = await createInitializedInstance();
             const measurement = spyOnCacheUpdateMeasurement();
+            const familyRefreshTokenKey = [
+                "msal.3",
+                "home-account-id",
+                "login.microsoftonline.com",
+                "refreshtoken",
+                "1",
+                "",
+                "",
+                "",
+            ].join("|");
 
             const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
             sender.postMessage({
-                key: "sharedKey",
+                key: familyRefreshTokenKey,
                 value: "sharedVal",
                 context: "",
             });
@@ -446,7 +466,123 @@ describe("LocalStorage tests", () => {
                 });
             });
             expect(measurement.discard).not.toHaveBeenCalled();
-            expect(receiver.getUserData("sharedKey")).toBe("sharedVal");
+            expect(receiver.getUserData(familyRefreshTokenKey)).toBe(
+                "sharedVal"
+            );
+
+            sender.close();
+        });
+
+        it.each(["idtoken", "accesstoken", "accesstoken_with_authscheme"])(
+            "rejects a client-scoped %s broadcast with no context",
+            async (credentialType) => {
+                const receiver = await createInitializedInstance();
+                const measurement = spyOnCacheUpdateMeasurement();
+                const credentialKey = [
+                    "msal.3",
+                    "home-account-id",
+                    "login.microsoftonline.com",
+                    credentialType,
+                    TEST_CONFIG.MSAL_CLIENT_ID,
+                    "tenant-id",
+                    "scope",
+                    "",
+                ].join("|");
+
+                const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+                sender.postMessage({
+                    key: credentialKey,
+                    value: "poisoned-token",
+                    context: "",
+                });
+
+                await waitFor(() => {
+                    expect(measurement.discard).toHaveBeenCalled();
+                });
+                expect(measurement.end).not.toHaveBeenCalled();
+                expect(receiver.getUserData(credentialKey)).toBeNull();
+
+                sender.close();
+            }
+        );
+
+        it("rejects a foreign client credential broadcast with no context", async () => {
+            const receiver = await createInitializedInstance();
+            const measurement = spyOnCacheUpdateMeasurement();
+            const credentialKey = [
+                "msal.3",
+                "home-account-id",
+                "login.microsoftonline.com",
+                "accesstoken",
+                OTHER_CLIENT_ID,
+                "tenant-id",
+                "scope",
+                "",
+            ].join("|");
+
+            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+            sender.postMessage({
+                key: credentialKey,
+                value: "foreign-token",
+                context: "",
+            });
+
+            await waitFor(() => {
+                expect(measurement.discard).toHaveBeenCalled();
+            });
+            expect(measurement.end).not.toHaveBeenCalled();
+            expect(receiver.getUserData(credentialKey)).toBeNull();
+
+            sender.close();
+        });
+
+        it("rejects a credential whose clientId contains this clientId", async () => {
+            const receiver = await createInitializedInstance();
+            const measurement = spyOnCacheUpdateMeasurement();
+            const credentialKey = [
+                "msal.3",
+                "home-account-id",
+                "login.microsoftonline.com",
+                "accesstoken",
+                `foreign-${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                "tenant-id",
+                "scope",
+                "",
+            ].join("|");
+
+            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+            sender.postMessage({
+                key: credentialKey,
+                value: "foreign-token",
+                context: TEST_CONFIG.MSAL_CLIENT_ID,
+            });
+
+            await waitFor(() => {
+                expect(measurement.discard).toHaveBeenCalled();
+            });
+            expect(measurement.end).not.toHaveBeenCalled();
+            expect(receiver.getUserData(credentialKey)).toBeNull();
+
+            sender.close();
+        });
+
+        it("rejects a legacy credential whose clientId contains this clientId", async () => {
+            const receiver = await createInitializedInstance();
+            const measurement = spyOnCacheUpdateMeasurement();
+            const credentialKey = `home-account-id-login.microsoftonline.com-accesstoken-foreign-${TEST_CONFIG.MSAL_CLIENT_ID}-tenant-id-scope--`;
+
+            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+            sender.postMessage({
+                key: credentialKey,
+                value: "foreign-token",
+                context: TEST_CONFIG.MSAL_CLIENT_ID,
+            });
+
+            await waitFor(() => {
+                expect(measurement.discard).toHaveBeenCalled();
+            });
+            expect(measurement.end).not.toHaveBeenCalled();
+            expect(receiver.getUserData(credentialKey)).toBeNull();
 
             sender.close();
         });

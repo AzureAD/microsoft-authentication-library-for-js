@@ -4,6 +4,7 @@
  */
 
 import {
+    Constants,
     TokenKeys,
     IPerformanceClient,
     invokeAsync,
@@ -465,12 +466,52 @@ export class LocalStorage implements IWindowStorage<string> {
      * @returns
      */
     private getContext(key: string): string {
-        let context = "";
-        if (key.includes(this.clientId)) {
-            context = this.clientId; // Used to bind encryption key to this appId
+        const normalizedKey = key.toLowerCase();
+        const keySegments = normalizedKey.split(CacheKeys.CACHE_KEY_SEPARATOR);
+        if (keySegments.length > 1) {
+            return keySegments[4] === this.clientId.toLowerCase()
+                ? this.clientId
+                : "";
         }
 
-        return context;
+        const credentialType = this.getClientBoundCredentialType(normalizedKey);
+        if (credentialType) {
+            const ownerPrefix = `-${credentialType}-${this.clientId.toLowerCase()}-`;
+            return normalizedKey.includes(ownerPrefix) ? this.clientId : "";
+        }
+
+        return normalizedKey.includes(this.clientId.toLowerCase())
+            ? this.clientId
+            : "";
+    }
+
+    private getClientBoundCredentialType(key: string): string | undefined {
+        const normalizedKey = key.toLowerCase();
+        const credentialType = normalizedKey.split(
+            CacheKeys.CACHE_KEY_SEPARATOR
+        )[3];
+
+        return [
+            Constants.CredentialType.ID_TOKEN,
+            Constants.CredentialType.ACCESS_TOKEN,
+            Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+        ]
+            .map((type) => type.toLowerCase())
+            .find(
+                (type) =>
+                    credentialType === type ||
+                    normalizedKey.includes(`-${type}-`)
+            );
+    }
+
+    private isContextValid(key: string, context: string): boolean {
+        const isClientBoundCredential =
+            !!this.getClientBoundCredentialType(key);
+
+        return (
+            (!isClientBoundCredential || !!context) &&
+            context === this.getContext(key)
+        );
     }
 
     private updateCache(event: MessageEvent, correlationId: string): void {
@@ -490,7 +531,7 @@ export class LocalStorage implements IWindowStorage<string> {
             return;
         }
 
-        if (context && context !== this.clientId) {
+        if (!this.isContextValid(key, context)) {
             this.logger.trace(
                 `Ignoring broadcast event from clientId: '${context}'`,
                 correlationId
