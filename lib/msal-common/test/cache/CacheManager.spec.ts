@@ -1248,6 +1248,43 @@ describe("CacheManager.ts test cases", () => {
         });
     });
 
+    describe("credential key clientId filtering", () => {
+        const clientId = "client-id";
+        const foreignClientId = `foreign-${clientId}`;
+        const foreignCredentialKey = [
+            "msal.3",
+            "home-account-id",
+            "login.microsoftonline.com",
+            CredentialType.ACCESS_TOKEN,
+            foreignClientId,
+            "tenant-id",
+            clientId,
+            "",
+        ].join("|");
+
+        it("rejects a foreign clientId that contains the requested clientId", () => {
+            expect(
+                mockCache.cacheManager.idTokenKeyMatchesFilter(
+                    foreignCredentialKey,
+                    { clientId }
+                )
+            ).toBe(false);
+            expect(
+                mockCache.cacheManager.accessTokenKeyMatchesFilter(
+                    foreignCredentialKey,
+                    { clientId },
+                    true
+                )
+            ).toBe(false);
+            expect(
+                mockCache.cacheManager.refreshTokenKeyMatchesFilter(
+                    foreignCredentialKey,
+                    { clientId }
+                )
+            ).toBe(false);
+        });
+    });
+
     describe("credentialMatchesFilter", () => {
         let testIdToken: IdTokenEntity;
         let testAccessToken: AccessTokenEntity;
