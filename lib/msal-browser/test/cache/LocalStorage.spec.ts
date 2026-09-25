@@ -473,7 +473,7 @@ describe("LocalStorage tests", () => {
             sender.close();
         });
 
-        it.each(["accesstoken", "accesstoken_with_authscheme"])(
+        it.each(["idtoken", "accesstoken", "accesstoken_with_authscheme"])(
             "rejects a client-scoped %s broadcast with no context",
             async (credentialType) => {
                 const receiver = await createInitializedInstance();
@@ -505,6 +505,27 @@ describe("LocalStorage tests", () => {
                 sender.close();
             }
         );
+
+        it("rejects a legacy client-scoped credential broadcast with no context", async () => {
+            const receiver = await createInitializedInstance();
+            const measurement = spyOnCacheUpdateMeasurement();
+            const credentialKey = `home-account-id-login.microsoftonline.com-accesstoken-${OTHER_CLIENT_ID}-tenant-id-scope--`;
+
+            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+            sender.postMessage({
+                key: credentialKey,
+                value: "foreign-legacy-token",
+                context: "",
+            });
+
+            await waitFor(() => {
+                expect(measurement.discard).toHaveBeenCalled();
+            });
+            expect(measurement.end).not.toHaveBeenCalled();
+            expect(receiver.getUserData(credentialKey)).toBeNull();
+
+            sender.close();
+        });
 
         it("rejects a foreign client credential broadcast with no context", async () => {
             const receiver = await createInitializedInstance();
