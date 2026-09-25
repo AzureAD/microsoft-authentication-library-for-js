@@ -487,7 +487,9 @@ export class LocalStorage implements IWindowStorage<string> {
             credentialType ===
                 Constants.CredentialType.ID_TOKEN.toLowerCase() ||
             credentialType ===
-                Constants.CredentialType.ACCESS_TOKEN.toLowerCase();
+                Constants.CredentialType.ACCESS_TOKEN.toLowerCase() ||
+            credentialType ===
+                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase();
 
         return (
             (!isClientBoundCredential || !!context) &&
