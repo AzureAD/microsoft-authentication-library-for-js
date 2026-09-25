@@ -723,11 +723,9 @@ export class StandardController implements IController {
             );
 
             let result: Promise<void>;
+            const platformAuthProvider = this.platformAuthProvider;
 
-            if (
-                this.platformAuthProvider &&
-                this.canUsePlatformBroker(request)
-            ) {
+            if (this.canUsePlatformBroker(request) && platformAuthProvider) {
                 const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -737,7 +735,7 @@ export class StandardController implements IController {
                     this.navigationClient,
                     ApiId.acquireTokenRedirect,
                     this.performanceClient,
-                    this.platformAuthProvider,
+                    platformAuthProvider,
                     this.getNativeAccountId(request),
                     this.nativeInternalStorage,
                     correlationId,
@@ -1867,28 +1865,24 @@ export class StandardController implements IController {
      * @param request
      */
     public canUsePlatformBroker(
-        request: RedirectRequest | PopupRequest | SsoSilentRequest,
+        request:
+            | RedirectRequest
+            | PopupRequest
+            | SsoSilentRequest
+            | SilentRequest,
         accountId?: string
     ): boolean {
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("canUsePlatformBroker called", correlationId);
-        if (!this.platformAuthProvider) {
-            this.logger.trace(
-                "canUsePlatformBroker: platform broker unavilable, returning false",
-                correlationId
-            );
-            return false;
-        }
-
-        if (
-            !isPlatformAuthAllowed(
-                this.config,
-                this.logger,
-                correlationId,
-                this.platformAuthProvider,
-                request.authenticationScheme
-            )
-        ) {
+        const platformAuthAllowed = isPlatformAuthAllowed(
+            this.config,
+            this.logger,
+            correlationId,
+            this.platformAuthProvider,
+            request.authenticationScheme,
+            this.performanceClient
+        );
+        if (!platformAuthAllowed) {
             this.logger.trace(
                 "canUsePlatformBroker: isPlatformAuthAllowed returned false, returning false",
                 correlationId
@@ -1931,9 +1925,11 @@ export class StandardController implements IController {
      * @param request
      * @returns
      */
-    public getNativeAccountId(
-        request: RedirectRequest | PopupRequest | SsoSilentRequest
-    ): string {
+    public getNativeAccountId(request: {
+        account?: AccountInfo;
+        loginHint?: string;
+        sid?: string;
+    }): string {
         const account =
             request.account ||
             this.getAccount({
@@ -2549,14 +2545,10 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         // if the cache policy is set to access_token only, we should not be hitting the native layer yet
         if (
-            isPlatformAuthAllowed(
-                this.config,
-                this.logger,
-                silentRequest.correlationId,
-                this.platformAuthProvider,
-                silentRequest.authenticationScheme
-            ) &&
-            silentRequest.account.nativeAccountId
+            this.canUsePlatformBroker(
+                silentRequest,
+                silentRequest.account.nativeAccountId
+            )
         ) {
             this.logger.verbose(
                 "acquireTokenSilent - attempting to acquire token from native platform",

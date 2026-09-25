@@ -81,16 +81,24 @@ const event: PerformanceEvent = {
 
 The complete details for `PerformanceEvents` objects can be found [here](../../msal-common/src/telemetry/performance/PerformanceEvent.ts). Below is a list of some notable properties:
 
-| **Property**                       | Type      | Description                                                            |
-| ---------------------------------- | --------- | ---------------------------------------------------------------------- |
+| **Property**                       | Type      | Description                                                                                                                   |
+| ---------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `name`                             | `string`  | Name of the operation, usually matches the top-level API name (e.g. `acquireTokenSilent`, `acquireTokenByCode`, `ssoSilent`). |
-| `durationMs`                       | `number`  | End-to-end duration in milliseconds for the operation.                 |
-| `success`                          | `boolean` | Whether the operation was successful or not.                           |
-| `fromCache`                        | `boolean` | Whether the operation retrieved the result from the cache.             |
-| `correlationId`                    | `string`  | Correlation ID used for the operation (preferably unique per request). |
-| `libraryVersion`                   | `string`  | Version of MSAL.js used for the operation.                             |
-| `authority`                        | `string`  | Authority used for the operation.                                      |
-| `<internalFunctionName>DurationMs` | `number`  | Duration in milliseconds for an internal operation.                    |
+| `durationMs`                       | `number`  | End-to-end duration in milliseconds for the operation.                                                                        |
+| `success`                          | `boolean` | Whether the operation was successful or not.                                                                                  |
+| `fromCache`                        | `boolean` | Whether the operation retrieved the result from the cache.                                                                    |
+| `correlationId`                    | `string`  | Correlation ID used for the operation (preferably unique per request).                                                        |
+| `libraryVersion`                   | `string`  | Version of MSAL.js used for the operation.                                                                                    |
+| `authority`                        | `string`  | Authority used for the operation.                                                                                             |
+| `<internalFunctionName>DurationMs` | `number`  | Duration in milliseconds for an internal operation.                                                                           |
+
+### Platform broker measurements
+
+When platform brokering is enabled, MSAL emits measurements for provider discovery, extension or DOM transport, response validation, request initialization, response processing, and cache updates. Use `correlationId` to join child measurements to the top-level authentication event. The independently emitted extension handshake event uses `platformAuthRequestCorrelationId` for this join.
+
+Platform broker measurements include `platformAuthProviderType`, with a value of `PlatformAuthDOMHandler` or `PlatformAuthExtensionHandler`, to identify the provider used for the operation.
+
+Platform broker telemetry does not include tokens, claims, account identifiers, request or response payloads, URLs, or exception messages.
 
 ### removePerformanceCallback
 

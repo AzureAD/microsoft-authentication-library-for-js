@@ -14,6 +14,9 @@ import {
 } from "../../src/config/Configuration.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { TEST_CONFIG } from "../utils/StringConstants.js";
+import { PlatformAuthConstants } from "../../src/utils/BrowserConstants.js";
+import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
+import { PerformanceEvent } from "@azure/msal-common/browser";
 
 describe("PlatformAuthProvider tests", () => {
     function stubExtensionProvider() {
@@ -144,6 +147,11 @@ describe("PlatformAuthProvider tests", () => {
 
         it("returns dom handler when available", async () => {
             const domProviderSpy = stubDOMProvider();
+            const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
+            const events: PerformanceEvent[] = [];
+            performanceClient.addPerformanceCallback((emittedEvents) => {
+                events.push(...emittedEvents);
+            });
 
             const result = await PlatformAuthProvider.getPlatformAuthProvider(
                 logger,
@@ -155,10 +163,34 @@ describe("PlatformAuthProvider tests", () => {
             expect(result).not.toBe(undefined);
             expect(result).toBeInstanceOf(PlatformAuthDOMHandler);
             expect(domProviderSpy).toHaveBeenCalled();
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                },
+                "test-correlation-id"
+            );
+            expect(
+                events.find(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.PlatformAuthProviderDiscovery
+                )
+            ).toMatchObject({
+                correlationId: "test-correlation-id",
+                success: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+            });
         });
 
         it("returns extension handler if dom APIs are not available and extension is available", async () => {
             const extensionProviderSpy = stubExtensionProvider();
+            const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
+            const events: PerformanceEvent[] = [];
+            performanceClient.addPerformanceCallback((emittedEvents) => {
+                events.push(...emittedEvents);
+            });
 
             const result = await PlatformAuthProvider.getPlatformAuthProvider(
                 logger,
@@ -168,6 +200,60 @@ describe("PlatformAuthProvider tests", () => {
             expect(result).not.toBe(undefined);
             expect(result).toBeInstanceOf(PlatformAuthExtensionHandler);
             expect(extensionProviderSpy).toHaveBeenCalled();
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                },
+                "test-correlation-id"
+            );
+            expect(
+                events.find(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.PlatformAuthProviderDiscovery
+                )
+            ).toMatchObject({
+                correlationId: "test-correlation-id",
+                success: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+            });
+        });
+
+        it("falls back to extension handler when DOM provider discovery throws", async () => {
+            jest.spyOn(
+                PlatformAuthDOMHandler,
+                "createProvider"
+            ).mockRejectedValue(new Error("DOM API unavailable"));
+            const extensionProviderSpy = stubExtensionProvider();
+            const events: PerformanceEvent[] = [];
+            performanceClient.addPerformanceCallback((emittedEvents) => {
+                events.push(...emittedEvents);
+            });
+
+            const result = await PlatformAuthProvider.getPlatformAuthProvider(
+                logger,
+                performanceClient,
+                "test-correlation-id",
+                undefined,
+                true
+            );
+
+            expect(result).toBeInstanceOf(PlatformAuthExtensionHandler);
+            expect(extensionProviderSpy).toHaveBeenCalled();
+            expect(
+                events.find(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.PlatformAuthProviderDiscovery
+                )
+            ).toMatchObject({
+                correlationId: "test-correlation-id",
+                success: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+            });
         });
     });
 
@@ -191,6 +277,7 @@ describe("PlatformAuthProvider tests", () => {
 
         it("returns false when config is not set to enable paltform broker", () => {
             config.system.allowPlatformBroker = false;
+            const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
@@ -200,9 +287,18 @@ describe("PlatformAuthProvider tests", () => {
                     performanceClient,
                     "test-correlation-id"
                 ),
-                Constants.AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER,
+                performanceClient
             );
             expect(result).toBe(false);
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    allowPlatformBroker: false,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("returns false when platform auth provider is not initialized", () => {
@@ -246,6 +342,7 @@ describe("PlatformAuthProvider tests", () => {
         });
 
         it("returns true when platform auth provider is initialized and authentication scheme is supported", () => {
+            const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
@@ -255,9 +352,18 @@ describe("PlatformAuthProvider tests", () => {
                     performanceClient,
                     "test-correlation-id"
                 ),
-                Constants.AuthenticationScheme.BEARER
+                Constants.AuthenticationScheme.BEARER,
+                performanceClient
             );
             expect(result).toBe(true);
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    allowPlatformBroker: true,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("throws error when allowPlatformBrokerWithDOM is enabled without allowPlatformBroker", () => {
