@@ -15,6 +15,7 @@ import { Logger } from "../logger/Logger.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
+import { ClientConfigurationError } from "../error/ClientConfigurationError.js";
 
 /**
  * Create an authority object of the correct type based on the url
@@ -68,6 +69,10 @@ export async function createDiscoveredInstance(
         )();
         return acquireTokenAuthority;
     } catch (e) {
+        if (e instanceof ClientConfigurationError) {
+            throw e;
+        }
+
         throw createClientAuthError(
             ClientAuthErrorCodes.endpointResolutionError,
             correlationId
