@@ -479,17 +479,18 @@ export class LocalStorage implements IWindowStorage<string> {
     }
 
     private isContextValid(key: string, context: string): boolean {
-        const keySegments = key
-            .toLowerCase()
-            .split(CacheKeys.CACHE_KEY_SEPARATOR);
+        const normalizedKey = key.toLowerCase();
+        const keySegments = normalizedKey.split(CacheKeys.CACHE_KEY_SEPARATOR);
         const credentialType = keySegments[3];
-        const isClientBoundCredential =
-            credentialType ===
-                Constants.CredentialType.ID_TOKEN.toLowerCase() ||
-            credentialType ===
-                Constants.CredentialType.ACCESS_TOKEN.toLowerCase() ||
-            credentialType ===
-                Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase();
+        const clientBoundCredentialTypes = [
+            Constants.CredentialType.ID_TOKEN,
+            Constants.CredentialType.ACCESS_TOKEN,
+            Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+        ].map((type) => type.toLowerCase());
+        const isClientBoundCredential = clientBoundCredentialTypes.some(
+            (type) =>
+                credentialType === type || normalizedKey.includes(`-${type}-`)
+        );
 
         return (
             (!isClientBoundCredential || !!context) &&
