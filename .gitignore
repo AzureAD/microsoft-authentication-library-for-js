@@ -257,7 +257,6 @@ paket-files/
 .DS_Store?
 
 # MSAL specific ignore files
-.forge/
 node_modules/
 .nyc_output/
 coverage/

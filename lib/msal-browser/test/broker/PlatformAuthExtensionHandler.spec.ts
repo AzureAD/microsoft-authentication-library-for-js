@@ -301,6 +301,64 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 }
             });
         });
+
+        it("Emits failed handshake events for malformed extension responses", async () => {
+            const events: PerformanceEvent[] = [];
+            performanceClient.addPerformanceCallback((emittedEvents) => {
+                events.push(...emittedEvents);
+            });
+            const eventHandler = function (event: MessageEvent) {
+                event.stopImmediatePropagation();
+                const request = event.data;
+
+                mcPort =
+                    postMessageSpy.mock.calls[
+                        postMessageSpy.mock.calls.length - 1
+                    ][2][0];
+                if (!mcPort) {
+                    throw new Error("MessageChannel port was not transferred");
+                }
+                mcPort.postMessage({
+                    responseId: request.responseId,
+                });
+            };
+
+            window.addEventListener("message", eventHandler, true);
+
+            await expect(
+                PlatformAuthExtensionHandler.createProvider(
+                    new Logger({}),
+                    2000,
+                    performanceClient,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toBeDefined();
+
+            expect(
+                events.filter(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.NativeMessageHandlerHandshake
+                )
+            ).toEqual([
+                expect.objectContaining({
+                    success: false,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                    platformAuthRequestCorrelationId:
+                        TEST_CONFIG.CORRELATION_ID,
+                }),
+                expect.objectContaining({
+                    success: false,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                    platformAuthRequestCorrelationId:
+                        TEST_CONFIG.CORRELATION_ID,
+                }),
+            ]);
+
+            window.removeEventListener("message", eventHandler, true);
+        });
     });
 
     describe("sendMessage", () => {

@@ -497,6 +497,17 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                           )
                 );
             } else if (handshakeResolver) {
+                clearTimeout(this.timeoutId);
+                window.removeEventListener(
+                    "message",
+                    this.windowListener,
+                    false
+                );
+                this.messageChannel.port1.close();
+                this.messageChannel.port2.close();
+                this.handshakeEvent.end({
+                    success: false,
+                });
                 this.handshakeResolvers.delete(responseId);
                 handshakeResolver.reject(err as AuthError);
             }
