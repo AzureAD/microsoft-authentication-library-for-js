@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Validate structured credential cache keys against the exact client or family owner [#8869](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8869)",
-  "packageName": "@azure/msal-common",
-  "email": "spingale@microsoft.com",
-  "dependentChangeType": "patch"
-}
