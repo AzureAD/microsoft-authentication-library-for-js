@@ -4,6 +4,7 @@
  */
 
 import {
+    Constants,
     TokenKeys,
     IPerformanceClient,
     invokeAsync,
@@ -465,12 +466,33 @@ export class LocalStorage implements IWindowStorage<string> {
      * @returns
      */
     private getContext(key: string): string {
-        let context = "";
-        if (key.includes(this.clientId)) {
-            context = this.clientId; // Used to bind encryption key to this appId
+        const keySegments = key
+            .toLowerCase()
+            .split(CacheKeys.CACHE_KEY_SEPARATOR);
+        if (keySegments.length > 1) {
+            return keySegments[4] === this.clientId.toLowerCase()
+                ? this.clientId
+                : "";
         }
 
-        return context;
+        return key.includes(this.clientId) ? this.clientId : "";
+    }
+
+    private isContextValid(key: string, context: string): boolean {
+        const keySegments = key
+            .toLowerCase()
+            .split(CacheKeys.CACHE_KEY_SEPARATOR);
+        const credentialType = keySegments[3];
+        const isClientBoundCredential =
+            credentialType ===
+                Constants.CredentialType.ID_TOKEN.toLowerCase() ||
+            credentialType ===
+                Constants.CredentialType.ACCESS_TOKEN.toLowerCase();
+
+        return (
+            (!isClientBoundCredential || !!context) &&
+            context === this.getContext(key)
+        );
     }
 
     private updateCache(event: MessageEvent, correlationId: string): void {
@@ -490,7 +512,7 @@ export class LocalStorage implements IWindowStorage<string> {
             return;
         }
 
-        if (context && context !== this.clientId) {
+        if (!this.isContextValid(key, context)) {
             this.logger.trace(
                 `Ignoring broadcast event from clientId: '${context}'`,
                 correlationId
