@@ -308,11 +308,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                         `'${this.platformAuthType}' - platform broker returned error response`,
                         responseCorrelationId
                     );
-                    validationMeasurement.end({
-                        success: true,
-                        platformAuthProviderType: this.platformAuthType,
-                    });
-                    throw createNativeAuthError(
+                    const nativeAuthError = createNativeAuthError(
                         errorResponse.error.code,
                         responseCorrelationId,
                         errorResponse.error.description,
@@ -323,6 +319,16 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                             properties: errorResponse.error.properties,
                         }
                     );
+                    validationMeasurement.end(
+                        {
+                            success: false,
+                            platformAuthProviderType: this.platformAuthType,
+                            brokerErrorName: errorResponse.error.code,
+                            brokerErrorCode: errorResponse.error.errorCode,
+                        },
+                        nativeAuthError
+                    );
+                    throw nativeAuthError;
                 }
             }
         }

@@ -500,6 +500,10 @@ describe("PlatformAuthDOMHandler tests", () => {
                 },
             };
             executeGetTokenMock.mockResolvedValue(testDOMResponse);
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
 
             const platformAuthDOMHandler =
                 await PlatformAuthDOMHandler.createProvider(
@@ -517,6 +521,28 @@ describe("PlatformAuthDOMHandler tests", () => {
                 expect((e as NativeAuthError).errorMessage).toEqual(
                     (testDOMResponse as any).error.description
                 );
+                expect((e as NativeAuthError).ext).toEqual({
+                    error: -6000,
+                    protocol_error: "-5000",
+                    status: "PERSISTENT_ERROR",
+                    properties: {},
+                });
+                expect(
+                    endMeasurementSpy.mock.calls
+                        .map(([event]) => event)
+                        .find(
+                            (event) =>
+                                event.name ===
+                                BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
+                        )
+                ).toMatchObject({
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    success: false,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                    brokerErrorName: (testDOMResponse as any).error.code,
+                    brokerErrorCode: (testDOMResponse as any).error.errorCode,
+                });
             }
         });
     });
