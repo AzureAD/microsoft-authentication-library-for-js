@@ -90,6 +90,9 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             BrowserPerformanceEvents.PlatformAuthExtensionGetToken,
             correlationId
         );
+        sendMessageMeasurement.add({
+            platformAuthProviderType: this.platformAuthType,
+        });
         this.logger.trace(
             `'${this.platformAuthType}' - sendMessage called.`,
             correlationId
