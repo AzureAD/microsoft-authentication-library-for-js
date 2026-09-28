@@ -153,6 +153,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             BrowserPerformanceEvents.PlatformAuthDOMGetToken,
             correlationId
         );
+        sendMessageMeasurement.add({
+            platformAuthProviderType: this.platformAuthType,
+        });
         this.logger.trace(
             `'${this.platformAuthType}' - Sending request to browser DOM API`,
             correlationId
