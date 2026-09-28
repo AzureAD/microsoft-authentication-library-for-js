@@ -2,6 +2,35 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 28 Sep 2026 18:35:25 GMT",
+      "version": "5.23.1",
+      "tag": "@azure/msal-browser_v5.23.1",
+      "comments": {
+        "none": [
+          {
+            "author": "spingale@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4493279336e8bc3d0735fe28c585ceeb4dea9552",
+            "comment": "Upgrade test tooling dependencies to address npm audit findings [#8868](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8868)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "lalima.sharda@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "4493279336e8bc3d0735fe28c585ceeb4dea9552",
+            "comment": "Allow platform broker token requests with empty scopes [#8863](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8863)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.14.2",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 23 Sep 2026 15:49:43 GMT",
       "version": "5.23.0",
       "tag": "@azure/msal-browser_v5.23.0",

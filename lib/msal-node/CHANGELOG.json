@@ -2,6 +2,29 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 28 Sep 2026 18:35:25 GMT",
+      "version": "7.0.1",
+      "tag": "@azure/msal-node_v7.0.1",
+      "comments": {
+        "none": [
+          {
+            "author": "spingale@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4493279336e8bc3d0735fe28c585ceeb4dea9552",
+            "comment": "Upgrade test tooling dependencies to address npm audit findings [#8868](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8868)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.14.2",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 23 Sep 2026 15:49:44 GMT",
       "version": "7.0.0",
       "tag": "@azure/msal-node_v7.0.0",

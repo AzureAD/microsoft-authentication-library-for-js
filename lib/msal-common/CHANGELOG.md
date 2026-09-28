@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 15 Sep 2026 19:42:08 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 28 Sep 2026 18:35:25 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.14.2
+
+Mon, 28 Sep 2026 18:35:25 GMT
+
+### Patches
+
+- Include the resource parameter in refresh token requests [#8861](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8861) (shylasummers@microsoft.com)
 
 ## 16.14.1
 

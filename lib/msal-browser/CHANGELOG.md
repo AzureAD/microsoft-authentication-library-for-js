@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 23 Sep 2026 15:49:43 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 28 Sep 2026 18:35:25 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.23.1
+
+Mon, 28 Sep 2026 18:35:25 GMT
+
+### Patches
+
+- Allow platform broker token requests with empty scopes [#8863](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8863) (lalima.sharda@gmail.com)
+- Bump @azure/msal-common to v16.14.2
 
 ## 5.23.0
 
