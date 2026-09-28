@@ -227,6 +227,9 @@ export class StandardController implements IController {
 
         // Initialize performance client
         this.performanceClient = this.config.telemetry.client;
+        this.performanceClient.addGlobalFields({
+            allowPlatformBroker: this.config.system.allowPlatformBroker,
+        });
 
         // Initialize environment-specific crypto and token-binding services.
         if (this.isBrowserEnvironment) {
