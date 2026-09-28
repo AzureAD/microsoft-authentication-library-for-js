@@ -8,10 +8,10 @@
     "@actions/github": "^9.0.0"
   },
   "devDependencies": {
-    "@types/js-yaml": "^4.0.0",
-    "@vercel/ncc": "^0.24.1",
-    "js-yaml": "^4.0.0",
-    "typescript": "^4.0.5"
+    "@types/node": "^24.0.0",
+    "@vercel/ncc": "^0.45.0",
+    "js-yaml": "^5.4.2",
+    "typescript": "^5.9.3"
   },
   "scripts": {
     "build": "ncc build main/index.ts"
