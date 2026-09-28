@@ -2653,6 +2653,36 @@ describe("MCP flow tests", () => {
             ).resolves.toBeDefined();
         });
 
+        test("sends resource in platform broker refresh requests", async () => {
+            const brokerPlugin = new MockNativeBrokerPlugin();
+            const brokerSpy = jest.spyOn(brokerPlugin, "acquireTokenSilent");
+            const authApp = new PublicClientApplication({
+                ...mcpConfig,
+                broker: {
+                    nativeBrokerPlugin: brokerPlugin,
+                },
+            });
+            const request: SilentFlowRequest = {
+                account: mockNativeAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                resource: "https://resource.example.com",
+                forceRefresh: true,
+            };
+
+            const result = await authApp.acquireTokenSilent(request);
+
+            expect(brokerSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    accountId: mockNativeAccountInfo.nativeAccountId,
+                    forceRefresh: true,
+                    resource: request.resource,
+                })
+            );
+            expect(result.accessToken).toEqual(
+                mockNativeAuthenticationResult.accessToken
+            );
+        });
+
         test("returns cached token when resource in access token matches resource in request", async () => {
             jest.spyOn(
                 Authority.prototype,
