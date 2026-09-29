@@ -360,6 +360,46 @@ describe("PlatformAuthExtensionHandler Tests", () => {
 
             window.removeEventListener("message", eventHandler, true);
         });
+
+        it("Rejects a token response method sent to an active handshake resolver", async () => {
+            const eventHandler = function (event: MessageEvent) {
+                event.stopImmediatePropagation();
+                const request = event.data;
+
+                mcPort =
+                    postMessageSpy.mock.calls[
+                        postMessageSpy.mock.calls.length - 1
+                    ][2][0];
+                if (!mcPort) {
+                    throw new Error("MessageChannel port was not transferred");
+                }
+                mcPort.postMessage({
+                    responseId: request.responseId,
+                    body: {
+                        method: NativeExtensionMethod.Response,
+                        response: {
+                            status: "Success",
+                            result: {},
+                        },
+                    },
+                });
+            };
+
+            window.addEventListener("message", eventHandler, true);
+
+            await expect(
+                PlatformAuthExtensionHandler.createProvider(
+                    new Logger({}),
+                    2000,
+                    performanceClient,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).rejects.toMatchObject({
+                errorCode: AuthErrorCodes.unexpectedError,
+            });
+
+            window.removeEventListener("message", eventHandler, true);
+        });
     });
 
     describe("sendMessage", () => {
@@ -764,6 +804,54 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 success: false,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+            });
+
+            window.removeEventListener("message", eventHandler, true);
+        });
+
+        it("Rejects a handshake response method sent to an active token resolver", async () => {
+            const eventHandler = function (event: MessageEvent) {
+                event.stopImmediatePropagation();
+                const request = event.data;
+                const req = {
+                    channel: "53ee284d-920a-4b59-9d30-a60315b26836",
+                    extensionId: "test-ext-id",
+                    responseId: request.responseId,
+                    body: {
+                        method: NativeExtensionMethod.HandshakeResponse,
+                        version: 3,
+                    },
+                };
+
+                mcPort = postMessageSpy.mock.calls[0][2][0];
+                if (!mcPort) {
+                    throw new Error("MessageChannel port was not transferred");
+                }
+                mcPort.onmessage = (messageEvent) => {
+                    mcPort.postMessage({
+                        responseId: messageEvent.data.responseId,
+                        body: {
+                            method: NativeExtensionMethod.HandshakeResponse,
+                            version: 3,
+                        },
+                    });
+                };
+                mcPort.postMessage(req);
+            };
+
+            window.addEventListener("message", eventHandler, true);
+            const wamMessageHandler =
+                await PlatformAuthExtensionHandler.createProvider(
+                    new Logger({}),
+                    2000,
+                    performanceClient,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+
+            await expect(
+                wamMessageHandler.sendMessage(TEST_REQUEST)
+            ).rejects.toMatchObject({
+                errorCode: AuthErrorCodes.unexpectedError,
             });
 
             window.removeEventListener("message", eventHandler, true);
