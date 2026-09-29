@@ -453,7 +453,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                     false
                 ); // Remove 'No extension' listener
                 this.extensionId = request.extensionId;
-                this.extensionVersion = request.body.version;
+                this.extensionVersion = request.body.version?.toString();
                 this.logger.verbose(
                     `'${this.platformAuthType}' - Received HandshakeResponse from extension: '${this.extensionId}'`,
                     correlationId
