@@ -153,7 +153,12 @@ export class LocalStorage implements IWindowStorage<string> {
 
         // Register listener for cache updates in other tabs
         this.broadcast.addEventListener("message", (event: MessageEvent) => {
-            void this.updateCache(event, correlationId);
+            this.updateCache(event, correlationId).catch(() => {
+                this.logger.error(
+                    "Failed to process cache update broadcast",
+                    correlationId
+                );
+            });
         });
 
         this.initialized = true;
@@ -203,7 +208,7 @@ export class LocalStorage implements IWindowStorage<string> {
         )(
             this.encryptionCookie.key,
             data.nonce,
-            this.getEncryptionContext(key),
+            this.getContext(key),
             data.data
         );
 
@@ -252,7 +257,7 @@ export class LocalStorage implements IWindowStorage<string> {
                 this.logger,
                 this.performanceClient,
                 correlationId
-            )(this.encryptionCookie.key, value, this.getEncryptionContext(key));
+            )(this.encryptionCookie.key, value, this.getContext(key));
             const encryptedData: EncryptedData = {
                 id: this.encryptionCookie.id,
                 nonce: nonce,
@@ -426,7 +431,7 @@ export class LocalStorage implements IWindowStorage<string> {
         )(
             this.encryptionCookie.key,
             encObj.nonce,
-            this.getEncryptionContext(key),
+            this.getContext(key),
             encObj.data
         );
     }
@@ -462,7 +467,7 @@ export class LocalStorage implements IWindowStorage<string> {
         return importedArr;
     }
 
-    private getEncryptionContext(key: string): string {
+    private getContext(key: string): string {
         return key.includes(this.clientId) ? this.clientId : "";
     }
 

@@ -162,11 +162,11 @@ describe("LocalStorage tests", () => {
         await localStorageInstance.initialize(TEST_CONFIG.CORRELATION_ID);
 
         const contextReader = localStorageInstance as unknown as {
-            getEncryptionContext(key: string): string;
+            getContext(key: string): string;
             getBroadcastContext(key: string): string;
         };
 
-        expect(contextReader.getEncryptionContext(credentialKey)).toBe("");
+        expect(contextReader.getContext(credentialKey)).toBe("");
         expect(contextReader.getBroadcastContext(credentialKey)).toBe(
             mixedCaseClientId
         );
