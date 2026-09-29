@@ -94,7 +94,7 @@ The complete details for `PerformanceEvents` objects can be found [here](../../m
 
 ### Platform broker measurements
 
-When platform brokering is enabled, MSAL measures provider discovery, extension or DOM transport, response validation, request initialization, response processing, and cache updates. These child measurements are folded into the top-level authentication event as `<measurementName>DurationMs` fields under the same `correlationId`; they are not emitted as separate callback events. The independently emitted extension handshake event uses `platformAuthRequestCorrelationId` to join it to the originating request.
+When platform brokering is enabled, MSAL measures provider discovery and provider creation during initialization, and extension or DOM transport, response validation, request initialization, response processing, and cache updates during authentication. These child measurements are folded into their enclosing top-level event as `<measurementName>DurationMs` fields under the same `correlationId`; they are not emitted as separate callback events. The independently emitted extension handshake event uses `platformAuthRequestCorrelationId` to join it to the originating initialization request.
 
 Platform broker measurements include `platformAuthProviderType`, with a value of `PlatformAuthDOMHandler` or `PlatformAuthExtensionHandler`, to identify the provider used for the operation.
 
