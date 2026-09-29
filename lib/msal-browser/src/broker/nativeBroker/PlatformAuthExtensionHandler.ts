@@ -387,13 +387,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
 
             if (method === NativeExtensionMethod.Response) {
                 if (!resolver) {
-                    if (handshakeResolver) {
-                        throw createAuthError(
-                            AuthErrorCodes.unexpectedError,
-                            correlationId,
-                            "Extension response method does not match the active handshake resolver."
-                        );
-                    }
                     return;
                 }
                 try {
@@ -451,13 +444,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                         `'${this.platformAuthType}'.onChannelMessage - resolver can't be found for request '${request.responseId}'`,
                         correlationId
                     );
-                    if (resolver) {
-                        throw createAuthError(
-                            AuthErrorCodes.unexpectedError,
-                            correlationId,
-                            "Extension handshake response does not match the active token resolver."
-                        );
-                    }
                     return;
                 }
                 clearTimeout(this.timeoutId); // Clear setTimeout
@@ -481,11 +467,14 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
 
                 handshakeResolver.resolve();
                 this.handshakeResolvers.delete(request.responseId);
-            } else if (resolver || handshakeResolver) {
-                throw createAuthError(
-                    AuthErrorCodes.unexpectedError,
-                    correlationId,
-                    "Extension response contains an unexpected method."
+            } else if (resolver) {
+                this.resolvers.delete(request.responseId);
+                resolver.reject(
+                    createAuthError(
+                        AuthErrorCodes.unexpectedError,
+                        correlationId,
+                        "Extension response contains an unexpected method."
+                    )
                 );
             }
         } catch (err) {
