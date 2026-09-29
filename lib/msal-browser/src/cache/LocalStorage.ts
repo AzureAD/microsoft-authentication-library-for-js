@@ -153,7 +153,7 @@ export class LocalStorage implements IWindowStorage<string> {
 
         // Register listener for cache updates in other tabs
         this.broadcast.addEventListener("message", (event: MessageEvent) => {
-            this.updateCache(event, correlationId);
+            void this.updateCache(event, correlationId);
         });
 
         this.initialized = true;
@@ -203,7 +203,7 @@ export class LocalStorage implements IWindowStorage<string> {
         )(
             this.encryptionCookie.key,
             data.nonce,
-            this.getContext(key),
+            this.getEncryptionContext(key),
             data.data
         );
 
@@ -252,7 +252,7 @@ export class LocalStorage implements IWindowStorage<string> {
                 this.logger,
                 this.performanceClient,
                 correlationId
-            )(this.encryptionCookie.key, value, this.getContext(key));
+            )(this.encryptionCookie.key, value, this.getEncryptionContext(key));
             const encryptedData: EncryptedData = {
                 id: this.encryptionCookie.id,
                 nonce: nonce,
@@ -268,20 +268,22 @@ export class LocalStorage implements IWindowStorage<string> {
         this.broadcast.postMessage({
             key: key,
             value: value,
-            context: this.getContext(key),
+            context: this.getBroadcastContext(key),
         });
     }
 
     removeItem(key: string): void {
-        if (this.memoryStorage.containsKey(key)) {
-            this.memoryStorage.removeItem(key);
+        const itemExists =
+            this.containsKey(key) || this.memoryStorage.containsKey(key);
+        window.localStorage.removeItem(key);
+        this.memoryStorage.removeItem(key);
+        if (itemExists) {
             this.broadcast.postMessage({
                 key: key,
                 value: null,
-                context: this.getContext(key),
+                context: this.getBroadcastContext(key),
             });
         }
-        window.localStorage.removeItem(key);
     }
 
     getKeys(): string[] {
@@ -424,7 +426,7 @@ export class LocalStorage implements IWindowStorage<string> {
         )(
             this.encryptionCookie.key,
             encObj.nonce,
-            this.getContext(key),
+            this.getEncryptionContext(key),
             encObj.data
         );
     }
@@ -460,12 +462,11 @@ export class LocalStorage implements IWindowStorage<string> {
         return importedArr;
     }
 
-    /**
-     * Gets encryption context for a given cache entry. This is clientId for app specific entries, empty string for shared entries
-     * @param key
-     * @returns
-     */
-    private getContext(key: string): string {
+    private getEncryptionContext(key: string): string {
+        return key.includes(this.clientId) ? this.clientId : "";
+    }
+
+    private getBroadcastContext(key: string): string {
         const normalizedKey = key.toLowerCase();
         const keySegments = normalizedKey.split(CacheKeys.CACHE_KEY_SEPARATOR);
         if (keySegments.length > 1) {
@@ -474,7 +475,7 @@ export class LocalStorage implements IWindowStorage<string> {
                 : "";
         }
 
-        const credentialType = this.getClientBoundCredentialType(normalizedKey);
+        const credentialType = this.getCredentialType(normalizedKey);
         if (credentialType) {
             const ownerPrefix = `-${credentialType}-${this.clientId.toLowerCase()}-`;
             return normalizedKey.includes(ownerPrefix) ? this.clientId : "";
@@ -485,36 +486,54 @@ export class LocalStorage implements IWindowStorage<string> {
             : "";
     }
 
-    private getClientBoundCredentialType(key: string): string | undefined {
+    private getCredentialType(key: string): string | undefined {
         const normalizedKey = key.toLowerCase();
-        const credentialType = normalizedKey.split(
-            CacheKeys.CACHE_KEY_SEPARATOR
-        )[3];
+        const keySegments = normalizedKey.split(CacheKeys.CACHE_KEY_SEPARATOR);
+        const structuredCredentialType = keySegments[3];
 
-        return [
-            Constants.CredentialType.ID_TOKEN,
-            Constants.CredentialType.ACCESS_TOKEN,
-            Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
-        ]
+        return Object.values(Constants.CredentialType)
             .map((type) => type.toLowerCase())
             .find(
                 (type) =>
-                    credentialType === type ||
+                    structuredCredentialType === type ||
                     normalizedKey.includes(`-${type}-`)
             );
     }
 
+    private isFamilyRefreshToken(key: string, credentialType: string): boolean {
+        if (
+            credentialType !==
+            Constants.CredentialType.REFRESH_TOKEN.toLowerCase()
+        ) {
+            return false;
+        }
+
+        const normalizedKey = key.toLowerCase();
+        const keySegments = normalizedKey.split(CacheKeys.CACHE_KEY_SEPARATOR);
+        return keySegments.length > 1
+            ? keySegments[4] === Constants.THE_FAMILY_ID
+            : normalizedKey.includes(
+                  `-${credentialType}-${Constants.THE_FAMILY_ID}-`
+              );
+    }
+
     private isContextValid(key: string, context: string): boolean {
+        const credentialType = this.getCredentialType(key);
+        const isFamilyRefreshToken =
+            credentialType && this.isFamilyRefreshToken(key, credentialType);
         const isClientBoundCredential =
-            !!this.getClientBoundCredentialType(key);
+            !!credentialType && !isFamilyRefreshToken;
 
         return (
             (!isClientBoundCredential || !!context) &&
-            context === this.getContext(key)
+            context === this.getBroadcastContext(key)
         );
     }
 
-    private updateCache(event: MessageEvent, correlationId: string): void {
+    private async updateCache(
+        event: MessageEvent,
+        correlationId: string
+    ): Promise<void> {
         this.logger.trace(
             "Updating internal cache from broadcast event",
             correlationId
@@ -524,10 +543,23 @@ export class LocalStorage implements IWindowStorage<string> {
         );
         perfMeasurement.add({ isBackground: true });
 
-        const { key, value, context } = event.data;
-        if (!key) {
+        const key = event.data?.key;
+        const context = event.data?.context;
+        if (typeof key !== "string" || !key) {
             this.logger.error("Broadcast event missing key", correlationId);
             perfMeasurement.end({ success: false, errorCode: "noKey" });
+            return;
+        }
+
+        if (typeof context !== "string") {
+            this.logger.error(
+                "Broadcast event missing cache context",
+                correlationId
+            );
+            perfMeasurement.end({
+                success: false,
+                errorCode: "noContext",
+            });
             return;
         }
 
@@ -553,19 +585,48 @@ export class LocalStorage implements IWindowStorage<string> {
             return;
         }
 
-        if (!value) {
+        const persistedValue = this.getItem(key);
+        try {
+            const value = await this.getItemFromEncryptedCache(
+                key,
+                correlationId
+            );
+
+            // A newer write or removal occurred while this entry was decrypted.
+            if (this.getItem(key) !== persistedValue) {
+                perfMeasurement.discard();
+                return;
+            }
+
+            if (!value) {
+                this.memoryStorage.removeItem(key);
+                this.logger.verbose(
+                    "Removed item from internal cache",
+                    correlationId
+                );
+            } else {
+                this.memoryStorage.setItem(key, value);
+                this.logger.verbose(
+                    "Updated item in internal cache",
+                    correlationId
+                );
+            }
+            perfMeasurement.end({ success: true });
+        } catch {
+            if (this.getItem(key) !== persistedValue) {
+                perfMeasurement.discard();
+                return;
+            }
+
             this.memoryStorage.removeItem(key);
-            this.logger.verbose(
-                "Removed item from internal cache",
+            this.logger.error(
+                "Failed to update internal cache from persistent storage",
                 correlationId
             );
-        } else {
-            this.memoryStorage.setItem(key, value);
-            this.logger.verbose(
-                "Updated item in internal cache",
-                correlationId
-            );
+            perfMeasurement.end({
+                success: false,
+                errorCode: "cacheUpdateFailed",
+            });
         }
-        perfMeasurement.end({ success: true });
     }
 }

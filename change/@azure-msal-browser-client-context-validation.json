@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Reject client-bound cache broadcasts with missing or mismatched context [#8869](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8869)",
+  "comment": "Validate cache broadcast context and reload values from persistent storage [#8869](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8869)",
   "packageName": "@azure/msal-browser",
   "email": "spingale@microsoft.com",
   "dependentChangeType": "patch"

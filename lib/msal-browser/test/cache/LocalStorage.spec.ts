@@ -142,6 +142,36 @@ describe("LocalStorage tests", () => {
         );
     });
 
+    it("keeps encryption context compatible while matching broadcast owners case-insensitively", async () => {
+        const mixedCaseClientId = TEST_CONFIG.MSAL_CLIENT_ID.toUpperCase();
+        const credentialKey = [
+            "msal.3",
+            "home-account-id",
+            "login.microsoftonline.com",
+            "accesstoken",
+            TEST_CONFIG.MSAL_CLIENT_ID.toLowerCase(),
+            "tenant-id",
+            "scope",
+            "",
+        ].join("|");
+        const localStorageInstance = new LocalStorage(
+            mixedCaseClientId,
+            logger,
+            performanceClient
+        );
+        await localStorageInstance.initialize(TEST_CONFIG.CORRELATION_ID);
+
+        const contextReader = localStorageInstance as unknown as {
+            getEncryptionContext(key: string): string;
+            getBroadcastContext(key: string): string;
+        };
+
+        expect(contextReader.getEncryptionContext(credentialKey)).toBe("");
+        expect(contextReader.getBroadcastContext(credentialKey)).toBe(
+            mixedCaseClientId
+        );
+    });
+
     it("getItem returns entry from localStorage ", async () => {
         const localStorageInstance = new LocalStorage(
             TEST_CONFIG.MSAL_CLIENT_ID,
@@ -312,6 +342,126 @@ describe("LocalStorage tests", () => {
         });
     });
 
+    it("removeItem broadcasts cache removal to other LocalStorage instances", async () => {
+        const localStorageInstance1 = new LocalStorage(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            logger,
+            performanceClient
+        );
+        const localStorageInstance2 = new LocalStorage(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            logger,
+            performanceClient
+        );
+
+        await localStorageInstance1.initialize(TEST_CONFIG.CORRELATION_ID);
+        await localStorageInstance2.initialize(TEST_CONFIG.CORRELATION_ID);
+        await localStorageInstance1.setUserData(
+            "testKey",
+            JSON.stringify({ secret: "testVal" }),
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString(),
+            false
+        );
+
+        await new Promise<void>((resolve, reject) => {
+            let attemptsRemaining = 10;
+            const callbackId = setInterval(() => {
+                if (localStorageInstance2.getUserData("testKey")) {
+                    clearInterval(callbackId);
+                    resolve();
+                } else if (attemptsRemaining === 0) {
+                    clearInterval(callbackId);
+                    reject(new Error("Cache update was not received"));
+                } else {
+                    attemptsRemaining--;
+                }
+            }, 50);
+        });
+
+        localStorageInstance1.removeItem("testKey");
+
+        await new Promise<void>((resolve, reject) => {
+            let attemptsRemaining = 10;
+            const callbackId = setInterval(() => {
+                if (localStorageInstance2.getUserData("testKey") === null) {
+                    clearInterval(callbackId);
+                    resolve();
+                } else if (attemptsRemaining === 0) {
+                    clearInterval(callbackId);
+                    reject(new Error("Cache removal was not received"));
+                } else {
+                    attemptsRemaining--;
+                }
+            }, 50);
+        });
+    });
+
+    it("clear broadcasts cache removal to other LocalStorage instances", async () => {
+        const localStorageInstance1 = new LocalStorage(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            logger,
+            performanceClient
+        );
+        const localStorageInstance2 = new LocalStorage(
+            TEST_CONFIG.MSAL_CLIENT_ID,
+            logger,
+            performanceClient
+        );
+
+        await localStorageInstance1.initialize(TEST_CONFIG.CORRELATION_ID);
+        await localStorageInstance2.initialize(TEST_CONFIG.CORRELATION_ID);
+        await localStorageInstance1.setUserData(
+            accessTokenKey,
+            JSON.stringify({ secret: accessTokenVal }),
+            TEST_CONFIG.CORRELATION_ID,
+            Date.now().toString(),
+            false
+        );
+        localStorage.setItem(
+            getTokenKeysCacheKey(TEST_CONFIG.MSAL_CLIENT_ID),
+            JSON.stringify({
+                idToken: [],
+                accessToken: [accessTokenKey],
+                refreshToken: [],
+            })
+        );
+
+        await new Promise<void>((resolve, reject) => {
+            let attemptsRemaining = 10;
+            const callbackId = setInterval(() => {
+                if (localStorageInstance2.getUserData(accessTokenKey)) {
+                    clearInterval(callbackId);
+                    resolve();
+                } else if (attemptsRemaining === 0) {
+                    clearInterval(callbackId);
+                    reject(new Error("Cache update was not received"));
+                } else {
+                    attemptsRemaining--;
+                }
+            }, 50);
+        });
+
+        localStorageInstance1.clear();
+
+        await new Promise<void>((resolve, reject) => {
+            let attemptsRemaining = 10;
+            const callbackId = setInterval(() => {
+                if (
+                    localStorageInstance2.getUserData(accessTokenKey) === null
+                ) {
+                    clearInterval(callbackId);
+                    resolve();
+                } else if (attemptsRemaining === 0) {
+                    clearInterval(callbackId);
+                    reject(new Error("Cache clear was not received"));
+                } else {
+                    attemptsRemaining--;
+                }
+            }, 50);
+        });
+    });
+
     describe("broadcast event telemetry", () => {
         const OTHER_CLIENT_ID = "8b1cd6a2-4e07-4f39-9b1a-2c0f5e6d7a34";
         const BROADCAST_CHANNEL_NAME = "msal.broadcast.cache";
@@ -381,6 +531,22 @@ describe("LocalStorage tests", () => {
             return instance;
         }
 
+        function getCredentialKey(
+            credentialType: string,
+            owner: string
+        ): string {
+            return [
+                "msal.3",
+                "home-account-id",
+                "login.microsoftonline.com",
+                credentialType,
+                owner,
+                "tenant-id",
+                "scope",
+                "",
+            ].join("|");
+        }
+
         afterEach(() => {
             jest.restoreAllMocks();
         });
@@ -405,184 +571,335 @@ describe("LocalStorage tests", () => {
             sender.close();
         });
 
-        it("emits the measurement when the broadcast targets this clientId", async () => {
+        it("reloads client-bound entries from persistent storage", async () => {
             const receiver = await createInitializedInstance();
             const measurement = spyOnCacheUpdateMeasurement();
-            const ownCredentialKey = [
-                "msal.3",
-                "home-account-id",
-                "login.microsoftonline.com",
+            const persistedValue = JSON.stringify({ secret: "persisted" });
+            const ownCredentialKey = getCredentialKey(
                 "accesstoken",
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                "tenant-id",
-                "scope",
-                "",
-            ].join("|");
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
+            localStorage.setItem(ownCredentialKey, persistedValue);
 
             const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
             sender.postMessage({
                 key: ownCredentialKey,
-                value: "ownVal",
+                value: "poisonedVal",
                 context: TEST_CONFIG.MSAL_CLIENT_ID,
             });
 
             await waitFor(() => {
+                expect(receiver.getUserData(ownCredentialKey)).toBe(
+                    persistedValue
+                );
                 expect(measurement.end).toHaveBeenCalledWith({
                     success: true,
                 });
             });
             expect(measurement.discard).not.toHaveBeenCalled();
-            expect(receiver.getUserData(ownCredentialKey)).toBe("ownVal");
 
             sender.close();
         });
 
-        it("emits the measurement for shared entries that carry no context", async () => {
+        it("ignores the broadcast value for encrypted entries", async () => {
+            const receiver = await createInitializedInstance();
+            const persistedValue = JSON.stringify({ secret: "persisted" });
+            const ownCredentialKey = getCredentialKey(
+                "accesstoken",
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
+            await receiver.setUserData(
+                ownCredentialKey,
+                persistedValue,
+                TEST_CONFIG.CORRELATION_ID,
+                Date.now().toString(),
+                false
+            );
+
+            await (
+                receiver as unknown as {
+                    updateCache(
+                        event: MessageEvent,
+                        correlationId: string
+                    ): Promise<void>;
+                }
+            ).updateCache(
+                {
+                    data: {
+                        key: ownCredentialKey,
+                        value: "poisonedVal",
+                        context: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                } as MessageEvent,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            expect(receiver.getUserData(ownCredentialKey)).toBe(persistedValue);
+        });
+
+        it("does not apply stale decrypted data after a newer write", async () => {
+            const receiver = await createInitializedInstance();
+            const firstValue = JSON.stringify({ secret: "first" });
+            const secondValue = JSON.stringify({ secret: "second" });
+            const ownCredentialKey = getCredentialKey(
+                "accesstoken",
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
+            await receiver.setUserData(
+                ownCredentialKey,
+                firstValue,
+                TEST_CONFIG.CORRELATION_ID,
+                Date.now().toString(),
+                false
+            );
+
+            const originalDecrypt = window.crypto.subtle.decrypt.bind(
+                window.crypto.subtle
+            );
+            let releaseDecrypt: () => void = () => {};
+            const decryptBlocked = new Promise<void>((resolve) => {
+                releaseDecrypt = resolve;
+            });
+            jest.spyOn(window.crypto.subtle, "decrypt").mockImplementationOnce(
+                async (...args) => {
+                    await decryptBlocked;
+                    return originalDecrypt(...args);
+                }
+            );
+
+            const staleUpdate = (
+                receiver as unknown as {
+                    updateCache(
+                        event: MessageEvent,
+                        correlationId: string
+                    ): Promise<void>;
+                }
+            ).updateCache(
+                {
+                    data: {
+                        key: ownCredentialKey,
+                        value: firstValue,
+                        context: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                } as MessageEvent,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            await receiver.setUserData(
+                ownCredentialKey,
+                secondValue,
+                TEST_CONFIG.CORRELATION_ID,
+                Date.now().toString(),
+                false
+            );
+            releaseDecrypt();
+            await staleUpdate;
+
+            expect(receiver.getUserData(ownCredentialKey)).toBe(secondValue);
+        });
+
+        it("removes stale memory when persisted data cannot be decrypted", async () => {
+            const receiver = await createInitializedInstance();
+            const persistedValue = JSON.stringify({ secret: "persisted" });
+            const ownCredentialKey = getCredentialKey(
+                "accesstoken",
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
+            await receiver.setUserData(
+                ownCredentialKey,
+                persistedValue,
+                TEST_CONFIG.CORRELATION_ID,
+                Date.now().toString(),
+                false
+            );
+            const encryptedValue = JSON.parse(
+                localStorage.getItem(ownCredentialKey) || ""
+            );
+            encryptedValue.data = "invalid-encrypted-data";
+            localStorage.setItem(
+                ownCredentialKey,
+                JSON.stringify(encryptedValue)
+            );
+
+            await (
+                receiver as unknown as {
+                    updateCache(
+                        event: MessageEvent,
+                        correlationId: string
+                    ): Promise<void>;
+                }
+            ).updateCache(
+                {
+                    data: {
+                        key: ownCredentialKey,
+                        context: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                } as MessageEvent,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            expect(receiver.getUserData(ownCredentialKey)).toBeNull();
+        });
+
+        it("reloads shared entries from persistent storage", async () => {
             // Shared entries (accounts, family refresh tokens) intentionally reach
             // every instance, so they must not be swept up by the discard path.
             const receiver = await createInitializedInstance();
             const measurement = spyOnCacheUpdateMeasurement();
-            const familyRefreshTokenKey = [
-                "msal.3",
-                "home-account-id",
-                "login.microsoftonline.com",
-                "refreshtoken",
-                "1",
-                "",
-                "",
-                "",
-            ].join("|");
+            const persistedValue = JSON.stringify({ secret: "persisted" });
+            const familyRefreshTokenKey = getCredentialKey("refreshtoken", "1");
+            localStorage.setItem(familyRefreshTokenKey, persistedValue);
 
             const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
             sender.postMessage({
                 key: familyRefreshTokenKey,
-                value: "sharedVal",
+                value: "poisonedVal",
                 context: "",
             });
 
             await waitFor(() => {
+                expect(receiver.getUserData(familyRefreshTokenKey)).toBe(
+                    persistedValue
+                );
                 expect(measurement.end).toHaveBeenCalledWith({
                     success: true,
                 });
             });
             expect(measurement.discard).not.toHaveBeenCalled();
-            expect(receiver.getUserData(familyRefreshTokenKey)).toBe(
-                "sharedVal"
-            );
 
             sender.close();
         });
 
-        it.each(["idtoken", "accesstoken", "accesstoken_with_authscheme"])(
-            "rejects a client-scoped %s broadcast with no context",
-            async (credentialType) => {
+        it("does not remove an entry that remains in persistent storage", async () => {
+            const receiver = await createInitializedInstance();
+            const persistedValue = JSON.stringify({ secret: "persisted" });
+            const ownCredentialKey = getCredentialKey(
+                "accesstoken",
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
+            localStorage.setItem(ownCredentialKey, persistedValue);
+
+            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+            sender.postMessage({
+                key: ownCredentialKey,
+                value: null,
+                context: TEST_CONFIG.MSAL_CLIENT_ID,
+            });
+
+            await waitFor(() => {
+                expect(receiver.getUserData(ownCredentialKey)).toBe(
+                    persistedValue
+                );
+            });
+
+            sender.close();
+        });
+
+        it.each([
+            [
+                "an ID token without context",
+                "idtoken",
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "",
+            ],
+            [
+                "an access token without context",
+                "accesstoken",
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "",
+            ],
+            [
+                "an auth-scheme access token without context",
+                "accesstoken_with_authscheme",
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "",
+            ],
+            [
+                "an app refresh token without context",
+                "refreshtoken",
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                "",
+            ],
+            [
+                "a credential whose owner only contains this clientId",
+                "accesstoken",
+                `foreign-${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+            ],
+        ])("rejects %s", async (_, credentialType, owner, context) => {
+            const receiver = await createInitializedInstance();
+            const measurement = spyOnCacheUpdateMeasurement();
+            const credentialKey = getCredentialKey(credentialType, owner);
+
+            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+            sender.postMessage({
+                key: credentialKey,
+                value: "poisoned-token",
+                context,
+            });
+
+            await waitFor(() => {
+                expect(measurement.discard).toHaveBeenCalled();
+            });
+            expect(measurement.end).not.toHaveBeenCalled();
+            expect(receiver.getUserData(credentialKey)).toBeNull();
+
+            sender.close();
+        });
+
+        it.each([
+            [
+                "access token",
+                "accesstoken",
+                `foreign-${TEST_CONFIG.MSAL_CLIENT_ID}`,
+            ],
+            ["app refresh token", "refreshtoken", OTHER_CLIENT_ID],
+        ])(
+            "rejects a foreign legacy %s broadcast",
+            async (_, credentialType, owner) => {
                 const receiver = await createInitializedInstance();
                 const measurement = spyOnCacheUpdateMeasurement();
-                const credentialKey = [
-                    "msal.3",
-                    "home-account-id",
-                    "login.microsoftonline.com",
-                    credentialType,
-                    TEST_CONFIG.MSAL_CLIENT_ID,
-                    "tenant-id",
-                    "scope",
-                    "",
-                ].join("|");
+                const credentialKey = `home-account-id-login.microsoftonline.com-${credentialType}-${owner}-tenant-id-scope--`;
+                localStorage.setItem(
+                    credentialKey,
+                    JSON.stringify({ secret: "foreign-legacy-token" })
+                );
 
                 const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
                 sender.postMessage({
                     key: credentialKey,
                     value: "poisoned-token",
-                    context: "",
+                    context: TEST_CONFIG.MSAL_CLIENT_ID,
                 });
 
                 await waitFor(() => {
                     expect(measurement.discard).toHaveBeenCalled();
                 });
-                expect(measurement.end).not.toHaveBeenCalled();
                 expect(receiver.getUserData(credentialKey)).toBeNull();
 
                 sender.close();
             }
         );
 
-        it("rejects a foreign client credential broadcast with no context", async () => {
+        it("reloads a legacy family refresh token from persistent storage", async () => {
             const receiver = await createInitializedInstance();
-            const measurement = spyOnCacheUpdateMeasurement();
-            const credentialKey = [
-                "msal.3",
-                "home-account-id",
-                "login.microsoftonline.com",
-                "accesstoken",
-                OTHER_CLIENT_ID,
-                "tenant-id",
-                "scope",
-                "",
-            ].join("|");
+            const persistedValue = JSON.stringify({ secret: "family-token" });
+            const credentialKey =
+                "home-account-id-login.microsoftonline.com-refreshtoken-1--";
+            localStorage.setItem(credentialKey, persistedValue);
 
             const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
             sender.postMessage({
                 key: credentialKey,
-                value: "foreign-token",
+                value: "poisoned-token",
                 context: "",
             });
 
             await waitFor(() => {
-                expect(measurement.discard).toHaveBeenCalled();
+                expect(receiver.getUserData(credentialKey)).toBe(
+                    persistedValue
+                );
             });
-            expect(measurement.end).not.toHaveBeenCalled();
-            expect(receiver.getUserData(credentialKey)).toBeNull();
-
-            sender.close();
-        });
-
-        it("rejects a credential whose clientId contains this clientId", async () => {
-            const receiver = await createInitializedInstance();
-            const measurement = spyOnCacheUpdateMeasurement();
-            const credentialKey = [
-                "msal.3",
-                "home-account-id",
-                "login.microsoftonline.com",
-                "accesstoken",
-                `foreign-${TEST_CONFIG.MSAL_CLIENT_ID}`,
-                "tenant-id",
-                "scope",
-                "",
-            ].join("|");
-
-            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
-            sender.postMessage({
-                key: credentialKey,
-                value: "foreign-token",
-                context: TEST_CONFIG.MSAL_CLIENT_ID,
-            });
-
-            await waitFor(() => {
-                expect(measurement.discard).toHaveBeenCalled();
-            });
-            expect(measurement.end).not.toHaveBeenCalled();
-            expect(receiver.getUserData(credentialKey)).toBeNull();
-
-            sender.close();
-        });
-
-        it("rejects a legacy credential whose clientId contains this clientId", async () => {
-            const receiver = await createInitializedInstance();
-            const measurement = spyOnCacheUpdateMeasurement();
-            const credentialKey = `home-account-id-login.microsoftonline.com-accesstoken-foreign-${TEST_CONFIG.MSAL_CLIENT_ID}-tenant-id-scope--`;
-
-            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
-            sender.postMessage({
-                key: credentialKey,
-                value: "foreign-token",
-                context: TEST_CONFIG.MSAL_CLIENT_ID,
-            });
-
-            await waitFor(() => {
-                expect(measurement.discard).toHaveBeenCalled();
-            });
-            expect(measurement.end).not.toHaveBeenCalled();
-            expect(receiver.getUserData(credentialKey)).toBeNull();
 
             sender.close();
         });
@@ -597,6 +914,24 @@ describe("LocalStorage tests", () => {
                 value: "orphanVal",
                 context: TEST_CONFIG.MSAL_CLIENT_ID,
             });
+
+            await waitFor(() => {
+                expect(measurement.end).toHaveBeenCalledWith({
+                    success: false,
+                    errorCode: "noKey",
+                });
+            });
+            expect(measurement.discard).not.toHaveBeenCalled();
+
+            sender.close();
+        });
+
+        it("reports malformed broadcast payloads without rejecting", async () => {
+            await createInitializedInstance();
+            const measurement = spyOnCacheUpdateMeasurement();
+
+            const sender = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+            sender.postMessage(null);
 
             await waitFor(() => {
                 expect(measurement.end).toHaveBeenCalledWith({
