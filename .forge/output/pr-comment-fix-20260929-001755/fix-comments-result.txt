@@ -1,5 +1,0 @@
-I’m loading the upstream review findings and existing decisions first, then I’ll make only the requested surgical fixes.
-
-The only upstream finding is informational and concerns unavailable review-thread tooling, not repository code; I’m recording it as non-actionable rather than inventing a source change.
-
-No source files changed. The only upstream finding was `action: info`: the configured MCP cannot list GitHub PR review threads. Recorded it as `wontfix` because it is a tooling limitation, not an actionable code issue, and no review comments were available to address.
