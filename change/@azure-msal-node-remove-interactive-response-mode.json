@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Remove responseMode from acquireTokenInteractive and require form_post for browser-loopback authentication [#8852](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8852)",
-  "packageName": "@azure/msal-node",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

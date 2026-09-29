@@ -1,13 +1,13 @@
-const { HOST_APP_PORT } = require("./sampleConfig.cjs");
-
 module.exports = {
     displayName: "Nested Auth App Sample",
     testTimeout: 120000,
-    globals: {
-        __PORT__: HOST_APP_PORT,
-        __STARTCMD__: "npm run start:e2e",
+    transform: {
+        "^.+\\.ts?$": "ts-jest",
     },
-    preset: "../../e2eTestUtils/jest-puppeteer-utils/jest-preset.js",
+    testMatch: ["**/test/**/*.spec.ts"],
+    testPathIgnorePatterns: ["/node_modules"],
+    testEnvironment: "node",
+    verbose: true,
     globalSetup: "<rootDir>/test/jestSetup.cjs",
     globalTeardown: "<rootDir>/test/jestTeardown.cjs",
 };

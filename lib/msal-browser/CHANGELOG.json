@@ -2,6 +2,47 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 23 Sep 2026 15:49:43 GMT",
+      "version": "5.23.0",
+      "tag": "@azure/msal-browser_v5.23.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "yongdiwang@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "23eccbae3fcae608e5177ac2908a8bc0531d3fae",
+            "comment": "Add Native Auth V2 password reset, sign-in, sign-up, and SMS MFA flows. [#8830](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8830)"
+          },
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "23eccbae3fcae608e5177ac2908a8bc0531d3fae",
+            "comment": "Add platform broker DPoP request and response contract support [#8772](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8772)"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "23eccbae3fcae608e5177ac2908a8bc0531d3fae",
+            "comment": "Export shared web broker bridge performance event names. [#8832](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8832)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "23eccbae3fcae608e5177ac2908a8bc0531d3fae",
+            "comment": "Treat bfcache restoration during redirects as user cancellation [#8839](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8839)"
+          },
+          {
+            "author": "nugetaad@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "23eccbae3fcae608e5177ac2908a8bc0531d3fae",
+            "comment": "Preserve the requested resource when caching platform broker access tokens [#8848](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8848)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 15 Sep 2026 19:42:08 GMT",
       "version": "5.22.0",
       "tag": "@azure/msal-browser_v5.22.0",

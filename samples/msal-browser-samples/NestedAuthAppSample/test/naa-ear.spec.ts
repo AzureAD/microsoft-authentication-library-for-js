@@ -1,11 +1,13 @@
-// Tests the basic NAA end-to-end flow.
+// Tests the NAA and EAR end-to-end flow.
 
 import { Browser, BrowserContext, Frame, Page } from "playwright-core";
 import {
     Screenshot,
     accessTokenForScopesExists,
     enterAadCredentials,
+    getEarDecryptCount,
     getLabCredentials,
+    installEarDecryptSpy,
     launchBrowser,
     readAccountKeys,
     readSessionTokenStore,
@@ -18,9 +20,8 @@ const jestTimeout = 120000;
 const SCOPES = ["User.Read"];
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { HOST_APP_PORT, NESTED_APP_PORT } = require("../sampleConfig.cjs") as {
+const { HOST_APP_PORT } = require("../sampleConfig.cjs") as {
     HOST_APP_PORT: number;
-    NESTED_APP_PORT: number;
 };
 
 async function getNestedFrame(page: Page): Promise<Frame> {
@@ -78,7 +79,7 @@ async function verifyNestedTokenStore(frame: Frame): Promise<void> {
     );
 }
 
-describe("Nested App Authentication brokered through the host app", () => {
+describe("Nested App Authentication + EAR brokered through the host app", () => {
     jest.setTimeout(jestTimeout);
 
     let browser: Browser;
@@ -94,6 +95,7 @@ describe("Nested App Authentication brokered through the host app", () => {
 
     beforeEach(async () => {
         context = await browser.newContext({ ignoreHTTPSErrors: true });
+        await installEarDecryptSpy(context);
         page = await context.newPage();
     });
 
@@ -105,12 +107,12 @@ describe("Nested App Authentication brokered through the host app", () => {
         await browser.close();
     });
 
-    it("nested app acquires a token through the host without holding a refresh token", async () => {
+    it("nested app acquires a token through the host with encrypted authorize responses", async () => {
         const screenshot = new Screenshot(
-            `${SCREENSHOT_BASE_FOLDER_NAME}/nestedAcquireToken`
+            `${SCREENSHOT_BASE_FOLDER_NAME}/nestedAcquireTokenEar`
         );
 
-        await page.goto(`https://localhost:${HOST_APP_PORT}`);
+        await page.goto(`https://localhost:${HOST_APP_PORT}/?ear=true`);
 
         const hostFrame = page.mainFrame();
         const popupPromise = page.waitForEvent("popup", {
@@ -123,15 +125,44 @@ describe("Nested App Authentication brokered through the host app", () => {
         await enterAadCredentials(popupPage, username, password, screenshot);
         await waitForHostSignIn(hostFrame);
         await verifyHostTokenStore(page);
-
+        expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
         const nestedFrame = await getNestedFrame(page);
+        await page.evaluate(() => {
+            Object.keys(window.sessionStorage)
+                .filter((key) => key.includes("refreshtoken"))
+                .forEach((key) => window.sessionStorage.removeItem(key));
+        });
+        const decryptCountBeforeNested =
+            (await getEarDecryptCount(page)) +
+            (await getEarDecryptCount(nestedFrame));
         await nestedFrame
             .getByRole("button", { name: "acquireTokenSilent" })
             .click({ timeout: ACTION_TIMEOUT });
-        await nestedFrame
-            .getByRole("columnheader", { name: "homeAccountId" })
-            .waitFor({ timeout: ACTION_TIMEOUT });
+        await nestedFrame.waitForFunction(
+            () =>
+                Boolean(
+                    document.querySelector(
+                        "table[data-testid='lastApi'][data-api='acquireTokenSilent']"
+                    )
+                ) ||
+                Boolean(document.querySelector("pre[data-testid='apiError']")),
+            undefined,
+            { timeout: ACTION_TIMEOUT }
+        );
+        const nestedError = await nestedFrame
+            .locator("pre[data-testid='apiError']")
+            .textContent()
+            .catch(() => null);
+        if (nestedError) {
+            throw new Error(`Nested authentication failed: ${nestedError}`);
+        }
         await screenshot.takeScreenshot(page, "Nested app authenticated");
+        const decryptCountAfterNested =
+            (await getEarDecryptCount(page)) +
+            (await getEarDecryptCount(nestedFrame));
+        expect(decryptCountAfterNested).toBeGreaterThan(
+            decryptCountBeforeNested
+        );
         await verifyNestedTokenStore(nestedFrame);
     });
 });

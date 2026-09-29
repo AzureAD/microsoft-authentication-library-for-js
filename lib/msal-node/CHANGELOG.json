@@ -2,6 +2,35 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 23 Sep 2026 15:49:44 GMT",
+      "version": "7.0.0",
+      "tag": "@azure/msal-node_v7.0.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "23eccbae3fcae608e5177ac2908a8bc0531d3fae",
+            "comment": "Coalesce concurrent non-brokered and native broker silent token requests with matching parameters [#8811](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8811)"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "23eccbae3fcae608e5177ac2908a8bc0531d3fae",
+            "comment": "Deprecate responseMode for acquireTokenInteractive ahead of its removal in MSAL Node v7 [#8851](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8851)"
+          }
+        ],
+        "major": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "23eccbae3fcae608e5177ac2908a8bc0531d3fae",
+            "comment": "Remove responseMode from acquireTokenInteractive and require form_post for browser-loopback authentication [#8852](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8852)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 15 Sep 2026 19:42:08 GMT",
       "version": "6.0.1",
       "tag": "@azure/msal-node_v6.0.1",

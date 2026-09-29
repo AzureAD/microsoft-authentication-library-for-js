@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 15 Sep 2026 19:42:08 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 23 Sep 2026 15:49:43 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.23.0
+
+Wed, 23 Sep 2026 15:49:43 GMT
+
+### Minor changes
+
+- Add Native Auth V2 password reset, sign-in, sign-up, and SMS MFA flows. [#8830](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8830) (yongdiwang@microsoft.com)
+- Add platform broker DPoP request and response contract support [#8772](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8772) (hectormmg@microsoft.com)
+- Export shared web broker bridge performance event names. [#8832](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8832) (shylasummers@microsoft.com)
+
+### Patches
+
+- Treat bfcache restoration during redirects as user cancellation [#8839](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8839) (thomas.norling@microsoft.com)
+- Preserve the requested resource when caching platform broker access tokens [#8848](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8848) (nugetaad@microsoft.com)
 
 ## 5.22.0
 
