@@ -177,12 +177,14 @@ export function isPlatformAuthAllowed(
         authenticationScheme === Constants.AuthenticationScheme.POP;
     const fields = {
         allowPlatformBroker: config.system.allowPlatformBroker,
-        platformAuthProviderType:
-            platformAuthProvider instanceof PlatformAuthDOMHandler
-                ? PlatformAuthConstants.PLATFORM_DOM_PROVIDER
-                : platformAuthProvider
-                ? PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER
-                : undefined,
+        ...(config.system.allowPlatformBroker && {
+            platformAuthProviderType:
+                platformAuthProvider instanceof PlatformAuthDOMHandler
+                    ? PlatformAuthConstants.PLATFORM_DOM_PROVIDER
+                    : platformAuthProvider
+                    ? PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER
+                    : undefined,
+        }),
     };
 
     // throw an error if allowPlatformBroker is not enabled and allowPlatformBrokerWithDOM is enabled

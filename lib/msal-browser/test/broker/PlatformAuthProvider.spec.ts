@@ -294,8 +294,6 @@ describe("PlatformAuthProvider tests", () => {
             expect(addFieldsSpy).toHaveBeenCalledWith(
                 {
                     allowPlatformBroker: false,
-                    platformAuthProviderType:
-                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
                 },
                 TEST_CONFIG.CORRELATION_ID
             );
