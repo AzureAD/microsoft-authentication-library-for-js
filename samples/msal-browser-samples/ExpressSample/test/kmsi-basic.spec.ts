@@ -120,6 +120,7 @@ describe("Keep Me Signed In Tests", () => {
         let page = await browser.newPage();
         let browserCache = new BrowserCacheUtils(page, CACHE_LOCATION);
         let authorizeWasPost = false;
+        let authorizeReturnedEarJwe = false;
         if (isEar) {
             page.on("request", (request) => {
                 if (
@@ -127,6 +128,14 @@ describe("Keep Me Signed In Tests", () => {
                     request.method() === "POST"
                 ) {
                     authorizeWasPost = true;
+                }
+            });
+            page.on("framenavigated", (frame) => {
+                if (
+                    frame === page.mainFrame() &&
+                    new URL(frame.url()).hash.includes("ear_jwe=")
+                ) {
+                    authorizeReturnedEarJwe = true;
                 }
             });
         }
@@ -141,6 +150,7 @@ describe("Keep Me Signed In Tests", () => {
         });
         if (isEar) {
             expect(authorizeWasPost).toBe(true);
+            expect(authorizeReturnedEarJwe).toBe(true);
         }
         await verifyKmsiFromResponse(page);
         await verifyKmsiFromCache(browserCache);
