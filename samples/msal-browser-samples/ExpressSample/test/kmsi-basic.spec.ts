@@ -8,6 +8,7 @@ import * as os from "os";
 import * as path from "path";
 import { ChildProcess, spawn } from "child_process";
 import * as puppeteer from "puppeteer";
+import * as serverUtils from "../../../e2eTestUtils/jest-puppeteer-utils/serverUtils";
 import {
     AppTypes,
     AzureEnvironments,
@@ -20,9 +21,6 @@ import {
     verifyKmsiFromCache,
     verifyKmsiFromResponse,
 } from "e2e-test-utils";
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const serverUtils = require("../../../e2eTestUtils/jest-puppeteer-utils/serverUtils");
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/kmsiBasic`;
 const WEB_KMSI_URL = "http://localhost:3000/";
