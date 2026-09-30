@@ -29,11 +29,6 @@ export class EventHandler {
     constructor(logger?: Logger) {
         this.eventCallbacks = new Map();
         this.logger = logger || new Logger({}, name, version);
-        if (typeof BroadcastChannel !== "undefined") {
-            this.broadcastChannel = new BroadcastChannel(
-                BROADCAST_CHANNEL_NAME
-            );
-        }
         this.invokeCrossTabCallbacks = this.invokeCrossTabCallbacks.bind(this);
     }
 
@@ -106,7 +101,7 @@ export class EventHandler {
             case EventType.LOGOUT_SUCCESS:
             case EventType.ACTIVE_ACCOUNT_CHANGED:
                 // Send event to other open tabs / MSAL instances on same domain
-                this.broadcastChannel?.postMessage(message);
+                this.postCrossTabMessage(message);
         }
         // Emit event to callbacks registered in this instance
         this.invokeCallbacks(message);
@@ -149,9 +144,29 @@ export class EventHandler {
     }
 
     /**
+     * Send an event to other tabs/instances. The channel stays open only while subscribed,
+     * because an open BroadcastChannel keeps a Node.js process from exiting
+     * @param message
+     */
+    private postCrossTabMessage(message: EventMessage): void {
+        if (this.broadcastChannel) {
+            this.broadcastChannel.postMessage(message);
+        } else if (typeof BroadcastChannel !== "undefined") {
+            const channel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+            channel.postMessage(message);
+            channel.close();
+        }
+    }
+
+    /**
      * Listen for events broadcasted from other tabs/instances
      */
     subscribeCrossTab(): void {
+        if (!this.broadcastChannel && typeof BroadcastChannel !== "undefined") {
+            this.broadcastChannel = new BroadcastChannel(
+                BROADCAST_CHANNEL_NAME
+            );
+        }
         this.broadcastChannel?.addEventListener(
             "message",
             this.invokeCrossTabCallbacks
@@ -159,12 +174,14 @@ export class EventHandler {
     }
 
     /**
-     * Unsubscribe from broadcast events
+     * Unsubscribe from broadcast events and close the channel
      */
     unsubscribeCrossTab(): void {
         this.broadcastChannel?.removeEventListener(
             "message",
             this.invokeCrossTabCallbacks
         );
+        this.broadcastChannel?.close();
+        this.broadcastChannel = undefined;
     }
 }

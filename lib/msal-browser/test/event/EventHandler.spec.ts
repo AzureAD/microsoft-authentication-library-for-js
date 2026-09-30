@@ -168,4 +168,42 @@ describe("Event API tests", () => {
         expect(callback1Events[0]).toBe(EventType.ACQUIRE_TOKEN_START);
         expect(callback2Events[0]).toBe(EventType.ACQUIRE_TOKEN_SUCCESS);
     });
+
+    describe("cross-tab events", () => {
+        it("opens a BroadcastChannel only while subscribed", () => {
+            const eventHandler = new EventHandler(logger);
+            // @ts-ignore
+            expect(eventHandler.broadcastChannel).toBeUndefined();
+
+            eventHandler.subscribeCrossTab();
+            // @ts-ignore
+            expect(eventHandler.broadcastChannel).toBeInstanceOf(
+                BroadcastChannel
+            );
+
+            eventHandler.unsubscribeCrossTab();
+            // @ts-ignore
+            expect(eventHandler.broadcastChannel).toBeUndefined();
+        });
+
+        it("sends LOGIN_SUCCESS to a subscribed instance without keeping a channel open", (done) => {
+            const receiver = new EventHandler(logger);
+            const sender = new EventHandler(logger);
+            receiver.subscribeCrossTab();
+            receiver.addEventCallback((message: EventMessage) => {
+                expect(message.eventType).toEqual(EventType.LOGIN_SUCCESS);
+                expect(message.correlationId).toEqual("test-correlation-id");
+                // @ts-ignore
+                expect(sender.broadcastChannel).toBeUndefined();
+                receiver.unsubscribeCrossTab();
+                done();
+            });
+
+            sender.emitEvent(
+                EventType.LOGIN_SUCCESS,
+                "test-correlation-id",
+                InteractionType.Popup
+            );
+        });
+    });
 });
