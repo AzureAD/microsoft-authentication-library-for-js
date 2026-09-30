@@ -153,8 +153,11 @@ export class EventHandler {
             this.broadcastChannel.postMessage(message);
         } else if (typeof BroadcastChannel !== "undefined") {
             const channel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
-            channel.postMessage(message);
-            channel.close();
+            try {
+                channel.postMessage(message);
+            } finally {
+                channel.close();
+            }
         }
     }
 

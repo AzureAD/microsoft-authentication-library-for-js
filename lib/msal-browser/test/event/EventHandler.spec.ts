@@ -177,13 +177,34 @@ describe("Event API tests", () => {
 
             eventHandler.subscribeCrossTab();
             // @ts-ignore
-            expect(eventHandler.broadcastChannel).toBeInstanceOf(
-                BroadcastChannel
-            );
+            const channel: BroadcastChannel = eventHandler.broadcastChannel;
+            expect(channel).toBeInstanceOf(BroadcastChannel);
+            const closeSpy = jest.spyOn(channel, "close");
 
             eventHandler.unsubscribeCrossTab();
+            expect(closeSpy).toHaveBeenCalledTimes(1);
             // @ts-ignore
             expect(eventHandler.broadcastChannel).toBeUndefined();
+        });
+
+        it("closes the short-lived channel when a cross-tab send fails", () => {
+            const sender = new EventHandler(logger);
+            jest.spyOn(
+                BroadcastChannel.prototype,
+                "postMessage"
+            ).mockImplementation(() => {
+                throw new Error("DataCloneError");
+            });
+            const closeSpy = jest.spyOn(BroadcastChannel.prototype, "close");
+
+            expect(() =>
+                sender.emitEvent(
+                    EventType.LOGOUT_SUCCESS,
+                    "test-correlation-id",
+                    InteractionType.Popup
+                )
+            ).toThrow("DataCloneError");
+            expect(closeSpy).toHaveBeenCalledTimes(1);
         });
 
         it("sends LOGIN_SUCCESS to a subscribed instance without keeping a channel open", (done) => {
