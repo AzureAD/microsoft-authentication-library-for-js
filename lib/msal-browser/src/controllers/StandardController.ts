@@ -1868,11 +1868,7 @@ export class StandardController implements IController {
      * @param request
      */
     public canUsePlatformBroker(
-        request:
-            | RedirectRequest
-            | PopupRequest
-            | SsoSilentRequest
-            | SilentRequest,
+        request: RedirectRequest | PopupRequest | SsoSilentRequest,
         accountId?: string
     ): boolean {
         const correlationId = this.getRequestCorrelationId(request);
@@ -1928,11 +1924,9 @@ export class StandardController implements IController {
      * @param request
      * @returns
      */
-    public getNativeAccountId(request: {
-        account?: AccountInfo;
-        loginHint?: string;
-        sid?: string;
-    }): string {
+    public getNativeAccountId(
+        request: RedirectRequest | PopupRequest | SsoSilentRequest
+    ): string {
         const account =
             request.account ||
             this.getAccount({
@@ -2548,10 +2542,15 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         // if the cache policy is set to access_token only, we should not be hitting the native layer yet
         if (
-            this.canUsePlatformBroker(
-                silentRequest,
-                silentRequest.account.nativeAccountId
-            )
+            isPlatformAuthAllowed(
+                this.config,
+                this.logger,
+                silentRequest.correlationId,
+                this.platformAuthProvider,
+                silentRequest.authenticationScheme,
+                this.performanceClient
+            ) &&
+            silentRequest.account.nativeAccountId
         ) {
             this.logger.verbose(
                 "acquireTokenSilent - attempting to acquire token from native platform",
