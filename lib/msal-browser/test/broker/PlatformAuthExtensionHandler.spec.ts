@@ -113,6 +113,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             ).toMatchObject({
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 success: true,
+                platformAuthProviderAvailable: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
             });
@@ -175,6 +176,10 @@ describe("PlatformAuthExtensionHandler Tests", () => {
         });
 
         it("Sends handshake to any extension if preferred extension is not installed", async () => {
+            const events: PerformanceEvent[] = [];
+            performanceClient.addPerformanceCallback((emittedEvents) => {
+                events.push(...emittedEvents);
+            });
             const eventHandler = function (event: MessageEvent) {
                 if (event.data.extensionId) {
                     // Don't handle handshake requests for preferred extension so we can test the backup request
@@ -212,27 +217,56 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             expect(wamMessageHandler).toBeInstanceOf(
                 PlatformAuthExtensionHandler
             );
+            expect(
+                events.find(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.PlatformAuthExtensionCreateProvider
+                )
+            ).toMatchObject({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                success: true,
+                platformAuthProviderAvailable: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+            });
 
             window.removeEventListener("message", eventHandler, true);
         });
 
-        it("Throws if no extension is installed", (done) => {
-            PlatformAuthExtensionHandler.createProvider(
+        it("Throws if no extension is installed", async () => {
+            const events: PerformanceEvent[] = [];
+            performanceClient.addPerformanceCallback((emittedEvents) => {
+                events.push(...emittedEvents);
+            });
+            const providerPromise = PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient,
                 TEST_CONFIG.CORRELATION_ID
-            ).catch((e) => {
-                expect(e).toBeInstanceOf(BrowserAuthError);
-                expect(e.errorCode).toBe(
+            );
+
+            await expect(providerPromise).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.nativeExtensionNotInstalled,
+                errorMessage: getDefaultErrorMessage(
                     BrowserAuthErrorCodes.nativeExtensionNotInstalled
-                );
-                expect(e.errorMessage).toBe(
-                    getDefaultErrorMessage(
-                        BrowserAuthErrorCodes.nativeExtensionNotInstalled
-                    )
-                );
-                done();
+                ),
+            });
+            await expect(providerPromise).rejects.toBeInstanceOf(
+                BrowserAuthError
+            );
+            expect(
+                events.find(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.PlatformAuthExtensionCreateProvider
+                )
+            ).toMatchObject({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                success: false,
+                platformAuthProviderAvailable: false,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
             });
         });
 

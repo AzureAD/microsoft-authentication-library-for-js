@@ -69,7 +69,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             ).platformAuthentication;
             if (!platformAuthentication) {
                 createProviderMeasurement.end({
-                    success: false,
+                    success: true,
+                    platformAuthProviderAvailable: false,
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
                 });
@@ -95,6 +96,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 );
                 createProviderMeasurement.end({
                     success: true,
+                    platformAuthProviderAvailable: true,
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
                 });
@@ -106,7 +108,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             }
 
             createProviderMeasurement.end({
-                success: false,
+                success: true,
+                platformAuthProviderAvailable: false,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
             });
@@ -115,6 +118,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             createProviderMeasurement.end(
                 {
                     success: false,
+                    platformAuthProviderAvailable: false,
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
                 },
@@ -254,12 +258,11 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
 
     private validatePlatformBrokerResponse(
         response: object,
-        correlationId?: string
+        correlationId: string
     ): PlatformAuthResponse {
-        const responseCorrelationId = this.getCorrelationId(correlationId);
         const validationMeasurement = this.performanceClient.startMeasurement(
             BrowserPerformanceEvents.PlatformAuthDOMValidateResponse,
-            responseCorrelationId
+            correlationId
         );
         if (
             response &&
@@ -275,13 +278,13 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             ) {
                 this.logger.trace(
                     `'${this.platformAuthType}' - platform broker returned successful and valid response`,
-                    responseCorrelationId
+                    correlationId
                 );
                 try {
                     const validatedResponse =
                         this.convertToPlatformBrokerResponse(
                             response as PlatformDOMTokenResponse,
-                            responseCorrelationId
+                            correlationId
                         );
                     validationMeasurement.end({
                         success: true,
@@ -309,11 +312,11 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 ) {
                     this.logger.trace(
                         `'${this.platformAuthType}' - platform broker returned error response`,
-                        responseCorrelationId
+                        correlationId
                     );
                     const nativeAuthError = createNativeAuthError(
                         errorResponse.error.code,
-                        responseCorrelationId,
+                        correlationId,
                         errorResponse.error.description,
                         {
                             error: parseInt(errorResponse.error.errorCode),
@@ -337,7 +340,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         }
         const error = createAuthError(
             AuthErrorCodes.unexpectedError,
-            responseCorrelationId,
+            correlationId,
             "Response missing expected properties."
         );
         validationMeasurement.end(
