@@ -188,7 +188,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             );
             await preferredProvider.sendHandshakeRequest();
             createProviderMeasurement.end({
-                success: true,
                 platformAuthProviderAvailable: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
@@ -206,7 +205,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 );
                 await backupProvider.sendHandshakeRequest();
                 createProviderMeasurement.end({
-                    success: true,
                     platformAuthProviderAvailable: true,
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
@@ -215,7 +213,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             } catch (backupError) {
                 createProviderMeasurement.end(
                     {
-                        success: false,
                         platformAuthProviderAvailable: false,
                         platformAuthProviderType:
                             PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,

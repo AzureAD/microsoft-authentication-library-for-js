@@ -69,7 +69,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             ).platformAuthentication;
             if (!platformAuthentication) {
                 createProviderMeasurement.end({
-                    success: true,
                     platformAuthProviderAvailable: false,
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
@@ -95,7 +94,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                     correlationId
                 );
                 createProviderMeasurement.end({
-                    success: true,
                     platformAuthProviderAvailable: true,
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
@@ -106,9 +104,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                     correlationId
                 );
             }
-
             createProviderMeasurement.end({
-                success: true,
                 platformAuthProviderAvailable: false,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
@@ -117,7 +113,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         } catch (e) {
             createProviderMeasurement.end(
                 {
-                    success: false,
                     platformAuthProviderAvailable: false,
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_DOM_PROVIDER,

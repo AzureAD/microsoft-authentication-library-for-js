@@ -89,7 +89,6 @@ describe("PlatformAuthDOMHandler tests", () => {
                     )
             ).toMatchObject({
                 correlationId: "test-correlation-id",
-                success: true,
                 platformAuthProviderAvailable: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
@@ -120,7 +119,6 @@ describe("PlatformAuthDOMHandler tests", () => {
                     )
             ).toMatchObject({
                 correlationId: "test-correlation-id",
-                success: true,
                 platformAuthProviderAvailable: false,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
@@ -156,7 +154,6 @@ describe("PlatformAuthDOMHandler tests", () => {
                     )
             ).toMatchObject({
                 correlationId: "test-correlation-id",
-                success: true,
                 platformAuthProviderAvailable: false,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_DOM_PROVIDER,

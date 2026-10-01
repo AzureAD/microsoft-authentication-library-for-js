@@ -112,7 +112,6 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 )
             ).toMatchObject({
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                success: true,
                 platformAuthProviderAvailable: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
@@ -225,7 +224,6 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 )
             ).toMatchObject({
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                success: true,
                 platformAuthProviderAvailable: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
@@ -263,7 +261,6 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 )
             ).toMatchObject({
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                success: false,
                 platformAuthProviderAvailable: false,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
