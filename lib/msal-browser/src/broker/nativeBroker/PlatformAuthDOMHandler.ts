@@ -264,18 +264,24 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             BrowserPerformanceEvents.PlatformAuthDOMValidateResponse,
             correlationId
         );
+        const requiredKeys = [
+            "accessToken",
+            "idToken",
+            "clientInfo",
+            "account",
+            "scopes",
+            "expiresIn",
+        ];
+        const isValid =
+            response &&
+            requiredKeys.every((key) =>
+                Object.prototype.hasOwnProperty.call(response, key)
+            );
         if (
             response &&
             Object.prototype.hasOwnProperty.call(response, "isSuccess")
         ) {
-            if (
-                Object.prototype.hasOwnProperty.call(response, "accessToken") &&
-                Object.prototype.hasOwnProperty.call(response, "idToken") &&
-                Object.prototype.hasOwnProperty.call(response, "clientInfo") &&
-                Object.prototype.hasOwnProperty.call(response, "account") &&
-                Object.prototype.hasOwnProperty.call(response, "scopes") &&
-                Object.prototype.hasOwnProperty.call(response, "expiresIn")
-            ) {
+            if (isValid) {
                 this.logger.trace(
                     `'${this.platformAuthType}' - platform broker returned successful and valid response`,
                     correlationId
