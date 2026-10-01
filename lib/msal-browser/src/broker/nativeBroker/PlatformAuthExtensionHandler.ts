@@ -214,8 +214,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 createProviderMeasurement.end(
                     {
                         platformAuthProviderAvailable: false,
-                        platformAuthProviderType:
-                            PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
                     },
                     backupError
                 );

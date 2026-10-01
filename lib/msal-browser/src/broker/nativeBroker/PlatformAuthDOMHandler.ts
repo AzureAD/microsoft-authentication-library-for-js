@@ -70,8 +70,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             if (!platformAuthentication) {
                 createProviderMeasurement.end({
                     platformAuthProviderAvailable: false,
-                    platformAuthProviderType:
-                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
                 });
                 return undefined;
             }
@@ -106,16 +104,12 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             }
             createProviderMeasurement.end({
                 platformAuthProviderAvailable: false,
-                platformAuthProviderType:
-                    PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
             });
             return undefined;
         } catch (e) {
             createProviderMeasurement.end(
                 {
                     platformAuthProviderAvailable: false,
-                    platformAuthProviderType:
-                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
                 },
                 e
             );

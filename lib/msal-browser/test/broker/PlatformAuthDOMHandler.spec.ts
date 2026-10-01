@@ -109,20 +109,20 @@ describe("PlatformAuthDOMHandler tests", () => {
                 );
             expect(getSupportedContractsMock).toHaveBeenCalled();
             expect(platformAuthDOMHandler).toBe(undefined);
-            expect(
-                endMeasurementSpy.mock.calls
-                    .map(([event]) => event)
-                    .find(
-                        (event) =>
-                            event.name ===
-                            BrowserPerformanceEvents.PlatformAuthDOMCreateProvider
-                    )
-            ).toMatchObject({
+            const createProviderEvent = endMeasurementSpy.mock.calls
+                .map(([event]) => event)
+                .find(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.PlatformAuthDOMCreateProvider
+                );
+            expect(createProviderEvent).toMatchObject({
                 correlationId: "test-correlation-id",
                 platformAuthProviderAvailable: false,
-                platformAuthProviderType:
-                    PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
             });
+            expect(createProviderEvent).not.toHaveProperty(
+                "platformAuthProviderType"
+            );
         });
 
         it("should emit a failed measurement when the DOM API is not available", async () => {
@@ -144,20 +144,20 @@ describe("PlatformAuthDOMHandler tests", () => {
 
             expect(getSupportedContractsMock).not.toHaveBeenCalled();
             expect(platformAuthDOMHandler).toBeUndefined();
-            expect(
-                endMeasurementSpy.mock.calls
-                    .map(([event]) => event)
-                    .find(
-                        (event) =>
-                            event.name ===
-                            BrowserPerformanceEvents.PlatformAuthDOMCreateProvider
-                    )
-            ).toMatchObject({
+            const createProviderEvent = endMeasurementSpy.mock.calls
+                .map(([event]) => event)
+                .find(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.PlatformAuthDOMCreateProvider
+                );
+            expect(createProviderEvent).toMatchObject({
                 correlationId: "test-correlation-id",
                 platformAuthProviderAvailable: false,
-                platformAuthProviderType:
-                    PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
             });
+            expect(createProviderEvent).not.toHaveProperty(
+                "platformAuthProviderType"
+            );
         });
     });
 

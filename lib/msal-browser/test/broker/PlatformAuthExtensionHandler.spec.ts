@@ -253,18 +253,18 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             await expect(providerPromise).rejects.toBeInstanceOf(
                 BrowserAuthError
             );
-            expect(
-                events.find(
-                    (event) =>
-                        event.name ===
-                        BrowserPerformanceEvents.PlatformAuthExtensionCreateProvider
-                )
-            ).toMatchObject({
+            const createProviderEvent = events.find(
+                (event) =>
+                    event.name ===
+                    BrowserPerformanceEvents.PlatformAuthExtensionCreateProvider
+            );
+            expect(createProviderEvent).toMatchObject({
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 platformAuthProviderAvailable: false,
-                platformAuthProviderType:
-                    PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
             });
+            expect(createProviderEvent).not.toHaveProperty(
+                "platformAuthProviderType"
+            );
         });
 
         it("Throws timeout error if no extension responds to handshake", (done) => {
