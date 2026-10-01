@@ -68,6 +68,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 }
             ).platformAuthentication;
             if (!platformAuthentication) {
+                createProviderMeasurement.add({
+                    platformAuthProviderAvailable: false,
+                });
                 createProviderMeasurement.end({
                     platformAuthProviderAvailable: false,
                 });
@@ -91,6 +94,11 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                     "Platform auth api available in DOM",
                     correlationId
                 );
+                createProviderMeasurement.add({
+                    platformAuthProviderAvailable: true,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                });
                 createProviderMeasurement.end({
                     platformAuthProviderAvailable: true,
                     platformAuthProviderType:
@@ -102,11 +110,17 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                     correlationId
                 );
             }
+            createProviderMeasurement.add({
+                platformAuthProviderAvailable: false,
+            });
             createProviderMeasurement.end({
                 platformAuthProviderAvailable: false,
             });
             return undefined;
         } catch (e) {
+            createProviderMeasurement.add({
+                platformAuthProviderAvailable: false,
+            });
             createProviderMeasurement.end(
                 {
                     platformAuthProviderAvailable: false,

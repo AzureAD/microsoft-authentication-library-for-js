@@ -32,6 +32,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../../src/error/BrowserAuthError.js";
 import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
+import * as BrowserRootPerformanceEvents from "../../src/telemetry/BrowserRootPerformanceEvents.js";
 
 let performanceClient: IPerformanceClient;
 
@@ -104,27 +105,56 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 PlatformAuthExtensionHandler
             );
             expect(wamMessageHandler.getExtensionVersion()).toBe("3");
-            expect(
-                events.find(
-                    (event) =>
-                        event.name ===
-                        BrowserPerformanceEvents.PlatformAuthExtensionCreateProvider
-                )
-            ).toMatchObject({
+            const createProviderEvent = events.find(
+                (event) =>
+                    event.name ===
+                    BrowserPerformanceEvents.PlatformAuthExtensionCreateProvider
+            );
+            expect(createProviderEvent).toMatchObject({
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 platformAuthProviderAvailable: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
             });
+            expect(
+                createProviderEvent?.ext
+                    ?.nativeMessageHandlerHandshakeDurationMs
+            ).toBeGreaterThanOrEqual(0);
+            expect(createProviderEvent).toMatchObject({
+                extensionHandshakeTimeoutMs: 2000,
+                extensionId: "test-ext-id",
+                extensionVersion: "3",
+                extensionInstalled: true,
+                platformAuthRequestCorrelationId: TEST_CONFIG.CORRELATION_ID,
+            });
+            expect(
+                events.some(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.NativeMessageHandlerHandshake
+                )
+            ).toBe(false);
 
             window.removeEventListener("message", eventHandler, true);
         });
 
-        it("Emits event during handshake request to preferred extension which responds", (done) => {
+        it("Nests handshake under initializeClientApplication", async () => {
+            const events: PerformanceEvent[] = [];
+            performanceClient.addPerformanceCallback((emittedEvents) => {
+                events.push(...emittedEvents);
+            });
+            const initializeMeasurement = performanceClient.startMeasurement(
+                BrowserRootPerformanceEvents.InitializeClientApplication,
+                TEST_CONFIG.CORRELATION_ID
+            );
             const eventHandler = function (event: MessageEvent) {
                 event.stopImmediatePropagation();
                 const request = event.data;
-                const req = {
+                mcPort = postMessageSpy.mock.calls[0][2][0];
+                if (!mcPort) {
+                    throw new Error("MessageChannel port was not transferred");
+                }
+                mcPort.postMessage({
                     channel: "53ee284d-920a-4b59-9d30-a60315b26836",
                     extensionId: "test-ext-id",
                     responseId: request.responseId,
@@ -132,46 +162,39 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                         method: "HandshakeResponse",
                         version: 3,
                     },
-                };
-
-                mcPort = postMessageSpy.mock.calls[0][2][0];
-                if (!mcPort) {
-                    throw new Error("MessageChannel port was not transferred");
-                }
-                mcPort.postMessage(req);
+                });
             };
 
             window.addEventListener("message", eventHandler, true);
 
-            const callbackId = performanceClient.addPerformanceCallback(
-                (events) => {
-                    expect(events.length).toBe(1);
-                    const event = events[0];
-                    expect(event.extensionHandshakeTimeoutMs).toEqual(2000);
-                    expect(event.extensionId).toEqual("test-ext-id");
-                    expect(event.extensionVersion).toEqual("3");
-                    expect(event.extensionInstalled).toBeTruthy();
-                    expect(event.extensionHandshakeTimedOut).toBeUndefined();
-                    expect(event.platformAuthRequestCorrelationId).toEqual(
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-                    expect(event.platformAuthProviderType).toEqual(
-                        PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER
-                    );
-                    expect(event.success).toBeTruthy();
-                    performanceClient.removePerformanceCallback(callbackId);
-                    done();
-                }
-            );
-
-            PlatformAuthExtensionHandler.createProvider(
+            await PlatformAuthExtensionHandler.createProvider(
                 new Logger({}),
                 2000,
                 performanceClient,
                 TEST_CONFIG.CORRELATION_ID
-            ).then(() => {
-                window.removeEventListener("message", eventHandler, true);
+            );
+            initializeMeasurement.end({ success: true });
+
+            expect(events).toHaveLength(1);
+            expect(events[0]).toMatchObject({
+                name: BrowserRootPerformanceEvents.InitializeClientApplication,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                platformAuthProviderAvailable: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                extensionId: "test-ext-id",
+                extensionVersion: "3",
+                extensionInstalled: true,
+                platformAuthRequestCorrelationId: TEST_CONFIG.CORRELATION_ID,
             });
+            expect(
+                events[0].ext?.platformAuthExtensionCreateProviderDurationMs
+            ).toBeGreaterThanOrEqual(0);
+            expect(
+                events[0].ext?.nativeMessageHandlerHandshakeDurationMs
+            ).toBeGreaterThanOrEqual(0);
+
+            window.removeEventListener("message", eventHandler, true);
         });
 
         it("Sends handshake to any extension if preferred extension is not installed", async () => {
@@ -216,18 +239,28 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             expect(wamMessageHandler).toBeInstanceOf(
                 PlatformAuthExtensionHandler
             );
-            expect(
-                events.find(
-                    (event) =>
-                        event.name ===
-                        BrowserPerformanceEvents.PlatformAuthExtensionCreateProvider
-                )
-            ).toMatchObject({
+            const createProviderEvent = events.find(
+                (event) =>
+                    event.name ===
+                    BrowserPerformanceEvents.PlatformAuthExtensionCreateProvider
+            );
+            expect(createProviderEvent).toMatchObject({
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 platformAuthProviderAvailable: true,
                 platformAuthProviderType:
                     PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
             });
+            expect(
+                createProviderEvent?.ext
+                    ?.nativeMessageHandlerHandshakeDurationMs
+            ).toBeGreaterThanOrEqual(0);
+            expect(
+                events.some(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.NativeMessageHandlerHandshake
+                )
+            ).toBe(false);
 
             window.removeEventListener("message", eventHandler, true);
         });
@@ -265,6 +298,17 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             expect(createProviderEvent).not.toHaveProperty(
                 "platformAuthProviderType"
             );
+            expect(
+                createProviderEvent?.ext
+                    ?.nativeMessageHandlerHandshakeDurationMs
+            ).toBeGreaterThanOrEqual(0);
+            expect(
+                events.some(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.NativeMessageHandlerHandshake
+                )
+            ).toBe(false);
         });
 
         it("Throws timeout error if no extension responds to handshake", (done) => {
@@ -298,43 +342,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 });
         });
 
-        it("Emits event if no extension responds to handshake", (done) => {
-            let callbackDone = false;
-            const callbackId = performanceClient.addPerformanceCallback(
-                (events) => {
-                    expect(events.length).toBe(1);
-                    const event = events[0];
-                    expect(event.extensionHandshakeTimeoutMs).toEqual(2000);
-                    expect(event.extensionId).toEqual(
-                        "ppnbnpeolgkicgegkbkbjmhlideopiji"
-                    );
-                    expect(event.extensionInstalled).toBeFalsy();
-                    expect(event.extensionHandshakeTimedOut).toBeUndefined();
-                    expect(event.platformAuthRequestCorrelationId).toEqual(
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-                    expect(event.platformAuthProviderType).toEqual(
-                        PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER
-                    );
-                    expect(event.success).toBeFalsy();
-                    performanceClient.removePerformanceCallback(callbackId);
-                    callbackDone = true;
-                }
-            );
-
-            PlatformAuthExtensionHandler.createProvider(
-                new Logger({}),
-                2000,
-                performanceClient,
-                TEST_CONFIG.CORRELATION_ID
-            ).catch(() => {
-                if (callbackDone) {
-                    done();
-                }
-            });
-        });
-
-        it("Emits failed handshake events for malformed extension responses", async () => {
+        it("Nests malformed handshake measurements under createProvider", async () => {
             const events: PerformanceEvent[] = [];
             performanceClient.addPerformanceCallback((emittedEvents) => {
                 events.push(...emittedEvents);
@@ -366,28 +374,17 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 )
             ).rejects.toBeDefined();
 
+            expect(events).toHaveLength(1);
+            expect(events[0]).toMatchObject({
+                name: BrowserPerformanceEvents.PlatformAuthExtensionCreateProvider,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                platformAuthProviderAvailable: false,
+                platformAuthRequestCorrelationId: TEST_CONFIG.CORRELATION_ID,
+            });
+            expect(events[0].platformAuthProviderType).toBeUndefined();
             expect(
-                events.filter(
-                    (event) =>
-                        event.name ===
-                        BrowserPerformanceEvents.NativeMessageHandlerHandshake
-                )
-            ).toEqual([
-                expect.objectContaining({
-                    success: false,
-                    platformAuthProviderType:
-                        PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
-                    platformAuthRequestCorrelationId:
-                        TEST_CONFIG.CORRELATION_ID,
-                }),
-                expect.objectContaining({
-                    success: false,
-                    platformAuthProviderType:
-                        PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
-                    platformAuthRequestCorrelationId:
-                        TEST_CONFIG.CORRELATION_ID,
-                }),
-            ]);
+                events[0].ext?.nativeMessageHandlerHandshakeDurationMs
+            ).toBeGreaterThanOrEqual(0);
 
             window.removeEventListener("message", eventHandler, true);
         });

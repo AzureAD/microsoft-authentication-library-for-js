@@ -72,7 +72,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         this.correlationId = correlationId || createNewGuid();
         this.handshakeEvent = this.performanceClient.startMeasurement(
             BrowserPerformanceEvents.NativeMessageHandlerHandshake,
-            createNewGuid()
+            this.correlationId
         );
         this.platformAuthType =
             PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER;
@@ -187,6 +187,11 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 correlationId
             );
             await preferredProvider.sendHandshakeRequest();
+            createProviderMeasurement.add({
+                platformAuthProviderAvailable: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+            });
             createProviderMeasurement.end({
                 platformAuthProviderAvailable: true,
                 platformAuthProviderType:
@@ -204,6 +209,11 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                     correlationId
                 );
                 await backupProvider.sendHandshakeRequest();
+                createProviderMeasurement.add({
+                    platformAuthProviderAvailable: true,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+                });
                 createProviderMeasurement.end({
                     platformAuthProviderAvailable: true,
                     platformAuthProviderType:
@@ -211,6 +221,9 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 });
                 return backupProvider;
             } catch (backupError) {
+                createProviderMeasurement.add({
+                    platformAuthProviderAvailable: false,
+                });
                 createProviderMeasurement.end(
                     {
                         platformAuthProviderAvailable: false,
@@ -245,8 +258,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             extensionId: this.extensionId,
             extensionHandshakeTimeoutMs: this.handshakeTimeoutMs,
             platformAuthRequestCorrelationId: this.correlationId,
-            platformAuthProviderType:
-                PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
         });
 
         this.messageChannel.port1.onmessage = (event) => {
@@ -273,6 +284,9 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 );
                 this.messageChannel.port1.close();
                 this.messageChannel.port2.close();
+                this.handshakeEvent.add({
+                    extensionHandshakeTimedOut: true,
+                });
                 this.handshakeEvent.end({
                     extensionHandshakeTimedOut: true,
                     success: false,
@@ -344,6 +358,9 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             this.messageChannel.port1.close();
             this.messageChannel.port2.close();
             window.removeEventListener("message", this.windowListener, false);
+            this.handshakeEvent.add({
+                extensionInstalled: false,
+            });
             this.handshakeEvent.end({
                 success: false,
                 extensionInstalled: false,
@@ -456,6 +473,11 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                     `'${this.platformAuthType}' - Received HandshakeResponse from extension: '${this.extensionId}'`,
                     correlationId
                 );
+                this.handshakeEvent.add({
+                    extensionId: this.extensionId,
+                    extensionVersion: this.extensionVersion,
+                    extensionInstalled: true,
+                });
                 this.handshakeEvent.end({
                     extensionId: this.extensionId,
                     extensionVersion: this.extensionVersion,
