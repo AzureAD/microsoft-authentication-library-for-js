@@ -168,9 +168,7 @@ Unlike other cache items, `Access Tokens` are saved to the cache asynchronously.
 ## DPoP for PublicClientApplication
 
 > [!WARNING]
-> DPoP support in MSAL Browser is currently in development and is not fully rolled out or ready for production use. APIs and behavior may change. Use this feature only for evaluation and testing.
-
-MSAL Browser is developing support for standard DPoP cryptographic access token binding for PublicClientApplication (`acquireTokenPopup`, `acquireTokenRedirect`, `acquireTokenSilent`, and `ssoSilent`). The current implementation can request sender-constrained access tokens using the DPoP standard and their corresponding proofs by setting `authenticationScheme: msal.AuthenticationScheme.DPOP`.
+> DPoP support in MSAL Browser is currently in development. This documentation will be updated when it is ready for production use.
 
 ```typescript
 const dpopRequest = {
