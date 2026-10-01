@@ -323,6 +323,7 @@ export type PerformanceEvent = {
      * Nested App Auth Fields
      */
     nestedAppAuthRequest?: boolean;
+    bridgeType?: "NAA" | "PWB";
 
     /**
      * Multiple matched access/id/refresh tokens in the cache
