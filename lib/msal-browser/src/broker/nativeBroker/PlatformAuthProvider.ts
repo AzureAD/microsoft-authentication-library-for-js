@@ -94,13 +94,10 @@ export async function getPlatformAuthProvider(
                 );
             }
             if (platformAuthProvider) {
-                performanceClient.addFields(
-                    {
-                        platformAuthProviderType:
-                            PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
-                    },
-                    correlationId
-                );
+                discoveryMeasurement.add({
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                });
                 discoveryMeasurement.end({
                     success: true,
                     platformAuthProviderType:
@@ -128,13 +125,10 @@ export async function getPlatformAuthProvider(
             );
 
         if (platformAuthProvider) {
-            performanceClient.addFields(
-                {
-                    platformAuthProviderType:
-                        PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
-                },
-                correlationId
-            );
+            discoveryMeasurement.add({
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+            });
         }
         discoveryMeasurement.end({
             success: !!platformAuthProvider,
@@ -186,13 +180,13 @@ export function isPlatformAuthAllowed(
                     : undefined,
         }),
     };
+    performanceClient?.addFields(fields, correlationId);
 
     // throw an error if allowPlatformBroker is not enabled and allowPlatformBrokerWithDOM is enabled
     if (
         !config.system.allowPlatformBroker &&
         config.experimental.allowPlatformBrokerWithDOM
     ) {
-        performanceClient?.addFields(fields, correlationId);
         throw createClientConfigurationError(
             ClientConfigurationErrorCodes.invalidPlatformBrokerConfiguration,
             ""
@@ -205,7 +199,6 @@ export function isPlatformAuthAllowed(
             correlationId
         );
         // Developer disabled WAM
-        performanceClient?.addFields(fields, correlationId);
         return false;
     }
 
@@ -215,7 +208,6 @@ export function isPlatformAuthAllowed(
             correlationId
         );
         // Platform broker auth providers are not available
-        performanceClient?.addFields(fields, correlationId);
         return false;
     }
 
@@ -224,7 +216,6 @@ export function isPlatformAuthAllowed(
             "isPlatformAuthAllowed: authenticationScheme is not supported, returning false",
             correlationId
         );
-        performanceClient?.addFields(fields, correlationId);
         return false;
     }
 
@@ -232,6 +223,5 @@ export function isPlatformAuthAllowed(
         "isPlatformAuthAllowed: authenticationScheme is supported, returning true",
         correlationId
     );
-    performanceClient?.addFields(fields, correlationId);
     return true;
 }
