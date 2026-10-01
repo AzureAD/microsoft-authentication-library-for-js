@@ -89,7 +89,7 @@ export async function getPlatformAuthProvider(
                     );
             } catch (e) {
                 logger.trace(
-                    "Platform auth via DOM API failed, checking for extension",
+                    "Platform auth via DOM API unavailable, checking for extension",
                     correlationId
                 );
             }
