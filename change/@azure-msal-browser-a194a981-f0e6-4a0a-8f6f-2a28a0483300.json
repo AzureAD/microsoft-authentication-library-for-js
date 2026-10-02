@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Bump @azure/msal-browser to match @azure/msal-browser-1p",
-  "packageName": "@azure/msal-browser",
-  "email": "msaljsbuilds@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Wed, 23 Sep 2026 15:49:44 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 02 Oct 2026 19:03:42 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 7.0.1
+
+Fri, 02 Oct 2026 19:03:42 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.14.2
 
 ## 7.0.0
 
