@@ -109,6 +109,27 @@ The root event includes the following platform broker context:
 
 Platform broker telemetry does not include tokens, claims, account identifiers, request or response payloads, URLs, or exception messages.
 
+#### Diagnosing platform broker flows
+
+Use the following fields as query or dashboard dimensions:
+
+| **Question**                            | **Filter or grouping**                                                                                                                                          |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Did the application enable brokering?   | Filter on `allowPlatformBroker === true`.                                                                                                                       |
+| Was a provider created?                 | Filter on `platformAuthProviderAvailable`; group available providers by `platformAuthProviderType`.                                                             |
+| Did extension discovery succeed?        | Filter on `extensionInstalled`; use `extensionHandshakeTimedOut` to distinguish a timeout from a response that did not identify a compatible extension.          |
+| Did the broker return an error?         | Filter on `brokerErrorName` and `brokerErrorCode`; `user_cancelled` identifies user cancellation.                                                               |
+| Which platform broker stage was slow?   | Inspect the `<measurementName>DurationMs` fields in `ext`, including `nativeMessageHandlerHandshakeDurationMs` and provider, transport, validation, and cache durations. |
+| Did a web flow run after broker failure? | When `platformAuthProviderAvailable` is false or broker error fields are present, inspect the enclosing top-level event's outcome to determine whether fallback succeeded. |
+
+To troubleshoot an individual request:
+
+1. Find the top-level performance event by `correlationId`.
+2. Confirm `allowPlatformBroker`, then check `platformAuthProviderAvailable` and the conditional `platformAuthProviderType`.
+3. For the extension flow, inspect `extensionInstalled`, `extensionHandshakeTimedOut`, and `extensionHandshakeTimeoutMs`.
+4. Compare the nested duration fields in `ext` to identify the lifecycle stage where time was spent.
+5. Inspect `brokerErrorName` and `brokerErrorCode`, then use the top-level event's outcome to distinguish a terminal broker failure from a successful web fallback.
+
 ### removePerformanceCallback
 
 The `addPerformanceCallback` API will return a callback id, which an application can pass to `PublicClientApplication.removePerformanceCallback` to unregister that callback from receiving performance events. It will return a boolean indicating whether or not the callback was successfully removed.
