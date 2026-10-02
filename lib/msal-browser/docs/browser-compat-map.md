@@ -43,7 +43,7 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 |-----|-----------|----------|
 | `BroadcastChannel` | Redirect bridge (popup/iframe → main frame), cross-tab cache sync | None for redirect bridge |
 | `postMessage` + `MessageChannel` | WAM browser extension communication | None for WAM path |
-| `navigator.platformAuthentication` | Capability discovery and direct platform-broker token acquisition through browser DOM APIs | Windows Accounts extension during provider discovery; traditional web flows when no platform provider is available |
+| `navigator.platformAuthentication` | Capability discovery and direct platform-broker token acquisition through browser DOM APIs | Microsoft Single Sign On extension during provider discovery; traditional web flows when no platform provider is available |
 
 **MSAL-specific restrictions:**
 - Chrome 115+ / Firefox TCP: `BroadcastChannel` partitioned by top-level site — breaks cross-origin iframe ↔ popup communication
@@ -60,7 +60,13 @@ The `navigator.platformAuthentication` API is a private-preview capability in su
 
 Setting `allowPlatformBrokerWithDOM` without `allowPlatformBroker` causes an `invalid_platform_broker_configuration` error. The presence of `navigator.platformAuthentication` alone is not sufficient because a browser may expose the API without enabling the contract required by MSAL.
 
-During initialization, MSAL prefers the DOM provider when the required contract is available. If the property is absent, contract discovery fails, or the required contract is not returned, MSAL checks for the Windows Accounts extension. If neither provider is available, authentication continues through the traditional web flows. A token request that fails after a DOM provider has been selected is surfaced through the normal platform-broker error handling; MSAL does not retry that request through the extension.
+During initialization, MSAL selects a provider in this order:
+
+1. Use the DOM provider when the required contract is available.
+2. If the DOM property is absent, contract discovery fails, or the required contract is not returned, check for the Microsoft Single Sign On extension.
+3. If neither platform provider is available, continue through the traditional web flows.
+
+After MSAL selects the DOM provider, a token-request failure is surfaced through the normal platform-broker error handling. MSAL does not retry that request through the extension.
 
 **Privacy considerations:**
 
