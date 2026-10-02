@@ -78,17 +78,27 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
     private logger: Logger;
     private performanceClient: IPerformanceClient | undefined;
 
-    constructor(logger: Logger, performanceClient?: IPerformanceClient) {
+    constructor(
+        logger: Logger,
+        performanceClient?: IPerformanceClient,
+        persistentStorageEnabled: boolean = true
+    ) {
         this.logger = logger;
         this.cache = TokenBindingKeyManager.getTokenBindingKeyStorage(
-            this.logger
+            this.logger,
+            persistentStorageEnabled
         );
         this.performanceClient = performanceClient;
     }
 
     private static getTokenBindingKeyStorage(
-        logger: Logger
+        logger: Logger,
+        persistentStorageEnabled: boolean
     ): AsyncMemoryStorage<CachedKeyPair> {
+        if (!persistentStorageEnabled) {
+            return new AsyncMemoryStorage<CachedKeyPair>(logger, false);
+        }
+
         if (!TokenBindingKeyManager.tokenBindingKeyStorage) {
             TokenBindingKeyManager.tokenBindingKeyStorage =
                 new AsyncMemoryStorage<CachedKeyPair>(logger);
@@ -145,6 +155,16 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
                 correlationId
             );
         }
+    }
+
+    /**
+     * Returns whether a browser token-binding key is available.
+     */
+    async hasTokenBindingKey(
+        keyId: string,
+        correlationId: string
+    ): Promise<boolean> {
+        return this.cache.containsKey(keyId, correlationId);
     }
 
     /**
@@ -258,6 +278,17 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
         }
 
         return cachedKeyPair;
+    }
+
+    /**
+     * Returns whether a browser token-binding key survived in persistent
+     * storage and can be restored after a redirect navigation.
+     */
+    async isTokenBindingKeyPersisted(
+        keyId: string,
+        correlationId: string
+    ): Promise<boolean> {
+        return this.cache.containsKeyInPersistentStorage(keyId, correlationId);
     }
 
     /** @internal */

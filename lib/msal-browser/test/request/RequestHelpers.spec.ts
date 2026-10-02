@@ -246,6 +246,7 @@ describe("RequestHelpers tests", () => {
             );
 
             expect(result.dpopJkt).toBe("test-dpop-jkt");
+            expect(result.dpopKeyOwned).toBe(true);
             expect(request.dpopJkt).toBeUndefined();
             expect(provisionSpy).toHaveBeenCalledWith({
                 tokenBindingKeyType:
@@ -280,6 +281,7 @@ describe("RequestHelpers tests", () => {
             );
 
             expect(result.dpopJkt).toBe("caller-dpop-jkt");
+            expect(result.dpopKeyOwned).toBeUndefined();
             expect(provisionSpy).not.toHaveBeenCalled();
         });
 
@@ -310,11 +312,13 @@ describe("RequestHelpers tests", () => {
             expect(provisionSpy).not.toHaveBeenCalled();
         });
 
-        it("should return no DPoP token binding params for platform broker requests", async () => {
-            const provisionSpy = jest.spyOn(
-                TokenBindingKeyManager.prototype,
-                "provisionTokenBindingKey"
-            );
+        it("should provision a DPoP fallback key for platform broker requests", async () => {
+            const provisionSpy = jest
+                .spyOn(
+                    TokenBindingKeyManager.prototype,
+                    "provisionTokenBindingKey"
+                )
+                .mockResolvedValue("test-dpop-jkt");
             const request: Partial<BaseAuthRequest> & {
                 correlationId: string;
                 platformBroker: boolean;
@@ -335,8 +339,41 @@ describe("RequestHelpers tests", () => {
                 mockPerformanceClient
             );
 
-            expect(result).toEqual({});
-            expect(provisionSpy).not.toHaveBeenCalled();
+            expect(result).toEqual({
+                dpopJkt: "test-dpop-jkt",
+                dpopKeyOwned: true,
+            });
+            expect(provisionSpy).toHaveBeenCalledWith({
+                tokenBindingKeyType:
+                    Constants.AuthenticationScheme.DPOP.toLowerCase(),
+                tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            });
+        });
+
+        it("should not remove a caller-owned DPoP key after authorization failure", async () => {
+            const tokenBindingKeyManager = new TokenBindingKeyManager(
+                mockLogger,
+                mockPerformanceClient
+            );
+            const removeKeySpy = jest.spyOn(
+                tokenBindingKeyManager,
+                "removeTokenBindingKey"
+            );
+
+            await RequestHelpers.removeTokenBindingKeyOnFailure(
+                {
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    dpopJkt: "caller-dpop-jkt",
+                    dpopKeyOwned: false,
+                },
+                tokenBindingKeyManager,
+                mockLogger,
+                mockPerformanceClient
+            );
+
+            expect(removeKeySpy).not.toHaveBeenCalled();
         });
 
         it("should return generated req_cnf params for platform broker PoP requests", async () => {

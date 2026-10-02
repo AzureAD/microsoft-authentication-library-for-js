@@ -43,10 +43,12 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 |-----|-----------|----------|
 | `BroadcastChannel` | Redirect bridge (popup/iframe → main frame), cross-tab cache sync | None for redirect bridge |
 | `postMessage` + `MessageChannel` | WAM browser extension communication | None for WAM path |
+| `navigator.platformAuthentication` | Native broker communication through the platform authentication DOM API | Feature-detected; falls back to the WAM browser extension provider |
 
 **MSAL-specific restrictions:**
 - Chrome 115+ / Firefox TCP: `BroadcastChannel` partitioned by top-level site — breaks cross-origin iframe ↔ popup communication
 - Safari PB: cross-tab channels do not persist
+- `navigator.platformAuthentication` is an early-proposal API available only in Edge private-preview environments. `PlatformAuthDOMHandler.createProvider` checks both API presence and the required contract before selecting it; other browsers use the extension provider when available.
 
 ### Navigation & Window
 
@@ -114,6 +116,7 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 | `crypto.subtle` | ✅ | ✅ | ✅ | ✅ | | |
 | `fetch()` | ✅ | ✅ | ✅ | ✅ | | ✅ |
 | `postMessage` | | | | | ✅ | ✅ |
+| `navigator.platformAuthentication` | | | | | | ○ |
 | Form submit (POST) | ○ | ○ | ○ | | | |
 | Cookies | ○ | ○ | ³ | ³ | | |
 

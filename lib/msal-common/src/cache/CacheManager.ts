@@ -719,6 +719,7 @@ export abstract class CacheManager implements ICacheManager {
             correlationId
         );
 
+        const accessTokenKeysToRemove: string[] = [];
         tokenKeys.accessToken.forEach((key) => {
             if (
                 !this.accessTokenKeyMatchesFilter(key, accessTokenFilter, false)
@@ -744,10 +745,23 @@ export abstract class CacheManager implements ICacheManager {
                     correlationId
                 );
                 if (tokenScopeSet.intersectingScopeSets(currentScopes)) {
-                    this.removeAccessToken(key, correlationId);
+                    accessTokenKeysToRemove.push(key);
                 }
             }
         });
+        for (const key of accessTokenKeysToRemove) {
+            const removedCredential = this.removeAccessTokenCredential(
+                key,
+                correlationId
+            );
+            if (removedCredential) {
+                await this.removeTokenBindingKeyForCredential(
+                    removedCredential,
+                    correlationId,
+                    credential.keyId
+                );
+            }
+        }
         await this.setAccessTokenCredential(
             credential,
             correlationId,
@@ -1100,9 +1114,40 @@ export abstract class CacheManager implements ICacheManager {
      * @param correlationId
      */
     removeAccessToken(key: string, correlationId: string): void {
+        const credential = this.removeAccessTokenCredential(key, correlationId);
+        if (credential) {
+            void this.removeTokenBindingKeyForCredential(
+                credential,
+                correlationId
+            );
+        }
+    }
+
+    /**
+     * Removes an access token and waits for any unreferenced token-binding key
+     * cleanup. Internal callers that require deterministic cleanup should use
+     * this method instead of the synchronous public cache contract.
+     */
+    async removeAccessTokenAndTokenBindingKey(
+        key: string,
+        correlationId: string
+    ): Promise<void> {
+        const credential = this.removeAccessTokenCredential(key, correlationId);
+        if (credential) {
+            await this.removeTokenBindingKeyForCredential(
+                credential,
+                correlationId
+            );
+        }
+    }
+
+    private removeAccessTokenCredential(
+        key: string,
+        correlationId: string
+    ): AccessTokenEntity | null {
         const credential = this.getAccessTokenCredential(key, correlationId);
         if (!credential) {
-            return;
+            return null;
         }
 
         this.removeItem(key, correlationId);
@@ -1110,7 +1155,14 @@ export abstract class CacheManager implements ICacheManager {
             { accessTokensRemoved: 1 },
             correlationId
         );
+        return credential;
+    }
 
+    private async removeTokenBindingKeyForCredential(
+        credential: AccessTokenEntity,
+        correlationId: string,
+        preservedKeyId?: string
+    ): Promise<void> {
         // Remove Token Binding Key from key store for token-bound access token credentials
         if (
             credential.credentialType.toLowerCase() ===
@@ -1124,24 +1176,44 @@ export abstract class CacheManager implements ICacheManager {
                         credential as AccessTokenEntity;
                     const kid = accessTokenWithAuthSchemeEntity.keyId;
 
-                    if (kid) {
-                        void this.tokenBindingKeyManager
-                            .removeTokenBindingKey(kid, correlationId)
-                            .catch(() => {
-                                this.commonLogger.error(
-                                    "Failed to remove token binding key",
-                                    correlationId
-                                );
-                                this.performanceClient?.incrementFields(
-                                    { removeTokenBindingKeyFailure: 1 },
-                                    correlationId
-                                );
-                            });
+                    if (
+                        kid &&
+                        kid !== preservedKeyId &&
+                        !this.isTokenBindingKeyReferenced(kid, correlationId)
+                    ) {
+                        try {
+                            await this.tokenBindingKeyManager.removeTokenBindingKey(
+                                kid,
+                                correlationId
+                            );
+                        } catch {
+                            this.commonLogger.error(
+                                "Failed to remove token binding key",
+                                correlationId
+                            );
+                            this.performanceClient?.incrementFields(
+                                { removeTokenBindingKeyFailure: 1 },
+                                correlationId
+                            );
+                        }
                     }
                     break;
                 }
             }
         }
+    }
+
+    private isTokenBindingKeyReferenced(
+        keyId: string,
+        correlationId: string
+    ): boolean {
+        return this.getTokenKeys().accessToken.some((accessTokenKey) => {
+            const accessToken = this.getAccessTokenCredential(
+                accessTokenKey,
+                correlationId
+            );
+            return accessToken?.keyId === keyId;
+        });
     }
 
     /**

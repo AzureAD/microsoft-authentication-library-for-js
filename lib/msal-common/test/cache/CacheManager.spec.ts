@@ -294,6 +294,60 @@ describe("CacheManager.ts test cases", () => {
             );
         });
 
+        it("does not remove a DPoP binding key reused by a replacement access token", async () => {
+            const original = CacheHelpers.createAccessTokenEntity(
+                "someUid.someUtid",
+                "login.microsoftonline.com",
+                "original-access-token",
+                "mock_client_id",
+                "microsoft",
+                "scope6 scope7",
+                4600,
+                4600,
+                mockCrypto.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                undefined,
+                DPOP_AUTHENTICATION_SCHEME,
+                undefined,
+                TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+            );
+            const replacement = {
+                ...original,
+                secret: "replacement-access-token",
+                target: "scope7 scope8",
+            };
+            await mockCache.cacheManager.setAccessTokenCredential(
+                original,
+                TEST_CONFIG.CORRELATION_ID,
+                false
+            );
+            const removeTokenBindingKeySpy = jest.spyOn(
+                mockTokenBindingKeyManager,
+                "removeTokenBindingKey"
+            );
+
+            await mockCache.cacheManager.saveCacheRecord(
+                { accessToken: replacement },
+                TEST_CONFIG.CORRELATION_ID,
+                false,
+                0
+            );
+
+            expect(removeTokenBindingKeySpy).not.toHaveBeenCalled();
+            expect(
+                mockCache.cacheManager.getAccessTokenCredential(
+                    generateCredentialKey(original),
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBeNull();
+            expect(
+                mockCache.cacheManager.getAccessTokenCredential(
+                    generateCredentialKey(replacement),
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toEqual(replacement);
+        });
+
         it("requires cached keyId metadata for accessToken with Auth Scheme (dpop)", () => {
             expect(() =>
                 CacheHelpers.createAccessTokenEntity(
@@ -2187,7 +2241,7 @@ describe("CacheManager.ts test cases", () => {
             lastUpdatedAt: Date.now().toString(),
         };
 
-        mockCache.cacheManager.removeAccessToken(
+        await mockCache.cacheManager.removeAccessTokenAndTokenBindingKey(
             generateCredentialKey(at),
             RANDOM_TEST_GUID
         );
@@ -2221,7 +2275,10 @@ describe("CacheManager.ts test cases", () => {
         expect(mockCache.cacheManager.getAccessTokenCredential(atKey)).toEqual(
             atWithAuthScheme
         );
-        mockCache.cacheManager.removeAccessToken(atKey, RANDOM_TEST_GUID);
+        await mockCache.cacheManager.removeAccessTokenAndTokenBindingKey(
+            atKey,
+            RANDOM_TEST_GUID
+        );
         expect(
             mockCache.cacheManager.getAccessTokenCredential(atKey)
         ).toBeNull();
@@ -2258,7 +2315,7 @@ describe("CacheManager.ts test cases", () => {
             "removeTokenBindingKey"
         );
 
-        mockCache.cacheManager.removeAccessToken(
+        await mockCache.cacheManager.removeAccessTokenAndTokenBindingKey(
             generateCredentialKey(atWithAuthScheme),
             RANDOM_TEST_GUID
         );
@@ -2267,6 +2324,57 @@ describe("CacheManager.ts test cases", () => {
         expect(removeTokenBindingKeySpy.mock.calls[0][0]).toEqual(
             atWithAuthScheme.keyId
         );
+    });
+
+    it("does not remove a DPoP binding key referenced by another access token", async () => {
+        const firstToken = CacheHelpers.createAccessTokenEntity(
+            "uid.utid",
+            "login.microsoftonline.com",
+            "first-access-token",
+            CACHE_MOCKS.MOCK_CLIENT_ID,
+            "microsoft",
+            "scope-a",
+            4600,
+            4600,
+            mockCrypto.base64Decode,
+            TEST_CONFIG.CORRELATION_ID,
+            undefined,
+            DPOP_AUTHENTICATION_SCHEME,
+            undefined,
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+        );
+        const secondToken = {
+            ...firstToken,
+            secret: "second-access-token",
+            target: "scope-b",
+        };
+        await mockCache.cacheManager.setAccessTokenCredential(
+            firstToken,
+            RANDOM_TEST_GUID,
+            false
+        );
+        await mockCache.cacheManager.setAccessTokenCredential(
+            secondToken,
+            RANDOM_TEST_GUID,
+            false
+        );
+        const removeTokenBindingKeySpy = jest.spyOn(
+            mockTokenBindingKeyManager,
+            "removeTokenBindingKey"
+        );
+
+        await mockCache.cacheManager.removeAccessTokenAndTokenBindingKey(
+            generateCredentialKey(firstToken),
+            RANDOM_TEST_GUID
+        );
+
+        expect(removeTokenBindingKeySpy).not.toHaveBeenCalled();
+        expect(
+            mockCache.cacheManager.getAccessTokenCredential(
+                generateCredentialKey(secondToken),
+                RANDOM_TEST_GUID
+            )
+        ).toEqual(secondToken);
     });
 
     it("does not log token binding key ID when DPoP key removal fails", async () => {
@@ -2298,11 +2406,10 @@ describe("CacheManager.ts test cases", () => {
         ).mockRejectedValueOnce(new Error("remove failed"));
         const loggerErrorSpy = jest.spyOn(Logger.prototype, "error");
 
-        mockCache.cacheManager.removeAccessToken(
+        await mockCache.cacheManager.removeAccessTokenAndTokenBindingKey(
             generateCredentialKey(atWithAuthScheme),
             RANDOM_TEST_GUID
         );
-        await Promise.resolve();
 
         expect(loggerErrorSpy).toHaveBeenCalledWith(
             "Failed to remove token binding key",
@@ -2336,7 +2443,7 @@ describe("CacheManager.ts test cases", () => {
             "removeTokenBindingKey"
         );
 
-        mockCache.cacheManager.removeAccessToken(
+        await mockCache.cacheManager.removeAccessTokenAndTokenBindingKey(
             generateCredentialKey(atWithAuthScheme),
             RANDOM_TEST_GUID
         );

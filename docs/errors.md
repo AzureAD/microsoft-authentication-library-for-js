@@ -877,7 +877,7 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 
 ### `dpop_pop_kid_not_supported`
 
--   Application-supplied `popKid` values are not supported for DPoP requests. MSAL provisions and manages the DPoP key.
+-   For DPoP requests routed through the platform broker, application-supplied `popKid` values are not supported. MSAL provisions and manages the DPoP key for these requests.
 
 ### `unsupported_token_binding_algorithm`
 

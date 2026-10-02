@@ -270,7 +270,46 @@ describe("SilentIframeClient", () => {
                 expect.anything(),
                 expect.anything(),
                 expect.anything(),
-                undefined
+                undefined,
+                expect.anything()
+            );
+        });
+
+        it("removes the generated DPoP key when the iframe response fails", async () => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
+                new Error("iframe response failed")
+            );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            const tokenBindingKeyManager = (silentIframeClient as any)
+                .tokenBindingKeyManager;
+            jest.spyOn(
+                tokenBindingKeyManager,
+                "provisionTokenBindingKey"
+            ).mockResolvedValue("test-dpop-jkt");
+            const removeKeySpy = jest
+                .spyOn(tokenBindingKeyManager, "removeTokenBindingKey")
+                .mockResolvedValue(undefined);
+
+            await expect(
+                silentIframeClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    resourceRequestMethod: "GET",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                })
+            ).rejects.toThrow("iframe response failed");
+
+            expect(removeKeySpy).toHaveBeenCalledWith(
+                "test-dpop-jkt",
+                expect.any(String)
             );
         });
 
@@ -1851,7 +1890,8 @@ describe("SilentIframeClient", () => {
                     expect.anything(),
                     expect.anything(),
                     expect.anything(),
-                    undefined
+                    undefined,
+                    expect.anything()
                 );
             });
 

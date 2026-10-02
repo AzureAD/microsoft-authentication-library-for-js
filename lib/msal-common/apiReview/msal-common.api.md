@@ -852,6 +852,7 @@ export abstract class CacheManager implements ICacheManager {
     readAppMetadataFromCache(environment: string, correlationId: string): AppMetadataEntity | null;
     refreshTokenKeyMatchesFilter(inputKey: string, filter: CredentialFilter): boolean;
     removeAccessToken(key: string, correlationId: string): void;
+    removeAccessTokenAndTokenBindingKey(key: string, correlationId: string): Promise<void>;
     removeAccount(account: AccountInfo, correlationId: string): void;
     removeAccountContext(account: AccountInfo, correlationId: string): void;
     removeAllAccounts(correlationId: string): void;
@@ -2075,6 +2076,8 @@ function isTokenExpired(expiresOn: string, offset: number): boolean;
 // @internal
 export interface ITokenBindingKeyManager {
     getTokenBindingPublicKeyJwk(kid: string, correlationId: string): Promise<PublicJsonWebKey>;
+    hasTokenBindingKey?(kid: string, correlationId: string): Promise<boolean>;
+    isTokenBindingKeyPersisted?(kid: string, correlationId: string): Promise<boolean>;
     provisionTokenBindingKey(request: TokenBindingKeyProvisioningParameters): Promise<string>;
     removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
 }

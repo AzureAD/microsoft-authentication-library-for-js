@@ -89,6 +89,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         const extensionRequest = { ...request };
         delete extensionRequest.resourceRequestMethod;
         delete extensionRequest.resourceRequestUri;
+        delete extensionRequest.dpopKeyOwned;
+        delete extensionRequest.bindingPreferenceSent;
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
             request: extensionRequest,
@@ -114,6 +116,13 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             request.correlationId
         );
         this.messageChannel.port1.postMessage(req);
+        const finalExtensionRequest =
+            extensionRequest as PlatformAuthRequest & {
+                preferredBinding?: string;
+            };
+        request.bindingPreferenceSent =
+            finalExtensionRequest.preferBinding !== undefined ||
+            finalExtensionRequest.preferredBinding !== undefined;
 
         const response: object = await new Promise((resolve, reject) => {
             this.resolvers.set(req.responseId, { resolve, reject });
@@ -338,10 +347,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                         )
                     );
                 } else if (response.result) {
-                    if (
-                        response.result["code"] &&
-                        response.result["description"]
-                    ) {
+                    if (response.result["code"]) {
                         resolver.reject(
                             createNativeAuthError(
                                 response.result["code"],
@@ -424,7 +430,17 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             response.hasOwnProperty("scope") &&
             response.hasOwnProperty("expires_in")
         ) {
-            return response as PlatformAuthResponse;
+            const extensionResponse = response as PlatformAuthResponse & {
+                dpop_proof?: string;
+                proofOfPossessionPayload?: string;
+            };
+            return {
+                ...extensionResponse,
+                DPoP:
+                    extensionResponse.DPoP ??
+                    extensionResponse.dpop_proof ??
+                    extensionResponse.proofOfPossessionPayload,
+            };
         } else {
             throw createAuthError(
                 AuthErrorCodes.unexpectedError,

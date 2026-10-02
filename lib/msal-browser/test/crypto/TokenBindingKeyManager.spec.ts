@@ -176,6 +176,34 @@ describe("TokenBindingKeyManager.ts Unit Tests", () => {
         });
     }, 10000);
 
+    it("does not retain ephemeral keys across manager reinitialization", async () => {
+        const provisioningKeyManager = new TokenBindingKeyManager(
+            new Logger({}),
+            undefined,
+            false
+        );
+        const lookupKeyManager = new TokenBindingKeyManager(
+            new Logger({}),
+            undefined,
+            false
+        );
+
+        const keyId = await provisioningKeyManager.provisionTokenBindingKey(
+            DPOP_KEY_CONTEXT
+        );
+
+        expect(Object.keys(mockDatabase["TestDB.keys"])).toHaveLength(0);
+        await expect(
+            lookupKeyManager.getTokenBindingPublicKeyJwk(
+                keyId,
+                TEST_CONFIG.CORRELATION_ID
+            )
+        ).rejects.toMatchObject({
+            errorCode: BrowserAuthErrorCodes.cryptoKeyNotFound,
+        });
+        await provisioningKeyManager.clearKeystore(TEST_CONFIG.CORRELATION_ID);
+    }, 10000);
+
     it("clearKeystore removes stored keys", async () => {
         const keyId = await tokenBindingKeyManager.provisionTokenBindingKey(
             DPOP_KEY_CONTEXT

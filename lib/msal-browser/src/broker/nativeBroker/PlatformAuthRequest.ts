@@ -107,6 +107,16 @@ export type PlatformAuthRequest = {
     enclave?: PlatformAuthEnclave;
     reqCnf?: string;
     keyId?: string;
+    /**
+     * Tracks whether MSAL provisioned the request key and therefore owns its
+     * cleanup. This is internal request state and must not be sent to brokers.
+     */
+    dpopKeyOwned?: boolean;
+    /**
+     * Records whether a binding preference was included on the broker wire.
+     * This is internal response-validation state and must not be sent.
+     */
+    bindingPreferenceSent?: boolean;
     tokenType?: PlatformAuthTokenType;
     shrClaims?: string;
     shrNonce?: string;

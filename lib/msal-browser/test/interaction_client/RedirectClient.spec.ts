@@ -213,6 +213,72 @@ describe("RedirectClient", () => {
     });
 
     describe("handleRedirectPromise", () => {
+        it("removes an unused DPoP key when no redirect response is found", async () => {
+            const tokenBindingKeyManager = (redirectClient as any)
+                .tokenBindingKeyManager;
+            const removeKeySpy = jest
+                .spyOn(tokenBindingKeyManager, "removeTokenBindingKey")
+                .mockResolvedValue(undefined);
+
+            const result = await redirectClient.handleRedirectPromise(
+                {
+                    ...testRequest,
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    dpopJkt: "test-dpop-jkt",
+                    dpopKeyOwned: true,
+                } as CommonAuthorizationUrlRequest & {
+                    dpopKeyOwned: boolean;
+                },
+                TEST_CONFIG.TEST_VERIFIER,
+                rootMeasurement,
+                { hash: "" }
+            );
+
+            expect(result).toBeNull();
+            expect(removeKeySpy).toHaveBeenCalledWith(
+                "test-dpop-jkt",
+                RANDOM_TEST_GUID
+            );
+        });
+
+        describe("executeCodeFlow", () => {
+            it("does not navigate when an owned DPoP key is not persisted", async () => {
+                const tokenBindingKeyManager = (redirectClient as any)
+                    .tokenBindingKeyManager;
+                jest.spyOn(
+                    tokenBindingKeyManager,
+                    "provisionTokenBindingKey"
+                ).mockResolvedValue("owned-dpop-jkt");
+                jest.spyOn(
+                    tokenBindingKeyManager,
+                    "isTokenBindingKeyPersisted"
+                ).mockResolvedValue(false);
+                const removeKeySpy = jest
+                    .spyOn(tokenBindingKeyManager, "removeTokenBindingKey")
+                    .mockResolvedValue(undefined);
+                const navigateSpy = jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                );
+
+                await expect(
+                    redirectClient.executeCodeFlow({
+                        ...testRequest,
+                        authenticationScheme:
+                            Constants.AuthenticationScheme.DPOP,
+                    })
+                ).rejects.toMatchObject({
+                    errorCode: BrowserAuthErrorCodes.cryptoKeyNotFound,
+                });
+
+                expect(navigateSpy).not.toHaveBeenCalled();
+                expect(removeKeySpy).toHaveBeenCalledWith(
+                    "owned-dpop-jkt",
+                    testRequest.correlationId
+                );
+            });
+        });
+
         it("sets document.title during processing and restores original title when no title is set", (done) => {
             document.title = "";
             browserStorage.setInteractionInProgress(true);

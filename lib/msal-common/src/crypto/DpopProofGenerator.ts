@@ -47,6 +47,11 @@ export type DpopResourceProofParams = {
     nonce?: string;
 };
 
+/**
+ * Resource request context and access token used to generate a DPoP proof.
+ * Exported for use by MSAL Browser and unsupported for direct consumers.
+ * @internal
+ */
 export type GenerateDpopResourceProofParams = {
     htu?: string;
     htm?: string;

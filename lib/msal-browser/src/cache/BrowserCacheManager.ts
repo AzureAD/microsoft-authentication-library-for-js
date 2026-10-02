@@ -1046,7 +1046,7 @@ export class BrowserCacheManager extends CacheManager {
                         throw cacheError;
                     }
                     // When cache quota is exceeded, start removing access tokens until we can successfully set the item
-                    this.removeAccessToken(
+                    void this.removeAccessToken(
                         accessTokenKeys[i],
                         correlationId,
                         false // Don't save token keys yet, do it at the end
@@ -1144,7 +1144,7 @@ export class BrowserCacheManager extends CacheManager {
                         throw cacheError;
                     }
                     // When cache quota is exceeded, start removing access tokens until we can successfully set the item
-                    this.removeAccessToken(
+                    await this.removeAccessTokenAndTokenBindingKey(
                         accessTokenKeys[i],
                         correlationId,
                         false // Don't save token keys yet, do it at the end
@@ -1375,6 +1375,18 @@ export class BrowserCacheManager extends CacheManager {
         updateTokenKeys: boolean = true
     ): void {
         super.removeAccessToken(key, correlationId);
+        updateTokenKeys && this.removeAccessTokenKeys([key], correlationId);
+    }
+
+    /**
+     * Removes an access token and awaits token-binding key cleanup.
+     */
+    async removeAccessTokenAndTokenBindingKey(
+        key: string,
+        correlationId: string,
+        updateTokenKeys: boolean = true
+    ): Promise<void> {
+        await super.removeAccessTokenAndTokenBindingKey(key, correlationId);
         updateTokenKeys && this.removeAccessTokenKeys([key], correlationId);
     }
 
