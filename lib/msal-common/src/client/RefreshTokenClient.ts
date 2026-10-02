@@ -55,6 +55,7 @@ import {
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
 import { INetworkModule } from "../network/INetworkModule.js";
 import { CacheManager } from "../cache/CacheManager.js";
+import { TokenCacheContext } from "../cache/persistence/TokenCacheContext.js";
 import { ICrypto } from "../crypto/ICrypto.js";
 import { Logger } from "../logger/Logger.js";
 import { version, name } from "../packageMetadata.js";
@@ -332,10 +333,46 @@ export class RefreshTokenClient {
                     );
                     const badRefreshTokenKey =
                         this.cacheManager.generateCredentialKey(refreshToken);
-                    this.cacheManager.removeRefreshToken(
-                        badRefreshTokenKey,
-                        request.correlationId
-                    );
+                    const { persistencePlugin, serializableCache } =
+                        this.config;
+                    let cacheContext;
+                    try {
+                        if (persistencePlugin && serializableCache) {
+                            cacheContext = new TokenCacheContext(
+                                serializableCache,
+                                true
+                            );
+                            await persistencePlugin.beforeCacheAccess(
+                                cacheContext
+                            );
+                        }
+
+                        // The token may have been replaced while the request was in flight.
+                        const cachedRefreshToken =
+                            this.cacheManager.getRefreshTokenCredential(
+                                badRefreshTokenKey,
+                                request.correlationId
+                            );
+                        if (
+                            cachedRefreshToken?.secret ===
+                            refreshTokenRequest.refreshToken
+                        ) {
+                            this.cacheManager.removeRefreshToken(
+                                badRefreshTokenKey,
+                                request.correlationId
+                            );
+                        }
+                    } finally {
+                        if (
+                            persistencePlugin &&
+                            serializableCache &&
+                            cacheContext
+                        ) {
+                            await persistencePlugin.afterCacheAccess(
+                                cacheContext
+                            );
+                        }
+                    }
                 }
             }
 
