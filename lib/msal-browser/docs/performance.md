@@ -94,9 +94,18 @@ The complete details for `PerformanceEvents` objects can be found [here](../../m
 
 ### Platform broker measurements
 
-When platform brokering is enabled, MSAL measures provider discovery and provider creation during initialization, and extension or DOM transport, response validation, request initialization, response processing, and cache updates during authentication. These child measurements are folded into their enclosing top-level event as `<measurementName>DurationMs` fields under the same `correlationId`; they are not emitted as separate callback events. The independently emitted extension handshake event uses `platformAuthRequestCorrelationId` to join it to the originating initialization request.
+When platform brokering is enabled, MSAL measures provider discovery and provider creation during initialization, and extension or DOM transport, response validation, request initialization, response processing, and cache updates during authentication. These child measurements are folded into their enclosing top-level event as `<measurementName>DurationMs` fields under the same `correlationId`; they are not emitted as separate callback events. During initialization, extension handshake duration is available as `ext.nativeMessageHandlerHandshakeDurationMs` and extension provider creation duration is available as `ext.platformAuthExtensionCreateProviderDurationMs`.
 
-Platform broker measurements include `platformAuthProviderType`, with a value of `PlatformAuthDOMHandler` or `PlatformAuthExtensionHandler`, to identify the provider used for the operation.
+The root event includes the following platform broker context:
+
+| **Property**                    | Type      | Description                                                                                                                                                      |
+| ------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `allowPlatformBroker`           | `boolean` | Whether the application enabled platform broker support.                                                                                                         |
+| `platformAuthProviderAvailable` | `boolean` | Whether MSAL created a platform authentication provider.                                                                                                         |
+| `platformAuthProviderType`      | `string`  | `PlatformAuthDOMHandler` or `PlatformAuthExtensionHandler` when a provider is available. This property is omitted when `platformAuthProviderAvailable` is false. |
+| `extensionInstalled`            | `boolean` | Whether an extension handshake response identified a compatible Microsoft Single Sign On extension. Omitted when no extension responds.                          |
+| `extensionHandshakeTimedOut`    | `boolean` | Whether extension discovery failed because no extension responded before the handshake timeout.                                                                  |
+| `extensionHandshakeTimeoutMs`   | `number`  | Configured extension handshake timeout in milliseconds.                                                                                                          |
 
 Platform broker telemetry does not include tokens, claims, account identifiers, request or response payloads, URLs, or exception messages.
 
