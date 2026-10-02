@@ -195,7 +195,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // initialize native request (statically builds the request; does not contact the broker)
         let nativeRequest: PlatformAuthRequest;
         try {
-            nativeRequest = await this.initializePlatformRequest(request);
+            nativeRequest = await invokeAsync(
+                this.initializePlatformRequest.bind(this),
+                BrowserPerformanceEvents.PlatformAuthInteractionClientInitializeRequest,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(request);
         } catch (e) {
             /*
              * Request initialization (e.g. PoP token generation or authority
@@ -256,7 +262,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             const validatedResponse: PlatformAuthResponse =
                 await this.platformAuthProvider.sendMessage(nativeRequest);
 
-            const result = await this.handleNativeResponse(
+            const result = await invokeAsync(
+                this.handleNativeResponse.bind(this),
+                BrowserPerformanceEvents.PlatformAuthHandleNativeResponse,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(
                 validatedResponse,
                 nativeRequest,
                 reqTimestamp,
@@ -427,7 +439,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.correlationId
         );
 
-        const nativeRequest = await this.initializePlatformRequest(request);
+        const nativeRequest = await invokeAsync(
+            this.initializePlatformRequest.bind(this),
+            BrowserPerformanceEvents.PlatformAuthInteractionClientInitializeRequest,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(request);
         const navigateToLoginRequestUrl =
             options?.navigateToLoginRequestUrl ?? true;
 
@@ -517,7 +535,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.correlationId
             );
             this.performanceClient?.addFields(
-                { errorCode: "no_cached_request" },
+                {
+                    errorCode: "no_cached_request",
+                },
                 this.correlationId
             );
             return null;
@@ -553,12 +573,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             );
             const response: PlatformAuthResponse =
                 await this.platformAuthProvider.sendMessage(request);
-            const authResult = await this.handleNativeResponse(
-                response,
-                request,
-                reqTimestamp,
-                storeInCache
-            );
+            const authResult = await invokeAsync(
+                this.handleNativeResponse.bind(this),
+                BrowserPerformanceEvents.PlatformAuthHandleNativeResponse,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(response, request, reqTimestamp, storeInCache);
 
             const serverTelemetryManager = initializeServerTelemetryManager(
                 this.apiId,
@@ -676,7 +697,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         response.expires_in = Number(response.expires_in);
 
         // generate authenticationResult
-        const result = await this.generateAuthenticationResult(
+        const result = await invokeAsync(
+            this.generateAuthenticationResult.bind(this),
+            BrowserPerformanceEvents.NativeGenerateAuthResult,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(
             response,
             request,
             idTokenClaims,
@@ -686,8 +713,20 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         // cache accounts and tokens in the appropriate storage
-        await this.cacheAccount(baseAccount, AuthToken.isKmsi(idTokenClaims));
-        await this.cacheNativeTokens(
+        await invokeAsync(
+            this.cacheAccount.bind(this),
+            BrowserPerformanceEvents.PlatformAuthCacheAccount,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(baseAccount, AuthToken.isKmsi(idTokenClaims));
+        await invokeAsync(
+            this.cacheNativeTokens.bind(this),
+            BrowserPerformanceEvents.PlatformAuthCacheNativeTokens,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(
             response,
             request,
             homeAccountIdentifier,
