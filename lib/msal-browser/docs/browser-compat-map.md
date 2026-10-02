@@ -41,7 +41,7 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 
 | API | MSAL Usage | Fallback |
 |-----|-----------|----------|
-| `BroadcastChannel` | Redirect bridge (popup/iframe → main frame), cross-tab cache sync | None for redirect bridge |
+| `BroadcastChannel` | Redirect bridge (popup/iframe → main frame), cross-tab cache sync, cross-tab event notifications (the listening channel stays open only while subscribed; other sends use a short-lived channel) | None for redirect bridge; without it, event notifications are not sent to other tabs |
 | `postMessage` + `MessageChannel` | WAM browser extension communication | None for WAM path |
 
 **MSAL-specific restrictions:**
