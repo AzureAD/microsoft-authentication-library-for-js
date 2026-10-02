@@ -43,10 +43,36 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 |-----|-----------|----------|
 | `BroadcastChannel` | Redirect bridge (popup/iframe → main frame), cross-tab cache sync | None for redirect bridge |
 | `postMessage` + `MessageChannel` | WAM browser extension communication | None for WAM path |
+| `navigator.platformAuthentication` | Capability discovery and direct platform-broker token acquisition through browser DOM APIs | Microsoft Single Sign On extension during provider discovery; traditional web flows when no platform provider is available |
 
 **MSAL-specific restrictions:**
 - Chrome 115+ / Firefox TCP: `BroadcastChannel` partitioned by top-level site — breaks cross-origin iframe ↔ popup communication
 - Safari PB: cross-tab channels do not persist
+
+### Platform Authentication
+
+The `navigator.platformAuthentication` API is a private-preview capability in supported Edge environments, not a baseline Web Platform API. MSAL uses the DOM provider only when all of the following conditions are met:
+
+- `system.allowPlatformBroker` is `true`
+- `experimental.allowPlatformBrokerWithDOM` is `true`
+- `navigator.platformAuthentication` is present
+- `getSupportedContracts("MicrosoftEntra")` resolves with a list containing `get-token-and-sign-out`
+
+Setting `allowPlatformBrokerWithDOM` without `allowPlatformBroker` causes an `invalid_platform_broker_configuration` error. The presence of `navigator.platformAuthentication` alone is not sufficient because a browser may expose the API without enabling the contract required by MSAL.
+
+During initialization, MSAL selects a provider in this order:
+
+1. Use the DOM provider when the required contract is available.
+2. If the DOM property is absent, contract discovery fails, or the required contract is not returned, check for the Microsoft Single Sign On extension.
+3. If neither platform provider is available, continue through the traditional web flows.
+
+After MSAL selects the DOM provider, a token-request failure is surfaced through the normal platform-broker error handling. MSAL does not retry that request through the extension.
+
+**Privacy considerations:**
+
+- Capability discovery sends only the broker identifier (`MicrosoftEntra`) to the browser and receives contract names; it does not request or expose tokens or account data.
+- Token acquisition is delegated to the browser-managed platform API. Tokens returned by the platform broker are not persisted in MSAL's `localStorage` or `sessionStorage`.
+- Applications must explicitly opt in to platform brokering, and the DOM path requires a second experimental opt-in. See [Acquiring Device Bound Tokens using platform brokers](device-bound-tokens.md) for environment and HTTPS requirements.
 
 ### Navigation & Window
 
@@ -99,7 +125,7 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 | Chrome Storage Access API | Shipping | Potential fallback for 3P-cookie-blocked iframe renewal |
 | Safari tracking domain list expansion | Ongoing | More CDN domains may be blocked in PB |
 | Firefox `BroadcastChannel` partitioned under TCP | Active (Firefox 102+) | Breaks cross-origin iframe ↔ popup channel |
-| Platform authentication proposal | Early proposal | May enable native broker without extension |
+| Platform authentication DOM API | Private preview | Enables direct platform-broker communication in supported Edge environments when the required contract is available |
 
 ## API-to-Flow Matrix
 
@@ -114,6 +140,7 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 | `crypto.subtle` | ✅ | ✅ | ✅ | ✅ | | |
 | `fetch()` | ✅ | ✅ | ✅ | ✅ | | ✅ |
 | `postMessage` | | | | | ✅ | ✅ |
+| `navigator.platformAuthentication` | | | | | | ○⁴ |
 | Form submit (POST) | ○ | ○ | ○ | | | |
 | Cookies | ○ | ○ | ³ | ³ | | |
 
@@ -121,3 +148,4 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 - ¹ redirect bridge popup/iframe only (not direct redirect)
 - ² when refresh token expired and MSAL falls back to hidden iframe
 - ³ IdP session cookie required in iframe; MSAL's own cookie for localStorage encryption only
+- ⁴ optional DOM-based platform-broker provider; requires both configuration flags and the `get-token-and-sign-out` contract
