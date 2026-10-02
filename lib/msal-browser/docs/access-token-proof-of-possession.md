@@ -167,7 +167,8 @@ Unlike other cache items, `Access Tokens` are saved to the cache asynchronously.
 
 ## DPoP for PublicClientApplication
 
-MSAL Browser supports standard DPoP cryptographic access token binding for PublicClientApplication (`acquireTokenPopup`, `acquireTokenRedirect`, `acquireTokenSilent`, and `ssoSilent`). Sender-constrained access tokens using the DPoP standard and their corresponding proofs can be requested by setting `authenticationScheme: msal.AuthenticationScheme.DPOP`.
+> [!WARNING]
+> DPoP support in MSAL Browser is currently in development. This documentation will be updated when it is ready for production use.
 
 ```typescript
 const dpopRequest = {
@@ -184,7 +185,7 @@ headers.append("Authorization", `${result.tokenType} ${result.accessToken}`);
 headers.append("DPoP", result.dpopProof);
 ```
 
-> Note: DPoP requests must include both `resourceRequestMethod` and `resourceRequestUri`. If either value is missing MSAL fails fast with `dpop_missing_resource_context`. 
+> Note: DPoP requests must include both `resourceRequestMethod` and `resourceRequestUri`. If either value is missing MSAL fails fast with `dpop_missing_resource_context`.
 
 For DPoP results, `accessToken` is the raw sender-constrained access token and `dpopProof` is a separate fresh proof for the requested resource. Proof JWTs are never cached. Cache hits generate a new proof, and if the local DPoP key is missing MSAL treats the cached sender-constrained access token as a cache miss.
 
