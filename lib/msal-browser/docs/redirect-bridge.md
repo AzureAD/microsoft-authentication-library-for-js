@@ -374,7 +374,7 @@ export default function Redirect() {
 }
 ```
 
-1. **Exclude the redirect page from `MsalProvider`** in `_app.js`:
+2. **Exclude the redirect page from `MsalProvider`** in `_app.js`:
 
 ```jsx
 // pages/_app.js
@@ -397,6 +397,8 @@ function MyApp({ Component, pageProps }) {
 }
 ```
 
+> **Sample:** See the [nextjs-sample](../../../samples/msal-react-samples/nextjs-sample) for a Pages Router example.
+
 ### App Router (`app/`)
 
 1. **Create `app/redirect/page.js`** — this must be a Client Component (`"use client"`):
@@ -418,12 +420,16 @@ export default function Redirect() {
 }
 ```
 
-1. **Exclude the redirect route from `MsalProvider`** in your root layout. If your `app/layout.js` wraps children in `MsalProvider`, create a separate layout for the redirect route that skips it:
+2. **Exclude the redirect route from `MsalProvider`** in your root layout. If you use a layout to wrap children in `MsalProvider`, your redirect page needs to be in a file that sits parallel to it, so that the bridge is in a different provider tree. If you wrap your app in `MsalProvider` inside `app/layout.js`, move it to a nested layout (e.g. `app/site/layout.js`) so you can place the bridge at `app/redirect/page.js`. If you do not want to add extra segments to the URL, you can use a [route group](https://nextjs.org/docs/app/api-reference/file-conventions/route-groups), which are never reflected in the URL:
 
 ```jsx
-// app/redirect/layout.js — no MsalProvider wrapper
-export default function RedirectLayout({ children }) {
-    return <>{children}</>;
+// app/(authenticated)/layout.js — wraps only authenticated routes
+import { MsalProvider } from "@azure/msal-react";
+
+// create msalInstance...
+
+export default function AuthenticatedLayout({ children }) {
+    return <MsalProvider instance={msalInstance}>{children}</MsalProvider>;
 }
 ```
 
@@ -432,8 +438,6 @@ This prevents MSAL from processing the auth response hash before `broadcastRespo
 ---
 
 No `next.config.js` changes are needed for either router — Next.js serves pages automatically.
-
-> **Sample:** See the [nextjs-sample](../../../samples/msal-react-samples/nextjs-sample) for a Pages Router example.
 
 ## Express.js / Node.js Backend
 
