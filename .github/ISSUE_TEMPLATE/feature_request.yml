@@ -6,9 +6,6 @@ body:
   attributes:
     value: |
       ## Before Submitting your Issue
-      > [!IMPORTANT]
-      > If you are a Microsoft employee please submit your feature request in our [Teams Channel](https://aka.ms/msaljs/teams) instead.
-      
 - type: dropdown
   attributes:
     label: Core Library
