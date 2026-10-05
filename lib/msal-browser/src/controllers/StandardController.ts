@@ -17,7 +17,6 @@ import {
     IPerformanceClient,
     BaseAuthRequest,
     InProgressPerformanceEvent,
-    getRequestThumbprint,
     invokeAsync,
     createClientAuthError,
     ClientAuthErrorCodes,
@@ -100,6 +99,7 @@ import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandle
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
+import { resolveSilentRequestPreparation } from "../request/SilentRequestHelpers.js";
 
 function preflightCheck(
     initialized: boolean,
@@ -2298,19 +2298,21 @@ export class StandardController implements IController {
         account: AccountInfo,
         correlationId: string
     ): Promise<AuthenticationResult> {
-        const thumbprint = getRequestThumbprint(
-            this.config.auth.clientId,
+        const preparedRequest = resolveSilentRequestPreparation(
             {
-                ...request,
-                authority: request.authority || this.config.auth.authority,
-                correlationId: correlationId,
+                request,
+                account,
+                correlationId,
+                config: this.config,
             },
-            account.homeAccountId
+            this.platformAuthProvider,
+            this.logger,
+            this.performanceClient
         );
-        const silentRequestKey = JSON.stringify(thumbprint);
 
-        const inProgressRequest =
-            this.activeSilentTokenRequests.get(silentRequestKey);
+        const inProgressRequest = this.activeSilentTokenRequests.get(
+            preparedRequest.key
+        );
 
         if (typeof inProgressRequest === "undefined") {
             this.logger.verbose(
@@ -2327,15 +2329,18 @@ export class StandardController implements IController {
                 correlationId
             )(
                 {
-                    ...request,
+                    ...preparedRequest.request,
                     correlationId,
                 },
-                account
+                preparedRequest.account
             );
-            this.activeSilentTokenRequests.set(silentRequestKey, activeRequest);
+            this.activeSilentTokenRequests.set(
+                preparedRequest.key,
+                activeRequest
+            );
 
             return activeRequest.finally(() => {
-                this.activeSilentTokenRequests.delete(silentRequestKey);
+                this.activeSilentTokenRequests.delete(preparedRequest.key);
             });
         } else {
             this.logger.verbose(
