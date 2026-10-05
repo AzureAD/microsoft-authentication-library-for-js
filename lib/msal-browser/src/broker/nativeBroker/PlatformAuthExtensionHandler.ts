@@ -130,13 +130,8 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 correlationId
             );
             this.messageChannel.port1.postMessage(req);
-            const finalExtensionRequest =
-                extensionRequest as PlatformAuthRequest & {
-                    preferredBinding?: string;
-                };
             request.bindingPreferenceSent =
-                finalExtensionRequest.preferBinding !== undefined ||
-                finalExtensionRequest.preferredBinding !== undefined;
+                extensionRequest.preferBinding !== undefined;
 
             const response: object = await new Promise((resolve, reject) => {
                 this.resolvers.set(req.responseId, {
@@ -559,14 +554,10 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
         ) {
             const extensionResponse = response as PlatformAuthResponse & {
                 dpop_proof?: string;
-                proofOfPossessionPayload?: string;
             };
             const validatedResponse = {
                 ...extensionResponse,
-                DPoP:
-                    extensionResponse.DPoP ??
-                    extensionResponse.dpop_proof ??
-                    extensionResponse.proofOfPossessionPayload,
+                DPoP: extensionResponse.DPoP ?? extensionResponse.dpop_proof,
             };
             validationMeasurement.end({
                 success: true,

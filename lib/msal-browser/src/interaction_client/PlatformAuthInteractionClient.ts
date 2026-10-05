@@ -106,8 +106,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected nativeStorageManager: BrowserCacheManager;
     protected skus: string;
 
-    private static readonly DPOP_BROKER_REQUEST_TOKEN_TYPE =
-        PlatformAuthTokenType.DPOP_WITH_PROOF;
     private static readonly DPOP_BROKER_REQUEST_KEY_LOCATION =
         PlatformAuthEnclave.SOFTWARE;
 
@@ -255,8 +253,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 nativeATMeasurement.end({
                     success: false,
                 });
-                await this.resetGeneratedDpopRequestKeyAfterError(
-                    nativeRequest
+                await this.resetGeneratedDpopRequestKey(
+                    nativeRequest,
+                    "best-effort"
                 );
                 throw e;
             }
@@ -315,7 +314,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 e
             );
             this.setBrokerErrorTelemetry(e);
-            await this.resetGeneratedDpopRequestKeyAfterError(nativeRequest);
+            await this.resetGeneratedDpopRequestKey(
+                nativeRequest,
+                "best-effort"
+            );
             throw e;
         }
     }
@@ -520,17 +522,20 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                      * in handleRedirectPromise (phase 2).
                      */
                     this.setBrokerErrorTelemetry(e);
-                    await this.resetGeneratedDpopRequestKeyAfterError(
-                        nativeRequest
+                    await this.resetGeneratedDpopRequestKey(
+                        nativeRequest,
+                        "best-effort"
                     );
                     throw e;
                 }
-                await this.resetGeneratedDpopRequestKeyAfterError(
-                    nativeRequest
+                await this.resetGeneratedDpopRequestKey(
+                    nativeRequest,
+                    "best-effort"
                 );
             } else if (this.isDpopBrokerRequest(nativeRequest)) {
-                await this.resetGeneratedDpopRequestKeyAfterError(
-                    nativeRequest
+                await this.resetGeneratedDpopRequestKey(
+                    nativeRequest,
+                    "best-effort"
                 );
                 throw e;
             }
@@ -538,7 +543,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         try {
             await this.ensureRedirectDpopKeyIsPersisted(nativeRequest);
         } catch (e) {
-            await this.resetGeneratedDpopRequestKeyAfterError(nativeRequest);
+            await this.resetGeneratedDpopRequestKey(
+                nativeRequest,
+                "best-effort"
+            );
             throw e;
         }
         this.browserStorage.setTemporaryCache(
@@ -579,7 +587,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     TemporaryCacheKeys.NATIVE_REQUEST
                 )
             );
-            await this.resetGeneratedDpopRequestKeyAfterError(nativeRequest);
+            await this.resetGeneratedDpopRequestKey(
+                nativeRequest,
+                "best-effort"
+            );
             throw e;
         }
     }
@@ -670,7 +681,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return authResult;
         } catch (e) {
             this.setBrokerErrorTelemetry(e);
-            await this.resetGeneratedDpopRequestKeyAfterError(request);
+            await this.resetGeneratedDpopRequestKey(request, "best-effort");
             throw e;
         }
     }
@@ -1489,8 +1500,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     dpopNonce
                 );
 
-            validatedRequest.tokenType =
-                PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE;
+            validatedRequest.tokenType = PlatformAuthTokenType.DPOP_WITH_PROOF;
             validatedRequest.preferBinding =
                 PlatformAuthBindingPreference.ATTESTED;
             validatedRequest.keyId = request.dpopJkt;
@@ -1581,10 +1591,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         request: PlatformAuthRequest,
         reuseExistingKey: boolean = false
     ): Promise<void> {
-        if (
-            request.tokenType !==
-            PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE
-        ) {
+        if (request.tokenType !== PlatformAuthTokenType.DPOP_WITH_PROOF) {
             return;
         }
 
@@ -1676,9 +1683,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                   binding_attested?: boolean | string;
               })
             | undefined;
-        const legacyResponse = response as PlatformAuthResponse & {
-            attested_chosen?: boolean;
-        };
         const propertyTokenType =
             responseProperties?.token_type ?? response.token_type;
         const normalizedResponseTokenType =
@@ -1688,14 +1692,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const normalizedRequestTokenType = request.tokenType
             ?.trim()
             .toLowerCase();
-        const requestWithBindingMetadata = request as PlatformAuthRequest & {
-            bindingPreferenceSent?: boolean;
-            preferredBinding?: string;
-        };
         const bindingPreferenceSent =
-            requestWithBindingMetadata.bindingPreferenceSent ??
-            (request.preferBinding !== undefined ||
-                requestWithBindingMetadata.preferredBinding !== undefined);
+            request.bindingPreferenceSent ??
+            request.preferBinding !== undefined;
         const dpopTokenType = Constants.AuthenticationScheme.DPOP.toLowerCase();
         const dpopWithProofTokenType =
             PlatformAuthTokenType.DPOP_WITH_PROOF.toLowerCase();
@@ -1746,8 +1745,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.isDpopBrokerTokenType(normalizedResponseTokenType) ||
             brokerProof !== undefined ||
             response.binding_attested !== undefined ||
-            responseProperties?.binding_attested !== undefined ||
-            legacyResponse.attested_chosen !== undefined;
+            responseProperties?.binding_attested !== undefined;
 
         if (!isDpopRequest) {
             if (hasDpopResponse) {
@@ -1772,9 +1770,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             hasConflictingProof ||
             hasMalformedBindingAttested ||
             hasConflictingBindingAttested ||
-            (bindingPreferenceSent &&
-                normalizedBindingAttested === undefined) ||
-            legacyResponse.attested_chosen !== undefined
+            (bindingPreferenceSent && normalizedBindingAttested === undefined)
         ) {
             throw createAuthError(
                 AuthErrorCodes.unexpectedError,
@@ -1909,37 +1905,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     /**
      * Removes a generated DPoP request key and clears its request metadata.
      * @param request - Broker request whose generated key should be removed.
+     * @param mode - Whether cleanup failures should be thrown or only recorded.
      */
     private async resetGeneratedDpopRequestKey(
-        request: PlatformAuthRequest
-    ): Promise<void> {
-        if (
-            !this.isDpopBrokerRequest(request) ||
-            request.dpopKeyOwned !== true ||
-            !request.keyId
-        ) {
-            return;
-        }
-
-        const keyRemoved = await this.removeDpopRequestKey(request);
-        if (!keyRemoved) {
-            throw createAuthError(
-                AuthErrorCodes.unexpectedError,
-                this.correlationId,
-                "Failed to remove generated DPoP request key."
-            );
-        }
-        request.keyId = undefined;
-        request.reqCnf = undefined;
-        request.dpopKeyOwned = undefined;
-    }
-
-    /**
-     * Best-effort cleanup that preserves the original broker error.
-     * @param request - Broker request whose generated key should be removed.
-     */
-    private async resetGeneratedDpopRequestKeyAfterError(
-        request: PlatformAuthRequest
+        request: PlatformAuthRequest,
+        mode: "strict" | "best-effort" = "strict"
     ): Promise<void> {
         if (
             !this.isDpopBrokerRequest(request) ||
@@ -1949,36 +1919,35 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
 
         try {
-            await this.resetGeneratedDpopRequestKey(request);
-        } catch {
+            if (request.keyId && !(await this.removeDpopKey(request.keyId))) {
+                throw createAuthError(
+                    AuthErrorCodes.unexpectedError,
+                    this.correlationId,
+                    "Failed to remove generated DPoP request key."
+                );
+            }
+
+            request.keyId = undefined;
+            request.reqCnf = undefined;
+            request.dpopKeyOwned = undefined;
+        } catch (error) {
+            if (mode === "strict") {
+                throw error;
+            }
+
             this.logger.error(
-                "Failed to remove generated DPoP request key after broker error.",
+                "Failed to remove generated DPoP request key after an operation error.",
                 this.correlationId
             );
             this.performanceClient.incrementFields(
                 { removeTokenBindingKeyFailure: 1 },
                 this.correlationId
             );
-        } finally {
+
             request.keyId = undefined;
             request.reqCnf = undefined;
             request.dpopKeyOwned = undefined;
         }
-    }
-
-    /**
-     * Removes the local key associated with a generated DPoP broker request.
-     * @param request - Broker request whose key should be removed.
-     * @returns Whether no key remained after cleanup.
-     */
-    private async removeDpopRequestKey(
-        request: PlatformAuthRequest
-    ): Promise<boolean> {
-        if (!this.isDpopBrokerRequest(request) || !request.keyId) {
-            return true;
-        }
-
-        return this.removeDpopKey(request.keyId);
     }
 
     /**
@@ -1998,8 +1967,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     private isDpopBrokerTokenType(tokenType: string | undefined): boolean {
         const normalizedTokenType = tokenType?.trim().toLowerCase();
         return (
-            normalizedTokenType ===
-                PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_TOKEN_TYPE ||
+            normalizedTokenType === PlatformAuthTokenType.DPOP_WITH_PROOF ||
             normalizedTokenType ===
                 Constants.AuthenticationScheme.DPOP.toLowerCase()
         );

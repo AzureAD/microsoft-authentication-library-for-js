@@ -527,13 +527,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             window.removeEventListener("message", eventHandler, true);
         });
 
-        it.each([
-            ["dpop_proof", { dpop_proof: "test-dpop-proof" }],
-            [
-                "proofOfPossessionPayload",
-                { proofOfPossessionPayload: "test-dpop-proof" },
-            ],
-        ])(
+        it.each([["dpop_proof", { dpop_proof: "test-dpop-proof" }]])(
             "normalizes an extension proof returned through %s",
             async (_proofField, proofResponse) => {
                 const testWAMResponse = {

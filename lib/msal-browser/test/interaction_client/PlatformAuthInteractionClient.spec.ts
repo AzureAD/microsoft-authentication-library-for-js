@@ -413,12 +413,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 const extensionRequest = request as unknown as {
                     tokenType?: string;
                     preferBinding?: string;
-                    preferredBinding?: string;
                 };
                 extensionRequest.tokenType = wireTokenType;
-                extensionRequest.preferredBinding =
-                    extensionRequest.preferBinding;
-                extensionRequest.preferBinding = undefined;
                 brokerRequest = { ...request };
                 return Promise.resolve({
                     ...MOCK_WAM_RESPONSE,
@@ -457,7 +453,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 expect.objectContaining({
                     tokenType: wireTokenType,
                     keyId: "local-dpop-key",
-                    preferredBinding: "attested",
+                    preferBinding: "attested",
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 })
@@ -1070,9 +1066,10 @@ describe("PlatformAuthInteractionClient Tests", () => {
         it("Extension: never removes a legacy POP request key during DPoP cleanup", async () => {
             const clientInternals =
                 platformAuthInteractionClient as unknown as {
-                    removeDpopRequestKey(
-                        request: PlatformAuthRequest
-                    ): Promise<boolean>;
+                    resetGeneratedDpopRequestKey(
+                        request: PlatformAuthRequest,
+                        mode?: "strict" | "best-effort"
+                    ): Promise<void>;
                     tokenBindingKeyManager: {
                         removeTokenBindingKey(): Promise<void>;
                     };
@@ -1080,23 +1077,24 @@ describe("PlatformAuthInteractionClient Tests", () => {
             const request = {
                 tokenType: Constants.AuthenticationScheme.POP,
                 keyId: "legacy-pop-key",
+                dpopKeyOwned: true,
             } as PlatformAuthRequest;
             const removeKeySpy = jest.spyOn(
                 clientInternals.tokenBindingKeyManager,
                 "removeTokenBindingKey"
             );
 
-            await expect(
-                clientInternals.removeDpopRequestKey(request)
-            ).resolves.toBe(true);
+            await clientInternals.resetGeneratedDpopRequestKey(request);
             expect(removeKeySpy).not.toHaveBeenCalled();
+            expect(request.keyId).toBe("legacy-pop-key");
         });
 
         it("Extension: preserves borrowed DPoP keys and metadata during failure cleanup", async () => {
             const clientInternals =
                 platformAuthInteractionClient as unknown as {
-                    resetGeneratedDpopRequestKeyAfterError(
-                        request: PlatformAuthRequest
+                    resetGeneratedDpopRequestKey(
+                        request: PlatformAuthRequest,
+                        mode?: "strict" | "best-effort"
                     ): Promise<void>;
                     tokenBindingKeyManager: {
                         removeTokenBindingKey(): Promise<void>;
@@ -1113,8 +1111,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "removeTokenBindingKey"
             );
 
-            await clientInternals.resetGeneratedDpopRequestKeyAfterError(
-                request
+            await clientInternals.resetGeneratedDpopRequestKey(
+                request,
+                "best-effort"
             );
 
             expect(removeKeySpy).not.toHaveBeenCalled();
@@ -1362,17 +1361,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     },
                 },
             },
-            {
-                name: "legacy attested_chosen ownership indicator",
-                response: {
-                    properties: {
-                        token_type: "DPoP",
-                        DPoP: "test-dpop-proof",
-                        binding_attested: "true",
-                    },
-                    attested_chosen: true,
-                },
-            },
         ])(
             "Extension: rejects malformed $name without mutating cache",
             async ({ response }) => {
@@ -1444,10 +1432,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         token_type: "DPoP",
                     },
                 },
-            },
-            {
-                name: "attested binding indicator",
-                response: { attested_chosen: true },
             },
         ])(
             "Extension: rejects cross-scheme DPoP $name on a Bearer request",
