@@ -21,6 +21,8 @@ import { PlatformAuthExtensionHandler } from "./PlatformAuthExtensionHandler.js"
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 import { PlatformAuthDOMHandler } from "./PlatformAuthDOMHandler.js";
 import { createNewGuid } from "../../crypto/BrowserCrypto.js";
+import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
+import { PlatformAuthConstants } from "../../utils/BrowserConstants.js";
 
 /**
  * Checks if the platform broker is available in the current environment.
@@ -65,7 +67,10 @@ export async function getPlatformAuthProvider(
     enablePlatformBrokerDOMSupport?: boolean
 ): Promise<IPlatformAuthHandler | undefined> {
     logger.trace("getPlatformAuthProvider called", correlationId);
-
+    const discoveryMeasurement = performanceClient.startMeasurement(
+        BrowserPerformanceEvents.PlatformAuthProviderDiscovery,
+        correlationId
+    );
     logger.trace(
         `Has client allowed platform auth via DOM API: '${enablePlatformBrokerDOMSupport}'`,
         correlationId
@@ -75,32 +80,70 @@ export async function getPlatformAuthProvider(
     try {
         if (enablePlatformBrokerDOMSupport) {
             // Check if DOM platform API is supported first
-            platformAuthProvider = await PlatformAuthDOMHandler.createProvider(
+            try {
+                platformAuthProvider =
+                    await PlatformAuthDOMHandler.createProvider(
+                        logger,
+                        performanceClient,
+                        correlationId
+                    );
+            } catch (e) {
+                logger.trace(
+                    "Platform auth via DOM API unavailable, checking for extension",
+                    correlationId
+                );
+            }
+            if (platformAuthProvider) {
+                discoveryMeasurement.add({
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                });
+                discoveryMeasurement.end({
+                    success: true,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                });
+                return platformAuthProvider;
+            }
+        }
+
+        logger.trace(
+            "Platform auth via DOM API not available, checking for extension",
+            correlationId
+        );
+        /*
+         * If DOM APIs are not available, check if browser extension is available.
+         * Platform authentication via DOM APIs is preferred over extension APIs.
+         */
+        platformAuthProvider =
+            await PlatformAuthExtensionHandler.createProvider(
                 logger,
+                nativeBrokerHandshakeTimeout ||
+                    DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
                 performanceClient,
                 correlationId
             );
+
+        if (platformAuthProvider) {
+            discoveryMeasurement.add({
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER,
+            });
         }
-        if (!platformAuthProvider) {
-            logger.trace(
-                "Platform auth via DOM API not available, checking for extension",
-                correlationId
-            );
-            /*
-             * If DOM APIs are not available, check if browser extension is available.
-             * Platform authentication via DOM APIs is preferred over extension APIs.
-             */
-            platformAuthProvider =
-                await PlatformAuthExtensionHandler.createProvider(
-                    logger,
-                    nativeBrokerHandshakeTimeout ||
-                        DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
-                    performanceClient,
-                    correlationId
-                );
-        }
+        discoveryMeasurement.end({
+            success: !!platformAuthProvider,
+            platformAuthProviderType: platformAuthProvider
+                ? PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER
+                : undefined,
+        });
     } catch (e) {
         logger.trace("Platform auth not available", e as string);
+        discoveryMeasurement.end(
+            {
+                success: false,
+            },
+            e
+        );
     }
     return platformAuthProvider;
 }
@@ -118,9 +161,27 @@ export function isPlatformAuthAllowed(
     logger: Logger,
     correlationId: string,
     platformAuthProvider?: IPlatformAuthHandler,
-    authenticationScheme?: Constants.AuthenticationScheme
+    authenticationScheme?: Constants.AuthenticationScheme,
+    performanceClient?: IPerformanceClient
 ): boolean {
     logger.trace("isPlatformAuthAllowed called", correlationId);
+    const schemeSupported =
+        !authenticationScheme ||
+        authenticationScheme === Constants.AuthenticationScheme.BEARER ||
+        authenticationScheme === Constants.AuthenticationScheme.POP ||
+        authenticationScheme === Constants.AuthenticationScheme.DPOP;
+    const fields = {
+        allowPlatformBroker: config.system.allowPlatformBroker,
+        ...(config.system.allowPlatformBroker && {
+            platformAuthProviderType:
+                platformAuthProvider instanceof PlatformAuthDOMHandler
+                    ? PlatformAuthConstants.PLATFORM_DOM_PROVIDER
+                    : platformAuthProvider
+                    ? PlatformAuthConstants.PLATFORM_EXTENSION_PROVIDER
+                    : undefined,
+        }),
+    };
+    performanceClient?.addFields(fields, correlationId);
 
     // throw an error if allowPlatformBroker is not enabled and allowPlatformBrokerWithDOM is enabled
     if (
@@ -151,23 +212,17 @@ export function isPlatformAuthAllowed(
         return false;
     }
 
-    if (authenticationScheme) {
-        switch (authenticationScheme) {
-            case Constants.AuthenticationScheme.BEARER:
-            case Constants.AuthenticationScheme.POP:
-            case Constants.AuthenticationScheme.DPOP:
-                logger.trace(
-                    "isPlatformAuthAllowed: authenticationScheme is supported, returning true",
-                    correlationId
-                );
-                return true;
-            default:
-                logger.trace(
-                    "isPlatformAuthAllowed: authenticationScheme is not supported, returning false",
-                    correlationId
-                );
-                return false;
-        }
+    if (!schemeSupported) {
+        logger.trace(
+            "isPlatformAuthAllowed: authenticationScheme is not supported, returning false",
+            correlationId
+        );
+        return false;
     }
+
+    logger.trace(
+        "isPlatformAuthAllowed: authenticationScheme is supported, returning true",
+        correlationId
+    );
     return true;
 }

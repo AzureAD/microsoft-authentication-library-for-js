@@ -8,119 +8,149 @@ This document catalogs browser Web APIs that MSAL Browser depends on, their role
 
 ### Storage
 
-| API | MSAL Usage | Fallback |
-|-----|-----------|----------|
-| `sessionStorage` | Interaction status, PKCE verifier, redirect origin URL, redirect bridge response cache | `MemoryStorage` (response lost on navigation) |
-| `localStorage` | Persistent token cache (when `cacheLocation: "localStorage"`) | None if configured; not used by default |
-| `IndexedDB` | PoP token RSA keypairs and DPoP token-binding keypairs | In-memory (keys lost on reload) |
-| `document.cookie` | Encryption key for localStorage cache | None — cache cannot be decrypted without it |
+| API               | MSAL Usage                                                                             | Fallback                                      |
+| ----------------- | -------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `sessionStorage`  | Interaction status, PKCE verifier, redirect origin URL, redirect bridge response cache | `MemoryStorage` (response lost on navigation) |
+| `localStorage`    | Persistent token cache (when `cacheLocation: "localStorage"`)                          | None if configured; not used by default       |
+| `IndexedDB`       | PoP token RSA keypairs and DPoP token-binding keypairs                                 | In-memory (keys lost on reload)               |
+| `document.cookie` | Encryption key for localStorage cache                                                  | None — cache cannot be decrypted without it   |
 
 **MSAL-specific restrictions:**
-- Safari PB: `sessionStorage.setItem()` immediately before `location.replace()` may lose data — affects redirect bridge (`handleRedirectPromise` returns `null`)
-- Safari ITP: 7-day cap on script-writable `localStorage`/cookies — tokens evicted without user interaction
-- Firefox PB: `indexedDB.open()` throws `SecurityError` — PoP/DPoP key storage falls back to memory
-- Chrome 115+ / Safari 16.1+: storage partitioned in cross-origin iframes — affects NAA and embedded apps
+
+-   Safari PB: `sessionStorage.setItem()` immediately before `location.replace()` may lose data — affects redirect bridge (`handleRedirectPromise` returns `null`)
+-   Safari ITP: 7-day cap on script-writable `localStorage`/cookies — tokens evicted without user interaction
+-   Firefox PB: `indexedDB.open()` throws `SecurityError` — PoP/DPoP key storage falls back to memory
+-   Chrome 115+ / Safari 16.1+: storage partitioned in cross-origin iframes — affects NAA and embedded apps
 
 ### Crypto
 
 All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `crypto.subtle` is `undefined`.
 
-| API | MSAL Usage | Fallback |
-|-----|-----------|----------|
-| `crypto.subtle.digest()` | PKCE `code_challenge` (SHA-256) | None — PKCE is mandatory |
-| `crypto.getRandomValues()` | PKCE verifier, state, nonce, correlation IDs | None |
-| `crypto.subtle.generateKey()` | PoP RSA keypairs, DPoP ES256/P-256 keypairs, EAR AES keys | None for PoP/DPoP/EAR |
-| `crypto.subtle.importKey()` | PoP signing, DPoP signing, EAR decryption, localStorage encryption (HKDF → AES-GCM) | None |
-| `crypto.subtle.sign()` | PoP token signing, DPoP proof signing | None |
-| `crypto.subtle.decrypt()` | EAR response decryption, localStorage decryption | None |
-| `crypto.subtle.deriveKey()` | HKDF key derivation for localStorage encryption | None |
+| API                           | MSAL Usage                                                                          | Fallback                 |
+| ----------------------------- | ----------------------------------------------------------------------------------- | ------------------------ |
+| `crypto.subtle.digest()`      | PKCE `code_challenge` (SHA-256)                                                     | None — PKCE is mandatory |
+| `crypto.getRandomValues()`    | PKCE verifier, state, nonce, correlation IDs                                        | None                     |
+| `crypto.subtle.generateKey()` | PoP RSA keypairs, DPoP ES256/P-256 keypairs, EAR AES keys                           | None for PoP/DPoP/EAR    |
+| `crypto.subtle.importKey()`   | PoP signing, DPoP signing, EAR decryption, localStorage encryption (HKDF → AES-GCM) | None                     |
+| `crypto.subtle.sign()`        | PoP token signing, DPoP proof signing                                               | None                     |
+| `crypto.subtle.decrypt()`     | EAR response decryption, localStorage decryption                                    | None                     |
+| `crypto.subtle.deriveKey()`   | HKDF key derivation for localStorage encryption                                     | None                     |
 
 **MSAL-specific restriction:** `deriveKey()` with HKDF as base key requires Firefox 119+.
 
 ### Messaging
 
-| API | MSAL Usage | Fallback |
-|-----|-----------|----------|
-| `BroadcastChannel` | Redirect bridge (popup/iframe → main frame), cross-tab cache sync | None for redirect bridge |
-| `postMessage` + `MessageChannel` | WAM browser extension communication | None for WAM path |
-| `navigator.platformAuthentication` | Native broker communication through the platform authentication DOM API | Feature-detected; falls back to the WAM browser extension provider |
+| API                                | MSAL Usage                                                                                 | Fallback                                                                                                                   |
+| ---------------------------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `BroadcastChannel`                 | Redirect bridge (popup/iframe → main frame), cross-tab cache sync                          | None for redirect bridge                                                                                                   |
+| `postMessage` + `MessageChannel`   | WAM browser extension communication                                                        | None for WAM path                                                                                                          |
+| `navigator.platformAuthentication` | Capability discovery and direct platform-broker token acquisition through browser DOM APIs | Microsoft Single Sign On extension during provider discovery; traditional web flows when no platform provider is available |
 
 **MSAL-specific restrictions:**
-- Chrome 115+ / Firefox TCP: `BroadcastChannel` partitioned by top-level site — breaks cross-origin iframe ↔ popup communication
-- Safari PB: cross-tab channels do not persist
-- `navigator.platformAuthentication` is an early-proposal API available only in Edge private-preview environments. `PlatformAuthDOMHandler.createProvider` checks both API presence and the required contract before selecting it; other browsers use the extension provider when available.
+
+-   Chrome 115+ / Firefox TCP: `BroadcastChannel` partitioned by top-level site — breaks cross-origin iframe ↔ popup communication
+-   Safari PB: cross-tab channels do not persist
+-   `navigator.platformAuthentication` is an early-proposal API available only in Edge private-preview environments. `PlatformAuthDOMHandler.createProvider` checks both API presence and the required contract before selecting it; other browsers use the extension provider when available.
+
+### Platform Authentication
+
+The `navigator.platformAuthentication` API is a private-preview capability in supported Edge environments, not a baseline Web Platform API. MSAL uses the DOM provider only when all of the following conditions are met:
+
+-   `system.allowPlatformBroker` is `true`
+-   `experimental.allowPlatformBrokerWithDOM` is `true`
+-   `navigator.platformAuthentication` is present
+-   `getSupportedContracts("MicrosoftEntra")` resolves with a list containing `get-token-and-sign-out`
+
+Setting `allowPlatformBrokerWithDOM` without `allowPlatformBroker` causes an `invalid_platform_broker_configuration` error. The presence of `navigator.platformAuthentication` alone is not sufficient because a browser may expose the API without enabling the contract required by MSAL.
+
+During initialization, MSAL selects a provider in this order:
+
+1. Use the DOM provider when the required contract is available.
+2. If the DOM property is absent, contract discovery fails, or the required contract is not returned, check for the Microsoft Single Sign On extension.
+3. If neither platform provider is available, continue through the traditional web flows.
+
+After MSAL selects the DOM provider, a token-request failure is surfaced through the normal platform-broker error handling. MSAL does not retry that request through the extension.
+
+**Privacy considerations:**
+
+-   Capability discovery sends only the broker identifier (`MicrosoftEntra`) to the browser and receives contract names; it does not request or expose tokens or account data.
+-   Token acquisition is delegated to the browser-managed platform API. Tokens returned by the platform broker are not persisted in MSAL's `localStorage` or `sessionStorage`.
+-   Applications must explicitly opt in to platform brokering, and the DOM path requires a second experimental opt-in. See [Acquiring Device Bound Tokens using platform brokers](device-bound-tokens.md) for environment and HTTPS requirements.
 
 ### Navigation & Window
 
-| API | MSAL Usage | Fallback |
-|-----|-----------|----------|
-| `window.location.assign()` / `.replace()` | Navigate to IdP | None |
-| `window.location.hash` / `.search` | Extract auth response from redirect URL | None |
-| `window.history.replaceState()` | Clean auth params from URL | Graceful no-op (URL stays dirty) |
-| `pageshow` event | Detect bfcache restoration to clear stale interaction state | Graceful — may cause `interaction_in_progress` error |
-| `window.open()` | Popup auth flows | None for popup |
-| Hidden iframe | Silent token renewal (`ssoSilent`, `acquireTokenSilent` fallback) | None for silent renewal |
-| `window.close()` | Close popup after auth | Graceful — popup stays open |
+| API                                       | MSAL Usage                                                        | Fallback                                             |
+| ----------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------- |
+| `window.location.assign()` / `.replace()` | Navigate to IdP                                                   | None                                                 |
+| `window.location.hash` / `.search`        | Extract auth response from redirect URL                           | None                                                 |
+| `window.history.replaceState()`           | Clean auth params from URL                                        | Graceful no-op (URL stays dirty)                     |
+| `pageshow` event                          | Detect bfcache restoration to clear stale interaction state       | Graceful — may cause `interaction_in_progress` error |
+| `window.open()`                           | Popup auth flows                                                  | None for popup                                       |
+| Hidden iframe                             | Silent token renewal (`ssoSilent`, `acquireTokenSilent` fallback) | None for silent renewal                              |
+| `window.close()`                          | Close popup after auth                                            | Graceful — popup stays open                          |
 
 **MSAL-specific restrictions:**
-- `window.open()` must be in a user-gesture call stack or browsers block it
-- COOP `same-origin` on AAD severs `window.opener` in popups — redirect bridge mitigates
-- Silent iframe requires IdP to allow framing and 3P cookies to be available; breaks under Safari ITP, Firefox TCP, and Chrome with 3P cookies disabled
-- Office.js sets `history.replaceState` to `null` — MSAL guards with `typeof` check
+
+-   `window.open()` must be in a user-gesture call stack or browsers block it
+-   COOP `same-origin` on AAD severs `window.opener` in popups — redirect bridge mitigates
+-   Silent iframe requires IdP to allow framing and 3P cookies to be available; breaks under Safari ITP, Firefox TCP, and Chrome with 3P cookies disabled
+-   Office.js sets `history.replaceState` to `null` — MSAL guards with `typeof` check
 
 ### Network & DOM
 
-| API | MSAL Usage | Fallback |
-|-----|-----------|----------|
-| `fetch()` | All HTTP requests (token endpoint, discovery, custom auth) | None |
-| `navigator.onLine` | Distinguish network-offline from transport failures when token POST fails | Assumes online (retries once for non-abort transport failures) |
-| `TextEncoder` / `TextDecoder` | String ↔ binary for crypto | None |
-| `atob()` / `btoa()` | Base64 for JWK and token parsing | None |
-| Hidden form + `form.submit()` | POST-based `/authorize` (EAR, redirect POST, silent iframe POST) | None for POST flows |
-| `<link rel="preconnect">` | Early DNS/TLS to authority domain | Graceful — just slower |
+| API                           | MSAL Usage                                                                | Fallback                                                       |
+| ----------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `fetch()`                     | All HTTP requests (token endpoint, discovery, custom auth)                | None                                                           |
+| `navigator.onLine`            | Distinguish network-offline from transport failures when token POST fails | Assumes online (retries once for non-abort transport failures) |
+| `TextEncoder` / `TextDecoder` | String ↔ binary for crypto                                                | None                                                           |
+| `atob()` / `btoa()`           | Base64 for JWK and token parsing                                          | None                                                           |
+| Hidden form + `form.submit()` | POST-based `/authorize` (EAR, redirect POST, silent iframe POST)          | None for POST flows                                            |
+| `<link rel="preconnect">`     | Early DNS/TLS to authority domain                                         | Graceful — just slower                                         |
 
 **MSAL-specific restrictions:**
-- CSP `connect-src` must allow authority/token endpoint domains
-- CSP `form-action` must allow authority domain for POST flows
-- CSP `frame-src` must allow authority domain for silent iframe
+
+-   CSP `connect-src` must allow authority/token endpoint domains
+-   CSP `form-action` must allow authority domain for POST flows
+-   CSP `frame-src` must allow authority domain for silent iframe
 
 ## Privacy Restrictions Affecting MSAL
 
-| Restriction | Affected Browsers | Impact on MSAL |
-|-------------|-------------------|----------------|
-| 3P cookie blocking | Safari (ITP), Firefox (TCP), Chrome (user setting/Incognito) | Silent iframe renewal fails |
-| Storage partitioning in iframes | Chrome 115+, Safari 16.1+, Firefox TCP | `BroadcastChannel`/storage isolated — breaks embedded app scenarios |
-| Script-writable storage 7-day cap | Safari ITP | `localStorage` tokens evicted; cookie-based encryption key lost |
-| Private Browsing ephemeral storage | Safari, Firefox, Chrome | Tokens lost on tab close; IndexedDB blocked in Firefox PB |
-| Tracker domain blocking (Safari 17+ PB) | Safari | CDN-hosted redirect bridge scripts may fail to load |
+| Restriction                             | Affected Browsers                                            | Impact on MSAL                                                      |
+| --------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
+| 3P cookie blocking                      | Safari (ITP), Firefox (TCP), Chrome (user setting/Incognito) | Silent iframe renewal fails                                         |
+| Storage partitioning in iframes         | Chrome 115+, Safari 16.1+, Firefox TCP                       | `BroadcastChannel`/storage isolated — breaks embedded app scenarios |
+| Script-writable storage 7-day cap       | Safari ITP                                                   | `localStorage` tokens evicted; cookie-based encryption key lost     |
+| Private Browsing ephemeral storage      | Safari, Firefox, Chrome                                      | Tokens lost on tab close; IndexedDB blocked in Firefox PB           |
+| Tracker domain blocking (Safari 17+ PB) | Safari                                                       | CDN-hosted redirect bridge scripts may fail to load                 |
 
 ## Upcoming Changes
 
-| Change | Status | MSAL Impact |
-|--------|--------|-------------|
-| Chrome Storage Access API | Shipping | Potential fallback for 3P-cookie-blocked iframe renewal |
-| Safari tracking domain list expansion | Ongoing | More CDN domains may be blocked in PB |
-| Firefox `BroadcastChannel` partitioned under TCP | Active (Firefox 102+) | Breaks cross-origin iframe ↔ popup channel |
-| Platform authentication proposal | Early proposal | May enable native broker without extension |
+| Change                                           | Status                | MSAL Impact                                                                                                         |
+| ------------------------------------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Chrome Storage Access API                        | Shipping              | Potential fallback for 3P-cookie-blocked iframe renewal                                                             |
+| Safari tracking domain list expansion            | Ongoing               | More CDN domains may be blocked in PB                                                                               |
+| Firefox `BroadcastChannel` partitioned under TCP | Active (Firefox 102+) | Breaks cross-origin iframe ↔ popup channel                                                                          |
+| Platform authentication DOM API                  | Private preview       | Enables direct platform-broker communication in supported Edge environments when the required contract is available |
 
 ## API-to-Flow Matrix
 
-| API | `loginRedirect` | `loginPopup` | `ssoSilent` | `acquireTokenSilent` | NAA | WAM |
-|-----|:-:|:-:|:-:|:-:|:-:|:-:|
-| `sessionStorage` | ✅ | | | | | |
-| `localStorage` | ○ | ○ | ○ | ○ | | |
-| `IndexedDB` | ○ | ○ | ○ | ○ | | |
-| `BroadcastChannel` | ¹ | ✅ | ✅ | ✅² | | |
-| `window.open()` | | ✅ | | | | |
-| Hidden iframe | | | ✅ | ✅² | | |
-| `crypto.subtle` | ✅ | ✅ | ✅ | ✅ | | |
-| `fetch()` | ✅ | ✅ | ✅ | ✅ | | ✅ |
-| `postMessage` | | | | | ✅ | ✅ |
-| `navigator.platformAuthentication` | | | | | | ○ |
-| Form submit (POST) | ○ | ○ | ○ | | | |
-| Cookies | ○ | ○ | ³ | ³ | | |
+| API                                | `loginRedirect` | `loginPopup` | `ssoSilent` | `acquireTokenSilent` | NAA | WAM |
+| ---------------------------------- | :-------------: | :----------: | :---------: | :------------------: | :-: | :-: |
+| `sessionStorage`                   |       ✅        |              |             |                      |     |     |
+| `localStorage`                     |        ○        |      ○       |      ○      |          ○           |     |     |
+| `IndexedDB`                        |        ○        |      ○       |      ○      |          ○           |     |     |
+| `BroadcastChannel`                 |        ¹        |      ✅      |     ✅      |         ✅²          |     |     |
+| `window.open()`                    |                 |      ✅      |             |                      |     |     |
+| Hidden iframe                      |                 |              |     ✅      |         ✅²          |     |     |
+| `crypto.subtle`                    |       ✅        |      ✅      |     ✅      |          ✅          |     |     |
+| `fetch()`                          |       ✅        |      ✅      |     ✅      |          ✅          |     | ✅  |
+| `postMessage`                      |                 |              |             |                      | ✅  | ✅  |
+| `navigator.platformAuthentication` |                 |              |             |                      |     | ○⁴  |
+| Form submit (POST)                 |        ○        |      ○       |      ○      |                      |     |     |
+| Cookies                            |        ○        |      ○       |      ³      |          ³           |     |     |
 
-- ✅ = required | ○ = optional/configurable
-- ¹ redirect bridge popup/iframe only (not direct redirect)
-- ² when refresh token expired and MSAL falls back to hidden iframe
-- ³ IdP session cookie required in iframe; MSAL's own cookie for localStorage encryption only
+-   ✅ = required | ○ = optional/configurable
+-   ¹ redirect bridge popup/iframe only (not direct redirect)
+-   ² when refresh token expired and MSAL falls back to hidden iframe
+-   ³ IdP session cookie required in iframe; MSAL's own cookie for localStorage encryption only
+-   ⁴ optional DOM-based platform-broker provider; requires both configuration flags and the `get-token-and-sign-out` contract

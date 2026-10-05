@@ -10,7 +10,10 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common/node";
  * @public
  */
 export type InteractiveRequest = Partial<
-    Omit<CommonAuthorizationUrlRequest, "scopes" | "storeInCache">
+    Omit<
+        CommonAuthorizationUrlRequest,
+        "scopes" | "storeInCache" | "responseMode"
+    >
 > & {
     /**
      * Function to open a browser instance on user's system.

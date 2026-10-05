@@ -230,6 +230,9 @@ export class StandardController implements IController {
 
         // Initialize performance client
         this.performanceClient = this.config.telemetry.client;
+        this.performanceClient.addGlobalFields({
+            allowPlatformBroker: this.config.system.allowPlatformBroker,
+        });
 
         // Initialize environment-specific crypto and token-binding services.
         if (this.isBrowserEnvironment) {
@@ -730,11 +733,9 @@ export class StandardController implements IController {
             );
 
             let result: Promise<void>;
+            const platformAuthProvider = this.platformAuthProvider;
 
-            if (
-                this.platformAuthProvider &&
-                this.canUsePlatformBroker(request)
-            ) {
+            if (this.canUsePlatformBroker(request) && platformAuthProvider) {
                 const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -744,7 +745,7 @@ export class StandardController implements IController {
                     this.navigationClient,
                     ApiId.acquireTokenRedirect,
                     this.performanceClient,
-                    this.platformAuthProvider,
+                    platformAuthProvider,
                     this.getNativeAccountId(request),
                     this.nativeInternalStorage,
                     correlationId,
@@ -1911,23 +1912,15 @@ export class StandardController implements IController {
     ): boolean {
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("canUsePlatformBroker called", correlationId);
-        if (!this.platformAuthProvider) {
-            this.logger.trace(
-                "canUsePlatformBroker: platform broker unavilable, returning false",
-                correlationId
-            );
-            return false;
-        }
-
-        if (
-            !isPlatformAuthAllowed(
-                this.config,
-                this.logger,
-                correlationId,
-                this.platformAuthProvider,
-                request.authenticationScheme
-            )
-        ) {
+        const platformAuthAllowed = isPlatformAuthAllowed(
+            this.config,
+            this.logger,
+            correlationId,
+            this.platformAuthProvider,
+            request.authenticationScheme,
+            this.performanceClient
+        );
+        if (!platformAuthAllowed) {
             this.logger.trace(
                 "canUsePlatformBroker: isPlatformAuthAllowed returned false, returning false",
                 correlationId
@@ -2593,7 +2586,8 @@ export class StandardController implements IController {
                 this.logger,
                 silentRequest.correlationId,
                 this.platformAuthProvider,
-                silentRequest.authenticationScheme
+                silentRequest.authenticationScheme,
+                this.performanceClient
             ) &&
             silentRequest.account.nativeAccountId
         ) {

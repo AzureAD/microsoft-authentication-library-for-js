@@ -33,6 +33,14 @@ export async function initializeMsal() {
                 }
             });
         }
+
+        if (!msalInstance.getActiveAccount()) {
+            const accounts = msalInstance.getAllAccounts();
+            if (accounts.length === 1) {
+                msalInstance.setActiveAccount(accounts[0]);
+            }
+        }
+
         updateUI(msalInstance.getActiveAccount());
     } catch (error) {
         console.error("MSAL initialization failed:", error);

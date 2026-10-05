@@ -8,13 +8,19 @@ import { SignInResult } from "./sign_in/auth_flow/result/SignInResult.js";
 import { SignUpResult } from "./sign_up/auth_flow/result/SignUpResult.js";
 import { ICustomAuthStandardController } from "./controller/ICustomAuthStandardController.js";
 import { CustomAuthStandardController } from "./controller/CustomAuthStandardController.js";
-import { ICustomAuthPublicClientApplication } from "./ICustomAuthPublicClientApplication.js";
+import { ICustomAuthPublicClientApplicationV2 } from "./ICustomAuthPublicClientApplicationV2.js";
 import {
     AccountRetrievalInputs,
     SignInInputs,
     SignUpInputs,
     ResetPasswordInputs,
+    ResetPasswordInputsV2,
+    SignInInputsV2,
+    SignUpInputsV2,
 } from "./CustomAuthActionInputs.js";
+import { ResetPasswordStartResultV2 } from "./core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
+import { SignInStartResultV2 } from "./sign_in/auth_flow/v2/result/SignInStartResultV2.js";
+import { SignUpStartResultV2 } from "./sign_up/auth_flow/v2/result/SignUpStartResultV2.js";
 import { CustomAuthConfiguration } from "./configuration/CustomAuthConfiguration.js";
 import { CustomAuthOperatingContext } from "./operating_context/CustomAuthOperatingContext.js";
 import { ResetPasswordStartResult } from "./reset_password/auth_flow/result/ResetPasswordStartResult.js";
@@ -29,18 +35,18 @@ import {
 
 export class CustomAuthPublicClientApplication
     extends PublicClientApplication
-    implements ICustomAuthPublicClientApplication
+    implements ICustomAuthPublicClientApplicationV2
 {
     private readonly customAuthController: ICustomAuthStandardController;
 
     /**
      * Creates a new instance of a PublicClientApplication with the given configuration and controller to start Native authentication flows
      * @param {CustomAuthConfiguration} config - A configuration object for the PublicClientApplication instance
-     * @returns {Promise<ICustomAuthPublicClientApplication>} - A promise that resolves to a CustomAuthPublicClientApplication instance
+     * @returns {Promise<ICustomAuthPublicClientApplicationV2>} - A promise that resolves to a CustomAuthPublicClientApplication instance
      */
     static async create(
         config: CustomAuthConfiguration
-    ): Promise<ICustomAuthPublicClientApplication> {
+    ): Promise<ICustomAuthPublicClientApplicationV2> {
         CustomAuthPublicClientApplication.validateConfig(config);
 
         const customAuthController = new CustomAuthStandardController(
@@ -112,6 +118,36 @@ export class CustomAuthPublicClientApplication
         resetPasswordInputs: ResetPasswordInputs
     ): Promise<ResetPasswordStartResult> {
         return this.customAuthController.resetPassword(resetPasswordInputs);
+    }
+
+    /**
+     * Starts native auth V2 sign-in and returns the authentication methods
+     * offered for the first factor.
+     * @param inputs - Inputs for the sign-in V2 flow.
+     * @returns A promise that resolves to the sign-in start result.
+     */
+    signInV2(inputs: SignInInputsV2): Promise<SignInStartResultV2> {
+        return this.customAuthController.signInV2(inputs);
+    }
+
+    /**
+     * Starts native auth V2 sign-up.
+     * @param inputs - Inputs for the sign-up V2 flow.
+     * @returns A promise that resolves to the sign-up start result.
+     */
+    signUpV2(inputs: SignUpInputsV2): Promise<SignUpStartResultV2> {
+        return this.customAuthController.signUpV2(inputs);
+    }
+
+    /**
+     * Initiates the native auth V2 self-service password reset flow.
+     * @param {ResetPasswordInputsV2} inputs - Inputs for the reset-password V2 flow
+     * @returns {Promise<ResetPasswordStartResultV2>} - A promise that resolves to ResetPasswordStartResultV2
+     */
+    resetPasswordV2(
+        inputs: ResetPasswordInputsV2
+    ): Promise<ResetPasswordStartResultV2> {
+        return this.customAuthController.resetPasswordV2(inputs);
     }
 
     /**

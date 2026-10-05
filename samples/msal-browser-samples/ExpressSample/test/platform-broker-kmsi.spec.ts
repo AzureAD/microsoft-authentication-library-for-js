@@ -27,7 +27,7 @@ const serverUtils = require("../../../e2eTestUtils/jest-puppeteer-utils/serverUt
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/platformBrokerKmsi`;
 const EXPRESS_SAMPLE_ROOT = path.join(__dirname, "..");
 const SERVER_PORT = 3443;
-const SERVER_START_CMD = "npm run start:ear:e2e";
+const SERVER_START_CMD = "npm run start:ear-kmsi:e2e";
 const PLATFORM_BROKER_URL = `https://localhost:${SERVER_PORT}/?platformBroker=true`;
 const CACHE_LOCATION = "localStorage";
 

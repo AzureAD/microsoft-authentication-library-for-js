@@ -14,25 +14,24 @@ describe("LoopbackClient", () => {
     });
 
     describe("listenForAuthCode", () => {
-        it("handles GET with valid auth code (query response_mode)", async () => {
+        it.each([
+            "/?code=test_auth_code&state=test_state",
+            "/?error=access_denied&error_description=user_cancelled",
+        ])("rejects OAuth responses delivered by GET: %s", async (path) => {
             loopbackClient = new LoopbackClient();
             const responsePromise = loopbackClient.listenForAuthCode();
 
-            // Wait for server to start listening
             await waitForServerReady(loopbackClient);
             const redirectUri = loopbackClient.getRedirectUri();
             const port = new URL(redirectUri).port;
+            const rejection = expect(responsePromise).rejects.toMatchObject({
+                errorCode: "loopback_server_query_response_not_supported",
+            });
 
-            // Simulate AAD redirect with code in query string
-            await makeRequest(
-                Number(port),
-                "GET",
-                "/?code=test_auth_code&state=test_state"
-            );
+            const statusCode = await makeRequest(Number(port), "GET", path);
 
-            const response = await responsePromise;
-            expect(response.code).toBe("test_auth_code");
-            expect(response.state).toBe("test_state");
+            expect(statusCode).toBe(400);
+            await rejection;
         });
 
         it("handles POST with valid auth code (form_post response_mode)", async () => {
@@ -125,8 +124,10 @@ describe("LoopbackClient", () => {
             // Now send a valid request to resolve the promise
             await makeRequest(
                 Number(port),
-                "GET",
-                "/?code=real_code&state=real_state"
+                "POST",
+                "/",
+                "code=real_code&state=real_state",
+                "application/x-www-form-urlencoded"
             );
 
             const response = await responsePromise;
@@ -194,7 +195,7 @@ describe("LoopbackClient", () => {
             expect(response.code).toBe("real_code");
         });
 
-        it("still handles GET after redirect (backward compat)", async () => {
+        it("serves GET to root without resolving the auth response", async () => {
             loopbackClient = new LoopbackClient();
             const responsePromise =
                 loopbackClient.listenForAuthCode("Custom success!");
@@ -203,14 +204,20 @@ describe("LoopbackClient", () => {
             const redirectUri = loopbackClient.getRedirectUri();
             const port = new URL(redirectUri).port;
 
-            // First: GET with code triggers 302 redirect
-            await makeRequest(Number(port), "GET", "/?code=abc&state=xyz");
-
-            await responsePromise;
-
-            // Second: GET to root returns success template
             const result = await makeRequestWithBody(Number(port), "GET", "/");
             expect(result.body).toBe("Custom success!");
+
+            await makeRequest(
+                Number(port),
+                "POST",
+                "/",
+                "code=real_code&state=real_state",
+                "application/x-www-form-urlencoded"
+            );
+            await expect(responsePromise).resolves.toMatchObject({
+                code: "real_code",
+                state: "real_state",
+            });
         });
     });
 

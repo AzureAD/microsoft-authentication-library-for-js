@@ -23,7 +23,9 @@ This sample demonstrates a 3P **Nested Authentication App (NAA)** brokered throu
     app in an iframe. Also supplies the `nestedAppAuthBridge` used by the nested app.
 -   **nestedApp** — the embedded child. It creates its client with
     `createNestablePublicClientApplication()` and acquires tokens **through the
-    host bridge**, never contacting the identity provider directly.
+    host bridge**, never contacting the identity provider directly. Its account
+    and returned tokens follow the nested app's configured MSAL cache location.
+    The host bridge does not return a refresh token to the nested app.
 
 ## The NAA bridge
 
@@ -43,16 +45,15 @@ in this sample the host app supplies its own implementation
     passing the nested app's client id as MSAL's `embeddedClientId` request
     parameter so the host acts as the broker.
 
-
 ## Structure
 
-| Path         | Description                                            |
-| ------------ | ------------------------------------------------------ |
-| `sampleConfig.cjs` | Single source of truth for the host/nested app ports.  |
-| `server.js`  | Spawns the `hostApp` and `nestedApp` vite dev servers. |
-| `hostApp/`   | Top-frame host app (platform broker + NAA host).       |
-| `nestedApp/` | Embedded nested app.                                   |
-| `test/`      | Jest + Puppeteer end-to-end specs.                     |
+| Path               | Description                                                    |
+| ------------------ | -------------------------------------------------------------- |
+| `sampleConfig.cjs` | Single source of truth for the host/nested app ports.          |
+| `server.js`        | Spawns the `hostApp` and `nestedApp` vite dev servers.         |
+| `hostApp/`         | Top-frame host app (platform broker + NAA host).               |
+| `nestedApp/`       | Embedded nested app.                                           |
+| `test/`            | Jest end-to-end specs using Playwright for browser automation. |
 
 The host and nested app ports are defined once in `sampleConfig.cjs` and
 imported everywhere they are needed (`server.js`, both `vite.config.js` files,
@@ -60,7 +61,6 @@ the Jest config, and the e2e setup/spec). The host app receives the nested
 app's port and protocol at runtime from `server.js` via the
 `VITE_NESTED_APP_PORT` / `VITE_NESTED_APP_PROTOCOL` environment variables, so
 changing a port only requires editing `sampleConfig.cjs`.
-
 
 ### Registering the apps for NAA
 
@@ -87,16 +87,23 @@ brk-multihub://localhost:30667
 
 ### Configuring the app registrations
 
-The sample ships with placeholder values only — no app registrations are
-provided. Before running, edit `.env` (used by `npm start` / `npm run
-start:https`) and, if you run the e2e tests, `.env.e2e`, replacing the
-placeholders with your own registrations:
+For manual runs with `npm start` or `npm run start:https`, create a local
+`.env` file with your own linked host and nested app registrations:
 
-| Variable                | Value                                                              |
+| Variable                | Value                                                             |
 | ----------------------- | ----------------------------------------------------------------- |
 | `VITE_HOST_CLIENT_ID`   | Application (client) id of the **host/broker** app.               |
 | `VITE_NESTED_CLIENT_ID` | Application (client) id of the **nested** app.                    |
 | `VITE_AUTHORITY`        | Authority URL, e.g. `https://login.microsoftonline.com/<tenant>`. |
+
+The checked-in `.env.e2e` contains the concrete public test registrations used
+by the automated suites. Those registrations are linked for NAA and allow-listed
+for EAR in the `ESTS-PUB-EUS-FD000-TEST1-100` test slice. The sample adds that
+slice as the `dc` parameter to both authorize and token requests.
+
+Do not replace or commit changes to `.env.e2e` for a manual run. If you need to
+run the e2e suites with different registrations, use registrations that are
+linked for NAA and independently allow-listed for EAR.
 
 ## Running the sample
 
@@ -113,7 +120,7 @@ npm start               # hostApp -> http://localhost:30663
 To serve both apps over HTTPS with locally generated development certificates:
 
 ```bash
-npm run start:https     
+npm run start:https
 # hostApp -> https://localhost:30663
 # nestedApp -> https://localhost:30667
 ```
@@ -123,17 +130,35 @@ expected for local use.
 
 ## Running the end-to-end tests
 
-The end-to-end test exercises Nested App Authentication through the
-**host-supplied** `window.nestedAppAuthBridge`: the host app brokers the nested
-app's token over the regular web flow, and the test asserts the nested app never
-holds a refresh token (the core NAA property).
+The end-to-end suites live in `test/`:
+
+| Spec / suite                      | Flows tested                          | Runs in CI?              | Command                       |
+| --------------------------------- | ------------------------------------- | ------------------------ | ----------------------------- |
+| `naa-basic.spec.ts`               | Basic NAA e2e tests                   | Yes (`naa-basic` filter) | `npm run test:e2e:naa-basic`  |
+| `naa-ear.spec.ts`                 | NAA + EAR e2e tests                   | Yes (`naa-ear` filter)   | `npm run test:e2e:ear`        |
+| `naa-platform-broker.spec.ts`     | NAA + platform broker e2e tests       | No (self-hosted)         | `npm run test:e2e:broker`     |
+| `naa-ear-platform-broker.spec.ts` | NAA + EAR + platform broker e2e tests | No (self-hosted)         | `npm run test:e2e:ear-broker` |
+
+The nested app receives tokens through `window.nestedAppAuthBridge`, stores
+account artifacts and returned tokens according to its MSAL cache configuration,
+and does not receive a refresh token.
+
+EAR is enabled with `?ear=true` and `ProtocolMode.EAR`. The EAR suites use the
+allow-listed test slice and verify decryption with a `crypto.subtle.decrypt` spy.
+
+The platform-broker suites are **self-hosted only**: they require branded
+Chrome, the Microsoft SSO extension, WAM, and a brokerable signed-in Windows
+account, so their pipeline entries remain commented out.
+
+By default, the broker harness launches branded Chrome with a fresh profile and
+waits for the Microsoft SSO extension to be force-installed by browser policy.
+For a local Chrome for Testing setup, set `CHROME_FOR_TESTING_PATH` to its
+executable and `SSO_EXTENSION_PATH` to an unpacked Microsoft SSO extension
+directory before running either broker command. The BrowserCore native
+messaging host must be registered for that browser.
 
 End-to-end tests must run over HTTPS. The Jest configuration starts the HTTPS
 servers automatically.
 
-```bash
-npm run test:e2e
-```
-
-The e2e specs consume the shared browser, cache, credential, and screenshot
-utilities from `samples/e2eTestUtils`.
+The e2e specs use Playwright for browser automation and consume the shared
+lab-account utilities from `samples/e2eTestUtils`.
