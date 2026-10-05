@@ -60,8 +60,6 @@ export function resolveSilentRequestPreparation(
     const { request, account, correlationId, config } = input;
     const prepareRequest =
         account.nativeAccountId &&
-        config.system.allowPlatformBroker &&
-        platformAuthProvider &&
         isPlatformAuthAllowed(
             config,
             logger,
