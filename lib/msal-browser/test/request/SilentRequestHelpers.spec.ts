@@ -100,8 +100,10 @@ describe("silent request preparation", () => {
             cloudTenantId: "original",
             extraParameters: [["custom", "original"]],
             extraQueryParameters: [["custom", "original"]],
-            storeAccessToken: false,
         });
+        expect(key).not.toHaveProperty("storeAccessToken");
+        expect(key).not.toHaveProperty("storeIdToken");
+        expect(key).not.toHaveProperty("storeRefreshToken");
         expect(key.scopes).toEqual(
             ["Mail.Read", "User.Read", ...Constants.OIDC_DEFAULT_SCOPES].sort()
         );
@@ -129,6 +131,28 @@ describe("silent request preparation", () => {
             storeInCache: { accessToken: false },
         });
     });
+
+    it.each([
+        { accessToken: false },
+        { idToken: false },
+        { refreshToken: false },
+    ])(
+        "excludes storage preferences %j from broker request identity",
+        (preferences) => {
+            const defaultRequest = preparePlatformSilentRequest(input);
+            const request = {
+                ...input.request,
+                storeInCache: preferences,
+            };
+            const prepared = preparePlatformSilentRequest({
+                ...input,
+                request,
+            });
+            expect(prepared.key).toBe(defaultRequest.key);
+            expect(prepared.request.storeInCache).toEqual(preferences);
+            expect(prepared.request.storeInCache).not.toBe(preferences);
+        }
+    );
 
     it("uses the resolved account rather than a different account on the input request", () => {
         input.request.account = {

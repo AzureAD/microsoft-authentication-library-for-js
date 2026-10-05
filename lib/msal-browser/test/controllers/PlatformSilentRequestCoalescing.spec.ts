@@ -12,8 +12,10 @@ import {
     PopTokenGenerator,
     getRequestThumbprint,
 } from "@azure/msal-common/browser";
+import type { StoreInCache } from "@azure/msal-common/browser";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { PlatformAuthResponse } from "../../src/broker/nativeBroker/PlatformAuthResponse.js";
 import { Configuration } from "../../src/config/Configuration.js";
@@ -329,9 +331,6 @@ describe("platform broker silent request coalescing", () => {
                 },
             },
         ],
-        ["access token storage", { storeInCache: { accessToken: false } }],
-        ["ID token storage", { storeInCache: { idToken: false } }],
-        ["refresh token storage", { storeInCache: { refreshToken: false } }],
         ["force refresh", { forceRefresh: true }],
     ] satisfies Array<[string, BrokerRequest]>)(
         "does not share acquireTokenSilent requests with different %s",
@@ -363,6 +362,104 @@ describe("platform broker silent request coalescing", () => {
             response.resolve(result);
             await Promise.all([first, second]);
             expect(acquire).toHaveBeenCalledTimes(2);
+        }
+    );
+
+    it.each([
+        ["access token", { accessToken: true }, { accessToken: false }],
+        ["access token", { accessToken: false }, { accessToken: true }],
+        ["ID token", { idToken: true }, { idToken: false }],
+        ["ID token", { idToken: false }, { idToken: true }],
+        ["refresh token", { refreshToken: true }, { refreshToken: false }],
+        ["refresh token", { refreshToken: false }, { refreshToken: true }],
+    ] satisfies Array<[string, StoreInCache, StoreInCache]>)(
+        "coalesces mixed %s storage preferences, retaining initiating preferences %j",
+        async (_name, firstPreferences, secondPreferences) => {
+            const started = deferred<void>();
+            const response = deferred<AuthenticationResult>();
+            const acquire = jest
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
+                .mockImplementation(() => {
+                    started.resolve();
+                    return response.promise;
+                });
+            const first = acquireSilent({
+                scopes: ["User.Read"],
+                correlationId: "first",
+                storeInCache: firstPreferences,
+            });
+            await started.promise;
+            const second = acquireSilent({
+                scopes: ["User.Read"],
+                correlationId: "second",
+                storeInCache: secondPreferences,
+            });
+            response.resolve(result);
+            const results = await Promise.all([first, second]);
+            expect(acquire).toHaveBeenCalledTimes(1);
+            expect(acquire.mock.calls[0][0].storeInCache).toEqual(
+                firstPreferences
+            );
+            expect(results.map((value) => value.correlationId)).toEqual([
+                "first",
+                "second",
+            ]);
+
+            await acquireSilent({
+                scopes: ["User.Read"],
+                storeInCache: secondPreferences,
+            });
+            expect(acquire).toHaveBeenCalledTimes(2);
+            expect(acquire.mock.calls[1][0].storeInCache).toEqual(
+                secondPreferences
+            );
+        }
+    );
+
+    it.each([true, false])(
+        "applies initiating cache preferences to one broker response (store tokens: %s)",
+        async (storeTokens) => {
+            const started = deferred<void>();
+            const response = deferred<PlatformAuthResponse>();
+            const send = jest
+                .spyOn(provider, "sendMessage")
+                .mockImplementation(() => {
+                    started.resolve();
+                    return response.promise;
+                });
+            const storeAccessToken = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setAccessTokenCredential"
+            );
+            const storeIdToken = jest.spyOn(
+                BrowserCacheManager.prototype,
+                "setIdTokenCredential"
+            );
+            const first = acquireSilent({
+                scopes: ["User.Read"],
+                storeInCache: {
+                    accessToken: storeTokens,
+                    idToken: storeTokens,
+                    refreshToken: storeTokens,
+                },
+            });
+            await started.promise;
+            const second = acquireSilent({
+                scopes: ["User.Read"],
+                storeInCache: {
+                    accessToken: !storeTokens,
+                    idToken: !storeTokens,
+                    refreshToken: !storeTokens,
+                },
+            });
+            response.resolve(brokerResponse);
+            const results = await Promise.all([first, second]);
+            expect(send).toHaveBeenCalledTimes(1);
+            expect(storeAccessToken).toHaveBeenCalledTimes(storeTokens ? 1 : 0);
+            expect(storeIdToken).toHaveBeenCalledTimes(storeTokens ? 1 : 0);
+            results.forEach((value) =>
+                expect(value.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN)
+            );
         }
     );
 

@@ -172,9 +172,6 @@ function getPlatformSilentRequestKey(
         forceRefresh: !!request.forceRefresh,
         cacheLookupPolicy:
             request.cacheLookupPolicy ?? CacheLookupPolicy.Default,
-        storeAccessToken: request.storeInCache?.accessToken !== false,
-        storeIdToken: request.storeInCache?.idToken !== false,
-        storeRefreshToken: request.storeInCache?.refreshToken !== false,
     });
 }
 
