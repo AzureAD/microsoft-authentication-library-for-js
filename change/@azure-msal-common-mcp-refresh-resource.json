@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Include the resource parameter in refresh token requests [#8861](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8861)",
-  "packageName": "@azure/msal-common",
-  "email": "shylasummers@microsoft.com",
-  "dependentChangeType": "patch"
-}
