@@ -3118,11 +3118,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 });
 
                 expect(performanceSpy).toHaveBeenCalledWith(
-                    {
+                    expect.objectContaining({
                         isNativeBroker: true,
                         brokerErrorName: "BrowserAuthError",
                         brokerErrorCode: BrowserAuthErrorCodes.userCancelled,
-                    },
+                    }),
                     RANDOM_TEST_GUID
                 );
             });

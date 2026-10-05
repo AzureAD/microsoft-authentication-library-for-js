@@ -315,9 +315,11 @@ describe("PlatformAuthExtensionHandler Tests", () => {
 
         it("Throws timeout error if no extension responds to handshake", async () => {
             const events: PerformanceEvent[] = [];
-            performanceClient.addPerformanceCallback((emittedEvents) => {
-                events.push(...emittedEvents);
-            });
+            const callbackId = performanceClient.addPerformanceCallback(
+                (emittedEvents) => {
+                    events.push(...emittedEvents);
+                }
+            );
             const eventHandler = function (event: MessageEvent) {
                 event.stopImmediatePropagation();
             };
@@ -345,6 +347,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                         event.name ===
                         BrowserPerformanceEvents.PlatformAuthExtensionCreateProvider
                 );
+                expect(createProviderEvent).toBeDefined();
                 expect(createProviderEvent).toMatchObject({
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     platformAuthProviderAvailable: false,
@@ -368,6 +371,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 ).toBe(false);
             } finally {
                 window.removeEventListener("message", eventHandler, true);
+                performanceClient.removePerformanceCallback(callbackId);
             }
         });
 
