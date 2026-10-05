@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1790355594754,
+  "lastUpdate": 1791219072344,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -23999,6 +23999,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.36%",
             "unit": "ops/sec",
             "extra": "205 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "152663010+msal-js-release-automation[bot]@users.noreply.github.com",
+            "name": "msal-js-release-automation[bot]",
+            "username": "msal-js-release-automation[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ff11bbb4964dca096d2fd908909bcf94a322bfb7",
+          "message": "Post-release PR (#8882)\n\nThis PR contains the changelogs and version bumps for the MSAL.js 3P\nreleases.\n\n---------\n\nCo-authored-by: MSAL.js Release Automation <msaljsbuilds@microsoft.com>\nCo-authored-by: shylasummers <shylasummers@users.noreply.github.com>\nCo-authored-by: Shyla Summers <shylasummers@microsoft.com>\nCopilot-Session: 36ec2798-e86d-4fdd-8b64-72f3d40951d8",
+          "timestamp": "2026-10-05T09:32:28-07:00",
+          "tree_id": "7a38cb55b418ef598464885cf58e101192f1740e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ff11bbb4964dca096d2fd908909bcf94a322bfb7"
+        },
+        "date": 1791219067171,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 445759,
+            "range": "±0.83%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 452324,
+            "range": "±0.74%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
