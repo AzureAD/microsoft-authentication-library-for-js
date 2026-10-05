@@ -3096,6 +3096,37 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         describe("brokerErrorName/brokerErrorCode telemetry", () => {
+            it("acquireToken records user cancellation from the broker", async () => {
+                const cancellationError = createNativeAuthError(
+                    "ContentError",
+                    RANDOM_TEST_GUID,
+                    "The user cancelled the broker request",
+                    { status: NativeStatusCodes.USER_CANCEL }
+                );
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockRejectedValue(cancellationError);
+
+                await expect(
+                    platformAuthInteractionClient.acquireToken({
+                        scopes: ["User.Read"],
+                        correlationId: RANDOM_TEST_GUID,
+                    })
+                ).rejects.toMatchObject({
+                    errorCode: BrowserAuthErrorCodes.userCancelled,
+                });
+
+                expect(performanceSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        isNativeBroker: true,
+                        brokerErrorName: "BrowserAuthError",
+                        brokerErrorCode: BrowserAuthErrorCodes.userCancelled,
+                    }),
+                    RANDOM_TEST_GUID
+                );
+            });
+
             it("acquireToken records brokerErrorName/brokerErrorCode when the broker rejects with a NativeAuthError", async () => {
                 // Broker dispatch (sendMessage) rejects with a NativeAuthError
                 const brokerError = new NativeAuthError(
