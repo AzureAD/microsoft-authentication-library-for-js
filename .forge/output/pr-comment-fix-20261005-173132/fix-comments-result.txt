@@ -1,0 +1,5 @@
+I’m loading the actionable review findings and the repository-specific test guidance, then I’ll apply only the requested fixes.
+
+The upstream step produced only an informational tooling limitation and no actionable code finding, so I’m recording it as non-fixable rather than changing source without a valid defect.
+
+No source changes were made because the only upstream finding was informational: the configured MCP could not fetch GitHub review threads for #8883. Recorded `source-code-mcp-missing-github-pr-8883` as **wontfix**; there were no actionable code findings to address.
