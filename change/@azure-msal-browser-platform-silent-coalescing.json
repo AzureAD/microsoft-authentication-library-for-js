@@ -1,6 +1,6 @@
 {
     "type": "minor",
-    "comment": "Coalesce concurrent platform-broker acquireTokenSilent requests",
+    "comment": "Coalesce concurrent platform-broker acquireTokenSilent requests [#8886](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8886)",
     "packageName": "@azure/msal-browser",
     "email": "kshabelko@microsoft.com",
     "dependentChangeType": "patch"
