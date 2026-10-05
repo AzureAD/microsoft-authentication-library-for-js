@@ -2,6 +2,7 @@ import * as path from "path";
 import { spawn, ChildProcess } from "child_process";
 import * as puppeteer from "puppeteer";
 import { Screenshot, BrowserCacheUtils } from "e2e-test-utils";
+import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
 import {
     createPlatformBrokerProfile,
     launchPlatformBrokerBrowser,
@@ -29,71 +30,7 @@ const EXPRESS_SAMPLE_ROOT = path.join(__dirname, "..");
 const EAR_QUERY_STRING = "?ear=true&platformBroker=true";
 const EAR_CACHE_LOCATION = "sessionStorage";
 const EAR_ORIGIN = `https://localhost:${EAR_PORT}`;
-// sessionStorage key for the decrypt spy count.
-const EAR_DECRYPT_COUNT_KEY = "__earDecryptCount";
-
-/** True when /authorize used POST (EAR posts the encrypted JWK). */
-function isAuthorizePost(request: puppeteer.HTTPRequest): boolean {
-    return request.url().includes("/authorize") && request.method() === "POST";
-}
-
-/** AES-GCM decrypt count; non-zero proves the EAR response was decrypted. */
-async function getEarDecryptCount(target: puppeteer.Page): Promise<number> {
-    return target.evaluate(
-        (key) => parseInt(window.sessionStorage.getItem(key) || "0", 10),
-        EAR_DECRYPT_COUNT_KEY
-    );
-}
-
-/** Installs the AES-GCM decrypt spy on every same-origin document. */
-async function installEarDecryptSpy(target: puppeteer.Page): Promise<void> {
-    await target.evaluateOnNewDocument(
-        (config: { origin: string; key: string }) => {
-            try {
-                if (window.location.origin !== config.origin) {
-                    return;
-                }
-                if (!window.crypto || !window.crypto.subtle) {
-                    return;
-                }
-                const realDecrypt = window.crypto.subtle.decrypt.bind(
-                    window.crypto.subtle
-                );
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (window.crypto.subtle as any).decrypt = function (
-                    algorithm: AlgorithmIdentifier,
-                    key: CryptoKey,
-                    data: BufferSource
-                ) {
-                    const algName =
-                        typeof algorithm === "string"
-                            ? algorithm
-                            : algorithm.name;
-                    if (algName === "AES-GCM") {
-                        try {
-                            const next =
-                                parseInt(
-                                    window.sessionStorage.getItem(config.key) ||
-                                        "0",
-                                    10
-                                ) + 1;
-                            window.sessionStorage.setItem(
-                                config.key,
-                                String(next)
-                            );
-                        } catch (e) {
-                            // ignore storage errors
-                        }
-                    }
-                    return realDecrypt(algorithm, key, data);
-                };
-            } catch (e) {
-                // best-effort spy: never break the auth flow
-            }
-        },
-        { origin: EAR_ORIGIN, key: EAR_DECRYPT_COUNT_KEY }
-    );
-}
+const EAR_CRYPTO_ALGORITHM = "AES-GCM";
 
 // Platform-broker EAR tests are local-only: they need the MS SSO extension,
 // native host and a brokerable signed-in Windows account, none of which exist
@@ -104,6 +41,7 @@ describe("EAR + Platform Broker Tests", () => {
     let browser: puppeteer.Browser;
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
+    let flowUtils: AuthenticationFlowTestUtils;
     let earServerProcess: ChildProcess;
     let profile: PlatformBrokerProfile;
 
@@ -147,7 +85,11 @@ describe("EAR + Platform Broker Tests", () => {
         // not enabled in additional (incognito) contexts.
         page = await browser.newPage();
         BrowserCache = new BrowserCacheUtils(page, EAR_CACHE_LOCATION);
-        await installEarDecryptSpy(page);
+        flowUtils = new AuthenticationFlowTestUtils(page);
+        await flowUtils.installCryptoOperationSpy(
+            EAR_ORIGIN,
+            EAR_CRYPTO_ALGORITHM
+        );
         await page.goto(`https://localhost:${EAR_PORT}/${EAR_QUERY_STRING}`, {
             timeout: 10000,
         });
@@ -164,13 +106,6 @@ describe("EAR + Platform Broker Tests", () => {
             `${SCREENSHOT_BASE_FOLDER_NAME}/earPlatformRedirect`
         );
 
-        let authorizeWasPost = false;
-        page.on("request", (request) => {
-            if (isAuthorizePost(request)) {
-                authorizeWasPost = true;
-            }
-        });
-
         // The SSO extension signs in the Windows account (no password prompt).
         await page.locator("button#signInButton").click();
         await page.locator("a#signInRedirect").click();
@@ -181,8 +116,12 @@ describe("EAR + Platform Broker Tests", () => {
         await screenshot.takeScreenshot(page, "Logged In");
 
         // EAR still POSTs /authorize; ear_jwe is decrypted to extract accountId.
-        expect(authorizeWasPost).toBe(true);
-        expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
+        expect(flowUtils.getRequestCount("/authorize", "POST")).toBeGreaterThan(
+            0
+        );
+        expect(
+            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
+        ).toBeGreaterThan(0);
         await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
@@ -193,16 +132,14 @@ describe("EAR + Platform Broker Tests", () => {
         );
 
         await page.locator("button#signInButton").click();
-        let authorizeWasPost = false;
+        let popupFlowUtils: AuthenticationFlowTestUtils | undefined;
         const newPopupWindowPromise = new Promise<puppeteer.Page | null>(
             (resolve) =>
                 page.once("popup", (popupPage) => {
                     if (popupPage) {
-                        popupPage.on("request", (request) => {
-                            if (isAuthorizePost(request)) {
-                                authorizeWasPost = true;
-                            }
-                        });
+                        popupFlowUtils = new AuthenticationFlowTestUtils(
+                            popupPage
+                        );
                     }
                     resolve(popupPage);
                 })
@@ -221,8 +158,12 @@ describe("EAR + Platform Broker Tests", () => {
         });
         await screenshot.takeScreenshot(page, "Logged In");
 
-        expect(authorizeWasPost).toBe(true);
-        expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
+        expect(
+            popupFlowUtils?.getRequestCount("/authorize", "POST")
+        ).toBeGreaterThan(0);
+        expect(
+            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
+        ).toBeGreaterThan(0);
         await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
@@ -240,7 +181,9 @@ describe("EAR + Platform Broker Tests", () => {
             timeout: PLATFORM_LOGIN_TIMEOUT,
         });
 
-        const decryptCountBefore = await getEarDecryptCount(page);
+        const decryptCountBefore = await flowUtils.getCryptoOperationCount(
+            EAR_CRYPTO_ALGORITHM
+        );
 
         await page.locator("button#ssoSilentButton").click();
         await page.waitForSelector(
@@ -250,9 +193,9 @@ describe("EAR + Platform Broker Tests", () => {
         await screenshot.takeScreenshot(page, "ssoSilent completed");
 
         // Silent EAR authorize re-runs; the platform broker services it again.
-        expect(await getEarDecryptCount(page)).toBeGreaterThan(
-            decryptCountBefore
-        );
+        expect(
+            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
+        ).toBeGreaterThan(decryptCountBefore);
         await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });

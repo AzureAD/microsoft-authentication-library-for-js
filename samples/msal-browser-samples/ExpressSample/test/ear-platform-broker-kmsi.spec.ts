@@ -11,11 +11,7 @@ import {
     Screenshot,
     verifyKmsiFromResponse,
 } from "e2e-test-utils";
-import {
-    getEarDecryptCount,
-    installEarDecryptSpy,
-    observeEarFlow,
-} from "./earTestUtils";
+import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
 import {
     createPlatformBrokerProfile,
     launchPlatformBrokerBrowser,
@@ -36,6 +32,7 @@ const SERVER_START_CMD = "npm run start:ear-kmsi:e2e";
 const TEST_ORIGIN = `https://localhost:${SERVER_PORT}`;
 const TEST_URL = `${TEST_ORIGIN}/?ear=true&platformBroker=true`;
 const CACHE_LOCATION = "localStorage";
+const EAR_CRYPTO_ALGORITHM = "AES-GCM";
 
 describe("EAR + Platform Broker + Keep Me Signed In Tests", () => {
     let browser: puppeteer.Browser | undefined;
@@ -85,8 +82,11 @@ describe("EAR + Platform Broker + Keep Me Signed In Tests", () => {
         browser = await launchPlatformBrokerBrowser(profile);
         let page = await browser.newPage();
         let browserCache = new BrowserCacheUtils(page, CACHE_LOCATION);
-        await installEarDecryptSpy(page, TEST_ORIGIN);
-        const initialEarDiagnostics = observeEarFlow(page);
+        let flowUtils = new AuthenticationFlowTestUtils(page);
+        await flowUtils.installCryptoOperationSpy(
+            TEST_ORIGIN,
+            EAR_CRYPTO_ALGORITHM
+        );
 
         await page.goto(TEST_URL, { timeout: 10000 });
         await page.locator("button#signInButton").click();
@@ -97,9 +97,15 @@ describe("EAR + Platform Broker + Keep Me Signed In Tests", () => {
         });
         await screenshot.takeScreenshot(page, "Initial combined sign-in");
 
-        expect(initialEarDiagnostics.authorizeWasPost).toBe(true);
-        expect(initialEarDiagnostics.encryptedResponseObserved).toBe(true);
-        expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
+        expect(flowUtils.getRequestCount("/authorize", "POST")).toBeGreaterThan(
+            0
+        );
+        expect(flowUtils.getFragmentParameterCount("ear_jwe")).toBeGreaterThan(
+            0
+        );
+        expect(
+            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
+        ).toBeGreaterThan(0);
         const initialBrokerResponse = await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(browserCache);
         await verifyKmsiFromResponse(page);
@@ -115,8 +121,11 @@ describe("EAR + Platform Broker + Keep Me Signed In Tests", () => {
         browser = await launchPlatformBrokerBrowser(profile);
         page = await browser.newPage();
         browserCache = new BrowserCacheUtils(page, CACHE_LOCATION);
-        await installEarDecryptSpy(page, TEST_ORIGIN);
-        const restoredEarDiagnostics = observeEarFlow(page);
+        flowUtils = new AuthenticationFlowTestUtils(page);
+        await flowUtils.installCryptoOperationSpy(
+            TEST_ORIGIN,
+            EAR_CRYPTO_ALGORITHM
+        );
 
         await page.goto(TEST_URL, { timeout: 10000 });
         let popupOpened = false;
@@ -135,9 +144,15 @@ describe("EAR + Platform Broker + Keep Me Signed In Tests", () => {
         await screenshot.takeScreenshot(page, "Combined sign-in restored");
 
         expect(popupOpened).toBe(false);
-        expect(restoredEarDiagnostics.authorizeWasPost).toBe(true);
-        expect(restoredEarDiagnostics.encryptedResponseObserved).toBe(true);
-        expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
+        expect(flowUtils.getRequestCount("/authorize", "POST")).toBeGreaterThan(
+            0
+        );
+        expect(flowUtils.getFragmentParameterCount("ear_jwe")).toBeGreaterThan(
+            0
+        );
+        expect(
+            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
+        ).toBeGreaterThan(0);
         const restoredBrokerResponse = await verifyPlatformBrokerResponse(page);
         expect(restoredBrokerResponse.nativeAccountId).toBe(
             initialBrokerResponse.nativeAccountId
