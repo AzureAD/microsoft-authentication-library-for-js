@@ -20,13 +20,11 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     private inMemoryCache: MemoryStorage<T>;
     private indexedDBCache: DatabaseStorage<T>;
     private logger: Logger;
-    private persistentStorageEnabled: boolean;
 
-    constructor(logger: Logger, persistentStorageEnabled: boolean = true) {
+    constructor(logger: Logger) {
         this.inMemoryCache = new MemoryStorage<T>();
         this.indexedDBCache = new DatabaseStorage<T>();
         this.logger = logger;
-        this.persistentStorageEnabled = persistentStorageEnabled;
     }
 
     private handleDatabaseAccessError(
@@ -53,7 +51,7 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      */
     async getItem(key: string, correlationId: string): Promise<T | null> {
         const item = this.inMemoryCache.getItem(key);
-        if (!item && this.persistentStorageEnabled) {
+        if (!item) {
             try {
                 this.logger.verbose(
                     "Queried item not found in in-memory cache, now querying persistent storage.",
@@ -76,9 +74,6 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      */
     async setItem(key: string, value: T, correlationId: string): Promise<void> {
         this.inMemoryCache.setItem(key, value);
-        if (!this.persistentStorageEnabled) {
-            return;
-        }
         try {
             await this.indexedDBCache.setItem(key, value);
         } catch (e) {
@@ -93,9 +88,6 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      */
     async removeItem(key: string, correlationId: string): Promise<void> {
         this.inMemoryCache.removeItem(key);
-        if (!this.persistentStorageEnabled) {
-            return;
-        }
         try {
             await this.indexedDBCache.removeItem(key);
         } catch (e) {
@@ -109,9 +101,6 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      */
     async getKeys(correlationId: string): Promise<string[]> {
         const cacheKeys = this.inMemoryCache.getKeys();
-        if (!this.persistentStorageEnabled) {
-            return cacheKeys;
-        }
         try {
             const persistentCacheKeys = await this.indexedDBCache.getKeys();
             return Array.from(new Set([...cacheKeys, ...persistentCacheKeys]));
@@ -129,10 +118,6 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
         key: string,
         correlationId: string
     ): Promise<boolean> {
-        if (!this.persistentStorageEnabled) {
-            return false;
-        }
-
         try {
             return await this.indexedDBCache.containsKey(key);
         } catch (e) {
@@ -148,7 +133,7 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      */
     async containsKey(key: string, correlationId: string): Promise<boolean> {
         const containsKey = this.inMemoryCache.containsKey(key);
-        if (!containsKey && this.persistentStorageEnabled) {
+        if (!containsKey) {
             try {
                 this.logger.verbose(
                     "Key not found in in-memory cache, now querying persistent storage.",
@@ -179,9 +164,6 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      * @returns
      */
     async clearPersistent(correlationId: string): Promise<boolean> {
-        if (!this.persistentStorageEnabled) {
-            return true;
-        }
         try {
             this.logger.verbose("Deleting persistent keystore", correlationId);
             const dbDeleted = await this.indexedDBCache.deleteDatabase();

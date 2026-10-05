@@ -78,27 +78,17 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
     private logger: Logger;
     private performanceClient: IPerformanceClient | undefined;
 
-    constructor(
-        logger: Logger,
-        performanceClient?: IPerformanceClient,
-        persistentStorageEnabled: boolean = true
-    ) {
+    constructor(logger: Logger, performanceClient?: IPerformanceClient) {
         this.logger = logger;
         this.cache = TokenBindingKeyManager.getTokenBindingKeyStorage(
-            this.logger,
-            persistentStorageEnabled
+            this.logger
         );
         this.performanceClient = performanceClient;
     }
 
     private static getTokenBindingKeyStorage(
-        logger: Logger,
-        persistentStorageEnabled: boolean
+        logger: Logger
     ): AsyncMemoryStorage<CachedKeyPair> {
-        if (!persistentStorageEnabled) {
-            return new AsyncMemoryStorage<CachedKeyPair>(logger, false);
-        }
-
         if (!TokenBindingKeyManager.tokenBindingKeyStorage) {
             TokenBindingKeyManager.tokenBindingKeyStorage =
                 new AsyncMemoryStorage<CachedKeyPair>(logger);
