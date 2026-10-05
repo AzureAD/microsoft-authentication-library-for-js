@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791219072344,
+  "lastUpdate": 1791240693311,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24037,6 +24037,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.74%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0aa1dec30c14fb6714b45de91e28937ab7d7ed46",
+          "message": "AB#3752409: Add platform broker telemetry tests and documentation (#8883)\n\n## Summary\n\nCorrect the platform broker performance documentation to describe the\nfinal nested extension-handshake telemetry model and its queryable\noutcome signals.\n\nAdd focused telemetry coverage for an unavailable extension, an\nextension handshake timeout, and user cancellation returned by the\nplatform broker.\n\n## Implements\n\n- AB#3752409 — Platform brokering telemetry improvements\n- AB#3752410 — Improve platform brokering observability\n\n## How to validate\n\n- Run the focused `PlatformAuthExtensionHandler` and\n`PlatformAuthInteractionClient` tests.\n- Verify unavailable and timed-out extension discovery emit their\nexpected root-event context without a standalone handshake event.\n- Verify broker user cancellation is recorded as\n`BrowserAuthError/user_cancelled`.\n- Verify the performance documentation provides query dimensions and a\nrequest-level troubleshooting workflow.\n\n## Validation\n\n- 94 focused tests passed.\n- MSAL Common and MSAL Browser builds passed.\n- Browser formatting, API Extractor, and Beachball checks passed.\n- Repository-wide browser source lint reports pre-existing errors in\nuntouched files.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: telemetry\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#3752409\n<!-- END pr-telemetry -->\n\n---------\n\nCo-authored-by: Forge <forge-bot@entra.github.io>\nCo-authored-by: Hector Morales <hemoral@microsoft.com>\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCo-authored-by: msal-js-release-automation[bot] <152663010+msal-js-release-automation[bot]@users.noreply.github.com>\nCo-authored-by: MSAL.js Release Automation <msaljsbuilds@microsoft.com>\nCo-authored-by: shylasummers <shylasummers@users.noreply.github.com>\nCo-authored-by: Shyla Summers <shylasummers@microsoft.com>\nCopilot-Session: 0bced410-2a72-4ca0-ae17-b5eae8cb4d40\nCopilot-Session: 1a77a9f7-1bca-4f21-8365-3c2c132f2c69\nCopilot-Session: 36ec2798-e86d-4fdd-8b64-72f3d40951d8",
+          "timestamp": "2026-10-05T15:37:41-07:00",
+          "tree_id": "2945b3afe61d98a04dae4492140b5f8576587a1a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/0aa1dec30c14fb6714b45de91e28937ab7d7ed46"
+        },
+        "date": 1791240688583,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 386590,
+            "range": "±0.81%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 389378,
+            "range": "±0.55%",
+            "unit": "ops/sec",
+            "extra": "239 samples"
           }
         ]
       }
