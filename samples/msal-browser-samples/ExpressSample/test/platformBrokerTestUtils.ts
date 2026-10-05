@@ -75,9 +75,18 @@ function verifyPlatformBrokerPrerequisites(): void {
         );
     }
 
-    const browserCoreManifest = JSON.parse(
-        fs.readFileSync(browserCoreManifestPath, "utf8")
-    ) as { allowed_origins?: string[] };
+    let browserCoreManifest: { allowed_origins?: string[] };
+    try {
+        browserCoreManifest = JSON.parse(
+            fs.readFileSync(browserCoreManifestPath, "utf8")
+        ) as { allowed_origins?: string[] };
+    } catch (error) {
+        throw new Error(
+            `Invalid JSON in BrowserCore native host manifest ${browserCoreManifestPath}: ${
+                error instanceof Error ? error.message : String(error)
+            }`
+        );
+    }
     if (
         !browserCoreManifest.allowed_origins?.includes(
             `chrome-extension://${SSO_EXTENSION_ID}/`
@@ -125,7 +134,7 @@ export async function launchPlatformBrokerBrowser(
             { timeout: SSO_EXTENSION_TIMEOUT }
         );
     } catch {
-        await browser.close();
+        await browser.close().catch(() => {});
         throw new Error(
             `Microsoft SSO extension ${SSO_EXTENSION_ID} did not start from SSO_EXTENSION_PATH`
         );

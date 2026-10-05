@@ -93,6 +93,7 @@ describe("EAR + Platform Broker Tests", () => {
         await page.goto(`https://localhost:${EAR_PORT}/${EAR_QUERY_STRING}`, {
             timeout: 10000,
         });
+        await flowUtils.assertCryptoOperationSpyInstalled(EAR_CRYPTO_ALGORITHM);
     });
 
     afterEach(async () => {

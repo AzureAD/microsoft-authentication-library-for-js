@@ -52,6 +52,7 @@ export class AuthenticationFlowTestUtils {
                 algorithmName: string;
                 origin: string;
                 storageKey: string;
+                statusKey: string;
             }) => {
                 try {
                     if (
@@ -92,8 +93,23 @@ export class AuthenticationFlowTestUtils {
                         }
                         return realDecrypt(algorithm, key, data);
                     };
-                } catch {
-                    // Diagnostics must never interfere with authentication.
+                    window.sessionStorage.setItem(
+                        config.statusKey,
+                        "installed"
+                    );
+                } catch (error) {
+                    try {
+                        window.sessionStorage.setItem(
+                            config.statusKey,
+                            `failed:${
+                                error instanceof Error
+                                    ? error.message
+                                    : String(error)
+                            }`
+                        );
+                    } catch {
+                        // Authentication remains authoritative if diagnostics fail.
+                    }
                 }
             },
             {
@@ -103,8 +119,31 @@ export class AuthenticationFlowTestUtils {
                     AuthenticationFlowTestUtils.getCryptoOperationStorageKey(
                         algorithmName
                     ),
+                statusKey:
+                    AuthenticationFlowTestUtils.getCryptoOperationStatusKey(
+                        algorithmName
+                    ),
             }
         );
+    }
+
+    async assertCryptoOperationSpyInstalled(
+        algorithmName: string
+    ): Promise<void> {
+        const status = await this.page.evaluate(
+            (statusKey) => window.sessionStorage.getItem(statusKey),
+            AuthenticationFlowTestUtils.getCryptoOperationStatusKey(
+                algorithmName
+            )
+        );
+        if (status !== "installed") {
+            const detail = status?.startsWith("failed:")
+                ? status.slice("failed:".length)
+                : "the page did not report an installation result";
+            throw new Error(
+                `WebCrypto ${algorithmName} decrypt instrumentation was not installed: ${detail}`
+            );
+        }
     }
 
     async getCryptoOperationCount(algorithmName: string): Promise<number> {
@@ -119,5 +158,9 @@ export class AuthenticationFlowTestUtils {
 
     private static getCryptoOperationStorageKey(algorithmName: string): string {
         return `__cryptoOperationCount:${algorithmName}`;
+    }
+
+    private static getCryptoOperationStatusKey(algorithmName: string): string {
+        return `__cryptoOperationStatus:${algorithmName}`;
     }
 }

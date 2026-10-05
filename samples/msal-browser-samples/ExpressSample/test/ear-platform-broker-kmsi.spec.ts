@@ -33,6 +33,7 @@ const TEST_ORIGIN = `https://localhost:${SERVER_PORT}`;
 const TEST_URL = `${TEST_ORIGIN}/?ear=true&platformBroker=true`;
 const CACHE_LOCATION = "localStorage";
 const EAR_CRYPTO_ALGORITHM = "AES-GCM";
+const PAGE_NAVIGATION_TIMEOUT = 60000;
 
 describe("EAR + Platform Broker + Keep Me Signed In Tests", () => {
     let browser: puppeteer.Browser | undefined;
@@ -88,7 +89,8 @@ describe("EAR + Platform Broker + Keep Me Signed In Tests", () => {
             EAR_CRYPTO_ALGORITHM
         );
 
-        await page.goto(TEST_URL, { timeout: 10000 });
+        await page.goto(TEST_URL, { timeout: PAGE_NAVIGATION_TIMEOUT });
+        await flowUtils.assertCryptoOperationSpyInstalled(EAR_CRYPTO_ALGORITHM);
         await page.locator("button#signInButton").click();
         await page.locator("a#signInRedirect").click();
         await page.waitForSelector("a#viewProfileButton", {
@@ -127,7 +129,8 @@ describe("EAR + Platform Broker + Keep Me Signed In Tests", () => {
             EAR_CRYPTO_ALGORITHM
         );
 
-        await page.goto(TEST_URL, { timeout: 10000 });
+        await page.goto(TEST_URL, { timeout: PAGE_NAVIGATION_TIMEOUT });
+        await flowUtils.assertCryptoOperationSpyInstalled(EAR_CRYPTO_ALGORITHM);
         let popupOpened = false;
         page.once("popup", () => {
             popupOpened = true;
