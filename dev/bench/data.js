@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791240693311,
+  "lastUpdate": 1791290728979,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24075,6 +24075,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.55%",
             "unit": "ops/sec",
             "extra": "239 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f8043926016a9de007aeef2f3a2c301cec1ea7fe",
+          "message": "Coalesce concurrent platform-broker acquireTokenSilent requests (#8886)\n\nThis pull request introduces a new mechanism to coalesce concurrent\n`acquireTokenSilent` requests in the MSAL browser library, with\nparticular improvements for the platform-broker authentication path. The\nchanges ensure that only one network request is made for identical\nsilent requests, while all callers receive the result. The\nplatform-broker path now uses an extended key to match in-flight\nrequests, and comprehensive tests have been added to verify the new\nlogic.\n\n**Silent request coalescing improvements:**\n\n* Added a new helper module, `SilentRequestHelpers.ts`, which introduces\n`resolveSilentRequestPreparation`, `prepareWebSilentRequest`, and\n`preparePlatformSilentRequest` functions to generate consistent keys for\nin-flight silent requests, supporting both web and platform-broker\nflows. The platform-broker key includes additional context such as\nnative account ID, tenant, redirect URI, OIDC nonces, PoP keys, extra\nparameters, and cache settings.\n* Refactored `StandardController` to use the new silent request\npreparation logic, ensuring that concurrent silent requests (including\nplatform-broker requests) are properly coalesced and share results,\nwhile also cleaning up in-flight requests after completion.\n[[1]](diffhunk://#diff-d8bde128bad64cb357b230e9a738968be4d62b4e3d7c78e889f3e38d4689f73fL20)\n[[2]](diffhunk://#diff-d8bde128bad64cb357b230e9a738968be4d62b4e3d7c78e889f3e38d4689f73fR102)\n[[3]](diffhunk://#diff-d8bde128bad64cb357b230e9a738968be4d62b4e3d7c78e889f3e38d4689f73fL2301-R2315)\n[[4]](diffhunk://#diff-d8bde128bad64cb357b230e9a738968be4d62b4e3d7c78e889f3e38d4689f73fL2330-R2343)\n\n**Documentation updates:**\n\n* Updated the `acquire-token.md` documentation to explain the new\ncoalescing behavior for platform-broker silent requests, detailing the\nmatching logic and exclusions. Also fixed some documentation links.\n[[1]](diffhunk://#diff-c7193aa18b65954925f365750526e7d91bd2e2520167e5eabb0141d8d96de5cbL104-R108)\n[[2]](diffhunk://#diff-c7193aa18b65954925f365750526e7d91bd2e2520167e5eabb0141d8d96de5cbL120-R124)\n\n**Testing and release:**\n\n* Added comprehensive unit tests for the new silent request preparation\nlogic in `SilentRequestHelpers.spec.ts`, covering web, broker, and edge\ncases.\n* Added a change file marking this as a minor update for\n`@azure/msal-browser`.\n\n<!-- BEGIN pr-telemetry -->\nassistance: <agentic-mixed>\ntype: <feature>\nagent-tool: <copilot-chat>\nagent-model: <gpt-6.1-sol>\nwork-item: AB#<3751124>\n<!-- END pr-telemetry -->",
+          "timestamp": "2026-10-06T08:36:19-04:00",
+          "tree_id": "b6f2209f0bf14373458c5f2d6ee65daf87ae23b9",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f8043926016a9de007aeef2f3a2c301cec1ea7fe"
+        },
+        "date": 1791290724643,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 397929,
+            "range": "±0.47%",
+            "unit": "ops/sec",
+            "extra": "239 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 383288,
+            "range": "±1.01%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
           }
         ]
       }
