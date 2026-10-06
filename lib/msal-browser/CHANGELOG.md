@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Fri, 02 Oct 2026 19:03:42 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 06 Oct 2026 20:48:41 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.25.0
+
+Tue, 06 Oct 2026 20:48:41 GMT
+
+### Minor changes
+
+- Coalesce concurrent platform-broker acquireTokenSilent requests [#8886](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8886) (kshabelko@microsoft.com)
 
 ## 5.24.0
 
