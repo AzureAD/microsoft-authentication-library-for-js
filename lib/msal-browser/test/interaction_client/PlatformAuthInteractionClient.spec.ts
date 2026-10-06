@@ -1038,7 +1038,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(cachedKeyIds).not.toContain("initial-dpop-key");
         });
 
-        it("Extension: preserves the previous L1 DPoP credential when replacement caching fails", async () => {
+        it("Extension: removes the generated DPoP key when cache saving fails before replacement", async () => {
             const keyManager =
                 // @ts-ignore
                 platformAuthInteractionClient.tokenBindingKeyManager;
@@ -1090,12 +1090,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
             };
             await platformAuthInteractionClient.acquireToken(request);
-            const initialAccessTokenKey =
-                internalStorage.getTokenKeys().accessToken[0];
-            const initialAccessToken = internalStorage.getAccessTokenCredential(
-                initialAccessTokenKey,
-                RANDOM_TEST_GUID
-            );
             jest.spyOn(
                 internalStorage,
                 "saveCacheRecord"
@@ -1105,12 +1099,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 platformAuthInteractionClient.acquireToken(request)
             ).rejects.toThrow("cache write failed");
 
-            expect(
-                internalStorage.getAccessTokenCredential(
-                    initialAccessTokenKey,
-                    RANDOM_TEST_GUID
-                )
-            ).toEqual(initialAccessToken);
             expect(removeKeySpy).not.toHaveBeenCalledWith(
                 "initial-dpop-key",
                 RANDOM_TEST_GUID

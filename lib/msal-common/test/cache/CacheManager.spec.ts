@@ -418,6 +418,67 @@ describe("CacheManager.ts test cases", () => {
             );
         });
 
+        it("removes a superseded DPoP credential before attempting the replacement write", async () => {
+            const original = CacheHelpers.createAccessTokenEntity(
+                "someUid.someUtid",
+                "login.microsoftonline.com",
+                "original-access-token",
+                "mock_client_id",
+                "microsoft",
+                "scope6 scope7",
+                4600,
+                4600,
+                mockCrypto.base64Decode,
+                TEST_CONFIG.CORRELATION_ID,
+                undefined,
+                DPOP_AUTHENTICATION_SCHEME,
+                undefined,
+                "original-dpop-key"
+            );
+            const replacement = {
+                ...original,
+                secret: "replacement-access-token",
+                target: "scope7 scope8",
+                keyId: "replacement-dpop-key",
+            };
+            await mockCache.cacheManager.setAccessTokenCredential(
+                original,
+                TEST_CONFIG.CORRELATION_ID,
+                false
+            );
+            const removeTokenBindingKeySpy = jest.spyOn(
+                mockTokenBindingKeyManager,
+                "removeTokenBindingKey"
+            );
+            jest.spyOn(
+                mockCache.cacheManager,
+                "setAccessTokenCredential"
+            ).mockRejectedValueOnce(new Error("cache write failed"));
+
+            await expect(
+                mockCache.cacheManager.saveCacheRecord(
+                    { accessToken: replacement },
+                    TEST_CONFIG.CORRELATION_ID,
+                    false,
+                    0
+                )
+            ).rejects.toThrow();
+
+            expect(
+                mockCache.cacheManager.getAccessTokenCredential(
+                    generateCredentialKey(original),
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toBeNull();
+            expect(
+                mockCache.cacheManager.getTokenKeys().accessToken
+            ).not.toContain(generateCredentialKey(original));
+            expect(removeTokenBindingKeySpy).toHaveBeenCalledWith(
+                "original-dpop-key",
+                TEST_CONFIG.CORRELATION_ID
+            );
+        });
+
         it("requires cached keyId metadata for accessToken with Auth Scheme (dpop)", () => {
             expect(() =>
                 CacheHelpers.createAccessTokenEntity(
