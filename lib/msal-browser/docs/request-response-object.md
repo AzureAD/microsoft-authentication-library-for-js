@@ -52,6 +52,9 @@ const response = await msalInstance.acquireTokenSilent(request);
 
 ## DPoP request and response fields
 
+> [!WARNING]
+> DPoP support in MSAL Browser is currently in development and is not fully rolled out or ready for production use. APIs and behavior may change. Use this feature only for evaluation and testing.
+
 To request sender-constrained access tokens using the DPoP standard, set `authenticationScheme` to `AuthenticationScheme.DPOP` on popup, redirect, silent, or `ssoSilent` requests and provide both `resourceRequestMethod` and `resourceRequestUri`.
 
 ```javascript

@@ -81,16 +81,54 @@ const event: PerformanceEvent = {
 
 The complete details for `PerformanceEvents` objects can be found [here](../../msal-common/src/telemetry/performance/PerformanceEvent.ts). Below is a list of some notable properties:
 
-| **Property**                       | Type      | Description                                                            |
-| ---------------------------------- | --------- | ---------------------------------------------------------------------- |
+| **Property**                       | Type      | Description                                                                                                                   |
+| ---------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `name`                             | `string`  | Name of the operation, usually matches the top-level API name (e.g. `acquireTokenSilent`, `acquireTokenByCode`, `ssoSilent`). |
-| `durationMs`                       | `number`  | End-to-end duration in milliseconds for the operation.                 |
-| `success`                          | `boolean` | Whether the operation was successful or not.                           |
-| `fromCache`                        | `boolean` | Whether the operation retrieved the result from the cache.             |
-| `correlationId`                    | `string`  | Correlation ID used for the operation (preferably unique per request). |
-| `libraryVersion`                   | `string`  | Version of MSAL.js used for the operation.                             |
-| `authority`                        | `string`  | Authority used for the operation.                                      |
-| `<internalFunctionName>DurationMs` | `number`  | Duration in milliseconds for an internal operation.                    |
+| `durationMs`                       | `number`  | End-to-end duration in milliseconds for the operation.                                                                        |
+| `success`                          | `boolean` | Whether the operation was successful or not.                                                                                  |
+| `fromCache`                        | `boolean` | Whether the operation retrieved the result from the cache.                                                                    |
+| `correlationId`                    | `string`  | Correlation ID used for the operation (preferably unique per request).                                                        |
+| `libraryVersion`                   | `string`  | Version of MSAL.js used for the operation.                                                                                    |
+| `authority`                        | `string`  | Authority used for the operation.                                                                                             |
+| `<internalFunctionName>DurationMs` | `number`  | Duration in milliseconds for an internal operation.                                                                           |
+
+### Platform broker measurements
+
+When platform brokering is enabled, MSAL measures provider discovery and provider creation during initialization, and extension or DOM transport, response validation, request initialization, response processing, and cache updates during authentication. These child measurements are folded into their enclosing top-level event as `<measurementName>DurationMs` fields under the same `correlationId`; they are not emitted as separate callback events. During initialization, extension handshake duration is available as `ext.nativeMessageHandlerHandshakeDurationMs` and extension provider creation duration is available as `ext.platformAuthExtensionCreateProviderDurationMs`.
+
+The root event includes the following platform broker context:
+
+| **Property**                    | Type      | Description                                                                                                                                                      |
+| ------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `allowPlatformBroker`           | `boolean` | Whether the application enabled platform broker support.                                                                                                         |
+| `platformAuthProviderAvailable` | `boolean` | Whether MSAL created a platform authentication provider.                                                                                                         |
+| `platformAuthProviderType`      | `string`  | `PlatformAuthDOMHandler` or `PlatformAuthExtensionHandler` when a provider is available. This property is omitted when `platformAuthProviderAvailable` is false. |
+| `extensionInstalled`            | `boolean` | Whether an extension handshake response identified a compatible Microsoft Single Sign On extension. Omitted when no extension responds.                          |
+| `extensionHandshakeTimedOut`    | `boolean` | Whether extension discovery failed because no extension responded before the handshake timeout.                                                                  |
+| `extensionHandshakeTimeoutMs`   | `number`  | Configured extension handshake timeout in milliseconds.                                                                                                          |
+
+Platform broker telemetry does not include tokens, claims, account identifiers, request or response payloads, URLs, or exception messages.
+
+#### Diagnosing platform broker flows
+
+Use the following fields as query or dashboard dimensions:
+
+| **Question**                            | **Filter or grouping**                                                                                                                                          |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Did the application enable brokering?   | Filter on `allowPlatformBroker === true`.                                                                                                                       |
+| Was a provider created?                 | Filter on `platformAuthProviderAvailable`; group available providers by `platformAuthProviderType`.                                                             |
+| Did extension discovery succeed?        | Filter on `extensionInstalled`; use `extensionHandshakeTimedOut` to distinguish a timeout from a response that did not identify a compatible extension.          |
+| Did the broker return an error?         | Filter on `brokerErrorName` and `brokerErrorCode`; `user_cancelled` identifies user cancellation.                                                               |
+| Which platform broker stage was slow?   | Inspect the `<measurementName>DurationMs` fields in `ext`, including `nativeMessageHandlerHandshakeDurationMs` and provider, transport, validation, and cache durations. |
+| Did a web flow run after broker failure? | When `platformAuthProviderAvailable` is false or broker error fields are present, inspect the enclosing top-level event's outcome to determine whether fallback succeeded. |
+
+To troubleshoot an individual request:
+
+1. Find the top-level performance event by `correlationId`.
+2. Confirm `allowPlatformBroker`, then check `platformAuthProviderAvailable` and the conditional `platformAuthProviderType`.
+3. For the extension flow, inspect `extensionInstalled`, `extensionHandshakeTimedOut`, and `extensionHandshakeTimeoutMs`.
+4. Compare the nested duration fields in `ext` to identify the lifecycle stage where time was spent.
+5. Inspect `brokerErrorName` and `brokerErrorCode`, then use the top-level event's outcome to distinguish a terminal broker failure from a successful web fallback.
 
 ### removePerformanceCallback
 

@@ -85,7 +85,7 @@ export async function ssoGetToken(){
     console.log(error);
     
     // Check if the error is InteractionRequired and fallback to popup authentication
-    if (error instanceof InteractionRequiredAuthError) {
+    if (error instanceof msal.InteractionRequiredAuthError) {
       console.log("Silent token acquisition failed, falling back to popup authentication");
       try {
         const popupResult = await pca.acquireTokenPopup(tokenRequest);

@@ -1745,6 +1745,35 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.initialize();
         });
 
+        it.each([true, false])(
+            "adds allowPlatformBroker=%s to every performance event",
+            (allowPlatformBroker) => {
+                const performanceClient = new BrowserPerformanceClient(
+                    testAppConfig
+                );
+                const addGlobalFieldsSpy = jest.spyOn(
+                    performanceClient,
+                    "addGlobalFields"
+                );
+
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                    system: {
+                        allowPlatformBroker,
+                    },
+                    telemetry: {
+                        client: performanceClient,
+                    },
+                });
+
+                expect(addGlobalFieldsSpy).toHaveBeenCalledWith({
+                    allowPlatformBroker,
+                });
+            }
+        );
+
         it("records isMcp on InitializeClientApplication telemetry event", (done) => {
             const config = {
                 auth: {

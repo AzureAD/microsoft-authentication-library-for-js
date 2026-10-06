@@ -1473,8 +1473,13 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 return Promise.resolve(MOCK_WAM_RESPONSE);
             });
             const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events[0].success).toBe(true);
-                expect(events[0].name).toBe(perfMeasurement.event.name);
+                const preRedirectEvent = events.find(
+                    (event) => event.name === perfMeasurement.event.name
+                );
+                if (!preRedirectEvent) {
+                    return;
+                }
+                expect(preRedirectEvent.success).toBe(true);
                 pca.removePerformanceCallback(callbackId);
                 done();
             });
@@ -2830,7 +2835,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             });
 
             expect(addFieldsSpy).toHaveBeenCalledWith(
-                { hasAttributeTokens: false },
+                expect.objectContaining({ hasAttributeTokens: false }),
                 expect.any(String)
             );
 
@@ -2843,7 +2848,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             });
 
             expect(addFieldsSpy).toHaveBeenCalledWith(
-                { hasAttributeTokens: true },
+                expect.objectContaining({ hasAttributeTokens: true }),
                 expect.any(String)
             );
         });
@@ -2991,7 +2996,137 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
         });
 
+        it("measures successful request initialization, response handling, and cache stages", async () => {
+            const measurements = new Map<string, any>();
+            startMeasurementSpy.mockImplementation(
+                (name: string, correlationId?: string) => {
+                    const measurement = {
+                        add: jest.fn(),
+                        end: jest.fn(),
+                        increment: jest.fn(),
+                        discard: jest.fn(),
+                        event: {
+                            name,
+                            correlationId,
+                        },
+                    };
+                    measurements.set(name, measurement);
+                    return measurement;
+                }
+            );
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockResolvedValue(MOCK_WAM_RESPONSE);
+
+            await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                prompt: Constants.PromptValue.LOGIN,
+                attributeTokens: ["alpha"],
+                storeInCache: {
+                    accessToken: false,
+                    idToken: true,
+                    refreshToken: false,
+                },
+            });
+
+            [
+                "platformAuthInteractionClientInitializeRequest",
+                "platformAuthHandleNativeResponse",
+                "nativeGenerateAuthResult",
+                "platformAuthCacheAccount",
+                "platformAuthCacheNativeTokens",
+            ].forEach((eventName) => {
+                const measurement = measurements.get(eventName);
+                expect(measurement).toBeDefined();
+                expect(measurement.end).toHaveBeenCalledTimes(1);
+                expect(measurement.end).toHaveBeenCalledWith({
+                    success: true,
+                });
+            });
+            expect(performanceSpy).toHaveBeenCalledWith(
+                {
+                    hasAttributeTokens: true,
+                },
+                RANDOM_TEST_GUID
+            );
+        });
+
+        it("closes request initialization measurement once when validation fails", async () => {
+            const measurements = new Map<string, any>();
+            startMeasurementSpy.mockImplementation(
+                (name: string, correlationId?: string) => {
+                    const measurement = {
+                        add: jest.fn(),
+                        end: jest.fn(),
+                        increment: jest.fn(),
+                        discard: jest.fn(),
+                        event: {
+                            name,
+                            correlationId,
+                        },
+                    };
+                    measurements.set(name, measurement);
+                    return measurement;
+                }
+            );
+
+            await expect(
+                platformAuthInteractionClient.acquireToken({
+                    scopes: ["User.Read"],
+                    prompt: Constants.PromptValue.SELECT_ACCOUNT,
+                })
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.nativePromptNotSupported,
+            });
+
+            const measurement = measurements.get(
+                "platformAuthInteractionClientInitializeRequest"
+            );
+            expect(measurement).toBeDefined();
+            expect(measurement.end).toHaveBeenCalledTimes(1);
+            expect(measurement.end).toHaveBeenCalledWith(
+                {
+                    success: false,
+                },
+                expect.objectContaining({
+                    errorCode: BrowserAuthErrorCodes.nativePromptNotSupported,
+                })
+            );
+        });
+
         describe("brokerErrorName/brokerErrorCode telemetry", () => {
+            it("acquireToken records user cancellation from the broker", async () => {
+                const cancellationError = createNativeAuthError(
+                    "ContentError",
+                    RANDOM_TEST_GUID,
+                    "The user cancelled the broker request",
+                    { status: NativeStatusCodes.USER_CANCEL }
+                );
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockRejectedValue(cancellationError);
+
+                await expect(
+                    platformAuthInteractionClient.acquireToken({
+                        scopes: ["User.Read"],
+                        correlationId: RANDOM_TEST_GUID,
+                    })
+                ).rejects.toMatchObject({
+                    errorCode: BrowserAuthErrorCodes.userCancelled,
+                });
+
+                expect(performanceSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        isNativeBroker: true,
+                        brokerErrorName: "BrowserAuthError",
+                        brokerErrorCode: BrowserAuthErrorCodes.userCancelled,
+                    }),
+                    RANDOM_TEST_GUID
+                );
+            });
+
             it("acquireToken records brokerErrorName/brokerErrorCode when the broker rejects with a NativeAuthError", async () => {
                 // Broker dispatch (sendMessage) rejects with a NativeAuthError
                 const brokerError = new NativeAuthError(

@@ -101,7 +101,11 @@ When requesting tokens, always use `acquireTokenSilent` first, falling back to i
 
 Concurrent silent requests are permitted. If two or more silent requests are made concurrently, only one would go to the network (if needed), but all would receive the response, as long as those requests are for the same request parameters (e.g. scopes).
 
-Concurrent interactive requests are **not** permitted. If two or more interactive requests are made concurrently, only the first one will start an interaction, while the rest will fail with [interaction_in_progress](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md#interaction_in_progress) error. We recommend getting familiar with this error and possible remedies to avoid running into it in your applications.
+This also applies to the platform-broker path of `acquireTokenSilent`, using the same in-flight registry as regular web acquisition. Flow-specific request preparation supplies the key and acquisition inputs; web requests retain the standard thumbprint, while platform-broker requests use the extended thumbprint described below. Matching requests share the in-flight acquisition, including PoP key generation, and each successful result retains its caller's correlation ID. Completed or failed acquisitions are removed from the in-flight registry; subsequent calls perform their normal cache lookup or acquisition.
+
+Platform-broker requests are matched using the common silent-request thumbprint plus native account and tenant context, redirect URI, OIDC nonce/state/login hint, PoP key and proof nonces, extra parameters (including no-cache parameters), broker-claims settings, cache lookup policy, and `forceRefresh`. Scope order, duplicate scopes, and surrounding whitespace do not prevent sharing, but scope casing is preserved. Requests with different token contexts or cache lookup policies are not combined. Token-storage preferences do not affect matching; as in the web flow, the initiating request's `storeInCache` settings govern caching for a shared acquisition. `ssoSilent` requests are not coalesced on either the web or platform-broker path. Interactive broker calls and Nested App Authentication host-bridge calls are also excluded.
+
+Concurrent interactive requests are **not** permitted. If two or more interactive requests are made concurrently, only the first one will start an interaction, while the rest will fail with [interaction_in_progress](../../../docs/errors.md#interaction_in_progress) error. We recommend getting familiar with this error and possible remedies to avoid running into it in your applications.
 
 ### Browser compatibility considerations
 
@@ -117,6 +121,6 @@ You can only request access tokens for one resource at a time (see [resources an
 
 - [Token lifetimes, expiration and renewal](./token-lifetimes.md).
 - [Caching in MSAL](./caching.md)
-- [Handling errors](./errors.md)
+- [Handling errors](../../../docs/errors.md)
 - [Working with B2C](./working-with-b2c.md)
 - [Throttling](../../msal-common/docs/Throttling.md)
