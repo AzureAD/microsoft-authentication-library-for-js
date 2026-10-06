@@ -750,17 +750,11 @@ export abstract class CacheManager implements ICacheManager {
             }
         });
         for (const key of accessTokenKeysToRemove) {
-            const removedCredential = this.removeAccessTokenCredential(
+            await this.removeAccessTokenAndTokenBindingKey(
                 key,
-                correlationId
+                correlationId,
+                credential.keyId
             );
-            if (removedCredential) {
-                await this.removeTokenBindingKeyForCredential(
-                    removedCredential,
-                    correlationId,
-                    credential.keyId
-                );
-            }
         }
         await this.setAccessTokenCredential(
             credential,
@@ -1130,13 +1124,15 @@ export abstract class CacheManager implements ICacheManager {
      */
     async removeAccessTokenAndTokenBindingKey(
         key: string,
-        correlationId: string
+        correlationId: string,
+        preservedKeyId?: string
     ): Promise<void> {
         const credential = this.removeAccessTokenCredential(key, correlationId);
         if (credential) {
             await this.removeTokenBindingKeyForCredential(
                 credential,
-                correlationId
+                correlationId,
+                preservedKeyId
             );
         }
     }

@@ -852,7 +852,7 @@ export abstract class CacheManager implements ICacheManager {
     readAppMetadataFromCache(environment: string, correlationId: string): AppMetadataEntity | null;
     refreshTokenKeyMatchesFilter(inputKey: string, filter: CredentialFilter): boolean;
     removeAccessToken(key: string, correlationId: string): void;
-    removeAccessTokenAndTokenBindingKey(key: string, correlationId: string): Promise<void>;
+    removeAccessTokenAndTokenBindingKey(key: string, correlationId: string, preservedKeyId?: string): Promise<void>;
     removeAccount(account: AccountInfo, correlationId: string): void;
     removeAccountContext(account: AccountInfo, correlationId: string): void;
     removeAllAccounts(correlationId: string): void;

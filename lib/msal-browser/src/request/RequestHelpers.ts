@@ -81,17 +81,9 @@ export async function getTokenBindingRequestParams(
     tokenBindingKeyManager: ITokenBindingKeyManager,
     logger: Logger,
     performanceClient: IPerformanceClient
-): Promise<
-    Pick<CommonAuthorizationUrlRequest, "dpopJkt" | "reqCnf"> & {
-        dpopKeyOwned?: boolean;
-    }
-> {
+): Promise<Pick<CommonAuthorizationUrlRequest, "dpopJkt" | "reqCnf">> {
     switch (request.authenticationScheme) {
         case Constants.AuthenticationScheme.DPOP:
-            if (request.dpopJkt) {
-                return { dpopJkt: request.dpopJkt };
-            }
-
             return {
                 dpopJkt: await tokenBindingKeyManager.provisionTokenBindingKey({
                     tokenBindingKeyType:
@@ -99,7 +91,6 @@ export async function getTokenBindingRequestParams(
                     tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
                     correlationId: request.correlationId,
                 }),
-                dpopKeyOwned: true,
             };
         case Constants.AuthenticationScheme.POP:
             if (!request.platformBroker) {
@@ -138,7 +129,6 @@ export async function getTokenBindingRequestParams(
 export async function removeTokenBindingKeyOnFailure(
     request: Partial<CommonAuthorizationUrlRequest> & {
         correlationId: string;
-        dpopKeyOwned?: boolean;
     },
     tokenBindingKeyManager: ITokenBindingKeyManager,
     logger: Logger,
@@ -146,7 +136,6 @@ export async function removeTokenBindingKeyOnFailure(
 ): Promise<void> {
     if (
         request.authenticationScheme !== Constants.AuthenticationScheme.DPOP ||
-        request.dpopKeyOwned !== true ||
         !request.dpopJkt
     ) {
         return;
@@ -177,18 +166,13 @@ export async function removeTokenBindingKeyOnFailure(
 export async function isTokenBindingKeyPersistedForRedirect(
     request: {
         correlationId: string;
-        dpopKeyOwned?: boolean;
         dpopJkt?: string;
         keyId?: string;
     },
     tokenBindingKeyManager: ITokenBindingKeyManager
 ): Promise<boolean> {
     const keyId = request.dpopJkt ?? request.keyId;
-    if (
-        request.dpopKeyOwned !== true ||
-        !keyId ||
-        !tokenBindingKeyManager.isTokenBindingKeyPersisted
-    ) {
+    if (!keyId || !tokenBindingKeyManager.isTokenBindingKeyPersisted) {
         return true;
     }
 

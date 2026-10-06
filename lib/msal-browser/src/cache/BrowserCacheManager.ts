@@ -1147,6 +1147,7 @@ export class BrowserCacheManager extends CacheManager {
                     await this.removeAccessTokenAndTokenBindingKey(
                         accessTokenKeys[i],
                         correlationId,
+                        undefined,
                         false // Don't save token keys yet, do it at the end
                     );
                 } else {
@@ -1384,9 +1385,14 @@ export class BrowserCacheManager extends CacheManager {
     async removeAccessTokenAndTokenBindingKey(
         key: string,
         correlationId: string,
+        preservedKeyId?: string,
         updateTokenKeys: boolean = true
     ): Promise<void> {
-        await super.removeAccessTokenAndTokenBindingKey(key, correlationId);
+        await super.removeAccessTokenAndTokenBindingKey(
+            key,
+            correlationId,
+            preservedKeyId
+        );
         updateTokenKeys && this.removeAccessTokenKeys([key], correlationId);
     }
 

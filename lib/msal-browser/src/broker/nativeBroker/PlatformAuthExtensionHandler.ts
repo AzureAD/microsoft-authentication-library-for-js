@@ -103,7 +103,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             const extensionRequest = { ...request };
             delete extensionRequest.resourceRequestMethod;
             delete extensionRequest.resourceRequestUri;
-            delete extensionRequest.dpopKeyOwned;
             delete extensionRequest.bindingPreferenceSent;
             const messageBody: NativeExtensionRequestBody = {
                 method: NativeExtensionMethod.GetToken,
@@ -119,14 +118,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
 
             this.logger.trace(
                 `'${this.platformAuthType}' - Sending request to browser extension`,
-                correlationId
-            );
-            this.logger.tracePii(
-                `'${
-                    this.platformAuthType
-                }' - Sending request to browser extension: '${JSON.stringify(
-                    req
-                )}'`,
                 correlationId
             );
             this.messageChannel.port1.postMessage(req);

@@ -884,7 +884,7 @@ describe("Authorize Protocol Tests", () => {
             expect(removeTokenBindingKey).not.toHaveBeenCalled();
         });
 
-        it("handleResponseCode preserves a borrowed DPoP key when the platform broker fails", async () => {
+        it("handleResponseCode removes a generated DPoP key when the platform broker fails", async () => {
             jest.spyOn(
                 PlatformAuthInteractionClient.prototype,
                 "acquireToken"
@@ -896,53 +896,8 @@ describe("Authorize Protocol Tests", () => {
                 ...validRequest,
                 authenticationScheme: Constants.AuthenticationScheme.DPOP,
                 platformBroker: true,
-                dpopJkt: "borrowed-dpop-jkt",
-                dpopKeyOwned: false,
-            } as CommonAuthorizationUrlRequest & { dpopKeyOwned: boolean };
-
-            await expect(
-                Authorize.handleResponseCode(
-                    dpopRequest,
-                    {
-                        accountId: "test-account-id",
-                        state: dpopRequest.state,
-                    },
-                    "test-code-verifier",
-                    ApiId.acquireTokenPopup,
-                    config,
-                    {} as any,
-                    cacheManager,
-                    cacheManager,
-                    eventHandler,
-                    logger,
-                    performanceClient,
-                    new PlatformAuthExtensionHandler(
-                        logger,
-                        2000,
-                        performanceClient
-                    ),
-                    { removeTokenBindingKey } as any
-                )
-            ).rejects.toThrow("platform broker failure");
-
-            expect(removeTokenBindingKey).not.toHaveBeenCalled();
-        });
-
-        it("handleResponseCode removes an owned DPoP key when the platform broker fails", async () => {
-            jest.spyOn(
-                PlatformAuthInteractionClient.prototype,
-                "acquireToken"
-            ).mockRejectedValue(new Error("platform broker failure"));
-            const removeTokenBindingKey = jest
-                .fn()
-                .mockResolvedValue(undefined);
-            const dpopRequest = {
-                ...validRequest,
-                authenticationScheme: Constants.AuthenticationScheme.DPOP,
-                platformBroker: true,
-                dpopJkt: "owned-dpop-jkt",
-                dpopKeyOwned: true,
-            } as CommonAuthorizationUrlRequest & { dpopKeyOwned: boolean };
+                dpopJkt: "generated-dpop-jkt",
+            };
 
             await expect(
                 Authorize.handleResponseCode(
@@ -970,7 +925,7 @@ describe("Authorize Protocol Tests", () => {
             ).rejects.toThrow("platform broker failure");
 
             expect(removeTokenBindingKey).toHaveBeenCalledWith(
-                "owned-dpop-jkt",
+                "generated-dpop-jkt",
                 dpopRequest.correlationId
             );
         });

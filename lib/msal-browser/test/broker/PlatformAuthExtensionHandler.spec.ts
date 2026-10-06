@@ -473,6 +473,14 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             expect(wamMessageHandler).toBeInstanceOf(
                 PlatformAuthExtensionHandler
             );
+            const tracePiiSpy = jest.spyOn(
+                (
+                    wamMessageHandler as unknown as {
+                        logger: Logger;
+                    }
+                ).logger,
+                "tracePii"
+            );
 
             const endMeasurementSpy = jest.spyOn(
                 performanceClient,
@@ -494,6 +502,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 },
             });
             expect(response).toEqual(testResponse.result);
+            expect(tracePiiSpy).not.toHaveBeenCalled();
 
             expect(
                 endMeasurementSpy.mock.calls

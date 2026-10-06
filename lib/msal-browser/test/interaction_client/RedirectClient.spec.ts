@@ -225,9 +225,6 @@ describe("RedirectClient", () => {
                     ...testRequest,
                     authenticationScheme: Constants.AuthenticationScheme.DPOP,
                     dpopJkt: "test-dpop-jkt",
-                    dpopKeyOwned: true,
-                } as CommonAuthorizationUrlRequest & {
-                    dpopKeyOwned: boolean;
                 },
                 TEST_CONFIG.TEST_VERIFIER,
                 rootMeasurement,

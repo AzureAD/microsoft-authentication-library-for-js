@@ -233,7 +233,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         );
         delete remainingProperties.resourceRequestMethod;
         delete remainingProperties.resourceRequestUri;
-        delete remainingProperties.dpopKeyOwned;
         delete remainingProperties.bindingPreferenceSent;
 
         const validExtraParameters: DOMExtraParameters = this.getDOMExtraParams(

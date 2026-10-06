@@ -806,27 +806,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             dpopBrokerOutcome
         );
 
-        /*
-         * Create the candidate before removing the generated request key because
-         * the key id is required to locate a superseded L1 DPoP credential.
-         */
         const isL3DpopResponse = dpopBrokerOutcome === "L3";
-        const candidateAccessToken =
-            storeInCache?.accessToken === false
-                ? null
-                : this.createNativeAccessToken(
-                      response,
-                      request,
-                      homeAccountIdentifier,
-                      idTokenClaims,
-                      result.tenantId,
-                      reqTimestamp,
-                      authority.getPreferredCache()
-                  );
-        if (candidateAccessToken) {
-            await this.removePreviousDpopAccessToken(candidateAccessToken);
-        }
-
         // cache accounts and tokens in the appropriate storage
         const shouldRemoveGeneratedDpopKey =
             isL3DpopResponse ||
@@ -1196,9 +1176,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         const additionalCacheKeyComponents = request.attributeTokens
-            ? {
-                  attribute_tokens: request.attributeTokens,
-              }
+            ? { attribute_tokens: request.attributeTokens }
             : undefined;
 
         const accessToken = CacheHelpers.createAccessTokenEntity(
@@ -1224,61 +1202,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             accessToken.resource = request.extraParameters.resource;
         }
         return accessToken;
-    }
-
-    /**
-     * Removes the superseded DPoP credential and its binding key.
-     * @param replacementAccessToken - Access token that will replace the cached credential.
-     */
-    private async removePreviousDpopAccessToken(
-        replacementAccessToken: AccessTokenEntity
-    ): Promise<void> {
-        if (
-            replacementAccessToken.tokenType?.toLowerCase() !==
-            Constants.AuthenticationScheme.DPOP.toLowerCase()
-        ) {
-            return;
-        }
-
-        const accessTokenKeys =
-            this.nativeStorageManager.getTokenKeys().accessToken;
-        for (const cacheKey of accessTokenKeys) {
-            const previousAccessToken =
-                this.nativeStorageManager.getAccessTokenCredential(
-                    cacheKey,
-                    this.correlationId
-                );
-            if (
-                previousAccessToken?.tokenType?.toLowerCase() !==
-                    Constants.AuthenticationScheme.DPOP.toLowerCase() ||
-                !previousAccessToken.keyId ||
-                previousAccessToken.keyId === replacementAccessToken.keyId ||
-                previousAccessToken.homeAccountId !==
-                    replacementAccessToken.homeAccountId ||
-                previousAccessToken.environment !==
-                    replacementAccessToken.environment ||
-                previousAccessToken.clientId !==
-                    replacementAccessToken.clientId ||
-                previousAccessToken.realm !== replacementAccessToken.realm ||
-                previousAccessToken.target.toLowerCase() !==
-                    replacementAccessToken.target.toLowerCase() ||
-                !this.nativeStorageManager.credentialMatchesFilter(
-                    previousAccessToken,
-                    {
-                        additionalCacheKeyComponents:
-                            replacementAccessToken.additionalCacheKeyComponents,
-                    },
-                    this.correlationId
-                )
-            ) {
-                continue;
-            }
-
-            await this.nativeStorageManager.removeAccessTokenAndTokenBindingKey(
-                cacheKey,
-                this.correlationId
-            );
-        }
     }
 
     getExpiresInValue(
@@ -1504,12 +1427,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             validatedRequest.preferBinding =
                 PlatformAuthBindingPreference.ATTESTED;
             validatedRequest.keyId = request.dpopJkt;
-            validatedRequest.dpopKeyOwned =
-                (
-                    request as (PopupRequest | SsoSilentRequest) & {
-                        dpopKeyOwned?: boolean;
-                    }
-                ).dpopKeyOwned === true;
         }
 
         if (hasAttributeTokens) {
@@ -1595,24 +1512,49 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return;
         }
 
-        if (request.reqCnf) {
-            if (reuseExistingKey && request.keyId && request.reqCnf) {
-                if (
-                    request.dpopKeyOwned === true &&
-                    this.tokenBindingKeyManager.hasTokenBindingKey &&
-                    !(await this.tokenBindingKeyManager.hasTokenBindingKey(
-                        request.keyId,
-                        this.correlationId
-                    ))
-                ) {
-                    throw createAuthError(
-                        AuthErrorCodes.unexpectedError,
-                        this.correlationId,
-                        "DPoP request key is unavailable after redirect."
-                    );
-                }
-                return;
+        if (reuseExistingKey) {
+            if (!request.keyId || !request.reqCnf) {
+                throw createAuthError(
+                    AuthErrorCodes.unexpectedError,
+                    this.correlationId,
+                    "DPoP request key binding is incomplete after redirect."
+                );
             }
+
+            const expectedReqCnf = this.createDpopBrokerReqCnf(request.keyId);
+            if (request.reqCnf !== expectedReqCnf) {
+                throw createAuthError(
+                    AuthErrorCodes.unexpectedError,
+                    this.correlationId,
+                    "DPoP request key binding is invalid after redirect."
+                );
+            }
+            const hasKey =
+                this.tokenBindingKeyManager.hasTokenBindingKey !== undefined
+                    ? await this.tokenBindingKeyManager.hasTokenBindingKey(
+                          request.keyId,
+                          this.correlationId
+                      )
+                    : await this.tokenBindingKeyManager
+                          .getTokenBindingPublicKeyJwk(
+                              request.keyId,
+                              this.correlationId
+                          )
+                          .then(
+                              () => true,
+                              () => false
+                          );
+            if (!hasKey) {
+                throw createAuthError(
+                    AuthErrorCodes.unexpectedError,
+                    this.correlationId,
+                    "DPoP request key is unavailable after redirect."
+                );
+            }
+            return;
+        }
+
+        if (request.reqCnf) {
             throw createAuthError(
                 AuthErrorCodes.unexpectedError,
                 this.correlationId,
@@ -1628,11 +1570,19 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
                     correlationId: this.correlationId,
                 });
-            request.dpopKeyOwned = true;
         }
-        request.reqCnf = this.browserCrypto.base64UrlEncode(
+        request.reqCnf = this.createDpopBrokerReqCnf(request.keyId);
+    }
+
+    /**
+     * Creates the confirmation claim for an MSAL-owned broker DPoP key.
+     * @param keyId - Browser-managed DPoP key identifier.
+     * @returns Encoded broker confirmation claim.
+     */
+    private createDpopBrokerReqCnf(keyId: string): string {
+        return this.browserCrypto.base64UrlEncode(
             JSON.stringify({
-                kid: request.keyId,
+                kid: keyId,
                 xms_ksl:
                     PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_KEY_LOCATION,
             })
@@ -1646,7 +1596,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     private async ensureRedirectDpopKeyIsPersisted(
         request: PlatformAuthRequest
     ): Promise<void> {
-        if (request.dpopKeyOwned !== true || !request.keyId) {
+        if (!request.keyId) {
             return;
         }
 
@@ -1683,12 +1633,24 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                   binding_attested?: boolean | string;
               })
             | undefined;
-        const propertyTokenType =
-            responseProperties?.token_type ?? response.token_type;
-        const normalizedResponseTokenType =
-            typeof propertyTokenType === "string"
-                ? propertyTokenType.trim().toLowerCase()
+        const propertyTokenType = responseProperties?.token_type;
+        const topLevelTokenType = response.token_type;
+        const normalizeTokenType = (
+            tokenType: string | undefined
+        ): string | undefined =>
+            typeof tokenType === "string"
+                ? tokenType.trim().toLowerCase()
                 : undefined;
+        const normalizedPropertyTokenType =
+            normalizeTokenType(propertyTokenType);
+        const normalizedTopLevelTokenType =
+            normalizeTokenType(topLevelTokenType);
+        const normalizedResponseTokenType =
+            normalizedPropertyTokenType ?? normalizedTopLevelTokenType;
+        const hasConflictingTokenType =
+            normalizedPropertyTokenType !== undefined &&
+            normalizedTopLevelTokenType !== undefined &&
+            normalizedPropertyTokenType !== normalizedTopLevelTokenType;
         const normalizedRequestTokenType = request.tokenType
             ?.trim()
             .toLowerCase();
@@ -1768,6 +1730,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         if (
             hasConflictingProof ||
+            hasConflictingTokenType ||
             hasMalformedBindingAttested ||
             hasConflictingBindingAttested ||
             (bindingPreferenceSent && normalizedBindingAttested === undefined)
@@ -1826,27 +1789,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
         response.token_type = Constants.AuthenticationScheme.DPOP;
 
-        if (normalizedBindingAttested === true) {
-            if (normalizedRequestTokenType !== dpopTokenType) {
-                throw createAuthError(
-                    AuthErrorCodes.unexpectedError,
-                    this.correlationId,
-                    "Malformed DPoP broker response."
-                );
-            }
-            this.performanceClient.addFields(
-                {
-                    "ext.brokerDpopSupported": true,
-                    "ext.brokerDpopBindingLevel": "L3",
-                },
-                this.correlationId
-            );
-            return "L3";
-        }
-
         if (
-            (normalizedRequestTokenType !== dpopWithProofTokenType &&
-                normalizedRequestTokenType !== dpopTokenType) ||
+            normalizedRequestTokenType !== dpopWithProofTokenType ||
             (normalizedBindingAttested !== false &&
                 !(
                     !bindingPreferenceSent &&
@@ -1911,10 +1855,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         request: PlatformAuthRequest,
         mode: "strict" | "best-effort" = "strict"
     ): Promise<void> {
-        if (
-            !this.isDpopBrokerRequest(request) ||
-            request.dpopKeyOwned !== true
-        ) {
+        if (!this.isDpopBrokerRequest(request) || !request.keyId) {
             return;
         }
 
@@ -1929,7 +1870,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
             request.keyId = undefined;
             request.reqCnf = undefined;
-            request.dpopKeyOwned = undefined;
         } catch (error) {
             if (mode === "strict") {
                 throw error;
@@ -1946,7 +1886,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
             request.keyId = undefined;
             request.reqCnf = undefined;
-            request.dpopKeyOwned = undefined;
         }
     }
 
