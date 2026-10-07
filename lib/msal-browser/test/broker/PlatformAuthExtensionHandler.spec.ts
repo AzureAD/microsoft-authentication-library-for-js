@@ -294,6 +294,8 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             expect(createProviderEvent).toMatchObject({
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 platformAuthProviderAvailable: false,
+                extensionInstalled: false,
+                platformAuthRequestCorrelationId: TEST_CONFIG.CORRELATION_ID,
             });
             expect(createProviderEvent).not.toHaveProperty(
                 "platformAuthProviderType"
@@ -311,35 +313,66 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             ).toBe(false);
         });
 
-        it("Throws timeout error if no extension responds to handshake", (done) => {
+        it("Throws timeout error if no extension responds to handshake", async () => {
+            const events: PerformanceEvent[] = [];
+            const callbackId = performanceClient.addPerformanceCallback(
+                (emittedEvents) => {
+                    events.push(...emittedEvents);
+                }
+            );
             const eventHandler = function (event: MessageEvent) {
                 event.stopImmediatePropagation();
             };
 
             window.addEventListener("message", eventHandler, true);
 
-            PlatformAuthExtensionHandler.createProvider(
-                new Logger({}),
-                2000,
-                performanceClient,
-                TEST_CONFIG.CORRELATION_ID
-            )
-                .catch((e) => {
-                    expect(e).toBeInstanceOf(BrowserAuthError);
-                    expect(e.errorCode).toBe(
+            try {
+                await expect(
+                    PlatformAuthExtensionHandler.createProvider(
+                        new Logger({}),
+                        2000,
+                        performanceClient,
+                        TEST_CONFIG.CORRELATION_ID
+                    )
+                ).rejects.toMatchObject({
+                    errorCode: BrowserAuthErrorCodes.nativeHandshakeTimeout,
+                    errorMessage: getDefaultErrorMessage(
                         BrowserAuthErrorCodes.nativeHandshakeTimeout
-                    );
-                    expect(e.errorMessage).toBe(
-                        getDefaultErrorMessage(
-                            BrowserAuthErrorCodes.nativeHandshakeTimeout
-                        )
-                    );
-                    expect(e.correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
-                    done();
-                })
-                .finally(() => {
-                    window.removeEventListener("message", eventHandler, true);
+                    ),
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
                 });
+
+                const createProviderEvent = events.find(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.PlatformAuthExtensionCreateProvider
+                );
+                expect(createProviderEvent).toBeDefined();
+                expect(createProviderEvent).toMatchObject({
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    platformAuthProviderAvailable: false,
+                    extensionHandshakeTimedOut: true,
+                    platformAuthRequestCorrelationId:
+                        TEST_CONFIG.CORRELATION_ID,
+                });
+                expect(createProviderEvent).not.toHaveProperty(
+                    "platformAuthProviderType"
+                );
+                expect(
+                    createProviderEvent?.ext
+                        ?.nativeMessageHandlerHandshakeDurationMs
+                ).toBeGreaterThanOrEqual(0);
+                expect(
+                    events.some(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.NativeMessageHandlerHandshake
+                    )
+                ).toBe(false);
+            } finally {
+                window.removeEventListener("message", eventHandler, true);
+                performanceClient.removePerformanceCallback(callbackId);
+            }
         });
 
         it("Nests malformed handshake measurements under createProvider", async () => {

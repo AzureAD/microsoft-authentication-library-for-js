@@ -2,6 +2,21 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 06 Oct 2026 20:48:41 GMT",
+      "version": "5.25.0",
+      "tag": "@azure/msal-browser_v5.25.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "f8043926016a9de007aeef2f3a2c301cec1ea7fe",
+            "comment": "Coalesce concurrent platform-broker acquireTokenSilent requests [#8886](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8886)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 02 Oct 2026 19:03:42 GMT",
       "version": "5.24.0",
       "tag": "@azure/msal-browser_v5.24.0",
