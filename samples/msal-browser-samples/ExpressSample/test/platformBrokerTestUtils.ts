@@ -13,6 +13,8 @@ import { BrowserCacheUtils } from "e2e-test-utils";
 const SSO_EXTENSION_PATH = process.env.SSO_EXTENSION_PATH || "";
 const SSO_EXTENSION_ID = "ppnbnpeolgkicgegkbkbjmhlideopiji";
 const SSO_EXTENSION_TIMEOUT = 20000;
+// TODO: Replace these constants when prerequisite validation is delegated to
+// a shared platform-broker environment setup utility.
 const BROWSERCORE_HOST_NAME = "com.microsoft.browsercore";
 const CHROME_FOR_TESTING_NATIVE_HOST_KEYS = [
     `HKCU\\Software\\Google\\Chrome for Testing\\NativeMessagingHosts\\${BROWSERCORE_HOST_NAME}`,
