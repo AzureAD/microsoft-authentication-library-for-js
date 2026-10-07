@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --prebundle=false",
     "build": "npm run postinstall:msal-angular && ng build",
     "postinstall:msal-angular": "node ../sample-scripts/useMsalAngularTarball.js",
     "watch": "ng build --watch --configuration development",
