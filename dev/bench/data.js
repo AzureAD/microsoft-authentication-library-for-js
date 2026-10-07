@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791395291314,
+  "lastUpdate": 1791411020302,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24151,6 +24151,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.24%",
             "unit": "ops/sec",
             "extra": "231 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joarroyo@microsoft.com",
+            "name": "Jo Arroyo",
+            "username": "jo-arroyo"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0430c8131aef81a114243efe09a455a4907255b4",
+          "message": "Remediate October 2026 dependency CVEs (#8887)\n\n## Summary\n\n- Upgrades the MSAL Angular development and sample stack to Angular\n22.2.\n- Updates vulnerable `brace-expansion`, `js-yaml`, `piscina`, and\n`webpack-dev-middleware` resolutions.\n- Addresses the remaining active S360 CVEs affecting the 3P dependency\ntree.\n\n## Validation\n\n- Built, linted, formatted, and tested `msal-angular`.\n- Built the B2C, modules, and standalone Angular samples.\n- Validated the standalone e2e utility lockfile.\n- Verified no tracked lockfile retains the targeted vulnerable versions.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: security\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCopilot-Session: 64d462d1-f425-4b36-a787-08e668d0e611",
+          "timestamp": "2026-10-07T15:02:17-07:00",
+          "tree_id": "63e028d14d1967a583943912c7f79127d1de11a7",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/0430c8131aef81a114243efe09a455a4907255b4"
+        },
+        "date": 1791411017060,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 613580,
+            "range": "±1.35%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 608510,
+            "range": "±1.33%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
