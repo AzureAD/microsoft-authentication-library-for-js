@@ -13,13 +13,9 @@ import { BrowserCacheUtils } from "e2e-test-utils";
 const SSO_EXTENSION_PATH = process.env.SSO_EXTENSION_PATH || "";
 const SSO_EXTENSION_ID = "ppnbnpeolgkicgegkbkbjmhlideopiji";
 const SSO_EXTENSION_TIMEOUT = 20000;
-// TODO: Replace these constants when prerequisite validation is delegated to
-// a shared platform-broker environment setup utility.
-const BROWSERCORE_HOST_NAME = "com.microsoft.browsercore";
-const CHROME_FOR_TESTING_NATIVE_HOST_KEYS = [
-    `HKCU\\Software\\Google\\Chrome for Testing\\NativeMessagingHosts\\${BROWSERCORE_HOST_NAME}`,
-    `HKLM\\Software\\Google\\Chrome for Testing\\NativeMessagingHosts\\${BROWSERCORE_HOST_NAME}`,
-];
+const BROWSERCORE_POLICY_KEY =
+    "HKLM\\SOFTWARE\\Policies\\Microsoft\\BrowserCore";
+const ENABLE_PLATFORM_AUTH_VALUE = "EnablePlatformAuth";
 
 export const PLATFORM_LOGIN_TIMEOUT = 180000;
 
@@ -33,27 +29,20 @@ export interface PlatformBrokerResponse {
     nativeAccountId: string;
 }
 
-/**
- * Returns the BrowserCore native-host manifest path registered for Chrome for
- * Testing, checking the per-user registration before the machine registration.
- */
-function getBrowserCoreManifestPath(): string | undefined {
-    for (const registryKey of CHROME_FOR_TESTING_NATIVE_HOST_KEYS) {
-        try {
-            const output = execFileSync(
-                "reg.exe",
-                ["query", registryKey, "/ve"],
-                { encoding: "utf8" }
-            );
-            const match = output.match(/REG_SZ\s+(.+)\s*$/m);
-            if (match) {
-                return match[1].trim().replace(/^"(.*)"$/, "$1");
-            }
-        } catch {
-            // Try the next supported registry hive.
-        }
+function isPlatformAuthEnabled(): boolean {
+    try {
+        const output = execFileSync(
+            "reg.exe",
+            ["query", BROWSERCORE_POLICY_KEY, "/v", ENABLE_PLATFORM_AUTH_VALUE],
+            { encoding: "utf8" }
+        );
+        return new RegExp(
+            `${ENABLE_PLATFORM_AUTH_VALUE}\\s+REG_DWORD\\s+0x1\\s*$`,
+            "m"
+        ).test(output);
+    } catch {
+        return false;
     }
-    return undefined;
 }
 
 function verifyPlatformBrokerPrerequisites(): void {
@@ -73,35 +62,11 @@ function verifyPlatformBrokerPrerequisites(): void {
         );
     }
 
-    const browserCoreManifestPath = getBrowserCoreManifestPath();
-    if (!browserCoreManifestPath || !fs.existsSync(browserCoreManifestPath)) {
+    if (!isPlatformAuthEnabled()) {
         throw new Error(
-            "BrowserCore native messaging is not configured for Chrome for Testing. " +
-                `Create HKCU\\Software\\Google\\Chrome for Testing\\NativeMessagingHosts\\${BROWSERCORE_HOST_NAME} ` +
-                "and set its (Default) REG_SZ value to the BrowserCore manifest path " +
-                "(typically C:\\Windows\\BrowserCore\\manifest.json)."
-        );
-    }
-
-    let browserCoreManifest: { allowed_origins?: string[] };
-    try {
-        browserCoreManifest = JSON.parse(
-            fs.readFileSync(browserCoreManifestPath, "utf8")
-        ) as { allowed_origins?: string[] };
-    } catch (error) {
-        throw new Error(
-            `Invalid JSON in BrowserCore native host manifest ${browserCoreManifestPath}: ${
-                error instanceof Error ? error.message : String(error)
-            }`
-        );
-    }
-    if (
-        !browserCoreManifest.allowed_origins?.includes(
-            `chrome-extension://${SSO_EXTENSION_ID}/`
-        )
-    ) {
-        throw new Error(
-            `${browserCoreManifestPath} does not allow the Microsoft SSO extension`
+            "BrowserCore platform authentication is disabled. In Registry Editor, " +
+                `create ${BROWSERCORE_POLICY_KEY} and add a REG_DWORD named ` +
+                `${ENABLE_PLATFORM_AUTH_VALUE} with value 1.`
         );
     }
 }
