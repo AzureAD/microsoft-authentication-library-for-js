@@ -736,6 +736,10 @@ export class StandardController implements IController {
             const platformAuthProvider = this.platformAuthProvider;
 
             if (this.canUsePlatformBroker(request) && platformAuthProvider) {
+                const nativeRequest = this.sanitizeNativeBrokerRequest(
+                    request,
+                    correlationId
+                );
                 const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -757,7 +761,7 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     correlationId
-                )(request, atrMeasurement).catch((e: AuthError) => {
+                )(nativeRequest, atrMeasurement).catch((e: AuthError) => {
                     if (
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
@@ -1851,6 +1855,27 @@ export class StandardController implements IController {
     // #region Helpers
 
     /**
+     * Removes internal DPoP key state from application-originated broker requests.
+     */
+    private sanitizeNativeBrokerRequest<T extends { dpopJkt?: string }>(
+        request: T,
+        correlationId: string
+    ): T {
+        if (!request.dpopJkt) {
+            return request;
+        }
+
+        this.logger.warning(
+            "Ignoring caller-provided dpopJkt for a direct platform broker request.",
+            correlationId
+        );
+        return {
+            ...request,
+            dpopJkt: undefined,
+        };
+    }
+
+    /**
      * Acquire a token from native device (e.g. WAM)
      * @param request
      * @param apiId
@@ -1892,6 +1917,10 @@ export class StandardController implements IController {
             correlationId,
             this.nativeTokenBindingKeyManager
         );
+        const nativeRequest = this.sanitizeNativeBrokerRequest(
+            request,
+            correlationId
+        );
 
         return invokeAsync(
             nativeClient.acquireToken.bind(nativeClient),
@@ -1899,7 +1928,7 @@ export class StandardController implements IController {
             this.logger,
             this.performanceClient,
             correlationId
-        )(request, cacheLookupPolicy);
+        )(nativeRequest, cacheLookupPolicy);
     }
 
     /**

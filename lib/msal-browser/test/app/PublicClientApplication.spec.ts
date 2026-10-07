@@ -1702,13 +1702,33 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const redirectSpy: jest.SpyInstance = jest
                 .spyOn(RedirectClient.prototype, "acquireToken")
                 .mockResolvedValue();
-            await pca.acquireTokenRedirect({
+            const warningSpy = jest.spyOn((pca as any).logger, "warning");
+            const callerDpopJkt = "caller-provided-dpop-jkt";
+            const request = {
                 scopes: ["User.Read"],
                 account: testAccount,
-            });
+                correlationId: RANDOM_TEST_GUID,
+                dpopJkt: callerDpopJkt,
+            };
+            await pca.acquireTokenRedirect(request);
 
             expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
             expect(redirectSpy).toHaveBeenCalledTimes(0);
+            expect(
+                (
+                    nativeAcquireTokenSpy.mock.calls[0][0] as {
+                        dpopJkt?: string;
+                    }
+                ).dpopJkt
+            ).toBeUndefined();
+            expect(request.dpopJkt).toBe(callerDpopJkt);
+            expect(warningSpy).toHaveBeenCalledWith(
+                "Ignoring caller-provided dpopJkt for a direct platform broker request.",
+                RANDOM_TEST_GUID
+            );
+            expect(JSON.stringify(warningSpy.mock.calls)).not.toContain(
+                callerDpopJkt
+            );
         });
 
         /*
@@ -5332,15 +5352,30 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
                 .mockResolvedValue(testTokenResponse);
-            const response = await pca.acquireTokenSilent({
+            const warningSpy = jest.spyOn((pca as any).logger, "warning");
+            const callerDpopJkt = "caller-provided-dpop-jkt";
+            const request = {
                 scopes: ["User.Read"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-            });
+                dpopJkt: callerDpopJkt,
+            };
+            const response = await pca.acquireTokenSilent(request);
 
             expect(response).toEqual(testTokenResponse);
             expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
             expect(silentSpy).toHaveBeenCalledTimes(0);
+            expect(nativeAcquireTokenSpy.mock.calls[0][0].dpopJkt).toBe(
+                undefined
+            );
+            expect(request.dpopJkt).toBe(callerDpopJkt);
+            expect(warningSpy).toHaveBeenCalledWith(
+                "Ignoring caller-provided dpopJkt for a direct platform broker request.",
+                RANDOM_TEST_GUID
+            );
+            expect(JSON.stringify(warningSpy.mock.calls)).not.toContain(
+                callerDpopJkt
+            );
         });
 
         it("falls back to web flow if platform broker call fails due to fatal error", async () => {
