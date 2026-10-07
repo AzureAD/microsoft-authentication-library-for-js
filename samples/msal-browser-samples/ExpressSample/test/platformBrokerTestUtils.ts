@@ -33,6 +33,10 @@ export interface PlatformBrokerResponse {
     nativeAccountId: string;
 }
 
+/**
+ * Returns the BrowserCore native-host manifest path registered for Chrome for
+ * Testing, checking the per-user registration before the machine registration.
+ */
 function getBrowserCoreManifestPath(): string | undefined {
     for (const registryKey of CHROME_FOR_TESTING_NATIVE_HOST_KEYS) {
         try {
@@ -72,8 +76,10 @@ function verifyPlatformBrokerPrerequisites(): void {
     const browserCoreManifestPath = getBrowserCoreManifestPath();
     if (!browserCoreManifestPath || !fs.existsSync(browserCoreManifestPath)) {
         throw new Error(
-            `${BROWSERCORE_HOST_NAME} must be registered for Chrome for Testing under ` +
-                "HKCU or HKLM\\Software\\Google\\Chrome for Testing\\NativeMessagingHosts"
+            "BrowserCore native messaging is not configured for Chrome for Testing. " +
+                `Create HKCU\\Software\\Google\\Chrome for Testing\\NativeMessagingHosts\\${BROWSERCORE_HOST_NAME} ` +
+                "and set its (Default) REG_SZ value to the BrowserCore manifest path " +
+                "(typically C:\\Windows\\BrowserCore\\manifest.json)."
         );
     }
 
