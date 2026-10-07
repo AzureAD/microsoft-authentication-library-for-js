@@ -40,7 +40,7 @@
   "devDependencies": {
     "@angular-devkit/build-angular": "^22.1.0",
     "@angular/animations": "^22.1.0",
-    "@angular/cli": "^22.1.0",
+    "@angular/cli": "^22.2.2",
     "@angular/common": "^22.1.0",
     "@angular/compiler": "^22.1.0",
     "@angular/compiler-cli": "^22.1.0",
