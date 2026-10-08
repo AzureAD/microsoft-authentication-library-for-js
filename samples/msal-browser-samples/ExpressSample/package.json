@@ -11,7 +11,8 @@
         "start:ear-kmsi:e2e": "env-cmd -f .env.ear-kmsi.e2e npm start",
         "test:e2e": "jest",
         "test:e2e:kmsi": "jest kmsi-basic",
-        "test:e2e:platform-broker-kmsi": "jest platform-broker-kmsi",
+        "test:e2e:platform-broker-kmsi": "jest --runTestsByPath test/platform-broker-kmsi.spec.ts",
+        "test:e2e:ear-platform-broker-kmsi": "jest --runTestsByPath test/ear-platform-broker-kmsi.spec.ts",
         "build:package": "npm run build:all --workspace=lib/msal-browser"
     },
     "dependencies": {

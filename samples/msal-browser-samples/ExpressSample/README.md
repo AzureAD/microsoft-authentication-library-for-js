@@ -97,6 +97,14 @@ The local-only [`./test/platform-broker-kmsi.spec.ts`](./test/platform-broker-km
 npm run test:e2e:platform-broker-kmsi
 ```
 
+The local-only [`./test/ear-platform-broker-kmsi.spec.ts`](./test/ear-platform-broker-kmsi.spec.ts) suite covers the combined KMSI + EAR + platform-broker scenario using `?ear=true&platformBroker=true`. It verifies EAR processing, broker provenance and cache behavior, then closes the entire browser and silently restores the same account from the persistent profile:
+
+```powershell
+npm run test:e2e:ear-platform-broker-kmsi
+```
+
+This combined suite requires a WAM-enabled Windows machine, the Microsoft SSO extension configured through `SSO_EXTENSION_PATH`, and `com.microsoft.browsercore` registered for Chrome for Testing. It fails with an actionable prerequisite error instead of falling back to a web flow. Keep it local/self-hosted-only until the e2e pipeline has a suitable WAM-enabled Windows agent.
+
 ## Learn more
 
 - [MSAL.js documentation](../../../lib/msal-browser/README.md)
