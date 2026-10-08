@@ -1,0 +1,3 @@
+No actionable code findings were supplied. The only finding was marked `info`: the pipeline monitor failed because its `Org` argument was empty, before retrieving CI results.
+
+Recorded it as `wontfix` per the skip rule. No files were changed; CI status remains unverified until the monitor runs with a valid organization value.
