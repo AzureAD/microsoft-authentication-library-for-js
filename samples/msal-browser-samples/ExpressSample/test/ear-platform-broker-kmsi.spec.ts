@@ -4,13 +4,14 @@
  */
 
 import * as path from "path";
-import { spawn, ChildProcess } from "child_process";
+import { ChildProcess, spawn } from "child_process";
 import * as puppeteer from "puppeteer";
 import {
     BrowserCacheUtils,
     Screenshot,
     verifyKmsiFromResponse,
 } from "e2e-test-utils";
+import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
 import {
     createPlatformBrokerProfile,
     launchPlatformBrokerBrowser,
@@ -24,14 +25,17 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serverUtils = require("../../../e2eTestUtils/jest-puppeteer-utils/serverUtils");
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/platformBrokerKmsi`;
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/earPlatformBrokerKmsi`;
 const EXPRESS_SAMPLE_ROOT = path.join(__dirname, "..");
 const SERVER_PORT = 3443;
 const SERVER_START_CMD = "npm run start:ear-kmsi:e2e";
-const PLATFORM_BROKER_URL = `https://localhost:${SERVER_PORT}/?platformBroker=true`;
+const TEST_ORIGIN = `https://localhost:${SERVER_PORT}`;
+const TEST_URL = `${TEST_ORIGIN}/?ear=true&platformBroker=true`;
 const CACHE_LOCATION = "localStorage";
+const EAR_CRYPTO_ALGORITHM = "AES-GCM";
+const PAGE_NAVIGATION_TIMEOUT = 60000;
 
-describe("Platform Broker + Keep Me Signed In Tests", () => {
+describe("EAR + Platform Broker + Keep Me Signed In Tests", () => {
     let browser: puppeteer.Browser | undefined;
     let profile: PlatformBrokerProfile | undefined;
     let serverProcess: ChildProcess | undefined;
@@ -69,7 +73,7 @@ describe("Platform Broker + Keep Me Signed In Tests", () => {
         removePlatformBrokerProfile(profile);
     });
 
-    it("persists a KMSI platform-broker sign-in across browser sessions", async () => {
+    it("restores an EAR KMSI platform-broker sign-in after a browser restart", async () => {
         if (!profile) {
             throw new Error("Platform-broker browser profile was not created");
         }
@@ -79,19 +83,39 @@ describe("Platform Broker + Keep Me Signed In Tests", () => {
         browser = await launchPlatformBrokerBrowser(profile);
         let page = await browser.newPage();
         let browserCache = new BrowserCacheUtils(page, CACHE_LOCATION);
+        let flowUtils = new AuthenticationFlowTestUtils(page);
+        await flowUtils.installCryptoOperationSpy(
+            TEST_ORIGIN,
+            EAR_CRYPTO_ALGORITHM
+        );
 
-        await page.goto(PLATFORM_BROKER_URL, { timeout: 10000 });
+        await page.goto(TEST_URL, { timeout: PAGE_NAVIGATION_TIMEOUT });
+        await flowUtils.assertCryptoOperationSpyInstalled(EAR_CRYPTO_ALGORITHM);
         await page.locator("button#signInButton").click();
         await page.locator("a#signInRedirect").click();
         await page.waitForSelector("a#viewProfileButton", {
             visible: true,
             timeout: PLATFORM_LOGIN_TIMEOUT,
         });
-        await screenshot.takeScreenshot(page, "Initial broker sign-in");
+        await screenshot.takeScreenshot(page, "Initial combined sign-in");
 
-        await verifyPlatformBrokerResponse(page);
+        expect(flowUtils.getRequestCount("/authorize", "POST")).toBeGreaterThan(
+            0
+        );
+        expect(flowUtils.getFragmentParameterCount("ear_jwe")).toBeGreaterThan(
+            0
+        );
+        expect(
+            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
+        ).toBeGreaterThan(0);
+        const initialBrokerResponse = await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(browserCache);
         await verifyKmsiFromResponse(page);
+        const initialAccountKeys = await browserCache.getAccountFromCache();
+        expect(initialAccountKeys).toHaveLength(1);
+        console.info(
+            "Combined-flow diagnostics: EAR response decrypted; platform broker provenance and KMSI verified"
+        );
 
         await browser.close();
         browser = undefined;
@@ -99,8 +123,14 @@ describe("Platform Broker + Keep Me Signed In Tests", () => {
         browser = await launchPlatformBrokerBrowser(profile);
         page = await browser.newPage();
         browserCache = new BrowserCacheUtils(page, CACHE_LOCATION);
+        flowUtils = new AuthenticationFlowTestUtils(page);
+        await flowUtils.installCryptoOperationSpy(
+            TEST_ORIGIN,
+            EAR_CRYPTO_ALGORITHM
+        );
 
-        await page.goto(PLATFORM_BROKER_URL, { timeout: 10000 });
+        await page.goto(TEST_URL, { timeout: PAGE_NAVIGATION_TIMEOUT });
+        await flowUtils.assertCryptoOperationSpyInstalled(EAR_CRYPTO_ALGORITHM);
         let popupOpened = false;
         page.once("popup", () => {
             popupOpened = true;
@@ -114,11 +144,29 @@ describe("Platform Broker + Keep Me Signed In Tests", () => {
             visible: true,
             timeout: PLATFORM_LOGIN_TIMEOUT,
         });
-        await screenshot.takeScreenshot(page, "Silent broker sign-in restored");
+        await screenshot.takeScreenshot(page, "Combined sign-in restored");
 
         expect(popupOpened).toBe(false);
-        await verifyPlatformBrokerResponse(page);
+        expect(flowUtils.getRequestCount("/authorize", "POST")).toBeGreaterThan(
+            0
+        );
+        expect(flowUtils.getFragmentParameterCount("ear_jwe")).toBeGreaterThan(
+            0
+        );
+        expect(
+            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
+        ).toBeGreaterThan(0);
+        const restoredBrokerResponse = await verifyPlatformBrokerResponse(page);
+        expect(restoredBrokerResponse.nativeAccountId).toBe(
+            initialBrokerResponse.nativeAccountId
+        );
         await verifyPlatformBrokerTokenStore(browserCache);
         await verifyKmsiFromResponse(page);
+        expect(await browserCache.getAccountFromCache()).toEqual(
+            initialAccountKeys
+        );
+        console.info(
+            "Combined-flow diagnostics: browser restart restored the same broker account silently"
+        );
     }, 300000);
 });

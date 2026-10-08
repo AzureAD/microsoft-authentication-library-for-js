@@ -81,8 +81,8 @@ const event: PerformanceEvent = {
 
 The complete details for `PerformanceEvents` objects can be found [here](../../msal-common/src/telemetry/performance/PerformanceEvent.ts). Below is a list of some notable properties:
 
-| **Property**                       | Type      | Description                                                            |
-| ---------------------------------- | --------- | ---------------------------------------------------------------------- |
+| **Property**                       | Type      | Description                                                                                                                   |
+| ---------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | `name`                             | `string`  | Name of the operation, usually matches the top-level API name (e.g. `acquireTokenSilent`, `acquireTokenByCode`, `ssoSilent`). |
 | `durationMs`                       | `number`  | End-to-end duration in milliseconds for the operation.                 |
 | `success`                          | `boolean` | Whether the operation was successful or not.                           |

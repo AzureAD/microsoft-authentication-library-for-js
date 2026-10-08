@@ -1,8 +1,31 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 23 Sep 2026 15:49:43 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 06 Oct 2026 20:48:41 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.25.0
+
+Tue, 06 Oct 2026 20:48:41 GMT
+
+### Minor changes
+
+- Coalesce concurrent platform-broker acquireTokenSilent requests [#8886](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8886) (kshabelko@microsoft.com)
+
+## 5.24.0
+
+Fri, 02 Oct 2026 19:03:42 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+- Bump @azure/msal-common to v16.14.2
+
+### Patches
+
+- Validate cache broadcast context and reload values from persistent storage [#8869](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8869) (spingale@microsoft.com)
+- Add observability across extension and DOM platform broker flows [#8824](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8824) (lalimasharda@microsoft.com)
+- Allow platform broker token requests with empty scopes [#8863](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8863) (lalima.sharda@gmail.com)
 
 ## 5.23.0
 
