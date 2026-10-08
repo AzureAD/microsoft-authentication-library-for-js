@@ -30,6 +30,7 @@ export interface OAuthFormRequestV2 {
  */
 export interface AuthorizeChallengeEntryRequestV2 extends OAuthFormRequestV2 {
     scope?: string;
+    claims?: string;
 }
 
 /*

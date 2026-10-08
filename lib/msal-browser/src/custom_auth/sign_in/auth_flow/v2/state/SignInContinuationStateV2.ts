@@ -23,13 +23,12 @@ export class SignInContinuationStateV2 extends AuthFlowActionRequiredStateBase<S
 
     /**
      * Signs the user in using the continuation established by the completed V2
-     * flow. On success the returned result reaches the completed state
-     * carrying the signed-in account data; on failure the result's error reports
-     * why the follow-up sign-in could not complete.
-     * @param inputs - Optional scopes requested for the issued token. Claims
-     * are accepted for API alignment but are not sent until the V2 service
-     * supports them on authorize-challenge.
-     * @returns The result of signing in after the password reset.
+     * flow. The result either reaches the completed state with the signed-in
+     * account data or reports why the follow-up sign-in could not complete.
+     * Supplied scopes override retained scopes; when omitted, the original
+     * scopes are used.
+     * @param inputs - Optional token request inputs.
+     * @returns The result of completing the continuation sign-in.
      */
     async signIn(
         inputs?: SignInContinuationInputsV2
@@ -38,6 +37,16 @@ export class SignInContinuationStateV2 extends AuthFlowActionRequiredStateBase<S
             this.stateParameters;
 
         try {
+            if (
+                inputs?.scopes !== undefined &&
+                inputs.scopes !== null
+            ) {
+                ArgumentValidator.ensureArgumentIsStringArray(
+                    "inputs.scopes",
+                    inputs.scopes,
+                    correlationId
+                );
+            }
             if (inputs?.claims) {
                 ArgumentValidator.ensureArgumentIsJSONString(
                     "inputs.claims",
@@ -51,7 +60,8 @@ export class SignInContinuationStateV2 extends AuthFlowActionRequiredStateBase<S
             const result = await flowClient.signInWithContinuation({
                 correlationId,
                 continuationState,
-                scopes: inputs?.scopes,
+                scopes:
+                    inputs?.scopes ?? continuationState.tokenRequest?.scopes,
             });
 
             const account = new CustomAuthAccountData(

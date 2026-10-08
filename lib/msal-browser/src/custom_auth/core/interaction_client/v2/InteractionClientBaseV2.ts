@@ -86,7 +86,7 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
         throw new MethodNotImplementedError("InteractionClientBaseV2.logout");
     }
 
-    protected getScopes(scopes: string[] | undefined): string[] {
+    protected getScopes(scopes: string[] | null | undefined): string[] {
         const requestedScopes = scopes?.filter((scope) => !!scope) ?? [];
         const seenScopes = new Set(
             requestedScopes.map((scope) => scope.toLowerCase())

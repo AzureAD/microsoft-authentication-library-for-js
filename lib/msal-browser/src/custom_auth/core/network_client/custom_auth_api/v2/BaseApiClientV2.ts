@@ -75,7 +75,8 @@ export abstract class BaseApiClientV2 {
      */
     async authorizeChallengeStart(
         context: RequestContextV2,
-        scopes?: string[]
+        scopes?: string[],
+        claims?: string
     ): Promise<AuthorizeChallengeEntryResultV2> {
         const request: AuthorizeChallengeEntryRequestV2 = {
             client_id: this.clientId,
@@ -83,6 +84,10 @@ export abstract class BaseApiClientV2 {
 
         if (scopes?.length) {
             request.scope = scopes.join(" ");
+        }
+
+        if (claims) {
+            request.claims = claims;
         }
 
         const parsedResponse =

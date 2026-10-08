@@ -194,8 +194,14 @@ describe("FlowInteractionClientV2", () => {
                     username: "test-user",
                 },
                 scopes: ["User.Read"],
+                claims: '{"id_token":{"auth_time":{"essential":true}}}',
             });
 
+            expect(apiClient.authorizeChallengeStart).toHaveBeenCalledWith(
+                expect.objectContaining({ correlationId }),
+                ["User.Read", "openid", "profile", "offline_access"],
+                '{"id_token":{"auth_time":{"essential":true}}}'
+            );
             expect(apiClient.submitSignUpAttributes).toHaveBeenCalledWith(
                 "https://endpoint/signup/submitattributes",
                 {
@@ -394,10 +400,13 @@ describe("FlowInteractionClientV2", () => {
                 correlationId,
                 username: "user@contoso.com",
                 scopes: ["User.Read"],
+                claims: '{"access_token":{"acrs":{"value":"c4"}}}',
             });
 
             expect(apiClient.authorizeChallengeStart).toHaveBeenCalledWith(
-                expect.objectContaining({ correlationId })
+                expect.objectContaining({ correlationId }),
+                ["User.Read", "openid", "profile", "offline_access"],
+                '{"access_token":{"acrs":{"value":"c4"}}}'
             );
             expect(apiClient.signInStart).toHaveBeenCalledWith(
                 "https://endpoint/sign-in",
@@ -723,10 +732,14 @@ describe("FlowInteractionClientV2", () => {
             const result = await client.resetPassword({
                 correlationId,
                 username: "user@contoso.com",
+                scopes: ["User.Read"],
+                claims: '{"id_token":{"auth_time":{"essential":true}}}',
             });
 
             expect(apiClient.authorizeChallengeStart).toHaveBeenCalledWith(
-                expect.objectContaining({ correlationId })
+                expect.objectContaining({ correlationId }),
+                ["User.Read", "openid", "profile", "offline_access"],
+                '{"id_token":{"auth_time":{"essential":true}}}'
             );
             expect(apiClient.resetPasswordStart).toHaveBeenCalledWith(
                 "https://endpoint/reset-password",
@@ -759,6 +772,9 @@ describe("FlowInteractionClientV2", () => {
                         challenge: "https://endpoint/challenge",
                         verify: "https://endpoint/verify",
                         resend: "https://endpoint/resend",
+                    },
+                    tokenRequest: {
+                        scopes: ["User.Read"],
                     },
                 },
             });

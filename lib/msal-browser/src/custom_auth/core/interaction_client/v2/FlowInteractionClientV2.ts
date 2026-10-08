@@ -142,8 +142,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         this.logger.verbose("Starting V2 sign-in.", correlationId);
 
+        const scopes = this.getScopes(parameters.scopes);
         const entryResult = await this.apiClient.authorizeChallengeStart(
-            context
+            context,
+            scopes,
+            parameters.claims
         );
         const startResult = await this.apiClient.signInStart(
             this.requireLink(correlationId, entryResult.signInHref, {
@@ -169,7 +172,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             scenario: CustomAuthFlowScenarioV2.SignIn,
             links: {},
             tokenRequest: {
-                scopes: parameters.scopes,
+                scopes: parameters.scopes ?? undefined,
             },
         };
         const methods = startResult.methods.map((method) => ({
@@ -231,9 +234,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         this.logger.verbose("Starting V2 sign-up.", correlationId);
 
+        const scopes = this.getScopes(parameters.scopes);
         const entryResult = await this.apiClient.authorizeChallengeStart(
             context,
-            parameters.scopes
+            scopes,
+            parameters.claims
         );
         const startResult = await this.apiClient.signUpStart(
             this.requireLink(correlationId, entryResult.signUpHref, {
@@ -270,7 +275,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             scenario: CustomAuthFlowScenarioV2.SignUp,
             links: {},
             tokenRequest: {
-                scopes: parameters.scopes,
+                scopes: parameters.scopes ?? undefined,
             },
             signUp: {
                 passwordWasSupplied: attributes.password !== undefined,
@@ -318,8 +323,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             correlationId
         );
 
+        const scopes = this.getScopes(parameters.scopes);
         const entryResult = await this.apiClient.authorizeChallengeStart(
-            context
+            context,
+            scopes,
+            parameters.claims
         );
         const startResult = await this.apiClient.resetPasswordStart(
             this.requireLink(correlationId, entryResult.resetPasswordHref, {
@@ -343,6 +351,12 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             continuationToken: startResult.continuationToken,
             scenario: CustomAuthFlowScenarioV2.PasswordReset,
             links: {},
+            ...(parameters.scopes !== undefined &&
+                parameters.scopes !== null && {
+                tokenRequest: {
+                    scopes: parameters.scopes,
+                },
+            }),
         };
         const methods = startResult.methods.map((method) => ({
             id: method.id,
@@ -493,6 +507,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     continuationToken: verifyResult.continuationToken,
                     scenario: continuationState.scenario,
                     links: { update: verifyResult.updateHref },
+                    tokenRequest: continuationState.tokenRequest,
                 },
             });
         }
@@ -716,6 +731,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationToken: completionToken,
                 scenario: continuationState.scenario,
                 links: {},
+                tokenRequest: continuationState.tokenRequest,
             },
         });
     }

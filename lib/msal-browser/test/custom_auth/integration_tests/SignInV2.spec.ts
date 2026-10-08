@@ -232,9 +232,36 @@ describe("Sign-in V2 entry", () => {
             passwordState["stateParameters"].continuationState.tokenRequest
         ).not.toHaveProperty("claims");
 
-        for (const [, options] of (fetch as jest.Mock).mock.calls) {
+        const [, entryOptions] = (fetch as jest.Mock).mock.calls[0];
+        expect(entryOptions.body).toBeInstanceOf(URLSearchParams);
+        expect((entryOptions.body as URLSearchParams).get("scope")).toBe(
+            "User.Read openid profile offline_access"
+        );
+        expect((entryOptions.body as URLSearchParams).get("claims")).toBe(
+            '{"id_token":{}}'
+        );
+
+        for (const [, options] of (fetch as jest.Mock).mock.calls.slice(1)) {
             expect(options.body.toString()).not.toContain("claims");
         }
+    });
+
+    it("uses only basic scopes when scopes is null", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(MULTI_METHOD_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE));
+
+        const result = await app.signInV2({
+            username: "user@contoso.com",
+            scopes: null,
+        });
+
+        expect(result.isFailed()).toBe(false);
+        const [, entryOptions] = (fetch as jest.Mock).mock.calls[0];
+        expect((entryOptions.body as URLSearchParams).get("scope")).toBe(
+            "openid profile offline_access"
+        );
     });
 
     it("prefers email OTP when no password is supplied", async () => {
@@ -611,6 +638,17 @@ describe("Sign-in V2 entry", () => {
         const result = await app.signInV2({
             username: "user@contoso.com",
             claims: "not-json",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidInput()).toBe(true);
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it("rejects malformed scopes without sending a request", async () => {
+        const result = await app.signInV2({
+            username: "user@contoso.com",
+            scopes: ["User.Read", 1] as unknown as string[],
         });
 
         expect(result.isFailed()).toBe(true);

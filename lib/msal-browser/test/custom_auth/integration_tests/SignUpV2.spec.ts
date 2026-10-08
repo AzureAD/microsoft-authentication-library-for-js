@@ -112,6 +112,28 @@ describe("Sign-up V2 entry", () => {
         }
     );
 
+    it("rejects malformed claims without sending a request", async () => {
+        const result = await app.signUpV2({
+            username: "user@contoso.com",
+            claims: "not-json",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidInput()).toBe(true);
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it("rejects malformed scopes without sending a request", async () => {
+        const result = await app.signUpV2({
+            username: "user@contoso.com",
+            scopes: "User.Read" as unknown as string[],
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidInput()).toBe(true);
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
     it("starts sign-up, submits initial data, and returns email code required", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
@@ -161,12 +183,16 @@ describe("Sign-up V2 entry", () => {
         const [, entryOptions] = (fetch as jest.Mock).mock.calls[0];
         const entryBody = new URLSearchParams(entryOptions.body);
         expect(entryBody.get("client_id")).toBe(customAuthConfig.auth.clientId);
-        expect(entryBody.get("scope")).toBe("openid User.Read");
+        expect(entryBody.get("scope")).toBe(
+            "openid User.Read profile offline_access"
+        );
+        expect(entryBody.get("claims")).toBe('{"id_token":{}}');
 
         const [, startOptions] = (fetch as jest.Mock).mock.calls[1];
         expect(JSON.parse(startOptions.body)).toEqual({
             continuationToken: "ct-entry",
         });
+        expect(startOptions.body).not.toContain("claims");
 
         const [, submitOptions] = (fetch as jest.Mock).mock.calls[2];
         expect(JSON.parse(submitOptions.body)).toEqual({
@@ -177,6 +203,7 @@ describe("Sign-up V2 entry", () => {
                 password: "valid-password",
             },
         });
+        expect(submitOptions.body).not.toContain("claims");
     });
 
     it.each([
