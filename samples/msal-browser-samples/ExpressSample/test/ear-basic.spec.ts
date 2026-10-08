@@ -11,6 +11,7 @@ import {
     AppTypes,
     BrowserCacheUtils,
 } from "e2e-test-utils";
+import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
 
 // CommonJS helper; require by relative path.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -30,76 +31,7 @@ const EAR_QUERY_STRING = "?ear=true";
 const EAR_CACHE_LOCATION = "sessionStorage";
 const EAR_SCOPES = ["User.Read"];
 const EAR_ORIGIN = `https://localhost:${EAR_PORT}`;
-// sessionStorage key for the decrypt spy count.
-const EAR_DECRYPT_COUNT_KEY = "__earDecryptCount";
-
-/** True when /authorize used POST (EAR posts the encrypted JWK). */
-function isAuthorizePost(request: puppeteer.HTTPRequest): boolean {
-    return request.url().includes("/authorize") && request.method() === "POST";
-}
-
-/** True when a POST hit /token (token refresh). */
-function isTokenPost(request: puppeteer.HTTPRequest): boolean {
-    return request.url().includes("/token") && request.method() === "POST";
-}
-
-/** AES-GCM decrypt count; non-zero proves the EAR response was decrypted. */
-async function getEarDecryptCount(target: puppeteer.Page): Promise<number> {
-    return target.evaluate(
-        (key) => parseInt(window.sessionStorage.getItem(key) || "0", 10),
-        EAR_DECRYPT_COUNT_KEY
-    );
-}
-
-/** Installs the AES-GCM decrypt spy on every same-origin document. */
-async function installEarDecryptSpy(target: puppeteer.Page): Promise<void> {
-    await target.evaluateOnNewDocument(
-        (config: { origin: string; key: string }) => {
-            try {
-                if (window.location.origin !== config.origin) {
-                    return;
-                }
-                if (!window.crypto || !window.crypto.subtle) {
-                    return;
-                }
-                const realDecrypt = window.crypto.subtle.decrypt.bind(
-                    window.crypto.subtle
-                );
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (window.crypto.subtle as any).decrypt = function (
-                    algorithm: AlgorithmIdentifier,
-                    key: CryptoKey,
-                    data: BufferSource
-                ) {
-                    const algName =
-                        typeof algorithm === "string"
-                            ? algorithm
-                            : algorithm.name;
-                    if (algName === "AES-GCM") {
-                        try {
-                            const next =
-                                parseInt(
-                                    window.sessionStorage.getItem(config.key) ||
-                                        "0",
-                                    10
-                                ) + 1;
-                            window.sessionStorage.setItem(
-                                config.key,
-                                String(next)
-                            );
-                        } catch (e) {
-                            // ignore storage errors
-                        }
-                    }
-                    return realDecrypt(algorithm, key, data);
-                };
-            } catch (e) {
-                // best-effort spy: never break the auth flow
-            }
-        },
-        { origin: EAR_ORIGIN, key: EAR_DECRYPT_COUNT_KEY }
-    );
-}
+const EAR_CRYPTO_ALGORITHM = "AES-GCM";
 
 /** Interactive EAR redirect login; seeds session + cache for the silent tests. */
 async function performRedirectLogin(
@@ -126,6 +58,7 @@ describe("EAR Tests", () => {
     let username = "";
     let accountPwd = "";
     let BrowserCache: BrowserCacheUtils;
+    let flowUtils: AuthenticationFlowTestUtils;
     let earServerProcess: ChildProcess;
 
     beforeAll(async () => {
@@ -186,11 +119,15 @@ describe("EAR Tests", () => {
         context = await browser.createBrowserContext();
         page = await context.newPage();
         BrowserCache = new BrowserCacheUtils(page, EAR_CACHE_LOCATION);
-        // WebCrypto decrypt spy, re-applied on every same-origin document.
-        await installEarDecryptSpy(page);
+        flowUtils = new AuthenticationFlowTestUtils(page);
+        await flowUtils.installCryptoOperationSpy(
+            EAR_ORIGIN,
+            EAR_CRYPTO_ALGORITHM
+        );
         await page.goto(`https://localhost:${EAR_PORT}/${EAR_QUERY_STRING}`, {
             timeout: 10000,
         });
+        await flowUtils.assertCryptoOperationSpyInstalled(EAR_CRYPTO_ALGORITHM);
     });
 
     afterEach(async () => {
@@ -206,14 +143,6 @@ describe("EAR Tests", () => {
         );
         await screenshot.takeScreenshot(page, "Page loaded");
 
-        // EAR posts /authorize; capture the method to assert the protocol.
-        let authorizeWasPost = false;
-        page.on("request", (request) => {
-            if (isAuthorizePost(request)) {
-                authorizeWasPost = true;
-            }
-        });
-
         await page.locator("button#signInButton").click();
         await page.locator("a#signInRedirect").click();
         await screenshot.takeScreenshot(page, "Sign in redirect clicked");
@@ -227,9 +156,13 @@ describe("EAR Tests", () => {
         });
         await screenshot.takeScreenshot(page, "Logged In");
 
-        expect(authorizeWasPost).toBe(true);
+        expect(flowUtils.getRequestCount("/authorize", "POST")).toBeGreaterThan(
+            0
+        );
         // MSAL decrypted the EAR response (ear_jwe), not an auth-code fallback.
-        expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
+        expect(
+            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
+        ).toBeGreaterThan(0);
         // Cache has Account, idToken, AccessToken, RefreshToken (RT inline via EAR).
         await BrowserCache.verifyTokenStore({ scopes: EAR_SCOPES });
     });
@@ -242,16 +175,14 @@ describe("EAR Tests", () => {
 
         await page.locator("button#signInButton").click();
 
-        let authorizeWasPost = false;
+        let popupFlowUtils: AuthenticationFlowTestUtils | undefined;
         const newPopupWindowPromise = new Promise<puppeteer.Page | null>(
             (resolve) =>
                 page.once("popup", (popupPage) => {
                     if (popupPage) {
-                        popupPage.on("request", (request) => {
-                            if (isAuthorizePost(request)) {
-                                authorizeWasPost = true;
-                            }
-                        });
+                        popupFlowUtils = new AuthenticationFlowTestUtils(
+                            popupPage
+                        );
                     }
                     resolve(popupPage);
                 })
@@ -273,9 +204,13 @@ describe("EAR Tests", () => {
         await screenshot.takeScreenshot(page, "Logged In");
 
         // POST /authorize -> EAR flow was used, not auth-code GET.
-        expect(authorizeWasPost).toBe(true);
+        expect(
+            popupFlowUtils?.getRequestCount("/authorize", "POST")
+        ).toBeGreaterThan(0);
         // MSAL decrypted the EAR response (ear_jwe) in this window.
-        expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
+        expect(
+            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
+        ).toBeGreaterThan(0);
         // Cache has Account, idToken, AccessToken, RefreshToken (RT inline via EAR).
         await BrowserCache.verifyTokenStore({ scopes: EAR_SCOPES });
     });
@@ -289,25 +224,31 @@ describe("EAR Tests", () => {
         // Seed an interactive EAR login so ssoSilent has an ESTS session + account.
         await performRedirectLogin(page, screenshot, username, accountPwd);
 
-        // ssoSilent runs a hidden-iframe authorize; EAR POSTs /authorize + decrypts.
-        let ssoAuthorizeWasPost = false;
-        page.on("request", (request) => {
-            if (isAuthorizePost(request)) {
-                ssoAuthorizeWasPost = true;
-            }
-        });
-        const decryptCountBefore = await getEarDecryptCount(page);
+        const authorizeCountBefore = flowUtils.getRequestCount(
+            "/authorize",
+            "POST"
+        );
+        const decryptCountBefore = await flowUtils.getCryptoOperationCount(
+            EAR_CRYPTO_ALGORITHM
+        );
 
         await page.locator("button#ssoSilentButton").click();
-        await page.waitForSelector("div#silentStatus[data-status=\"ssoSilent:success\"]", {
-            timeout: 30000,
-        });
+        await page.waitForSelector(
+            'div#silentStatus[data-status="ssoSilent:success"]',
+            {
+                timeout: 30000,
+            }
+        );
         await screenshot.takeScreenshot(page, "ssoSilent completed");
 
         // Silent EAR authorize used POST /authorize (not an auth-code GET).
-        expect(ssoAuthorizeWasPost).toBe(true);
+        expect(flowUtils.getRequestCount("/authorize", "POST")).toBeGreaterThan(
+            authorizeCountBefore
+        );
         // A new ear_jwe was decrypted during the silent authorize.
-        expect(await getEarDecryptCount(page)).toBeGreaterThan(decryptCountBefore);
+        expect(
+            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
+        ).toBeGreaterThan(decryptCountBefore);
         // Token store still holds a full EAR token set after the silent renewal.
         await BrowserCache.verifyTokenStore({ scopes: EAR_SCOPES });
     });
@@ -323,17 +264,14 @@ describe("EAR Tests", () => {
 
         // acquireTokenSilent(forceRefresh) renews the AT from the cached RT via
         // /token POST; no new /authorize or decrypt.
-        let tokenWasPost = false;
-        let authorizeWasPost = false;
-        page.on("request", (request) => {
-            if (isTokenPost(request)) {
-                tokenWasPost = true;
-            }
-            if (isAuthorizePost(request)) {
-                authorizeWasPost = true;
-            }
-        });
-        const decryptCountBefore = await getEarDecryptCount(page);
+        const tokenCountBefore = flowUtils.getRequestCount("/token", "POST");
+        const authorizeCountBefore = flowUtils.getRequestCount(
+            "/authorize",
+            "POST"
+        );
+        const decryptCountBefore = await flowUtils.getCryptoOperationCount(
+            EAR_CRYPTO_ALGORITHM
+        );
 
         await page.locator("button#acquireTokenSilentButton").click();
         await page.waitForSelector(
@@ -343,10 +281,16 @@ describe("EAR Tests", () => {
         await screenshot.takeScreenshot(page, "acquireTokenSilent completed");
 
         // RT -> AT exchange happened over /token.
-        expect(tokenWasPost).toBe(true);
+        expect(flowUtils.getRequestCount("/token", "POST")).toBeGreaterThan(
+            tokenCountBefore
+        );
         // No new EAR authorize and no new decrypt: the RT grant was used, not EAR.
-        expect(authorizeWasPost).toBe(false);
-        expect(await getEarDecryptCount(page)).toBe(decryptCountBefore);
+        expect(flowUtils.getRequestCount("/authorize", "POST")).toBe(
+            authorizeCountBefore
+        );
+        expect(
+            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
+        ).toBe(decryptCountBefore);
         // Token store still holds a full EAR token set after the silent renewal.
         await BrowserCache.verifyTokenStore({ scopes: EAR_SCOPES });
     });
