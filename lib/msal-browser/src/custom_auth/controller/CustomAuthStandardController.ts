@@ -30,7 +30,6 @@ import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/Res
 import { ResetPasswordStartResultV2 } from "../core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
 import { CustomAuthApiClientV2 } from "../core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { FlowInteractionClientV2 } from "../core/interaction_client/v2/FlowInteractionClientV2.js";
-import { AuthMethodSelectionRequiredStateV2 } from "../core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { ResetPasswordStartErrorV2 } from "../core/auth_flow/v2/error/ResetPasswordStartErrorV2.js";
 import { CustomAuthResultV2 } from "../core/auth_flow/v2/CustomAuthResultV2.js";
 import { CustomAuthFlowScenarioV2 } from "../core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
@@ -38,7 +37,6 @@ import { SignInStartErrorV2 } from "../sign_in/auth_flow/v2/error_type/SignInSta
 import { SignInStartResultV2 } from "../sign_in/auth_flow/v2/result/SignInStartResultV2.js";
 import { SignUpStartErrorV2 } from "../sign_up/auth_flow/v2/error_type/SignUpStartErrorV2.js";
 import { SignUpStartResultV2 } from "../sign_up/auth_flow/v2/result/SignUpStartResultV2.js";
-import { CompletedStateV2 } from "../core/auth_flow/v2/state/CompletedStateV2.js";
 import {
     FLOW_COMPLETED_V2,
     FLOW_ATTRIBUTES_REQUIRED_V2,
@@ -47,12 +45,15 @@ import {
     FLOW_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
 } from "../core/interaction_client/v2/result/FlowActionResultV2.js";
-import { PasswordRequiredStateV2 } from "../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import { AuthenticationFactorV2 } from "../core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import { CodeRequiredStateV2 } from "../core/auth_flow/v2/state/CodeRequiredStateV2.js";
-import { MFARequiredStateV2 } from "../core/auth_flow/v2/state/MFARequiredStateV2.js";
-import { AttributesRequiredStateV2 } from "../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
-import { SignUpPasswordRequiredStateV2 } from "../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
+import { AuthMethodSelectionRequiredStateV2 } from "../core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
+import { CompletedStateV2 } from "../core/auth_flow/v2/state/CompletedStateV2.js";
+import { SignInStateTransitionHandlerV2 } from "../sign_in/auth_flow/v2/state/SignInStateTransitionHandlerV2.js";
+import { PasswordRequiredStateV2 } from "../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { SignUpStateTransitionHandlerV2 } from "../sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
+import { SignUpPasswordRequiredStateV2 } from "../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
+import { AttributesRequiredStateV2 } from "../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
@@ -108,6 +109,8 @@ export class CustomAuthStandardController
     private readonly flowClientV2: FlowInteractionClientV2;
     private readonly signUpStateTransitionHandlerV2 =
         new SignUpStateTransitionHandlerV2();
+    private readonly signInStateTransitionHandlerV2 =
+        new SignInStateTransitionHandlerV2();
 
     /*
      * Constructor for CustomAuthStandardController.
@@ -713,6 +716,7 @@ export class CustomAuthStandardController
                     continuationState: result.continuationState,
                     cacheClient: this.cacheClient,
                     methods: result.methods,
+                    authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
                 }),
                 undefined,
                 result.continuationState.scenario
@@ -790,7 +794,7 @@ export class CustomAuthStandardController
 
             if (result.type === FLOW_MFA_REQUIRED_V2) {
                 return new CustomAuthResultV2(
-                    new MFARequiredStateV2({
+                    new AuthMethodSelectionRequiredStateV2({
                         correlationId: result.correlationId,
                         logger: this.logger,
                         config: this.customAuthConfig,
@@ -798,6 +802,8 @@ export class CustomAuthStandardController
                         continuationState: result.continuationState,
                         cacheClient: this.cacheClient,
                         methods: result.methods,
+                        authenticationFactor:
+                            AuthenticationFactorV2.MULTI_FACTOR,
                     }),
                     undefined,
                     result.continuationState.scenario
@@ -813,6 +819,8 @@ export class CustomAuthStandardController
                         flowClient: this.flowClientV2,
                         continuationState: result.continuationState,
                         cacheClient: this.cacheClient,
+                        signInStateTransitionHandler:
+                            this.signInStateTransitionHandlerV2,
                         method: result.method,
                         sentTo: result.sentTo,
                         channel: result.channel,

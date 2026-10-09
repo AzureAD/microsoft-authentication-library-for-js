@@ -5,7 +5,7 @@
 
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
-import { MFARequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/MFARequiredStateV2.js";
+import { AuthMethodSelectionRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import { FLOW_MFA_REQUIRED_V2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
@@ -43,7 +43,7 @@ describe("PasswordRequiredStateV2", () => {
         jest.clearAllMocks();
     });
 
-    it("returns MFA-required when password verification requires a second factor", async () => {
+    it("returns method selection when password verification requires a second factor", async () => {
         flowClient.submitSignInPassword.mockResolvedValue({
             type: FLOW_MFA_REQUIRED_V2,
             correlationId,
@@ -77,10 +77,10 @@ describe("PasswordRequiredStateV2", () => {
             },
             password: "valid-password",
         });
-        expect(result.isState("mfaRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(MFARequiredStateV2);
+        expect(result.isState("authMethodSelectionRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(AuthMethodSelectionRequiredStateV2);
 
-        if (result.isState("mfaRequired")) {
+        if (result.isState("authMethodSelectionRequired")) {
             expect(result.state.methods).toEqual([
                 {
                     id: "email-mfa",

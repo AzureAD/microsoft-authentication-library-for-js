@@ -7,7 +7,7 @@ import { CustomAuthPublicClientApplication } from "../../../src/custom_auth/Cust
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
 import { PasswordRequiredStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
-import { MFARequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/MFARequiredStateV2.js";
+import { AuthMethodSelectionRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { MFAVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
@@ -338,9 +338,9 @@ describe("Sign-in V2 entry", () => {
             startResult.state as CodeRequiredStateV2
         ).submitCode("123456");
 
-        expect(result.isState("mfaRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(MFARequiredStateV2);
-        if (result.isState("mfaRequired")) {
+        expect(result.isState("authMethodSelectionRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(AuthMethodSelectionRequiredStateV2);
+        if (result.isState("authMethodSelectionRequired")) {
             expect(result.state.methods).toEqual([
                 {
                     id: "email-mfa",
@@ -397,10 +397,12 @@ describe("Sign-in V2 entry", () => {
         ).submitPassword("valid-password");
 
         expect(submitResult.isFailed()).toBe(false);
-        expect(submitResult.isState("mfaRequired")).toBe(true);
-        expect(submitResult.state).toBeInstanceOf(MFARequiredStateV2);
+        expect(submitResult.isState("authMethodSelectionRequired")).toBe(true);
+        expect(submitResult.state).toBeInstanceOf(
+            AuthMethodSelectionRequiredStateV2
+        );
 
-        if (submitResult.isState("mfaRequired")) {
+        if (submitResult.isState("authMethodSelectionRequired")) {
             expect(submitResult.state.methods).toEqual([
                 {
                     id: "email-mfa",
@@ -434,7 +436,8 @@ describe("Sign-in V2 entry", () => {
         const passwordResult = await (
             startResult.state as PasswordRequiredStateV2
         ).submitPassword("valid-password");
-        const mfaState = passwordResult.state as MFARequiredStateV2;
+        const mfaState =
+            passwordResult.state as AuthMethodSelectionRequiredStateV2;
 
         const challengeResult = await mfaState.selectAuthMethod(
             mfaState.methods[0]
@@ -533,10 +536,10 @@ describe("Sign-in V2 entry", () => {
         });
 
         expect(result.isFailed()).toBe(false);
-        expect(result.isState("mfaRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(MFARequiredStateV2);
+        expect(result.isState("authMethodSelectionRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(AuthMethodSelectionRequiredStateV2);
 
-        if (result.isState("mfaRequired")) {
+        if (result.isState("authMethodSelectionRequired")) {
             expect(result.state.methods).toEqual([
                 {
                     id: "email-mfa",

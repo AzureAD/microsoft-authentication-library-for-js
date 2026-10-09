@@ -7,6 +7,7 @@ import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
 import { CodeRequiredStateV2 } from "./CodeRequiredStateV2.js";
+import { MFAVerificationRequiredStateV2 } from "./MFAVerificationRequiredStateV2.js";
 import type { AuthMethodSelectionRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
 import { FLOW_CODE_REQUIRED_V2 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
@@ -14,6 +15,7 @@ import { AuthenticationMethodSelectionStateBaseV2 } from "./AuthenticationMethod
 import { AuthenticationMethodTypeV2 } from "../../../network_client/custom_auth_api/v2/ApiClientConstantsV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
+import { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 
 /**
  * State returned when the user must select one of several authentication
@@ -33,8 +35,13 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSele
     async selectAuthMethod(
         method: AuthenticationMethodV2
     ): Promise<RequestChallengeResultV2> {
-        const { correlationId, logger, continuationState, flowClient } =
-            this.stateParameters;
+        const {
+            authenticationFactor,
+            correlationId,
+            logger,
+            continuationState,
+            flowClient,
+        } = this.stateParameters;
 
         try {
             logger.verbose(
@@ -44,7 +51,6 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSele
 
             const { result, selectedMethod } =
                 await this.requestSelectedMethodChallenge(method);
-            const resultType: string = result.type;
 
             const commonStateParameters = {
                 correlationId: result.correlationId,
@@ -56,6 +62,7 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSele
             };
 
             if (
+                authenticationFactor === AuthenticationFactorV2.SINGLE_FACTOR &&
                 result.type === FLOW_CODE_REQUIRED_V2 &&
                 (result.channel?.toLowerCase() ===
                     AuthenticationMethodTypeV2.EMAIL ||
@@ -75,13 +82,37 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSele
                 );
             }
 
+            if (
+                authenticationFactor === AuthenticationFactorV2.MULTI_FACTOR &&
+                result.type === FLOW_CODE_REQUIRED_V2
+            ) {
+                return new CustomAuthResultV2(
+                    new MFAVerificationRequiredStateV2({
+                        ...commonStateParameters,
+                        method: selectedMethod,
+                        sentTo: result.sentTo,
+                        channel: result.channel,
+                        codeLength: result.codeLength,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            const expectedChallenge =
+                authenticationFactor === AuthenticationFactorV2.SINGLE_FACTOR
+                    ? "an email or SMS code challenge for single-factor authentication"
+                    : "a code challenge for multi-factor authentication";
+            const returnedChallenge =
+                result.type === FLOW_CODE_REQUIRED_V2
+                    ? result.channel
+                        ? `a '${result.channel}' code challenge`
+                        : "a code challenge without a channel"
+                    : "a password challenge";
+
             throw new CustomAuthError(
                 UNSUPPORTED_FLOW_TRANSITION,
-                `Challenge type '${resultType}' with channel '${
-                    result.type === FLOW_CODE_REQUIRED_V2
-                        ? result.channel
-                        : AuthenticationMethodTypeV2.PASSWORD
-                }' is not supported for password reset.`,
+                `Authentication method selection expected ${expectedChallenge}, but the server returned ${returnedChallenge}.`,
                 correlationId
             );
         } catch (error) {
