@@ -25,12 +25,12 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSele
     readonly stateType = "authMethodSelectionRequired";
 
     /**
-     * Requests a challenge for the selected authentication method. The returned
+     * Selects an authentication method and requests its challenge. The returned
      * state identifies the credential the application must collect.
-     * @param method - The method to challenge, from {@link methods}.
-     * @returns The result of requesting the challenge.
+     * @param method - The method to select, from {@link methods}.
+     * @returns The result of selecting the method and requesting its challenge.
      */
-    async requestChallenge(
+    async selectAuthMethod(
         method: AuthenticationMethodV2
     ): Promise<RequestChallengeResultV2> {
         const { correlationId, logger, continuationState, flowClient } =

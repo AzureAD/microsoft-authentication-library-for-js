@@ -436,7 +436,7 @@ describe("Sign-in V2 entry", () => {
         ).submitPassword("valid-password");
         const mfaState = passwordResult.state as MFARequiredStateV2;
 
-        const challengeResult = await mfaState.requestChallenge(
+        const challengeResult = await mfaState.selectAuthMethod(
             mfaState.methods[0]
         );
 

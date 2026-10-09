@@ -271,7 +271,7 @@ describe("Reset password V2 (SSPR)", () => {
             throw new Error("Expected an SMS password-reset method.");
         }
 
-        const challengeResult = await methodState.requestChallenge(smsMethod);
+        const challengeResult = await methodState.selectAuthMethod(smsMethod);
         expect(challengeResult.isState("codeRequired")).toBe(true);
 
         const codeState = challengeResult.state as CodeRequiredStateV2;
@@ -316,7 +316,7 @@ describe("Reset password V2 (SSPR)", () => {
         expect(methodState.methods).toHaveLength(2);
         expect(methodState.methods[0].type).toBe("email");
 
-        const challengeResult = await methodState.requestChallenge(
+        const challengeResult = await methodState.selectAuthMethod(
             methodState.methods[0]
         );
         expect(challengeResult.isFailed()).toBe(false);
@@ -381,7 +381,7 @@ describe("Reset password V2 (SSPR)", () => {
             );
 
         const methodState = await startToMethodSelection();
-        const challengeResult = await methodState.requestChallenge(
+        const challengeResult = await methodState.selectAuthMethod(
             methodState.methods[0]
         );
         const codeState = challengeResult.state as CodeRequiredStateV2;
@@ -421,7 +421,7 @@ describe("Reset password V2 (SSPR)", () => {
             );
 
         const methodState = await startToMethodSelection();
-        const challengeResult = await methodState.requestChallenge(
+        const challengeResult = await methodState.selectAuthMethod(
             methodState.methods[0]
         );
         const codeState = challengeResult.state as CodeRequiredStateV2;
@@ -445,7 +445,7 @@ describe("Reset password V2 (SSPR)", () => {
 
         const methodState = await startToMethodSelection();
 
-        const challengeResult = await methodState.requestChallenge(
+        const challengeResult = await methodState.selectAuthMethod(
             methodState.methods[0]
         );
 
@@ -466,7 +466,7 @@ describe("Reset password V2 (SSPR)", () => {
             );
 
         const methodState = await startToMethodSelection();
-        const challengeResult = await methodState.requestChallenge(
+        const challengeResult = await methodState.selectAuthMethod(
             methodState.methods[0]
         );
 

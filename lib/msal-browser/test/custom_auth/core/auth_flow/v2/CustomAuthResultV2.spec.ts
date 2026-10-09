@@ -60,9 +60,9 @@ describe("CustomAuthResultV2", () => {
 
             if (result.isState("authMethodSelectionRequired")) {
                 // Compile-time proof of narrowing: `methods` and
-                // `requestChallenge` exist only on the narrowed member.
+                // `selectAuthMethod` exist only on the narrowed member.
                 expect(result.state.methods).toEqual([method]);
-                expect(typeof result.state.requestChallenge).toBe("function");
+                expect(typeof result.state.selectAuthMethod).toBe("function");
             }
         });
 

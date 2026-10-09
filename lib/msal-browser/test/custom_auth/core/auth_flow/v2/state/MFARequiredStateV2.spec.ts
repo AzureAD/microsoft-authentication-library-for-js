@@ -58,7 +58,7 @@ describe("MFARequiredStateV2", () => {
         expect(state.methods).toBe(methods);
     });
 
-    it("requests a code challenge using the server-provided method", async () => {
+    it("selects a server-provided method and requests its code challenge", async () => {
         flowClient.requestChallenge.mockResolvedValue({
             type: FLOW_CODE_REQUIRED_V2,
             correlationId,
@@ -76,7 +76,7 @@ describe("MFARequiredStateV2", () => {
             codeLength: 6,
         });
 
-        const result = await buildState().requestChallenge({
+        const result = await buildState().selectAuthMethod({
             ...methods[0],
             challengeHref: "https://attacker.example/challenge",
         });
@@ -95,7 +95,7 @@ describe("MFARequiredStateV2", () => {
     });
 
     it("rejects a method not returned by the server", async () => {
-        const result = await buildState().requestChallenge({
+        const result = await buildState().selectAuthMethod({
             id: "unknown",
             type: "email",
             challengeHref: "/unknown",

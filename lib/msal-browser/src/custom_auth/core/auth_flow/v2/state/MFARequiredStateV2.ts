@@ -16,17 +16,19 @@ import { AuthenticationMethodSelectionStateBaseV2 } from "./AuthenticationMethod
 
 /**
  * State returned when sign-in requires a registered multi-factor
- * authentication method.
+ * authentication method. The application selects one of the offered methods
+ * before continuing verification.
  */
 export class MFARequiredStateV2 extends AuthenticationMethodSelectionStateBaseV2<MFARequiredStateParametersV2> {
     readonly stateType = "mfaRequired";
 
     /**
-     * Requests a challenge for a registered MFA method.
+     * Selects a registered MFA method and requests its challenge. The returned
+     * result advances the flow to challenge verification or describes failure.
      * @param method - A method from {@link methods}.
      * @returns A result requiring challenge verification or describing failure.
      */
-    async requestChallenge(
+    async selectAuthMethod(
         method: AuthenticationMethodV2
     ): Promise<MFARequestChallengeResultV2> {
         const { correlationId, logger, continuationState, flowClient } =
