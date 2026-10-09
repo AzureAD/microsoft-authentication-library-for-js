@@ -107,6 +107,11 @@ export type PlatformAuthRequest = {
     enclave?: PlatformAuthEnclave;
     reqCnf?: string;
     keyId?: string;
+    /**
+     * Records whether a binding preference was included on the broker wire.
+     * This is internal response-validation state and must not be sent.
+     */
+    bindingPreferenceSent?: boolean;
     tokenType?: PlatformAuthTokenType;
     shrClaims?: string;
     shrNonce?: string;

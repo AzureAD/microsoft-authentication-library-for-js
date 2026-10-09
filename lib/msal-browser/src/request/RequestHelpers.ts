@@ -69,9 +69,9 @@ function validateDpopRequest(
 
 /**
  * Resolves the token-binding parameters needed before building authorize or token requests.
- * Public PCA DPoP requests use a dpopJkt thumbprint, while platform broker PoP requests use
- * a reqCnf confirmation claim. Requests that do not require request-time token binding return
- * no additional parameters.
+ * DPoP requests provision a browser key for token endpoint redemption. Platform broker
+ * authorization requests retain the key for auth-code fallback but suppress dpop_jkt on
+ * /authorize. Platform broker PoP requests use a reqCnf confirmation claim.
  */
 export async function getTokenBindingRequestParams(
     request: Partial<BaseAuthRequest> & {
@@ -84,14 +84,6 @@ export async function getTokenBindingRequestParams(
 ): Promise<Pick<CommonAuthorizationUrlRequest, "dpopJkt" | "reqCnf">> {
     switch (request.authenticationScheme) {
         case Constants.AuthenticationScheme.DPOP:
-            if (request.platformBroker) {
-                return {};
-            }
-
-            if (request.dpopJkt) {
-                return { dpopJkt: request.dpopJkt };
-            }
-
             return {
                 dpopJkt: await tokenBindingKeyManager.provisionTokenBindingKey({
                     tokenBindingKeyType:
@@ -127,6 +119,67 @@ export async function getTokenBindingRequestParams(
         default:
             return {};
     }
+}
+
+/**
+ * Removes a DPoP key that was provisioned for an authorization attempt which
+ * did not complete. Cleanup failures are recorded without replacing the
+ * original authorization error.
+ */
+export async function removeTokenBindingKeyOnFailure(
+    request: Partial<CommonAuthorizationUrlRequest> & {
+        correlationId: string;
+    },
+    tokenBindingKeyManager: ITokenBindingKeyManager,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<void> {
+    if (
+        request.authenticationScheme !== Constants.AuthenticationScheme.DPOP ||
+        !request.dpopJkt
+    ) {
+        return;
+    }
+
+    try {
+        await tokenBindingKeyManager.removeTokenBindingKey(
+            request.dpopJkt,
+            request.correlationId
+        );
+    } catch {
+        logger.error(
+            "Failed to remove unused DPoP key after authorization failure.",
+            request.correlationId
+        );
+        performanceClient.incrementFields(
+            { removeTokenBindingKeyFailure: 1 },
+            request.correlationId
+        );
+    }
+}
+
+/**
+ * Returns whether an MSAL-owned DPoP key is available in persistent storage
+ * before a redirect navigation. Custom managers without a persistence probe
+ * retain their existing behavior.
+ */
+export async function isTokenBindingKeyPersistedForRedirect(
+    request: {
+        correlationId: string;
+        dpopJkt?: string;
+        keyId?: string;
+    },
+    tokenBindingKeyManager: ITokenBindingKeyManager
+): Promise<boolean> {
+    const keyId = request.dpopJkt ?? request.keyId;
+    if (!keyId || !tokenBindingKeyManager.isTokenBindingKeyPersisted) {
+        return true;
+    }
+
+    return tokenBindingKeyManager.isTokenBindingKeyPersisted(
+        keyId,
+        request.correlationId
+    );
 }
 
 /**

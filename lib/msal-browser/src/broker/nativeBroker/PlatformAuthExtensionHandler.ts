@@ -103,6 +103,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             const extensionRequest = { ...request };
             delete extensionRequest.resourceRequestMethod;
             delete extensionRequest.resourceRequestUri;
+            delete extensionRequest.bindingPreferenceSent;
             const messageBody: NativeExtensionRequestBody = {
                 method: NativeExtensionMethod.GetToken,
                 request: extensionRequest,
@@ -119,15 +120,9 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                 `'${this.platformAuthType}' - Sending request to browser extension`,
                 correlationId
             );
-            this.logger.tracePii(
-                `'${
-                    this.platformAuthType
-                }' - Sending request to browser extension: '${JSON.stringify(
-                    req
-                )}'`,
-                correlationId
-            );
             this.messageChannel.port1.postMessage(req);
+            request.bindingPreferenceSent =
+                extensionRequest.preferBinding !== undefined;
 
             const response: object = await new Promise((resolve, reject) => {
                 this.resolvers.set(req.responseId, {
@@ -410,14 +405,6 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                         `'${this.platformAuthType}' - Received response from browser extension`,
                         correlationId
                     );
-                    this.logger.tracePii(
-                        `'${
-                            this.platformAuthType
-                        }' - Received response from browser extension: '${JSON.stringify(
-                            response
-                        )}'`,
-                        correlationId
-                    );
                     if (response.status !== "Success") {
                         resolver.reject(
                             createNativeAuthError(
@@ -428,10 +415,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
                             )
                         );
                     } else if (response.result) {
-                        if (
-                            response.result["code"] &&
-                            response.result["description"]
-                        ) {
+                        if (response.result["code"]) {
                             resolver.reject(
                                 createNativeAuthError(
                                     response.result["code"],
@@ -559,11 +543,18 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             Object.prototype.hasOwnProperty.call(response, "scope") &&
             Object.prototype.hasOwnProperty.call(response, "expires_in")
         ) {
+            const extensionResponse = response as PlatformAuthResponse & {
+                dpop_proof?: string;
+            };
+            const validatedResponse = {
+                ...extensionResponse,
+                DPoP: extensionResponse.DPoP ?? extensionResponse.dpop_proof,
+            };
             validationMeasurement.end({
                 success: true,
                 platformAuthProviderType: this.platformAuthType,
             });
-            return response as PlatformAuthResponse;
+            return validatedResponse;
         } else {
             const error = createAuthError(
                 AuthErrorCodes.unexpectedError,

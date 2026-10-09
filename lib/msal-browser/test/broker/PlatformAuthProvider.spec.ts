@@ -324,7 +324,7 @@ describe("PlatformAuthProvider tests", () => {
             expect(result).toBe(false);
         });
 
-        it("returns false for browser-native DPoP because platform broker DPoP is unsupported", () => {
+        it("returns true for DPoP when platform auth provider is initialized", () => {
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
@@ -336,7 +336,7 @@ describe("PlatformAuthProvider tests", () => {
                 ),
                 Constants.AuthenticationScheme.DPOP
             );
-            expect(result).toBe(false);
+            expect(result).toBe(true);
         });
 
         it("returns true when platform auth provider is initialized and authentication scheme is supported", () => {

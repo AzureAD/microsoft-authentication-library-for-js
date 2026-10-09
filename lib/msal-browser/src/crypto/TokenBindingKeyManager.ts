@@ -148,6 +148,16 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
     }
 
     /**
+     * Returns whether a browser token-binding key is available.
+     */
+    async hasTokenBindingKey(
+        keyId: string,
+        correlationId: string
+    ): Promise<boolean> {
+        return this.cache.containsKey(keyId, correlationId);
+    }
+
+    /**
      * Clears browser token-binding keys from memory and persistent storage.
      * @param correlationId - Request correlation identifier.
      */
@@ -258,6 +268,17 @@ export class TokenBindingKeyManager implements ITokenBindingKeyManager {
         }
 
         return cachedKeyPair;
+    }
+
+    /**
+     * Returns whether a browser token-binding key survived in persistent
+     * storage and can be restored after a redirect navigation.
+     */
+    async isTokenBindingKeyPersisted(
+        keyId: string,
+        correlationId: string
+    ): Promise<boolean> {
+        return this.cache.containsKeyInPersistentStorage(keyId, correlationId);
     }
 
     /** @internal */

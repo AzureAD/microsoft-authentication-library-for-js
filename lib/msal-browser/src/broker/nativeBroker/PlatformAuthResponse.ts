@@ -36,6 +36,10 @@ export type PlatformAuthResponse = {
  */
 export type NativeResponseProperties = {
     MATS?: string;
+    token_type?: string;
+    DPoP?: string;
+    dpop_proof?: string;
+    binding_attested?: boolean | string;
 };
 
 /**

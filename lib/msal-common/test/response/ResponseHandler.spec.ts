@@ -1069,6 +1069,9 @@ describe("ResponseHandler.ts", () => {
                 dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
                 resourceRequestMethod: "GET",
                 resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+                extraParameters: {
+                    pop_nonce: "cached-resource-nonce",
+                },
             };
             const dpopAccessToken: AccessTokenEntity = {
                 homeAccountId: testAccount.homeAccountId,
@@ -1106,7 +1109,14 @@ describe("ResponseHandler.ts", () => {
             expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(result.dpopProof).toBe("cached-dpop-proof");
             expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
-            expect(signSpy).toHaveBeenCalled();
+            expect(signSpy).toHaveBeenCalledWith(
+                expect.any(Object),
+                expect.objectContaining({
+                    nonce: "cached-resource-nonce",
+                }),
+                TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                "CORRELATION_ID"
+            );
         });
 
         it("throws when DPoP request receives non-DPoP token_type", async () => {

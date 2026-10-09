@@ -181,6 +181,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 await window.navigator.platformAuthentication.executeGetToken(
                     platformDOMRequest
                 );
+            request.bindingPreferenceSent =
+                platformDOMRequest.preferBinding !== undefined;
             const validatedResponse = this.validatePlatformBrokerResponse(
                 response,
                 correlationId
@@ -231,6 +233,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         );
         delete remainingProperties.resourceRequestMethod;
         delete remainingProperties.resourceRequestUri;
+        delete remainingProperties.bindingPreferenceSent;
 
         const validExtraParameters: DOMExtraParameters = this.getDOMExtraParams(
             remainingProperties,

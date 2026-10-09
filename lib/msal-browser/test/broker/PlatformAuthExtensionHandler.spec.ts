@@ -506,6 +506,14 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             expect(wamMessageHandler).toBeInstanceOf(
                 PlatformAuthExtensionHandler
             );
+            const tracePiiSpy = jest.spyOn(
+                (
+                    wamMessageHandler as unknown as {
+                        logger: Logger;
+                    }
+                ).logger,
+                "tracePii"
+            );
 
             const endMeasurementSpy = jest.spyOn(
                 performanceClient,
@@ -527,6 +535,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 },
             });
             expect(response).toEqual(testResponse.result);
+            expect(tracePiiSpy).not.toHaveBeenCalled();
 
             expect(
                 endMeasurementSpy.mock.calls
@@ -559,6 +568,87 @@ describe("PlatformAuthExtensionHandler Tests", () => {
 
             window.removeEventListener("message", eventHandler, true);
         });
+
+        it.each([["dpop_proof", { dpop_proof: "test-dpop-proof" }]])(
+            "normalizes an extension proof returned through %s",
+            async (_proofField, proofResponse) => {
+                const testWAMResponse = {
+                    access_token: "test-access-token",
+                    id_token: "test-id-token",
+                    client_info: "test-client-info",
+                    account: {
+                        id: "test-account-id",
+                        properties: {},
+                        userName: "test-user-name",
+                    },
+                    scope: "read openid",
+                    expires_in: "3600",
+                    token_type: Constants.AuthenticationScheme.DPOP,
+                    binding_attested: true,
+                    ...proofResponse,
+                };
+                const testResponse = {
+                    status: "Success",
+                    result: testWAMResponse,
+                };
+                const eventHandler = function (event: MessageEvent) {
+                    event.stopImmediatePropagation();
+                    const request = event.data;
+                    const req = {
+                        channel: "53ee284d-920a-4b59-9d30-a60315b26836",
+                        extensionId: "test-ext-id",
+                        responseId: request.responseId,
+                        body: {
+                            method: "HandshakeResponse",
+                            version: 3,
+                        },
+                    };
+
+                    mcPort = postMessageSpy.mock.calls[0][2][0];
+                    if (!mcPort) {
+                        throw new Error(
+                            "MessageChannel port was not transferred"
+                        );
+                    }
+                    mcPort.onmessage = (messageEvent) => {
+                        mcPort.postMessage({
+                            channelId: "53ee284d-920a-4b59-9d30-a60315b26836",
+                            extensionId: "test-ext-id",
+                            responseId: messageEvent.data.responseId,
+                            body: {
+                                method: "Response",
+                                response: testResponse,
+                            },
+                        });
+                    };
+                    mcPort.postMessage(req);
+                };
+
+                window.addEventListener("message", eventHandler, true);
+                const wamMessageHandler =
+                    await PlatformAuthExtensionHandler.createProvider(
+                        new Logger({}),
+                        2000,
+                        performanceClient,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                const response = await wamMessageHandler.sendMessage({
+                    ...TEST_REQUEST,
+                    preferBinding: PlatformAuthBindingPreference.ATTESTED,
+                    reqCnf: "test-req-cnf",
+                    tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
+                });
+
+                expect(response).toEqual(
+                    expect.objectContaining({
+                        token_type: Constants.AuthenticationScheme.DPOP,
+                        binding_attested: true,
+                        DPoP: "test-dpop-proof",
+                    })
+                );
+                window.removeEventListener("message", eventHandler, true);
+            }
+        );
 
         it("Sends message to WAM extension and throws if error is returned", (done) => {
             const testResponse = {
@@ -623,12 +713,21 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 });
         });
 
-        it("Sends message to WAM extension and throws if response.status is 'Success' but there are code and description properties in the result", (done) => {
+        it("throws the WAM OSError when response.status is 'Success' and the result description is empty", (done) => {
             const testResponse = {
                 status: "Success",
                 result: {
-                    code: "NoSupport",
-                    description: "This method is not supported",
+                    code: "OSError",
+                    description: "",
+                    ext: {
+                        error: -2147186420,
+                        protocol_error: "",
+                        status: "PERSISTENT_ERROR",
+                        properties: {
+                            wamStatus: "PROVIDER_ERROR",
+                            MATS: '{"silent_code":0}',
+                        },
+                    },
                 },
             };
             const eventHandler = function (event: MessageEvent) {
@@ -677,8 +776,9 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                     wamMessageHandler.sendMessage(TEST_REQUEST).catch((e) => {
                         expect(e).toBeInstanceOf(NativeAuthError);
                         expect(e.errorCode).toEqual(testResponse.result.code);
-                        expect(e.errorMessage).toEqual(
-                            testResponse.result.description
+                        expect(e.ext).toEqual(testResponse.result.ext);
+                        expect(e.errorMessage).not.toContain(
+                            "Response missing expected properties"
                         );
                         done();
                     });

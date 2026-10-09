@@ -53,6 +53,16 @@ There are a few things that may behave a little differently when acquiring token
 -   If the platform broker needs to prompt the user for interaction a system prompt will be opened. This prompt looks a bit different from the browser popup windows you may be used to.
 -   Switching your account in the platform broker prompt is not supported and MSAL.js will throw an error (Error Code: user_switch) if this happens. It is your app's responsibility to catch this error and handle it in a way that makes sense for your scenarios (e.g. Show an error page, retry with the new account, retry with the original account, etc.)
 
+### DPoP outcomes and caching
+
+When `allowPlatformBroker` is enabled, requests using `authenticationScheme: AuthenticationScheme.DPOP` can complete with either broker-owned L3 binding or browser-managed L1 binding. MSAL provisions a local key and sends its `reqCnf`; WAM normally forwards that confirmation to ESTS so the token is bound to the MSAL key. Sending `preferBinding: "attested"` permits an L3-capable WAM to suppress the `reqCnf` and use broker-managed attested binding instead. Broker DPoP requests use the `dpop+proof` request token type.
+
+The response token type is required. MSAL prefers `properties.token_type` and, for extension responses that omit it, falls back to the top-level `token_type`; conflicting values are rejected. Comparisons are case-insensitive. A `dpop+proof` request that returns `dpop+proof`, a resource proof, and an affirmative binding attestation is L3. MSAL returns that proof without locally signing or caching the access token or proof. An L1-bound response returns `DPoP` without a broker proof; `binding_attested` is false when an attested preference was evaluated and can be absent when no binding preference was sent. MSAL signs the resource proof with the request's local DPoP key and can cache the access token in its internal in-memory broker cache, partitioned by that key. Missing, unknown, or contradictory token types and inconsistent proof or attestation combinations are rejected. Proof JWTs are never cached.
+
+MSAL provisions the DPoP key for each broker request. Application-supplied `popKid` values are not supported for DPoP and are rejected before the broker is contacted. Generated L1 keys are retained only while their access token is cached. Setting `storeInCache.accessToken` to `false` removes a generated key after the response. Redirect requests retain the L1 binding key across navigation so redirect handling can generate the proof, while unused L3 keys are removed before navigation.
+
+DPoP requests must include the resource method and URI used to build the proof. For the complete request shape and proof usage, see [DPoP for PublicClientApplication](./access-token-proof-of-possession.md#dpop-for-publicclientapplication).
+
 ## Acquiring Device Bound Tokens using DOM API
 
 MSAL.js also supports acquiring tokens from the platform broker using DOM APIs in Edge. Instead of using a browser extension to communicate with the platform broker, MSAL.js can directly call a DOM API in the Edge browser, which in turn invokes the platform broker to acquire tokens.

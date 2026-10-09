@@ -708,7 +708,49 @@ describe("PopupClient", () => {
                 expect.anything(),
                 expect.anything(),
                 expect.anything(),
-                undefined
+                undefined,
+                expect.anything()
+            );
+        });
+
+        it("removes the generated DPoP key when the popup response fails", async () => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(PopupClient.prototype, "initiateAuthRequest")
+                .mockClear()
+                .mockReturnValue(window);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
+                new Error("popup response failed")
+            );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            const tokenBindingKeyManager = (popupClient as any)
+                .tokenBindingKeyManager;
+            jest.spyOn(
+                tokenBindingKeyManager,
+                "provisionTokenBindingKey"
+            ).mockResolvedValue("test-dpop-jkt");
+            const removeKeySpy = jest
+                .spyOn(tokenBindingKeyManager, "removeTokenBindingKey")
+                .mockResolvedValue(undefined);
+
+            await expect(
+                popupClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    resourceRequestMethod: "GET",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                })
+            ).rejects.toThrow("popup response failed");
+
+            expect(removeKeySpy).toHaveBeenCalledWith(
+                "test-dpop-jkt",
+                expect.any(String)
             );
         });
 

@@ -47,6 +47,11 @@ export type DpopResourceProofParams = {
     nonce?: string;
 };
 
+/**
+ * Resource request context and access token used to generate a DPoP proof.
+ * Exported for use by MSAL Browser and unsupported for direct consumers.
+ * @internal
+ */
 export type GenerateDpopResourceProofParams = {
     htu?: string;
     htm?: string;
@@ -132,9 +137,8 @@ function validateDpopNonce(
  * Builds RFC 9449 DPoP proof JWT payloads for token-endpoint and
  * resource-endpoint proof bindings.
  *
- * Not exported from any public package entry point.
- * This helper is internal-only until DPoP is wired into acquisition flows
- * in a subsequent work item.
+ * Exported from package entry points for use by MSAL Browser.
+ * This helper remains an unsupported internal API for direct consumers.
  *
  * DPoP proofs do not contain SHR fields (at, ts, m, u, p, q).
  * @internal
