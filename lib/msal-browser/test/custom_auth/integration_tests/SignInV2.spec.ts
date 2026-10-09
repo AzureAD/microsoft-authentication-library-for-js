@@ -289,18 +289,28 @@ describe("Sign-in V2 entry", () => {
         );
     });
 
-    it("rejects a supplied password when no password method is available", async () => {
+    it("returns code-required when password is supplied for email OTP", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE));
+            .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE));
 
         const result = await app.signInV2({
             username: "user@contoso.com",
             password: "valid-password",
         });
 
-        expect(result.isFailed()).toBe(true);
-        expect(fetch).toHaveBeenCalledTimes(2);
+        expect(result.isFailed()).toBe(false);
+        expect(result.isState("codeRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
+        expect(fetch).toHaveBeenCalledTimes(3);
+
+        const [challengeUrl, challengeOptions] = (fetch as jest.Mock).mock
+            .calls[2];
+        expect(challengeUrl.href).toContain("/email/challenge");
+        expect(JSON.parse(challengeOptions.body)).not.toHaveProperty(
+            "password"
+        );
     });
 
     it("completes sign-in after first-factor email OTP", async () => {

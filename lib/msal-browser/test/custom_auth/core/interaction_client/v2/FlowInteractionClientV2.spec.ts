@@ -485,7 +485,7 @@ describe("FlowInteractionClientV2", () => {
             );
         });
 
-        it("fails when a password is supplied without a password method", async () => {
+        it("returns code-required when password is supplied for email OTP", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
                 signInHref: "https://endpoint/sign-in",
@@ -501,20 +501,29 @@ describe("FlowInteractionClientV2", () => {
                     },
                 ],
             });
-
-            await expect(
-                client.signIn({
-                    correlationId,
-                    username: "user@contoso.com",
-                    password: "valid-password",
-                })
-            ).rejects.toMatchObject({
-                error: UNSUPPORTED_FLOW_TRANSITION,
-                errorDescription:
-                    "A password was supplied, but the sign-in response did not include a password method.",
+            apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
+                continuationToken: "ct-email",
+                verifyHref: "https://endpoint/email/verify",
+                resendHref: "https://endpoint/email/resend",
+                type: "email",
             });
 
-            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+            const result = await client.signIn({
+                correlationId,
+                username: "user@contoso.com",
+                password: "valid-password",
+            });
+
+            expect(apiClient.requestChallenge).toHaveBeenCalledWith(
+                "https://endpoint/email/challenge",
+                { continuationToken: "ct-sign-in" },
+                expect.objectContaining({ correlationId })
+            );
+            expect(result.type).toBe(FLOW_CODE_REQUIRED_V2);
+            expect((result as FlowSignInCodeRequiredResultV2).method.id).toBe(
+                "email-1"
+            );
             expect(apiClient.verifyChallenge).not.toHaveBeenCalled();
         });
 

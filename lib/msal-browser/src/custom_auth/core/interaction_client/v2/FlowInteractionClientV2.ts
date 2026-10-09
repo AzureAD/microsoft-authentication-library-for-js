@@ -862,22 +862,9 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 method.type.toLowerCase() === AuthenticationMethodTypeV2.EMAIL
         );
 
-        if (passwordProvided) {
-            if (passwordMethod) {
-                return passwordMethod;
-            }
-
-            const message =
-                "A password was supplied, but the sign-in response did not include a password method.";
-            this.logger.error(message, correlationId);
-            throw new CustomAuthError(
-                UNSUPPORTED_FLOW_TRANSITION,
-                message,
-                correlationId
-            );
-        }
-
-        const selectedMethod = emailMethod ?? passwordMethod;
+        const selectedMethod = passwordProvided
+            ? passwordMethod ?? emailMethod
+            : emailMethod ?? passwordMethod;
         if (selectedMethod) {
             return selectedMethod;
         }
