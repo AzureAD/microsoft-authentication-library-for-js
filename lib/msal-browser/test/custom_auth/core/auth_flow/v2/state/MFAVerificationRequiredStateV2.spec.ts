@@ -93,6 +93,27 @@ describe("MFAVerificationRequiredStateV2", () => {
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
     });
 
+    it("submits a wrong-length MFA challenge and surfaces the server result", async () => {
+        flowClient.submitCode.mockResolvedValue({
+            type: FLOW_COMPLETED_V2,
+            correlationId,
+            authenticationResult: {
+                account: {
+                    homeAccountId: "uid.utid",
+                },
+            } as unknown as AuthenticationResult,
+        });
+
+        const result = await buildState().submitChallenge("12345");
+
+        expect(flowClient.submitCode).toHaveBeenCalledWith(
+            expect.objectContaining({
+                code: "12345",
+            })
+        );
+        expect(result.isState("completed")).toBe(true);
+    });
+
     it("fails MFA completion when the account is missing", async () => {
         flowClient.submitCode.mockResolvedValue({
             type: FLOW_COMPLETED_V2,

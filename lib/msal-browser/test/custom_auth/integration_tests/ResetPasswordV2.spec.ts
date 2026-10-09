@@ -364,7 +364,7 @@ describe("Reset password V2 (SSPR)", () => {
         );
     });
 
-    it("surfaces an invalid-code failure while awaiting a valid code", async () => {
+    it("sends a wrong-length code and surfaces the server invalid-code failure", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
             .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -388,8 +388,15 @@ describe("Reset password V2 (SSPR)", () => {
         );
         const codeState = challengeResult.state as CodeRequiredStateV2;
 
-        const verifyResult = await codeState.submitCode("000000");
+        expect(codeState.codeLength).toBe(6);
+        const verifyResult = await codeState.submitCode("00000");
 
+        expect(fetch).toHaveBeenCalledTimes(4);
+        const [verifyUrl, verifyOptions] = (fetch as jest.Mock).mock.calls[3];
+        expect(verifyUrl.href).toContain("/verify");
+        expect(JSON.parse(verifyOptions.body)).toMatchObject({
+            otp: "00000",
+        });
         expect(verifyResult.isFailed()).toBe(true);
         expect(verifyResult.error).toBeInstanceOf(VerifyChallengeErrorV2);
         expect(verifyResult.error?.isInvalidCode()).toBe(true);

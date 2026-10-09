@@ -426,7 +426,7 @@ describe("Sign-in V2 entry", () => {
         expect(fetch).toHaveBeenCalledTimes(4);
     });
 
-    it("resends and verifies an MFA code to complete sign-in", async () => {
+    it("sends a wrong-length MFA code and surfaces the server result", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
             .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -463,15 +463,23 @@ describe("Sign-in V2 entry", () => {
 
         expect(resendResult.isState("mfaVerificationRequired")).toBe(true);
 
-        const completedResult = await (
-            resendResult.state as MFAVerificationRequiredStateV2
-        ).submitChallenge("123456");
+        const verificationState =
+            resendResult.state as MFAVerificationRequiredStateV2;
+        expect(verificationState.codeLength).toBe(6);
+        const completedResult = await verificationState.submitChallenge(
+            "12345"
+        );
 
         expect(completedResult.isState("completed")).toBe(true);
         expect(completedResult.state).toBeInstanceOf(CompletedStateV2);
         expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(fetch).toHaveBeenCalledTimes(9);
 
+        const [verifyUrl, verifyOptions] = (fetch as jest.Mock).mock.calls[6];
+        expect(verifyUrl.href).toContain("/mfa/verify");
+        expect(JSON.parse(verifyOptions.body)).toMatchObject({
+            otp: "12345",
+        });
         const tokenRequest = (fetch as jest.Mock).mock.calls[8][1];
         expect(tokenRequest.body).toBeInstanceOf(URLSearchParams);
         expect((tokenRequest.body as URLSearchParams).has("claims")).toBe(

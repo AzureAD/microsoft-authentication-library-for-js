@@ -125,6 +125,50 @@ describe("CodeRequiredStateV2", () => {
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
     });
 
+    it("submits a wrong-length first-factor code and surfaces the server error", async () => {
+        flowClient.submitCode.mockRejectedValue(
+            new CustomAuthApiError(
+                "invalidGrant",
+                "AADSTS50181: Unable to validate the otp.",
+                correlationId,
+                undefined,
+                "invalidOneTimeCode"
+            )
+        );
+
+        const result = await buildState().submitCode("12345");
+
+        expect(flowClient.submitCode).toHaveBeenCalledWith(
+            expect.objectContaining({
+                code: "12345",
+            })
+        );
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidCode()).toBe(true);
+    });
+
+    it("submits an empty first-factor code and surfaces the server error", async () => {
+        flowClient.submitCode.mockRejectedValue(
+            new CustomAuthApiError(
+                "invalidGrant",
+                "AADSTS50181: Unable to validate the otp.",
+                correlationId,
+                undefined,
+                "invalidOneTimeCode"
+            )
+        );
+
+        const result = await buildState().submitCode("");
+
+        expect(flowClient.submitCode).toHaveBeenCalledWith(
+            expect.objectContaining({
+                code: "",
+            })
+        );
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidCode()).toBe(true);
+    });
+
     it("returns MFA required after submitting a first-factor code", async () => {
         flowClient.submitCode.mockResolvedValue({
             type: FLOW_MFA_REQUIRED_V2,
