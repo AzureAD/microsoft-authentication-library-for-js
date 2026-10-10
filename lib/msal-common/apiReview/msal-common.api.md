@@ -713,6 +713,7 @@ export type BaseAuthRequest = {
     scenarioId?: string;
     popKid?: string;
     dpopJkt?: string;
+    dpopProof?: string;
     embeddedClientId?: string;
     httpMethod?: HttpMethod;
     resource?: string;
@@ -1541,6 +1542,18 @@ const DPOP_JKT = "dpop_jkt";
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";
 
+// @public
+export class DpopProofGenerator {
+    constructor(cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager);
+    // @internal
+    buildResourceProofClaims(params: DpopResourceProofParams, correlationId?: string): DpopProofClaims;
+    // @internal
+    buildTokenProofClaims(params: DpopTokenProofParams, correlationId?: string): DpopProofClaims;
+    generateJkt(correlationId?: string): Promise<string>;
+    generateResourceProof(params: GenerateDpopResourceProofParams, keyId: string, correlationId?: string): Promise<string>;
+    generateTokenProof(params: DpopTokenProofParams, keyId: string, correlationId?: string): Promise<string>;
+}
+
 // @public (undocumented)
 const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
 
@@ -1628,6 +1641,14 @@ export type GenerateAuthenticationResultOptions = {
 
 // @public
 function generateAuthorityMetadataExpiresAt(): number;
+
+// @public (undocumented)
+export type GenerateDpopResourceProofParams = {
+    htu?: string;
+    htm?: string;
+    nonce?: string;
+    accessToken: string;
+};
 
 // @public
 function generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, correlationId: string, idTokenClaims?: TokenClaims): string;
@@ -2062,7 +2083,7 @@ function isThrottlingEntity(key: string, entity?: object): boolean;
 // @public
 function isTokenExpired(expiresOn: string, offset: number): boolean;
 
-// @internal
+// @public
 export interface ITokenBindingKeyManager {
     getTokenBindingPublicKeyJwk(kid: string, correlationId: string): Promise<PublicJsonWebKey>;
     provisionTokenBindingKey(request: TokenBindingKeyProvisioningParameters): Promise<string>;
@@ -2295,6 +2316,9 @@ const nonceMismatch = "nonce_mismatch";
 
 // @public (undocumented)
 const noNetworkConnectivity = "no_network_connectivity";
+
+// @public
+export function normalizeDpopHtu(url: string, correlationId?: string): string;
 
 // @public
 function normalizeUrlForComparison(url: string, logger?: Logger, correlationId?: string): string;
