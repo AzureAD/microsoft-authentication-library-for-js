@@ -14,12 +14,11 @@ import {
 import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
 import type { AttributeValidationDetailV2 } from "../../../network_client/custom_auth_api/v2/response/ErrorResponsesV2.js";
 
-/*
- * Standalone V2 error base; intentionally does NOT extend the V1 AuthFlowErrorBase.
- * Provides the detectors common to every V2 flow; each per-action subclass adds only
- * the detectors relevant to its own action.
+/**
+ * Error returned by a native authentication V2 operation. Use its classifiers
+ * to handle known failures while retaining raw diagnostics through `errorData`.
  */
-export abstract class AuthFlowErrorBaseV2 {
+export class AuthFlowErrorV2 {
     readonly scenario: CustomAuthFlowScenarioV2;
 
     constructor(
@@ -63,6 +62,54 @@ export abstract class AuthFlowErrorBaseV2 {
     }
 
     /**
+     * Checks whether the service rejected the username parameter. Use it to ask
+     * the user to correct the supplied username.
+     * @returns True when the username is invalid, otherwise false.
+     */
+    isInvalidUsername(): boolean {
+        return this.isUserInvalidError();
+    }
+
+    /**
+     * Checks whether the supplied username does not identify an account. Use it
+     * to distinguish a missing account from other request failures.
+     * @returns True when the service reports that the user was not found.
+     */
+    isUserNotFound(): boolean {
+        return this.isUserNotFoundError();
+    }
+
+    /**
+     * Checks whether the service rejected the supplied sign-in credentials. This
+     * classifier does not identify new-password policy failures.
+     * @returns True when the username or password is incorrect.
+     */
+    isInvalidCredentials(): boolean {
+        return this.isPasswordIncorrectError();
+    }
+
+    /**
+     * Checks whether the service rejected a one-time code. Use it to prompt the
+     * user to re-enter the code or request a new one.
+     * @returns True when the one-time code is invalid, otherwise false.
+     */
+    isInvalidCode(): boolean {
+        return this.isInvalidCodeError();
+    }
+
+    /**
+     * Checks whether a new password violates password policy. It recognizes
+     * both weak-password responses and password-targeted validation details.
+     * @returns True when the new password is invalid, otherwise false.
+     */
+    isInvalidPassword(): boolean {
+        return (
+            this.isInvalidPasswordError() ||
+            this.isPasswordPolicyViolationError()
+        );
+    }
+
+    /**
      * Checks whether an account already exists for the supplied identifier.
      * This can occur at different stages while completing sign-up.
      * @returns True if the account already exists, otherwise false.
@@ -73,20 +120,25 @@ export abstract class AuthFlowErrorBaseV2 {
         );
     }
 
-    /*
-     * User-not-found arrives as AADSTS50034. The nested `/api` error carries no
-     * innerError and no error_codes array, so the AADSTS marker in the message is
-     * the only signal.
+    /**
+     * Checks whether the service requires attributes omitted from the request.
+     * Use it to collect the required attributes before resubmitting.
+     * @returns True when required attributes are missing, otherwise false.
      */
-    // TODO: Use the service-provided suberror when it becomes available.
-    protected isUserNotFoundError(): boolean {
+    isMissingRequiredAttributes(): boolean {
+        return this.getAttributeValidationDetails().some(
+            (detail) => detail.code === "attributeRequired"
+        );
+    }
+
+    private isUserNotFoundError(): boolean {
         return (
             this.errorData.error === "invalidRequest" &&
             this.errorData.errorDescription?.includes("AADSTS50034") === true
         );
     }
 
-    protected isUserInvalidError(): boolean {
+    private isUserInvalidError(): boolean {
         return (
             this.errorData.error === "invalidRequest" &&
             this.errorData.errorDescription?.includes("AADSTS90100") === true &&
@@ -96,23 +148,21 @@ export abstract class AuthFlowErrorBaseV2 {
         );
     }
 
-    // The verification endpoint uses this outer/inner code pair for an invalid one-time code.
-    protected isInvalidCodeError(): boolean {
+    private isInvalidCodeError(): boolean {
         return (
             this.errorData.error === "invalidGrant" &&
             this.errorData.subError === INVALID_ONE_TIME_CODE
         );
     }
 
-    // New password rejected by policy: inner `passwordTooWeak` (AADSTS120002).
-    protected isInvalidPasswordError(): boolean {
+    private isInvalidPasswordError(): boolean {
         return (
             this.errorData.error === "invalidRequest" &&
             this.errorData.subError === PASSWORD_TOO_WEAK
         );
     }
 
-    protected isPasswordPolicyViolationError(): boolean {
+    private isPasswordPolicyViolationError(): boolean {
         return this.getAttributeValidationDetails().some(
             (detail) =>
                 detail.code === "passwordPolicyViolation" &&
@@ -122,14 +172,14 @@ export abstract class AuthFlowErrorBaseV2 {
         );
     }
 
-    protected isPasswordIncorrectError(): boolean {
+    private isPasswordIncorrectError(): boolean {
         return (
             this.errorData.error === "invalidGrant" &&
             this.errorData.subError === INVALID_USERNAME_OR_PASSWORD
         );
     }
 
-    protected getAttributeValidationDetails(): AttributeValidationDetailV2[] {
+    private getAttributeValidationDetails(): AttributeValidationDetailV2[] {
         const details = (
             this.errorData as CustomAuthError & {
                 attributeValidationDetails?: unknown;

@@ -7,7 +7,7 @@ import { AuthError } from "@azure/msal-common/browser";
 import { CustomAuthBrowserConfiguration } from "../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthResultV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthResultV2.js";
 import { ResetPasswordStartResultV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
-import { ResetPasswordStartErrorV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/error/ResetPasswordStartErrorV2.js";
+import { AuthFlowErrorV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
 import { CustomAuthApiError } from "../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { MsalCustomAuthError } from "../../../../../src/custom_auth/core/error/MsalCustomAuthError.js";
 import { UnexpectedError } from "../../../../../src/custom_auth/core/error/UnexpectedError.js";
@@ -20,6 +20,8 @@ import { FlowInteractionClientV2 } from "../../../../../src/custom_auth/core/int
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { AuthenticationFactorV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";
+import { SubmitPasswordResultV2 } from "../../../../../src/custom_auth/sign_in/auth_flow/v2/result/SubmitPasswordResultV2.js";
+import { SubmitAttributesResultV2 } from "../../../../../src/custom_auth/sign_up/auth_flow/v2/result/SubmitAttributesResultV2.js";
 
 describe("CustomAuthResultV2", () => {
     const correlationId = "test-correlation-id";
@@ -51,6 +53,30 @@ describe("CustomAuthResultV2", () => {
             methods: [{ id: "email", type: "email", challengeHref: "/c" }],
             authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
         });
+
+    const expectUnifiedClassifiers = (
+        result:
+            | ResetPasswordStartResultV2
+            | SubmitPasswordResultV2
+            | SubmitAttributesResultV2
+    ): void => {
+        expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
+        if (!result.error) {
+            throw new Error("Expected a unified V2 flow error.");
+        }
+
+        expect(typeof result.error.isBrowserRequired).toBe("function");
+        expect(typeof result.error.isInvalidInput).toBe("function");
+        expect(typeof result.error.isInvalidUsername).toBe("function");
+        expect(typeof result.error.isUserNotFound).toBe("function");
+        expect(typeof result.error.isInvalidCredentials).toBe("function");
+        expect(typeof result.error.isInvalidCode).toBe("function");
+        expect(typeof result.error.isInvalidPassword).toBe("function");
+        expect(typeof result.error.isUserAlreadyExists).toBe("function");
+        expect(typeof result.error.isMissingRequiredAttributes).toBe(
+            "function"
+        );
+    };
 
     describe("isState narrowing", () => {
         it("returns true and narrows state to the matching union member", () => {
@@ -123,7 +149,7 @@ describe("CustomAuthResultV2", () => {
     });
 
     describe("createWithError", () => {
-        it("builds a failed result carrying the flow-specific error", () => {
+        it("builds a failed result carrying the unified flow error", () => {
             const error = new CustomAuthApiError(
                 "user_not_found",
                 "User not found",
@@ -131,22 +157,18 @@ describe("CustomAuthResultV2", () => {
             );
 
             const result = CustomAuthResultV2.createWithError<
-                ResetPasswordStartResultV2["state"],
-                ResetPasswordStartErrorV2
-            >(error, {
-                errorType: ResetPasswordStartErrorV2,
-            });
+                ResetPasswordStartResultV2["state"]
+            >(error, {});
 
             expect(result.isFailed()).toBe(true);
             expect(result.state).toBeInstanceOf(FailedStateV2);
-            expect(result.error).toBeInstanceOf(ResetPasswordStartErrorV2);
             expect(result.error?.errorData).toBe(error);
+            expectUnifiedClassifiers(result);
         });
 
-        it("applies the scenario to the result and flow-specific error", () => {
+        it("applies the scenario to the result and unified error", () => {
             const result = CustomAuthResultV2.createWithError<
-                ResetPasswordStartResultV2["state"],
-                ResetPasswordStartErrorV2
+                ResetPasswordStartResultV2["state"]
             >(
                 new CustomAuthApiError(
                     "user_not_found",
@@ -154,7 +176,6 @@ describe("CustomAuthResultV2", () => {
                     correlationId
                 ),
                 {
-                    errorType: ResetPasswordStartErrorV2,
                     scenario: CustomAuthFlowScenarioV2.PasswordReset,
                 }
             );
@@ -169,8 +190,7 @@ describe("CustomAuthResultV2", () => {
 
         it("converts an AuthError to MsalCustomAuthError", () => {
             const result = CustomAuthResultV2.createWithError<
-                ResetPasswordStartResultV2["state"],
-                ResetPasswordStartErrorV2
+                ResetPasswordStartResultV2["state"]
             >(
                 new AuthError(
                     "auth_error_code",
@@ -178,9 +198,7 @@ describe("CustomAuthResultV2", () => {
                     "Auth error message",
                     "auth_sub_error"
                 ),
-                {
-                    errorType: ResetPasswordStartErrorV2,
-                }
+                {}
             );
 
             expect(result.error?.errorData).toBeInstanceOf(MsalCustomAuthError);
@@ -194,10 +212,8 @@ describe("CustomAuthResultV2", () => {
 
         it("wraps an unknown error and preserves the supplied correlation ID", () => {
             const result = CustomAuthResultV2.createWithError<
-                ResetPasswordStartResultV2["state"],
-                ResetPasswordStartErrorV2
+                ResetPasswordStartResultV2["state"]
             >(new TypeError("something broke"), {
-                errorType: ResetPasswordStartErrorV2,
                 correlationId,
             });
 

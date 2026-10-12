@@ -30,12 +30,9 @@ import { ResetPasswordStartResult } from "../reset_password/auth_flow/result/Res
 import { ResetPasswordStartResultV2 } from "../core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
 import { CustomAuthApiClientV2 } from "../core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { FlowInteractionClientV2 } from "../core/interaction_client/v2/FlowInteractionClientV2.js";
-import { ResetPasswordStartErrorV2 } from "../core/auth_flow/v2/error/ResetPasswordStartErrorV2.js";
 import { CustomAuthResultV2 } from "../core/auth_flow/v2/CustomAuthResultV2.js";
 import { CustomAuthFlowScenarioV2 } from "../core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
-import { SignInStartErrorV2 } from "../sign_in/auth_flow/v2/error_type/SignInStartErrorV2.js";
 import { SignInStartResultV2 } from "../sign_in/auth_flow/v2/result/SignInStartResultV2.js";
-import { SignUpStartErrorV2 } from "../sign_up/auth_flow/v2/error_type/SignUpStartErrorV2.js";
 import { SignUpStartResultV2 } from "../sign_up/auth_flow/v2/result/SignUpStartResultV2.js";
 import {
     FLOW_COMPLETED_V2,
@@ -729,7 +726,6 @@ export class CustomAuthStandardController
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: ResetPasswordStartErrorV2,
                 scenario: CustomAuthFlowScenarioV2.PasswordReset,
                 correlationId,
             });
@@ -878,7 +874,6 @@ export class CustomAuthStandardController
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: SignInStartErrorV2,
                 scenario: CustomAuthFlowScenarioV2.SignIn,
                 correlationId,
             });
@@ -1000,7 +995,6 @@ export class CustomAuthStandardController
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: SignUpStartErrorV2,
                 scenario: CustomAuthFlowScenarioV2.SignUp,
                 correlationId,
             });

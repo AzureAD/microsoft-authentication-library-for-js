@@ -6,7 +6,6 @@
 import { AuthFlowActionRequiredStateBase } from "../../../../core/auth_flow/AuthFlowState.js";
 import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
 import { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
-import { SubmitNewPasswordErrorV2 } from "../error_type/SubmitNewPasswordErrorV2.js";
 import type { NewPasswordRequiredStateParametersV2 } from "./ResetPasswordStateParametersV2.js";
 import type { SubmitNewPasswordResultV2 } from "../result/SubmitNewPasswordResultV2.js";
 
@@ -60,7 +59,6 @@ export class NewPasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: SubmitNewPasswordErrorV2,
                 scenario: continuationState.scenario,
                 correlationId,
             });

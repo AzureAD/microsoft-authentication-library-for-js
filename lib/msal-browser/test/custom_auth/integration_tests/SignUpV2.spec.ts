@@ -12,6 +12,7 @@ import { SignUpPasswordRequiredStateV2 } from "../../../src/custom_auth/sign_up/
 import { SignInContinuationStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import type { SignUpInputsV2 } from "../../../src/custom_auth/CustomAuthActionInputs.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
+import { AuthFlowErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 
@@ -398,6 +399,7 @@ describe("Sign-up V2 entry", () => {
         });
 
         expect(result.isFailed()).toBe(true);
+        expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
         expect(result.error?.isInvalidPassword()).toBe(true);
         expect(result.error?.correlationId).toBe("corr-password-policy");
     });
@@ -599,6 +601,7 @@ describe("Sign-up V2 entry", () => {
             city: "Redmond",
         });
         expect(submitResult.isFailed()).toBe(true);
+        expect(submitResult.error).toBeInstanceOf(AuthFlowErrorV2);
         expect(submitResult.error?.isMissingRequiredAttributes()).toBe(true);
 
         expect(JSON.parse((fetch as jest.Mock).mock.calls[4][1].body)).toEqual({
