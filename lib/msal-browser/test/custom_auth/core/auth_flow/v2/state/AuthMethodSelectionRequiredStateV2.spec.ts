@@ -42,9 +42,6 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
                 continuationToken: "ct-selection",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
             methods,
             authenticationFactor,
@@ -64,9 +61,6 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
                 links: {
                     challenge: "/method/challenge",
                     verify: "/method/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             channel: "email",
@@ -163,9 +157,6 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
                 links: {
                     challenge: serverMethod.challengeHref,
                 },
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
         });
     });
@@ -186,9 +177,6 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
                 scenario: CustomAuthFlowScenarioV2.SignIn,
                 links: {
                     verify: "/password/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
         });
