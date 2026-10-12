@@ -145,7 +145,8 @@ extends:
                                   - name: "silent-flow-2"
                                     dir: "silent-flow"
                                     testFilter: "silent-flow-b2c"
-                                  - name: "b2c-user-flows"
+                                  # Disabled until the lab B2C token-exchange failure (AADB2C90085) is resolved.
+                                  # - name: "b2c-user-flows"
                                   # - name: "on-behalf-of"
                               debug: ${{ parameters.debug }}
                               npmInstallTimeout: ${{ parameters.npmInstallTimeout }}
