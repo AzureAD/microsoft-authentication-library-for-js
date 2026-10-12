@@ -1808,6 +1808,30 @@ describe("SilentIframeClient", () => {
                 expect(earFormSpy).toHaveBeenCalled();
             });
 
+            it("uses authorization code flow instead of EAR in Safari", async () => {
+                jest.spyOn(
+                    window.navigator,
+                    "userAgent",
+                    "get"
+                ).mockReturnValue(
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Safari/605.1.15"
+                );
+                const codeFlowSpy = jest
+                    .spyOn(SilentIframeClient.prototype, "executeCodeFlow")
+                    .mockResolvedValue(getTestAuthenticationResult());
+                const earFlowSpy = jest.spyOn(
+                    SilentIframeClient.prototype,
+                    "executeEarFlow"
+                );
+
+                const result = await pca.ssoSilent(validRequest);
+
+                expect(result).toEqual(getTestAuthenticationResult());
+                expect(codeFlowSpy).toHaveBeenCalled();
+                expect(earFlowSpy).not.toHaveBeenCalled();
+                expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
+            });
+
             it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", async () => {
                 jest.restoreAllMocks();
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
