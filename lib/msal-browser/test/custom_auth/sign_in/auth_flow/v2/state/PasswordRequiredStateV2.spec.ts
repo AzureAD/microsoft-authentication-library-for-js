@@ -34,9 +34,6 @@ describe("PasswordRequiredStateV2", () => {
                 links: {
                     verify: "/password/verify",
                 },
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
         });
 
@@ -52,9 +49,6 @@ describe("PasswordRequiredStateV2", () => {
                 continuationToken: "ct-mfa",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
             methods: [
                 {
@@ -75,9 +69,6 @@ describe("PasswordRequiredStateV2", () => {
                 scenario: CustomAuthFlowScenarioV2.SignIn,
                 links: {
                     verify: "/password/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             password: "valid-password",

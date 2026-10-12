@@ -171,9 +171,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             continuationToken: startResult.continuationToken,
             scenario: CustomAuthFlowScenarioV2.SignIn,
             links: {},
-            tokenRequest: {
-                scopes: parameters.scopes ?? undefined,
-            },
         };
         const methods = startResult.methods.map((method) => ({
             id: method.id,
@@ -274,9 +271,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             continuationToken: startResult.continuationToken,
             scenario: CustomAuthFlowScenarioV2.SignUp,
             links: {},
-            tokenRequest: {
-                scopes: parameters.scopes ?? undefined,
-            },
             signUp: {
                 passwordWasSupplied: attributes.password !== undefined,
             },
@@ -351,12 +345,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             continuationToken: startResult.continuationToken,
             scenario: CustomAuthFlowScenarioV2.PasswordReset,
             links: {},
-            ...(parameters.scopes !== undefined &&
-                parameters.scopes !== null && {
-                    tokenRequest: {
-                        scopes: parameters.scopes,
-                    },
-                }),
         };
         const methods = startResult.methods.map((method) => ({
             id: method.id,
@@ -507,7 +495,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     continuationToken: verifyResult.continuationToken,
                     scenario: continuationState.scenario,
                     links: { update: verifyResult.updateHref },
-                    tokenRequest: continuationState.tokenRequest,
                 },
             });
         }
@@ -535,7 +522,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 links: {
                     submitAttributes: verifyResult.submitAttributesHref,
                 },
-                tokenRequest: continuationState.tokenRequest,
                 signUp: continuationState.signUp,
             };
             const attributes = verifyResult.attributes.filter(
@@ -572,7 +558,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     continuationToken: verifyResult.continuationToken,
                     scenario: continuationState.scenario,
                     links: {},
-                    tokenRequest: continuationState.tokenRequest,
                 },
             });
         }
@@ -731,7 +716,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationToken: completionToken,
                 scenario: continuationState.scenario,
                 links: {},
-                tokenRequest: continuationState.tokenRequest,
             },
         });
     }
@@ -772,19 +756,15 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             correlationId
         );
 
-        const scopes = this.getScopes(parameters.scopes);
-
         const tokenResponse = await this.apiClient.completeWithTokens(
             {
                 continuationToken: continuationState.continuationToken,
-                scopes,
             },
             context
         );
 
         const authenticationResult = await this.handleTokenResponse(
             tokenResponse,
-            scopes,
             correlationId,
             apiId
         );
@@ -819,7 +799,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     continuationToken: verifyResult.continuationToken,
                     scenario: continuationState.scenario,
                     links: {},
-                    tokenRequest: continuationState.tokenRequest,
                 },
                 methods: verifyResult.methods.map((method) => ({
                     id: method.id,
@@ -896,7 +875,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                         verify: result.verifyHref,
                         resend: result.resendHref,
                     },
-                    tokenRequest: continuationState.tokenRequest,
                     signUp: continuationState.signUp,
                 },
                 channel: result.type,
@@ -920,7 +898,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 links: {
                     submitAttributes: result.submitAttributesHref,
                 },
-                tokenRequest: continuationState.tokenRequest,
                 signUp: continuationState.signUp,
             };
             const attributes = result.attributes.filter(
@@ -954,7 +931,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     continuationToken: result.continuationToken,
                     scenario: continuationState.scenario,
                     links: {},
-                    tokenRequest: continuationState.tokenRequest,
                 },
             });
         }
@@ -1023,9 +999,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationToken,
                 scenario: continuationState.scenario,
                 links: {},
-                tokenRequest: continuationState.tokenRequest,
             },
-            scopes: continuationState.tokenRequest?.scopes,
         });
     }
 
@@ -1097,9 +1071,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     challengeResult.resendHref ??
                     continuationState.links.resend,
             },
-            ...(continuationState.tokenRequest && {
-                tokenRequest: continuationState.tokenRequest,
-            }),
             ...(continuationState.signUp && {
                 signUp: continuationState.signUp,
             }),

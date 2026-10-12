@@ -142,7 +142,7 @@ export abstract class BaseApiClientV2 {
             context
         );
 
-        return this.token(code, request.scopes, context);
+        return this.token(code, context);
     }
 
     /*
@@ -188,7 +188,6 @@ export abstract class BaseApiClientV2 {
      */
     protected async token(
         code: string,
-        scopes: string[],
         context: RequestContextV2
     ): Promise<TokenResponseV2> {
         const request: TokenRequestV2 = {
@@ -198,10 +197,6 @@ export abstract class BaseApiClientV2 {
             // Required so the server returns the client_info blob MSAL uses to build the home account id.
             client_info: "1",
         };
-
-        if (scopes.length > 0) {
-            request.scope = scopes.join(" ");
-        }
 
         const parsedResponse = await this.postOAuthForm<TokenResponseV2>(
             SIGNIN_TOKEN,

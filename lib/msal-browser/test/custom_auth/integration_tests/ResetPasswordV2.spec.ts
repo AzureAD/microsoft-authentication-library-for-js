@@ -356,9 +356,7 @@ describe("Reset password V2 (SSPR)", () => {
         );
         const tokenRequest = (fetch as jest.Mock).mock.calls[7][1];
         expect(tokenRequest.body).toBeInstanceOf(URLSearchParams);
-        expect((tokenRequest.body as URLSearchParams).get("scope")).toBe(
-            "User.Read openid profile offline_access"
-        );
+        expect((tokenRequest.body as URLSearchParams).has("scope")).toBe(false);
         expect((tokenRequest.body as URLSearchParams).has("claims")).toBe(
             false
         );

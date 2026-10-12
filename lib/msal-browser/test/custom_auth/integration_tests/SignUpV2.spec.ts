@@ -169,9 +169,6 @@ describe("Sign-up V2 entry", () => {
                     verify: "/tenant/api/v0.1/email/verify",
                     resend: "/tenant/api/v0.1/email/resend",
                 },
-                tokenRequest: {
-                    scopes: ["openid", "User.Read"],
-                },
                 signUp: {
                     passwordWasSupplied: true,
                 },
@@ -645,10 +642,6 @@ describe("Sign-up V2 entry", () => {
                 continuationToken: "ct-verify",
                 scenario: "signUp",
                 links: {},
-                tokenRequest: {
-                    scopes: undefined,
-                    claims: undefined,
-                },
             });
         }
     });
@@ -713,9 +706,7 @@ describe("Sign-up V2 entry", () => {
             throw new Error("Expected sign-in continuation state.");
         }
 
-        const completedResult = await attributesResult.state.signIn({
-            scopes: ["User.Read"],
-        });
+        const completedResult = await attributesResult.state.signIn();
 
         expect(completedResult.isState("completed")).toBe(true);
         expect(completedResult.state).toBeInstanceOf(CompletedStateV2);
@@ -797,9 +788,7 @@ describe("Sign-up V2 entry", () => {
             throw new Error("Expected sign-in continuation state.");
         }
 
-        const completedResult = await passwordResult.state.signIn({
-            scopes: ["User.Read"],
-        });
+        const completedResult = await passwordResult.state.signIn();
 
         expect(completedResult.isState("completed")).toBe(true);
         expect(completedResult.state).toBeInstanceOf(CompletedStateV2);

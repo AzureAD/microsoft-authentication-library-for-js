@@ -52,10 +52,3 @@ export type SignUpInputsV2 = SignUpInputs & {
     scopes?: Array<string> | null;
     claims?: string;
 };
-
-export type SignInContinuationInputsV2 = Omit<
-    SignInWithContinuationTokenInputs,
-    "scopes"
-> & {
-    scopes?: Array<string> | null;
-};

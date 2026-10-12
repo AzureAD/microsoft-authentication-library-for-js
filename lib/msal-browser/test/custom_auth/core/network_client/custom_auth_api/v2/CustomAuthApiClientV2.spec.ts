@@ -1350,7 +1350,6 @@ describe("CustomAuthApiClientV2", () => {
             const result = await apiClient.completeWithTokens(
                 {
                     continuationToken: "ct-poll",
-                    scopes: ["openid"],
                 },
                 context
             );
@@ -1363,7 +1362,7 @@ describe("CustomAuthApiClientV2", () => {
             expect(
                 mockHttpClient.sendAsync.mock.calls[1][1].body.toString()
             ).toBe(
-                "client_id=client-id-123&grant_type=authorization_code&code=auth-code-1&client_info=1&scope=openid"
+                "client_id=client-id-123&grant_type=authorization_code&code=auth-code-1&client_info=1"
             );
         });
     });

@@ -248,7 +248,6 @@ export {
     ResetPasswordInputsV2,
     SignInInputsV2,
     SignUpInputsV2,
-    SignInContinuationInputsV2,
 } from "./CustomAuthActionInputs.js";
 
 // Native Auth V2 Result

@@ -26,9 +26,6 @@ export interface FlowContinuationStateV2 {
     continuationToken: string;
     scenario: CustomAuthFlowScenarioV2;
     links: FlowLinksV2;
-    tokenRequest?: {
-        scopes?: string[];
-    };
     signUp?: {
         passwordWasSupplied: boolean;
     };

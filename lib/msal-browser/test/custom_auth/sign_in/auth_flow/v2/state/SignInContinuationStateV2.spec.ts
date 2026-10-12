@@ -37,13 +37,21 @@ describe("SignInContinuationStateV2", () => {
         jest.clearAllMocks();
     });
 
-    it("rejects malformed claims before token completion", async () => {
-        const result = await buildState().signIn({
-            claims: "not-json",
-        });
+    it("completes sign-in using only the retained continuation state", async () => {
+        flowClient.signInWithContinuation.mockRejectedValue(
+            new Error("test failure")
+        );
 
+        const result = await buildState().signIn();
+
+        expect(flowClient.signInWithContinuation).toHaveBeenCalledWith({
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-complete",
+                scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                links: {},
+            },
+        });
         expect(result.isFailed()).toBe(true);
-        expect(result.error?.isInvalidInput()).toBe(true);
-        expect(flowClient.signInWithContinuation).not.toHaveBeenCalled();
     });
 });

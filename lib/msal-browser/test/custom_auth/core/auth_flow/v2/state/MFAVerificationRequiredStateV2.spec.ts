@@ -41,9 +41,6 @@ describe("MFAVerificationRequiredStateV2", () => {
                     verify: "/mfa/verify",
                     resend: "/mfa/resend",
                 },
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
             method: {
                 id: "sms-mfa",
@@ -81,9 +78,6 @@ describe("MFAVerificationRequiredStateV2", () => {
                 links: {
                     verify: "/mfa/verify",
                     resend: "/mfa/resend",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             code: "123456",
@@ -140,9 +134,6 @@ describe("MFAVerificationRequiredStateV2", () => {
                 links: {
                     verify: "/mfa/verify",
                     resend: "/mfa/resend",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             sentTo: "+1******5678",

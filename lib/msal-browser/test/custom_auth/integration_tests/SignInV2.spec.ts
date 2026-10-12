@@ -220,18 +220,6 @@ describe("Sign-in V2 entry", () => {
         expect(result.scenario).toBe("signIn");
         expect(fetch).toHaveBeenCalledTimes(3);
 
-        const passwordState = result.state as PasswordRequiredStateV2;
-        expect(
-            passwordState["stateParameters"].continuationState
-        ).toMatchObject({
-            tokenRequest: {
-                scopes: ["User.Read"],
-            },
-        });
-        expect(
-            passwordState["stateParameters"].continuationState.tokenRequest
-        ).not.toHaveProperty("claims");
-
         const [, entryOptions] = (fetch as jest.Mock).mock.calls[0];
         expect(entryOptions.body).toBeInstanceOf(URLSearchParams);
         expect((entryOptions.body as URLSearchParams).get("scope")).toBe(
@@ -482,6 +470,7 @@ describe("Sign-in V2 entry", () => {
         });
         const tokenRequest = (fetch as jest.Mock).mock.calls[8][1];
         expect(tokenRequest.body).toBeInstanceOf(URLSearchParams);
+        expect((tokenRequest.body as URLSearchParams).has("scope")).toBe(false);
         expect((tokenRequest.body as URLSearchParams).has("claims")).toBe(
             false
         );

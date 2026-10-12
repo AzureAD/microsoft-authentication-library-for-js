@@ -61,5 +61,4 @@ export interface FlowSubmitSignUpAttributesParamsV2 extends FlowParamsBaseV2 {
 // Sign the account in by redeeming a completed flow's continuation for tokens.
 export interface FlowSignInWithContinuationParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
-    scopes?: string[] | null;
 }

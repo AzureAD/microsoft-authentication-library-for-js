@@ -48,9 +48,6 @@ describe("CodeRequiredStateV2", () => {
                 links: {
                     verify: "/mfa/verify",
                 },
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
             method: {
                 id: "email-mfa",
@@ -79,9 +76,6 @@ describe("CodeRequiredStateV2", () => {
                 scenario: CustomAuthFlowScenarioV2.SignUp,
                 links: {
                     verify: "/signup/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             sentTo: "user@contoso.com",
@@ -113,9 +107,6 @@ describe("CodeRequiredStateV2", () => {
                 scenario: CustomAuthFlowScenarioV2.SignIn,
                 links: {
                     verify: "/mfa/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             code: "123456",
@@ -177,9 +168,6 @@ describe("CodeRequiredStateV2", () => {
                 continuationToken: "ct-mfa",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
             methods: [
                 {
@@ -205,9 +193,6 @@ describe("CodeRequiredStateV2", () => {
                 scenario: CustomAuthFlowScenarioV2.SignUp,
                 links: {
                     submitAttributes: "/signup/submitattributes",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             attributes: [
@@ -298,9 +283,6 @@ describe("CodeRequiredStateV2", () => {
                 continuationToken: "ct-sign-up-verify",
                 scenario: CustomAuthFlowScenarioV2.SignUp,
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
         });
 

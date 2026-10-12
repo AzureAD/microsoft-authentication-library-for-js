@@ -108,13 +108,15 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
 
     protected async handleTokenResponse(
         tokenResponse: TokenResponseV2,
-        requestScopes: string[],
         correlationId: string,
         apiId: number
     ): Promise<AuthenticationResult> {
         this.logger.verbose("Processing V2 token response.", correlationId);
 
         const requestTimestamp = Math.round(new Date().getTime() / 1000.0);
+        const responseScopes = tokenResponse.scope
+            .split(" ")
+            .filter((scope) => !!scope);
 
         const result =
             await this.tokenResponseHandler.handleServerTokenResponse(
@@ -124,7 +126,7 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
                 {
                     authority: this.customAuthAuthority.canonicalAuthority,
                     correlationId,
-                    scopes: requestScopes,
+                    scopes: responseScopes,
                 },
                 apiId
             );

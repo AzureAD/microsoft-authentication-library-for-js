@@ -229,9 +229,6 @@ describe("FlowInteractionClientV2", () => {
                     verify: "https://endpoint/signup/verify",
                     resend: "https://endpoint/signup/resend",
                 },
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
                 signUp: {
                     passwordWasSupplied: true,
                 },
@@ -431,9 +428,6 @@ describe("FlowInteractionClientV2", () => {
                     challenge: "https://endpoint/password/challenge",
                     verify: "https://endpoint/password/verify",
                     resend: undefined,
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             });
         });
@@ -644,9 +638,6 @@ describe("FlowInteractionClientV2", () => {
                 continuationToken: "ct-mfa",
                 scenario: "signIn",
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             });
         });
 
@@ -781,9 +772,6 @@ describe("FlowInteractionClientV2", () => {
                         challenge: "https://endpoint/challenge",
                         verify: "https://endpoint/verify",
                         resend: "https://endpoint/resend",
-                    },
-                    tokenRequest: {
-                        scopes: ["User.Read"],
                     },
                 },
             });
@@ -1109,9 +1097,6 @@ describe("FlowInteractionClientV2", () => {
                 links: {
                     verify: "https://endpoint/mfa/verify",
                 },
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             };
             const tokenResponse = {
                 token_type: "Bearer",
@@ -1152,12 +1137,6 @@ describe("FlowInteractionClientV2", () => {
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
                 {
                     continuationToken: "ct-mfa-verify",
-                    scopes: [
-                        "User.Read",
-                        "openid",
-                        "profile",
-                        "offline_access",
-                    ],
                 },
                 expect.objectContaining({ correlationId })
             );
@@ -1173,9 +1152,6 @@ describe("FlowInteractionClientV2", () => {
                 scenario: "signIn",
                 links: {
                     verify: "https://endpoint/email/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             };
             apiClient.verifyChallenge.mockResolvedValue({
@@ -1216,9 +1192,6 @@ describe("FlowInteractionClientV2", () => {
                     verify: "https://endpoint/signup/verify",
                     resend: "https://endpoint/signup/resend",
                 },
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
                 signUp: {
                     passwordWasSupplied: true,
                 },
@@ -1257,9 +1230,6 @@ describe("FlowInteractionClientV2", () => {
                 links: {
                     submitAttributes:
                         "https://endpoint/signup/submitattributes",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
                 signUp: {
                     passwordWasSupplied: true,
@@ -1339,9 +1309,6 @@ describe("FlowInteractionClientV2", () => {
                 links: {
                     verify: "https://endpoint/signup/verify",
                 },
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             };
             apiClient.verifyChallenge.mockResolvedValue({
                 nextAction: "continue",
@@ -1362,9 +1329,6 @@ describe("FlowInteractionClientV2", () => {
                 continuationToken: "ct-sign-up-verify",
                 scenario: "signUp",
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             });
             expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
         });
@@ -1490,9 +1454,6 @@ describe("FlowInteractionClientV2", () => {
             links: {
                 submitAttributes: "https://endpoint/signup/submitattributes",
             },
-            tokenRequest: {
-                scopes: ["User.Read"],
-            },
             signUp: {
                 passwordWasSupplied: false,
             },
@@ -1545,9 +1506,6 @@ describe("FlowInteractionClientV2", () => {
                 continuationToken: "ct-complete",
                 scenario: "signUp",
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             });
         });
 
@@ -1583,9 +1541,6 @@ describe("FlowInteractionClientV2", () => {
                 links: {
                     submitAttributes:
                         "https://endpoint/signup/submitattributes-2",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
                 signUp: {
                     passwordWasSupplied: false,
@@ -2005,13 +1960,11 @@ describe("FlowInteractionClientV2", () => {
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
                 {
                     continuationToken: "ct-complete",
-                    scopes: ["openid", "profile", "offline_access"],
                 },
                 expect.objectContaining({ correlationId })
             );
             expect(handleSpy).toHaveBeenCalledWith(
                 tokenResponse,
-                ["openid", "profile", "offline_access"],
                 correlationId,
                 expect.any(Number)
             );
@@ -2045,71 +1998,8 @@ describe("FlowInteractionClientV2", () => {
 
             expect(handleSpy).toHaveBeenCalledWith(
                 tokenResponse,
-                ["openid", "profile", "offline_access"],
                 correlationId,
                 SIGN_UP_V2_COMPLETE
-            );
-        });
-
-        it("unions caller-supplied scopes with the default OIDC scopes", async () => {
-            apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
-            jest.spyOn(
-                client as unknown as {
-                    handleTokenResponse: (
-                        ...args: unknown[]
-                    ) => Promise<unknown>;
-                },
-                "handleTokenResponse"
-            ).mockResolvedValue(fakeAuthResult);
-
-            await client.signInWithContinuation({
-                correlationId,
-                continuationState,
-                scopes: ["User.Read"],
-            });
-
-            expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
-                {
-                    continuationToken: "ct-complete",
-                    scopes: [
-                        "User.Read",
-                        "openid",
-                        "profile",
-                        "offline_access",
-                    ],
-                },
-                expect.objectContaining({ correlationId })
-            );
-        });
-
-        it("does not duplicate default OIDC scopes the caller already supplied", async () => {
-            apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
-            jest.spyOn(
-                client as unknown as {
-                    handleTokenResponse: (
-                        ...args: unknown[]
-                    ) => Promise<unknown>;
-                },
-                "handleTokenResponse"
-            ).mockResolvedValue(fakeAuthResult);
-
-            await client.signInWithContinuation({
-                correlationId,
-                continuationState,
-                scopes: ["User.Read", "OpenID", "offline_access"],
-            });
-
-            expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
-                {
-                    continuationToken: "ct-complete",
-                    scopes: [
-                        "User.Read",
-                        "OpenID",
-                        "offline_access",
-                        "profile",
-                    ],
-                },
-                expect.objectContaining({ correlationId })
             );
         });
     });

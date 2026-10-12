@@ -52,16 +52,14 @@ export interface TokenRequestV2 extends OAuthFormRequestV2 {
     grant_type: string;
     code: string;
     client_info: string;
-    scope?: string;
 }
 
 /*
  * Compound token-completion operation. The continuation is first redeemed for
- * an authorization code, which is then exchanged using the requested scopes.
+ * an authorization code, which is then exchanged for tokens.
  */
 export interface CompleteWithTokensRequestV2 {
     continuationToken: string;
-    scopes: string[];
 }
 
 /*
