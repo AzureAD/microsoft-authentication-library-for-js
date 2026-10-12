@@ -34,7 +34,8 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/B2C-Local.json");
 
-describe("B2C User Flow Tests", () => {
+// Re-enable after the lab client secret is rotated and AADB2C90081 is resolved.
+describe.skip("B2C User Flow Tests", () => {
     jest.retryTimes(RETRY_TIMES, { logErrorsBeforeRetry: true });
     jest.setTimeout(90000);
     let browser: puppeteer.Browser;
