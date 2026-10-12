@@ -652,10 +652,7 @@ export class CustomAuthStandardController
                 inputs.username,
                 correlationId
             );
-            if (
-                inputs.scopes !== undefined &&
-                inputs.scopes !== null
-            ) {
+            if (inputs.scopes !== undefined && inputs.scopes !== null) {
                 ArgumentValidator.ensureArgumentIsStringArray(
                     "inputs.scopes",
                     inputs.scopes,
@@ -748,10 +745,7 @@ export class CustomAuthStandardController
                 inputs.username,
                 correlationId
             );
-            if (
-                inputs.scopes !== undefined &&
-                inputs.scopes !== null
-            ) {
+            if (inputs.scopes !== undefined && inputs.scopes !== null) {
                 ArgumentValidator.ensureArgumentIsStringArray(
                     "inputs.scopes",
                     inputs.scopes,
@@ -888,10 +882,7 @@ export class CustomAuthStandardController
                     correlationId
                 );
             }
-            if (
-                inputs.scopes !== undefined &&
-                inputs.scopes !== null
-            ) {
+            if (inputs.scopes !== undefined && inputs.scopes !== null) {
                 ArgumentValidator.ensureArgumentIsStringArray(
                     "inputs.scopes",
                     inputs.scopes,

@@ -37,10 +37,7 @@ export class SignInContinuationStateV2 extends AuthFlowActionRequiredStateBase<S
             this.stateParameters;
 
         try {
-            if (
-                inputs?.scopes !== undefined &&
-                inputs.scopes !== null
-            ) {
+            if (inputs?.scopes !== undefined && inputs.scopes !== null) {
                 ArgumentValidator.ensureArgumentIsStringArray(
                     "inputs.scopes",
                     inputs.scopes,

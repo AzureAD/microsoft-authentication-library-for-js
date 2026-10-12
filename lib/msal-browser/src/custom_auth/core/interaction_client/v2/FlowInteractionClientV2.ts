@@ -353,10 +353,10 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             links: {},
             ...(parameters.scopes !== undefined &&
                 parameters.scopes !== null && {
-                tokenRequest: {
-                    scopes: parameters.scopes,
-                },
-            }),
+                    tokenRequest: {
+                        scopes: parameters.scopes,
+                    },
+                }),
         };
         const methods = startResult.methods.map((method) => ({
             id: method.id,
