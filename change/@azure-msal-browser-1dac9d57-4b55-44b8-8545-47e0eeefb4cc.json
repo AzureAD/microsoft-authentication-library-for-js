@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add Native Auth V2 authorization inputs and challenge validation fixes [#8898](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8898)",
+  "packageName": "@azure/msal-browser",
+  "email": "ydi.w127@gmail.com",
+  "dependentChangeType": "patch"
+}
