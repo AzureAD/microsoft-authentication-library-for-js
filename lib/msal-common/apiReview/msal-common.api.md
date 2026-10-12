@@ -1552,6 +1552,12 @@ export class DpopProofGenerator {
     generateTokenProof(params: DpopTokenProofParams, keyId: string, correlationId?: string): Promise<string>;
 }
 
+// @internal
+export type DpopResourceRequestContext = {
+    htu: string;
+    htm: string;
+};
+
 // @public (undocumented)
 const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
 
@@ -2308,6 +2314,9 @@ const nonceMismatch = "nonce_mismatch";
 
 // @public (undocumented)
 const noNetworkConnectivity = "no_network_connectivity";
+
+// @internal
+export function normalizeDpopResourceRequestContext(context: DpopResourceRequestContext, correlationId?: string): DpopResourceRequestContext;
 
 // @public
 function normalizeUrlForComparison(url: string, logger?: Logger, correlationId?: string): string;

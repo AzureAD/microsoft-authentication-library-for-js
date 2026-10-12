@@ -7971,6 +7971,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(redirectClientSpy).toHaveBeenCalledTimes(1);
         });
 
+        it("clears the native cache before redirect logout clears the shared keystore", async () => {
+            const clearNativeCacheSpy = jest
+                .spyOn(pca as any, "clearNativeCache")
+                .mockResolvedValue(undefined);
+            const redirectClientSpy = jest
+                .spyOn(RedirectClient.prototype, "logout")
+                .mockResolvedValue();
+
+            await pca.logoutRedirect();
+
+            expect(clearNativeCacheSpy).toHaveBeenCalledWith(
+                undefined,
+                expect.any(String)
+            );
+            expect(
+                clearNativeCacheSpy.mock.invocationCallOrder[0]
+            ).toBeLessThan(redirectClientSpy.mock.invocationCallOrder[0]);
+        });
+
         it("throws an error if inside an iframe", async () => {
             const mockParentWindow = { ...window };
             jest.spyOn(window, "parent", "get").mockReturnValue(
@@ -8028,6 +8047,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.logoutPopup();
             expect(response).toEqual(undefined);
             expect(popupClientSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("clears the native cache before popup logout clears the shared keystore", async () => {
+            const clearNativeCacheSpy = jest
+                .spyOn(pca as any, "clearNativeCache")
+                .mockResolvedValue(undefined);
+            const popupClientSpy = jest
+                .spyOn(PopupClient.prototype, "logout")
+                .mockResolvedValue();
+
+            await pca.logoutPopup();
+
+            expect(clearNativeCacheSpy).toHaveBeenCalledWith(
+                undefined,
+                expect.any(String)
+            );
+            expect(
+                clearNativeCacheSpy.mock.invocationCallOrder[0]
+            ).toBeLessThan(popupClientSpy.mock.invocationCallOrder[0]);
         });
 
         it("throws error if interaction is in progress", async () => {
@@ -8123,14 +8161,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             const controller = pca as unknown as {
                 nativeInternalStorage: BrowserCacheManager;
-                nativeTokenBindingKeyManager: TokenBindingKeyManager;
+                tokenBindingKeyManager: TokenBindingKeyManager;
                 clearCache(request: {
                     account: AccountInfo;
                     correlationId: string;
                 }): Promise<void>;
             };
             const keyId =
-                await controller.nativeTokenBindingKeyManager.provisionTokenBindingKey(
+                await controller.tokenBindingKeyManager.provisionTokenBindingKey(
                     {
                         tokenBindingKeyType: "dpop",
                         tokenBindingKeyAlgorithm: "ES256",
@@ -8159,7 +8197,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
 
             await controller.clearCache({
-                account: testAccountInfo,
+                account: {
+                    ...testAccountInfo,
+                    homeAccountId: testAccountInfo.homeAccountId.toUpperCase(),
+                    environment: testAccountInfo.environment.toUpperCase(),
+                },
                 correlationId: "test123",
             });
 
@@ -8172,13 +8214,111 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 )
             ).toBeNull();
             await expect(
-                controller.nativeTokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                controller.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
                     keyId,
                     "test123"
                 )
             ).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.cryptoKeyNotFound,
             });
+        });
+
+        it("uses the same token-binding key manager for browser and native caches", () => {
+            const controller = pca as unknown as {
+                tokenBindingKeyManager: TokenBindingKeyManager;
+                nativeInternalStorage: {
+                    tokenBindingKeyManager: TokenBindingKeyManager;
+                };
+            };
+
+            expect(
+                controller.nativeInternalStorage.tokenBindingKeyManager
+            ).toBe(controller.tokenBindingKeyManager);
+        });
+
+        it("native-only cache cleanup preserves unrelated MSAL-owned keys", async () => {
+            jest.spyOn(
+                DatabaseStorage.prototype,
+                "setItem"
+            ).mockResolvedValue();
+            jest.spyOn(
+                DatabaseStorage.prototype,
+                "removeItem"
+            ).mockResolvedValue();
+            jest.spyOn(
+                DatabaseStorage.prototype,
+                "containsKey"
+            ).mockResolvedValue(false);
+            jest.spyOn(DatabaseStorage.prototype, "getItem").mockResolvedValue(
+                null
+            );
+            const controller = pca as unknown as {
+                tokenBindingKeyManager: TokenBindingKeyManager;
+                nativeInternalStorage: BrowserCacheManager;
+                clearNativeCache(
+                    account: AccountInfo | undefined,
+                    correlationId: string
+                ): Promise<void>;
+            };
+            const nativeKeyId =
+                await controller.tokenBindingKeyManager.provisionTokenBindingKey(
+                    {
+                        tokenBindingKeyType: "dpop",
+                        tokenBindingKeyAlgorithm: "ES256",
+                        correlationId: "test123",
+                    }
+                );
+            const unrelatedKeyId =
+                await controller.tokenBindingKeyManager.provisionTokenBindingKey(
+                    {
+                        tokenBindingKeyType: "dpop",
+                        tokenBindingKeyAlgorithm: "ES256",
+                        correlationId: "test123",
+                    }
+                );
+            const nativeAccessToken: AccessTokenEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                secret: TEST_TOKENS.ACCESS_TOKEN,
+                target: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                credentialType:
+                    Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                tokenType: Constants.AuthenticationScheme.DPOP,
+                keyId: nativeKeyId,
+                expiresOn: `${TimeUtils.nowSeconds() + 3600}`,
+                cachedAt: `${TimeUtils.nowSeconds()}`,
+                lastUpdatedAt: Date.now().toString(),
+            };
+            await controller.nativeInternalStorage.setAccessTokenCredential(
+                nativeAccessToken,
+                "test123",
+                true
+            );
+
+            await controller.clearNativeCache(undefined, "test123");
+
+            await expect(
+                controller.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                    nativeKeyId,
+                    "test123"
+                )
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.cryptoKeyNotFound,
+            });
+            await expect(
+                controller.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                    unrelatedKeyId,
+                    "test123"
+                )
+            ).resolves.toMatchObject({
+                kty: "EC",
+            });
+            await controller.tokenBindingKeyManager.removeTokenBindingKey(
+                unrelatedKeyId,
+                "test123"
+            );
         });
 
         it("persists native DPoP keys for redirect handoff", async () => {
@@ -8194,10 +8334,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "containsKey"
             ).mockResolvedValue(false);
             const controller = pca as unknown as {
-                nativeTokenBindingKeyManager: TokenBindingKeyManager;
+                tokenBindingKeyManager: TokenBindingKeyManager;
             };
             const keyId =
-                await controller.nativeTokenBindingKeyManager.provisionTokenBindingKey(
+                await controller.tokenBindingKeyManager.provisionTokenBindingKey(
                     {
                         tokenBindingKeyType: "dpop",
                         tokenBindingKeyAlgorithm: "ES256",
@@ -8212,7 +8352,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     tokenBindingKeyAlgorithm: "ES256",
                 })
             );
-            await controller.nativeTokenBindingKeyManager.removeTokenBindingKey(
+            await controller.tokenBindingKeyManager.removeTokenBindingKey(
                 keyId,
                 "test123"
             );

@@ -194,7 +194,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             pca.nativeInternalStorage,
             RANDOM_TEST_GUID,
             // @ts-ignore
-            pca.nativeTokenBindingKeyManager
+            pca.tokenBindingKeyManager
         );
 
         postMessageSpy = jest.spyOn(window, "postMessage");
@@ -696,7 +696,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     pca.nativeInternalStorage,
                     RANDOM_TEST_GUID,
                     // @ts-ignore
-                    pca.nativeTokenBindingKeyManager
+                    pca.tokenBindingKeyManager
                 );
                 const keyManager =
                     // @ts-ignore
@@ -1637,6 +1637,37 @@ describe("PlatformAuthInteractionClient Tests", () => {
             });
         });
 
+        it("Extension: provisions a replacement for a cleared DPoP redirect binding", async () => {
+            const clientInternals =
+                platformAuthInteractionClient as unknown as {
+                    prepareDpopBrokerRequest(
+                        request: PlatformAuthRequest,
+                        reuseExistingKey?: boolean
+                    ): Promise<void>;
+                    tokenBindingKeyManager: {
+                        provisionTokenBindingKey(): Promise<string>;
+                    };
+                };
+            const provisionSpy = jest
+                .spyOn(
+                    clientInternals.tokenBindingKeyManager,
+                    "provisionTokenBindingKey"
+                )
+                .mockResolvedValue("replacement-dpop-key");
+            const request = {
+                tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
+            } as PlatformAuthRequest;
+
+            await clientInternals.prepareDpopBrokerRequest(request, true);
+
+            expect(provisionSpy).toHaveBeenCalledTimes(1);
+            expect(request.keyId).toBe("replacement-dpop-key");
+            expect(decodeReqCnf(request.reqCnf)).toEqual({
+                kid: "replacement-dpop-key",
+                xms_ksl: "sw",
+            });
+        });
+
         it("Extension: rejects an incomplete persisted DPoP key binding during redirect handling", async () => {
             const clientInternals =
                 platformAuthInteractionClient as unknown as {
@@ -1991,7 +2022,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 pca.nativeInternalStorage,
                 RANDOM_TEST_GUID,
                 // @ts-ignore
-                pca.nativeTokenBindingKeyManager
+                pca.tokenBindingKeyManager
             );
             const keyManager =
                 // @ts-ignore
@@ -2075,7 +2106,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 pca.nativeInternalStorage,
                 RANDOM_TEST_GUID,
                 // @ts-ignore
-                pca.nativeTokenBindingKeyManager
+                pca.tokenBindingKeyManager
             );
             const keyManager =
                 // @ts-ignore
@@ -3102,6 +3133,149 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(cachedRequest?.reqCnf).toBeUndefined();
             expect(removeKeySpy).toHaveBeenCalledWith(
                 "phase-one-broker-owned-dpop-key",
+                RANDOM_TEST_GUID
+            );
+        });
+
+        it("provisions a replacement DPoP binding when an L3 redirect resumes", async () => {
+            jest.spyOn(
+                NavigationClient.prototype,
+                "navigateExternal"
+            ).mockResolvedValue(true);
+            const keyManager =
+                // @ts-ignore
+                platformAuthInteractionClient.tokenBindingKeyManager;
+            const provisionKeySpy = jest
+                .spyOn(keyManager, "provisionTokenBindingKey")
+                .mockResolvedValueOnce("phase-one-dpop-key")
+                .mockResolvedValueOnce("phase-two-dpop-key");
+            const removeKeySpy = jest
+                .spyOn(keyManager, "removeTokenBindingKey")
+                .mockResolvedValue();
+            const brokerRequests: PlatformAuthRequest[] = [];
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((request) => {
+                brokerRequests.push({ ...request });
+                return Promise.resolve({
+                    ...MOCK_WAM_RESPONSE,
+                    properties: {
+                        token_type: "dpop+proof",
+                        DPoP: "broker-dpop-proof",
+                        binding_attested: "true",
+                    },
+                });
+            });
+
+            await platformAuthInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                },
+                perfMeasurement
+            );
+
+            const cachedRequest = browserCacheManager.getCachedNativeRequest();
+            expect(cachedRequest?.keyId).toBeUndefined();
+            expect(cachedRequest?.reqCnf).toBeUndefined();
+
+            // @ts-ignore
+            pca.browserStorage.setInteractionInProgress(true);
+            const response =
+                await platformAuthInteractionClient.handleRedirectPromise();
+
+            expect(response?.dpopProof).toBe("broker-dpop-proof");
+            expect(provisionKeySpy).toHaveBeenCalledTimes(2);
+            expect(brokerRequests).toHaveLength(2);
+            expect(brokerRequests[0].keyId).toBe("phase-one-dpop-key");
+            expect(brokerRequests[1].keyId).toBe("phase-two-dpop-key");
+            expect(decodeReqCnf(brokerRequests[1].reqCnf)).toEqual({
+                kid: "phase-two-dpop-key",
+                xms_ksl: "sw",
+            });
+            expect(removeKeySpy).toHaveBeenCalledWith(
+                "phase-one-dpop-key",
+                RANDOM_TEST_GUID
+            );
+            expect(removeKeySpy).toHaveBeenCalledWith(
+                "phase-two-dpop-key",
+                RANDOM_TEST_GUID
+            );
+        });
+
+        it("provisions a replacement DPoP binding after a non-fatal redirect error", async () => {
+            jest.spyOn(
+                NavigationClient.prototype,
+                "navigateExternal"
+            ).mockResolvedValue(true);
+            const keyManager =
+                // @ts-ignore
+                platformAuthInteractionClient.tokenBindingKeyManager;
+            const provisionKeySpy = jest
+                .spyOn(keyManager, "provisionTokenBindingKey")
+                .mockResolvedValueOnce("failed-phase-one-dpop-key")
+                .mockResolvedValueOnce("phase-two-dpop-key");
+            const removeKeySpy = jest
+                .spyOn(keyManager, "removeTokenBindingKey")
+                .mockResolvedValue();
+            let resumedRequest: PlatformAuthRequest | undefined;
+            const sendMessageSpy = jest
+                .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
+                .mockRejectedValueOnce(
+                    new NativeAuthError(
+                        "test_native_error_code",
+                        "",
+                        "account not found"
+                    )
+                )
+                .mockImplementationOnce((request) => {
+                    resumedRequest = { ...request };
+                    return Promise.resolve({
+                        ...MOCK_WAM_RESPONSE,
+                        properties: {
+                            token_type: "dpop+proof",
+                            DPoP: "broker-dpop-proof",
+                            binding_attested: "true",
+                        },
+                    });
+                });
+
+            await platformAuthInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                },
+                perfMeasurement
+            );
+
+            const cachedRequest = browserCacheManager.getCachedNativeRequest();
+            expect(cachedRequest?.keyId).toBeUndefined();
+            expect(cachedRequest?.reqCnf).toBeUndefined();
+
+            // @ts-ignore
+            pca.browserStorage.setInteractionInProgress(true);
+            const response =
+                await platformAuthInteractionClient.handleRedirectPromise();
+
+            expect(response?.dpopProof).toBe("broker-dpop-proof");
+            expect(sendMessageSpy).toHaveBeenCalledTimes(2);
+            expect(provisionKeySpy).toHaveBeenCalledTimes(2);
+            expect(resumedRequest?.keyId).toBe("phase-two-dpop-key");
+            expect(decodeReqCnf(resumedRequest?.reqCnf)).toEqual({
+                kid: "phase-two-dpop-key",
+                xms_ksl: "sw",
+            });
+            expect(removeKeySpy).toHaveBeenCalledWith(
+                "failed-phase-one-dpop-key",
+                RANDOM_TEST_GUID
+            );
+            expect(removeKeySpy).toHaveBeenCalledWith(
+                "phase-two-dpop-key",
                 RANDOM_TEST_GUID
             );
         });
@@ -4234,18 +4408,34 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         it("normalizes proof context as canonical params for DPoP broker requests", async () => {
+            const request = {
+                scopes: ["User.Read"],
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "post",
+                resourceRequestUri:
+                    "https://graph.microsoft.com/v1.0/me?user=alice#profile",
+                dpopNonce: "server-nonce",
+                extraParametersNoCache: {
+                    custom_no_cache: "ignored",
+                    pop_method: "DELETE",
+                    pop_url: "https://incorrect.example.com",
+                    pop_nonce: "incorrect-nonce",
+                },
+            } as PopupRequest & {
+                dpopNonce: string;
+                extraParametersNoCache: NonNullable<
+                    PlatformAuthRequest["extraParametersNoCache"]
+                >;
+            };
             const nativeRequest =
                 // @ts-ignore
-                await platformAuthInteractionClient.initializePlatformRequest({
-                    scopes: ["User.Read"],
-                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
-                    resourceRequestMethod: "post",
-                    resourceRequestUri:
-                        "https://graph.microsoft.com/v1.0/me?user=alice#profile",
-                });
+                await platformAuthInteractionClient.initializePlatformRequest(
+                    request
+                );
             expect(nativeRequest.extraParametersNoCache).toEqual({
                 pop_method: "POST",
                 pop_url: "https://graph.microsoft.com/v1.0/me",
+                pop_nonce: "server-nonce",
             });
             expect(nativeRequest.tokenType).toBe(
                 PlatformAuthTokenType.DPOP_WITH_PROOF

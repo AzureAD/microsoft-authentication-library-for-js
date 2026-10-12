@@ -48,6 +48,15 @@ export type DpopResourceProofParams = {
 };
 
 /**
+ * HTTP resource context used by a DPoP-bound request.
+ * @internal
+ */
+export type DpopResourceRequestContext = {
+    htu: string;
+    htm: string;
+};
+
+/**
  * Resource request context and access token used to generate a DPoP proof.
  * Exported for use by MSAL Browser and unsupported for direct consumers.
  * @internal
@@ -134,6 +143,20 @@ function validateDpopNonce(
 }
 
 /**
+ * Validates and normalizes the HTTP resource context for a DPoP-bound request.
+ * @internal
+ */
+export function normalizeDpopResourceRequestContext(
+    context: DpopResourceRequestContext,
+    correlationId: string = ""
+): DpopResourceRequestContext {
+    return {
+        htm: normalizeHtm(context.htm, correlationId),
+        htu: normalizeHtu(context.htu, correlationId),
+    };
+}
+
+/**
  * Builds RFC 9449 DPoP proof JWT payloads for token-endpoint and
  * resource-endpoint proof bindings.
  *
@@ -217,10 +240,14 @@ export class DpopProofGenerator {
         correlationId: string = ""
     ): DpopProofClaims {
         validateDpopNonce(params.nonce, correlationId);
+        const resourceContext = normalizeDpopResourceRequestContext(
+            params,
+            correlationId
+        );
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
-            htm: normalizeHtm(params.htm, correlationId),
-            htu: normalizeHtu(params.htu, correlationId),
+            htm: resourceContext.htm,
+            htu: resourceContext.htu,
             ath: params.ath,
             iat: TimeUtils.nowSeconds(),
         };

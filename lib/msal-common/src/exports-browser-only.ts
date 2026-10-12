@@ -23,4 +23,8 @@ export { PerformanceClient } from "./telemetry/performance/PerformanceClient.js"
 export { StubPerformanceClient } from "./telemetry/performance/StubPerformanceClient.js";
 
 export { PopTokenGenerator } from "./crypto/PopTokenGenerator.js";
-export { DpopProofGenerator } from "./crypto/DpopProofGenerator.js";
+export {
+    DpopProofGenerator,
+    normalizeDpopResourceRequestContext,
+} from "./crypto/DpopProofGenerator.js";
+export type { DpopResourceRequestContext } from "./crypto/DpopProofGenerator.js";

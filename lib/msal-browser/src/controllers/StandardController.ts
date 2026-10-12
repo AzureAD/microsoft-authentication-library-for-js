@@ -126,9 +126,6 @@ export class StandardController implements IController {
     // Token-binding key lifecycle implementation
     protected readonly tokenBindingKeyManager: ITokenBindingKeyManager;
 
-    // Native token-binding keys persist across redirect and popup window boundaries.
-    protected readonly nativeTokenBindingKeyManager: TokenBindingKeyManager;
-
     // Storage interface implementation
     protected readonly browserStorage: BrowserCacheManager;
 
@@ -248,11 +245,6 @@ export class StandardController implements IController {
             this.browserCrypto = DEFAULT_CRYPTO_IMPLEMENTATION;
             this.tokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER;
         }
-        this.nativeTokenBindingKeyManager = new TokenBindingKeyManager(
-            this.logger,
-            this.performanceClient
-        );
-
         this.eventHandler = new EventHandler(this.logger);
 
         // Initialize the browser storage class.
@@ -289,7 +281,7 @@ export class StandardController implements IController {
             this.performanceClient,
             this.eventHandler,
             undefined,
-            this.nativeTokenBindingKeyManager
+            this.tokenBindingKeyManager
         );
 
         this.activeSilentTokenRequests = new Map();
@@ -542,7 +534,7 @@ export class StandardController implements IController {
                     platformBrokerRequest.accountId,
                     this.nativeInternalStorage,
                     platformBrokerRequest.correlationId,
-                    this.nativeTokenBindingKeyManager
+                    this.tokenBindingKeyManager
                 );
 
                 redirectResponse = invokeAsync(
@@ -753,7 +745,7 @@ export class StandardController implements IController {
                     this.getNativeAccountId(request),
                     this.nativeInternalStorage,
                     correlationId,
-                    this.nativeTokenBindingKeyManager
+                    this.tokenBindingKeyManager
                 );
                 result = invokeAsync(
                     nativeClient.acquireTokenRedirect.bind(nativeClient),
@@ -1614,6 +1606,7 @@ export class StandardController implements IController {
             INTERACTION_TYPE.SIGNOUT
         );
 
+        await this.clearNativeCache(logoutRequest?.account, correlationId);
         const redirectClient = this.createRedirectClient(correlationId);
         return redirectClient.logout(logoutRequest);
     }
@@ -1632,9 +1625,11 @@ export class StandardController implements IController {
             );
 
             const popupClient = this.createPopupClient(correlationId);
-            return popupClient.logout(logoutRequest).finally(() => {
-                this.browserStorage.setInteractionInProgress(false);
-            });
+            return this.clearNativeCache(logoutRequest?.account, correlationId)
+                .then(() => popupClient.logout(logoutRequest))
+                .finally(() => {
+                    this.browserStorage.setInteractionInProgress(false);
+                });
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -1651,29 +1646,40 @@ export class StandardController implements IController {
         }
         const correlationId = this.getRequestCorrelationId(logoutRequest);
         const cacheClient = this.createSilentCacheClient(correlationId);
-        await cacheClient.logout(logoutRequest);
-        await this.clearNativeCache(logoutRequest?.account, correlationId);
+        const nativeCacheClear = this.clearNativeCache(
+            logoutRequest?.account,
+            correlationId
+        );
+        const browserCacheClear = cacheClient.logout(logoutRequest);
+        await Promise.all([nativeCacheClear, browserCacheClear]);
     }
 
     private async clearNativeCache(
         account: AccountInfo | null | undefined,
         correlationId: string
     ): Promise<void> {
-        if (!account) {
-            this.nativeInternalStorage.clear(correlationId);
-            await this.nativeTokenBindingKeyManager.clearKeystore(
-                correlationId
-            );
-            return;
-        }
-
+        const homeAccountId = account?.homeAccountId.toLowerCase();
+        const environment = account?.environment.toLowerCase();
         const accessTokenKeys = this.nativeInternalStorage
             .getTokenKeys()
-            .accessToken.filter(
-                (key) =>
-                    key.includes(account.homeAccountId) &&
-                    key.includes(account.environment)
-            );
+            .accessToken.filter((key) => {
+                if (!account) {
+                    return true;
+                }
+
+                const accessToken =
+                    this.nativeInternalStorage.getAccessTokenCredential(
+                        key,
+                        correlationId
+                    );
+                if (!accessToken) {
+                    return false;
+                }
+                return (
+                    accessToken.homeAccountId.toLowerCase() === homeAccountId &&
+                    accessToken.environment.toLowerCase() === environment
+                );
+            });
 
         await Promise.all(
             accessTokenKeys.map((key) =>
@@ -1683,7 +1689,12 @@ export class StandardController implements IController {
                 )
             )
         );
-        this.nativeInternalStorage.removeAccount(account, correlationId);
+
+        if (account) {
+            this.nativeInternalStorage.removeAccount(account, correlationId);
+        } else {
+            this.nativeInternalStorage.clear(correlationId);
+        }
     }
 
     // #endregion
@@ -1915,7 +1926,7 @@ export class StandardController implements IController {
             accountId || this.getNativeAccountId(request),
             this.nativeInternalStorage,
             correlationId,
-            this.nativeTokenBindingKeyManager
+            this.tokenBindingKeyManager
         );
         const nativeRequest = this.sanitizeNativeBrokerRequest(
             request,
