@@ -12,34 +12,54 @@ export async function waitForSelectorWithPageDiagnostics(
     try {
         await page.waitForSelector(selector, { visible: true });
     } catch (error) {
-        let diagnostics: string;
+        const diagnostics: string[] = [];
 
         try {
             const currentUrl = new URL(page.url());
             currentUrl.search = "";
             currentUrl.hash = "";
-            const title = await page.title();
-            const body = await page.evaluate(() => document.body.innerText);
-            const sanitizedBody = body
-                .replace(
-                    /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,
-                    "[redacted-email]"
-                )
-                .slice(0, 2000);
-
-            diagnostics = `URL: ${currentUrl.toString()}\nTitle: ${title}\nBody:\n${sanitizedBody}`;
+            diagnostics.push(`URL: ${currentUrl.toString()}`);
         } catch (diagnosticError) {
-            diagnostics = `Page diagnostics unavailable: ${
-                diagnosticError instanceof Error
-                    ? diagnosticError.message
-                    : String(diagnosticError)
-            }`;
+            diagnostics.push(
+                `URL unavailable: ${getErrorMessage(diagnosticError)}`
+            );
         }
 
-        const originalError =
-            error instanceof Error ? error.message : String(error);
+        try {
+            const title = redactEmails(await page.title());
+            diagnostics.push(`Title: ${title}`);
+        } catch (diagnosticError) {
+            diagnostics.push(
+                `Title unavailable: ${getErrorMessage(diagnosticError)}`
+            );
+        }
+
+        try {
+            const body = await page.evaluate(() => document.body.innerText);
+            const sanitizedBody = redactEmails(body).slice(0, 2000);
+            diagnostics.push(`Body:\n${sanitizedBody}`);
+        } catch (diagnosticError) {
+            diagnostics.push(
+                `Body unavailable: ${getErrorMessage(diagnosticError)}`
+            );
+        }
+
+        const originalError = getErrorMessage(error);
         throw new Error(
-            `Waiting for selector "${selector}" failed: ${originalError}\n${diagnostics}`
+            `Waiting for selector "${selector}" failed: ${originalError}\n${diagnostics.join(
+                "\n"
+            )}`
         );
     }
+}
+
+function redactEmails(value: string): string {
+    return value.replace(
+        /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,
+        "[redacted-email]"
+    );
+}
+
+function getErrorMessage(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
 }
