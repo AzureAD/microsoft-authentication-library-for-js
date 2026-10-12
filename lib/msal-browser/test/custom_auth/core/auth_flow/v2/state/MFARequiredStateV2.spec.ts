@@ -41,9 +41,6 @@ describe("MFARequiredStateV2", () => {
                 continuationToken: "ct-mfa",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
             methods,
         });
@@ -70,9 +67,6 @@ describe("MFARequiredStateV2", () => {
                     challenge: "/mfa/email/challenge",
                     verify: "/mfa/email/verify",
                 },
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
             channel: "email",
             sentTo: "u***@contoso.com",
@@ -90,9 +84,6 @@ describe("MFARequiredStateV2", () => {
                 continuationToken: "ct-mfa",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
                 links: { challenge: "/mfa/email/challenge" },
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
         });
         expect(result.isState("mfaVerificationRequired")).toBe(true);
