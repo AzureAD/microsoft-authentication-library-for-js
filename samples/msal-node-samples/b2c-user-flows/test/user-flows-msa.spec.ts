@@ -11,7 +11,6 @@ import {
     b2cMsaAccountEnterCredentials,
     RETRY_TIMES,
     validateCacheLocation,
-    SAMPLE_HOME_URL,
     NodeCacheTestUtils,
     LabClient,
     LabApiQueryParams,
@@ -134,18 +133,14 @@ describe("B2C User Flow Tests", () => {
                 username,
                 accountPwd
             );
-            await page.waitForFunction(
-                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
-            );
+            await page.waitForSelector("#editProfile", { visible: true });
             await page.click("#editProfile");
             await page.waitForSelector("#attributeVerification");
             let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
             await page.$eval("#displayName", (el: any) => (el.value = "")); // clear the text field
             await page.type("#displayName", `${displayName}`);
             await page.click("#continue");
-            await page.waitForFunction(
-                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
-            );
+            await page.waitForSelector("#viewId", { visible: true });
             await page.click("#viewId");
             await page.waitForSelector("#idTokenInfo");
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
@@ -153,4 +148,3 @@ describe("B2C User Flow Tests", () => {
         });
     });
 });
-
