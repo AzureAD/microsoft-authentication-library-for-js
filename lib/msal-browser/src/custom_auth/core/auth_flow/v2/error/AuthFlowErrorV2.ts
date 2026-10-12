@@ -163,13 +163,19 @@ export class AuthFlowErrorV2 {
     }
 
     private isPasswordPolicyViolationError(): boolean {
-        return this.getAttributeValidationDetails().some(
-            (detail) =>
+        return this.getAttributeValidationDetails().some((detail) => {
+            const attributeIds: unknown = detail.attributeIds;
+
+            return (
                 detail.code === "passwordPolicyViolation" &&
-                detail.attributeIds?.some(
-                    (attributeId) => attributeId.toLowerCase() === "password"
-                ) === true
-        );
+                Array.isArray(attributeIds) &&
+                attributeIds.some(
+                    (attributeId: unknown) =>
+                        typeof attributeId === "string" &&
+                        attributeId.toLowerCase() === "password"
+                )
+            );
+        });
     }
 
     private isPasswordIncorrectError(): boolean {

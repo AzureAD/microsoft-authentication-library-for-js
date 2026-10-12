@@ -28,6 +28,21 @@ describe("AuthFlowErrorV2 error mapping", () => {
             options?.innerErrorCode
         );
 
+    const errorWithAttributeValidationDetails = (
+        details: unknown
+    ): AuthFlowErrorV2 => {
+        const errorData = apiError("invalidRequest", {
+            innerErrorCode: "attributeValidationError",
+            message: "Attribute validation failed.",
+        });
+
+        Object.defineProperty(errorData, "attributeValidationDetails", {
+            value: details,
+        });
+
+        return new AuthFlowErrorV2(errorData);
+    };
+
     describe("isInvalidCode", () => {
         it("is true for invalidGrant with inner invalidOneTimeCode", () => {
             const error = new AuthFlowErrorV2(
@@ -141,6 +156,50 @@ describe("AuthFlowErrorV2 error mapping", () => {
             );
 
             expect(error.isInvalidPassword()).toBe(false);
+        });
+
+        it.each([
+            [
+                "a non-array value",
+                [
+                    {
+                        attributeIds: "password",
+                        code: "passwordPolicyViolation",
+                    },
+                ],
+            ],
+            [
+                "a non-string array entry",
+                [
+                    {
+                        attributeIds: [null],
+                        code: "passwordPolicyViolation",
+                    },
+                ],
+            ],
+            [
+                "no attribute ids",
+                [
+                    {
+                        code: "passwordPolicyViolation",
+                    },
+                ],
+            ],
+        ])("is false when a password-policy violation has %s", (_, details) => {
+            const error = errorWithAttributeValidationDetails(details);
+
+            expect(error.isInvalidPassword()).toBe(false);
+        });
+
+        it("ignores malformed entries when a valid password attribute is present", () => {
+            const error = errorWithAttributeValidationDetails([
+                {
+                    attributeIds: [null, "Password"],
+                    code: "passwordPolicyViolation",
+                },
+            ]);
+
+            expect(error.isInvalidPassword()).toBe(true);
         });
     });
 
