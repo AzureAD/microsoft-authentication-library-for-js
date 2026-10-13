@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-angular
 
-<!-- This log was last generated on Fri, 02 Oct 2026 19:03:43 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 13 Oct 2026 19:04:35 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 6.2.3
+
+Tue, 13 Oct 2026 19:04:35 GMT
+
+### Patches
+
+- Update Angular framework dependencies to 22.2.1 [#8906](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8906) (lalima.sharda@gmail.com)
+- Upgrade Angular tooling dependencies to patched versions [#8887](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8887) (joarroyo@microsoft.com)
+- Bump @azure/msal-browser to v5.25.1
 
 ## 6.2.2
 
