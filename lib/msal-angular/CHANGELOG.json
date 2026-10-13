@@ -2,6 +2,33 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Tue, 13 Oct 2026 19:04:35 GMT",
+      "version": "6.2.3",
+      "tag": "@azure/msal-angular_v6.2.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalima.sharda@gmail.com",
+            "package": "@azure/msal-angular",
+            "commit": "13cf92550692045122688b324e97228d454f5c6e",
+            "comment": "Update Angular framework dependencies to 22.2.1 [#8906](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8906)"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "13cf92550692045122688b324e97228d454f5c6e",
+            "comment": "Upgrade Angular tooling dependencies to patched versions [#8887](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8887)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v5.25.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 02 Oct 2026 19:03:43 GMT",
       "version": "6.2.2",
       "tag": "@azure/msal-angular_v6.2.2",
