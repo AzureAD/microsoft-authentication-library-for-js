@@ -2,6 +2,21 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 13 Oct 2026 21:52:57 GMT",
+      "version": "7.1.0",
+      "tag": "@azure/msal-node_v7.1.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "71005de7288dea55951cab38ef8d485add1341ac",
+            "comment": "Sanitize authorization code payloads and reject unsupported instance-aware inputs for confidential clients. [#8901](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8901)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 13 Oct 2026 19:04:36 GMT",
       "version": "7.0.2",
       "tag": "@azure/msal-node_v7.0.2",

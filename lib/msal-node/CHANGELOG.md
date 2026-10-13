@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 13 Oct 2026 19:04:36 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 13 Oct 2026 21:52:57 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 7.1.0
+
+Tue, 13 Oct 2026 21:52:57 GMT
+
+### Minor changes
+
+- Sanitize authorization code payloads and reject unsupported instance-aware inputs for confidential clients. [#8901](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8901) (hemoral@microsoft.com)
 
 ## 7.0.2
 
