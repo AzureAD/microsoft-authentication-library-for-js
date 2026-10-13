@@ -11,7 +11,6 @@ import {
     b2cMsaAccountEnterCredentials,
     RETRY_TIMES,
     validateCacheLocation,
-    SAMPLE_HOME_URL,
     NodeCacheTestUtils,
     LabClient,
     LabApiQueryParams,
@@ -19,6 +18,7 @@ import {
     UserTypes,
 } from "e2e-test-utils";
 import path from "path";
+import { waitForSelectorWithPageDiagnostics } from "./testUtils";
 
 import { ConfidentialClientApplication } from "@azure/msal-node";
 
@@ -34,9 +34,9 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/B2C-MSA.json");
 
-// Disabled until the lab B2C token-exchange failure (AADB2C90085) is resolved.
+// Re-enable after the lab client secret is rotated and AADB2C90081 is resolved.
 describe.skip("B2C User Flow Tests", () => {
-    jest.retryTimes(RETRY_TIMES);
+    jest.retryTimes(RETRY_TIMES, { logErrorsBeforeRetry: true });
     jest.setTimeout(90000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -49,7 +49,10 @@ describe.skip("B2C User Flow Tests", () => {
 
     let clientSecret: { secret: string; value: string };
 
-    const screenshotFolder = path.join(__dirname, "screenshots/b2c-user-flows/msa");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/b2c-user-flows/msa"
+    );
 
     beforeAll(async () => {
         createFolder(screenshotFolder);
@@ -135,18 +138,14 @@ describe.skip("B2C User Flow Tests", () => {
                 username,
                 accountPwd
             );
-            await page.waitForFunction(
-                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
-            );
+            await waitForSelectorWithPageDiagnostics(page, "#editProfile");
             await page.click("#editProfile");
             await page.waitForSelector("#attributeVerification");
             let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
             await page.$eval("#displayName", (el: any) => (el.value = "")); // clear the text field
             await page.type("#displayName", `${displayName}`);
             await page.click("#continue");
-            await page.waitForFunction(
-                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
-            );
+            await waitForSelectorWithPageDiagnostics(page, "#viewId");
             await page.click("#viewId");
             await page.waitForSelector("#idTokenInfo");
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
@@ -154,4 +153,3 @@ describe.skip("B2C User Flow Tests", () => {
         });
     });
 });
-
