@@ -15,6 +15,7 @@ import {
 import {
     DOMExtraParameters,
     PlatformAuthRequest,
+    PlatformAuthTokenType,
     PlatformDOMTokenRequest,
 } from "./PlatformAuthRequest.js";
 import { PlatformAuthConstants } from "../../utils/BrowserConstants.js";
@@ -169,6 +170,16 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         );
 
         try {
+            if (
+                request.tokenType?.trim().toLowerCase() ===
+                PlatformAuthTokenType.DPOP_WITH_PROOF
+            ) {
+                throw createAuthError(
+                    AuthErrorCodes.unexpectedError,
+                    correlationId,
+                    "Platform Authentication DOM API does not support DPoP requests."
+                );
+            }
             const platformDOMRequest = invoke(
                 this.initializePlatformDOMRequest.bind(this),
                 BrowserPerformanceEvents.PlatformAuthDOMInitializeRequest,
@@ -181,8 +192,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 await window.navigator.platformAuthentication.executeGetToken(
                     platformDOMRequest
                 );
-            request.bindingPreferenceSent =
-                platformDOMRequest.preferBinding !== undefined;
             const validatedResponse = this.validatePlatformBrokerResponse(
                 response,
                 correlationId
