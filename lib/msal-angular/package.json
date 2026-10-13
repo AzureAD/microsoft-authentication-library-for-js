@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "6.2.2",
+  "version": "6.2.3",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -39,17 +39,17 @@
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^22.2.0",
-    "@angular/animations": "^22.2.0",
+    "@angular/animations": "^22.2.1",
     "@angular/cli": "^22.2.0",
-    "@angular/common": "^22.2.0",
-    "@angular/compiler": "^22.2.0",
-    "@angular/compiler-cli": "^22.2.0",
-    "@angular/core": "^22.2.0",
-    "@angular/forms": "^22.2.0",
-    "@angular/platform-browser": "^22.2.0",
-    "@angular/platform-browser-dynamic": "^22.2.0",
-    "@angular/router": "^22.2.0",
-    "@azure/msal-browser": "^5.24.0",
+    "@angular/common": "^22.2.1",
+    "@angular/compiler": "^22.2.1",
+    "@angular/compiler-cli": "^22.2.1",
+    "@angular/core": "^22.2.1",
+    "@angular/forms": "^22.2.1",
+    "@angular/platform-browser": "^22.2.1",
+    "@angular/platform-browser-dynamic": "^22.2.1",
+    "@angular/router": "^22.2.1",
+    "@azure/msal-browser": "^5.25.1",
     "@types/jasmine": "~5.1.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^22.0.0",
@@ -70,7 +70,7 @@
     "zone.js": "~0.15.0"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^5.24.0",
+    "@azure/msal-browser": "^5.25.1",
     "rxjs": "^7.4.0"
   }
 }
