@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Restore the MSAL Node major-change guard after the v7 release",
+  "comment": "Restore the MSAL Node major-change guard after the v7 release [#8909](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8909)",
   "packageName": "@azure/msal-node",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "none"
