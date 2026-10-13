@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791926511970,
+  "lastUpdate": 1791928047806,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24227,6 +24227,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.59%",
             "unit": "ops/sec",
             "extra": "235 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "71005de7288dea55951cab38ef8d485add1341ac",
+          "message": "Bump msal-node (minor) (#8908)\n\nAdd a minor Beachball changefile for `@azure/msal-node`, reusing the\nprevious changefile message.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: chore\nagent-tool: copilot-cli\nagent-model: gpt-6.1-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCopilot-Session: 52f1e045-e7b3-41a0-bc67-f60a5fd7fb93",
+          "timestamp": "2026-10-13T21:39:02Z",
+          "tree_id": "1e299bad462aa235554554539aa81beb25c8c0cc",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/71005de7288dea55951cab38ef8d485add1341ac"
+        },
+        "date": 1791928043283,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 458974,
+            "range": "±0.64%",
+            "unit": "ops/sec",
+            "extra": "238 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 447611,
+            "range": "±0.73%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
