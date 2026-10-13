@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Update Angular framework dependencies to 22.2.1 [#8906](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8906)",
-    "packageName": "@azure/msal-angular",
-    "email": "lalima.sharda@gmail.com",
-    "dependentChangeType": "patch"
-}
