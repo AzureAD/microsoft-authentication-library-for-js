@@ -4,7 +4,6 @@
  */
 
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import type { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
 import type { CodeRequiredStateV2 } from "../state/CodeRequiredStateV2.js";
 import type { FailedStateV2 } from "../state/FailedStateV2.js";
 
@@ -14,9 +13,7 @@ import type { FailedStateV2 } from "../state/FailedStateV2.js";
 export type ResendCodeResultStateV2 = CodeRequiredStateV2 | FailedStateV2;
 
 /**
- * Result of requesting a replacement first-factor code.
+ * Result of requesting a replacement first-factor code. It wraps one of
+ * {@link ResendCodeResultStateV2} plus, on failure, the unified V2 flow error.
  */
-export type ResendCodeResultV2 = CustomAuthResultV2<
-    ResendCodeResultStateV2,
-    RequestChallengeErrorV2
->;
+export type ResendCodeResultV2 = CustomAuthResultV2<ResendCodeResultStateV2>;
