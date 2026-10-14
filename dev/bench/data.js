@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792010828642,
+  "lastUpdate": 1792020942917,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24493,6 +24493,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.85%",
             "unit": "ops/sec",
             "extra": "230 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "46ac33437537c3fbd10c50d47f103df19aa4980e",
+          "message": "chore: update handlebars and proxy-addr to fix security vulnerabilities (#8913)\n\n## Summary\n\n- Update the locked Handlebars dependency from 4.7.9 to the latest\nrelease, 4.7.10, fixing the prototype constructor deny-list bypass.\n- Replace `hbs` with `express-handlebars@^7.1.3` in `HybridSample` and\n`auth-code-distributed-cache`, reusing the adapter already used by\n`ExpressSample`. This removes the vulnerable exact Handlebars pin\nwithout any npm overrides.\n- Explicitly configure `.hbs` views and the existing `views/layout.hbs`\n/ `src/views/layout.hbs` layouts. Keep all templates, routes,\nauthentication, sessions, Redis integration, and MSAL logic unchanged.\n- Remove `hbs` and its unused `walk`/`foreachasync` dependencies from\nthe lockfile. Preserve unrelated package versions and metadata.\n- Proxy-addr is already locked to its latest release, 2.0.8, on `dev`.\n\n## Compatibility\n\n- `express-handlebars` 7.1.3 accepts Handlebars `^4.7.8`, which permits\nthe patched 4.7.10.\n- Keep the 7.x adapter line already used in the repo rather than raising\nthe samples' Node baseline for the latest major.\n- `express-handlebars` trims whitespace at template boundaries. The\nrendered HTML structure, content, escaping, and inline scripts remain\nequivalent for these samples.\n- Retain the adapter's default prototype-access restrictions rather than\ncarrying forward `hbs`'s permissive runtime defaults. The samples'\nexisting template data does not require prototype access.\n\n## Validation\n\n- Compared the old and new adapters across all nine non-layout\ntemplates: 72 rendering cases covering authenticated/unauthenticated\ndata, caching on/off, normal layouts and `layout: false`, profile\niteration, error objects, escaping, and inline-script syntax. Output is\nequivalent apart from insignificant template-boundary whitespace.\n- `npm run build\n--workspace=samples/msal-node-samples/auth-code-distributed-cache`\nsucceeds.\n- HybridSample JavaScript syntax and the changed TypeScript file's\nformatting checks pass.\n- `npm ci --dry-run --ignore-scripts --no-audit --no-fund` succeeds.\n- Verified the lockfile contains no `hbs`, all Handlebars copies resolve\nto 4.7.10, and proxy-addr remains 2.0.8.\n- Live Microsoft Entra sign-in and Redis-backed end-to-end flows were\nnot exercised; their implementation is unchanged.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: security\nagent-tool: copilot-cli\nagent-model: gpt-6.1-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\n---------\n\nCopilot-Session: d0f0e7f5-d710-47d4-af8d-9431372f2213",
+          "timestamp": "2026-10-14T16:28:03-07:00",
+          "tree_id": "65a3389cc5555549f60b64fccbe312f36742d0d7",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/46ac33437537c3fbd10c50d47f103df19aa4980e"
+        },
+        "date": 1792020938538,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 393875,
+            "range": "±0.80%",
+            "unit": "ops/sec",
+            "extra": "210 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 400025,
+            "range": "±0.83%",
+            "unit": "ops/sec",
+            "extra": "238 samples"
           }
         ]
       }
