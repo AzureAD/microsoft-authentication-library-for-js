@@ -55,6 +55,9 @@ There are a few things that may behave a little differently when acquiring token
 
 ### DPoP outcomes and caching
 
+> [!WARNING]
+> DPoP support in MSAL Browser is currently in development and is not fully rolled out or ready for production use. APIs and behavior may change. Use this feature only for evaluation and testing.
+
 DPoP broker outcome handling is currently supported only through the Windows Accounts extension. When the Platform Authentication DOM API provider is active, DPoP requests use the normal browser-managed DPoP flow instead of the platform broker. Bearer and PoP requests continue to use the DOM API provider.
 
 For extension broker requests using `authenticationScheme: AuthenticationScheme.DPOP`, the result can use either broker-owned L3 binding or browser-managed L1 binding. MSAL provisions a local key and sends its `reqCnf`; WAM normally forwards that confirmation to ESTS so the token is bound to the MSAL key. Sending `preferBinding: "attested"` permits an L3-capable WAM to suppress the `reqCnf` and use broker-managed attested binding instead. Broker DPoP requests use the `dpop+proof` request token type.
