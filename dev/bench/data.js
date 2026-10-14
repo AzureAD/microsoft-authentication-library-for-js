@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791997272079,
+  "lastUpdate": 1792002193044,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24379,6 +24379,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.25%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sameera.gajjarapu@microsoft.com",
+            "name": "Sameera Gajjarapu",
+            "username": "sameerag"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e70b7503c1e57e31ccdeee3354d1cec0dded3664",
+          "message": "Add NAA bridge type to performance telemetry (#8864)\n\n## Summary\n\n- add `bridgeType: \"NAA\"` to Nested App Auth popup, host-silent, and\ncache-silent performance measurements\n- define the shared `bridgeType: \"NAA\" | \"PWB\"` performance telemetry\nfield\n- add focused coverage for all three NAA measurement paths\n\nThis complements the 1P PWB telemetry in Azure DevOps PR 27440 so\ndashboards can use one `bridgeType` dimension for both bridge\nimplementations.\n\n## Validation\n\n- `@azure/msal-common` and `@azure/msal-browser` builds passed\n- `@azure/msal-common`: 1,168 tests passed\n- `@azure/msal-browser`: 2,170 tests passed, 3 skipped\n- focused `NestedAppAuthController` suite: 27 tests passed\n- lint passed with existing warnings only\n- formatting passed\n- Beachball passed\n- `@azure/msal-common` API Extractor passed and its API review was\nupdated\n- `@azure/msal-browser` API Extractor is blocked by a reproducible\ninternal API Extractor error on the existing `RequestParameterBuilder`\nsource-file symbol under Node 22 and Node 25\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: telemetry\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\n---------\n\nCo-authored-by: copilot-swe-agent[bot] <198982749+Copilot@users.noreply.github.com>\nCopilot-Session: 0587e9e4-12b2-49aa-867a-24103c92dcb1",
+          "timestamp": "2026-10-14T18:14:00Z",
+          "tree_id": "c2eea6fc9d908d472e1c4145b12076453ae2d1c5",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e70b7503c1e57e31ccdeee3354d1cec0dded3664"
+        },
+        "date": 1792002189449,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 386267,
+            "range": "±0.71%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 377753,
+            "range": "±0.75%",
+            "unit": "ops/sec",
+            "extra": "221 samples"
           }
         ]
       }
