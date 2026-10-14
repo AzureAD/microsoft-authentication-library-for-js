@@ -641,6 +641,7 @@ describe("Sign-up V2 entry", () => {
             ).toEqual({
                 continuationToken: "ct-verify",
                 scenario: "signUp",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {},
             });
         }

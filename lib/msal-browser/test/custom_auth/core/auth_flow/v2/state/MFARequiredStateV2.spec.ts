@@ -15,6 +15,7 @@ import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
 describe("MFARequiredStateV2", () => {
     const correlationId = "test-correlation-id";
+    const scopes = ["openid", "profile", "offline_access"];
     const methods: readonly AuthenticationMethodV2[] = [
         {
             id: "email-mfa",
@@ -40,6 +41,7 @@ describe("MFARequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-mfa",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {},
             },
             methods,
@@ -63,6 +65,7 @@ describe("MFARequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {
                     challenge: "/mfa/email/challenge",
                     verify: "/mfa/email/verify",
@@ -83,6 +86,7 @@ describe("MFARequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-mfa",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: { challenge: "/mfa/email/challenge" },
             },
         });

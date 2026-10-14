@@ -108,6 +108,7 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
 
     protected async handleTokenResponse(
         tokenResponse: TokenResponseV2,
+        requestedScopes: string[],
         correlationId: string,
         apiId: number
     ): Promise<AuthenticationResult> {
@@ -115,8 +116,8 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
 
         const requestTimestamp = Math.round(new Date().getTime() / 1000.0);
         const responseScopes = tokenResponse.scope
-            .split(" ")
-            .filter((scope) => !!scope);
+            ? tokenResponse.scope.split(" ").filter((scope) => !!scope)
+            : requestedScopes;
 
         const result =
             await this.tokenResponseHandler.handleServerTokenResponse(

@@ -12,6 +12,7 @@ import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
 describe("SignInContinuationStateV2", () => {
     const correlationId = "test-correlation-id";
+    const scopes = ["openid", "profile", "offline_access"];
     const flowClient = {
         signInWithContinuation: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
@@ -29,6 +30,7 @@ describe("SignInContinuationStateV2", () => {
             continuationState: {
                 continuationToken: "ct-complete",
                 scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                scopes,
                 links: {},
             },
         });
@@ -49,6 +51,7 @@ describe("SignInContinuationStateV2", () => {
             continuationState: {
                 continuationToken: "ct-complete",
                 scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                scopes,
                 links: {},
             },
         });

@@ -19,6 +19,7 @@ import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
 describe("MFAVerificationRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
+    const scopes = ["openid", "profile", "offline_access"];
     const flowClient = {
         submitCode: jest.fn(),
         resendCode: jest.fn(),
@@ -37,6 +38,7 @@ describe("MFAVerificationRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-mfa-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {
                     verify: "/mfa/verify",
                     resend: "/mfa/resend",
@@ -75,6 +77,7 @@ describe("MFAVerificationRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-mfa-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {
                     verify: "/mfa/verify",
                     resend: "/mfa/resend",
@@ -131,6 +134,7 @@ describe("MFAVerificationRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-mfa-resend",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {
                     verify: "/mfa/verify",
                     resend: "/mfa/resend",

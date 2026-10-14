@@ -170,6 +170,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: startResult.continuationToken,
             scenario: CustomAuthFlowScenarioV2.SignIn,
+            scopes,
             links: {},
         };
         const methods = startResult.methods.map((method) => ({
@@ -270,6 +271,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: startResult.continuationToken,
             scenario: CustomAuthFlowScenarioV2.SignUp,
+            scopes,
             links: {},
             signUp: {
                 passwordWasSupplied: attributes.password !== undefined,
@@ -344,6 +346,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: startResult.continuationToken,
             scenario: CustomAuthFlowScenarioV2.PasswordReset,
+            scopes,
             links: {},
         };
         const methods = startResult.methods.map((method) => ({
@@ -494,6 +497,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationState: {
                     continuationToken: verifyResult.continuationToken,
                     scenario: continuationState.scenario,
+                    scopes: continuationState.scopes,
                     links: { update: verifyResult.updateHref },
                 },
             });
@@ -519,6 +523,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             const nextContinuationState: FlowContinuationStateV2 = {
                 continuationToken: verifyResult.continuationToken,
                 scenario: continuationState.scenario,
+                scopes: continuationState.scopes,
                 links: {
                     submitAttributes: verifyResult.submitAttributesHref,
                 },
@@ -557,6 +562,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationState: {
                     continuationToken: verifyResult.continuationToken,
                     scenario: continuationState.scenario,
+                    scopes: continuationState.scopes,
                     links: {},
                 },
             });
@@ -715,6 +721,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             continuationState: {
                 continuationToken: completionToken,
                 scenario: continuationState.scenario,
+                scopes: continuationState.scopes,
                 links: {},
             },
         });
@@ -765,6 +772,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         const authenticationResult = await this.handleTokenResponse(
             tokenResponse,
+            continuationState.scopes,
             correlationId,
             apiId
         );
@@ -798,6 +806,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationState: {
                     continuationToken: verifyResult.continuationToken,
                     scenario: continuationState.scenario,
+                    scopes: continuationState.scopes,
                     links: {},
                 },
                 methods: verifyResult.methods.map((method) => ({
@@ -871,6 +880,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationState: {
                     continuationToken: result.continuationToken,
                     scenario: continuationState.scenario,
+                    scopes: continuationState.scopes,
                     links: {
                         verify: result.verifyHref,
                         resend: result.resendHref,
@@ -895,6 +905,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             const nextContinuationState: FlowContinuationStateV2 = {
                 continuationToken: result.continuationToken,
                 scenario: continuationState.scenario,
+                scopes: continuationState.scopes,
                 links: {
                     submitAttributes: result.submitAttributesHref,
                 },
@@ -930,6 +941,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationState: {
                     continuationToken: result.continuationToken,
                     scenario: continuationState.scenario,
+                    scopes: continuationState.scopes,
                     links: {},
                 },
             });
@@ -998,6 +1010,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             continuationState: {
                 continuationToken,
                 scenario: continuationState.scenario,
+                scopes: continuationState.scopes,
                 links: {},
             },
         });
@@ -1064,6 +1077,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         return {
             continuationToken: challengeResult.continuationToken,
             scenario: continuationState.scenario,
+            scopes: continuationState.scopes,
             links: {
                 challenge: continuationState.links.challenge,
                 verify: challengeResult.verifyHref,

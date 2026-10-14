@@ -22,6 +22,7 @@ import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 describe("CustomAuthResultV2", () => {
     const correlationId = "test-correlation-id";
+    const scopes = ["openid", "profile", "offline_access"];
     const mockConfig = {
         auth: { clientId: "test-client-id" },
         customAuth: { challengeTypes: ["password"] },
@@ -43,6 +44,7 @@ describe("CustomAuthResultV2", () => {
             continuationState: {
                 continuationToken: "ct",
                 scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                scopes,
                 links: {},
             },
             methods: [{ id: "email", type: "email", challengeHref: "/c" }],
@@ -83,6 +85,7 @@ describe("CustomAuthResultV2", () => {
                     continuationState: {
                         continuationToken: "ct",
                         scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                        scopes,
                         links: {
                             verify: "/verify",
                         },

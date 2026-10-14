@@ -20,11 +20,13 @@ export interface FlowLinksV2 {
 
 /*
  * Opaque state used to resume a server-driven flow. It carries the continuation
- * token, scenario, and server-provided links without exposing them to the app.
+ * token, scenario, normalized entry scopes, and server-provided links without
+ * exposing them to the app.
  */
 export interface FlowContinuationStateV2 {
     continuationToken: string;
     scenario: CustomAuthFlowScenarioV2;
+    scopes: string[];
     links: FlowLinksV2;
     signUp?: {
         passwordWasSupplied: boolean;
