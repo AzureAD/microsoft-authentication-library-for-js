@@ -10,6 +10,8 @@ import { AuthMethodSelectionRequiredStateV2 } from "../../../../../../src/custom
 import { CodeRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { AuthMethodSelectionRequiredStateParametersV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CustomAuthStateParametersV2.js";
 import { MFAVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import { SignInStateTransitionHandlerV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInStateTransitionHandlerV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
     FLOW_CODE_REQUIRED_V2,
@@ -21,13 +23,15 @@ import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
 describe("AuthMethodSelectionRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
+    const scopes = ["openid", "profile", "offline_access"];
     const flowClient = {
         requestChallenge: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
 
     const buildState = (
         methods: readonly AuthenticationMethodV2[],
-        authenticationFactor: AuthenticationFactorV2
+        authenticationFactor: AuthenticationFactorV2,
+        scenario: CustomAuthFlowScenarioV2 = CustomAuthFlowScenarioV2.SignIn
     ): AuthMethodSelectionRequiredStateV2 => {
         const stateParameters: AuthMethodSelectionRequiredStateParametersV2 = {
             correlationId,
@@ -40,11 +44,16 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
             cacheClient: {} as CustomAuthSilentCacheClient,
             continuationState: {
                 continuationToken: "ct-selection",
-                scenario: CustomAuthFlowScenarioV2.SignIn,
+                scenario,
+                scopes,
                 links: {},
             },
             methods,
             authenticationFactor,
+            signInStateTransitionHandler:
+                scenario === CustomAuthFlowScenarioV2.SignIn
+                    ? new SignInStateTransitionHandlerV2()
+                    : undefined,
         };
 
         return new AuthMethodSelectionRequiredStateV2(stateParameters);
@@ -58,6 +67,7 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {
                     challenge: "/method/challenge",
                     verify: "/method/verify",
@@ -92,6 +102,34 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
 
         expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
         expect(result.state.stateType).toBe("codeRequired");
+    });
+
+    it("routes a selected primary password to password collection", async () => {
+        const method: AuthenticationMethodV2 = {
+            id: "password-primary",
+            type: "password",
+            challengeHref: "/methods/password-primary/challenge",
+        };
+        flowClient.requestChallenge.mockResolvedValue({
+            type: FLOW_PASSWORD_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-password",
+                scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
+                links: {
+                    verify: "/password/verify",
+                },
+            },
+        });
+
+        const result = await buildState(
+            [method],
+            AuthenticationFactorV2.SINGLE_FACTOR
+        ).selectAuthMethod(method);
+
+        expect(result.state).toBeInstanceOf(PasswordRequiredStateV2);
+        expect(result.state.stateType).toBe("passwordRequired");
     });
 
     it("routes one multi-factor method to MFA verification", async () => {
@@ -154,6 +192,7 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-selection",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {
                     challenge: serverMethod.challengeHref,
                 },
@@ -175,6 +214,7 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-password",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {
                     verify: "/password/verify",
                 },
@@ -189,6 +229,37 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
         expect(result.isFailed()).toBe(true);
         expect(result.error?.errorDescription).toBe(
             "Authentication method selection expected a code challenge for multi-factor authentication, but the server returned a password challenge."
+        );
+    });
+
+    it("rejects a password challenge during password reset", async () => {
+        const method: AuthenticationMethodV2 = {
+            id: "password-reset",
+            type: "password",
+            challengeHref: "/methods/password-reset/challenge",
+        };
+        flowClient.requestChallenge.mockResolvedValue({
+            type: FLOW_PASSWORD_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-password",
+                scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                scopes,
+                links: {
+                    verify: "/password/verify",
+                },
+            },
+        });
+
+        const result = await buildState(
+            [method],
+            AuthenticationFactorV2.SINGLE_FACTOR,
+            CustomAuthFlowScenarioV2.PasswordReset
+        ).selectAuthMethod(method);
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.errorDescription).toBe(
+            "Authentication method selection expected an email or SMS code challenge for single-factor authentication, but the server returned a password challenge."
         );
     });
 });

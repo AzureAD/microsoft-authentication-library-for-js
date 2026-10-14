@@ -300,6 +300,10 @@ export {
     RequestChallengeResultStateV2,
 } from "./core/auth_flow/v2/result/RequestChallengeResultV2.js";
 export {
+    ResendCodeResultV2,
+    ResendCodeResultStateV2,
+} from "./core/auth_flow/v2/result/ResendCodeResultV2.js";
+export {
     MFASubmitChallengeResultV2,
     MFASubmitChallengeResultStateV2,
 } from "./core/auth_flow/v2/result/MFASubmitChallengeResultV2.js";

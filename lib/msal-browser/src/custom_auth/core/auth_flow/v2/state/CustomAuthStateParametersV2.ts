@@ -23,6 +23,7 @@ export interface AuthMethodSelectionRequiredStateParametersV2
     extends CustomAuthActionRequiredStateParametersV2 {
     methods: readonly AuthenticationMethodV2[];
     authenticationFactor: AuthenticationFactorV2;
+    signInStateTransitionHandler?: SignInStateTransitionHandlerV2;
 }
 
 export interface CodeVerificationStateParametersV2

@@ -124,11 +124,13 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Starts sign-in using the preferred supported method offered by the server.
+     * Starts sign-in by automatically using a sole supported method or returning
+     * multiple supported methods for user selection.
      */
     async signIn(
         parameters: FlowSignInStartParamsV2
     ): Promise<
+        | FlowMethodSelectionRequiredResultV2
         | FlowPasswordRequiredResultV2
         | FlowSignInCodeRequiredResultV2
         | FlowMFARequiredResultV2
@@ -179,11 +181,20 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             hint: method.hint,
             challengeHref: method.challengeHref,
         }));
-        const selectedMethod = this.selectSignInMethod(
+        const supportedMethods = this.getSupportedSignInMethods(
             methods,
-            parameters.password !== undefined,
             correlationId
         );
+
+        if (supportedMethods.length > 1) {
+            return createFlowMethodSelectionRequiredResultV2({
+                correlationId,
+                continuationState,
+                methods: supportedMethods,
+            });
+        }
+
+        const selectedMethod = supportedMethods[0];
 
         const challengeResult = await this.requestChallenge({
             correlationId,
@@ -203,7 +214,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             };
         }
 
-        if (parameters.password) {
+        if (
+            parameters.password &&
+            selectedMethod.type.toLowerCase() ===
+                AuthenticationMethodTypeV2.PASSWORD
+        ) {
             return this.submitSignInPassword({
                 correlationId,
                 continuationState: challengeResult.continuationState,
@@ -835,30 +850,25 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         );
     }
 
-    private selectSignInMethod(
+    private getSupportedSignInMethods(
         methods: AuthenticationMethodV2[],
-        passwordProvided: boolean,
         correlationId: string
-    ): AuthenticationMethodV2 {
-        const passwordMethod = methods.find(
-            (method) =>
-                method.type.toLowerCase() ===
-                AuthenticationMethodTypeV2.PASSWORD
-        );
-        const emailMethod = methods.find(
-            (method) =>
-                method.type.toLowerCase() === AuthenticationMethodTypeV2.EMAIL
-        );
+    ): AuthenticationMethodV2[] {
+        const supportedMethods = methods.filter((method) => {
+            const methodType = method.type.toLowerCase();
+            return (
+                methodType === AuthenticationMethodTypeV2.EMAIL ||
+                methodType === AuthenticationMethodTypeV2.PASSWORD ||
+                methodType === AuthenticationMethodTypeV2.SMS
+            );
+        });
 
-        const selectedMethod = passwordProvided
-            ? passwordMethod ?? emailMethod
-            : emailMethod ?? passwordMethod;
-        if (selectedMethod) {
-            return selectedMethod;
+        if (supportedMethods.length > 0) {
+            return supportedMethods;
         }
 
         const message =
-            "The sign-in start response did not include a supported email or password method.";
+            "The sign-in start response did not include a supported email, SMS, or password method.";
         this.logger.error(message, correlationId);
         throw new CustomAuthError(
             UNSUPPORTED_FLOW_TRANSITION,

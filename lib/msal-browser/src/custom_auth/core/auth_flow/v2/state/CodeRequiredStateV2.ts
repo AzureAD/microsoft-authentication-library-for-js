@@ -9,7 +9,7 @@ import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
 import { NewPasswordRequiredStateV2 } from "../../../../reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import type { CodeRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { VerifyChallengeResultV2 } from "../result/VerifyChallengeResultV2.js";
-import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
+import type { ResendCodeResultV2 } from "../result/ResendCodeResultV2.js";
 import { CompletedStateV2 } from "./CompletedStateV2.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import {
@@ -154,7 +154,7 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
      * contains the refreshed challenge metadata.
      * @returns The result of requesting a replacement code.
      */
-    async resendCode(): Promise<RequestChallengeResultV2> {
+    async resendCode(): Promise<ResendCodeResultV2> {
         const { correlationId, logger, continuationState } =
             this.stateParameters;
 

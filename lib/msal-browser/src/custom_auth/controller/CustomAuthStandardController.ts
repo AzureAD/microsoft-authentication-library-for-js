@@ -41,6 +41,7 @@ import {
     FLOW_COMPLETED_V2,
     FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
+    FLOW_METHOD_SELECTION_REQUIRED_V2,
     FLOW_MFA_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
@@ -804,6 +805,26 @@ export class CustomAuthStandardController
                         methods: result.methods,
                         authenticationFactor:
                             AuthenticationFactorV2.MULTI_FACTOR,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_METHOD_SELECTION_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new AuthMethodSelectionRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                        methods: result.methods,
+                        authenticationFactor:
+                            AuthenticationFactorV2.SINGLE_FACTOR,
+                        signInStateTransitionHandler:
+                            this.signInStateTransitionHandlerV2,
                     }),
                     undefined,
                     result.continuationState.scenario

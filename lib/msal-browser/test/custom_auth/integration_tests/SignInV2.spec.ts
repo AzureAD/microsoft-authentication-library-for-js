@@ -252,7 +252,7 @@ describe("Sign-in V2 entry", () => {
         );
     });
 
-    it("prefers email OTP when no password is supplied", async () => {
+    it("requires selection when multiple primary methods are available", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
             .mockResolvedValueOnce(
@@ -265,10 +265,24 @@ describe("Sign-in V2 entry", () => {
             scopes: ["User.Read"],
         });
 
-        expect(result.isState("codeRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
+        expect(result.isState("authMethodSelectionRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(AuthMethodSelectionRequiredStateV2);
+        expect(fetch).toHaveBeenCalledTimes(2);
 
-        const challengeState = result.state as CodeRequiredStateV2;
+        const selectionState =
+            result.state as AuthMethodSelectionRequiredStateV2;
+        expect(selectionState.methods.map((method) => method.id)).toEqual([
+            "password-1",
+            "email-1",
+        ]);
+
+        const challengeResult = await selectionState.selectAuthMethod(
+            selectionState.methods[1]
+        );
+
+        expect(challengeResult.isState("codeRequired")).toBe(true);
+        expect(challengeResult.state).toBeInstanceOf(CodeRequiredStateV2);
+        const challengeState = challengeResult.state as CodeRequiredStateV2;
         expect(challengeState.method?.id).toBe("email-1");
         expect(challengeState.channel).toBe("email");
         expect(challengeState.sentTo).toBe("u***@contoso.com");
@@ -479,7 +493,7 @@ describe("Sign-in V2 entry", () => {
         );
     });
 
-    it("automatically selects and submits password when multiple methods are returned", async () => {
+    it("requires password entry again after selecting password from multiple methods", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
             .mockResolvedValueOnce(
@@ -490,14 +504,40 @@ describe("Sign-in V2 entry", () => {
             .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
             .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
 
-        const result = await app.signInV2({
+        const startResult = await app.signInV2({
             username: "user@contoso.com",
-            password: "valid-password",
+            password: "initial-password",
         });
+
+        expect(startResult.isState("authMethodSelectionRequired")).toBe(true);
+        expect(startResult.state).toBeInstanceOf(
+            AuthMethodSelectionRequiredStateV2
+        );
+        expect(fetch).toHaveBeenCalledTimes(2);
+
+        const selectionState =
+            startResult.state as AuthMethodSelectionRequiredStateV2;
+        const passwordResult = await selectionState.selectAuthMethod(
+            selectionState.methods[0]
+        );
+
+        expect(passwordResult.isState("passwordRequired")).toBe(true);
+        expect(passwordResult.state).toBeInstanceOf(PasswordRequiredStateV2);
+        expect(fetch).toHaveBeenCalledTimes(3);
+
+        const result = await (
+            passwordResult.state as PasswordRequiredStateV2
+        ).submitPassword("selected-password");
 
         expect(result.isState("completed")).toBe(true);
         expect(result.state).toBeInstanceOf(CompletedStateV2);
         expect(fetch).toHaveBeenCalledTimes(6);
+
+        const passwordBody = JSON.parse(
+            (fetch as jest.Mock).mock.calls[3][1].body
+        );
+        expect(passwordBody.password).toBe("selected-password");
+        expect(passwordBody.password).not.toBe("initial-password");
     });
 
     it("automatically submits a supplied password", async () => {

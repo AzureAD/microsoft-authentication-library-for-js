@@ -8,6 +8,7 @@ import type { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.j
 import type { CodeRequiredStateV2 } from "../state/CodeRequiredStateV2.js";
 import type { FailedStateV2 } from "../state/FailedStateV2.js";
 import type { MFAVerificationRequiredStateV2 } from "../state/MFAVerificationRequiredStateV2.js";
+import type { PasswordRequiredStateV2 } from "../../../../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 
 /**
  * The states a request-challenge action can resolve to. Trusted server response
@@ -16,6 +17,7 @@ import type { MFAVerificationRequiredStateV2 } from "../state/MFAVerificationReq
 export type RequestChallengeResultStateV2 =
     | CodeRequiredStateV2
     | MFAVerificationRequiredStateV2
+    | PasswordRequiredStateV2
     | FailedStateV2;
 
 /**

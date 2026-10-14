@@ -10,12 +10,16 @@ import { CodeRequiredStateV2 } from "./CodeRequiredStateV2.js";
 import { MFAVerificationRequiredStateV2 } from "./MFAVerificationRequiredStateV2.js";
 import type { AuthMethodSelectionRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
-import { FLOW_CODE_REQUIRED_V2 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
+import {
+    FLOW_CODE_REQUIRED_V2,
+    FLOW_PASSWORD_REQUIRED_V2,
+} from "../../../interaction_client/v2/result/FlowActionResultV2.js";
 import { AuthenticationMethodSelectionStateBaseV2 } from "./AuthenticationMethodSelectionStateBaseV2.js";
 import { AuthenticationMethodTypeV2 } from "../../../network_client/custom_auth_api/v2/ApiClientConstantsV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
+import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
 
 /**
  * State returned when the user must select one of several authentication
@@ -41,6 +45,7 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSele
             logger,
             continuationState,
             flowClient,
+            signInStateTransitionHandler,
         } = this.stateParameters;
 
         try {
@@ -83,6 +88,26 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSele
             }
 
             if (
+                continuationState.scenario ===
+                    CustomAuthFlowScenarioV2.SignIn &&
+                authenticationFactor === AuthenticationFactorV2.SINGLE_FACTOR &&
+                result.type === FLOW_PASSWORD_REQUIRED_V2
+            ) {
+                if (!signInStateTransitionHandler) {
+                    throw new CustomAuthError(
+                        UNSUPPORTED_FLOW_TRANSITION,
+                        "Sign-in method selection cannot map a password challenge without a sign-in transition handler.",
+                        correlationId
+                    );
+                }
+
+                return signInStateTransitionHandler.handlePasswordRequired(
+                    result,
+                    commonStateParameters
+                );
+            }
+
+            if (
                 authenticationFactor === AuthenticationFactorV2.MULTI_FACTOR &&
                 result.type === FLOW_CODE_REQUIRED_V2
             ) {
@@ -101,7 +126,10 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSele
 
             const expectedChallenge =
                 authenticationFactor === AuthenticationFactorV2.SINGLE_FACTOR
-                    ? "an email or SMS code challenge for single-factor authentication"
+                    ? continuationState.scenario ===
+                      CustomAuthFlowScenarioV2.SignIn
+                        ? "an email or SMS code challenge or a password challenge for single-factor sign-in"
+                        : "an email or SMS code challenge for single-factor authentication"
                     : "a code challenge for multi-factor authentication";
             const returnedChallenge =
                 result.type === FLOW_CODE_REQUIRED_V2
