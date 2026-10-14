@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1791936090037,
+  "lastUpdate": 1791995756567,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24303,6 +24303,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.57%",
             "unit": "ops/sec",
             "extra": "208 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4ddadafedd347099ac803d7eda749ecd2c01dfec",
+          "message": "test: re-enable B2C user-flow suite (#8911)\n\n## Summary\n\nRe-enable the local-account and MSA b2c-user-flows specs by removing the\ntemporary suite skips. Leave the existing test logic and pipeline\nconfiguration unchanged.\n\nRemoves the suite-level `describe.skip()` declarations and\ntemporary-disable comments introduced in #8902. The `b2c-user-flows`\nentry is already enabled in the 3P E2E pipeline.\n\n## Validation\n\nBoth TypeScript specs parse successfully, and their top-level suites are\nenabled. Verified the diff is limited to removing the two skips and\ntheir comments.\n\nLive B2C E2E execution is left to CI; this PR does not establish that\nthe previously reported lab token-exchange failure (`AADB2C90085`) is\nresolved.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: test\nagent-tool: copilot-cli\nagent-model: gpt-6.1-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\nCopilot-Session: 5ced2883-f557-48da-b409-c09b212f231c",
+          "timestamp": "2026-10-14T09:26:22-07:00",
+          "tree_id": "65c6e59e359f4ad1bc52ded1da15ce48fad17717",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/4ddadafedd347099ac803d7eda749ecd2c01dfec"
+        },
+        "date": 1791995751959,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 445999,
+            "range": "±0.86%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 440291,
+            "range": "±1.10%",
+            "unit": "ops/sec",
+            "extra": "214 samples"
           }
         ]
       }
