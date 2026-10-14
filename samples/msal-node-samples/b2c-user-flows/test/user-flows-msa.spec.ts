@@ -34,8 +34,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/B2C-MSA.json");
 
-// Disabled until the lab B2C token-exchange failure (AADB2C90085) is resolved.
-describe.skip("B2C User Flow Tests", () => {
+describe("B2C User Flow Tests", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(90000);
     let browser: puppeteer.Browser;
