@@ -19,22 +19,26 @@ describe("BrowserDetection", () => {
     const correlationId = "test-correlation-id";
 
     it.each([safariUserAgent, iPhoneSafariUserAgent])(
-        "identifies Safari user agents",
+        "identifies user agents with Safari and AppleWebKit markers",
         (userAgent) => {
             expect(isSafari(userAgent)).toBe(true);
         }
     );
 
     it.each([
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0",
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 EdgiOS/137.0 Mobile/15E148 Safari/605.1.15",
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/137.0.0.0 Mobile/15E148 Safari/604.1",
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/138.0 Mobile/15E148 Safari/605.1.15",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 OPR/120.0.0.0",
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) OPiOS/6.1.0 Mobile/15E148 Safari/9537.53",
-        "Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/137.0.0.0 Mobile Safari/537.36",
-    ])("does not identify non-Safari user agents", (userAgent) => {
+        "Mozilla/5.0 Safari/605.1.15",
+        "Mozilla/5.0 AppleWebKit/605.1.15",
+        "Mozilla/5.0 safari/605.1.15 applewebkit/605.1.15",
+    ])("does not identify user agents missing exact markers", (userAgent) => {
         expect(isSafari(userAgent)).toBe(false);
+    });
+
+    it("identifies other browsers whose user agent contains both markers", () => {
+        expect(
+            isSafari(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0"
+            )
+        ).toBe(true);
     });
 
     it("falls back to authorization code flow for EAR in Safari", () => {

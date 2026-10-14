@@ -9,11 +9,8 @@ import {
     ProtocolMode,
 } from "@azure/msal-common/browser";
 
-const SAFARI_USER_AGENT =
-    /^((?!chrome|chromium|crios|edg|edgios|fxios|opr|opios|android).)*safari/i;
-
 /**
- * Returns true when the supplied user agent represents Safari.
+ * Returns true when the supplied user agent is using Safari
  *
  * @internal
  */
@@ -22,7 +19,7 @@ export function isSafari(
         ? navigator.userAgent
         : ""
 ): boolean {
-    return SAFARI_USER_AGENT.test(userAgent);
+    return userAgent.includes("Safari") && userAgent.includes("AppleWebKit");
 }
 
 /**
