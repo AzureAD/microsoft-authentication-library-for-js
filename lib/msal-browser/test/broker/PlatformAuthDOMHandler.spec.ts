@@ -21,6 +21,7 @@ import {
     PlatformAuthTokenType,
 } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
+import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
 import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 
 describe("PlatformAuthDOMHandler tests", () => {
@@ -244,9 +245,10 @@ describe("PlatformAuthDOMHandler tests", () => {
 
             await expect(
                 platformAuthDOMHandler?.sendMessage(testRequest)
-            ).rejects.toThrow(
-                "Platform Authentication DOM API does not support DPoP requests."
-            );
+            ).rejects.toMatchObject({
+                errorCode:
+                    BrowserAuthErrorCodes.platformAuthDomDpopNotSupported,
+            });
             expect(executeGetTokenMock).not.toHaveBeenCalled();
         });
 

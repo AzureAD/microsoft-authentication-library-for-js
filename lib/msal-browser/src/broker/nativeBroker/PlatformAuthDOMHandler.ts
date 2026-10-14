@@ -24,6 +24,10 @@ import {
     PlatformDOMTokenResponse,
 } from "./PlatformAuthResponse.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
+import {
+    BrowserAuthErrorCodes,
+    createBrowserAuthError,
+} from "../../error/BrowserAuthError.js";
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
 
@@ -174,10 +178,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 request.tokenType?.trim().toLowerCase() ===
                 PlatformAuthTokenType.DPOP_WITH_PROOF
             ) {
-                throw createAuthError(
-                    AuthErrorCodes.unexpectedError,
-                    correlationId,
-                    "Platform Authentication DOM API does not support DPoP requests."
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.platformAuthDomDpopNotSupported,
+                    correlationId
                 );
             }
             const platformDOMRequest = invoke(

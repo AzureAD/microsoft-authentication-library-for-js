@@ -215,6 +215,7 @@ declare namespace BrowserAuthErrorCodes {
         invalidBase64String,
         invalidPopTokenRequest,
         dpopPopKidNotSupported,
+        platformAuthDomDpopNotSupported,
         unsupportedTokenBindingAlgorithm,
         tokenBindingKeyAlgorithmMismatch,
         tokenBindingKeyJwkThumbprintMismatch,
@@ -886,6 +887,9 @@ export { PerformanceEvent }
 
 // @public (undocumented)
 const pkceNotCreated = "pkce_not_created";
+
+// @public (undocumented)
+const platformAuthDomDpopNotSupported = "platform_auth_dom_dpop_not_supported";
 
 // @public (undocumented)
 export type PopupEvent = {
