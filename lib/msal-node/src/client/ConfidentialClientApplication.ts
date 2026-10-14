@@ -25,6 +25,7 @@ import {
     ClientAssertion as ClientAssertionType,
     getClientAssertion,
     AzureRegion,
+    AuthorizationCodePayload,
 } from "@azure/msal-common/node";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication.js";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest.js";
@@ -37,6 +38,9 @@ import { UserFederatedIdentityCredentialClient } from "./UserFederatedIdentityCr
 import { UserFederatedIdentityCredentialRequest } from "../request/UserFederatedIdentityCredentialRequest.js";
 import { CommonUserFederatedIdentityCredentialRequest } from "../request/CommonUserFederatedIdentityCredentialRequest.js";
 import * as NodeClientAuthErrorCodes from "../error/ClientAuthErrorCodes.js";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest.js";
+import { NodeAuthError } from "../error/NodeAuthError.js";
 
 /**
  *  This class is to be used to acquire tokens for confidential client applications (webApp, webAPI). Confidential client applications
@@ -69,6 +73,13 @@ export class ConfidentialClientApplication
      * @param Configuration - configuration object for the MSAL ConfidentialClientApplication instance
      */
     constructor(configuration: Configuration) {
+        if (
+            "instanceAware" in configuration.auth &&
+            configuration.auth.instanceAware === true
+        ) {
+            throw NodeAuthError.createUnsupportedCcaInstanceAwareError();
+        }
+
         super(configuration);
 
         const clientSecretNotEmpty = !!this.config.auth.clientSecret;
@@ -130,6 +141,45 @@ export class ConfidentialClientApplication
                   );
         }
         this.appTokenProvider = undefined;
+    }
+
+    /**
+     * Creates the URL of the authorization request.
+     */
+    public async getAuthCodeUrl(
+        request: AuthorizationUrlRequest
+    ): Promise<string> {
+        if (
+            request.extraQueryParameters &&
+            Object.prototype.hasOwnProperty.call(
+                request.extraQueryParameters,
+                "instance_aware"
+            )
+        ) {
+            throw NodeAuthError.createUnsupportedCcaInstanceAwareError(
+                request.correlationId
+            );
+        }
+
+        return super.getAuthCodeUrl(request);
+    }
+
+    /**
+     * Acquires a token by exchanging an authorization code.
+     */
+    public async acquireTokenByCode(
+        request: AuthorizationCodeRequest,
+        authCodePayload?: AuthorizationCodePayload
+    ): Promise<AuthenticationResult> {
+        const sanitizedAuthCodePayload = authCodePayload
+            ? {
+                  code: request.code,
+                  state: authCodePayload.state,
+                  nonce: request.nonce,
+              }
+            : undefined;
+
+        return super.acquireTokenByCode(request, sanitizedAuthCodePayload);
     }
 
     /**

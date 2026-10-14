@@ -2510,6 +2510,7 @@ export type PerformanceEvent = {
     platformAuthProviderType?: string;
     platformAuthRequestCorrelationId?: string;
     nestedAppAuthRequest?: boolean;
+    bridgeType?: "NAA" | "PWB";
     multiMatchedAT?: number;
     multiMatchedID?: number;
     multiMatchedRT?: number;

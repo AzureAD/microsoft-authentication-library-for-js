@@ -49,6 +49,10 @@ export const NodeAuthErrorMessage = {
         code: "redirect_uri_not_supported",
         desc: "RedirectUri is not supported in this scenario. Please remove redirectUri from the request.",
     },
+    unsupportedCcaInstanceAware: {
+        code: "unsupported_cca_instance_aware",
+        desc: "Instance-aware configuration is not supported by ConfidentialClientApplication.",
+    },
 };
 
 export class NodeAuthError extends AuthError {
@@ -174,6 +178,19 @@ export class NodeAuthError extends AuthError {
             NodeAuthErrorMessage.redirectUriNotSupported.code,
             correlationId,
             NodeAuthErrorMessage.redirectUriNotSupported.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when instance-aware behavior is requested for a confidential client.
+     */
+    static createUnsupportedCcaInstanceAwareError(
+        correlationId: string = ""
+    ): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.unsupportedCcaInstanceAware.code,
+            correlationId,
+            NodeAuthErrorMessage.unsupportedCcaInstanceAware.desc
         );
     }
 }
