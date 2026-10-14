@@ -53,18 +53,16 @@ There are a few things that may behave a little differently when acquiring token
 -   If the platform broker needs to prompt the user for interaction a system prompt will be opened. This prompt looks a bit different from the browser popup windows you may be used to.
 -   Switching your account in the platform broker prompt is not supported and MSAL.js will throw an error (Error Code: user_switch) if this happens. It is your app's responsibility to catch this error and handle it in a way that makes sense for your scenarios (e.g. Show an error page, retry with the new account, retry with the original account, etc.)
 
-### DPoP outcomes and caching
+### DPoP with the platform broker
 
 > [!WARNING]
 > DPoP support in MSAL Browser is currently in development and is not fully rolled out or ready for production use. APIs and behavior may change. Use this feature only for evaluation and testing.
 
-DPoP broker outcome handling is currently supported only through the Windows Accounts extension. When the Platform Authentication DOM API provider is active, DPoP requests use the normal browser-managed DPoP flow instead of the platform broker. Bearer and PoP requests continue to use the DOM API provider.
+DPoP broker support is currently available only through the Windows Accounts extension. When the Platform Authentication DOM API provider is active, MSAL uses the browser-managed DPoP flow instead. Applications use the same DPoP request and response handling in either case; no broker-specific configuration is required.
 
-For extension broker requests using `authenticationScheme: AuthenticationScheme.DPOP`, the result can use either broker-attested binding or browser-managed binding. With browser-managed binding, WAM obtains a token bound to an MSAL-managed local key. When attested binding is available, WAM can instead bind the token to a broker-managed attested key and return the resource proof. Broker DPoP requests use the `dpop+proof` request token type.
+When supported, MSAL asks the platform broker to use broker-attested binding as a best-effort security improvement. Token issuance and Conditional Access determine whether the available binding satisfies tenant policy; applications receive and use the resulting DPoP token in the same way regardless of the binding mechanism.
 
-The response token type is required. MSAL prefers `properties.token_type` and, for extension responses that omit it, falls back to the top-level `token_type`; conflicting values are rejected. Comparisons are case-insensitive. A `dpop+proof` request that returns `dpop+proof`, a resource proof, and an affirmative binding attestation uses broker-attested binding. MSAL returns that proof without locally signing or caching the access token or proof. A browser-managed response returns `DPoP` without a broker proof; `binding_attested` is false when an attested preference was evaluated and can be absent when no binding preference was sent. MSAL signs the resource proof with the request's local DPoP key and can cache the access token in its internal in-memory broker cache, partitioned by that key. Missing, unknown, or contradictory token types and inconsistent proof or attestation combinations are rejected. Proof JWTs are never cached.
-
-MSAL provisions the DPoP key for each broker request. Application-supplied `popKid` values are not supported for DPoP and are rejected before the broker is contacted. Keys used for browser-managed binding are retained only while their access token is cached. Setting `storeInCache.accessToken` to `false` removes a generated key after the response. Redirect requests retain the browser-managed binding key across navigation so redirect handling can generate the proof, while keys unused after broker-attested binding are removed before navigation.
+MSAL rejects invalid or inconsistent broker responses instead of returning an unbound token. Application-managed DPoP keys are not supported through the Windows Accounts extension.
 
 DPoP requests must include the resource method and URI used to build the proof. For the complete request shape and proof usage, see [DPoP for PublicClientApplication](./access-token-proof-of-possession.md#dpop-for-publicclientapplication).
 
