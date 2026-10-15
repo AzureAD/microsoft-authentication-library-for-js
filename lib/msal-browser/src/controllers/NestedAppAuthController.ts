@@ -808,10 +808,6 @@ export class NestedAppAuthController implements IController {
         return this.logger;
     }
 
-    loadDpopNonce(): Promise<void> {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-
     /**
      * Replaces the default logger set in configurations with new Logger with new configurations
      * @param logger Logger instance

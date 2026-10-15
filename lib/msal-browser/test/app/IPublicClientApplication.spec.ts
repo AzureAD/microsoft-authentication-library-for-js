@@ -160,17 +160,5 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
                 );
             }
         });
-
-        it("loadDpopNonce rejects", async () => {
-            await expect(
-                stubbedPublicClientApplication.loadDpopNonce(
-                    "https://api.contoso.com/resource",
-                    "nonce"
-                )
-            ).rejects.toMatchObject({
-                errorCode:
-                    BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
-            });
-        });
     });
 });

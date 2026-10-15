@@ -5,18 +5,39 @@
 
 import {
     canonicalizeDpopResourceServer,
+    DpopNonceRecord,
     IDpopNonceStore,
+    Logger,
     validateDpopNonce,
 } from "@azure/msal-common/browser";
+import { PREFIX } from "../cache/CacheKeys.js";
 
 const MAX_RESOURCE_SERVER_NONCES = 50;
+const REDIRECT_HANDOFF_TTL_MS = 5 * 60 * 1000;
+const REDIRECT_HANDOFF_CACHE_SUFFIX = "dpop.nonce.redirect";
+
+type DpopNonceRedirectHandoff = {
+    nonce: string;
+    resourceServer: string;
+    state: string;
+    correlationId: string;
+    expiresAt: number;
+};
 
 /**
  * Controller-owned, memory-only resource-server DPoP nonce state.
  * @internal
  */
 export class DpopNonceStore implements IDpopNonceStore {
-    private readonly resourceServerNonces = new Map<string, string>();
+    private readonly resourceServerNonces = new Map<string, DpopNonceRecord>();
+    private readonly redirectHandoffCacheKey: string;
+    private readonly logger?: Logger;
+    private nextVersion = 0;
+
+    constructor(clientId: string = "", logger?: Logger) {
+        this.redirectHandoffCacheKey = `${PREFIX}.${clientId}.${REDIRECT_HANDOFF_CACHE_SUFFIX}`;
+        this.logger = logger;
+    }
 
     setResourceServerNonce(
         resourceRequestUri: string,
@@ -29,8 +50,12 @@ export class DpopNonceStore implements IDpopNonceStore {
         );
         const validatedNonce = validateDpopNonce(dpopNonce, correlationId);
 
+        const record = {
+            nonce: validatedNonce,
+            version: ++this.nextVersion,
+        };
         this.resourceServerNonces.delete(resourceServer);
-        this.resourceServerNonces.set(resourceServer, validatedNonce);
+        this.resourceServerNonces.set(resourceServer, record);
 
         if (this.resourceServerNonces.size > MAX_RESOURCE_SERVER_NONCES) {
             const oldestResourceServer = this.resourceServerNonces
@@ -42,13 +67,151 @@ export class DpopNonceStore implements IDpopNonceStore {
         }
     }
 
-    getResourceServerNonce(resourceRequestUri: string): string | undefined {
-        const resourceServer =
-            canonicalizeDpopResourceServer(resourceRequestUri);
+    getResourceServerNonce(
+        resourceRequestUri: string,
+        correlationId: string = ""
+    ): DpopNonceRecord | undefined {
+        const resourceServer = canonicalizeDpopResourceServer(
+            resourceRequestUri,
+            correlationId
+        );
         return this.resourceServerNonces.get(resourceServer);
+    }
+
+    saveRedirectHandoff(
+        resourceRequestUri: string,
+        state: string,
+        correlationId: string
+    ): void {
+        if (typeof window === "undefined" || !state || !correlationId) {
+            return;
+        }
+
+        const resourceServer = canonicalizeDpopResourceServer(
+            resourceRequestUri,
+            correlationId
+        );
+        const record = this.resourceServerNonces.get(resourceServer);
+        if (!record) {
+            return;
+        }
+
+        const handoff: DpopNonceRedirectHandoff = {
+            nonce: record.nonce,
+            resourceServer,
+            state,
+            correlationId,
+            expiresAt: Date.now() + REDIRECT_HANDOFF_TTL_MS,
+        };
+
+        try {
+            window.sessionStorage.setItem(
+                this.redirectHandoffCacheKey,
+                JSON.stringify(handoff)
+            );
+        } catch {
+            this.logger?.warning(
+                "Unable to save the DPoP nonce redirect handoff.",
+                correlationId
+            );
+            // The in-memory nonce remains available until navigation.
+        }
+    }
+
+    restoreRedirectHandoff(
+        resourceRequestUri: string,
+        state: string,
+        correlationId: string
+    ): void {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        let serializedHandoff: string | null = null;
+        try {
+            serializedHandoff = window.sessionStorage.getItem(
+                this.redirectHandoffCacheKey
+            );
+            window.sessionStorage.removeItem(this.redirectHandoffCacheKey);
+        } catch {
+            this.logger?.warning(
+                "Unable to read or clear the DPoP nonce redirect handoff.",
+                correlationId
+            );
+            return;
+        }
+
+        if (!serializedHandoff) {
+            return;
+        }
+
+        let parsedHandoff: unknown;
+        try {
+            parsedHandoff = JSON.parse(serializedHandoff);
+        } catch {
+            this.logger?.warning(
+                "Ignoring an invalid DPoP nonce redirect handoff.",
+                correlationId
+            );
+            return;
+        }
+
+        if (
+            typeof parsedHandoff !== "object" ||
+            parsedHandoff === null ||
+            !("nonce" in parsedHandoff) ||
+            typeof parsedHandoff.nonce !== "string" ||
+            !("resourceServer" in parsedHandoff) ||
+            typeof parsedHandoff.resourceServer !== "string" ||
+            !("state" in parsedHandoff) ||
+            typeof parsedHandoff.state !== "string" ||
+            !("correlationId" in parsedHandoff) ||
+            typeof parsedHandoff.correlationId !== "string" ||
+            !("expiresAt" in parsedHandoff) ||
+            typeof parsedHandoff.expiresAt !== "number"
+        ) {
+            return;
+        }
+        const handoff = parsedHandoff as DpopNonceRedirectHandoff;
+
+        if (
+            handoff.expiresAt < Date.now() ||
+            handoff.state !== state ||
+            handoff.correlationId !== correlationId ||
+            handoff.resourceServer !==
+                canonicalizeDpopResourceServer(
+                    resourceRequestUri,
+                    correlationId
+                )
+        ) {
+            return;
+        }
+
+        this.setResourceServerNonce(
+            handoff.resourceServer,
+            handoff.nonce,
+            correlationId
+        );
+    }
+
+    clearRedirectHandoff(): void {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        try {
+            window.sessionStorage.removeItem(this.redirectHandoffCacheKey);
+        } catch {
+            this.logger?.warning(
+                "Unable to clear the DPoP nonce redirect handoff.",
+                ""
+            );
+            // No in-memory state is affected when session storage is unavailable.
+        }
     }
 
     clear(): void {
         this.resourceServerNonces.clear();
+        this.clearRedirectHandoff();
     }
 }

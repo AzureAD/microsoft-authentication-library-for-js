@@ -145,7 +145,10 @@ export {
     canonicalizeDpopResourceServer,
     validateDpopNonce,
 } from "./crypto/DpopNonceUtils.js";
-export type { IDpopNonceStore } from "./protocol/IDpopNonceStore.js";
+export type {
+    DpopNonceRecord,
+    IDpopNonceStore,
+} from "./protocol/IDpopNonceStore.js";
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger.js";
 export {
     InteractionRequiredAuthError,

@@ -688,8 +688,9 @@ export class ResponseHandler {
                         htm: request.resourceRequestMethod,
                         nonce: request.resourceRequestUri
                             ? dpopNonceStore?.getResourceServerNonce(
-                                  request.resourceRequestUri
-                              )
+                                  request.resourceRequestUri,
+                                  request.correlationId
+                              )?.nonce
                             : undefined,
                         accessToken: cacheRecord.accessToken.secret,
                     },

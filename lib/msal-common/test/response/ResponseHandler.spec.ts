@@ -973,7 +973,6 @@ describe("ResponseHandler.ts", () => {
                     }
                 }
             );
-
             const responseHandler = new ResponseHandler(
                 "this-is-a-client-id",
                 testCacheManager,
@@ -1028,6 +1027,10 @@ describe("ResponseHandler.ts", () => {
                     }
                 }
             );
+            const getResourceServerNonce = jest.fn().mockReturnValue({
+                nonce: "resource-nonce",
+                version: 1,
+            });
 
             const responseHandler = new ResponseHandler(
                 "this-is-a-client-id",
@@ -1039,7 +1042,7 @@ describe("ResponseHandler.ts", () => {
                 null,
                 mockTokenBindingKeyManager,
                 {
-                    getResourceServerNonce: () => "resource-nonce",
+                    getResourceServerNonce,
                     clear: () => undefined,
                 }
             );
@@ -1055,6 +1058,10 @@ describe("ResponseHandler.ts", () => {
             expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(result.dpopProof).toBe("fresh-dpop-proof");
             expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
+            expect(getResourceServerNonce).toHaveBeenCalledWith(
+                TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+                "CORRELATION_ID"
+            );
             expect(signSpy).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.objectContaining({ nonce: "resource-nonce" }),
@@ -1109,7 +1116,10 @@ describe("ResponseHandler.ts", () => {
                     idTokenClaims: ID_TOKEN_CLAIMS as TokenClaims,
                     tokenBindingKeyManager: mockTokenBindingKeyManager,
                     dpopNonceStore: {
-                        getResourceServerNonce: () => "cached-resource-nonce",
+                        getResourceServerNonce: () => ({
+                            nonce: "cached-resource-nonce",
+                            version: 1,
+                        }),
                         clear: () => undefined,
                     },
                 }

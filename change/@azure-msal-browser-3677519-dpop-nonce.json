@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add PCA-bound in-memory resource-server DPoP nonce support (AB#3677519) [#8819](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8819)",
+  "comment": "Add the standard PCA DPoP nonce capability with origin-versioned memory state and one-shot redirect handoff (AB#3677519) [#8819](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8819)",
   "packageName": "@azure/msal-browser",
   "email": "nugetaad@microsoft.com",
   "dependentChangeType": "patch"

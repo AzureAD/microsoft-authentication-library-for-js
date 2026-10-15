@@ -257,10 +257,6 @@ export class UnknownOperatingContextController implements IController {
     getLogger(): Logger {
         return this.logger;
     }
-    async loadDpopNonce(): Promise<void> {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-    }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setLogger(logger: Logger): void {
         blockAPICallsBeforeInitialize(this.initialized);

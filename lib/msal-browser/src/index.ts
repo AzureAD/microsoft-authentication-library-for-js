@@ -52,6 +52,10 @@ export {
     IPublicClientApplication,
     stubbedPublicClientApplication,
 } from "./app/IPublicClientApplication.js";
+export {
+    IDpopNonceProvider,
+    isDpopNonceProvider,
+} from "./app/IDpopNonceProvider.js";
 export { INavigationClient } from "./navigation/INavigationClient.js";
 export { NavigationClient } from "./navigation/NavigationClient.js";
 export { NavigationOptions } from "./navigation/NavigationOptions.js";

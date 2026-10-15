@@ -1552,6 +1552,12 @@ export const DPOP_NONCE_MAX_SIZE_BYTES = 1024;
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";
 
+// @internal
+export type DpopNonceRecord = {
+    nonce: string;
+    version: number;
+};
+
 // @public (undocumented)
 const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
 
@@ -1826,7 +1832,7 @@ export interface IDpopNonceStore {
     // (undocumented)
     clear(): void;
     // (undocumented)
-    getResourceServerNonce(resourceRequestUri: string): string | undefined;
+    getResourceServerNonce(resourceRequestUri: string, correlationId?: string): DpopNonceRecord | undefined;
 }
 
 // @internal (undocumented)
