@@ -15,6 +15,10 @@ export let msalInstance;
 // Retry state tracking
 let retryRequested = false;
 
+function processAuthenticationResult(response) {
+    msalInstance.setActiveAccount(response.account);
+}
+
 // Initialize MSAL
 export async function initializeMsal() {
     try {
@@ -25,10 +29,18 @@ export async function initializeMsal() {
         if (window.location.pathname !== "/playground") {
             await msalInstance.handleRedirectPromise().then((response) => {
                 if (response) {
-                    msalInstance.setActiveAccount(response.account);
+                    processAuthenticationResult(response);
                 }
             });
         }
+
+        if (!msalInstance.getActiveAccount()) {
+            const accounts = msalInstance.getAllAccounts();
+            if (accounts.length === 1) {
+                msalInstance.setActiveAccount(accounts[0]);
+            }
+        }
+
         updateUI(msalInstance.getActiveAccount());
     } catch (error) {
         console.error("MSAL initialization failed:", error);
@@ -46,8 +58,9 @@ export async function handleProtectedRouteAuth(path) {
             scopes: loginRequest.scopes,
         })
         .then((response) => {
-            msalInstance.setActiveAccount(response.account);
+            processAuthenticationResult(response);
             updateUI(response.account);
+            return true;
         })
         .catch(async (error) => {
             console.error("SSO silent failed:", error);
@@ -78,7 +91,7 @@ export async function signInPopup() {
         hidePopupWarning();
         retryRequested = false;
 
-        msalInstance.setActiveAccount(response.account);
+        processAuthenticationResult(response);
         updateUI(response.account);
         showSuccess("Successfully signed in!");
     } catch (error) {
@@ -144,6 +157,7 @@ export async function getAccessToken() {
             ...loginRequest,
         })
         .then((response) => {
+            processAuthenticationResult(response);
             return response;
         })
         .catch(async (error) => {
@@ -181,7 +195,8 @@ export async function ssoSilent() {
             account,
             loginHint: account && account.username
         });
-        msalInstance.setActiveAccount(response.account);
+        processAuthenticationResult(response);
+        updateUI(response.account);
         setSilentStatus('ssoSilent:success');
         showSuccess('ssoSilent succeeded');
     } catch (error) {
@@ -202,7 +217,7 @@ export async function acquireTokenSilent() {
             account: msalInstance.getActiveAccount(),
             forceRefresh: true
         });
-        msalInstance.setActiveAccount(response.account);
+        processAuthenticationResult(response);
         setSilentStatus('acquireTokenSilent:success');
         showSuccess('acquireTokenSilent succeeded');
     } catch (error) {

@@ -139,6 +139,10 @@ export class RedirectClient extends StandardInteractionClient {
             request.authenticationScheme
         );
 
+        let rejectBackButtonCancellation!: (reason?: unknown) => void;
+        const backButtonCancellation = new Promise<never>((_, reject) => {
+            rejectBackButtonCancellation = reject;
+        });
         const handleBackButton = (event: PageTransitionEvent) => {
             // Clear temporary cache if the back button is clicked during the redirect flow.
             if (event.persisted) {
@@ -151,6 +155,12 @@ export class RedirectClient extends StandardInteractionClient {
                     EventType.RESTORE_FROM_BFCACHE,
                     this.correlationId,
                     InteractionType.Redirect
+                );
+                rejectBackButtonCancellation(
+                    createBrowserAuthError(
+                        BrowserAuthErrorCodes.userCancelled,
+                        this.correlationId
+                    )
                 );
             }
         };
@@ -173,11 +183,11 @@ export class RedirectClient extends StandardInteractionClient {
         window.addEventListener("pageshow", handleBackButton);
 
         try {
-            if (this.config.system.protocolMode === ProtocolMode.EAR) {
-                await this.executeEarFlow(validRequest);
-            } else {
-                await this.executeCodeFlow(validRequest);
-            }
+            const redirectOperation =
+                this.config.system.protocolMode === ProtocolMode.EAR
+                    ? this.executeEarFlow(validRequest)
+                    : this.executeCodeFlow(validRequest);
+            await Promise.race([redirectOperation, backButtonCancellation]);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.correlationId = this.correlationId;

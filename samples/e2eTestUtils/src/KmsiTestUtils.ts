@@ -168,6 +168,35 @@ export function assertSigninStateContains(
 }
 
 /**
+ * Reads the authentication response displayed by the sample and asserts that
+ * its ID token represents a KMSI session.
+ */
+export async function verifyKmsiFromResponse(target: Page): Promise<void> {
+    if (!target.url().endsWith("profile")) {
+        await target.locator("a#viewProfileButton").click();
+    }
+
+    const authDataText = await target
+        .locator("pre#auth-json")
+        .filter(
+            (value) => !!value.textContent && value.textContent !== "Loading..."
+        )
+        .map((value) => value.textContent)
+        .wait();
+    const authData = JSON.parse(authDataText || "") as {
+        idTokenClaims?: IdTokenClaims;
+    };
+
+    if (!authData.idTokenClaims) {
+        throw new Error(
+            "Authentication response did not contain ID token claims"
+        );
+    }
+
+    assertKmsiSigninState(authData.idTokenClaims);
+}
+
+/**
  * Reads the cached ID token and asserts its Keep Me Signed In state via the
  * `signin_state` claim. Returns the decoded claims for further assertions.
  */

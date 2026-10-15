@@ -3,7 +3,11 @@
  * See LICENSE in the source repository root for complete license information.
  */
 
-import { earConfig, isEarEnabled } from './earConfig.js';
+import {
+    earConfig,
+    isEarEnabled,
+    isPlatformBrokerEnabled,
+} from './earConfig.js';
 
 // Function to create MSAL configuration - only called after environment validation
 export function createMsalConfig() {
@@ -45,15 +49,29 @@ export function createMsalConfig() {
         }
     };
 
+    const earEnabled = isEarEnabled();
+
     // ?ear=true -> apply EAR flow config (earConfig.js) and force EAR protocol.
-    if (isEarEnabled()) {
-        msalConfig.auth.clientId = earConfig.auth.clientId;
-        msalConfig.auth.authority = earConfig.auth.authority;
-        msalConfig.auth.redirectUri = earConfig.auth.redirectUri;
-        msalConfig.auth.postLogoutRedirectUri = earConfig.auth.postLogoutRedirectUri;
-        msalConfig.cache.cacheLocation = earConfig.cache.cacheLocation;
-        msalConfig.system.allowPlatformBroker = earConfig.system.allowPlatformBroker;
-        msalConfig.system.protocolMode = msal.ProtocolMode.EAR;
+    if (earEnabled) {
+        Object.assign(msalConfig, {
+            auth: {
+                ...msalConfig.auth,
+                ...earConfig.auth,
+            },
+            cache: {
+                ...msalConfig.cache,
+                ...earConfig.cache,
+            },
+            system: {
+                ...msalConfig.system,
+                ...earConfig.system,
+                protocolMode: msal.ProtocolMode.EAR,
+            },
+        });
+    }
+
+    if (isPlatformBrokerEnabled()) {
+        msalConfig.system.allowPlatformBroker = true;
     }
 
     return msalConfig;

@@ -14,8 +14,14 @@ import {
     TEST_TOKENS,
     TEST_URIS,
 } from "../utils/StringConstants.js";
-import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
+import {
+    PlatformAuthBindingPreference,
+    PlatformAuthEnclave,
+    PlatformAuthRequest,
+    PlatformAuthTokenType,
+} from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
+import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 
 describe("PlatformAuthDOMHandler tests", () => {
     let performanceClient: IPerformanceClient;
@@ -47,6 +53,10 @@ describe("PlatformAuthDOMHandler tests", () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
             const platformAuthDOMHandler =
                 await PlatformAuthDOMHandler.createProvider(
                     logger,
@@ -57,10 +67,40 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(platformAuthDOMHandler).toBeInstanceOf(
                 PlatformAuthDOMHandler
             );
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.PlatformAuthDOMGetSupportedContracts
+                    )
+            ).toMatchObject({
+                correlationId: "test-correlation-id",
+                success: true,
+            });
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.PlatformAuthDOMCreateProvider
+                    )
+            ).toMatchObject({
+                correlationId: "test-correlation-id",
+                platformAuthProviderAvailable: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+            });
         });
 
-        it("should return undefined when DOM APIs are not available for platform auth", async () => {
+        it("should return undefined when the DOM contract is not supported", async () => {
             getSupportedContractsMock.mockResolvedValue([]);
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
             const platformAuthDOMHandler =
                 await PlatformAuthDOMHandler.createProvider(
                     logger,
@@ -69,6 +109,55 @@ describe("PlatformAuthDOMHandler tests", () => {
                 );
             expect(getSupportedContractsMock).toHaveBeenCalled();
             expect(platformAuthDOMHandler).toBe(undefined);
+            const createProviderEvent = endMeasurementSpy.mock.calls
+                .map(([event]) => event)
+                .find(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.PlatformAuthDOMCreateProvider
+                );
+            expect(createProviderEvent).toMatchObject({
+                correlationId: "test-correlation-id",
+                platformAuthProviderAvailable: false,
+            });
+            expect(createProviderEvent).not.toHaveProperty(
+                "platformAuthProviderType"
+            );
+        });
+
+        it("should emit a failed measurement when the DOM API is not available", async () => {
+            Object.defineProperty(window.navigator, "platformAuthentication", {
+                value: undefined,
+                writable: true,
+            });
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
+
+            const platformAuthDOMHandler =
+                await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                );
+
+            expect(getSupportedContractsMock).not.toHaveBeenCalled();
+            expect(platformAuthDOMHandler).toBeUndefined();
+            const createProviderEvent = endMeasurementSpy.mock.calls
+                .map(([event]) => event)
+                .find(
+                    (event) =>
+                        event.name ===
+                        BrowserPerformanceEvents.PlatformAuthDOMCreateProvider
+                );
+            expect(createProviderEvent).toMatchObject({
+                correlationId: "test-correlation-id",
+                platformAuthProviderAvailable: false,
+            });
+            expect(createProviderEvent).not.toHaveProperty(
+                "platformAuthProviderType"
+            );
         });
     });
 
@@ -187,6 +276,10 @@ describe("PlatformAuthDOMHandler tests", () => {
                 shr: undefined,
             };
             executeGetTokenMock.mockResolvedValue(testDOMResponse);
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
 
             const platformAuthDOMHandler =
                 await PlatformAuthDOMHandler.createProvider(
@@ -197,6 +290,46 @@ describe("PlatformAuthDOMHandler tests", () => {
             const platformBrokerResponse =
                 await platformAuthDOMHandler?.sendMessage(testRequest);
             expect(platformBrokerResponse).toEqual(validatedResponse);
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.PlatformAuthDOMInitializeRequest
+                    )
+            ).toMatchObject({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                success: true,
+            });
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
+                    )
+            ).toMatchObject({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                success: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+            });
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.PlatformAuthDOMGetToken
+                    )
+            ).toMatchObject({
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                success: true,
+                platformAuthProviderType:
+                    PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+            });
         });
 
         it("returns unexpected_error when token response is missing required properties with isSuccess = true", async () => {
@@ -235,6 +368,10 @@ describe("PlatformAuthDOMHandler tests", () => {
             };
 
             executeGetTokenMock.mockResolvedValue(testDOMResponse);
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
 
             const platformAuthDOMHandler =
                 await PlatformAuthDOMHandler.createProvider(
@@ -254,6 +391,34 @@ describe("PlatformAuthDOMHandler tests", () => {
                 expect((e as AuthError).errorMessage).toContain(
                     "Response missing expected properties."
                 );
+                expect(
+                    endMeasurementSpy.mock.calls
+                        .map(([event]) => event)
+                        .find(
+                            (event) =>
+                                event.name ===
+                                BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
+                        )
+                ).toMatchObject({
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    success: false,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                });
+                expect(
+                    endMeasurementSpy.mock.calls
+                        .map(([event]) => event)
+                        .find(
+                            (event) =>
+                                event.name ===
+                                BrowserPerformanceEvents.PlatformAuthDOMGetToken
+                        )
+                ).toMatchObject({
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    success: false,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                });
             }
         });
 
@@ -335,6 +500,10 @@ describe("PlatformAuthDOMHandler tests", () => {
                 },
             };
             executeGetTokenMock.mockResolvedValue(testDOMResponse);
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
 
             const platformAuthDOMHandler =
                 await PlatformAuthDOMHandler.createProvider(
@@ -352,6 +521,28 @@ describe("PlatformAuthDOMHandler tests", () => {
                 expect((e as NativeAuthError).errorMessage).toEqual(
                     (testDOMResponse as any).error.description
                 );
+                expect((e as NativeAuthError).ext).toEqual({
+                    error: -6000,
+                    protocol_error: "-5000",
+                    status: "PERSISTENT_ERROR",
+                    properties: {},
+                });
+                expect(
+                    endMeasurementSpy.mock.calls
+                        .map(([event]) => event)
+                        .find(
+                            (event) =>
+                                event.name ===
+                                BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
+                        )
+                ).toMatchObject({
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    success: false,
+                    platformAuthProviderType:
+                        PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                    brokerErrorName: (testDOMResponse as any).error.code,
+                    brokerErrorCode: (testDOMResponse as any).error.errorCode,
+                });
             }
         });
     });
@@ -461,6 +652,82 @@ describe("PlatformAuthDOMHandler tests", () => {
                 state: undefined,
             });
         });
+
+        it.each([
+            Constants.AuthenticationScheme.POP,
+            PlatformAuthTokenType.DPOP_WITH_PROOF,
+        ])("forwards proof fields for token type %s", async (tokenType) => {
+            getSupportedContractsMock.mockResolvedValue([
+                PlatformAuthConstants.PLATFORM_DOM_APIS,
+            ]);
+            const platformAuthDOMHandler =
+                await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                );
+            const testRequest: PlatformAuthRequest = {
+                accountId: "test-id",
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scope: "read openid",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                windowTitleSubstring: "test-window-substring",
+                isSts: false,
+                preferBinding: PlatformAuthBindingPreference.ATTESTED,
+                enclave: PlatformAuthEnclave.HARDWARE,
+                reqCnf: "test-req-cnf",
+                tokenType,
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                extraParametersNoCache: {
+                    custom_no_cache: "test-value",
+                    pop_method: "POST",
+                    pop_url: "https://graph.microsoft.com/v1.0/me",
+                    pop_nonce: "test-dpop-nonce",
+                },
+                extraParameters: {
+                    customUserInput: "test-user-input",
+                },
+            };
+
+            const platformDOMRequest =
+                //@ts-ignore
+                platformAuthDOMHandler.initializePlatformDOMRequest(
+                    testRequest
+                );
+
+            expect(platformDOMRequest).toEqual({
+                accountId: testRequest.accountId,
+                brokerId: PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID,
+                authority: testRequest.authority,
+                clientId: testRequest.clientId,
+                correlationId: testRequest.correlationId,
+                isSecurityTokenService: false,
+                extraParameters: {
+                    customUserInput: "test-user-input",
+                    windowTitleSubstring: "test-window-substring",
+                    tokenType,
+                },
+                extraParametersNoCache: {
+                    pop_method: "POST",
+                    pop_url: "https://graph.microsoft.com/v1.0/me",
+                    pop_nonce: "test-dpop-nonce",
+                    custom_no_cache: "test-value",
+                },
+                preferBinding: PlatformAuthBindingPreference.ATTESTED,
+                enclave: PlatformAuthEnclave.HARDWARE,
+                requestConfirmation: "test-req-cnf",
+                redirectUri: testRequest.redirectUri,
+                scope: testRequest.scope,
+                state: undefined,
+            });
+            expect(platformDOMRequest).not.toHaveProperty("reqCnf");
+            expect(platformDOMRequest.extraParameters).not.toHaveProperty(
+                "reqCnf"
+            );
+        });
     });
 
     describe("validatePlatformBrokerResponse tests", () => {
@@ -496,7 +763,8 @@ describe("PlatformAuthDOMHandler tests", () => {
             const validatedResponse =
                 //@ts-ignore
                 platformAuthDOMHandler.validatePlatformBrokerResponse(
-                    testResponse
+                    testResponse,
+                    TEST_CONFIG.CORRELATION_ID
                 );
             expect(validatedResponse).toEqual({
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
@@ -516,6 +784,90 @@ describe("PlatformAuthDOMHandler tests", () => {
                 extendedLifetimeToken: true,
             });
         });
+
+        it.each([
+            { bindingAttested: "true", expectedBindingAttested: true },
+            { bindingAttested: "false", expectedBindingAttested: false },
+            { bindingAttested: "invalid", expectedBindingAttested: undefined },
+        ])(
+            "maps DOM DPoP response fields when binding_attested is $bindingAttested",
+            async ({ bindingAttested, expectedBindingAttested }) => {
+                getSupportedContractsMock.mockResolvedValue([
+                    PlatformAuthConstants.PLATFORM_DOM_APIS,
+                ]);
+                const platformAuthDOMHandler =
+                    await PlatformAuthDOMHandler.createProvider(
+                        logger,
+                        performanceClient,
+                        "test-correlation-id"
+                    );
+                const testResponse: object = {
+                    isSuccess: true,
+                    state: "",
+                    accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                    expiresIn: 6000,
+                    account: {
+                        id: "test-id",
+                        userName: "test-user",
+                        properties: {},
+                    },
+                    clientInfo: "test-client-info",
+                    idToken: TEST_TOKENS.IDTOKEN_V1,
+                    scopes: "read openid",
+                    error: {},
+                    properties: {
+                        token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
+                        dpop_proof: "test-dpop-proof",
+                        binding_attested: bindingAttested,
+                    },
+                };
+
+                if (expectedBindingAttested === undefined) {
+                    const endMeasurementSpy = jest.spyOn(
+                        performanceClient,
+                        "endMeasurement"
+                    );
+                    expect(() =>
+                        //@ts-ignore
+                        platformAuthDOMHandler.validatePlatformBrokerResponse(
+                            testResponse,
+                            TEST_CONFIG.CORRELATION_ID
+                        )
+                    ).toThrow(
+                        "Platform broker returned invalid binding_attested value."
+                    );
+                    expect(
+                        endMeasurementSpy.mock.calls
+                            .map(([event]) => event)
+                            .find(
+                                (event) =>
+                                    event.name ===
+                                    BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
+                            )
+                    ).toMatchObject({
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        success: false,
+                        platformAuthProviderType:
+                            PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
+                    });
+                    return;
+                }
+
+                const validatedResponse =
+                    //@ts-ignore
+                    platformAuthDOMHandler.validatePlatformBrokerResponse(
+                        testResponse,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                expect(validatedResponse).toEqual(
+                    expect.objectContaining({
+                        token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
+                        DPoP: "test-dpop-proof",
+                        binding_attested: expectedBindingAttested,
+                    })
+                );
+            }
+        );
     });
 
     describe("getDOMExtraParams tests", () => {

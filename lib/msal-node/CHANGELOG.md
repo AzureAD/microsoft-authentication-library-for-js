@@ -1,8 +1,54 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Fri, 28 Aug 2026 21:29:53 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 13 Oct 2026 22:26:37 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 7.1.0
+
+Tue, 13 Oct 2026 22:26:37 GMT
+
+### Minor changes
+
+- Sanitize authorization code payloads and reject unsupported instance-aware inputs for confidential clients. [#8901](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8901) (hemoral@microsoft.com)
+
+## 7.0.2
+
+Tue, 13 Oct 2026 19:04:36 GMT
+
+### Patches
+
+- Sanitize authorization code payloads and reject unsupported instance-aware inputs for confidential clients. [#8901](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8901) (rginsburg@microsoft.com)
+
+## 7.0.1
+
+Fri, 02 Oct 2026 19:03:42 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.14.2
+
+## 7.0.0
+
+Wed, 23 Sep 2026 15:49:44 GMT
+
+### Major changes
+
+- Remove responseMode from acquireTokenInteractive and require form_post for browser-loopback authentication [#8852](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8852) (joarroyo@microsoft.com)
+
+### Minor changes
+
+- Coalesce concurrent non-brokered and native broker silent token requests with matching parameters [#8811](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8811) (kshabelko@microsoft.com)
+- Deprecate responseMode for acquireTokenInteractive ahead of its removal in MSAL Node v7 [#8851](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8851) (joarroyo@microsoft.com)
+
+## 6.0.1
+
+Tue, 15 Sep 2026 19:42:08 GMT
+
+### Patches
+
+- Document strict authorization code nonce validation behavior [#8801](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8801) (joarroyo@microsoft.com)
+- Bump @azure/msal-common to v16.14.1
 
 ## 6.0.0
 

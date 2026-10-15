@@ -10,11 +10,11 @@ The loopback server is a core component of `msal-node`'s interactive authenticat
 4. The server receives the authorization code and passes it back to MSAL for token exchange
 5. The server shuts down after receiving the response
 
-## Response Modes
+## Response Mode
 
-The loopback server supports two response modes that control how the authorization code is delivered. `form_post` is the default as of v6; `query` remains available as an opt-in for backward compatibility.
+`acquireTokenInteractive` uses `form_post` so the authorization code is delivered outside the URL.
 
-### `form_post` (default)
+### `form_post`
 
 The authorization code is delivered in a POST body:
 
@@ -25,37 +25,20 @@ Content-Type: application/x-www-form-urlencoded
 code=AUTH_CODE&state=STATE
 ```
 
-With `form_post`, the authorization code is kept out of the URL and returned in the POST body. As of v6 this is the default mode, so no `responseMode` is required:
+With `form_post`, the authorization code is kept out of the URL and returned in the POST body. No `responseMode` is required:
 
 ```typescript
 const result = await pca.acquireTokenInteractive({
     scopes: ["User.Read"],
     openBrowser: async (url) => { /* open url */ },
-    // responseMode defaults to "form_post"
-});
-```
-
-### `query` (opt-in)
-
-The authorization code is delivered as a query parameter in a GET request:
-
-```
-GET /?code=AUTH_CODE&state=STATE HTTP/1.1
-```
-
-The server performs a 302 redirect once it has received the authorization code. As of v6 `query` is no longer the default; opt in explicitly if you need it:
-
-```typescript
-const result = await pca.acquireTokenInteractive({
-    scopes: ["User.Read"],
-    openBrowser: async (url) => { /* open url */ },
-    responseMode: "query",
 });
 ```
 
 ### Unsupported response modes
 
-Only `query` and `form_post` are supported for the interactive loopback flow. Any other value (for example `fragment`) throws a `ClientConfigurationError` with the code `invalid_response_mode`. `fragment` cannot be used because URL fragments are never sent to the HTTP server, which would cause the flow to hang until it times out.
+Only `form_post` is supported for `acquireTokenInteractive`. JavaScript or previously compiled applications that supply `query`, `fragment`, or any other value receive a `ClientConfigurationError` with the code `invalid_response_mode`. This restriction does not apply to manual authorization URL APIs such as `getAuthCodeUrl`.
+
+The built-in loopback server rejects OAuth responses containing `code` or `error` in a GET query string. Harmless GET requests, such as loading the root success page or requesting a browser resource, do not complete the authentication flow.
 
 ## Preferred Port
 
@@ -83,12 +66,13 @@ If the preferred port is unavailable, the server falls back to a random port aut
 - No CORS headers are added — while a cross-origin page may still be able to send a request to the loopback address, it cannot read the response, so it cannot obtain the authorization code
 - The server validates HTTP methods (only GET and POST are accepted)
 - The server validates `Content-Type` on POST requests (only `application/x-www-form-urlencoded` is accepted)
+- The server rejects OAuth responses delivered through GET query parameters
 - The server only resolves the authentication promise when a valid OAuth response (`code` or `error`) is received
-- With `query` mode, a 302 redirect clears the authorization code from the browser URL
-- With `form_post` mode, the code is never in the URL at all
+- Interactive authorization codes are delivered with `form_post` and are never placed in the URL
 
 ## Related Resources
 
 - [Initialize Public Client Application](./initialize-public-client-application.md)
 - [Request Configuration](./request.md)
+- [MSAL Node v7 migration guide](./v7-migration.md)
 - [OAuth 2.0 Form Post Response Mode (OpenID Foundation)](https://openid.net/specs/oauth-v2-form-post-response-mode-1_0.html)

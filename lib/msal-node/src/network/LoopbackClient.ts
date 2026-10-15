@@ -77,7 +77,10 @@ export class LoopbackClient {
                         return;
                     }
 
-                    // GET with query params (existing query response_mode flow)
+                    /*
+                     * GET requests may load the success page or browser resources, but OAuth
+                     * responses must be delivered via form_post.
+                     */
                     if (method === "GET") {
                         const redirectUri = this.getRedirectUri();
                         const parsedUrl = new URL(url, redirectUri);
@@ -87,25 +90,19 @@ export class LoopbackClient {
                             ) || {};
 
                         if (!authCodeResponse.code && !authCodeResponse.error) {
-                            // Ignore requests without OAuth params (e.g., /favicon.ico)
+                            // Ignore requests without OAuth params (e.g., /favicon.ico).
                             res.writeHead(200);
                             res.end();
                             return;
                         }
 
-                        if (authCodeResponse.code) {
-                            res.writeHead(CommonConstants.HTTP_REDIRECT, {
-                                location: redirectUri,
-                            }); // Prevent auth code from being saved in the browser history
-                            res.end();
-                        }
-                        if (authCodeResponse.error) {
-                            res.end(
-                                errorTemplate ||
-                                    `Error occurred: ${authCodeResponse.error}`
-                            );
-                        }
-                        resolve(authCodeResponse);
+                        res.writeHead(400);
+                        res.end(
+                            "OAuth responses must use form_post and cannot be returned in the URL."
+                        );
+                        reject(
+                            NodeAuthError.createLoopbackServerQueryResponseNotSupportedError()
+                        );
                     } else {
                         // Non-root POST (no OAuth response expected here) — ignore
                         res.writeHead(200);

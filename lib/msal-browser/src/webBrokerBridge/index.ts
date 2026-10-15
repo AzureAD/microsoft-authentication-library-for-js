@@ -4,14 +4,10 @@
  */
 
 /**
+ * Shared web broker bridge contracts and runtime utilities.
+ *
  * @packageDocumentation
  * @module @azure/msal-browser/web-broker-bridge
- */
-
-/**
- * Internal scaffolding for a `@azure/msal-browser/web-broker-bridge`
- * subpath export. The subpath is not yet wired in `package.json` / rollup,
- * so this module has no external callers and is intra-package only.
  */
 
 export type {
@@ -34,3 +30,29 @@ export type {
     CrossVersionRequestFields,
     LegacyRequestFields,
 } from "./adapter/CrossVersionRequestAdapter.js";
+export {
+    AcquireTokenByBroker,
+    BrokerClientApplicationBrokeredSilentRequest,
+    BrokerClientApplicationBrokeredSSOSilentRequest,
+    BrokerClientApplicationHandleBrokerHandshake,
+    BrokeredPopupRequest,
+    BrokeredRedirectRequest,
+    BrokeredSilentRequest,
+    BrokeredSsoSilentRequest,
+    EmbeddedClientApplicationHandleRedirectRequest,
+    EmbeddedClientApplicationSendPopupRequest,
+    EmbeddedClientApplicationSendSilentRefreshRequest,
+    EmbeddedClientApplicationSendSSOSilentRequest,
+    EmbeddedSendSilentRefreshRequestInternal,
+    GetFrameDepth,
+    HandleBrokerAuthRequest,
+    HandleBrokerMessage,
+    HandleResponse,
+    InteractiveBrokerRequest,
+    OnHandshakeResponse,
+    PairwiseBrokerApplicationInitializeBrokering,
+    PostMessageToAllDescendantFrames,
+    SendHandshakeRequest,
+    SendMessageToBroker,
+    SendRequest,
+} from "./PerfEventNames.js";

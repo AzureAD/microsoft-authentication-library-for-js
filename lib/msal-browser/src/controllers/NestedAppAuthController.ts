@@ -229,7 +229,10 @@ export class NestedAppAuthController implements IController {
             correlationId
         );
 
-        atPopupMeasurement.add({ nestedAppAuthRequest: true });
+        atPopupMeasurement.add({
+            nestedAppAuthRequest: true,
+            bridgeType: "NAA",
+        });
 
         try {
             enforceResourceParameter(this.config.auth.isMcp, validRequest);
@@ -352,6 +355,7 @@ export class NestedAppAuthController implements IController {
         });
         ssoSilentMeasurement.add({
             nestedAppAuthRequest: true,
+            bridgeType: "NAA",
         });
 
         try {
@@ -445,6 +449,7 @@ export class NestedAppAuthController implements IController {
 
         atsMeasurement?.add({
             nestedAppAuthRequest: true,
+            bridgeType: "NAA",
         });
 
         // if the request has claims, we cannot look up in the cache

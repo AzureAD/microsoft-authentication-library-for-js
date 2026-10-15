@@ -1989,7 +1989,7 @@ describe("RedirectClient", () => {
             redirectClient.acquireToken(loginRequest);
         });
 
-        it("Temporary cache is cleared when 'pageshow' event is fired", (done) => {
+        it("rejects with user_cancelled and clears temporary cache when restored from bfcache", async () => {
             let bfCacheCallback: (event: object) => any;
             jest.spyOn(window, "addEventListener").mockImplementation(
                 (eventName, callback) => {
@@ -2049,12 +2049,16 @@ describe("RedirectClient", () => {
                     expect(browserStorage.isInteractionInProgress()).toBe(
                         false
                     );
-                    done();
-                    return Promise.resolve(true);
+                    return new Promise(() => {});
                 }
             );
             browserStorage.setInteractionInProgress(true); // This happens in PCA so need to set manually here
-            redirectClient.acquireToken(emptyRequest);
+            await expect(
+                redirectClient.acquireToken(emptyRequest)
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.userCancelled,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            });
         });
 
         it("Caches token request correctly", async () => {

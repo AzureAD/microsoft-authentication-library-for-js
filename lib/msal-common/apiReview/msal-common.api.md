@@ -2554,7 +2554,11 @@ export type PerformanceEvent = {
     extensionInstalled?: boolean;
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;
+    platformAuthProviderAvailable?: boolean;
+    platformAuthProviderType?: string;
+    platformAuthRequestCorrelationId?: string;
     nestedAppAuthRequest?: boolean;
+    bridgeType?: "NAA" | "PWB";
     multiMatchedAT?: number;
     multiMatchedID?: number;
     multiMatchedRT?: number;
@@ -3562,7 +3566,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.14.0";
+export const version = "16.14.2";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;

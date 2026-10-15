@@ -38,7 +38,12 @@ import {
     updateAccountTenantProfileData,
 } from "@azure/msal-common/browser";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { PlatformAuthRequest } from "../broker/nativeBroker/PlatformAuthRequest.js";
+import {
+    createPlatformAuthExtraParametersNoCache,
+    isProofOfPossessionTokenType,
+    PlatformAuthExtraParametersNoCache,
+    PlatformAuthRequest,
+} from "../broker/nativeBroker/PlatformAuthRequest.js";
 import {
     MATS,
     PlatformAuthResponse,
@@ -190,7 +195,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // initialize native request (statically builds the request; does not contact the broker)
         let nativeRequest: PlatformAuthRequest;
         try {
-            nativeRequest = await this.initializePlatformRequest(request);
+            nativeRequest = await invokeAsync(
+                this.initializePlatformRequest.bind(this),
+                BrowserPerformanceEvents.PlatformAuthInteractionClientInitializeRequest,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(request);
         } catch (e) {
             /*
              * Request initialization (e.g. PoP token generation or authority
@@ -251,7 +262,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             const validatedResponse: PlatformAuthResponse =
                 await this.platformAuthProvider.sendMessage(nativeRequest);
 
-            const result = await this.handleNativeResponse(
+            const result = await invokeAsync(
+                this.handleNativeResponse.bind(this),
+                BrowserPerformanceEvents.PlatformAuthHandleNativeResponse,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(
                 validatedResponse,
                 nativeRequest,
                 reqTimestamp,
@@ -319,6 +336,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             ).asArray(),
             account: cachedAccount,
             forceRefresh: false,
+            resource: request.extraParameters?.resource,
         };
 
         // Preserve FMI partition semantics for silent cache filtering.
@@ -421,7 +439,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.correlationId
         );
 
-        const nativeRequest = await this.initializePlatformRequest(request);
+        const nativeRequest = await invokeAsync(
+            this.initializePlatformRequest.bind(this),
+            BrowserPerformanceEvents.PlatformAuthInteractionClientInitializeRequest,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(request);
         const navigateToLoginRequestUrl =
             options?.navigateToLoginRequestUrl ?? true;
 
@@ -511,7 +535,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.correlationId
             );
             this.performanceClient?.addFields(
-                { errorCode: "no_cached_request" },
+                {
+                    errorCode: "no_cached_request",
+                },
                 this.correlationId
             );
             return null;
@@ -547,12 +573,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             );
             const response: PlatformAuthResponse =
                 await this.platformAuthProvider.sendMessage(request);
-            const authResult = await this.handleNativeResponse(
-                response,
-                request,
-                reqTimestamp,
-                storeInCache
-            );
+            const authResult = await invokeAsync(
+                this.handleNativeResponse.bind(this),
+                BrowserPerformanceEvents.PlatformAuthHandleNativeResponse,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(response, request, reqTimestamp, storeInCache);
 
             const serverTelemetryManager = initializeServerTelemetryManager(
                 this.apiId,
@@ -670,7 +697,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         response.expires_in = Number(response.expires_in);
 
         // generate authenticationResult
-        const result = await this.generateAuthenticationResult(
+        const result = await invokeAsync(
+            this.generateAuthenticationResult.bind(this),
+            BrowserPerformanceEvents.NativeGenerateAuthResult,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(
             response,
             request,
             idTokenClaims,
@@ -680,8 +713,20 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         // cache accounts and tokens in the appropriate storage
-        await this.cacheAccount(baseAccount, AuthToken.isKmsi(idTokenClaims));
-        await this.cacheNativeTokens(
+        await invokeAsync(
+            this.cacheAccount.bind(this),
+            BrowserPerformanceEvents.PlatformAuthCacheAccount,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(baseAccount, AuthToken.isKmsi(idTokenClaims));
+        await invokeAsync(
+            this.cacheNativeTokens.bind(this),
+            BrowserPerformanceEvents.PlatformAuthCacheNativeTokens,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(
             response,
             request,
             homeAccountIdentifier,
@@ -975,6 +1020,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 additionalCacheKeyComponents
             );
 
+        if (request.extraParameters?.resource) {
+            cachedAccessToken.resource = request.extraParameters.resource;
+        }
+
         // save idtoken credential in configured browser storage
         if (!!cachedIdToken && storeInCache?.idToken !== false) {
             await this.browserStorage.setIdTokenCredential(
@@ -1104,9 +1153,15 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
          * scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
          * attributeTokens is destructured out because PlatformAuthRequest represents it as a pre-serialized string, not the caller-provided Array<string>.
          */
-        const { scopes, claims } = request;
-        const scopeSet = new ScopeSet(scopes || [], this.correlationId);
-        scopeSet.appendScopes(Constants.OIDC_DEFAULT_SCOPES);
+        const { scopes, claims, extraParametersNoCache, dpopNonce } =
+            request as (PopupRequest | SsoSilentRequest) & {
+                extraParametersNoCache?: PlatformAuthExtraParametersNoCache;
+                dpopNonce?: string;
+            };
+        const scopeSet = new ScopeSet(
+            [...(scopes || []), ...Constants.OIDC_DEFAULT_SCOPES],
+            this.correlationId
+        );
 
         const mergedClaims = RequestParameterBuilder.buildMergedClaims(
             claims,
@@ -1151,6 +1206,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
             shrNonce: request.shrNonce,
+            extraParametersNoCache: createPlatformAuthExtraParametersNoCache(
+                extraParametersNoCache,
+                isProofOfPossessionTokenType(request.authenticationScheme),
+                request.resourceRequestMethod,
+                request.resourceRequestUri,
+                dpopNonce
+            ),
         };
 
         if (hasAttributeTokens) {

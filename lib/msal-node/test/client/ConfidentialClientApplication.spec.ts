@@ -16,6 +16,7 @@ import {
     AccountEntityUtils,
     INetworkModule,
     ClientAuthErrorCodes,
+    AuthorizationCodePayload,
 } from "@azure/msal-common";
 import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -29,6 +30,7 @@ import {
     ClientCredentialRequest,
     Configuration,
     AuthorizationCodeRequest,
+    AuthorizationUrlRequest,
     RefreshTokenRequest,
     SilentFlowRequest,
 } from "../../src/index.js";
@@ -122,12 +124,28 @@ describe("ConfidentialClientApplication", () => {
         expect(client).toBeInstanceOf(ConfidentialClientApplication);
     });
 
+    test("rejects instance-aware configuration", () => {
+        Object.assign(config.auth, { instanceAware: true });
+
+        expect(() => new ConfidentialClientApplication(config)).toThrow(
+            expect.objectContaining({
+                errorCode: "unsupported_cca_instance_aware",
+            })
+        );
+    });
+
     describe("auth code flow", () => {
         test("acquireTokenByAuthorizationCode", async () => {
             const acquireTokenByCodeSpy: jest.SpyInstance = jest.spyOn(
                 ClientApplication.prototype,
                 <any>"acquireTokenByCode"
             );
+            const { nonce: _nonce, ...claimsWithoutNonce } = ID_TOKEN_CLAIMS;
+            const configWithoutNonce =
+                await ClientTestUtils.createTestConfidentialClientConfiguration(
+                    undefined,
+                    createAuthCodeNetworkClient(claimsWithoutNonce)
+                );
 
             const request: AuthorizationCodeRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
@@ -136,7 +154,7 @@ describe("ConfidentialClientApplication", () => {
             };
 
             const client: ConfidentialClientApplication =
-                new ConfidentialClientApplication(config);
+                new ConfidentialClientApplication(configWithoutNonce);
 
             const authResult = (await client.acquireTokenByCode(
                 request
@@ -146,6 +164,102 @@ describe("ConfidentialClientApplication", () => {
             );
             expect(acquireTokenByCodeSpy).toHaveBeenCalledTimes(1);
         });
+
+        test("sanitizes the authorization code payload before delegation", async () => {
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                nonce: "request-nonce",
+            };
+            const client = new ConfidentialClientApplication(config);
+            const acquireTokenByCodeSpy = jest
+                .spyOn(ClientApplication.prototype, "acquireTokenByCode")
+                .mockResolvedValue({} as AuthenticationResult);
+            const authCodePayload: AuthorizationCodePayload = {
+                code: "payload-code",
+                state: "returned-state",
+                nonce: "payload-nonce",
+                cloud_instance_host_name: "malicious.example.com",
+                cloud_instance_name: "malicious-cloud",
+                cloud_graph_host_name: "malicious-graph.example.com",
+                msgraph_host: "malicious-msgraph.example.com",
+                client_info: "malicious-client-info",
+            };
+
+            await client.acquireTokenByCode(request, authCodePayload);
+
+            expect(acquireTokenByCodeSpy).toHaveBeenCalledWith(request, {
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                state: "returned-state",
+                nonce: "request-nonce",
+            });
+        });
+
+        test("validates returned state from the authorization code payload", async () => {
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                state: "expected-state",
+            };
+            const client = new ConfidentialClientApplication(config);
+
+            await expect(
+                client.acquireTokenByCode(request, {
+                    code: "payload-code",
+                    state: "returned-state",
+                })
+            ).rejects.toMatchObject(
+                createClientAuthError(ClientAuthErrorCodes.stateMismatch, "")
+            );
+        });
+
+        test.each(["true", "false", ""])(
+            "rejects instance_aware extra query parameter value %p",
+            async (instanceAware) => {
+                const request: AuthorizationUrlRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                    extraQueryParameters: {
+                        instance_aware: instanceAware,
+                    },
+                };
+                const client = new ConfidentialClientApplication(config);
+
+                await expect(
+                    client.getAuthCodeUrl(request)
+                ).rejects.toMatchObject({
+                    errorCode: "unsupported_cca_instance_aware",
+                });
+            }
+        );
+
+        test.each([undefined, ""])(
+            "acquireTokenByCode rejects ID Token nonce when request nonce is %p",
+            async (nonce) => {
+                const configWithNonce =
+                    await ClientTestUtils.createTestConfidentialClientConfiguration(
+                        undefined,
+                        createAuthCodeNetworkClient(ID_TOKEN_CLAIMS)
+                    );
+                const request: AuthorizationCodeRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                    code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                    nonce,
+                };
+                const client = new ConfidentialClientApplication(
+                    configWithNonce
+                );
+
+                await expect(
+                    client.acquireTokenByCode(request)
+                ).rejects.toMatchObject({
+                    errorCode: ClientAuthErrorCodes.nonceMismatch,
+                });
+            }
+        );
 
         test("acquireTokenByAuthorizationCode validates matching request nonce", async () => {
             const matchingConfig =
@@ -347,6 +461,44 @@ describe("ConfidentialClientApplication", () => {
             )
         );
         expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1);
+    });
+
+    test("does not coalesce silent requests with different redirect URIs", async () => {
+        let releaseRequest: (result: AuthenticationResult) => void = () => {};
+        const requestGate = new Promise<AuthenticationResult>((resolve) => {
+            releaseRequest = resolve;
+        });
+        const acquireTokenSilentAsyncSpy = jest
+            .spyOn(ClientApplication.prototype, <any>"acquireTokenSilentAsync")
+            .mockReturnValue(requestGate);
+        const testAccountEntity: AccountEntity =
+            buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
+        const testAccount: AccountInfo = {
+            ...AccountEntityUtils.getAccountInfo(testAccountEntity),
+            idTokenClaims: ID_TOKEN_CLAIMS,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
+        };
+        const client = new ConfidentialClientApplication(config);
+        const request: SilentFlowRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            account: testAccount,
+            authority: TEST_CONFIG.validAuthority,
+        };
+
+        const firstRequest = client.acquireTokenSilent({
+            ...request,
+            redirectUri: "http://localhost:3000/first",
+        });
+        const secondRequest = client.acquireTokenSilent({
+            ...request,
+            redirectUri: "http://localhost:3000/second",
+        });
+
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        expect(acquireTokenSilentAsyncSpy).toHaveBeenCalledTimes(2);
+
+        releaseRequest({ correlationId: "" } as AuthenticationResult);
+        await Promise.all([firstRequest, secondRequest]);
     });
 
     test("acquireTokenByRefreshToken", async () => {

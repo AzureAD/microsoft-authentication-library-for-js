@@ -191,7 +191,8 @@ const getEnvConfig = (version) => {
         CLIENT_ID: process.env.CLIENT_ID,
         AUTHORITY: process.env.AUTHORITY,
         REDIRECT_URI: version.info.name === localBuildName || version.info.name === localBuildDebugName || majorVersion >= 5 ? `${process.env.REDIRECT_URI}/redirect` : process.env.REDIRECT_URI,
-        POST_LOGOUT_REDIRECT_URI: process.env.POST_LOGOUT_REDIRECT_URI
+        POST_LOGOUT_REDIRECT_URI: process.env.POST_LOGOUT_REDIRECT_URI,
+        CACHE_LOCATION: process.env.CACHE_LOCATION || "localStorage"
     };
 
     // Check for missing environment variables and log warnings

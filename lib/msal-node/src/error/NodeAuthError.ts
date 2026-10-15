@@ -33,6 +33,10 @@ export const NodeAuthErrorMessage = {
         code: "loopback_server_timeout",
         desc: "Timed out waiting for auth code listener to be registered.",
     },
+    loopbackServerQueryResponseNotSupported: {
+        code: "loopback_server_query_response_not_supported",
+        desc: "The loopback server received an OAuth response in the URL. Interactive authentication requires form_post.",
+    },
     stateNotFoundError: {
         code: "state_not_found",
         desc: "State not found. Please verify that the request originated from msal.",
@@ -44,6 +48,10 @@ export const NodeAuthErrorMessage = {
     redirectUriNotSupported: {
         code: "redirect_uri_not_supported",
         desc: "RedirectUri is not supported in this scenario. Please remove redirectUri from the request.",
+    },
+    unsupportedCcaInstanceAware: {
+        code: "unsupported_cca_instance_aware",
+        desc: "Instance-aware configuration is not supported by ConfidentialClientApplication.",
     },
 };
 
@@ -128,6 +136,17 @@ export class NodeAuthError extends AuthError {
     }
 
     /**
+     * Creates an error thrown if the loopback server receives an OAuth response in a query string.
+     */
+    static createLoopbackServerQueryResponseNotSupportedError(): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.loopbackServerQueryResponseNotSupported.code,
+            "",
+            NodeAuthErrorMessage.loopbackServerQueryResponseNotSupported.desc
+        );
+    }
+
+    /**
      * Creates an error thrown when the state is not present.
      */
     static createStateNotFoundError(correlationId: string = ""): NodeAuthError {
@@ -159,6 +178,19 @@ export class NodeAuthError extends AuthError {
             NodeAuthErrorMessage.redirectUriNotSupported.code,
             correlationId,
             NodeAuthErrorMessage.redirectUriNotSupported.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when instance-aware behavior is requested for a confidential client.
+     */
+    static createUnsupportedCcaInstanceAwareError(
+        correlationId: string = ""
+    ): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.unsupportedCcaInstanceAware.code,
+            correlationId,
+            NodeAuthErrorMessage.unsupportedCcaInstanceAware.desc
         );
     }
 }
