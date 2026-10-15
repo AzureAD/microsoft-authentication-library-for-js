@@ -60,7 +60,6 @@ import { AccountContext } from "../naa/BridgeAccountContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
-import { ITokenCache, TokenCache } from "../cache/TokenCache.js";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
@@ -77,7 +76,6 @@ export class NestedAppAuthController implements IController {
 
     // Storage interface implementation
     protected readonly browserStorage!: BrowserCacheManager;
-    private readonly tokenCache: TokenCache;
 
     // Logger
     protected logger: Logger;
@@ -141,11 +139,6 @@ export class NestedAppAuthController implements IController {
                   undefined,
                   tokenBindingKeyManager
               );
-        this.tokenCache = new TokenCache(
-            this.browserStorage,
-            this.logger,
-            this.performanceClient
-        );
 
         this.nestedAppAuthAdapter = new NestedAppAuthAdapter(
             this.config.auth.clientId,
@@ -815,11 +808,8 @@ export class NestedAppAuthController implements IController {
         return this.logger;
     }
 
-    /**
-     * Returns the token cache bound to this controller's active cache manager.
-     */
-    public getTokenCache(): ITokenCache {
-        return this.tokenCache;
+    loadDpopNonce(): Promise<void> {
+        throw NestedAppAuthError.createUnsupportedError();
     }
 
     /**
@@ -828,7 +818,6 @@ export class NestedAppAuthController implements IController {
      */
     setLogger(logger: Logger): void {
         this.logger = logger;
-        this.tokenCache.setLogger(logger);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

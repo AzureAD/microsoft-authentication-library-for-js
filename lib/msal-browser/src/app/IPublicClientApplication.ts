@@ -29,7 +29,6 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
-import { ITokenCache } from "../cache/TokenCache.js";
 
 export interface IPublicClientApplication {
     // TODO: Make request mandatory in the next major version?
@@ -61,9 +60,9 @@ export interface IPublicClientApplication {
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
     getLogger(): Logger;
     /**
-     * Returns the token cache bound to this PublicClientApplication instance.
+     * Stores an opaque resource-server DPoP nonce for the matching HTTPS origin.
      */
-    getTokenCache?(): ITokenCache;
+    loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;
     getActiveAccount(): AccountInfo | null;
@@ -195,10 +194,12 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
             ""
         );
     },
-    getTokenCache: () => {
-        throw createBrowserConfigurationAuthError(
-            BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
-            ""
+    loadDpopNonce: () => {
+        return Promise.reject(
+            createBrowserConfigurationAuthError(
+                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
+                ""
+            )
         );
     },
     setLogger: () => {

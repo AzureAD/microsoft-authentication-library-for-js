@@ -14,8 +14,6 @@ import { NestedAppAuthController } from "../../src/controllers/NestedAppAuthCont
 import { Configuration, IPublicClientApplication } from "../../src/index.js";
 import { IController } from "../../src/controllers/IController.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
-import { stubbedPublicClientApplication } from "../../src/app/IPublicClientApplication.js";
-import { AuthError } from "@azure/msal-common/browser";
 
 // Mock modules
 jest.mock("../../src/operatingcontext/NestedAppOperatingContext.js");
@@ -82,29 +80,6 @@ describe("createNestablePublicClientApplication tests", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
-    });
-
-    it("throws a deterministic MSAL error for a legacy injected controller without token cache support", () => {
-        const { getTokenCache: _getTokenCache, ...legacyController } =
-            stubbedPublicClientApplication;
-        const pca = new PublicClientApplication(
-            testConfig,
-            legacyController as IController
-        );
-        let thrownError: unknown;
-
-        try {
-            pca.getTokenCache();
-        } catch (error) {
-            thrownError = error;
-        }
-
-        expect(thrownError).toBeInstanceOf(AuthError);
-        expect(thrownError).toMatchObject({
-            errorCode: "token_cache_unavailable",
-            errorMessage:
-                "The configured controller does not support token cache access.",
-        });
     });
 
     describe("When nestedAppAuth.isAvailable() returns true", () => {

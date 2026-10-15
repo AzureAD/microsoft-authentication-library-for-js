@@ -42,7 +42,6 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { EventType } from "../event/EventType.js";
 import { EventHandler } from "../event/EventHandler.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
-import { ITokenCache, TokenCache } from "../cache/TokenCache.js";
 
 /**
  * UnknownOperatingContextController class
@@ -67,7 +66,6 @@ export class UnknownOperatingContextController implements IController {
 
     // Storage interface implementation
     protected readonly browserStorage: BrowserCacheManager;
-    private readonly tokenCache: TokenCache;
 
     // Input configuration by developer/user
     protected readonly config: BrowserConfiguration;
@@ -130,11 +128,6 @@ export class UnknownOperatingContextController implements IController {
                   undefined,
                   tokenBindingKeyManager
               );
-        this.tokenCache = new TokenCache(
-            this.browserStorage,
-            this.logger,
-            this.performanceClient
-        );
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -264,15 +257,14 @@ export class UnknownOperatingContextController implements IController {
     getLogger(): Logger {
         return this.logger;
     }
-    getTokenCache(): ITokenCache {
-        return this.tokenCache;
+    async loadDpopNonce(): Promise<void> {
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment();
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setLogger(logger: Logger): void {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
-        this.logger = logger;
-        this.tokenCache.setLogger(logger);
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setActiveAccount(account: AccountInfo | null): void {

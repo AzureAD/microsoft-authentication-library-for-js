@@ -53,6 +53,7 @@ import * as TimeUtils from "../utils/TimeUtils.js";
 import { AuthenticationResult } from "./AuthenticationResult.js";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
+import { IDpopNonceStore } from "../protocol/IDpopNonceStore.js";
 
 /** @internal */
 export type GenerateAuthenticationResultOptions = {
@@ -61,6 +62,7 @@ export type GenerateAuthenticationResultOptions = {
     serverTokenResponse?: ServerAuthorizationTokenResponse;
     requestId?: string;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
+    dpopNonceStore?: IDpopNonceStore;
 };
 
 /**
@@ -77,6 +79,7 @@ export class ResponseHandler {
     private performanceClient: IPerformanceClient;
     private serializableCache: ISerializableTokenCache | null;
     private persistencePlugin: ICachePlugin | null;
+    private dpopNonceStore?: IDpopNonceStore;
 
     constructor(
         clientId: string,
@@ -86,7 +89,8 @@ export class ResponseHandler {
         performanceClient: IPerformanceClient,
         serializableCache: ISerializableTokenCache | null,
         persistencePlugin: ICachePlugin | null,
-        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER
+        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+        dpopNonceStore?: IDpopNonceStore
     ) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
@@ -96,6 +100,7 @@ export class ResponseHandler {
         this.performanceClient = performanceClient;
         this.serializableCache = serializableCache;
         this.persistencePlugin = persistencePlugin;
+        this.dpopNonceStore = dpopNonceStore;
     }
 
     /**
@@ -384,6 +389,7 @@ export class ResponseHandler {
                             requestState: requestStateObj,
                             requestId: serverRequestId,
                             tokenBindingKeyManager: this.tokenBindingKeyManager,
+                            dpopNonceStore: this.dpopNonceStore,
                         }
                     );
                 }
@@ -422,6 +428,7 @@ export class ResponseHandler {
                 serverTokenResponse,
                 requestId: serverRequestId,
                 tokenBindingKeyManager: this.tokenBindingKeyManager,
+                dpopNonceStore: this.dpopNonceStore,
             }
         );
     }
@@ -616,6 +623,7 @@ export class ResponseHandler {
             serverTokenResponse,
             requestId,
             tokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+            dpopNonceStore,
         } = options;
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
@@ -678,6 +686,11 @@ export class ResponseHandler {
                     {
                         htu: request.resourceRequestUri,
                         htm: request.resourceRequestMethod,
+                        nonce: request.resourceRequestUri
+                            ? dpopNonceStore?.getResourceServerNonce(
+                                  request.resourceRequestUri
+                              )
+                            : undefined,
                         accessToken: cacheRecord.accessToken.secret,
                     },
                     cacheRecord.accessToken.keyId,

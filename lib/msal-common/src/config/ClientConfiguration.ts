@@ -29,6 +29,7 @@ import {
     createClientAuthError,
 } from "../error/ClientAuthError.js";
 import { StubPerformanceClient } from "../telemetry/performance/StubPerformanceClient.js";
+import { IDpopNonceStore } from "../protocol/IDpopNonceStore.js";
 
 /**
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.
@@ -54,6 +55,7 @@ export type ClientConfiguration = {
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
+    dpopNonceStore?: IDpopNonceStore;
     clientCredentials?: ClientCredentials;
     libraryInfo?: LibraryInfo;
     telemetry?: TelemetryOptions;
@@ -73,6 +75,7 @@ export type CommonClientConfiguration = {
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
     tokenBindingKeyManager: ITokenBindingKeyManager;
+    dpopNonceStore?: IDpopNonceStore;
     libraryInfo: LibraryInfo;
     telemetry: Required<TelemetryOptions>;
     serverTelemetryManager: ServerTelemetryManager | null;
@@ -234,6 +237,7 @@ export function buildClientConfiguration({
     networkInterface: networkImplementation,
     cryptoInterface: cryptoImplementation,
     tokenBindingKeyManager: tokenBindingKeyManager,
+    dpopNonceStore: dpopNonceStore,
     clientCredentials: clientCredentials,
     libraryInfo: libraryInfo,
     telemetry: telemetry,
@@ -266,6 +270,7 @@ export function buildClientConfiguration({
             networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         tokenBindingKeyManager: resolvedTokenBindingKeyManager,
+        dpopNonceStore,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },

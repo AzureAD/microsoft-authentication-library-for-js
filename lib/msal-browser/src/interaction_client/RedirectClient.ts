@@ -21,6 +21,7 @@ import {
     CommonAuthorizationUrlRequest,
     ProtocolUtils,
     ITokenBindingKeyManager,
+    IDpopNonceStore,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
@@ -97,7 +98,8 @@ export class RedirectClient extends StandardInteractionClient {
         nativeStorageImpl: BrowserCacheManager,
         correlationId: string,
         platformAuthHandler?: IPlatformAuthHandler,
-        tokenBindingKeyManager?: ITokenBindingKeyManager
+        tokenBindingKeyManager?: ITokenBindingKeyManager,
+        dpopNonceStore?: IDpopNonceStore
     ) {
         super(
             config,
@@ -109,7 +111,8 @@ export class RedirectClient extends StandardInteractionClient {
             performanceClient,
             correlationId,
             platformAuthHandler,
-            tokenBindingKeyManager
+            tokenBindingKeyManager,
+            dpopNonceStore
         );
         this.nativeStorage = nativeStorageImpl;
     }
@@ -944,7 +947,8 @@ export class RedirectClient extends StandardInteractionClient {
                 this.browserCrypto,
                 this.logger,
                 this.correlationId,
-                validLogoutRequest.account
+                validLogoutRequest.account,
+                this.dpopNonceStore
             );
 
             const navigationOptions: NavigationOptions = {

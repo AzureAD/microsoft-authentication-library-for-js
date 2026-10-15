@@ -190,3 +190,26 @@ headers.append("DPoP", result.dpopProof);
 For DPoP results, `accessToken` is the raw sender-constrained access token and `dpopProof` is a separate fresh proof for the requested resource. Proof JWTs are never cached. Cache hits generate a new proof, and if the local DPoP key is missing MSAL treats the cached sender-constrained access token as a cache miss.
 
 DPoP resource proofs are generated from the request method, normalized resource URI, and raw access token (`ath` is computed internally). MSAL does not accept caller-supplied `ath` hashes.
+
+### Resource-server nonce challenges
+
+When a resource server returns a `DPoP-Nonce` response header, load the nonce into the same `PublicClientApplication` instance before requesting a new proof:
+
+```typescript
+const resourceRequestUri = "https://graph.microsoft.com/v1.0/me";
+const dpopNonce = resourceResponse.headers.get("DPoP-Nonce");
+
+if (dpopNonce) {
+    await myMSALObj.loadDpopNonce(resourceRequestUri, dpopNonce);
+    const retryResult = await myMSALObj.acquireTokenSilent({
+        ...dpopRequest,
+        resourceRequestUri,
+    });
+
+    // The application owns retrying the resource request with retryResult.dpopProof.
+}
+```
+
+MSAL stores resource-server nonces only in memory, scoped to the `PublicClientApplication` instance and normalized HTTPS resource origin. The state is bounded and is cleared with the application cache; it is not shared across tabs or application instances and is not written to browser or custom cache storage.
+
+`loadDpopNonce` validates and stores the nonce but does not retry the resource request. The application remains responsible for issuing a new token acquisition to obtain a fresh proof and for enforcing its own resource-request retry limit.
