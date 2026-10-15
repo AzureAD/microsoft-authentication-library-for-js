@@ -7,7 +7,6 @@ import { AuthFlowActionRequiredStateBase } from "../../../../core/auth_flow/Auth
 import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
 import { CompletedStateV2 } from "../../../../core/auth_flow/v2/state/CompletedStateV2.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
-import { SignInContinuationErrorV2 } from "../error_type/SignInContinuationErrorV2.js";
 import type { SignInContinuationStateParametersV2 } from "./SignInStateParametersV2.js";
 import type { SignInContinuationResultV2 } from "../result/SignInContinuationResultV2.js";
 
@@ -57,7 +56,6 @@ export class SignInContinuationStateV2 extends AuthFlowActionRequiredStateBase<S
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: SignInContinuationErrorV2,
                 scenario: continuationState.scenario,
                 correlationId,
             });

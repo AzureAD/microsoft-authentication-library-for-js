@@ -4,8 +4,6 @@
  */
 
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import { VerifyChallengeErrorV2 } from "../error/VerifyChallengeErrorV2.js";
-import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
 import type { MFAVerificationRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { MFASubmitChallengeResultV2 } from "../result/MFASubmitChallengeResultV2.js";
 import type { MFAResendChallengeResultV2 } from "../result/MFAResendChallengeResultV2.js";
@@ -67,7 +65,6 @@ export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBa
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: VerifyChallengeErrorV2,
                 scenario: continuationState.scenario,
                 correlationId,
             });
@@ -110,7 +107,6 @@ export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBa
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: RequestChallengeErrorV2,
                 scenario: continuationState.scenario,
                 correlationId,
             });

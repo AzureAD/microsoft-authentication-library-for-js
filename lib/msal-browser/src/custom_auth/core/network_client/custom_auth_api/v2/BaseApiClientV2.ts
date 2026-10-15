@@ -34,7 +34,7 @@ import {
     CONTINUATION_TOKEN_MISSING,
     HTTP_REQUEST_FAILED,
     INVALID_TOKEN_RESPONSE,
-    REDIRECT_TO_WEB,
+    WEB_REDIRECT_REQUIRED,
 } from "./ErrorCodesV2.js";
 import {
     RequestContextV2,
@@ -344,12 +344,13 @@ export abstract class BaseApiClientV2 {
             serverError.message ?? "",
             serverError.correlationId ?? correlationId,
             serverError.errorCodes,
-            serverError.innerErrorCode,
+            serverError.subError,
             undefined,
             undefined,
             serverError.traceId,
             serverError.timestamp,
-            serverError.attributeValidationDetails
+            serverError.attributeValidationDetails,
+            serverError.innerErrorCode
         );
     }
 
@@ -357,11 +358,12 @@ export abstract class BaseApiClientV2 {
         parsedResponse: ParsedResponseV2<unknown>
     ): void {
         if (parsedResponse.isWebFallbackRequired) {
-            throw new CustomAuthApiError(
-                REDIRECT_TO_WEB,
-                "The server requires the flow to continue in a web browser",
-                parsedResponse.correlationId
-            );
+            if (parsedResponse.error?.subError === WEB_REDIRECT_REQUIRED) {
+                throw this.toApiError(
+                    parsedResponse.error,
+                    parsedResponse.correlationId
+                );
+            }
         }
     }
 

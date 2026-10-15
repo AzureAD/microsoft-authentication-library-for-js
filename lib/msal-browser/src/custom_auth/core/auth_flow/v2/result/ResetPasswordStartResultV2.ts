@@ -4,7 +4,6 @@
  */
 
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import type { ResetPasswordStartErrorV2 } from "../error/ResetPasswordStartErrorV2.js";
 import type { AuthMethodSelectionRequiredStateV2 } from "../state/AuthMethodSelectionRequiredStateV2.js";
 import type { CodeRequiredStateV2 } from "../state/CodeRequiredStateV2.js";
 import type { FailedStateV2 } from "../state/FailedStateV2.js";
@@ -22,9 +21,7 @@ export type ResetPasswordStartResultStateV2 =
 /**
  * Result of starting a native auth V2 reset-password operation. It is returned
  * by `resetPasswordV2` and wraps one of {@link ResetPasswordStartResultStateV2}
- * plus, on failure, a {@link ResetPasswordStartErrorV2}.
+ * plus, on failure, the unified V2 flow error.
  */
-export type ResetPasswordStartResultV2 = CustomAuthResultV2<
-    ResetPasswordStartResultStateV2,
-    ResetPasswordStartErrorV2
->;
+export type ResetPasswordStartResultV2 =
+    CustomAuthResultV2<ResetPasswordStartResultStateV2>;

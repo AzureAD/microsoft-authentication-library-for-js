@@ -260,15 +260,7 @@ export { CustomAuthFlowScenarioV2 } from "./core/auth_flow/v2/CustomAuthFlowScen
 export { AuthenticationMethodV2 } from "./core/auth_flow/v2/AuthenticationMethodV2.js";
 
 // Native Auth V2 Errors
-export { ResetPasswordStartErrorV2 } from "./core/auth_flow/v2/error/ResetPasswordStartErrorV2.js";
-export { RequestChallengeErrorV2 } from "./core/auth_flow/v2/error/RequestChallengeErrorV2.js";
-export { VerifyChallengeErrorV2 } from "./core/auth_flow/v2/error/VerifyChallengeErrorV2.js";
-export { SubmitNewPasswordErrorV2 } from "./reset_password/auth_flow/v2/error_type/SubmitNewPasswordErrorV2.js";
-export { SignInStartErrorV2 } from "./sign_in/auth_flow/v2/error_type/SignInStartErrorV2.js";
-export { SignUpStartErrorV2 } from "./sign_up/auth_flow/v2/error_type/SignUpStartErrorV2.js";
-export { SignInContinuationErrorV2 } from "./sign_in/auth_flow/v2/error_type/SignInContinuationErrorV2.js";
-export { SubmitPasswordErrorV2 } from "./sign_in/auth_flow/v2/error_type/SubmitPasswordErrorV2.js";
-export { SubmitAttributesErrorV2 } from "./sign_up/auth_flow/v2/error_type/SubmitAttributesErrorV2.js";
+export { AuthFlowErrorV2 } from "./core/auth_flow/v2/error/AuthFlowErrorV2.js";
 
 // Native Auth V2 States
 export { CompletedStateV2 } from "./core/auth_flow/v2/state/CompletedStateV2.js";
