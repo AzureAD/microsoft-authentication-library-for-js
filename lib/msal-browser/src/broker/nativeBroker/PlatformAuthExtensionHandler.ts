@@ -543,13 +543,7 @@ export class PlatformAuthExtensionHandler implements IPlatformAuthHandler {
             Object.prototype.hasOwnProperty.call(response, "scope") &&
             Object.prototype.hasOwnProperty.call(response, "expires_in")
         ) {
-            const extensionResponse = response as PlatformAuthResponse & {
-                dpop_proof?: string;
-            };
-            const validatedResponse = {
-                ...extensionResponse,
-                DPoP: extensionResponse.DPoP ?? extensionResponse.dpop_proof,
-            };
+            const validatedResponse = response as PlatformAuthResponse;
             validationMeasurement.end({
                 success: true,
                 platformAuthProviderType: this.platformAuthType,

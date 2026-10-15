@@ -569,86 +569,81 @@ describe("PlatformAuthExtensionHandler Tests", () => {
             window.removeEventListener("message", eventHandler, true);
         });
 
-        it.each([["dpop_proof", { dpop_proof: "test-dpop-proof" }]])(
-            "normalizes an extension proof returned through %s",
-            async (_proofField, proofResponse) => {
-                const testWAMResponse = {
-                    access_token: "test-access-token",
-                    id_token: "test-id-token",
-                    client_info: "test-client-info",
-                    account: {
-                        id: "test-account-id",
-                        properties: {},
-                        userName: "test-user-name",
+        it("preserves the canonical extension DPoP proof", async () => {
+            const testWAMResponse = {
+                access_token: "test-access-token",
+                id_token: "test-id-token",
+                client_info: "test-client-info",
+                account: {
+                    id: "test-account-id",
+                    properties: {},
+                    userName: "test-user-name",
+                },
+                scope: "read openid",
+                expires_in: "3600",
+                token_type: Constants.AuthenticationScheme.DPOP,
+                binding_attested: true,
+                DPoP: "test-dpop-proof",
+            };
+            const testResponse = {
+                status: "Success",
+                result: testWAMResponse,
+            };
+            const eventHandler = function (event: MessageEvent) {
+                event.stopImmediatePropagation();
+                const request = event.data;
+                const req = {
+                    channel: "53ee284d-920a-4b59-9d30-a60315b26836",
+                    extensionId: "test-ext-id",
+                    responseId: request.responseId,
+                    body: {
+                        method: "HandshakeResponse",
+                        version: 3,
                     },
-                    scope: "read openid",
-                    expires_in: "3600",
+                };
+
+                mcPort = postMessageSpy.mock.calls[0][2][0];
+                if (!mcPort) {
+                    throw new Error("MessageChannel port was not transferred");
+                }
+                mcPort.onmessage = (messageEvent) => {
+                    mcPort.postMessage({
+                        channelId: "53ee284d-920a-4b59-9d30-a60315b26836",
+                        extensionId: "test-ext-id",
+                        responseId: messageEvent.data.responseId,
+                        body: {
+                            method: "Response",
+                            response: testResponse,
+                        },
+                    });
+                };
+                mcPort.postMessage(req);
+            };
+
+            window.addEventListener("message", eventHandler, true);
+            const wamMessageHandler =
+                await PlatformAuthExtensionHandler.createProvider(
+                    new Logger({}),
+                    2000,
+                    performanceClient,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            const response = await wamMessageHandler.sendMessage({
+                ...TEST_REQUEST,
+                preferBinding: PlatformAuthBindingPreference.ATTESTED,
+                reqCnf: "test-req-cnf",
+                tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
+            });
+
+            expect(response).toEqual(
+                expect.objectContaining({
                     token_type: Constants.AuthenticationScheme.DPOP,
                     binding_attested: true,
-                    ...proofResponse,
-                };
-                const testResponse = {
-                    status: "Success",
-                    result: testWAMResponse,
-                };
-                const eventHandler = function (event: MessageEvent) {
-                    event.stopImmediatePropagation();
-                    const request = event.data;
-                    const req = {
-                        channel: "53ee284d-920a-4b59-9d30-a60315b26836",
-                        extensionId: "test-ext-id",
-                        responseId: request.responseId,
-                        body: {
-                            method: "HandshakeResponse",
-                            version: 3,
-                        },
-                    };
-
-                    mcPort = postMessageSpy.mock.calls[0][2][0];
-                    if (!mcPort) {
-                        throw new Error(
-                            "MessageChannel port was not transferred"
-                        );
-                    }
-                    mcPort.onmessage = (messageEvent) => {
-                        mcPort.postMessage({
-                            channelId: "53ee284d-920a-4b59-9d30-a60315b26836",
-                            extensionId: "test-ext-id",
-                            responseId: messageEvent.data.responseId,
-                            body: {
-                                method: "Response",
-                                response: testResponse,
-                            },
-                        });
-                    };
-                    mcPort.postMessage(req);
-                };
-
-                window.addEventListener("message", eventHandler, true);
-                const wamMessageHandler =
-                    await PlatformAuthExtensionHandler.createProvider(
-                        new Logger({}),
-                        2000,
-                        performanceClient,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-                const response = await wamMessageHandler.sendMessage({
-                    ...TEST_REQUEST,
-                    preferBinding: PlatformAuthBindingPreference.ATTESTED,
-                    reqCnf: "test-req-cnf",
-                    tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
-                });
-
-                expect(response).toEqual(
-                    expect.objectContaining({
-                        token_type: Constants.AuthenticationScheme.DPOP,
-                        binding_attested: true,
-                        DPoP: "test-dpop-proof",
-                    })
-                );
-                window.removeEventListener("message", eventHandler, true);
-            }
-        );
+                    DPoP: "test-dpop-proof",
+                })
+            );
+            window.removeEventListener("message", eventHandler, true);
+        });
 
         it("Sends message to WAM extension and throws if error is returned", (done) => {
             const testResponse = {

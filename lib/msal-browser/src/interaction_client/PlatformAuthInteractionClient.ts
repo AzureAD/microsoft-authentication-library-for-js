@@ -1616,7 +1616,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             | (NativeResponseProperties & {
                   token_type?: string;
                   DPoP?: string;
-                  dpop_proof?: string;
                   binding_attested?: boolean | string;
               })
             | undefined;
@@ -1648,14 +1647,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const dpopWithProofTokenType =
             PlatformAuthTokenType.DPOP_WITH_PROOF.toLowerCase();
         const propertyProof = responseProperties?.DPoP;
-        const propertyDpopProof = responseProperties?.dpop_proof;
         const topLevelProof = response.DPoP;
-        const brokerProof = propertyProof ?? propertyDpopProof ?? topLevelProof;
-        const proofValues = [
-            propertyProof,
-            propertyDpopProof,
-            topLevelProof,
-        ].filter((proof): proof is string => proof !== undefined);
+        const brokerProof = propertyProof ?? topLevelProof;
+        const proofValues = [propertyProof, topLevelProof].filter(
+            (proof): proof is string => proof !== undefined
+        );
         const hasConflictingProof = new Set(proofValues).size > 1;
         const normalizeBindingAttestedValue = (
             value: boolean | string | undefined
