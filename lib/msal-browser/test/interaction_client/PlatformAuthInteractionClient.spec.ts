@@ -17,6 +17,7 @@ import {
     Constants,
     AuthError,
     AuthErrorCodes,
+    PerformanceEvent,
 } from "@azure/msal-common";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { ApiId, CacheLookupPolicy } from "../../src/utils/BrowserConstants.js";
@@ -379,6 +380,10 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
         it("Extension: returns an L3 broker DPoP proof without caching or locally signing it", async () => {
             const wireTokenType = "dpop+proof";
+            const emittedEvents: PerformanceEvent[] = [];
+            const callbackId = perfClient.addPerformanceCallback((events) => {
+                emittedEvents.push(...events);
+            });
             const staleAccessToken = {
                 ...testAccessTokenEntity,
                 credentialType:
@@ -437,13 +442,18 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "signTokenBindingJwt"
             );
 
-            const response = await platformAuthInteractionClient.acquireToken({
-                scopes: ["User.Read"],
-                authenticationScheme: Constants.AuthenticationScheme.DPOP,
-                resourceRequestMethod: "POST",
-                resourceRequestUri:
-                    "https://graph.microsoft.com/v1.0/me?user=alice#profile",
-            });
+            let response: AuthenticationResult;
+            try {
+                response = await platformAuthInteractionClient.acquireToken({
+                    scopes: ["User.Read"],
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri:
+                        "https://graph.microsoft.com/v1.0/me?user=alice#profile",
+                });
+            } finally {
+                perfClient.removePerformanceCallback(callbackId);
+            }
 
             expect(brokerRequest).toEqual(
                 expect.objectContaining({
@@ -472,6 +482,21 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
             expect(removeKeySpy).toHaveBeenCalledTimes(1);
             expect(provisionKeySpy).toHaveBeenCalledTimes(1);
+            const dpopTelemetryEvent = emittedEvents.find(
+                (event) => event.ext?.brokerDpopOutcome === "l3"
+            );
+            expect(dpopTelemetryEvent?.ext).toEqual(
+                expect.objectContaining({
+                    brokerDpopOutcome: "l3",
+                    brokerDpopBindingLevel: "L3",
+                })
+            );
+            expect(
+                dpopTelemetryEvent?.ext?.brokerDpopFailureReason
+            ).toBeUndefined();
+            expect(dpopTelemetryEvent?.ext?.DPoP).toBeUndefined();
+            expect(dpopTelemetryEvent?.ext?.keyId).toBeUndefined();
+            expect(dpopTelemetryEvent?.ext?.reqCnf).toBeUndefined();
             expect(
                 internalStorage.getAccessTokenCredential(
                     staleAccessTokenCacheKey,
@@ -481,6 +506,10 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         it("Extension: rejects a proofless broker-owned DPoP response", async () => {
+            const emittedEvents: PerformanceEvent[] = [];
+            const callbackId = perfClient.addPerformanceCallback((events) => {
+                emittedEvents.push(...events);
+            });
             const keyManager =
                 // @ts-ignore
                 platformAuthInteractionClient.tokenBindingKeyManager;
@@ -510,16 +539,22 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "signTokenBindingJwt"
             );
 
-            await expect(
-                platformAuthInteractionClient.acquireToken({
-                    scopes: ["User.Read"],
-                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
-                    resourceRequestMethod: "POST",
-                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                })
-            ).rejects.toMatchObject({
-                errorCode: AuthErrorCodes.unexpectedError,
-            });
+            try {
+                await expect(
+                    platformAuthInteractionClient.acquireToken({
+                        scopes: ["User.Read"],
+                        authenticationScheme:
+                            Constants.AuthenticationScheme.DPOP,
+                        resourceRequestMethod: "POST",
+                        resourceRequestUri:
+                            "https://graph.microsoft.com/v1.0/me",
+                    })
+                ).rejects.toMatchObject({
+                    errorCode: AuthErrorCodes.unexpectedError,
+                });
+            } finally {
+                perfClient.removePerformanceCallback(callbackId);
+            }
             expect(signSpy).not.toHaveBeenCalled();
             expect(saveCacheRecordSpy).not.toHaveBeenCalled();
             expect(removeKeySpy).toHaveBeenCalledWith(
@@ -527,6 +562,21 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 RANDOM_TEST_GUID
             );
             expect(provisionKeySpy).toHaveBeenCalledTimes(1);
+            const dpopTelemetryEvent = emittedEvents.find(
+                (event) => event.ext?.brokerDpopOutcome === "invalid_response"
+            );
+            expect(dpopTelemetryEvent?.ext).toEqual(
+                expect.objectContaining({
+                    brokerDpopOutcome: "invalid_response",
+                    brokerDpopFailureReason: "invalid_attestation",
+                })
+            );
+            expect(JSON.stringify(dpopTelemetryEvent?.ext)).not.toContain(
+                "local-dpop-key"
+            );
+            expect(dpopTelemetryEvent?.ext?.DPoP).toBeUndefined();
+            expect(dpopTelemetryEvent?.ext?.keyId).toBeUndefined();
+            expect(dpopTelemetryEvent?.ext?.reqCnf).toBeUndefined();
         });
 
         it("Extension: surfaces L3 DPoP key cleanup failures", async () => {
