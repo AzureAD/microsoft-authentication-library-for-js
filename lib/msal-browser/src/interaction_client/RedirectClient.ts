@@ -21,8 +21,8 @@ import {
     CommonAuthorizationUrlRequest,
     ProtocolUtils,
     ITokenBindingKeyManager,
-    IDpopNonceStore,
 } from "@azure/msal-common/browser";
+import { DpopNonceStore } from "../controllers/DpopNonceStore.js";
 import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
@@ -99,7 +99,7 @@ export class RedirectClient extends StandardInteractionClient {
         correlationId: string,
         platformAuthHandler?: IPlatformAuthHandler,
         tokenBindingKeyManager?: ITokenBindingKeyManager,
-        dpopNonceStore?: IDpopNonceStore
+        dpopNonceStore?: DpopNonceStore
     ) {
         super(
             config,
@@ -146,6 +146,18 @@ export class RedirectClient extends StandardInteractionClient {
             this.platformAuthProvider,
             request.authenticationScheme
         );
+        if (
+            validRequest.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP &&
+            validRequest.resourceRequestUri &&
+            this.dpopNonceStore instanceof DpopNonceStore
+        ) {
+            this.dpopNonceStore.saveRedirectHandoff(
+                validRequest.resourceRequestUri,
+                validRequest.state,
+                validRequest.correlationId
+            );
+        }
 
         let rejectBackButtonCancellation!: (reason?: unknown) => void;
         const backButtonCancellation = new Promise<never>((_, reject) => {
@@ -154,6 +166,9 @@ export class RedirectClient extends StandardInteractionClient {
         const handleBackButton = (event: PageTransitionEvent) => {
             // Clear temporary cache if the back button is clicked during the redirect flow.
             if (event.persisted) {
+                if (this.dpopNonceStore instanceof DpopNonceStore) {
+                    this.dpopNonceStore.clearRedirectHandoff();
+                }
                 this.logger.verbose(
                     "Page was restored from back/forward cache. Clearing temporary cache.",
                     this.correlationId
@@ -201,6 +216,9 @@ export class RedirectClient extends StandardInteractionClient {
                 : this.executeCodeFlow(validRequest);
             await Promise.race([redirectOperation, backButtonCancellation]);
         } catch (e) {
+            if (this.dpopNonceStore instanceof DpopNonceStore) {
+                this.dpopNonceStore.clearRedirectHandoff();
+            }
             if (e instanceof AuthError) {
                 e.correlationId = this.correlationId;
             }
@@ -527,6 +545,9 @@ export class RedirectClient extends StandardInteractionClient {
                 if (getNavigationType() !== "back_forward") {
                     parentMeasurement.event.errorCode = "no_server_response";
                 } else {
+                    if (this.dpopNonceStore instanceof DpopNonceStore) {
+                        this.dpopNonceStore.clearRedirectHandoff();
+                    }
                     this.logger.verbose(
                         "Back navigation event detected. Muting no_server_response error",
                         this.correlationId
@@ -903,6 +924,9 @@ export class RedirectClient extends StandardInteractionClient {
                 return;
             }
         } else {
+            if (this.dpopNonceStore instanceof DpopNonceStore) {
+                this.dpopNonceStore.clearRedirectHandoff();
+            }
             // Throw error if request URL is empty.
             this.logger.info(
                 "RedirectHandler.initiateAuthRequest: Navigate url is empty",

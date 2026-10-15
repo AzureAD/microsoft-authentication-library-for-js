@@ -7,6 +7,7 @@ import {
     Constants,
     ScopeSet,
     getRequestThumbprint,
+    IDpopNonceStore,
 } from "@azure/msal-common/browser";
 import type {
     AccountInfo,
@@ -53,7 +54,8 @@ export function resolveSilentRequestPreparation(
     input: SilentRequestPreparationInput,
     platformAuthProvider: IPlatformAuthHandler | undefined,
     logger: Logger,
-    performanceClient: IPerformanceClient
+    performanceClient: IPerformanceClient,
+    dpopNonceStore?: IDpopNonceStore
 ): PreparedSilentRequest {
     const { request, account, correlationId, config } = input;
     const prepareRequest =
@@ -69,18 +71,18 @@ export function resolveSilentRequestPreparation(
             ? preparePlatformSilentRequest
             : prepareWebSilentRequest;
 
-    return prepareRequest(input);
+    return prepareRequest === prepareWebSilentRequest
+        ? prepareWebSilentRequest(input, dpopNonceStore)
+        : preparePlatformSilentRequest(input);
 }
 
 /**
  * Extends the web thumbprint with silent-flow options while preserving caller-owned references.
  */
-export function prepareWebSilentRequest({
-    request,
-    account,
-    correlationId,
-    config,
-}: SilentRequestPreparationInput): PreparedSilentRequest {
+export function prepareWebSilentRequest(
+    { request, account, correlationId, config }: SilentRequestPreparationInput,
+    dpopNonceStore?: IDpopNonceStore
+): PreparedSilentRequest {
     const thumbprint = getRequestThumbprint(
         config.auth.clientId,
         {
@@ -90,6 +92,15 @@ export function prepareWebSilentRequest({
         },
         account.homeAccountId
     );
+
+    const dpopNonceVersion =
+        request.authenticationScheme === Constants.AuthenticationScheme.DPOP &&
+        request.resourceRequestUri
+            ? dpopNonceStore?.getResourceServerNonce(
+                  request.resourceRequestUri,
+                  correlationId
+              )?.version
+            : undefined;
 
     return {
         key: JSON.stringify({
@@ -101,6 +112,7 @@ export function prepareWebSilentRequest({
             extraQueryParameters: canonicalizeStringDict(
                 request.extraQueryParameters
             ),
+            dpopNonceVersion,
         }),
         request,
         account,

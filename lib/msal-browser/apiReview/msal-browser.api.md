@@ -436,7 +436,7 @@ function createGuid(): string;
 export function createNestablePublicClientApplication(configuration: Configuration, correlationId?: string, pcaFactory?: (configuration: Configuration, controller: IController) => IPublicClientApplication): Promise<IPublicClientApplication>;
 
 // @public
-export function createStandardPublicClientApplication(configuration: Configuration): Promise<IPublicClientApplication>;
+export function createStandardPublicClientApplication(configuration: Configuration): Promise<IPublicClientApplication & IDpopNonceProvider>;
 
 // @public (undocumented)
 const cryptoKeyNotFound = "crypto_key_not_found";
@@ -582,6 +582,11 @@ const hashEmptyError = "hash_empty_error";
 // @public (undocumented)
 export type IController = IPublicClientApplication;
 
+// @public
+export interface IDpopNonceProvider {
+    loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
+}
+
 export { IdTokenClaims }
 
 // @public (undocumented)
@@ -692,7 +697,6 @@ export interface IPublicClientApplication {
     initialize(request?: InitializeApplicationRequest): Promise<void>;
     // (undocumented)
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
-    loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
     // (undocumented)
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     // (undocumented)
@@ -714,6 +718,9 @@ export interface IPublicClientApplication {
     // (undocumented)
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
 }
+
+// @public
+export function isDpopNonceProvider(value: unknown): value is IDpopNonceProvider;
 
 // @public
 function isInIframe(): boolean;
@@ -945,7 +952,7 @@ export const PromptValue: {
 export { ProtocolMode }
 
 // @public
-export class PublicClientApplication implements IPublicClientApplication {
+export class PublicClientApplication implements IPublicClientApplication, IDpopNonceProvider {
     constructor(configuration: Configuration, controller?: IController);
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;

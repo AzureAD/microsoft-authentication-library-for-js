@@ -1839,7 +1839,7 @@ export interface IDpopNonceStore {
     // (undocumented)
     clear(): void;
     // (undocumented)
-    getResourceServerNonce(resourceRequestUri: string): string | undefined;
+    getResourceServerNonce(resourceRequestUri: string, correlationId?: string): DpopNonceRecord | undefined;
 }
 
 // @internal (undocumented)

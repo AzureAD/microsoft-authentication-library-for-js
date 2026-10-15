@@ -32,6 +32,7 @@ export function validateDpopNonce(
         typeof nonce !== "string" ||
         nonce.trim().length === 0 ||
         DPOP_NONCE_CONTROL_CHARACTER_REGEX.test(nonce) ||
+        nonce.length > DPOP_NONCE_MAX_SIZE_BYTES ||
         getUtf8ByteLength(nonce) > DPOP_NONCE_MAX_SIZE_BYTES
     ) {
         throw createClientConfigurationError(

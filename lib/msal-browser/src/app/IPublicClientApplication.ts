@@ -59,10 +59,6 @@ export interface IPublicClientApplication {
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
     getLogger(): Logger;
-    /**
-     * Stores an opaque resource-server DPoP nonce for the matching HTTPS origin.
-     */
-    loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;
     getActiveAccount(): AccountInfo | null;
@@ -192,14 +188,6 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         throw createBrowserConfigurationAuthError(
             BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
             ""
-        );
-    },
-    loadDpopNonce: () => {
-        return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
-                ""
-            )
         );
     },
     setLogger: () => {

@@ -271,7 +271,10 @@ export class StandardController implements IController {
                   undefined,
                   this.tokenBindingKeyManager
               );
-        this.dpopNonceStore = new DpopNonceStore();
+        this.dpopNonceStore = new DpopNonceStore(
+            this.config.auth.clientId,
+            this.logger
+        );
 
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
@@ -586,6 +589,17 @@ export class StandardController implements IController {
                     this.browserStorage.getCachedRequest("");
                 cachedRedirectRequest = standardRequest;
                 const correlationId = standardRequest.correlationId;
+                if (
+                    standardRequest.authenticationScheme ===
+                        Constants.AuthenticationScheme.DPOP &&
+                    standardRequest.resourceRequestUri
+                ) {
+                    this.dpopNonceStore.restoreRedirectHandoff(
+                        standardRequest.resourceRequestUri,
+                        standardRequest.state,
+                        correlationId
+                    );
+                }
                 this.eventHandler.emitEvent(
                     EventType.HANDLE_REDIRECT_START,
                     correlationId,
@@ -2471,7 +2485,8 @@ export class StandardController implements IController {
             },
             this.platformAuthProvider,
             this.logger,
-            this.performanceClient
+            this.performanceClient,
+            this.dpopNonceStore
         );
 
         const shouldDeduplicate =
