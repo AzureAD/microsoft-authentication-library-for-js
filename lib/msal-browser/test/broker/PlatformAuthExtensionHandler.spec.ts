@@ -581,7 +581,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 },
                 scope: "read openid",
                 expires_in: "3600",
-                token_type: Constants.AuthenticationScheme.DPOP,
+                token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
                 binding_attested: true,
                 DPoP: "test-dpop-proof",
             };
@@ -637,7 +637,7 @@ describe("PlatformAuthExtensionHandler Tests", () => {
 
             expect(response).toEqual(
                 expect.objectContaining({
-                    token_type: Constants.AuthenticationScheme.DPOP,
+                    token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
                     binding_attested: true,
                     DPoP: "test-dpop-proof",
                 })
