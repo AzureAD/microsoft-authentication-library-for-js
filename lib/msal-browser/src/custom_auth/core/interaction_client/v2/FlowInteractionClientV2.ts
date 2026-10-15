@@ -198,6 +198,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         const challengeResult = await this.requestChallenge({
             correlationId,
+            selectedMethod,
             continuationState: {
                 ...continuationState,
                 links: {
@@ -386,6 +387,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             const selectedMethod = methods[0];
             const challengeResult = await this.requestChallenge({
                 correlationId,
+                selectedMethod,
                 continuationState: {
                     ...continuationState,
                     links: {
@@ -443,8 +445,28 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             parameters,
             "requestChallenge"
         );
+        const returnedChallengeType = challengeResult.type?.toLowerCase();
+        const selectedMethodType =
+            parameters.selectedMethod?.type.toLowerCase();
+
+        if (
+            returnedChallengeType &&
+            selectedMethodType &&
+            returnedChallengeType !== selectedMethodType
+        ) {
+            const message = `Selected authentication method '${selectedMethodType}' does not match the server-returned '${returnedChallengeType}' challenge.`;
+            this.logger.error(message, parameters.correlationId);
+            throw new CustomAuthError(
+                UNSUPPORTED_FLOW_TRANSITION,
+                message,
+                parameters.correlationId
+            );
+        }
+
         const challengeType =
-            challengeResult.type ?? AuthenticationMethodTypeV2.EMAIL;
+            returnedChallengeType ??
+            selectedMethodType ??
+            AuthenticationMethodTypeV2.EMAIL;
         const continuationState = this.createChallengeContinuationState(
             parameters.continuationState,
             challengeResult

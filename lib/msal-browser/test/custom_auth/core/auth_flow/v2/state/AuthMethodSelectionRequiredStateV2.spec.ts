@@ -189,6 +189,7 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
 
         expect(flowClient.requestChallenge).toHaveBeenCalledWith({
             correlationId,
+            selectedMethod: serverMethod,
             continuationState: {
                 continuationToken: "ct-selection",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
