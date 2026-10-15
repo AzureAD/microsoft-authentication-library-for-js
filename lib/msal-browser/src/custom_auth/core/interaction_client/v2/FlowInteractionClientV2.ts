@@ -198,7 +198,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         const challengeResult = await this.requestChallenge({
             correlationId,
-            selectedMethod,
             continuationState: {
                 ...continuationState,
                 links: {
@@ -215,11 +214,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             };
         }
 
-        if (
-            parameters.password &&
-            selectedMethod.type.toLowerCase() ===
-                AuthenticationMethodTypeV2.PASSWORD
-        ) {
+        if (parameters.password) {
             return this.submitSignInPassword({
                 correlationId,
                 continuationState: challengeResult.continuationState,
@@ -387,7 +382,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             const selectedMethod = methods[0];
             const challengeResult = await this.requestChallenge({
                 correlationId,
-                selectedMethod,
                 continuationState: {
                     ...continuationState,
                     links: {
@@ -445,49 +439,42 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             parameters,
             "requestChallenge"
         );
-        const returnedChallengeType = challengeResult.type?.toLowerCase();
-        const selectedMethodType =
-            parameters.selectedMethod?.type.toLowerCase();
-
-        if (
-            returnedChallengeType &&
-            selectedMethodType &&
-            returnedChallengeType !== selectedMethodType
-        ) {
-            const message = `Selected authentication method '${selectedMethodType}' does not match the server-returned '${returnedChallengeType}' challenge.`;
-            this.logger.error(message, parameters.correlationId);
-            throw new CustomAuthError(
-                UNSUPPORTED_FLOW_TRANSITION,
-                message,
-                parameters.correlationId
-            );
-        }
-
-        const challengeType =
-            returnedChallengeType ??
-            selectedMethodType ??
-            AuthenticationMethodTypeV2.EMAIL;
+        const challengeType = challengeResult.type;
+        const normalizedChallengeType = challengeType?.toLowerCase();
         const continuationState = this.createChallengeContinuationState(
             parameters.continuationState,
             challengeResult
         );
 
-        if (
-            challengeType.toLowerCase() === AuthenticationMethodTypeV2.PASSWORD
-        ) {
+        if (normalizedChallengeType === AuthenticationMethodTypeV2.PASSWORD) {
             return createFlowPasswordRequiredResultV2({
                 correlationId: parameters.correlationId,
                 continuationState,
             });
         }
 
-        return createFlowCodeRequiredResultV2({
-            correlationId: parameters.correlationId,
-            continuationState,
-            channel: challengeType,
-            sentTo: challengeResult.hint,
-            codeLength: challengeResult.codeLength,
-        });
+        if (
+            normalizedChallengeType === AuthenticationMethodTypeV2.EMAIL ||
+            normalizedChallengeType === AuthenticationMethodTypeV2.SMS
+        ) {
+            return createFlowCodeRequiredResultV2({
+                correlationId: parameters.correlationId,
+                continuationState,
+                channel: challengeType,
+                sentTo: challengeResult.hint,
+                codeLength: challengeResult.codeLength,
+            });
+        }
+
+        const message = challengeType
+            ? `Challenge type '${challengeType}' is not supported.`
+            : "Challenge type is missing.";
+        this.logger.error(message, parameters.correlationId);
+        throw new CustomAuthError(
+            UNSUPPORTED_FLOW_TRANSITION,
+            message,
+            parameters.correlationId
+        );
     }
 
     /*

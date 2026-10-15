@@ -185,7 +185,6 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthFlowActionRequiredSt
 
         const result = await flowClient.requestChallenge({
             correlationId,
-            selectedMethod,
             continuationState: {
                 ...continuationState,
                 links: {

@@ -5,7 +5,6 @@
 
 import { FlowContinuationStateV2 } from "../FlowContinuationStateV2.js";
 import { UserAccountAttributes } from "../../../../UserAccountAttributes.js";
-import type { AuthenticationMethodV2 } from "../../../auth_flow/v2/AuthenticationMethodV2.js";
 
 /*
  * Input parameters for V2 interaction-client actions. Continuing actions carry
@@ -35,7 +34,6 @@ export interface FlowSignUpStartParamsV2 extends FlowStartParamsV2 {
 // Request the challenge for the selected method, sending the one-time code to it.
 export interface FlowChallengeParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
-    selectedMethod?: AuthenticationMethodV2;
 }
 
 // Submit the one-time code the user received.

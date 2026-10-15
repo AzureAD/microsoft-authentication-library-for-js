@@ -602,44 +602,6 @@ describe("FlowInteractionClientV2", () => {
             expect(apiClient.verifyChallenge).not.toHaveBeenCalled();
         });
 
-        it("rejects a challenge that does not match the sole sign-in method", async () => {
-            apiClient.authorizeChallengeStart.mockResolvedValue({
-                continuationToken: "ct-entry",
-                signInHref: "https://endpoint/sign-in",
-            });
-            apiClient.signInStart.mockResolvedValue({
-                continuationToken: "ct-sign-in",
-                authenticationFactor: "singleFactor",
-                methods: [
-                    {
-                        id: "password-1",
-                        type: "password",
-                        challengeHref: "https://endpoint/password/challenge",
-                    },
-                ],
-            });
-            apiClient.requestChallenge.mockResolvedValue({
-                nextAction: "verify",
-                continuationToken: "ct-email",
-                verifyHref: "https://endpoint/email/verify",
-                type: "email",
-            });
-
-            await expect(
-                client.signIn({
-                    correlationId,
-                    username: "user@contoso.com",
-                    password: "valid-password",
-                })
-            ).rejects.toMatchObject({
-                error: UNSUPPORTED_FLOW_TRANSITION,
-                errorDescription:
-                    "Selected authentication method 'password' does not match the server-returned 'email' challenge.",
-            });
-
-            expect(apiClient.verifyChallenge).not.toHaveBeenCalled();
-        });
-
         it("fails when sign-in start does not offer an email or password method", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
@@ -1115,52 +1077,7 @@ describe("FlowInteractionClientV2", () => {
             });
         });
 
-        it("uses the selected method when the challenge response omits its type", async () => {
-            apiClient.requestChallenge.mockResolvedValue({
-                nextAction: "verify",
-                continuationToken: "ct-challenge",
-                verifyHref: "https://endpoint/verify",
-            });
-
-            const result = await client.requestChallenge({
-                correlationId,
-                selectedMethod: {
-                    id: "password-1",
-                    type: "password",
-                    challengeHref: "https://endpoint/challenge",
-                },
-                continuationState,
-            });
-
-            expect(result.type).toBe(FLOW_PASSWORD_REQUIRED_V2);
-        });
-
-        it("rejects a challenge type that does not match the selected method", async () => {
-            apiClient.requestChallenge.mockResolvedValue({
-                nextAction: "verify",
-                continuationToken: "ct-challenge",
-                verifyHref: "https://endpoint/verify",
-                type: "email",
-            });
-
-            await expect(
-                client.requestChallenge({
-                    correlationId,
-                    selectedMethod: {
-                        id: "password-1",
-                        type: "password",
-                        challengeHref: "https://endpoint/challenge",
-                    },
-                    continuationState,
-                })
-            ).rejects.toMatchObject({
-                error: UNSUPPORTED_FLOW_TRANSITION,
-                errorDescription:
-                    "Selected authentication method 'password' does not match the server-returned 'email' challenge.",
-            });
-        });
-
-        it("accepts a future non-password OTP channel", async () => {
+        it("returns code-required for an SMS challenge", async () => {
             apiClient.requestChallenge.mockResolvedValue({
                 nextAction: "verify",
                 continuationToken: "ct-challenge",
@@ -1177,20 +1094,41 @@ describe("FlowInteractionClientV2", () => {
             expect((result as FlowCodeRequiredResultV2).channel).toBe("sms");
         });
 
-        it("defaults a challenge response without a type to email", async () => {
+        it("rejects an unsupported challenge type", async () => {
+            apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
+                continuationToken: "ct-challenge",
+                verifyHref: "https://endpoint/verify",
+                type: "push",
+            });
+
+            await expect(
+                client.requestChallenge({
+                    correlationId,
+                    continuationState,
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+                errorDescription: "Challenge type 'push' is not supported.",
+            });
+        });
+
+        it("rejects a challenge response without a type", async () => {
             apiClient.requestChallenge.mockResolvedValue({
                 nextAction: "verify",
                 continuationToken: "ct-challenge",
                 verifyHref: "https://endpoint/verify",
             });
 
-            const result = await client.requestChallenge({
-                correlationId,
-                continuationState,
+            await expect(
+                client.requestChallenge({
+                    correlationId,
+                    continuationState,
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+                errorDescription: "Challenge type is missing.",
             });
-
-            expect(result.type).toBe(FLOW_CODE_REQUIRED_V2);
-            expect((result as FlowCodeRequiredResultV2).channel).toBe("email");
         });
 
         it("throws when the continuation is missing the challenge link", async () => {
