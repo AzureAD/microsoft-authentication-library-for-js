@@ -6,6 +6,7 @@
 import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
+import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
 import { CodeRequiredStateV2 } from "./CodeRequiredStateV2.js";
 import { MFAVerificationRequiredStateV2 } from "./MFAVerificationRequiredStateV2.js";
 import type { AuthMethodSelectionRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
@@ -13,10 +14,12 @@ import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV
 import {
     FLOW_CODE_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
+    type FlowCodeRequiredResultV2,
+    type FlowPasswordRequiredResultV2,
 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
-import { AuthenticationMethodSelectionStateBaseV2 } from "./AuthenticationMethodSelectionStateBaseV2.js";
 import { AuthenticationMethodTypeV2 } from "../../../network_client/custom_auth_api/v2/ApiClientConstantsV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
+import { InvalidArgumentError } from "../../../error/InvalidArgumentError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
@@ -27,8 +30,14 @@ import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
  * methods and lets the app request a challenge for the chosen one. The flow
  * stays on this state until a challenge is successfully requested.
  */
-export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSelectionStateBaseV2<AuthMethodSelectionRequiredStateParametersV2> {
+export class AuthMethodSelectionRequiredStateV2 extends AuthFlowActionRequiredStateBase<AuthMethodSelectionRequiredStateParametersV2> {
     readonly stateType = "authMethodSelectionRequired";
+    readonly methods: readonly AuthenticationMethodV2[];
+
+    constructor(stateParameters: AuthMethodSelectionRequiredStateParametersV2) {
+        super(stateParameters);
+        this.methods = stateParameters.methods;
+    }
 
     /**
      * Selects an authentication method and requests its challenge. The returned
@@ -77,6 +86,7 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSele
                 return new CustomAuthResultV2(
                     new CodeRequiredStateV2({
                         ...commonStateParameters,
+                        signInStateTransitionHandler,
                         method: selectedMethod,
                         sentTo: result.sentTo,
                         channel: result.channel,
@@ -155,5 +165,35 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSele
                 correlationId,
             });
         }
+    }
+
+    private async requestSelectedMethodChallenge(
+        method: AuthenticationMethodV2
+    ): Promise<{
+        result: FlowCodeRequiredResultV2 | FlowPasswordRequiredResultV2;
+        selectedMethod: AuthenticationMethodV2;
+    }> {
+        const { correlationId, continuationState, flowClient } =
+            this.stateParameters;
+        const selectedMethod = this.methods.find(
+            (candidate) => candidate.id === method.id
+        );
+
+        if (!selectedMethod) {
+            throw new InvalidArgumentError("method", correlationId);
+        }
+
+        const result = await flowClient.requestChallenge({
+            correlationId,
+            continuationState: {
+                ...continuationState,
+                links: {
+                    ...continuationState.links,
+                    challenge: selectedMethod.challengeHref,
+                },
+            },
+        });
+
+        return { result, selectedMethod };
     }
 }

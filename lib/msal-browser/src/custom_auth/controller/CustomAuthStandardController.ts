@@ -793,38 +793,15 @@ export class CustomAuthStandardController
                 );
             }
 
-            if (result.type === FLOW_MFA_REQUIRED_V2) {
+            if (result.type === FLOW_PASSWORD_REQUIRED_V2) {
                 return new CustomAuthResultV2(
-                    new AuthMethodSelectionRequiredStateV2({
+                    new PasswordRequiredStateV2({
                         correlationId: result.correlationId,
                         logger: this.logger,
                         config: this.customAuthConfig,
                         flowClient: this.flowClientV2,
                         continuationState: result.continuationState,
                         cacheClient: this.cacheClient,
-                        methods: result.methods,
-                        authenticationFactor:
-                            AuthenticationFactorV2.MULTI_FACTOR,
-                    }),
-                    undefined,
-                    result.continuationState.scenario
-                );
-            }
-
-            if (result.type === FLOW_METHOD_SELECTION_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new AuthMethodSelectionRequiredStateV2({
-                        correlationId: result.correlationId,
-                        logger: this.logger,
-                        config: this.customAuthConfig,
-                        flowClient: this.flowClientV2,
-                        continuationState: result.continuationState,
-                        cacheClient: this.cacheClient,
-                        methods: result.methods,
-                        authenticationFactor:
-                            AuthenticationFactorV2.SINGLE_FACTOR,
-                        signInStateTransitionHandler:
-                            this.signInStateTransitionHandlerV2,
                     }),
                     undefined,
                     result.continuationState.scenario
@@ -852,15 +829,38 @@ export class CustomAuthStandardController
                 );
             }
 
-            if (result.type === FLOW_PASSWORD_REQUIRED_V2) {
+            if (result.type === FLOW_METHOD_SELECTION_REQUIRED_V2) {
                 return new CustomAuthResultV2(
-                    new PasswordRequiredStateV2({
+                    new AuthMethodSelectionRequiredStateV2({
                         correlationId: result.correlationId,
                         logger: this.logger,
                         config: this.customAuthConfig,
                         flowClient: this.flowClientV2,
                         continuationState: result.continuationState,
                         cacheClient: this.cacheClient,
+                        methods: result.methods,
+                        authenticationFactor:
+                            AuthenticationFactorV2.SINGLE_FACTOR,
+                        signInStateTransitionHandler:
+                            this.signInStateTransitionHandlerV2,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_MFA_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new AuthMethodSelectionRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                        methods: result.methods,
+                        authenticationFactor:
+                            AuthenticationFactorV2.MULTI_FACTOR,
                     }),
                     undefined,
                     result.continuationState.scenario
