@@ -23,6 +23,10 @@ import {
     NetworkRequestOptions,
 } from "../network/INetworkModule.js";
 import { NetworkResponse } from "../network/NetworkResponse.js";
+import {
+    getResponseHeader,
+    normalizeResponseHeaders,
+} from "../network/ResponseHeaders.js";
 import { ThrottlingUtils } from "../network/ThrottlingUtils.js";
 import { NetworkError } from "../error/NetworkError.js";
 import { AuthError } from "../error/AuthError.js";
@@ -223,7 +227,10 @@ export async function sendPostRequest<
             performanceClient,
             correlationId
         )(tokenEndpoint, { ...options, correlationId, performanceClient });
-        const responseHeaders = response.headers || {};
+        const responseHeaders = normalizeResponseHeaders(
+            response.headers || {}
+        );
+        response = { ...response, headers: responseHeaders };
         performanceClient?.addFields(
             {
                 refreshTokenSize: response.body.refresh_token?.length || 0,
@@ -235,7 +242,9 @@ export async function sendPostRequest<
         );
     } catch (e) {
         if (e instanceof NetworkError) {
-            const responseHeaders = e.responseHeaders;
+            const responseHeaders = e.responseHeaders
+                ? normalizeResponseHeaders(e.responseHeaders)
+                : undefined;
             if (responseHeaders) {
                 performanceClient?.addFields(
                     {
@@ -245,11 +254,15 @@ export async function sendPostRequest<
                         requestId:
                             responseHeaders[HeaderNames.X_MS_REQUEST_ID] || "",
                         contentTypeHeader:
-                            responseHeaders[HeaderNames.CONTENT_TYPE] ||
-                            undefined,
+                            getResponseHeader(
+                                responseHeaders,
+                                HeaderNames.CONTENT_TYPE
+                            ),
                         contentLengthHeader:
-                            responseHeaders[HeaderNames.CONTENT_LENGTH] ||
-                            undefined,
+                            getResponseHeader(
+                                responseHeaders,
+                                HeaderNames.CONTENT_LENGTH
+                            ),
                         httpStatus: e.httpStatus,
                     },
                     correlationId
