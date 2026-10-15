@@ -1237,6 +1237,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 bindingPreferenceSent,
                 expectedOutcome,
             }) => {
+                const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+
                 expect(
                     // @ts-ignore
                     platformAuthInteractionClient.validateDpopBrokerOutcome(
@@ -1252,6 +1254,130 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         } as unknown as PlatformAuthRequest
                     )
                 ).toBe(expectedOutcome);
+                expect(addFieldsSpy).toHaveBeenCalledWith(
+                    {
+                        "ext.brokerDpopOutcome": expectedOutcome.toLowerCase(),
+                        "ext.brokerDpopBindingLevel": expectedOutcome,
+                    },
+                    expect.any(String)
+                );
+            }
+        );
+
+        it.each([
+            {
+                name: "unexpected DPoP response",
+                expectedFailureReason: "unexpected_response",
+                response: {
+                    properties: {
+                        token_type: "DPoP",
+                    },
+                },
+                request: {
+                    tokenType: Constants.AuthenticationScheme.BEARER,
+                },
+            },
+            {
+                name: "unknown token type",
+                expectedFailureReason: "unknown_token_type",
+                response: {
+                    properties: {
+                        token_type: "unknown",
+                        binding_attested: "false",
+                    },
+                },
+            },
+            {
+                name: "conflicting fields",
+                expectedFailureReason: "conflicting_fields",
+                response: {
+                    token_type: "dpop+proof",
+                    properties: {
+                        token_type: "DPoP",
+                        binding_attested: "false",
+                    },
+                },
+            },
+            {
+                name: "invalid attestation",
+                expectedFailureReason: "invalid_attestation",
+                response: {
+                    properties: {
+                        token_type: "DPoP",
+                        binding_attested: "not-a-boolean",
+                    },
+                },
+            },
+            {
+                name: "missing attestation",
+                expectedFailureReason: "missing_attestation",
+                response: {
+                    properties: {
+                        token_type: "DPoP",
+                    },
+                },
+            },
+            {
+                name: "missing proof",
+                expectedFailureReason: "missing_proof",
+                response: {
+                    properties: {
+                        token_type: "dpop+proof",
+                        binding_attested: "true",
+                    },
+                },
+            },
+            {
+                name: "missing L1 binding",
+                expectedFailureReason: "missing_l1_binding",
+                response: {
+                    properties: {
+                        token_type: "DPoP",
+                        binding_attested: "false",
+                    },
+                },
+                request: {
+                    keyId: undefined,
+                    reqCnf: undefined,
+                },
+            },
+        ])(
+            "Extension: emits bounded telemetry for $name",
+            ({ expectedFailureReason, response, request }) => {
+                const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+
+                expect(() =>
+                    // @ts-ignore
+                    platformAuthInteractionClient.validateDpopBrokerOutcome(
+                        {
+                            ...MOCK_WAM_RESPONSE,
+                            ...response,
+                        },
+                        {
+                            tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
+                            keyId: "local-dpop-key",
+                            reqCnf: "test-req-cnf",
+                            bindingPreferenceSent: true,
+                            ...request,
+                        } as PlatformAuthRequest
+                    )
+                ).toThrow();
+
+                expect(addFieldsSpy).toHaveBeenCalledWith(
+                    {
+                        "ext.brokerDpopOutcome": "invalid_response",
+                        "ext.brokerDpopFailureReason": expectedFailureReason,
+                    },
+                    expect.any(String)
+                );
+                const telemetryFields = addFieldsSpy.mock.calls.find(
+                    ([fields]) =>
+                        fields["ext.brokerDpopOutcome"] === "invalid_response"
+                )?.[0];
+                expect(Object.keys(telemetryFields || {})).toEqual([
+                    "ext.brokerDpopOutcome",
+                    "ext.brokerDpopFailureReason",
+                ]);
             }
         );
 

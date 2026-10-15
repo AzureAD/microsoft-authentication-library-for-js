@@ -114,6 +114,15 @@ type PlatformAuthTokenRequestParameters = {
     >
 >;
 
+type BrokerDpopFailureReason =
+    | "conflicting_fields"
+    | "invalid_attestation"
+    | "missing_attestation"
+    | "missing_l1_binding"
+    | "missing_proof"
+    | "unexpected_response"
+    | "unknown_token_type";
+
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
     protected accountId: string;
@@ -1623,6 +1632,23 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         response: PlatformAuthResponse,
         request: PlatformAuthRequest
     ): "none" | "L1" | "L3" {
+        const throwInvalidDpopResponse = (
+            failureReason: BrokerDpopFailureReason,
+            message: string
+        ): never => {
+            this.performanceClient.addFields(
+                {
+                    "ext.brokerDpopOutcome": "invalid_response",
+                    "ext.brokerDpopFailureReason": failureReason,
+                },
+                this.correlationId
+            );
+            throw createAuthError(
+                AuthErrorCodes.unexpectedError,
+                this.correlationId,
+                message
+            );
+        };
         const isDpopRequest = this.isDpopBrokerRequest(request);
         const responseProperties = response.properties as
             | (NativeResponseProperties & {
@@ -1706,9 +1732,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         if (!isDpopRequest) {
             if (hasDpopResponse) {
-                throw createAuthError(
-                    AuthErrorCodes.unexpectedError,
-                    this.correlationId,
+                throwInvalidDpopResponse(
+                    "unexpected_response",
                     "Unexpected DPoP broker response."
                 );
             }
@@ -1716,9 +1741,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
 
         if (!this.isDpopBrokerTokenType(normalizedResponseTokenType)) {
-            throw createAuthError(
-                AuthErrorCodes.unexpectedError,
-                this.correlationId,
+            throwInvalidDpopResponse(
+                "unknown_token_type",
                 "Unknown DPoP broker response."
             );
         }
@@ -1726,13 +1750,24 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         if (
             hasConflictingProof ||
             hasConflictingTokenType ||
-            hasMalformedBindingAttested ||
-            hasConflictingBindingAttested ||
-            (bindingPreferenceSent && normalizedBindingAttested === undefined)
+            hasConflictingBindingAttested
         ) {
-            throw createAuthError(
-                AuthErrorCodes.unexpectedError,
-                this.correlationId,
+            throwInvalidDpopResponse(
+                "conflicting_fields",
+                "Conflicting DPoP broker response."
+            );
+        }
+
+        if (hasMalformedBindingAttested) {
+            throwInvalidDpopResponse(
+                "invalid_attestation",
+                "Conflicting DPoP broker response."
+            );
+        }
+
+        if (bindingPreferenceSent && normalizedBindingAttested === undefined) {
+            throwInvalidDpopResponse(
+                "missing_attestation",
                 "Conflicting DPoP broker response."
             );
         }
@@ -1745,29 +1780,32 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             hasProof &&
             (typeof brokerProof !== "string" || brokerProof.trim().length === 0)
         ) {
-            throw createAuthError(
-                AuthErrorCodes.unexpectedError,
-                this.correlationId,
+            throwInvalidDpopResponse(
+                "missing_proof",
                 "Malformed DPoP broker response."
             );
         }
 
         if (hasProof) {
+            if (normalizedBindingAttested !== true) {
+                throwInvalidDpopResponse(
+                    "invalid_attestation",
+                    "Malformed DPoP broker response."
+                );
+            }
             if (
                 normalizedRequestTokenType !== dpopWithProofTokenType ||
-                normalizedResponseTokenType !== dpopWithProofTokenType ||
-                normalizedBindingAttested !== true
+                normalizedResponseTokenType !== dpopWithProofTokenType
             ) {
-                throw createAuthError(
-                    AuthErrorCodes.unexpectedError,
-                    this.correlationId,
+                throwInvalidDpopResponse(
+                    "conflicting_fields",
                     "Malformed DPoP broker response."
                 );
             }
             response.token_type = PlatformAuthTokenType.DPOP_WITH_PROOF;
             this.performanceClient.addFields(
                 {
-                    "ext.brokerDpopSupported": true,
+                    "ext.brokerDpopOutcome": "l3",
                     "ext.brokerDpopBindingLevel": "L3",
                 },
                 this.correlationId
@@ -1776,34 +1814,40 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
 
         if (normalizedResponseTokenType !== dpopTokenType) {
-            throw createAuthError(
-                AuthErrorCodes.unexpectedError,
-                this.correlationId,
+            throwInvalidDpopResponse(
+                "missing_proof",
                 "Malformed DPoP broker response."
             );
         }
         response.token_type = Constants.AuthenticationScheme.DPOP;
 
+        if (normalizedRequestTokenType !== dpopWithProofTokenType) {
+            throwInvalidDpopResponse(
+                "conflicting_fields",
+                "Malformed DPoP broker L1 response."
+            );
+        }
+
         if (
-            normalizedRequestTokenType !== dpopWithProofTokenType ||
-            (normalizedBindingAttested !== false &&
-                !(
-                    !bindingPreferenceSent &&
-                    normalizedBindingAttested === undefined
-                )) ||
-            !request.reqCnf ||
-            !request.keyId
+            normalizedBindingAttested !== false &&
+            !(!bindingPreferenceSent && normalizedBindingAttested === undefined)
         ) {
-            throw createAuthError(
-                AuthErrorCodes.unexpectedError,
-                this.correlationId,
+            throwInvalidDpopResponse(
+                "invalid_attestation",
+                "Malformed DPoP broker L1 response."
+            );
+        }
+
+        if (!request.reqCnf || !request.keyId) {
+            throwInvalidDpopResponse(
+                "missing_l1_binding",
                 "Malformed DPoP broker L1 response."
             );
         }
 
         this.performanceClient.addFields(
             {
-                "ext.brokerDpopSupported": true,
+                "ext.brokerDpopOutcome": "l1",
                 "ext.brokerDpopBindingLevel": "L1",
             },
             this.correlationId
