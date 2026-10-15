@@ -86,7 +86,7 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
         throw new MethodNotImplementedError("InteractionClientBaseV2.logout");
     }
 
-    protected getScopes(scopes: string[] | undefined): string[] {
+    protected getScopes(scopes: string[] | null | undefined): string[] {
         const requestedScopes = scopes?.filter((scope) => !!scope) ?? [];
         const seenScopes = new Set(
             requestedScopes.map((scope) => scope.toLowerCase())
@@ -108,13 +108,16 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
 
     protected async handleTokenResponse(
         tokenResponse: TokenResponseV2,
-        requestScopes: string[],
+        requestedScopes: string[],
         correlationId: string,
         apiId: number
     ): Promise<AuthenticationResult> {
         this.logger.verbose("Processing V2 token response.", correlationId);
 
         const requestTimestamp = Math.round(new Date().getTime() / 1000.0);
+        const responseScopes = tokenResponse.scope
+            ? tokenResponse.scope.split(" ").filter((scope) => !!scope)
+            : requestedScopes;
 
         const result =
             await this.tokenResponseHandler.handleServerTokenResponse(
@@ -124,7 +127,7 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
                 {
                     authority: this.customAuthAuthority.canonicalAuthority,
                     correlationId,
-                    scopes: requestScopes,
+                    scopes: responseScopes,
                 },
                 apiId
             );

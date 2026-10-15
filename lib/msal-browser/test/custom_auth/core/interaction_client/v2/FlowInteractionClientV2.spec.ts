@@ -194,8 +194,14 @@ describe("FlowInteractionClientV2", () => {
                     username: "test-user",
                 },
                 scopes: ["User.Read"],
+                claims: '{"id_token":{"auth_time":{"essential":true}}}',
             });
 
+            expect(apiClient.authorizeChallengeStart).toHaveBeenCalledWith(
+                expect.objectContaining({ correlationId }),
+                ["User.Read", "openid", "profile", "offline_access"],
+                '{"id_token":{"auth_time":{"essential":true}}}'
+            );
             expect(apiClient.submitSignUpAttributes).toHaveBeenCalledWith(
                 "https://endpoint/signup/submitattributes",
                 {
@@ -219,12 +225,10 @@ describe("FlowInteractionClientV2", () => {
             ).toEqual({
                 continuationToken: "ct-challenge",
                 scenario: "signUp",
+                scopes: ["User.Read", "openid", "profile", "offline_access"],
                 links: {
                     verify: "https://endpoint/signup/verify",
                     resend: "https://endpoint/signup/resend",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
                 signUp: {
                     passwordWasSupplied: true,
@@ -394,10 +398,13 @@ describe("FlowInteractionClientV2", () => {
                 correlationId,
                 username: "user@contoso.com",
                 scopes: ["User.Read"],
+                claims: '{"access_token":{"acrs":{"value":"c4"}}}',
             });
 
             expect(apiClient.authorizeChallengeStart).toHaveBeenCalledWith(
-                expect.objectContaining({ correlationId })
+                expect.objectContaining({ correlationId }),
+                ["User.Read", "openid", "profile", "offline_access"],
+                '{"access_token":{"acrs":{"value":"c4"}}}'
             );
             expect(apiClient.signInStart).toHaveBeenCalledWith(
                 "https://endpoint/sign-in",
@@ -418,13 +425,11 @@ describe("FlowInteractionClientV2", () => {
             expect(passwordRequired.continuationState).toEqual({
                 continuationToken: "ct-challenge",
                 scenario: "signIn",
+                scopes: ["User.Read", "openid", "profile", "offline_access"],
                 links: {
                     challenge: "https://endpoint/password/challenge",
                     verify: "https://endpoint/password/verify",
                     resend: undefined,
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             });
         });
@@ -476,7 +481,7 @@ describe("FlowInteractionClientV2", () => {
             );
         });
 
-        it("fails when a password is supplied without a password method", async () => {
+        it("returns code-required when password is supplied for email OTP", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
                 signInHref: "https://endpoint/sign-in",
@@ -492,20 +497,29 @@ describe("FlowInteractionClientV2", () => {
                     },
                 ],
             });
-
-            await expect(
-                client.signIn({
-                    correlationId,
-                    username: "user@contoso.com",
-                    password: "valid-password",
-                })
-            ).rejects.toMatchObject({
-                error: UNSUPPORTED_FLOW_TRANSITION,
-                errorDescription:
-                    "A password was supplied, but the sign-in response did not include a password method.",
+            apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
+                continuationToken: "ct-email",
+                verifyHref: "https://endpoint/email/verify",
+                resendHref: "https://endpoint/email/resend",
+                type: "email",
             });
 
-            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+            const result = await client.signIn({
+                correlationId,
+                username: "user@contoso.com",
+                password: "valid-password",
+            });
+
+            expect(apiClient.requestChallenge).toHaveBeenCalledWith(
+                "https://endpoint/email/challenge",
+                { continuationToken: "ct-sign-in" },
+                expect.objectContaining({ correlationId })
+            );
+            expect(result.type).toBe(FLOW_CODE_REQUIRED_V2);
+            expect((result as FlowSignInCodeRequiredResultV2).method.id).toBe(
+                "email-1"
+            );
             expect(apiClient.verifyChallenge).not.toHaveBeenCalled();
         });
 
@@ -625,10 +639,8 @@ describe("FlowInteractionClientV2", () => {
             expect(mfaRequired.continuationState).toEqual({
                 continuationToken: "ct-mfa",
                 scenario: "signIn",
+                scopes: ["User.Read", "openid", "profile", "offline_access"],
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             });
         });
 
@@ -723,10 +735,14 @@ describe("FlowInteractionClientV2", () => {
             const result = await client.resetPassword({
                 correlationId,
                 username: "user@contoso.com",
+                scopes: ["User.Read"],
+                claims: '{"id_token":{"auth_time":{"essential":true}}}',
             });
 
             expect(apiClient.authorizeChallengeStart).toHaveBeenCalledWith(
-                expect.objectContaining({ correlationId })
+                expect.objectContaining({ correlationId }),
+                ["User.Read", "openid", "profile", "offline_access"],
+                '{"id_token":{"auth_time":{"essential":true}}}'
             );
             expect(apiClient.resetPasswordStart).toHaveBeenCalledWith(
                 "https://endpoint/reset-password",
@@ -799,6 +815,7 @@ describe("FlowInteractionClientV2", () => {
             expect(result.continuationState).toEqual({
                 continuationToken: "ct-start",
                 scenario: "passwordReset",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {},
             });
         });
@@ -907,6 +924,7 @@ describe("FlowInteractionClientV2", () => {
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: "ct-start",
             scenario: "passwordReset",
+            scopes: ["openid", "profile", "offline_access"],
             links: { challenge: "https://endpoint/challenge" },
         };
 
@@ -941,6 +959,7 @@ describe("FlowInteractionClientV2", () => {
             expect(codeRequired.continuationState).toEqual({
                 continuationToken: "ct-challenge",
                 scenario: "passwordReset",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {
                     challenge: "https://endpoint/challenge",
                     verify: "https://endpoint/verify",
@@ -970,6 +989,7 @@ describe("FlowInteractionClientV2", () => {
             expect(passwordRequired.continuationState).toEqual({
                 continuationToken: "ct-challenge",
                 scenario: "passwordReset",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {
                     challenge: "https://endpoint/challenge",
                     verify: "https://endpoint/verify",
@@ -1030,6 +1050,7 @@ describe("FlowInteractionClientV2", () => {
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: "ct-challenge",
             scenario: "passwordReset",
+            scopes: ["openid", "profile", "offline_access"],
             links: {
                 challenge: "https://endpoint/challenge",
                 verify: "https://endpoint/verify",
@@ -1064,6 +1085,7 @@ describe("FlowInteractionClientV2", () => {
             expect(newPasswordRequired.continuationState).toEqual({
                 continuationToken: "ct-verify",
                 scenario: "passwordReset",
+                scopes: ["openid", "profile", "offline_access"],
                 links: { update: "https://endpoint/update" },
             });
         });
@@ -1081,11 +1103,9 @@ describe("FlowInteractionClientV2", () => {
             const signInContinuationState: FlowContinuationStateV2 = {
                 continuationToken: "ct-mfa-challenge",
                 scenario: "signIn",
+                scopes: ["User.Read", "openid", "profile", "offline_access"],
                 links: {
                     verify: "https://endpoint/mfa/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             };
             const tokenResponse = {
@@ -1127,12 +1147,6 @@ describe("FlowInteractionClientV2", () => {
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
                 {
                     continuationToken: "ct-mfa-verify",
-                    scopes: [
-                        "User.Read",
-                        "openid",
-                        "profile",
-                        "offline_access",
-                    ],
                 },
                 expect.objectContaining({ correlationId })
             );
@@ -1146,11 +1160,9 @@ describe("FlowInteractionClientV2", () => {
             const signInContinuationState: FlowContinuationStateV2 = {
                 continuationToken: "ct-email",
                 scenario: "signIn",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {
                     verify: "https://endpoint/email/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             };
             apiClient.verifyChallenge.mockResolvedValue({
@@ -1187,12 +1199,10 @@ describe("FlowInteractionClientV2", () => {
             const signUpContinuationState: FlowContinuationStateV2 = {
                 continuationToken: "ct-sign-up-challenge",
                 scenario: "signUp",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {
                     verify: "https://endpoint/signup/verify",
                     resend: "https://endpoint/signup/resend",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
                 signUp: {
                     passwordWasSupplied: true,
@@ -1229,12 +1239,10 @@ describe("FlowInteractionClientV2", () => {
             ).toEqual({
                 continuationToken: "ct-sign-up-verify",
                 scenario: "signUp",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {
                     submitAttributes:
                         "https://endpoint/signup/submitattributes",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
                 signUp: {
                     passwordWasSupplied: true,
@@ -1263,6 +1271,7 @@ describe("FlowInteractionClientV2", () => {
             const signUpContinuationState: FlowContinuationStateV2 = {
                 continuationToken: "ct-sign-up-challenge",
                 scenario: "signUp",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {
                     verify: "https://endpoint/signup/verify",
                 },
@@ -1311,11 +1320,9 @@ describe("FlowInteractionClientV2", () => {
             const signUpContinuationState: FlowContinuationStateV2 = {
                 continuationToken: "ct-sign-up-challenge",
                 scenario: "signUp",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {
                     verify: "https://endpoint/signup/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             };
             apiClient.verifyChallenge.mockResolvedValue({
@@ -1336,10 +1343,8 @@ describe("FlowInteractionClientV2", () => {
             ).toEqual({
                 continuationToken: "ct-sign-up-verify",
                 scenario: "signUp",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             });
             expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
         });
@@ -1413,6 +1418,7 @@ describe("FlowInteractionClientV2", () => {
                 continuationState: {
                     continuationToken: "ct-password",
                     scenario: "signIn",
+                    scopes: ["openid", "profile", "offline_access"],
                     links: {
                         verify: "https://endpoint/password/verify",
                     },
@@ -1446,6 +1452,7 @@ describe("FlowInteractionClientV2", () => {
                     continuationState: {
                         continuationToken: "ct-password",
                         scenario: "signIn",
+                        scopes: ["openid", "profile", "offline_access"],
                         links: {
                             verify: "https://endpoint/password/verify",
                         },
@@ -1462,11 +1469,9 @@ describe("FlowInteractionClientV2", () => {
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: "ct-attributes",
             scenario: "signUp",
+            scopes: ["openid", "profile", "offline_access"],
             links: {
                 submitAttributes: "https://endpoint/signup/submitattributes",
-            },
-            tokenRequest: {
-                scopes: ["User.Read"],
             },
             signUp: {
                 passwordWasSupplied: false,
@@ -1519,10 +1524,8 @@ describe("FlowInteractionClientV2", () => {
             ).toEqual({
                 continuationToken: "ct-complete",
                 scenario: "signUp",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             });
         });
 
@@ -1555,12 +1558,10 @@ describe("FlowInteractionClientV2", () => {
             ).toEqual({
                 continuationToken: "ct-attributes-2",
                 scenario: "signUp",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {
                     submitAttributes:
                         "https://endpoint/signup/submitattributes-2",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
                 signUp: {
                     passwordWasSupplied: false,
@@ -1592,6 +1593,7 @@ describe("FlowInteractionClientV2", () => {
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: "ct-challenge",
             scenario: "passwordReset",
+            scopes: ["openid", "profile", "offline_access"],
             links: {
                 challenge: "https://endpoint/challenge",
                 verify: "https://endpoint/verify",
@@ -1631,6 +1633,7 @@ describe("FlowInteractionClientV2", () => {
             expect(codeRequired.continuationState).toEqual({
                 continuationToken: "ct-challenge-2",
                 scenario: "passwordReset",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {
                     challenge: "https://endpoint/challenge",
                     verify: "https://endpoint/verify-2",
@@ -1762,6 +1765,7 @@ describe("FlowInteractionClientV2", () => {
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: "ct-verify",
             scenario: "passwordReset",
+            scopes: ["openid", "profile", "offline_access"],
             links: { update: "https://endpoint/update" },
         };
 
@@ -1804,6 +1808,7 @@ describe("FlowInteractionClientV2", () => {
             expect(signInRequired.continuationState).toEqual({
                 continuationToken: "ct-complete",
                 scenario: "passwordReset",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {},
             });
         });
@@ -1942,6 +1947,7 @@ describe("FlowInteractionClientV2", () => {
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: "ct-complete",
             scenario: "passwordReset",
+            scopes: ["User.Read", "openid", "profile", "offline_access"],
             links: {},
         };
 
@@ -1980,13 +1986,12 @@ describe("FlowInteractionClientV2", () => {
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
                 {
                     continuationToken: "ct-complete",
-                    scopes: ["openid", "profile", "offline_access"],
                 },
                 expect.objectContaining({ correlationId })
             );
             expect(handleSpy).toHaveBeenCalledWith(
                 tokenResponse,
-                ["openid", "profile", "offline_access"],
+                continuationState.scopes,
                 correlationId,
                 expect.any(Number)
             );
@@ -2020,71 +2025,95 @@ describe("FlowInteractionClientV2", () => {
 
             expect(handleSpy).toHaveBeenCalledWith(
                 tokenResponse,
-                ["openid", "profile", "offline_access"],
+                continuationState.scopes,
                 correlationId,
                 SIGN_UP_V2_COMPLETE
             );
         });
 
-        it("unions caller-supplied scopes with the default OIDC scopes", async () => {
-            apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
-            jest.spyOn(
-                client as unknown as {
-                    handleTokenResponse: (
-                        ...args: unknown[]
-                    ) => Promise<unknown>;
-                },
-                "handleTokenResponse"
-            ).mockResolvedValue(fakeAuthResult);
+        it("uses the requested scopes when the token response omits scope", async () => {
+            const tokenResponseWithoutScope = {
+                token_type: "Bearer",
+                expires_in: 3600,
+                access_token: "at",
+                refresh_token: "rt",
+                id_token: "id",
+                client_info: "ci",
+            };
+            apiClient.completeWithTokens.mockResolvedValue(
+                tokenResponseWithoutScope
+            );
+            const handleServerTokenResponseSpy = jest
+                .spyOn(
+                    (
+                        client as unknown as {
+                            tokenResponseHandler: {
+                                handleServerTokenResponse: (
+                                    ...args: unknown[]
+                                ) => Promise<unknown>;
+                            };
+                        }
+                    ).tokenResponseHandler,
+                    "handleServerTokenResponse"
+                )
+                .mockResolvedValue(fakeAuthResult);
 
-            await client.signInWithContinuation({
+            const result = await client.signInWithContinuation({
                 correlationId,
                 continuationState,
-                scopes: ["User.Read"],
             });
 
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
                 {
                     continuationToken: "ct-complete",
-                    scopes: [
-                        "User.Read",
-                        "openid",
-                        "profile",
-                        "offline_access",
-                    ],
                 },
                 expect.objectContaining({ correlationId })
             );
+            expect(handleServerTokenResponseSpy).toHaveBeenCalledWith(
+                tokenResponseWithoutScope,
+                expect.anything(),
+                expect.any(Number),
+                expect.objectContaining({
+                    scopes: continuationState.scopes,
+                }),
+                expect.any(Number)
+            );
+            expect(result.type).toBe(FLOW_COMPLETED_V2);
         });
 
-        it("does not duplicate default OIDC scopes the caller already supplied", async () => {
-            apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
-            jest.spyOn(
-                client as unknown as {
-                    handleTokenResponse: (
-                        ...args: unknown[]
-                    ) => Promise<unknown>;
-                },
-                "handleTokenResponse"
-            ).mockResolvedValue(fakeAuthResult);
+        it("uses token response scopes when they are returned", async () => {
+            apiClient.completeWithTokens.mockResolvedValue({
+                ...tokenResponse,
+                scope: "api.read api.write",
+            });
+            const handleServerTokenResponseSpy = jest
+                .spyOn(
+                    (
+                        client as unknown as {
+                            tokenResponseHandler: {
+                                handleServerTokenResponse: (
+                                    ...args: unknown[]
+                                ) => Promise<unknown>;
+                            };
+                        }
+                    ).tokenResponseHandler,
+                    "handleServerTokenResponse"
+                )
+                .mockResolvedValue(fakeAuthResult);
 
             await client.signInWithContinuation({
                 correlationId,
                 continuationState,
-                scopes: ["User.Read", "OpenID", "offline_access"],
             });
 
-            expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
-                {
-                    continuationToken: "ct-complete",
-                    scopes: [
-                        "User.Read",
-                        "OpenID",
-                        "offline_access",
-                        "profile",
-                    ],
-                },
-                expect.objectContaining({ correlationId })
+            expect(handleServerTokenResponseSpy).toHaveBeenCalledWith(
+                expect.objectContaining({ scope: "api.read api.write" }),
+                expect.anything(),
+                expect.any(Number),
+                expect.objectContaining({
+                    scopes: ["api.read", "api.write"],
+                }),
+                expect.any(Number)
             );
         });
     });

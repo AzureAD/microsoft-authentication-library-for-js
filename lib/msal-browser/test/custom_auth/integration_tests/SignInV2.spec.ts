@@ -220,21 +220,36 @@ describe("Sign-in V2 entry", () => {
         expect(result.scenario).toBe("signIn");
         expect(fetch).toHaveBeenCalledTimes(3);
 
-        const passwordState = result.state as PasswordRequiredStateV2;
-        expect(
-            passwordState["stateParameters"].continuationState
-        ).toMatchObject({
-            tokenRequest: {
-                scopes: ["User.Read"],
-            },
-        });
-        expect(
-            passwordState["stateParameters"].continuationState.tokenRequest
-        ).not.toHaveProperty("claims");
+        const [, entryOptions] = (fetch as jest.Mock).mock.calls[0];
+        expect(entryOptions.body).toBeInstanceOf(URLSearchParams);
+        expect((entryOptions.body as URLSearchParams).get("scope")).toBe(
+            "User.Read openid profile offline_access"
+        );
+        expect((entryOptions.body as URLSearchParams).get("claims")).toBe(
+            '{"id_token":{}}'
+        );
 
-        for (const [, options] of (fetch as jest.Mock).mock.calls) {
+        for (const [, options] of (fetch as jest.Mock).mock.calls.slice(1)) {
             expect(options.body.toString()).not.toContain("claims");
         }
+    });
+
+    it("uses only basic scopes when scopes is null", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(MULTI_METHOD_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE));
+
+        const result = await app.signInV2({
+            username: "user@contoso.com",
+            scopes: null,
+        });
+
+        expect(result.isFailed()).toBe(false);
+        const [, entryOptions] = (fetch as jest.Mock).mock.calls[0];
+        expect((entryOptions.body as URLSearchParams).get("scope")).toBe(
+            "openid profile offline_access"
+        );
     });
 
     it("prefers email OTP when no password is supplied", async () => {
@@ -262,18 +277,28 @@ describe("Sign-in V2 entry", () => {
         );
     });
 
-    it("rejects a supplied password when no password method is available", async () => {
+    it("returns code-required when password is supplied for email OTP", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE));
+            .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE));
 
         const result = await app.signInV2({
             username: "user@contoso.com",
             password: "valid-password",
         });
 
-        expect(result.isFailed()).toBe(true);
-        expect(fetch).toHaveBeenCalledTimes(2);
+        expect(result.isFailed()).toBe(false);
+        expect(result.isState("codeRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
+        expect(fetch).toHaveBeenCalledTimes(3);
+
+        const [challengeUrl, challengeOptions] = (fetch as jest.Mock).mock
+            .calls[2];
+        expect(challengeUrl.href).toContain("/email/challenge");
+        expect(JSON.parse(challengeOptions.body)).not.toHaveProperty(
+            "password"
+        );
     });
 
     it("completes sign-in after first-factor email OTP", async () => {
@@ -389,7 +414,7 @@ describe("Sign-in V2 entry", () => {
         expect(fetch).toHaveBeenCalledTimes(4);
     });
 
-    it("resends and verifies an MFA code to complete sign-in", async () => {
+    it("sends a wrong-length MFA code and surfaces the server result", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
             .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -426,17 +451,26 @@ describe("Sign-in V2 entry", () => {
 
         expect(resendResult.isState("mfaVerificationRequired")).toBe(true);
 
-        const completedResult = await (
-            resendResult.state as MFAVerificationRequiredStateV2
-        ).submitChallenge("123456");
+        const verificationState =
+            resendResult.state as MFAVerificationRequiredStateV2;
+        expect(verificationState.codeLength).toBe(6);
+        const completedResult = await verificationState.submitChallenge(
+            "12345"
+        );
 
         expect(completedResult.isState("completed")).toBe(true);
         expect(completedResult.state).toBeInstanceOf(CompletedStateV2);
         expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(fetch).toHaveBeenCalledTimes(9);
 
+        const [verifyUrl, verifyOptions] = (fetch as jest.Mock).mock.calls[6];
+        expect(verifyUrl.href).toContain("/mfa/verify");
+        expect(JSON.parse(verifyOptions.body)).toMatchObject({
+            otp: "12345",
+        });
         const tokenRequest = (fetch as jest.Mock).mock.calls[8][1];
         expect(tokenRequest.body).toBeInstanceOf(URLSearchParams);
+        expect((tokenRequest.body as URLSearchParams).has("scope")).toBe(false);
         expect((tokenRequest.body as URLSearchParams).has("claims")).toBe(
             false
         );
@@ -611,6 +645,17 @@ describe("Sign-in V2 entry", () => {
         const result = await app.signInV2({
             username: "user@contoso.com",
             claims: "not-json",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidInput()).toBe(true);
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it("rejects malformed scopes without sending a request", async () => {
+        const result = await app.signInV2({
+            username: "user@contoso.com",
+            scopes: ["User.Read", 1] as unknown as string[],
         });
 
         expect(result.isFailed()).toBe(true);

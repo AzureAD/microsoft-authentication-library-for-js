@@ -28,6 +28,7 @@ import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
 describe("CodeRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
+    const scopes = ["openid", "profile", "offline_access"];
     const flowClient = {
         submitCode: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
@@ -45,11 +46,9 @@ describe("CodeRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-mfa-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {
                     verify: "/mfa/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             method: {
@@ -77,11 +76,9 @@ describe("CodeRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-sign-up-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignUp,
+                scopes,
                 links: {
                     verify: "/signup/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             sentTo: "user@contoso.com",
@@ -111,11 +108,9 @@ describe("CodeRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-mfa-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {
                     verify: "/mfa/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             code: "123456",
@@ -125,6 +120,50 @@ describe("CodeRequiredStateV2", () => {
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
     });
 
+    it("submits a wrong-length first-factor code and surfaces the server error", async () => {
+        flowClient.submitCode.mockRejectedValue(
+            new CustomAuthApiError(
+                "invalidGrant",
+                "AADSTS50181: Unable to validate the otp.",
+                correlationId,
+                undefined,
+                "invalidOneTimeCode"
+            )
+        );
+
+        const result = await buildState().submitCode("12345");
+
+        expect(flowClient.submitCode).toHaveBeenCalledWith(
+            expect.objectContaining({
+                code: "12345",
+            })
+        );
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidCode()).toBe(true);
+    });
+
+    it("submits an empty first-factor code and surfaces the server error", async () => {
+        flowClient.submitCode.mockRejectedValue(
+            new CustomAuthApiError(
+                "invalidGrant",
+                "AADSTS50181: Unable to validate the otp.",
+                correlationId,
+                undefined,
+                "invalidOneTimeCode"
+            )
+        );
+
+        const result = await buildState().submitCode("");
+
+        expect(flowClient.submitCode).toHaveBeenCalledWith(
+            expect.objectContaining({
+                code: "",
+            })
+        );
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidCode()).toBe(true);
+    });
+
     it("returns MFA required after submitting a first-factor code", async () => {
         flowClient.submitCode.mockResolvedValue({
             type: FLOW_MFA_REQUIRED_V2,
@@ -132,10 +171,8 @@ describe("CodeRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-mfa",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
             methods: [
                 {
@@ -159,11 +196,9 @@ describe("CodeRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-sign-up-verify",
                 scenario: CustomAuthFlowScenarioV2.SignUp,
+                scopes,
                 links: {
                     submitAttributes: "/signup/submitattributes",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             attributes: [
@@ -224,6 +259,7 @@ describe("CodeRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-sign-up-verify",
                 scenario: CustomAuthFlowScenarioV2.SignUp,
+                scopes,
                 links: {
                     submitAttributes: "/signup/submitattributes",
                 },
@@ -253,10 +289,8 @@ describe("CodeRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-sign-up-verify",
                 scenario: CustomAuthFlowScenarioV2.SignUp,
+                scopes,
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
         });
 

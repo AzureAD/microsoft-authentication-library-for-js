@@ -10,8 +10,6 @@ import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomA
 import { SignInContinuationErrorV2 } from "../error_type/SignInContinuationErrorV2.js";
 import type { SignInContinuationStateParametersV2 } from "./SignInStateParametersV2.js";
 import type { SignInContinuationResultV2 } from "../result/SignInContinuationResultV2.js";
-import type { SignInContinuationInputsV2 } from "../../../../CustomAuthActionInputs.js";
-import * as ArgumentValidator from "../../../../core/utils/ArgumentValidator.js";
 
 /**
  * Shared state returned when a completed V2 flow can sign the user in by
@@ -23,35 +21,20 @@ export class SignInContinuationStateV2 extends AuthFlowActionRequiredStateBase<S
 
     /**
      * Signs the user in using the continuation established by the completed V2
-     * flow. On success the returned result reaches the completed state
-     * carrying the signed-in account data; on failure the result's error reports
-     * why the follow-up sign-in could not complete.
-     * @param inputs - Optional scopes requested for the issued token. Claims
-     * are accepted for API alignment but are not sent until the V2 service
-     * supports them on authorize-challenge.
-     * @returns The result of signing in after the password reset.
+     * flow. The result either reaches the completed state with the signed-in
+     * account data or reports why the follow-up sign-in could not complete.
+     * @returns The result of completing the continuation sign-in.
      */
-    async signIn(
-        inputs?: SignInContinuationInputsV2
-    ): Promise<SignInContinuationResultV2> {
+    async signIn(): Promise<SignInContinuationResultV2> {
         const { correlationId, logger, continuationState, flowClient } =
             this.stateParameters;
 
         try {
-            if (inputs?.claims) {
-                ArgumentValidator.ensureArgumentIsJSONString(
-                    "inputs.claims",
-                    inputs.claims,
-                    correlationId
-                );
-            }
-
             logger.verbose("Signing in with a V2 continuation.", correlationId);
 
             const result = await flowClient.signInWithContinuation({
                 correlationId,
                 continuationState,
-                scopes: inputs?.scopes,
             });
 
             const account = new CustomAuthAccountData(

@@ -78,7 +78,7 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
-        it("sends optional scopes as a space-delimited form value", async () => {
+        it("sends optional scopes and claims as form values", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     continuation_token: "ct-entry",
@@ -86,14 +86,22 @@ describe("CustomAuthApiClientV2", () => {
                 })
             );
 
-            await apiClient.authorizeChallengeStart(context, [
-                "openid",
-                "User.Read",
-            ]);
+            await apiClient.authorizeChallengeStart(
+                context,
+                ["openid", "User.Read"],
+                '{"access_token":{"acrs":{"value":"c4"}}}'
+            );
 
             const [, options] = mockHttpClient.sendAsync.mock.calls[0];
-            expect(options.body.toString()).toBe(
-                "client_id=client-id-123&scope=openid+User.Read"
+            expect(options.body).toBeInstanceOf(URLSearchParams);
+            expect((options.body as URLSearchParams).get("client_id")).toBe(
+                "client-id-123"
+            );
+            expect((options.body as URLSearchParams).get("scope")).toBe(
+                "openid User.Read"
+            );
+            expect((options.body as URLSearchParams).get("claims")).toBe(
+                '{"access_token":{"acrs":{"value":"c4"}}}'
             );
         });
 
@@ -1342,7 +1350,6 @@ describe("CustomAuthApiClientV2", () => {
             const result = await apiClient.completeWithTokens(
                 {
                     continuationToken: "ct-poll",
-                    scopes: ["openid"],
                 },
                 context
             );
@@ -1355,7 +1362,7 @@ describe("CustomAuthApiClientV2", () => {
             expect(
                 mockHttpClient.sendAsync.mock.calls[1][1].body.toString()
             ).toBe(
-                "client_id=client-id-123&grant_type=authorization_code&code=auth-code-1&client_info=1&scope=openid"
+                "client_id=client-id-123&grant_type=authorization_code&code=auth-code-1&client_info=1"
             );
         });
     });

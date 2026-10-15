@@ -19,12 +19,14 @@ import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
 describe("SignUpPasswordRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
+    const scopes = ["openid", "profile", "offline_access"];
     const flowClient = {
         submitSignUpAttributes: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
     const continuationState = {
         continuationToken: "ct-password",
         scenario: CustomAuthFlowScenarioV2.SignUp,
+        scopes,
         links: {
             submitAttributes: "/signup/submitattributes",
         },
@@ -70,6 +72,7 @@ describe("SignUpPasswordRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-complete",
                 scenario: CustomAuthFlowScenarioV2.SignUp,
+                scopes,
                 links: {},
             },
         });
@@ -108,6 +111,7 @@ describe("SignUpPasswordRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignUp,
+                scopes,
                 links: {
                     verify: "/signup/verify",
                     resend: "/signup/resend",

@@ -652,6 +652,20 @@ export class CustomAuthStandardController
                 inputs.username,
                 correlationId
             );
+            if (inputs.scopes !== undefined && inputs.scopes !== null) {
+                ArgumentValidator.ensureArgumentIsStringArray(
+                    "inputs.scopes",
+                    inputs.scopes,
+                    correlationId
+                );
+            }
+            if (inputs.claims) {
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "inputs.claims",
+                    inputs.claims,
+                    correlationId
+                );
+            }
             this.ensureUserNotSignedIn(correlationId);
 
             this.logger.verbose(
@@ -662,6 +676,8 @@ export class CustomAuthStandardController
             const result = await this.flowClientV2.resetPassword({
                 correlationId,
                 username: inputs.username,
+                scopes: inputs.scopes,
+                claims: inputs.claims,
             });
 
             this.logger.verbose(
@@ -729,6 +745,13 @@ export class CustomAuthStandardController
                 inputs.username,
                 correlationId
             );
+            if (inputs.scopes !== undefined && inputs.scopes !== null) {
+                ArgumentValidator.ensureArgumentIsStringArray(
+                    "inputs.scopes",
+                    inputs.scopes,
+                    correlationId
+                );
+            }
             if (inputs.claims) {
                 ArgumentValidator.ensureArgumentIsJSONString(
                     "inputs.claims",
@@ -748,6 +771,7 @@ export class CustomAuthStandardController
                 username: inputs.username,
                 password: inputs.password,
                 scopes: inputs.scopes,
+                claims: inputs.claims,
             });
 
             if (result.type === FLOW_COMPLETED_V2) {
@@ -855,6 +879,20 @@ export class CustomAuthStandardController
                 ArgumentValidator.ensureArgumentIsNotEmptyString(
                     "inputs.password",
                     inputs.password,
+                    correlationId
+                );
+            }
+            if (inputs.scopes !== undefined && inputs.scopes !== null) {
+                ArgumentValidator.ensureArgumentIsStringArray(
+                    "inputs.scopes",
+                    inputs.scopes,
+                    correlationId
+                );
+            }
+            if (inputs.claims) {
+                ArgumentValidator.ensureArgumentIsJSONString(
+                    "inputs.claims",
+                    inputs.claims,
                     correlationId
                 );
             }

@@ -178,22 +178,46 @@ describe("Reset password V2 (SSPR)", () => {
     });
 
     // Drive start -> method selection and return the method-selection state.
-    const startToMethodSelection =
-        async (): Promise<AuthMethodSelectionRequiredStateV2> => {
-            const startResult = await app.resetPasswordV2({
-                username: "user@contoso.com",
-            });
+    const startToMethodSelection = async (
+        scopes?: string[],
+        claims?: string
+    ): Promise<AuthMethodSelectionRequiredStateV2> => {
+        const startResult = await app.resetPasswordV2({
+            username: "user@contoso.com",
+            scopes,
+            claims,
+        });
 
-            expect(startResult.isFailed()).toBe(false);
-            expect(startResult.isState("authMethodSelectionRequired")).toBe(
-                true
-            );
-            expect(startResult.state).toBeInstanceOf(
-                AuthMethodSelectionRequiredStateV2
-            );
+        expect(startResult.isFailed()).toBe(false);
+        expect(startResult.isState("authMethodSelectionRequired")).toBe(true);
+        expect(startResult.state).toBeInstanceOf(
+            AuthMethodSelectionRequiredStateV2
+        );
 
-            return startResult.state as AuthMethodSelectionRequiredStateV2;
-        };
+        return startResult.state as AuthMethodSelectionRequiredStateV2;
+    };
+
+    it("rejects malformed claims without sending a request", async () => {
+        const result = await app.resetPasswordV2({
+            username: "user@contoso.com",
+            claims: "not-json",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidInput()).toBe(true);
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it("rejects malformed scopes without sending a request", async () => {
+        const result = await app.resetPasswordV2({
+            username: "user@contoso.com",
+            scopes: [false] as unknown as string[],
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidInput()).toBe(true);
+        expect(fetch).not.toHaveBeenCalled();
+    });
 
     it("automatically challenges the only available method", async () => {
         const singleMethodStartResponse = {
@@ -284,7 +308,10 @@ describe("Reset password V2 (SSPR)", () => {
             .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE)) // 7. authorize-challenge continue
             .mockResolvedValueOnce(buildResponse(TestServerTokenResponse)); // 8. token
 
-        const methodState = await startToMethodSelection();
+        const methodState = await startToMethodSelection(
+            ["User.Read"],
+            '{"id_token":{}}'
+        );
 
         expect(methodState.methods).toHaveLength(2);
         expect(methodState.methods[0].type).toBe("email");
@@ -308,10 +335,7 @@ describe("Reset password V2 (SSPR)", () => {
         expect(submitResult.state).toBeInstanceOf(SignInContinuationStateV2);
 
         const signInState = submitResult.state as SignInContinuationStateV2;
-        const signInResult = await signInState.signIn({
-            scopes: ["User.Read"],
-            claims: '{"id_token":{}}',
-        });
+        const signInResult = await signInState.signIn();
         expect(signInResult.isFailed()).toBe(false);
         expect(signInResult.isState("completed")).toBe(true);
         expect(signInResult.state).toBeInstanceOf(CompletedStateV2);
@@ -322,17 +346,23 @@ describe("Reset password V2 (SSPR)", () => {
 
         // Entry + start + challenge + verify + update + poll + continue + token.
         expect(fetch as jest.Mock).toHaveBeenCalledTimes(8);
-        const tokenRequest = (fetch as jest.Mock).mock.calls[7][1];
-        expect(tokenRequest.body).toBeInstanceOf(URLSearchParams);
-        expect((tokenRequest.body as URLSearchParams).get("scope")).toBe(
+        const entryRequest = (fetch as jest.Mock).mock.calls[0][1];
+        expect(entryRequest.body).toBeInstanceOf(URLSearchParams);
+        expect((entryRequest.body as URLSearchParams).get("scope")).toBe(
             "User.Read openid profile offline_access"
         );
+        expect((entryRequest.body as URLSearchParams).get("claims")).toBe(
+            '{"id_token":{}}'
+        );
+        const tokenRequest = (fetch as jest.Mock).mock.calls[7][1];
+        expect(tokenRequest.body).toBeInstanceOf(URLSearchParams);
+        expect((tokenRequest.body as URLSearchParams).has("scope")).toBe(false);
         expect((tokenRequest.body as URLSearchParams).has("claims")).toBe(
             false
         );
     });
 
-    it("surfaces an invalid-code failure while awaiting a valid code", async () => {
+    it("sends a wrong-length code and surfaces the server invalid-code failure", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
             .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -356,8 +386,15 @@ describe("Reset password V2 (SSPR)", () => {
         );
         const codeState = challengeResult.state as CodeRequiredStateV2;
 
-        const verifyResult = await codeState.submitCode("000000");
+        expect(codeState.codeLength).toBe(6);
+        const verifyResult = await codeState.submitCode("00000");
 
+        expect(fetch).toHaveBeenCalledTimes(4);
+        const [verifyUrl, verifyOptions] = (fetch as jest.Mock).mock.calls[3];
+        expect(verifyUrl.href).toContain("/verify");
+        expect(JSON.parse(verifyOptions.body)).toMatchObject({
+            otp: "00000",
+        });
         expect(verifyResult.isFailed()).toBe(true);
         expect(verifyResult.error).toBeInstanceOf(VerifyChallengeErrorV2);
         expect(verifyResult.error?.isInvalidCode()).toBe(true);
