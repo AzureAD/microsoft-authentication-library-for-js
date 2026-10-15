@@ -5,11 +5,12 @@
 
 import type { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { InvalidArgumentError } from "../../../error/InvalidArgumentError.js";
-import { REDIRECT_TO_WEB } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
+import { WEB_REDIRECT_REQUIRED } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import {
     INVALID_ONE_TIME_CODE,
     INVALID_USERNAME_OR_PASSWORD,
     PASSWORD_TOO_WEAK,
+    USER_NOT_FOUND,
 } from "./AuthFlowErrorSubcodesV2.js";
 import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
 import type { AttributeValidationDetailV2 } from "../../../network_client/custom_auth_api/v2/response/ErrorResponsesV2.js";
@@ -42,12 +43,13 @@ export class AuthFlowErrorV2 {
 
     /**
      * Checks if the error requires the flow to continue in the browser. The
-     * server surfaces this as a `redirect_to_web` failure, so a browser hand-off
-     * always arrives as a `FailedStateV2` on which this detector returns true.
+     * server surfaces this as the `web_redirect_required` OAuth suberror, so a
+     * browser hand-off arrives as a `FailedStateV2` on which this detector
+     * returns true.
      * @returns True if the browser is required, false otherwise.
      */
     isBrowserRequired(): boolean {
-        return this.errorData.error === REDIRECT_TO_WEB;
+        return this.errorData.subError === WEB_REDIRECT_REQUIRED;
     }
 
     /**
@@ -134,7 +136,9 @@ export class AuthFlowErrorV2 {
     private isUserNotFoundError(): boolean {
         return (
             this.errorData.error === "invalidRequest" &&
-            this.errorData.errorDescription?.includes("AADSTS50034") === true
+            (this.errorData.subError === USER_NOT_FOUND ||
+                this.errorData.errorDescription?.includes("AADSTS50034") ===
+                    true)
         );
     }
 

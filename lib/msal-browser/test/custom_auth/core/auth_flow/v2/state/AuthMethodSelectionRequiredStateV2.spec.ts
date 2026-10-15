@@ -19,6 +19,7 @@ import {
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { AuthenticationFactorV2 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import { UNSUPPORTED_FLOW_TRANSITION } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
 describe("AuthMethodSelectionRequiredStateV2", () => {
@@ -258,6 +259,7 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
         ).selectAuthMethod(method);
 
         expect(result.isFailed()).toBe(true);
+        expect(result.error?.errorData.error).toBe(UNSUPPORTED_FLOW_TRANSITION);
         expect(result.error?.errorDescription).toBe(
             "Authentication method selection expected an email or SMS code challenge for single-factor authentication, but the server returned a password challenge."
         );

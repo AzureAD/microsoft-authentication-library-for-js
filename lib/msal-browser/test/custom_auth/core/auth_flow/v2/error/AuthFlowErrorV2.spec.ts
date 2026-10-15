@@ -215,6 +215,17 @@ describe("AuthFlowErrorV2 error mapping", () => {
             expect(error.isUserNotFound()).toBe(true);
         });
 
+        it("is true when the nested error code is userNotFound", () => {
+            const error = new AuthFlowErrorV2(
+                apiError("invalidRequest", {
+                    innerErrorCode: "userNotFound",
+                    message: "The supplied account was not found.",
+                })
+            );
+
+            expect(error.isUserNotFound()).toBe(true);
+        });
+
         it("is false for an unrelated failure", () => {
             const error = new AuthFlowErrorV2(
                 apiError("invalidRequest", {
@@ -409,10 +420,22 @@ describe("AuthFlowErrorV2 error mapping", () => {
     });
 
     describe("isBrowserRequired", () => {
-        it("is true for redirect_to_web", () => {
-            const error = new AuthFlowErrorV2(apiError("redirect_to_web"));
+        it("is true for invalid_grant with web_redirect_required", () => {
+            const error = new AuthFlowErrorV2(
+                apiError("invalid_grant", {
+                    innerErrorCode: "web_redirect_required",
+                    message: "AADSTS55214: Non-retryable error has occurred.",
+                    errorCodes: [55214],
+                })
+            );
 
             expect(error.isBrowserRequired()).toBe(true);
+        });
+
+        it("is false for invalid_grant without web_redirect_required", () => {
+            const error = new AuthFlowErrorV2(apiError("invalid_grant"));
+
+            expect(error.isBrowserRequired()).toBe(false);
         });
     });
 

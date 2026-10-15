@@ -49,6 +49,7 @@ function normalizeOAuthError(response: OAuthErrorResponseV2): ServerErrorV2 {
         code: readString(response.error) ?? UNEXPECTED_ERROR,
         message: readString(response.error_description),
         errorCodes: readNumberArray(response.error_codes),
+        innerErrorCode: readString(response.suberror),
         correlationId: readString(response.correlation_id),
         traceId: readString(response.trace_id),
         timestamp: readString(response.timestamp),
