@@ -39,16 +39,23 @@ export type SignInWithContinuationTokenInputs = {
     claims?: string;
 };
 
-export type SignInInputsV2 = Omit<SignInInputs, "scopes"> & {
-    scopes?: Array<string> | null;
-};
-
-export type ResetPasswordInputsV2 = ResetPasswordInputs & {
+export type SignInInputsV2 = CustomAuthActionInputs & {
+    username: string;
+    password?: string;
     scopes?: Array<string> | null;
     claims?: string;
 };
 
-export type SignUpInputsV2 = SignUpInputs & {
+export type ResetPasswordInputsV2 = CustomAuthActionInputs & {
+    username: string;
+    scopes?: Array<string> | null;
+    claims?: string;
+};
+
+export type SignUpInputsV2 = CustomAuthActionInputs & {
+    username: string;
+    password?: string;
+    attributes?: UserAccountAttributes;
     scopes?: Array<string> | null;
     claims?: string;
 };
