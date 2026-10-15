@@ -100,6 +100,7 @@ import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 import { resolveSilentRequestPreparation } from "../request/SilentRequestHelpers.js";
+import { DpopNonceStore } from "./DpopNonceStore.js";
 
 function preflightCheck(
     initialized: boolean,
@@ -128,6 +129,7 @@ export class StandardController implements IController {
 
     // Storage interface implementation
     protected readonly browserStorage: BrowserCacheManager;
+    private readonly dpopNonceStore: DpopNonceStore;
 
     // Native Cache in memory storage implementation
     protected readonly nativeInternalStorage: BrowserCacheManager;
@@ -268,6 +270,10 @@ export class StandardController implements IController {
                   undefined,
                   this.tokenBindingKeyManager
               );
+        this.dpopNonceStore = new DpopNonceStore(
+            this.config.auth.clientId,
+            this.logger
+        );
 
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
@@ -550,6 +556,17 @@ export class StandardController implements IController {
                     this.browserStorage.getCachedRequest("");
                 cachedRedirectRequest = standardRequest;
                 const correlationId = standardRequest.correlationId;
+                if (
+                    standardRequest.authenticationScheme ===
+                        Constants.AuthenticationScheme.DPOP &&
+                    standardRequest.resourceRequestUri
+                ) {
+                    this.dpopNonceStore.restoreRedirectHandoff(
+                        standardRequest.resourceRequestUri,
+                        standardRequest.state,
+                        correlationId
+                    );
+                }
                 this.eventHandler.emitEvent(
                     EventType.HANDLE_REDIRECT_START,
                     correlationId,
@@ -1635,6 +1652,7 @@ export class StandardController implements IController {
      * @param logoutRequest
      */
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
+        this.dpopNonceStore.clear();
         if (!this.isBrowserEnvironment) {
             return;
         }
@@ -1957,7 +1975,8 @@ export class StandardController implements IController {
             correlationId,
             this.platformAuthProvider,
             this.operatingContext.getResponseHandlers()?.waitForPopupResponse,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            this.dpopNonceStore
         );
     }
 
@@ -1977,7 +1996,8 @@ export class StandardController implements IController {
             this.nativeInternalStorage,
             correlationId,
             this.platformAuthProvider,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            this.dpopNonceStore
         );
     }
 
@@ -1999,7 +2019,8 @@ export class StandardController implements IController {
             correlationId,
             this.platformAuthProvider,
             this.operatingContext.getResponseHandlers()?.waitForIframeResponse,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            this.dpopNonceStore
         );
     }
 
@@ -2019,7 +2040,8 @@ export class StandardController implements IController {
             this.performanceClient,
             correlationId,
             this.platformAuthProvider,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            this.dpopNonceStore
         );
     }
 
@@ -2039,7 +2061,8 @@ export class StandardController implements IController {
             this.performanceClient,
             correlationId,
             this.platformAuthProvider,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            this.dpopNonceStore
         );
     }
 
@@ -2060,7 +2083,8 @@ export class StandardController implements IController {
             this.performanceClient,
             correlationId,
             this.platformAuthProvider,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            this.dpopNonceStore
         );
     }
 
@@ -2109,6 +2133,29 @@ export class StandardController implements IController {
      */
     public getLogger(): Logger {
         return this.logger;
+    }
+
+    /**
+     * Stores a resource-server DPoP nonce for the matching HTTPS origin.
+     */
+    public async loadDpopNonce(
+        resourceRequestUri: string,
+        dpopNonce: string
+    ): Promise<void> {
+        const correlationId = createNewGuid();
+        return invokeAsync(
+            async (): Promise<void> => {
+                this.dpopNonceStore.setResourceServerNonce(
+                    resourceRequestUri,
+                    dpopNonce,
+                    correlationId
+                );
+            },
+            BrowserPerformanceEvents.StandardControllerLoadDpopNonce,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
     }
 
     /**
@@ -2307,7 +2354,8 @@ export class StandardController implements IController {
             },
             this.platformAuthProvider,
             this.logger,
-            this.performanceClient
+            this.performanceClient,
+            this.dpopNonceStore
         );
 
         const inProgressRequest = this.activeSilentTokenRequests.get(

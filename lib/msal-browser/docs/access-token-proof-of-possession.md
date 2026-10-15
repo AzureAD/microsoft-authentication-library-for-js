@@ -190,3 +190,38 @@ headers.append("DPoP", result.dpopProof);
 For DPoP results, `accessToken` is the raw sender-constrained access token and `dpopProof` is a separate fresh proof for the requested resource. Proof JWTs are never cached. Cache hits generate a new proof, and if the local DPoP key is missing MSAL treats the cached sender-constrained access token as a cache miss.
 
 DPoP resource proofs are generated from the request method, normalized resource URI, and raw access token (`ath` is computed internally). MSAL does not accept caller-supplied `ath` hashes.
+
+### Resource-server nonce challenges
+
+When a resource server returns a `DPoP-Nonce` response header, first check that the PCA exposes the standard DPoP nonce capability, then load the nonce before requesting a new proof:
+
+```typescript
+const resourceRequestUri = "https://graph.microsoft.com/v1.0/me";
+const dpopNonce = resourceResponse.headers.get("DPoP-Nonce");
+
+if (dpopNonce && msal.isDpopNonceProvider(myMSALObj)) {
+    await myMSALObj.loadDpopNonce(resourceRequestUri, dpopNonce);
+    const retryResult = await myMSALObj.acquireTokenSilent({
+        ...dpopRequest,
+        resourceRequestUri,
+    });
+
+    // The application owns retrying the resource request with retryResult.dpopProof.
+}
+```
+
+`IDpopNonceProvider` is a separate optional capability. It is implemented by standard `PublicClientApplication` instances and returned by `createStandardPublicClientApplication`. It is intentionally not part of `IPublicClientApplication`, so custom implementations and nestable applications remain compatible. NAA/nestable PCA does not advertise this capability.
+
+MSAL stores resource-server nonces only in memory, scoped to the `PublicClientApplication` instance and normalized HTTPS resource origin. The state is bounded and is cleared with the application cache; it is not shared across tabs or application instances and is not written to browser or custom cache storage.
+
+Full-page redirect requests use one narrow exception to the memory-only lifecycle. When an active standard web redirect request has a matching resource origin and nonce, MSAL stores one tab-scoped `sessionStorage` handoff containing only the opaque nonce, normalized origin, request state, correlation ID, and a short expiration. `handleRedirectPromise` restores the handoff only when all bindings match and deletes it immediately. MSAL never persists the general nonce map and does not use `localStorage`, custom cache storage, URL state, or cookies for nonce transport.
+
+`loadDpopNonce` validates and stores the nonce but does not issue resource HTTP requests. The application must retry a challenged resource request no more than once, using a newly generated proof, and must stop if the retry is challenged again.
+
+### Broker sequencing
+
+- **NAA/nestable PCA:** Does not expose `IDpopNonceProvider` in this release.
+- **WAM/native broker:** No nonce bridge is included here. PR [#8789](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8789) must merge first; this PR must then rebase/adapt and add nonce-store to `request.dpopNonce` integration before this PR merges.
+- **Pairwise Broker (PWB):** No forwarding is included here. This PR merges first, PR [#8788](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8788) adapts afterward, and separate 1P work adds ephemeral forwarding.
+
+The capability is direct on the standard PCA. There is no token-cache accessor for DPoP nonce state.

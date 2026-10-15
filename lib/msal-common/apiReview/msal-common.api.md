@@ -375,7 +375,10 @@ const AuthClientExecuteTokenRequest = "authClientExecuteTokenRequest";
 
 // @public
 export class AuthenticationHeaderParser {
-    constructor(headers: Record<string, string>);
+    constructor(headers: Record<string, string> | {
+        get(name: string): string | null;
+    });
+    getDPoPNonce(): string | null;
     getShrNonce(): string;
 }
 
@@ -928,6 +931,9 @@ const cannotRemoveEmptyScope = "cannot_remove_empty_scope";
 // @public (undocumented)
 const cannotSetOIDCOptions = "cannot_set_OIDCOptions";
 
+// @internal
+export function canonicalizeDpopResourceServer(resourceRequestUri: unknown, correlationId?: string): string;
+
 // @public (undocumented)
 const CCS_HEADER = "X-AnchorMailbox";
 
@@ -1079,6 +1085,7 @@ export type ClientConfiguration = {
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
+    dpopNonceStore?: IDpopNonceStore;
     clientCredentials?: ClientCredentials;
     libraryInfo?: LibraryInfo;
     telemetry?: TelemetryOptions;
@@ -1200,6 +1207,7 @@ export type CommonClientConfiguration = {
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
     tokenBindingKeyManager: ITokenBindingKeyManager;
+    dpopNonceStore?: IDpopNonceStore;
     libraryInfo: LibraryInfo;
     telemetry: Required<TelemetryOptions>;
     serverTelemetryManager: ServerTelemetryManager | null;
@@ -1538,8 +1546,17 @@ const DOMAIN_HINT = "domain_hint";
 // @public (undocumented)
 const DPOP_JKT = "dpop_jkt";
 
+// @internal
+export const DPOP_NONCE_MAX_SIZE_BYTES = 1024;
+
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";
+
+// @internal
+export type DpopNonceRecord = {
+    nonce: string;
+    version: number;
+};
 
 // @public (undocumented)
 const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
@@ -1624,6 +1641,7 @@ export type GenerateAuthenticationResultOptions = {
     serverTokenResponse?: ServerAuthorizationTokenResponse;
     requestId?: string;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
+    dpopNonceStore?: IDpopNonceStore;
 };
 
 // @public
@@ -1697,6 +1715,7 @@ const HeaderNames: {
     readonly CONTENT_TYPE: "Content-Type";
     readonly CONTENT_LENGTH: "Content-Length";
     readonly DPOP: "DPoP";
+    readonly DPOP_NONCE: "DPoP-Nonce";
     readonly RETRY_AFTER: "Retry-After";
     readonly CCS_HEADER: "X-AnchorMailbox";
     readonly WWWAuthenticate: "WWW-Authenticate";
@@ -1807,6 +1826,14 @@ const ID_TOKEN = "id_token";
 
 // @public (undocumented)
 const ID_TOKEN_HINT = "id_token_hint";
+
+// @internal
+export interface IDpopNonceStore {
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    getResourceServerNonce(resourceRequestUri: string, correlationId?: string): DpopNonceRecord | undefined;
+}
 
 // @internal (undocumented)
 export type IdTokenCache = Record<string, IdTokenEntity>;
@@ -2915,7 +2942,7 @@ const RESPONSE_TYPE = "response_type";
 
 // @internal
 export class ResponseHandler {
-    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, tokenBindingKeyManager?: ITokenBindingKeyManager);
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, tokenBindingKeyManager?: ITokenBindingKeyManager, dpopNonceStore?: IDpopNonceStore);
     static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, options?: GenerateAuthenticationResultOptions): Promise<AuthenticationResult>;
     handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
     validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse, correlationId: string, refreshAccessToken?: boolean): void;
@@ -3482,6 +3509,9 @@ const USERNAME = "username";
 
 // @public
 function validateAuthorizationResponse(serverResponse: AuthorizeResponse, requestState: string, correlationId: string): void;
+
+// @internal
+export function validateDpopNonce(nonce: unknown, correlationId?: string): string;
 
 // @public
 function validateUrl(url: string, logger?: Logger, correlationId?: string): void;

@@ -140,6 +140,15 @@ export {
 } from "./response/ResponseHandler.js";
 export { ScopeSet } from "./request/ScopeSet.js";
 export { AuthenticationHeaderParser } from "./request/AuthenticationHeaderParser.js";
+export {
+    DPOP_NONCE_MAX_SIZE_BYTES,
+    canonicalizeDpopResourceServer,
+    validateDpopNonce,
+} from "./crypto/DpopNonceUtils.js";
+export type {
+    DpopNonceRecord,
+    IDpopNonceStore,
+} from "./protocol/IDpopNonceStore.js";
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger.js";
 export {
     InteractionRequiredAuthError,
