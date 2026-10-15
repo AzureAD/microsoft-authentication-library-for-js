@@ -5403,6 +5403,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
             it("handleRedirectPromise records brokerErrorName/brokerErrorCode when the broker rejects with a NativeAuthError", async () => {
                 // @ts-ignore
+                platformAuthInteractionClient.config.system.serverTelemetryEnabled =
+                    true;
+                // @ts-ignore
                 pca.browserStorage.setInteractionInProgress(true);
                 // @ts-ignore
                 pca.browserStorage.setTemporaryCache(
@@ -5437,6 +5440,18 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     },
                     RANDOM_TEST_GUID
                 );
+                expect(
+                    JSON.parse(
+                        window.sessionStorage.getItem(
+                            `server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`
+                        ) || ""
+                    )
+                ).toEqual({
+                    cacheHits: 0,
+                    errors: [],
+                    failedRequests: [],
+                    nativeBrokerErrorCode: "OSError",
+                });
             });
         });
     });

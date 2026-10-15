@@ -684,6 +684,18 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             serverTelemetryManager.clearNativeBrokerErrorCode();
             return authResult;
         } catch (e) {
+            if (e instanceof NativeAuthError) {
+                const serverTelemetryManager = initializeServerTelemetryManager(
+                    this.apiId,
+                    this.config.auth.clientId,
+                    this.correlationId,
+                    this.browserStorage,
+                    this.logger,
+                    undefined,
+                    this.config.system.serverTelemetryEnabled
+                );
+                serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
+            }
             this.setBrokerErrorTelemetry(e);
             await this.resetGeneratedDpopRequestKey(request, "best-effort");
             throw e;
