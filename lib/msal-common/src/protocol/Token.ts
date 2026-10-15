@@ -257,12 +257,12 @@ export async function sendPostRequest<
                             getResponseHeader(
                                 responseHeaders,
                                 HeaderNames.CONTENT_TYPE
-                            ),
+                            ) || undefined,
                         contentLengthHeader:
                             getResponseHeader(
                                 responseHeaders,
                                 HeaderNames.CONTENT_LENGTH
-                            ),
+                            ) || undefined,
                         httpStatus: e.httpStatus,
                     },
                     correlationId
