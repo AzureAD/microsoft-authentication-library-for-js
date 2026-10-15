@@ -157,7 +157,7 @@ describe("ResponseHandlerV2", () => {
                 code: "invalid_grant",
                 message: "AADSTS55214: Non-retryable error has occurred.",
                 errorCodes: [55214],
-                innerErrorCode: "web_redirect_required",
+                subError: "web_redirect_required",
                 correlationId: "c556852d-edfa-4040-b472-15a62de49ad5",
                 traceId: "c7fe3b84-3596-4d2d-a195-3aa21fb41100",
                 timestamp: "2026-10-12 15:43:29Z",

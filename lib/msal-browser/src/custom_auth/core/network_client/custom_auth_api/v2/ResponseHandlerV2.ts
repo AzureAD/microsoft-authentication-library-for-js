@@ -47,8 +47,7 @@ export class ResponseHandlerV2 {
 
         const error = normalizeServerErrorV2(json);
 
-        const isWebFallbackRequired =
-            error?.innerErrorCode === WEB_REDIRECT_REQUIRED;
+        const isWebFallbackRequired = error?.subError === WEB_REDIRECT_REQUIRED;
 
         // Surface the header correlation id on the body (HalResponseBaseV2.correlationId).
         json.correlationId = correlationId;

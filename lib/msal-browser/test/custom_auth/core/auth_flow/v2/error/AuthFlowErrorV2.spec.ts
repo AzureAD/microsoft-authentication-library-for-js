@@ -16,6 +16,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
         code: string,
         options?: {
             innerErrorCode?: string;
+            subError?: string;
             message?: string;
             errorCodes?: number[];
         }
@@ -25,6 +26,12 @@ describe("AuthFlowErrorV2 error mapping", () => {
             options?.message ?? "",
             undefined,
             options?.errorCodes,
+            options?.subError,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
             options?.innerErrorCode
         );
 
@@ -223,6 +230,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
                 })
             );
 
+            expect(error.innerErrorCode).toBe("userNotFound");
             expect(error.isUserNotFound()).toBe(true);
         });
 
@@ -423,7 +431,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
         it("is true for invalid_grant with web_redirect_required", () => {
             const error = new AuthFlowErrorV2(
                 apiError("invalid_grant", {
-                    innerErrorCode: "web_redirect_required",
+                    subError: "web_redirect_required",
                     message: "AADSTS55214: Non-retryable error has occurred.",
                     errorCodes: [55214],
                 })

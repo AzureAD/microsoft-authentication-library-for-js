@@ -4,6 +4,7 @@
  */
 
 import type { CustomAuthError } from "../../../error/CustomAuthError.js";
+import { CustomAuthApiError } from "../../../error/CustomAuthApiError.js";
 import { InvalidArgumentError } from "../../../error/InvalidArgumentError.js";
 import { WEB_REDIRECT_REQUIRED } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import {
@@ -39,6 +40,12 @@ export class AuthFlowErrorV2 {
 
     get errorDescription(): string | undefined {
         return this.errorData.errorDescription;
+    }
+
+    get innerErrorCode(): string | undefined {
+        return this.errorData instanceof CustomAuthApiError
+            ? this.errorData.innerErrorCode
+            : undefined;
     }
 
     /**
@@ -148,7 +155,7 @@ export class AuthFlowErrorV2 {
     private isUserNotFoundError(): boolean {
         return (
             this.errorData.error === "invalidRequest" &&
-            (this.errorData.subError === USER_NOT_FOUND ||
+            (this.innerErrorCode === USER_NOT_FOUND ||
                 this.errorData.errorDescription?.includes("AADSTS50034") ===
                     true)
         );
@@ -167,14 +174,14 @@ export class AuthFlowErrorV2 {
     private isInvalidCodeError(): boolean {
         return (
             this.errorData.error === "invalidGrant" &&
-            this.errorData.subError === INVALID_ONE_TIME_CODE
+            this.innerErrorCode === INVALID_ONE_TIME_CODE
         );
     }
 
     private isInvalidPasswordError(): boolean {
         return (
             this.errorData.error === "invalidRequest" &&
-            this.errorData.subError === PASSWORD_TOO_WEAK
+            this.innerErrorCode === PASSWORD_TOO_WEAK
         );
     }
 
@@ -197,7 +204,7 @@ export class AuthFlowErrorV2 {
     private isPasswordIncorrectError(): boolean {
         return (
             this.errorData.error === "invalidGrant" &&
-            this.errorData.subError === INVALID_USERNAME_OR_PASSWORD
+            this.innerErrorCode === INVALID_USERNAME_OR_PASSWORD
         );
     }
 

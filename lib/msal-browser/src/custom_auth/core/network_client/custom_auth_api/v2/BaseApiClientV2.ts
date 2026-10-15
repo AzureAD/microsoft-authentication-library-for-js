@@ -344,12 +344,13 @@ export abstract class BaseApiClientV2 {
             serverError.message ?? "",
             serverError.correlationId ?? correlationId,
             serverError.errorCodes,
-            serverError.innerErrorCode,
+            serverError.subError,
             undefined,
             undefined,
             serverError.traceId,
             serverError.timestamp,
-            serverError.attributeValidationDetails
+            serverError.attributeValidationDetails,
+            serverError.innerErrorCode
         );
     }
 
@@ -357,9 +358,7 @@ export abstract class BaseApiClientV2 {
         parsedResponse: ParsedResponseV2<unknown>
     ): void {
         if (parsedResponse.isWebFallbackRequired) {
-            if (
-                parsedResponse.error?.innerErrorCode === WEB_REDIRECT_REQUIRED
-            ) {
+            if (parsedResponse.error?.subError === WEB_REDIRECT_REQUIRED) {
                 throw this.toApiError(
                     parsedResponse.error,
                     parsedResponse.correlationId

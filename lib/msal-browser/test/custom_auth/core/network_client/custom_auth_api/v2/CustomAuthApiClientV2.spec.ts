@@ -615,7 +615,7 @@ describe("CustomAuthApiClientV2", () => {
                 )
             ).rejects.toMatchObject({
                 error: "invalidRequest",
-                subError: "attributeValidationError",
+                innerErrorCode: "attributeValidationError",
                 correlationId: "corr-response",
                 attributeValidationDetails: [
                     {
@@ -1373,7 +1373,7 @@ describe("CustomAuthApiClientV2", () => {
                 )
             ).rejects.toMatchObject({
                 error: "invalid_grant",
-                subError: "otp_expired",
+                innerErrorCode: "otp_expired",
             });
         });
 
@@ -1404,7 +1404,7 @@ describe("CustomAuthApiClientV2", () => {
                 )
             ).rejects.toMatchObject({
                 error: "invalidRequest",
-                subError: "userNotFound",
+                innerErrorCode: "userNotFound",
                 correlationId: "1b387df0-1092-49fd-9afa-503c14ead335",
                 traceId: "6a72e163-b400-45c1-82d1-2ffe897e1c00",
                 timestamp: "2026-10-15 11:00:16Z",

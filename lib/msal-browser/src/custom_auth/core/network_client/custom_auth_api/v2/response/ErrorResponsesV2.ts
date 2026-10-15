@@ -43,6 +43,7 @@ export interface ServerErrorV2 {
     code: string;
     message?: string;
     innerErrorCode?: string;
+    subError?: string;
     errorCodes?: number[];
     correlationId?: string;
     traceId?: string;
