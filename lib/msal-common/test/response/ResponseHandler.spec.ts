@@ -1037,7 +1037,11 @@ describe("ResponseHandler.ts", () => {
                 stubPerformanceClient,
                 null,
                 null,
-                mockTokenBindingKeyManager
+                mockTokenBindingKeyManager,
+                {
+                    getResourceServerNonce: () => "resource-nonce",
+                    clear: () => undefined,
+                }
             );
             const result = await responseHandler.handleServerTokenResponse(
                 testResponse,
@@ -1051,7 +1055,12 @@ describe("ResponseHandler.ts", () => {
             expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(result.dpopProof).toBe("fresh-dpop-proof");
             expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
-            expect(signSpy).toHaveBeenCalled();
+            expect(signSpy).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({ nonce: "resource-nonce" }),
+                TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                "CORRELATION_ID"
+            );
         });
 
         it("returns fresh proof for lowercase cached DPoP access token", async () => {
@@ -1099,6 +1108,10 @@ describe("ResponseHandler.ts", () => {
                 {
                     idTokenClaims: ID_TOKEN_CLAIMS as TokenClaims,
                     tokenBindingKeyManager: mockTokenBindingKeyManager,
+                    dpopNonceStore: {
+                        getResourceServerNonce: () => "cached-resource-nonce",
+                        clear: () => undefined,
+                    },
                 }
             );
 
@@ -1106,7 +1119,12 @@ describe("ResponseHandler.ts", () => {
             expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(result.dpopProof).toBe("cached-dpop-proof");
             expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
-            expect(signSpy).toHaveBeenCalled();
+            expect(signSpy).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({ nonce: "cached-resource-nonce" }),
+                TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                "CORRELATION_ID"
+            );
         });
 
         it("throws when DPoP request receives non-DPoP token_type", async () => {

@@ -40,16 +40,6 @@ import {
     AuthToken,
     getTenantIdFromIdTokenClaims,
     buildTenantProfile,
-    canonicalizeDpopNonceIssuer,
-    createDpopNonceEntity,
-    DPOP_NONCE_MAX_ENTRIES_PER_TYPE,
-    DPOP_NONCE_SCHEMA_VERSION,
-    DpopNonceEntity,
-    DpopNonceSource,
-    DpopNonceType,
-    generateDpopNonceCacheKey,
-    isDpopNonceEntityValid,
-    parseDpopNonceCacheKey,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -86,7 +76,6 @@ import { clearHash } from "../utils/BrowserUtils.js";
 import { version } from "../packageMetadata.js";
 import { removeElementFromArray } from "../utils/Helpers.js";
 import { EncryptedData, isEncrypted } from "./EncryptedData.js";
-import { createNewGuid } from "../crypto/BrowserCrypto.js";
 
 type KmsiMap = { [homeAccountId: string]: boolean };
 
@@ -108,85 +97,6 @@ type UpdateOldEntryResult =
     | { entry: null; removalReason: MigrationRemovalReason };
 
 /**
- * In-realm write queue and clear generation shared by cache managers for one
- * client and backing storage instance.
- */
-type DpopNonceCacheState = {
-    writeQueue: Promise<void>;
-    generation: number;
-};
-
-/**
- * Snapshot of the in-realm and cross-tab clear generations captured when a
- * nonce write begins.
- */
-type DpopNonceGeneration = {
-    local: number;
-    shared: string;
-};
-
-/**
- * Cross-tab clear state persisted for one client; writes proceed only when the
- * captured generation is current and clearing is inactive.
- */
-type DpopNonceCoordinationState = {
-    generation: string;
-    clearing: boolean;
-    expiresAt: number;
-};
-
-/**
- * Short-lived cross-tab write lease owned by one nonce writer at a time.
- */
-type DpopNonceWriteLock = {
-    owner: string;
-    expiresAt: number;
-};
-
-const DPOP_NONCE_COORDINATION_PREFIX = "msal.dpop-nonce-coordination";
-const DPOP_NONCE_WRITE_LOCK_DURATION_MS = 5_000;
-const DPOP_NONCE_WRITE_LOCK_RETRY_MS = 10;
-const DPOP_NONCE_WRITE_LOCK_TIMEOUT_MS = 10_000;
-
-const dpopNonceCacheStates = new WeakMap<
-    object,
-    Map<string, DpopNonceCacheState>
->();
-
-/**
- * Returns shared DPoP nonce coordination state for one client and backing
- * storage instance.
- */
-function getDpopNonceCacheState(
-    clientId: string,
-    browserStorage: IWindowStorage<string>
-): DpopNonceCacheState {
-    let storageIdentity: object = browserStorage;
-    if (browserStorage instanceof LocalStorage) {
-        storageIdentity = window.localStorage;
-    } else if (browserStorage instanceof SessionStorage) {
-        storageIdentity = window.sessionStorage;
-    }
-
-    let clientStates = dpopNonceCacheStates.get(storageIdentity);
-    if (!clientStates) {
-        clientStates = new Map<string, DpopNonceCacheState>();
-        dpopNonceCacheStates.set(storageIdentity, clientStates);
-    }
-
-    let cacheState = clientStates.get(clientId);
-    if (!cacheState) {
-        cacheState = {
-            writeQueue: Promise.resolve(),
-            generation: 0,
-        };
-        clientStates.set(clientId, cacheState);
-    }
-
-    return cacheState;
-}
-
-/**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
  */
 export class BrowserCacheManager extends CacheManager {
@@ -194,8 +104,6 @@ export class BrowserCacheManager extends CacheManager {
     protected cacheConfig: Required<CacheOptions>;
     // Window storage object (either local or sessionStorage)
     protected browserStorage: IWindowStorage<string>;
-    // DPoP nonces are never persisted beyond the browser session.
-    private readonly dpopNonceStorage: IWindowStorage<string>;
     // Internal in-memory storage object used for data used by msal that does not need to persist across page loads
     protected internalStorage: MemoryStorage<string>;
     // Temporary cache
@@ -206,11 +114,6 @@ export class BrowserCacheManager extends CacheManager {
     protected logger: Logger;
     // Event Handler
     private eventHandler: EventHandler;
-    /*
-     * Serializes nonce writes so later deposits cannot be overwritten by
-     * earlier calls that finish asynchronous key derivation out of order.
-     */
-    private readonly dpopNonceCacheState: DpopNonceCacheState;
 
     constructor(
         clientId: string,
@@ -220,8 +123,7 @@ export class BrowserCacheManager extends CacheManager {
         performanceClient: IPerformanceClient,
         eventHandler: EventHandler,
         staticAuthorityOptions?: StaticAuthorityOptions,
-        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER,
-        storageImplementation?: IWindowStorage<string>
+        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER
     ) {
         super(
             clientId,
@@ -234,27 +136,17 @@ export class BrowserCacheManager extends CacheManager {
         this.cacheConfig = cacheConfig;
         this.logger = logger;
         this.internalStorage = new MemoryStorage();
-        this.browserStorage =
-            storageImplementation ||
-            getStorageImplementation(
-                clientId,
-                cacheConfig.cacheLocation,
-                logger,
-                performanceClient
-            );
+        this.browserStorage = getStorageImplementation(
+            clientId,
+            cacheConfig.cacheLocation,
+            logger,
+            performanceClient
+        );
         this.temporaryCacheStorage = getStorageImplementation(
             clientId,
             BrowserCacheLocation.SessionStorage,
             logger,
             performanceClient
-        );
-        this.dpopNonceStorage =
-            this.browserStorage instanceof LocalStorage
-                ? this.temporaryCacheStorage
-                : this.browserStorage;
-        this.dpopNonceCacheState = getDpopNonceCacheState(
-            clientId,
-            this.dpopNonceStorage
         );
         this.cookieStorage = new CookieStorage();
 
@@ -271,16 +163,6 @@ export class BrowserCacheManager extends CacheManager {
         );
         await this.browserStorage.initialize(correlationId);
         await this.migrateExistingCache(correlationId);
-        try {
-            this.removePersistedDpopNoncesFromLocalStorage();
-        } catch {
-            // Removal of nonce entries written by earlier versions is best effort.
-        }
-        try {
-            this.getDpopNonceEntries();
-        } catch {
-            // Initialization scavenging is best effort.
-        }
         this.trackVersionChanges(correlationId);
     }
 
@@ -1078,588 +960,6 @@ export class BrowserCacheManager extends CacheManager {
         } catch (error) {
             return null;
         }
-    }
-
-    /**
-     * Stores a validated DPoP nonce in the configured persistent cache.
-     * Quota recovery removes only DPoP nonce entries and never credentials.
-     * @internal
-     */
-    async setDpopNonce(
-        nonceType: DpopNonceType,
-        issuerUri: string,
-        nonce: unknown,
-        nonceSource: DpopNonceSource,
-        lastUpdatedAt: number = Date.now()
-    ): Promise<void> {
-        const entity = createDpopNonceEntity(
-            this.clientId,
-            nonceType,
-            nonceSource,
-            nonce,
-            lastUpdatedAt
-        );
-        const cacheGeneration = this.getDpopNonceGeneration();
-        const writeOperation = this.dpopNonceCacheState.writeQueue.then(() =>
-            this.setDpopNonceInternal(
-                nonceType,
-                issuerUri,
-                entity,
-                cacheGeneration
-            )
-        );
-        this.dpopNonceCacheState.writeQueue = writeOperation.catch(
-            () => undefined
-        );
-        return writeOperation;
-    }
-
-    private async setDpopNonceInternal(
-        nonceType: DpopNonceType,
-        issuerUri: string,
-        entity: DpopNonceEntity,
-        cacheGeneration: DpopNonceGeneration
-    ): Promise<void> {
-        const cacheKey = await this.generateDpopNonceCacheKey(
-            nonceType,
-            issuerUri
-        );
-        const releaseLock = await this.acquireDpopNonceWriteLock();
-        try {
-            if (!this.isDpopNonceGenerationCurrent(cacheGeneration)) {
-                return;
-            }
-
-            this.setDpopNonceByCacheKey(nonceType, cacheKey, entity);
-            if (!this.isDpopNonceGenerationCurrent(cacheGeneration)) {
-                this.removeDpopNonceEntryForWrite(cacheKey);
-            }
-        } finally {
-            releaseLock();
-        }
-    }
-
-    private setDpopNonceByCacheKey(
-        nonceType: DpopNonceType,
-        cacheKey: string,
-        entity: DpopNonceEntity
-    ): void {
-        let persistedEntity: object | null = null;
-        try {
-            const persistedValue = this.dpopNonceStorage.getItem(cacheKey);
-            persistedEntity = persistedValue
-                ? this.validateAndParseJson(persistedValue)
-                : null;
-        } catch {
-            // A failed read must not prevent an otherwise valid cache write.
-        }
-        if (
-            isDpopNonceEntityValid(persistedEntity, this.clientId, nonceType) &&
-            persistedEntity.lastUpdatedAt > entity.lastUpdatedAt
-        ) {
-            return;
-        }
-
-        const serializedEntity = JSON.stringify(entity);
-        const validationTime = Math.max(Date.now(), entity.lastUpdatedAt);
-        const retainedEntries = this.getDpopNonceEntries(
-            nonceType,
-            validationTime
-        );
-        const requiresCapacityEviction =
-            !retainedEntries.some((entry) => entry.key === cacheKey) &&
-            retainedEntries.length >= DPOP_NONCE_MAX_ENTRIES_PER_TYPE;
-
-        try {
-            this.dpopNonceStorage.setItem(cacheKey, serializedEntity);
-            if (requiresCapacityEviction) {
-                this.enforceDpopNonceCapacity(
-                    cacheKey,
-                    entity,
-                    retainedEntries
-                );
-            }
-            return;
-        } catch (error) {
-            const cacheError = createCacheError(error);
-            if (cacheError.errorCode !== CacheErrorCodes.cacheQuotaExceeded) {
-                throw new CacheError(cacheError.errorCode);
-            }
-        }
-
-        const nonceEntries = this.getDpopNonceEntries(
-            undefined,
-            validationTime
-        ).filter((entry) => entry.key !== cacheKey);
-        try {
-            this.dpopNonceStorage.setItem(cacheKey, serializedEntity);
-            if (requiresCapacityEviction) {
-                this.enforceDpopNonceCapacity(
-                    cacheKey,
-                    entity,
-                    retainedEntries
-                );
-            }
-            return;
-        } catch (error) {
-            const cacheError = createCacheError(error);
-            if (cacheError.errorCode !== CacheErrorCodes.cacheQuotaExceeded) {
-                throw new CacheError(cacheError.errorCode);
-            }
-        }
-
-        const removedEntries: Array<{ key: string; value: string }> = [];
-        for (const entry of nonceEntries) {
-            let value: string | null;
-            try {
-                value = this.dpopNonceStorage.getItem(entry.key);
-            } catch (error) {
-                this.restoreDpopNonceEntries(removedEntries);
-                const cacheError = createCacheError(error);
-                throw new CacheError(cacheError.errorCode);
-            }
-            if (value === null) {
-                continue;
-            }
-
-            this.removeDpopNonceEntryForWrite(entry.key);
-            removedEntries.push({ key: entry.key, value });
-            try {
-                this.dpopNonceStorage.setItem(cacheKey, serializedEntity);
-                if (requiresCapacityEviction) {
-                    this.enforceDpopNonceCapacity(
-                        cacheKey,
-                        entity,
-                        retainedEntries
-                    );
-                }
-                return;
-            } catch (error) {
-                const cacheError = createCacheError(error);
-                if (
-                    cacheError.errorCode !== CacheErrorCodes.cacheQuotaExceeded
-                ) {
-                    this.restoreDpopNonceEntries(removedEntries);
-                    throw new CacheError(cacheError.errorCode);
-                }
-            }
-        }
-
-        this.restoreDpopNonceEntries(removedEntries);
-        throw new CacheError(CacheErrorCodes.cacheQuotaExceeded);
-    }
-
-    private getDpopNonceCoordinationKey(suffix: string): string {
-        return `${DPOP_NONCE_COORDINATION_PREFIX}.${encodeURIComponent(
-            this.clientId
-        )}.${suffix}`;
-    }
-
-    private getDpopNonceCoordinationState(): DpopNonceCoordinationState {
-        if (!(this.dpopNonceStorage instanceof LocalStorage)) {
-            return { generation: "", clearing: false, expiresAt: 0 };
-        }
-
-        const rawState = window.localStorage.getItem(
-            this.getDpopNonceCoordinationKey("generation")
-        );
-        if (!rawState) {
-            return { generation: "", clearing: false, expiresAt: 0 };
-        }
-
-        const parsedState = this.validateAndParseJson(rawState);
-        if (
-            parsedState &&
-            "generation" in parsedState &&
-            typeof parsedState.generation === "string" &&
-            "clearing" in parsedState &&
-            typeof parsedState.clearing === "boolean" &&
-            "expiresAt" in parsedState &&
-            typeof parsedState.expiresAt === "number" &&
-            Number.isFinite(parsedState.expiresAt) &&
-            parsedState.expiresAt >= 0 &&
-            parsedState.expiresAt <=
-                Date.now() + DPOP_NONCE_WRITE_LOCK_DURATION_MS
-        ) {
-            return {
-                generation: parsedState.generation,
-                clearing: parsedState.clearing,
-                expiresAt: parsedState.expiresAt,
-            };
-        }
-
-        return { generation: "", clearing: false, expiresAt: 0 };
-    }
-
-    private setDpopNonceCoordinationState(
-        state: DpopNonceCoordinationState
-    ): void {
-        if (!(this.dpopNonceStorage instanceof LocalStorage)) {
-            return;
-        }
-
-        try {
-            window.localStorage.setItem(
-                this.getDpopNonceCoordinationKey("generation"),
-                JSON.stringify(state)
-            );
-        } catch (error) {
-            throw new CacheError(createCacheError(error).errorCode);
-        }
-    }
-
-    private getDpopNonceGeneration(): DpopNonceGeneration {
-        try {
-            return {
-                local: this.dpopNonceCacheState.generation,
-                shared: this.getDpopNonceCoordinationState().generation,
-            };
-        } catch (error) {
-            throw new CacheError(createCacheError(error).errorCode);
-        }
-    }
-
-    private isDpopNonceGenerationCurrent(
-        generation: DpopNonceGeneration
-    ): boolean {
-        return (
-            generation.local === this.dpopNonceCacheState.generation &&
-            generation.shared ===
-                this.getDpopNonceCoordinationState().generation
-        );
-    }
-
-    private async acquireDpopNonceWriteLock(): Promise<() => void> {
-        if (!(this.dpopNonceStorage instanceof LocalStorage)) {
-            return () => undefined;
-        }
-
-        const lockKey = this.getDpopNonceCoordinationKey("lock");
-        const owner = createNewGuid();
-        const acquisitionDeadline =
-            Date.now() + DPOP_NONCE_WRITE_LOCK_TIMEOUT_MS;
-        while (Date.now() < acquisitionDeadline) {
-            try {
-                const coordinationState = this.getDpopNonceCoordinationState();
-                const rawLock = window.localStorage.getItem(lockKey);
-                const parsedLock = rawLock
-                    ? this.validateAndParseJson(rawLock)
-                    : null;
-                const now = Date.now();
-                const lockExpired =
-                    !parsedLock ||
-                    !("expiresAt" in parsedLock) ||
-                    typeof parsedLock.expiresAt !== "number" ||
-                    !Number.isFinite(parsedLock.expiresAt) ||
-                    parsedLock.expiresAt >
-                        now + DPOP_NONCE_WRITE_LOCK_DURATION_MS ||
-                    parsedLock.expiresAt <= now;
-
-                const clearCompleted =
-                    !coordinationState.clearing ||
-                    coordinationState.expiresAt <= now;
-                if (clearCompleted && lockExpired) {
-                    const lock: DpopNonceWriteLock = {
-                        owner,
-                        expiresAt: now + DPOP_NONCE_WRITE_LOCK_DURATION_MS,
-                    };
-                    const serializedLock = JSON.stringify(lock);
-                    window.localStorage.setItem(lockKey, serializedLock);
-                    if (
-                        window.localStorage.getItem(lockKey) === serializedLock
-                    ) {
-                        return () => {
-                            const currentLock =
-                                window.localStorage.getItem(lockKey);
-                            if (currentLock === serializedLock) {
-                                window.localStorage.removeItem(lockKey);
-                            }
-                        };
-                    }
-                }
-            } catch (error) {
-                throw new CacheError(createCacheError(error).errorCode);
-            }
-
-            await new Promise<void>((resolve) => {
-                setTimeout(resolve, DPOP_NONCE_WRITE_LOCK_RETRY_MS);
-            });
-        }
-
-        throw new CacheError(CacheErrorCodes.cacheErrorUnknown);
-    }
-
-    /**
-     * Enforces the per-type nonce capacity while rolling back evictions if a
-     * storage removal fails.
-     */
-    private enforceDpopNonceCapacity(
-        cacheKey: string,
-        entity: DpopNonceEntity,
-        retainedEntries: Array<{ key: string; entity: DpopNonceEntity }>
-    ): void {
-        const entriesToRemove =
-            retainedEntries.length - DPOP_NONCE_MAX_ENTRIES_PER_TYPE + 1;
-        const evictionCandidates = [
-            ...retainedEntries,
-            { key: cacheKey, entity },
-        ].sort(
-            (left, right) =>
-                left.entity.lastUpdatedAt - right.entity.lastUpdatedAt ||
-                (left.key < right.key ? -1 : left.key > right.key ? 1 : 0)
-        );
-        const removedEntries: Array<{ key: string; value: string }> = [];
-        try {
-            for (const entry of evictionCandidates.slice(0, entriesToRemove)) {
-                const value = this.dpopNonceStorage.getItem(entry.key);
-                if (value === null) {
-                    continue;
-                }
-                this.removeDpopNonceEntryForWrite(entry.key);
-                removedEntries.push({ key: entry.key, value });
-            }
-        } catch (error) {
-            try {
-                this.removeDpopNonceEntryForWrite(cacheKey);
-            } catch {
-                // Preserve the original storage failure.
-            }
-            this.restoreDpopNonceEntries(removedEntries);
-            throw error;
-        }
-    }
-
-    /**
-     * Restores entries removed during failed nonce-only quota recovery without
-     * replacing the original sanitized storage error.
-     */
-    private restoreDpopNonceEntries(
-        entries: Array<{ key: string; value: string }>
-    ): void {
-        entries.forEach((entry) => {
-            try {
-                this.dpopNonceStorage.setItem(entry.key, entry.value);
-            } catch {
-                // Preserve the original sanitized cache failure.
-            }
-        });
-    }
-
-    /**
-     * Returns a valid cached DPoP nonce or null. Malformed, expired,
-     * future-dated, and schema-mismatched entries are purged as cache misses.
-     * @internal
-     */
-    async getDpopNonce(
-        nonceType: DpopNonceType,
-        issuerUri: string,
-        now: number = Date.now()
-    ): Promise<string | null> {
-        const cacheKey = await this.generateDpopNonceCacheKey(
-            nonceType,
-            issuerUri
-        );
-        const currentKey = parseDpopNonceCacheKey(cacheKey);
-        this.getDpopNonceKeys(nonceType).forEach((candidateKey) => {
-            const candidate = parseDpopNonceCacheKey(candidateKey);
-            if (
-                candidate &&
-                candidate.schemaVersion !== DPOP_NONCE_SCHEMA_VERSION &&
-                candidate.issuerHash === currentKey?.issuerHash
-            ) {
-                try {
-                    this.dpopNonceStorage.removeItem(candidateKey);
-                } catch {
-                    /*
-                     * Old-schema nonce cache entries are treated as misses
-                     * even when a custom storage implementation cannot remove
-                     * them.
-                     */
-                }
-            }
-        });
-
-        let rawEntity: string | null;
-        try {
-            rawEntity = this.dpopNonceStorage.getItem(cacheKey);
-        } catch {
-            return null;
-        }
-
-        if (!rawEntity) {
-            return null;
-        }
-
-        const entity = this.validateAndParseJson(rawEntity);
-        if (!isDpopNonceEntityValid(entity, this.clientId, nonceType, now)) {
-            try {
-                this.dpopNonceStorage.removeItem(cacheKey);
-            } catch {
-                /*
-                 * Invalid nonce cache entries are treated as misses even when
-                 * a custom storage implementation cannot remove them.
-                 */
-            }
-            return null;
-        }
-
-        return entity.nonce;
-    }
-
-    /**
-     * Gets all DPoP nonce keys owned by this client, optionally restricted to
-     * one nonce type.
-     * @internal
-     */
-    getDpopNonceKeys(nonceType?: DpopNonceType): string[] {
-        try {
-            return this.getDpopNonceKeysForWrite(nonceType);
-        } catch {
-            return [];
-        }
-    }
-
-    /**
-     * Enumerates nonce keys for mutations and propagates storage failures so a
-     * write cannot report false success.
-     */
-    private getDpopNonceKeysForWrite(nonceType?: DpopNonceType): string[] {
-        return this.dpopNonceStorage.getKeys().filter((cacheKey) => {
-            const parsedKey = parseDpopNonceCacheKey(cacheKey);
-            return (
-                parsedKey?.clientId === this.clientId &&
-                (!nonceType || parsedKey.nonceType === nonceType)
-            );
-        });
-    }
-
-    private removePersistedDpopNoncesFromLocalStorage(): void {
-        if (!(this.browserStorage instanceof LocalStorage)) {
-            return;
-        }
-
-        this.browserStorage.getKeys().forEach((cacheKey) => {
-            const parsedKey = parseDpopNonceCacheKey(cacheKey);
-            if (parsedKey?.clientId === this.clientId) {
-                this.browserStorage.removeItem(cacheKey);
-            }
-        });
-    }
-
-    /**
-     * Removes all persisted DPoP nonce entries for this client across schema
-     * versions and nonce types.
-     * @internal
-     */
-    clearDpopNonces(): void {
-        this.dpopNonceCacheState.generation++;
-        const sharedGeneration = createNewGuid();
-        this.setDpopNonceCoordinationState({
-            generation: sharedGeneration,
-            clearing: true,
-            expiresAt: Date.now() + DPOP_NONCE_WRITE_LOCK_DURATION_MS,
-        });
-        let cacheKeys: string[];
-        try {
-            cacheKeys = this.getDpopNonceKeysForWrite();
-        } catch (error) {
-            this.setDpopNonceCoordinationState({
-                generation: sharedGeneration,
-                clearing: false,
-                expiresAt: 0,
-            });
-            throw new CacheError(createCacheError(error).errorCode);
-        }
-
-        let firstError: CacheError | null = null;
-        cacheKeys.forEach((cacheKey) => {
-            try {
-                this.dpopNonceStorage.removeItem(cacheKey);
-            } catch (error) {
-                firstError =
-                    firstError ||
-                    new CacheError(createCacheError(error).errorCode);
-            }
-        });
-        this.setDpopNonceCoordinationState({
-            generation: sharedGeneration,
-            clearing: false,
-            expiresAt: 0,
-        });
-
-        if (firstError) {
-            throw firstError;
-        }
-    }
-
-    private async generateDpopNonceCacheKey(
-        nonceType: DpopNonceType,
-        issuerUri: string
-    ): Promise<string> {
-        const canonicalIssuer = canonicalizeDpopNonceIssuer(
-            issuerUri,
-            nonceType
-        );
-        const issuerHash = await this.cryptoImpl.hashString(canonicalIssuer);
-        return generateDpopNonceCacheKey(this.clientId, nonceType, issuerHash);
-    }
-
-    private removeDpopNonceEntryForWrite(cacheKey: string): void {
-        try {
-            this.dpopNonceStorage.removeItem(cacheKey);
-        } catch (error) {
-            const cacheError = createCacheError(error);
-            throw new CacheError(cacheError.errorCode);
-        }
-    }
-
-    private getDpopNonceEntries(
-        nonceType?: DpopNonceType,
-        now: number = Date.now()
-    ): Array<{ key: string; entity: DpopNonceEntity }> {
-        const entries: Array<{ key: string; entity: DpopNonceEntity }> = [];
-
-        this.getDpopNonceKeysForWrite(nonceType).forEach((cacheKey) => {
-            const parsedKey = parseDpopNonceCacheKey(cacheKey);
-            let rawEntity: string | null = null;
-            try {
-                rawEntity = this.dpopNonceStorage.getItem(cacheKey);
-            } catch {
-                return;
-            }
-
-            const entity = this.validateAndParseJson(rawEntity || "");
-            if (
-                !parsedKey ||
-                parsedKey.schemaVersion !== DPOP_NONCE_SCHEMA_VERSION ||
-                !isDpopNonceEntityValid(
-                    entity,
-                    this.clientId,
-                    parsedKey.nonceType,
-                    now
-                )
-            ) {
-                try {
-                    this.dpopNonceStorage.removeItem(cacheKey);
-                } catch {
-                    /*
-                     * Treat malformed entries as misses even if removal fails.
-                     */
-                }
-                return;
-            }
-
-            entries.push({
-                key: cacheKey,
-                entity,
-            });
-        });
-
-        return entries.sort(
-            (left, right) =>
-                left.entity.lastUpdatedAt - right.entity.lastUpdatedAt ||
-                (left.key < right.key ? -1 : left.key > right.key ? 1 : 0)
-        );
     }
 
     /**
@@ -2788,26 +2088,9 @@ export class BrowserCacheManager extends CacheManager {
         // Removes all accounts and their credentials
         this.removeAllAccounts(correlationId);
         this.removeAppMetadata(correlationId);
-        try {
-            this.clearDpopNonces();
-        } catch {
-            /*
-             * Nonce cleanup is retried below and must not prevent the rest of
-             * logout cache cleanup, including keystore cleanup by the caller.
-             */
-        }
 
         // Remove temp storage first to make sure any cookies are cleared
         this.temporaryCacheStorage.getKeys().forEach((cacheKey: string) => {
-            const parsedDpopNonceKey = parseDpopNonceCacheKey(cacheKey);
-            if (parsedDpopNonceKey?.clientId === this.clientId) {
-                try {
-                    this.removeTemporaryItem(cacheKey);
-                } catch {
-                    // Nonce cleanup is best effort during a full clear.
-                }
-                return;
-            }
             if (
                 cacheKey.indexOf(CacheKeys.PREFIX) !== -1 ||
                 cacheKey.indexOf(this.clientId) !== -1
@@ -2818,21 +2101,6 @@ export class BrowserCacheManager extends CacheManager {
 
         // Removes all remaining MSAL cache items
         this.browserStorage.getKeys().forEach((cacheKey: string) => {
-            if (cacheKey.startsWith(DPOP_NONCE_COORDINATION_PREFIX)) {
-                return;
-            }
-            const parsedDpopNonceKey = parseDpopNonceCacheKey(cacheKey);
-            if (parsedDpopNonceKey) {
-                if (parsedDpopNonceKey.clientId === this.clientId) {
-                    try {
-                        this.browserStorage.removeItem(cacheKey);
-                    } catch {
-                        // Nonce cleanup is best effort during a full clear.
-                    }
-                }
-                return;
-            }
-
             if (
                 cacheKey.indexOf(CacheKeys.PREFIX) !== -1 ||
                 cacheKey.indexOf(this.clientId) !== -1

@@ -932,7 +932,7 @@ const cannotRemoveEmptyScope = "cannot_remove_empty_scope";
 const cannotSetOIDCOptions = "cannot_set_OIDCOptions";
 
 // @internal
-export function canonicalizeDpopNonceIssuer(issuerUri: unknown, nonceType: DpopNonceType, correlationId?: string): string;
+export function canonicalizeDpopResourceServer(resourceRequestUri: unknown, correlationId?: string): string;
 
 // @public (undocumented)
 const CCS_HEADER = "X-AnchorMailbox";
@@ -1085,6 +1085,7 @@ export type ClientConfiguration = {
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
+    dpopNonceStore?: IDpopNonceStore;
     clientCredentials?: ClientCredentials;
     libraryInfo?: LibraryInfo;
     telemetry?: TelemetryOptions;
@@ -1206,6 +1207,7 @@ export type CommonClientConfiguration = {
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
     tokenBindingKeyManager: ITokenBindingKeyManager;
+    dpopNonceStore?: IDpopNonceStore;
     libraryInfo: LibraryInfo;
     telemetry: Required<TelemetryOptions>;
     serverTelemetryManager: ServerTelemetryManager | null;
@@ -1384,9 +1386,6 @@ export function createClientConfigurationError(errorCode: string, correlationId:
 // @internal
 function createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, logger: Logger, correlationId: string, performanceClient: IPerformanceClient): Promise<Authority>;
 
-// @internal
-export function createDpopNonceEntity(clientId: string, nonceType: DpopNonceType, nonceSource: DpopNonceSource, nonce: unknown, lastUpdatedAt?: number): DpopNonceEntity;
-
 // @public
 function createIdTokenEntity(homeAccountId: string, environment: string, idToken: string, clientId: string, tenantId: string): IdTokenEntity;
 
@@ -1548,58 +1547,10 @@ const DOMAIN_HINT = "domain_hint";
 const DPOP_JKT = "dpop_jkt";
 
 // @internal
-export const DPOP_NONCE_CACHE_KEY_PREFIX = "msal.dpop_nonce";
-
-// @internal
-export const DPOP_NONCE_MAX_ENTRIES_PER_TYPE = 50;
-
-// @internal
 export const DPOP_NONCE_MAX_SIZE_BYTES = 1024;
-
-// @internal
-export const DPOP_NONCE_SCHEMA_VERSION = 1;
-
-// @internal
-export const DPOP_NONCE_TTL_MS: number;
 
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";
-
-// @internal
-export type DpopNonceCacheKey = {
-    schemaVersion: number;
-    clientId: string;
-    nonceType: DpopNonceType;
-    issuerHash: string;
-};
-
-// @internal
-export type DpopNonceEntity = {
-    schemaVersion: number;
-    nonce: string;
-    clientId: string;
-    nonceType: DpopNonceType;
-    nonceSource: DpopNonceSource;
-    lastUpdatedAt: number;
-};
-
-// @internal
-export const DpopNonceSource: {
-    readonly AuthorizationServer: "authorization_server";
-    readonly ResourceServer: "resource_server";
-};
-
-// @internal (undocumented)
-export type DpopNonceSource = (typeof DpopNonceSource)[keyof typeof DpopNonceSource];
-
-// @internal
-export const DpopNonceType: {
-    readonly AuthorizationServer: "authorization_server";
-    readonly ResourceServer: "resource_server";
-};
-
-// @internal (undocumented)
-export type DpopNonceType = (typeof DpopNonceType)[keyof typeof DpopNonceType];
 
 // @public (undocumented)
 const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
@@ -1684,13 +1635,11 @@ export type GenerateAuthenticationResultOptions = {
     serverTokenResponse?: ServerAuthorizationTokenResponse;
     requestId?: string;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
+    dpopNonceStore?: IDpopNonceStore;
 };
 
 // @public
 function generateAuthorityMetadataExpiresAt(): number;
-
-// @internal
-export function generateDpopNonceCacheKey(clientId: string, nonceType: DpopNonceType, issuerHash: string): string;
 
 // @public
 function generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, correlationId: string, idTokenClaims?: TokenClaims): string;
@@ -1871,6 +1820,14 @@ const ID_TOKEN = "id_token";
 
 // @public (undocumented)
 const ID_TOKEN_HINT = "id_token_hint";
+
+// @internal
+export interface IDpopNonceStore {
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    getResourceServerNonce(resourceRequestUri: string): string | undefined;
+}
 
 // @internal (undocumented)
 export type IdTokenCache = Record<string, IdTokenEntity>;
@@ -2093,9 +2050,6 @@ function isCacheExpired(lastUpdatedAt: string, cacheRetentionDays: number): bool
 
 // @public (undocumented)
 function isCredentialEntity(entity: object): entity is CredentialEntity;
-
-// @internal
-export function isDpopNonceEntityValid(entity: unknown, clientId: string, nonceType: DpopNonceType, now?: number): entity is DpopNonceEntity;
 
 // @public (undocumented)
 export interface ISerializableTokenCache {
@@ -2420,9 +2374,6 @@ const OPENID_SCOPE = "openid";
 
 // @public (undocumented)
 const openIdConfigError = "openid_config_error";
-
-// @internal
-export function parseDpopNonceCacheKey(cacheKey: string): DpopNonceCacheKey | null;
 
 // @public
 function parseRequestState(base64Decode: (input: string) => string, state: string, correlationId: string): RequestStateObject;
@@ -2985,7 +2936,7 @@ const RESPONSE_TYPE = "response_type";
 
 // @internal
 export class ResponseHandler {
-    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, tokenBindingKeyManager?: ITokenBindingKeyManager);
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, tokenBindingKeyManager?: ITokenBindingKeyManager, dpopNonceStore?: IDpopNonceStore);
     static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, options?: GenerateAuthenticationResultOptions): Promise<AuthenticationResult>;
     handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
     validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse, correlationId: string, refreshAccessToken?: boolean): void;

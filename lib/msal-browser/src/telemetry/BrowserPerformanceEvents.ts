@@ -22,6 +22,13 @@ export const AcquireTokenByRefreshToken = "acquireTokenByRefreshToken";
 export const AcquireTokenSilentAsync = "acquireTokenSilentAsync";
 
 /**
+ * loadDpopNonce API in StandardController (msal-browser).
+ * Stores a resource-server DPoP nonce in controller-owned memory.
+ */
+export const StandardControllerLoadDpopNonce =
+    "standardControllerLoadDpopNonce";
+
+/**
  * provisionTokenBindingKey API in TokenBindingKeyManager class (msal-browser).
  * Used to provision token-binding key material and return a key identifier.
  */
@@ -206,11 +213,6 @@ export const LoadAccount = "loadAccount";
 export const LoadIdToken = "loadIdToken";
 export const LoadAccessToken = "loadAccessToken";
 export const LoadRefreshToken = "loadRefreshToken";
-
-/**
- * loadDpopNonce API in TokenCache.
- */
-export const TokenCacheLoadDpopNonce = "tokenCacheLoadDpopNonce";
 
 /**
  * Background telemetry measurement that tracks whether a late bridge response

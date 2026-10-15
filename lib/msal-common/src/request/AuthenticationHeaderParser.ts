@@ -7,7 +7,7 @@ import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError.js";
-import { validateDpopNonce } from "../cache/entities/DpopNonceEntity.js";
+import { validateDpopNonce } from "../crypto/DpopNonceUtils.js";
 import { HeaderNames } from "../utils/Constants.js";
 
 type WWWAuthenticateChallenges = {

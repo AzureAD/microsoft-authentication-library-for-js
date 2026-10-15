@@ -682,7 +682,6 @@ export interface IPublicClientApplication {
     getConfiguration(): BrowserConfiguration;
     // (undocumented)
     getLogger(): Logger;
-    getTokenCache?(): ITokenCache;
     // (undocumented)
     handleRedirectPromise(options?: HandleRedirectPromiseOptions): Promise<AuthenticationResult | null>;
     // (undocumented)
@@ -691,6 +690,7 @@ export interface IPublicClientApplication {
     initialize(request?: InitializeApplicationRequest): Promise<void>;
     // (undocumented)
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
+    loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
     // (undocumented)
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     // (undocumented)
@@ -721,17 +721,6 @@ function isInPopup(): boolean;
 
 // @public
 export function isPlatformBrokerAvailable(domConfig: boolean, loggerOptions?: LoggerOptions, perfClient?: IPerformanceClient, correlationId?: string): Promise<boolean>;
-
-// @public
-export interface ITokenCache {
-    loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
-}
-
-// @public
-export interface IWebBrokerBridgeMessage {
-    readonly requestId: string;
-    readonly type: string;
-}
 
 // @public (undocumented)
 export interface IWindowStorage<T> {
@@ -971,11 +960,11 @@ export class PublicClientApplication implements IPublicClientApplication {
     // @internal
     getConfiguration(): BrowserConfiguration;
     getLogger(): Logger;
-    getTokenCache(): ITokenCache;
     handleRedirectPromise(options?: HandleRedirectPromiseOptions): Promise<AuthenticationResult | null>;
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
     initialize(request?: InitializeApplicationRequest): Promise<void>;
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
+    loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
     loginPopup(request?: PopupRequest | undefined): Promise<AuthenticationResult>;
     loginRedirect(request?: RedirectRequest | undefined): Promise<void>;
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;

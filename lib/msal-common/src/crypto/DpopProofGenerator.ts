@@ -12,7 +12,7 @@ import {
 } from "../error/ClientConfigurationError.js";
 import { JoseHeader } from "./JoseHeader.js";
 import type { PublicJsonWebKey } from "./PublicJsonWebKey.js";
-import { validateDpopNonce } from "../cache/entities/DpopNonceEntity.js";
+import { validateDpopNonce } from "./DpopNonceUtils.js";
 
 /**
  * RFC 9449 DPoP proof JWT payload claims.

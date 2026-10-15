@@ -99,8 +99,8 @@ import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandle
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
-import { ITokenCache, TokenCache } from "../cache/TokenCache.js";
 import { resolveSilentRequestPreparation } from "../request/SilentRequestHelpers.js";
+import { DpopNonceStore } from "./DpopNonceStore.js";
 
 function preflightCheck(
     initialized: boolean,
@@ -129,7 +129,7 @@ export class StandardController implements IController {
 
     // Storage interface implementation
     protected readonly browserStorage: BrowserCacheManager;
-    private readonly tokenCache: TokenCache;
+    private readonly dpopNonceStore: DpopNonceStore;
 
     // Native Cache in memory storage implementation
     protected readonly nativeInternalStorage: BrowserCacheManager;
@@ -270,11 +270,7 @@ export class StandardController implements IController {
                   undefined,
                   this.tokenBindingKeyManager
               );
-        this.tokenCache = new TokenCache(
-            this.browserStorage,
-            this.logger,
-            this.performanceClient
-        );
+        this.dpopNonceStore = new DpopNonceStore();
 
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
@@ -1642,6 +1638,7 @@ export class StandardController implements IController {
      * @param logoutRequest
      */
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
+        this.dpopNonceStore.clear();
         if (!this.isBrowserEnvironment) {
             return;
         }
@@ -1964,7 +1961,8 @@ export class StandardController implements IController {
             correlationId,
             this.platformAuthProvider,
             this.operatingContext.getResponseHandlers()?.waitForPopupResponse,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            this.dpopNonceStore
         );
     }
 
@@ -1984,7 +1982,8 @@ export class StandardController implements IController {
             this.nativeInternalStorage,
             correlationId,
             this.platformAuthProvider,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            this.dpopNonceStore
         );
     }
 
@@ -2006,7 +2005,8 @@ export class StandardController implements IController {
             correlationId,
             this.platformAuthProvider,
             this.operatingContext.getResponseHandlers()?.waitForIframeResponse,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            this.dpopNonceStore
         );
     }
 
@@ -2026,7 +2026,8 @@ export class StandardController implements IController {
             this.performanceClient,
             correlationId,
             this.platformAuthProvider,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            this.dpopNonceStore
         );
     }
 
@@ -2046,7 +2047,8 @@ export class StandardController implements IController {
             this.performanceClient,
             correlationId,
             this.platformAuthProvider,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            this.dpopNonceStore
         );
     }
 
@@ -2067,7 +2069,8 @@ export class StandardController implements IController {
             this.performanceClient,
             correlationId,
             this.platformAuthProvider,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            this.dpopNonceStore
         );
     }
 
@@ -2119,10 +2122,26 @@ export class StandardController implements IController {
     }
 
     /**
-     * Returns the token cache bound to this controller's active cache manager.
+     * Stores a resource-server DPoP nonce for the matching HTTPS origin.
      */
-    public getTokenCache(): ITokenCache {
-        return this.tokenCache;
+    public async loadDpopNonce(
+        resourceRequestUri: string,
+        dpopNonce: string
+    ): Promise<void> {
+        const correlationId = createNewGuid();
+        return invokeAsync(
+            async (): Promise<void> => {
+                this.dpopNonceStore.setResourceServerNonce(
+                    resourceRequestUri,
+                    dpopNonce,
+                    correlationId
+                );
+            },
+            BrowserPerformanceEvents.StandardControllerLoadDpopNonce,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
     }
 
     /**
@@ -2131,7 +2150,6 @@ export class StandardController implements IController {
      */
     setLogger(logger: Logger): void {
         this.logger = logger;
-        this.tokenCache.setLogger(logger);
     }
 
     /**

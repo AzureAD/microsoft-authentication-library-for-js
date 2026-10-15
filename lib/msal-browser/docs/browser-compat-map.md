@@ -10,8 +10,8 @@ This document catalogs browser Web APIs that MSAL Browser depends on, their role
 
 | API | MSAL Usage | Fallback |
 |-----|-----------|----------|
-| `sessionStorage` | Interaction status, PKCE verifier, redirect origin URL, redirect bridge response cache, and DPoP nonce cache | `MemoryStorage` when unavailable (interaction/redirect state and nonces are lost on navigation) |
-| `localStorage` | Persistent token cache (when `cacheLocation: "localStorage"`) | `MemoryStorage` when unavailable (tokens are lost on navigation); not used by default |
+| `sessionStorage` | Interaction status, PKCE verifier, redirect origin URL, redirect bridge response cache | `MemoryStorage` (response lost on navigation) |
+| `localStorage` | Persistent token cache (when `cacheLocation: "localStorage"`) | None if configured; not used by default |
 | `IndexedDB` | PoP token RSA keypairs and DPoP token-binding keypairs | In-memory (keys lost on reload) |
 | `document.cookie` | Encryption key for localStorage cache | None — cache cannot be decrypted without it |
 
@@ -20,7 +20,6 @@ This document catalogs browser Web APIs that MSAL Browser depends on, their role
 - Safari ITP: 7-day cap on script-writable `localStorage`/cookies — tokens evicted without user interaction
 - Firefox PB: `indexedDB.open()` throws `SecurityError` — PoP/DPoP key storage falls back to memory
 - Chrome 115+ / Safari 16.1+: storage partitioned in cross-origin iframes — affects NAA and embedded apps
-- DPoP nonces are restricted to session or memory storage and are not shared across tabs
 
 ### Crypto
 
