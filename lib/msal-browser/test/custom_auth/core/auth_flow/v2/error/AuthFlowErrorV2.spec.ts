@@ -538,6 +538,8 @@ describe("AuthFlowErrorV2 error mapping", () => {
             );
 
             expect(error.isMissingRequiredAttributes()).toBe(true);
+            expect(error.requiredAttributes).toEqual(["jobTitle"]);
+            expect(error.invalidAttributes).toEqual([]);
         });
 
         it("is false for unrelated attribute validation details", () => {
@@ -569,10 +571,40 @@ describe("AuthFlowErrorV2 error mapping", () => {
 
             expect(error.isMissingRequiredAttributes()).toBe(false);
             expect(error.isInvalidPassword()).toBe(false);
+            expect(error.requiredAttributes).toEqual([]);
+            expect(error.invalidAttributes).toEqual([]);
             expect(
                 (error.errorData as CustomAuthApiError)
                     .attributeValidationDetails
             ).toHaveLength(2);
+        });
+
+        it("returns required and invalid attribute ids from validation details", () => {
+            const error = errorWithAttributeValidationDetails([
+                {
+                    attributeIds: ["password", "username", "password"],
+                    code: "attributeRequired",
+                },
+                {
+                    attributeIds: ["givenName"],
+                    code: "attributeValidationFailed",
+                },
+                {
+                    attributeIds: [null, "username"],
+                    code: "attributeValidationFailed",
+                },
+                {
+                    attributeIds: ["password"],
+                    code: "passwordPolicyViolation",
+                },
+                {
+                    attributeIds: ["email"],
+                    code: "userAlreadyExists",
+                },
+            ]);
+
+            expect(error.requiredAttributes).toEqual(["password", "username"]);
+            expect(error.invalidAttributes).toEqual(["givenName", "username"]);
         });
     });
 });

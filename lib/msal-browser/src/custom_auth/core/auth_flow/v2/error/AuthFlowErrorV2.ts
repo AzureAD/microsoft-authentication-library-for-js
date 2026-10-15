@@ -42,6 +42,20 @@ export class AuthFlowErrorV2 {
     }
 
     /**
+     * Gets the attribute ids that the service reports as required.
+     */
+    get requiredAttributes(): readonly string[] {
+        return this.getAttributeIdsByCode("attributeRequired");
+    }
+
+    /**
+     * Gets the attribute ids whose submitted values failed validation.
+     */
+    get invalidAttributes(): readonly string[] {
+        return this.getAttributeIdsByCode("attributeValidationFailed");
+    }
+
+    /**
      * Checks if the error requires the flow to continue in the browser. The
      * server surfaces this as the `web_redirect_required` OAuth suberror, so a
      * browser hand-off arrives as a `FailedStateV2` on which this detector
@@ -128,9 +142,7 @@ export class AuthFlowErrorV2 {
      * @returns True when required attributes are missing, otherwise false.
      */
     isMissingRequiredAttributes(): boolean {
-        return this.getAttributeValidationDetails().some(
-            (detail) => detail.code === "attributeRequired"
-        );
+        return this.requiredAttributes.length > 0;
     }
 
     private isUserNotFoundError(): boolean {
@@ -202,5 +214,19 @@ export class AuthFlowErrorV2 {
                       typeof detail === "object" && detail !== null
               )
             : [];
+    }
+
+    private getAttributeIdsByCode(code: string): string[] {
+        const attributeIds = this.getAttributeValidationDetails().flatMap(
+            (detail) =>
+                detail.code === code && Array.isArray(detail.attributeIds)
+                    ? detail.attributeIds.filter(
+                          (attributeId): attributeId is string =>
+                              typeof attributeId === "string"
+                      )
+                    : []
+        );
+
+        return [...new Set(attributeIds)];
     }
 }

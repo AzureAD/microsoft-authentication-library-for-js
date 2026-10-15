@@ -518,7 +518,7 @@ describe("Sign-up V2 entry", () => {
         });
     });
 
-    it("submits partial attributes and returns the server missing-attribute error", async () => {
+    it("returns required and invalid attribute ids after partial submission", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
             .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -563,6 +563,11 @@ describe("Sign-up V2 entry", () => {
                                         message:
                                             "Attribute 'jobTitle' is required.",
                                     },
+                                    {
+                                        attributeIds: ["city"],
+                                        code: "attributeValidationFailed",
+                                        message: "Enter a valid value.",
+                                    },
                                 ],
                             },
                         },
@@ -603,6 +608,8 @@ describe("Sign-up V2 entry", () => {
         expect(submitResult.isFailed()).toBe(true);
         expect(submitResult.error).toBeInstanceOf(AuthFlowErrorV2);
         expect(submitResult.error?.isMissingRequiredAttributes()).toBe(true);
+        expect(submitResult.error?.requiredAttributes).toEqual(["jobTitle"]);
+        expect(submitResult.error?.invalidAttributes).toEqual(["city"]);
 
         expect(JSON.parse((fetch as jest.Mock).mock.calls[4][1].body)).toEqual({
             continuationToken: "ct-profile",
