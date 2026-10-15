@@ -18,6 +18,7 @@ import { AuthenticationMethodV2 } from "../../../../../src/custom_auth/core/auth
 import { CustomAuthFlowScenarioV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { FlowInteractionClientV2 } from "../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import { AuthenticationFactorV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";
 
 describe("CustomAuthResultV2", () => {
@@ -48,6 +49,7 @@ describe("CustomAuthResultV2", () => {
                 links: {},
             },
             methods: [{ id: "email", type: "email", challengeHref: "/c" }],
+            authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
         });
 
     describe("isState narrowing", () => {
@@ -60,9 +62,9 @@ describe("CustomAuthResultV2", () => {
 
             if (result.isState("authMethodSelectionRequired")) {
                 // Compile-time proof of narrowing: `methods` and
-                // `requestChallenge` exist only on the narrowed member.
+                // `selectAuthMethod` exist only on the narrowed member.
                 expect(result.state.methods).toEqual([method]);
-                expect(typeof result.state.requestChallenge).toBe("function");
+                expect(typeof result.state.selectAuthMethod).toBe("function");
             }
         });
 
