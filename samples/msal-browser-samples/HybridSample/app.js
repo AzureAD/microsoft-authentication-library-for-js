@@ -1,5 +1,6 @@
 var createError = require('http-errors');
 var express = require('express');
+var { create } = require('express-handlebars');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
@@ -16,6 +17,11 @@ dotenv.config();
 var app = express();
 
 // view engine setup
+app.engine('hbs', create({
+    extname: '.hbs',
+    defaultLayout: 'layout',
+    layoutsDir: path.join(__dirname, 'views')
+}).engine);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
