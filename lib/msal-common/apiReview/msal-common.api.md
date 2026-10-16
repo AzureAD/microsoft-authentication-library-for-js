@@ -581,6 +581,7 @@ const AUTHORIZATION_PENDING = "authorization_pending";
 export class AuthorizationCodeClient {
     constructor(configuration: ClientConfiguration, performanceClient: IPerformanceClient);
     acquireToken(request: CommonAuthorizationCodeRequest, apiId: number, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult>;
+    acquireTokenWithPreparedAuthority(request: CommonAuthorizationCodeRequest, apiId: number, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult>;
     // (undocumented)
     authority: Authority;
     // (undocumented)
@@ -598,6 +599,7 @@ export class AuthorizationCodeClient {
     protected networkClient: INetworkModule;
     // (undocumented)
     protected performanceClient: IPerformanceClient;
+    prepareTokenRequest(request: CommonAuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<string>;
     // (undocumented)
     protected serverTelemetryManager: ServerTelemetryManager | null;
 }
@@ -713,6 +715,7 @@ export type BaseAuthRequest = {
     scenarioId?: string;
     popKid?: string;
     dpopJkt?: string;
+    dpopProof?: string;
     embeddedClientId?: string;
     httpMethod?: HttpMethod;
     resource?: string;

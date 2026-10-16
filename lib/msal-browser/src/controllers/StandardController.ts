@@ -97,6 +97,12 @@ import {
 } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
+import { getDiscoveredAuthority } from "../interaction_client/BaseInteractionClient.js";
+import {
+    AuthorityEndpointPreparationRequest,
+    AuthorityEndpointPreparationResult,
+    AuthorizationCodeRedemptionContinuation,
+} from "../app/IPublicClientApplication.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 import { resolveSilentRequestPreparation } from "../request/SilentRequestHelpers.js";
@@ -2142,6 +2148,57 @@ export class StandardController implements IController {
      */
     public getConfiguration(): BrowserConfiguration {
         return this.config;
+    }
+
+    /**
+     * Prepares the authorization and preliminary token endpoints selected by
+     * this controller's authority metadata pipeline.
+     * @internal
+     */
+    public async prepareAuthorityEndpoints(
+        request: AuthorityEndpointPreparationRequest
+    ): Promise<AuthorityEndpointPreparationResult> {
+        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
+        const authority = await invokeAsync(
+            getDiscoveredAuthority,
+            BrowserPerformanceEvents.PrepareAuthorityEndpoints,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(
+            this.config,
+            request.correlationId,
+            this.performanceClient,
+            this.browserStorage,
+            this.logger,
+            request.authority,
+            request.azureCloudOptions,
+            request.extraQueryParameters,
+            request.account
+        );
+
+        return {
+            authorizationEndpoint: authority.authorizationEndpoint,
+            tokenEndpoint: authority.tokenEndpoint,
+        };
+    }
+
+    /**
+     * Prepares a single-use authorization-code redemption continuation after
+     * final instance-aware authority resolution.
+     * @internal
+     */
+    public async prepareAuthorizationCodeRedemption(
+        request: AuthorizationCodeRequest
+    ): Promise<AuthorizationCodeRedemptionContinuation> {
+        const correlationId = this.getRequestCorrelationId(request);
+        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
+        return this.createSilentAuthCodeClient(
+            correlationId
+        ).prepareAuthorizationCodeRedemption({
+            ...request,
+            correlationId,
+        });
     }
 
     /**

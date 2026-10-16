@@ -25,6 +25,7 @@ import {
     StubPerformanceClient,
     AuthorityFactory,
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+    CommonAuthorizationUrlRequest,
 } from "@azure/msal-common/browser";
 import {
     Configuration,
@@ -47,6 +48,7 @@ import { TestStorageManager } from "../cache/TestStorageManager.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
 import { TestTimeUtils } from "msal-test-utils";
+import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
 
 class TestInteractionHandler extends InteractionHandler {
     constructor(
@@ -339,6 +341,103 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 testCodeResponse
             );
             expect(acquireTokenSpy).not.toThrow();
+        });
+    });
+
+    describe("prepareCodeRedemptionFromServer()", () => {
+        const request: CommonAuthorizationUrlRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            scopes: ["User.Read"],
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            redirectUri: "/",
+            responseMode: "fragment",
+            nonce: TEST_CONFIG.CORRELATION_ID,
+            state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+        };
+        const codeResponse: AuthorizationCodePayload = {
+            code: "authcode",
+            state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+        };
+
+        it("returns the final token endpoint and redeems once with the supplied proof", async () => {
+            const tokenEndpoint = `${TEST_URIS.DEFAULT_INSTANCE}common/oauth2/v2.0/token`;
+            const result = {} as AuthenticationResult;
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "prepareTokenRequest"
+            ).mockResolvedValue(tokenEndpoint);
+            const redeemSpy = jest
+                .spyOn(
+                    AuthorizationCodeClient.prototype,
+                    "acquireTokenWithPreparedAuthority"
+                )
+                .mockResolvedValue(result);
+            const interactionHandler = new TestInteractionHandler(
+                authCodeModule,
+                browserStorage
+            );
+
+            const continuation =
+                await interactionHandler.prepareCodeRedemptionFromServer(
+                    codeResponse,
+                    request,
+                    ApiId.acquireTokenPopup,
+                    false
+                );
+
+            expect(continuation.tokenEndpoint).toBe(tokenEndpoint);
+            expect(redeemSpy).not.toHaveBeenCalled();
+            await expect(continuation.redeem("signed-proof")).resolves.toBe(
+                result
+            );
+            expect(redeemSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    code: codeResponse.code,
+                    dpopProof: "signed-proof",
+                }),
+                ApiId.acquireTokenPopup,
+                codeResponse
+            );
+            await expect(
+                continuation.redeem("another-proof")
+            ).rejects.toMatchObject({
+                errorCode:
+                    BrowserAuthErrorCodes.authCodeRedemptionContinuationAlreadyUsed,
+            });
+        });
+
+        it("rejects an empty proof without consuming the continuation", async () => {
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "prepareTokenRequest"
+            ).mockResolvedValue(
+                `${TEST_URIS.DEFAULT_INSTANCE}common/oauth2/v2.0/token`
+            );
+            const redeemSpy = jest
+                .spyOn(
+                    AuthorizationCodeClient.prototype,
+                    "acquireTokenWithPreparedAuthority"
+                )
+                .mockResolvedValue({} as AuthenticationResult);
+            const interactionHandler = new TestInteractionHandler(
+                authCodeModule,
+                browserStorage
+            );
+            const continuation =
+                await interactionHandler.prepareCodeRedemptionFromServer(
+                    codeResponse,
+                    request,
+                    ApiId.acquireTokenPopup,
+                    false
+                );
+
+            await expect(continuation.redeem(" ")).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.dpopProofRequired,
+            });
+            await expect(
+                continuation.redeem("signed-proof")
+            ).resolves.toBeDefined();
+            expect(redeemSpy).toHaveBeenCalledTimes(1);
         });
     });
 
