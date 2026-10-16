@@ -8,6 +8,8 @@ import {
     AccountInfo,
     Logger,
     PerformanceCallbackFunction,
+    AzureCloudOptions,
+    StringDict,
 } from "@azure/msal-common/browser";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
@@ -29,6 +31,40 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+
+/**
+ * Authority inputs used to prepare broker-authoritative authorization and
+ * token endpoints before a DPoP proof is generated.
+ * @internal
+ */
+export type AuthorityEndpointPreparationRequest = {
+    authority?: string;
+    azureCloudOptions?: AzureCloudOptions;
+    extraQueryParameters?: StringDict;
+    account?: AccountInfo;
+    correlationId: string;
+};
+
+/**
+ * Discovered endpoints selected by the component that will send the
+ * authorization and token requests.
+ * @internal
+ */
+export type AuthorityEndpointPreparationResult = {
+    authorizationEndpoint: string;
+    tokenEndpoint: string;
+};
+
+/**
+ * Single-use authorization-code redemption continuation. The final token
+ * endpoint is exposed so the caller can request a proof bound to that exact
+ * endpoint before resuming redemption.
+ * @internal
+ */
+export type AuthorizationCodeRedemptionContinuation = {
+    tokenEndpoint: string;
+    redeem(dpopProof: string): Promise<AuthenticationResult>;
+};
 
 export interface IPublicClientApplication {
     // TODO: Make request mandatory in the next major version?
@@ -66,6 +102,14 @@ export interface IPublicClientApplication {
     setNavigationClient(navigationClient: INavigationClient): void;
     /** @internal */
     getConfiguration(): BrowserConfiguration;
+    /** @internal */
+    prepareAuthorityEndpoints(
+        request: AuthorityEndpointPreparationRequest
+    ): Promise<AuthorityEndpointPreparationResult>;
+    /** @internal */
+    prepareAuthorizationCodeRedemption(
+        request: AuthorizationCodeRequest
+    ): Promise<AuthorizationCodeRedemptionContinuation>;
     hydrateCache(
         result: AuthenticationResult,
         request:
@@ -209,6 +253,22 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         throw createBrowserConfigurationAuthError(
             BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
             ""
+        );
+    },
+    prepareAuthorityEndpoints: () => {
+        return Promise.reject(
+            createBrowserConfigurationAuthError(
+                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
+                ""
+            )
+        );
+    },
+    prepareAuthorizationCodeRedemption: () => {
+        return Promise.reject(
+            createBrowserConfigurationAuthError(
+                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
+                ""
+            )
         );
     },
     hydrateCache: () => {

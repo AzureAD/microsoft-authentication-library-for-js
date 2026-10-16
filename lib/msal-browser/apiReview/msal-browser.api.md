@@ -92,6 +92,9 @@ export type ApiId = (typeof ApiId)[keyof typeof ApiId];
 const authCodeOrNativeAccountIdRequired = "auth_code_or_nativeAccountId_required";
 
 // @public (undocumented)
+const authCodeRedemptionContinuationAlreadyUsed = "auth_code_redemption_continuation_already_used";
+
+// @public (undocumented)
 const authCodeRequired = "auth_code_required";
 
 export { AuthenticationHeaderParser }
@@ -115,6 +118,27 @@ export type AuthenticationScheme = Constants.AuthenticationScheme;
 export { AuthError }
 
 export { AuthErrorCodes }
+
+// @internal
+export type AuthorityEndpointPreparationRequest = {
+    authority?: string;
+    azureCloudOptions?: AzureCloudOptions;
+    extraQueryParameters?: StringDict;
+    account?: AccountInfo;
+    correlationId: string;
+};
+
+// @internal
+export type AuthorityEndpointPreparationResult = {
+    authorizationEndpoint: string;
+    tokenEndpoint: string;
+};
+
+// @internal
+export type AuthorizationCodeRedemptionContinuation = {
+    tokenEndpoint: string;
+    redeem(dpopProof: string): Promise<AuthenticationResult>;
+};
 
 // @public
 export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "code" | "enableSpaAuthorizationCode">> & {
@@ -203,6 +227,8 @@ declare namespace BrowserAuthErrorCodes {
         cryptoKeyNotFound,
         invalidPublicJwk,
         authCodeRequired,
+        dpopProofRequired,
+        authCodeRedemptionContinuationAlreadyUsed,
         authCodeOrNativeAccountIdRequired,
         spaCodeAndNativeAccountIdPresent,
         databaseUnavailable,
@@ -454,6 +480,9 @@ const databaseUnavailable = "database_unavailable";
 export const DEFAULT_IFRAME_TIMEOUT_MS = 10000;
 
 // @public (undocumented)
+const dpopProofRequired = "dpop_proof_required";
+
+// @public (undocumented)
 const earJweEmpty = "ear_jwe_empty";
 
 // @public (undocumented)
@@ -700,6 +729,10 @@ export interface IPublicClientApplication {
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
     // (undocumented)
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
+    // @internal (undocumented)
+    prepareAuthorityEndpoints(request: AuthorityEndpointPreparationRequest): Promise<AuthorityEndpointPreparationResult>;
+    // @internal (undocumented)
+    prepareAuthorizationCodeRedemption(request: AuthorizationCodeRequest): Promise<AuthorizationCodeRedemptionContinuation>;
     // (undocumented)
     removeEventCallback(callbackId: string): void;
     // (undocumented)
@@ -969,6 +1002,10 @@ export class PublicClientApplication implements IPublicClientApplication {
     loginRedirect(request?: RedirectRequest | undefined): Promise<void>;
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
+    // @internal
+    prepareAuthorityEndpoints(request: AuthorityEndpointPreparationRequest): Promise<AuthorityEndpointPreparationResult>;
+    // @internal
+    prepareAuthorizationCodeRedemption(request: AuthorizationCodeRequest): Promise<AuthorizationCodeRedemptionContinuation>;
     removeEventCallback(callbackId: string): void;
     removePerformanceCallback(callbackId: string): boolean;
     setActiveAccount(account: AccountInfo | null): void;

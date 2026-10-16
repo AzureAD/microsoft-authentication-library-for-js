@@ -49,6 +49,9 @@ export {
 
 // Interfaces
 export {
+    AuthorityEndpointPreparationRequest,
+    AuthorityEndpointPreparationResult,
+    AuthorizationCodeRedemptionContinuation,
     IPublicClientApplication,
     stubbedPublicClientApplication,
 } from "./app/IPublicClientApplication.js";

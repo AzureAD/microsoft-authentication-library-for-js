@@ -95,6 +95,11 @@ export async function addDpopTokenProofHeader(
         cryptoUtils,
         tokenBindingKeyManager
     );
+    if (request.dpopProof?.trim()) {
+        headers[HeaderNames.DPOP] = request.dpopProof;
+        return;
+    }
+
     const keyId = request.dpopJkt;
     if (!keyId?.trim()) {
         throw createClientAuthError(

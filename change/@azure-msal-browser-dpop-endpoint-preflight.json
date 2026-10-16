@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add internal authority endpoint preparation and single-use authorization-code redemption continuation seams for brokered DPoP flows",
+    "packageName": "@azure/msal-browser",
+    "email": "hectormmg@microsoft.com",
+    "dependentChangeType": "patch"
+}

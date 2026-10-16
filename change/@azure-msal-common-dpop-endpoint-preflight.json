@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add prepared authorization-code redemption and caller-owned DPoP token-proof support for brokered flows",
+    "packageName": "@azure/msal-common",
+    "email": "hectormmg@microsoft.com",
+    "dependentChangeType": "patch"
+}
