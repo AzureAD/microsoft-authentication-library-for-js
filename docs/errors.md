@@ -72,6 +72,10 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   State not found.
 
+### `unsupported_cca_instance_aware`
+
+-   ConfidentialClientApplication does not support instance-aware configuration or authorization requests.
+
 ### `nonce_mismatch`
 
 -   Nonce mismatch error.
