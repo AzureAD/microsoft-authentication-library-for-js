@@ -19,7 +19,35 @@ export function isSafari(
         ? navigator.userAgent
         : ""
 ): boolean {
-    return userAgent.includes("Safari") && userAgent.includes("AppleWebKit");
+    if (
+        /OPR\/|OPiOS|PhantomJS|SamsungBrowser|Edge|EdgiOS|EdgA/.test(userAgent)
+    ) {
+        return false;
+    }
+
+    const browserNavigator =
+        typeof navigator !== "undefined"
+            ? (navigator as Navigator & {
+                  userAgentData?: {
+                      brands?: Array<{ brand?: string } | undefined>;
+                  };
+              })
+            : undefined;
+
+    if (
+        /Edg/.test(userAgent) ||
+        browserNavigator?.userAgentData?.brands?.some(
+            (brand) => brand?.brand === "Microsoft Edge"
+        )
+    ) {
+        return false;
+    }
+
+    if (/Electron|CriOS|Chrome|Trident|FxiOS|Firefox/.test(userAgent)) {
+        return false;
+    }
+
+    return /Safari/.test(userAgent) || /AppleWebKit/.test(userAgent);
 }
 
 /**

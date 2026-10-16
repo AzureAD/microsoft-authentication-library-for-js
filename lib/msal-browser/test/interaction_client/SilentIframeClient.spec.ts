@@ -1798,15 +1798,36 @@ describe("SilentIframeClient", () => {
                 );
             });
 
-            it("Invokes EAR flow when protocolMode is set to EAR", async () => {
-                const earFormSpy = jest
-                    .spyOn(SilentHandler, "initiateEarRequest")
-                    .mockResolvedValue(document.createElement("iframe"));
+            it.each([
+                [
+                    "Chrome",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
+                ],
+                [
+                    "Headless Chrome",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+                ],
+                [
+                    "Edge",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0",
+                ],
+            ])(
+                "Invokes EAR flow when protocolMode is set to EAR in %s",
+                async (_browser, userAgent) => {
+                    jest.spyOn(
+                        window.navigator,
+                        "userAgent",
+                        "get"
+                    ).mockReturnValue(userAgent);
+                    const earFormSpy = jest
+                        .spyOn(SilentHandler, "initiateEarRequest")
+                        .mockResolvedValue(document.createElement("iframe"));
 
-                const result = await pca.ssoSilent(validRequest);
-                expect(result).toEqual(getTestAuthenticationResult());
-                expect(earFormSpy).toHaveBeenCalled();
-            });
+                    const result = await pca.ssoSilent(validRequest);
+                    expect(result).toEqual(getTestAuthenticationResult());
+                    expect(earFormSpy).toHaveBeenCalled();
+                }
+            );
 
             it("uses authorization code flow instead of EAR in Safari", async () => {
                 jest.spyOn(

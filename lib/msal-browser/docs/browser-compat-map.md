@@ -98,6 +98,7 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 |-----|-----------|----------|
 | `fetch()` | All HTTP requests (token endpoint, discovery, custom auth) | None |
 | `navigator.onLine` | Distinguish network-offline from transport failures when token POST fails | Assumes online (retries once for non-abort transport failures) |
+| `navigator.userAgent` / `navigator.userAgentData.brands` | Identify Safari for EAR fallback using OWA's browser-check ordering | Client hints are optional; use user-agent markers when unavailable |
 | `TextEncoder` / `TextDecoder` | String ↔ binary for crypto | None |
 | `atob()` / `btoa()` | Base64 for JWK and token parsing | None |
 | Hidden form + `form.submit()` | POST-based `/authorize` (EAR, redirect POST, silent iframe POST) | None for POST flows |
@@ -107,6 +108,7 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 - CSP `connect-src` must allow authority/token endpoint domains
 - CSP `form-action` must allow authority domain for POST flows
 - CSP `frame-src` must allow authority domain for silent iframe
+- EAR falls back to authorization code + PKCE when the browser is identified as Safari using OWA's detection order. Opera, PhantomJS, Samsung Internet, Edge (including its optional `Microsoft Edge` client hint), Electron, Chrome, IE, and Firefox are checked before the `Safari` or `AppleWebKit` fallback. Chrome and Edge therefore retain EAR even when their user agents contain Safari markers. A WebKit user agent without an earlier browser match is treated as Safari.
 
 ## Privacy Restrictions Affecting MSAL
 
