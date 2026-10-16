@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792095403321,
+  "lastUpdate": 1792190416477,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24569,6 +24569,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.68%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8bd17ffb63577f2b0ccd9013b20a3ab93b8e08e7",
+          "message": "chore: update basic-ftp to patched 6.2.2 (#8915)\n\n## Summary\n\n- Update basic-ftp from 5.3.1 to 6.2.2 in both the workspace root and\nstandalone `samples/e2eTestUtils` lockfiles.\n- Fix the Unix directory-listing parser CPU denial of service\n([GHSA-c475-qrg2-pj4r](https://github.com/advisories/GHSA-c475-qrg2-pj4r),\nCVE-2026-102990), patched in 6.2.1.\n- Include the additional MLSD/PASV parsing fixes delivered in 6.2.2\n([GHSA-5rfr-xx34-2xxv](https://github.com/advisories/GHSA-5rfr-xx34-2xxv)).\n- Preserve all unrelated package versions and lockfile metadata.\n\n## Why a scoped override is necessary\n\nThe dependency chain is `@puppeteer/browsers -> proxy-agent ->\npac-proxy-agent -> get-uri -> basic-ftp`. The locked get-uri 6.0.5\nrequires basic-ftp `^5.0.2`. Even the latest published get-uri 8.0.1\nstill requires the vulnerable `^5.3.1` line, so upgrading the parent\nchain does not resolve this vulnerability.\n\nThe author explicitly approved a narrowly scoped `get-uri -> basic-ftp:\n6.2.2` override rather than deferring the remediation. Define it at the\nworkspace root and in the e2e utility package for independent\ninstallations. Remove these overrides when upstream get-uri supports a\npatched basic-ftp release.\n\n## Compatibility\n\n- No MSAL source or public APIs change.\n- basic-ftp's Node minimum remains Node 10.\n- The 6.x breaking change disables separate FTP transfer hosts by\ndefault to prevent FTP bounce attacks. Retain that security restriction;\nnormal same-host passive FTP transfers remain supported.\n- Local compatibility checks exercise the actual get-uri 6.0.5 and\npac-proxy-agent 7.2.0 packages with basic-ftp 6.2.2: EPSV and PASV\nfallback downloads, modification-date caching, missing-file errors, Unix\ndirectory listings, and fetching a PAC script over FTP to route an HTTP\nrequest.\n\n## Validation\n\n- All six local FTP/PAC compatibility tests passed.\n- Root and standalone e2e utility clean-install dry runs passed.\n- Full root clean installation is blocked by an unchanged upstream\ndependency: the configured npm proxy returns HTTP 404 for\n`ip-address@10.7.4`. Direct access to the public npm registry also fails\nTLS negotiation in this environment. This dependency is already present\nin `dev`; no package or registry configuration was changed to bypass the\nfailure.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: security\nagent-tool: copilot-cli\nagent-model: gpt-6.1-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\nCopilot-Session: d0f0e7f5-d710-47d4-af8d-9431372f2213",
+          "timestamp": "2026-10-16T15:31:36-07:00",
+          "tree_id": "94e70d2abed1ac86716e92e56b0da26af3e59f62",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/8bd17ffb63577f2b0ccd9013b20a3ab93b8e08e7"
+        },
+        "date": 1792190411980,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 380209,
+            "range": "±0.67%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 387294,
+            "range": "±0.58%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
           }
         ]
       }
