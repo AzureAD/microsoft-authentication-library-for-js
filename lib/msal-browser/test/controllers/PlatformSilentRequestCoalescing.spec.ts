@@ -16,7 +16,6 @@ import type { StoreInCache } from "@azure/msal-common/browser";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
-import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { PlatformAuthResponse } from "../../src/broker/nativeBroker/PlatformAuthResponse.js";
 import { Configuration } from "../../src/config/Configuration.js";
 import { StandardController } from "../../src/controllers/StandardController.js";
@@ -43,7 +42,6 @@ import {
 
 type BrokerRequest = SsoSilentRequest &
     Pick<SilentRequest, "forceRefresh" | "cacheLookupPolicy"> & {
-        extraParametersNoCache?: PlatformAuthRequest["extraParametersNoCache"];
         dpopNonce?: string;
     };
 
@@ -305,10 +303,6 @@ describe("platform broker silent request coalescing", () => {
             { resourceRequestUri: "https://other-resource.example.com" },
         ],
         ["DPoP nonce", { dpopNonce: "server-nonce" }],
-        [
-            "no-cache bag",
-            { extraParametersNoCache: { pop_nonce: "other-nonce" } },
-        ],
         ["redirect URI", { redirectUri: "https://app.example.com/other" }],
         ["OIDC nonce", { nonce: "other-oidc-nonce" }],
         ["state", { state: "other-state" }],
@@ -519,12 +513,10 @@ describe("platform broker silent request coalescing", () => {
         const first: BrokerRequest = {
             scopes: [" User.Read ", "Mail.Read", "User.Read", ""],
             extraParameters: { first: "1", second: "2" },
-            extraParametersNoCache: { a: "a", b: "b" },
         };
         const second: BrokerRequest = {
             scopes: ["Mail.Read", "User.Read"],
             extraParameters: { second: "2", first: "1" },
-            extraParametersNoCache: { b: "b", a: "a" },
         };
         await Promise.all([
             acquireSilent(first),
@@ -532,6 +524,31 @@ describe("platform broker silent request coalescing", () => {
             acquireSilent({ scopes: ["Mail.Read", "user.read"] }),
         ]);
         expect(acquire).toHaveBeenCalledTimes(2);
+    });
+
+    it("ignores prebuilt broker no-cache bags during silent request preparation", async () => {
+        const acquire = jest
+            .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
+            .mockResolvedValue(result);
+        const first = {
+            scopes: ["User.Read"],
+            extraParametersNoCache: { pop_nonce: "first" },
+        } as BrokerRequest & {
+            extraParametersNoCache: { pop_nonce: string };
+        };
+        const second = {
+            scopes: ["User.Read"],
+            extraParametersNoCache: { pop_nonce: "second" },
+        } as BrokerRequest & {
+            extraParametersNoCache: { pop_nonce: string };
+        };
+
+        await Promise.all([acquireSilent(first), acquireSilent(second)]);
+
+        expect(acquire).toHaveBeenCalledTimes(1);
+        expect(acquire.mock.calls[0][0]).not.toHaveProperty(
+            "extraParametersNoCache"
+        );
     });
 
     it("does not merge ssoSilent with an in-flight acquireTokenSilent broker operation", async () => {
@@ -635,18 +652,15 @@ describe("platform broker silent request coalescing", () => {
             resourceRequestMethod: "GET",
             resourceRequestUri: "https://resource.example.com",
             extraParameters: { custom: "original" },
-            extraParametersNoCache: { custom: "original" },
         };
         const acquisition = acquireSilent(request);
         await started.promise;
         request.scopes![0] = "Mail.Read";
         request.extraParameters!.custom = "changed";
-        request.extraParametersNoCache!.custom = "changed";
         const originalRequest: BrokerRequest = {
             ...request,
             scopes: ["User.Read"],
             extraParameters: { custom: "original" },
-            extraParametersNoCache: { custom: "original" },
         };
         const joiningRequest = acquireSilent(originalRequest);
         confirmation.resolve({ kid: "key", reqCnfString: "confirmation" });
@@ -655,7 +669,10 @@ describe("platform broker silent request coalescing", () => {
         expect(send.mock.calls[0][0]).toMatchObject({
             scope: expect.stringContaining("User.Read"),
             extraParameters: { custom: "original" },
-            extraParametersNoCache: { custom: "original" },
+            extraParametersNoCache: {
+                pop_method: "GET",
+                pop_url: "https://resource.example.com",
+            },
         });
         expect(send.mock.calls[0][0].scope).not.toContain("Mail.Read");
     });
@@ -699,7 +716,6 @@ describe("platform broker silent request coalescing", () => {
             account: { ...account },
             attributeTokens: ["attribute"],
             extraParameters: { custom: "original" },
-            extraParametersNoCache: { pop_nonce: "original" },
             azureCloudOptions: {
                 azureCloudInstance: AzureCloudInstance.AzurePublic,
                 tenant: "original",
@@ -711,7 +727,6 @@ describe("platform broker silent request coalescing", () => {
         request.account!.nativeAccountId = "other-native";
         request.attributeTokens![0] = "other-attribute";
         request.extraParameters!.custom = "mutated";
-        request.extraParametersNoCache!.pop_nonce = "mutated";
         request.azureCloudOptions!.tenant = "mutated";
         request.storeInCache!.accessToken = true;
         await acquisition;
@@ -720,7 +735,6 @@ describe("platform broker silent request coalescing", () => {
             account: { nativeAccountId: "native-account" },
             attributeTokens: ["attribute"],
             extraParameters: { custom: "original" },
-            extraParametersNoCache: { pop_nonce: "original" },
             azureCloudOptions: { tenant: "original" },
             storeInCache: { accessToken: false },
         });

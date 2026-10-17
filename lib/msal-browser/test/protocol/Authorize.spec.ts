@@ -512,6 +512,28 @@ describe("Authorize Protocol Tests", () => {
             ).toBe(false);
         });
 
+        it("Omits dpop_jkt from platform broker DPoP authorization URLs", async () => {
+            const url = await Authorize.getAuthCodeRequestUrl(
+                config,
+                authority,
+                {
+                    ...validRequest,
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    platformBroker: true,
+                    dpopJkt: "test-dpop-jkt",
+                    resourceRequestMethod: "GET",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                },
+                logger,
+                performanceClient
+            );
+
+            const authUrl = new URL(url);
+            expect(authUrl.searchParams.has(AADServerParamKeys.DPOP_JKT)).toBe(
+                false
+            );
+        });
+
         it("Includes precomputed req_cnf for platform broker PoP authorization URLs", async () => {
             const url = await Authorize.getAuthCodeRequestUrl(
                 config,
@@ -765,13 +787,17 @@ describe("Authorize Protocol Tests", () => {
             addFieldsSpy.mockRestore();
         });
 
-        it("handleResponseCode preserves DPoP key id on auth code token request", async () => {
+        it("handleResponseCode preserves the DPoP fallback key for a platform broker attempt", async () => {
             const acquireTokenSpy = jest
                 .fn()
                 .mockResolvedValue(getTestAuthenticationResult());
+            const removeTokenBindingKey = jest
+                .fn()
+                .mockResolvedValue(undefined);
             const dpopRequest: CommonAuthorizationUrlRequest = {
                 ...validRequest,
                 authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                platformBroker: true,
                 dpopJkt: "test-dpop-jkt",
             };
 
@@ -789,10 +815,13 @@ describe("Authorize Protocol Tests", () => {
                 cacheManager,
                 eventHandler,
                 logger,
-                performanceClient
+                performanceClient,
+                undefined,
+                { removeTokenBindingKey } as any
             );
 
             expect(result).toEqual(getTestAuthenticationResult());
+            expect(removeTokenBindingKey).not.toHaveBeenCalled();
             expect(acquireTokenSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     authenticationScheme: Constants.AuthenticationScheme.DPOP,
@@ -804,6 +833,100 @@ describe("Authorize Protocol Tests", () => {
                 expect.objectContaining({
                     code: "thisIsATestCode",
                 })
+            );
+        });
+
+        it("handleResponseCode passes the DPoP candidate key to the platform broker path", async () => {
+            const platformBrokerSpy = jest
+                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
+                .mockResolvedValue(getTestAuthenticationResult());
+            const removeTokenBindingKey = jest
+                .fn()
+                .mockResolvedValue(undefined);
+            const dpopRequest: CommonAuthorizationUrlRequest = {
+                ...validRequest,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                platformBroker: true,
+                dpopJkt: "test-dpop-jkt",
+            };
+            const nativeMessageHandler = new PlatformAuthExtensionHandler(
+                logger,
+                2000,
+                performanceClient
+            );
+
+            const result = await Authorize.handleResponseCode(
+                dpopRequest,
+                {
+                    accountId: "test-account-id",
+                    state: dpopRequest.state,
+                },
+                "test-code-verifier",
+                ApiId.acquireTokenPopup,
+                config,
+                {} as any,
+                cacheManager,
+                cacheManager,
+                eventHandler,
+                logger,
+                performanceClient,
+                nativeMessageHandler,
+                { removeTokenBindingKey } as any
+            );
+
+            expect(result).toEqual(getTestAuthenticationResult());
+            expect(platformBrokerSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    dpopJkt: "test-dpop-jkt",
+                })
+            );
+            expect(removeTokenBindingKey).not.toHaveBeenCalled();
+        });
+
+        it("handleResponseCode removes a generated DPoP key when the platform broker fails", async () => {
+            jest.spyOn(
+                PlatformAuthInteractionClient.prototype,
+                "acquireToken"
+            ).mockRejectedValue(new Error("platform broker failure"));
+            const removeTokenBindingKey = jest
+                .fn()
+                .mockResolvedValue(undefined);
+            const dpopRequest = {
+                ...validRequest,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                platformBroker: true,
+                dpopJkt: "generated-dpop-jkt",
+            };
+
+            await expect(
+                Authorize.handleResponseCode(
+                    dpopRequest,
+                    {
+                        accountId: "test-account-id",
+                        state: dpopRequest.state,
+                    },
+                    "test-code-verifier",
+                    ApiId.acquireTokenPopup,
+                    config,
+                    {} as any,
+                    cacheManager,
+                    cacheManager,
+                    eventHandler,
+                    logger,
+                    performanceClient,
+                    new PlatformAuthExtensionHandler(
+                        logger,
+                        2000,
+                        performanceClient
+                    ),
+                    { removeTokenBindingKey } as any
+                )
+            ).rejects.toThrow("platform broker failure");
+
+            expect(removeTokenBindingKey).toHaveBeenCalledWith(
+                "generated-dpop-jkt",
+                dpopRequest.correlationId
             );
         });
     });

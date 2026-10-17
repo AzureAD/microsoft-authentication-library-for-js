@@ -15,6 +15,7 @@ import {
 import {
     DOMExtraParameters,
     PlatformAuthRequest,
+    PlatformAuthTokenType,
     PlatformDOMTokenRequest,
 } from "./PlatformAuthRequest.js";
 import { PlatformAuthConstants } from "../../utils/BrowserConstants.js";
@@ -23,6 +24,10 @@ import {
     PlatformDOMTokenResponse,
 } from "./PlatformAuthResponse.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
+import {
+    BrowserAuthErrorCodes,
+    createBrowserAuthError,
+} from "../../error/BrowserAuthError.js";
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
 
@@ -169,6 +174,15 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         );
 
         try {
+            if (
+                request.tokenType?.trim().toLowerCase() ===
+                PlatformAuthTokenType.DPOP_WITH_PROOF
+            ) {
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.platformAuthDomDpopNotSupported,
+                    correlationId
+                );
+            }
             const platformDOMRequest = invoke(
                 this.initializePlatformDOMRequest.bind(this),
                 BrowserPerformanceEvents.PlatformAuthDOMInitializeRequest,
@@ -231,6 +245,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         );
         delete remainingProperties.resourceRequestMethod;
         delete remainingProperties.resourceRequestUri;
+        delete remainingProperties.bindingPreferenceSent;
 
         const validExtraParameters: DOMExtraParameters = this.getDOMExtraParams(
             remainingProperties,

@@ -10,17 +10,21 @@ import {
     AccountEntityUtils,
     AccountInfo,
     AuthError,
+    AuthErrorCodes,
     AuthToken,
     AuthorityType,
     CacheHelpers,
     ClientAuthErrorCodes,
+    ClientConfigurationErrorCodes,
     CommonSilentFlowRequest,
     Constants,
+    DpopProofGenerator,
     ICrypto,
     IPerformanceClient,
     IdTokenEntity,
     InProgressPerformanceEvent,
     Logger,
+    JsonWebTokenAlgorithms,
     PerformanceEvents,
     PopTokenGenerator,
     RequestParameterBuilder,
@@ -33,19 +37,24 @@ import {
     ITokenBindingKeyManager,
     UrlString,
     buildAccountToCache,
+    createAuthError,
     createClientAuthError,
+    createClientConfigurationError,
     invokeAsync,
+    normalizeDpopResourceRequestContext,
     updateAccountTenantProfileData,
 } from "@azure/msal-common/browser";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
     createPlatformAuthExtraParametersNoCache,
-    isProofOfPossessionTokenType,
-    PlatformAuthExtraParametersNoCache,
+    PlatformAuthBindingPreference,
+    PlatformAuthEnclave,
     PlatformAuthRequest,
+    PlatformAuthTokenType,
 } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import {
     MATS,
+    NativeResponseProperties,
     PlatformAuthResponse,
 } from "../broker/nativeBroker/PlatformAuthResponse.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
@@ -70,6 +79,7 @@ import { PopupRequest } from "../request/PopupRequest.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
+import { isTokenBindingKeyPersistedForRedirect } from "../request/RequestHelpers.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
@@ -88,6 +98,31 @@ import {
 } from "./BaseInteractionClient.js";
 import { SilentCacheClient } from "./SilentCacheClient.js";
 
+type PlatformAuthTokenRequestParameters = {
+    tokenType: PlatformAuthRequest["tokenType"];
+} & Partial<
+    Pick<
+        PlatformAuthRequest,
+        | "preferBinding"
+        | "keyId"
+        | "reqCnf"
+        | "signPopToken"
+        | "resourceRequestMethod"
+        | "resourceRequestUri"
+        | "shrClaims"
+        | "shrNonce"
+    >
+>;
+
+type BrokerDpopFailureReason =
+    | "conflicting_fields"
+    | "invalid_attestation"
+    | "missing_attestation"
+    | "missing_l1_binding"
+    | "missing_proof"
+    | "unexpected_response"
+    | "unknown_token_type";
+
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
     protected accountId: string;
@@ -95,6 +130,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected silentCacheClient: SilentCacheClient;
     protected nativeStorageManager: BrowserCacheManager;
     protected skus: string;
+
+    private static readonly DPOP_BROKER_REQUEST_KEY_LOCATION =
+        PlatformAuthEnclave.SOFTWARE;
 
     constructor(
         config: BrowserConfiguration,
@@ -148,18 +186,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             extensionName: extensionName,
             extensionVersion: this.platformAuthProvider.getExtensionVersion(),
         });
-    }
-
-    /**
-     * Adds SKUs to request extra query parameters
-     * @param request {PlatformAuthRequest}
-     * @private
-     */
-    private addRequestSKUs(request: PlatformAuthRequest): void {
-        request.extraParameters = {
-            ...request.extraParameters,
-            [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
-        };
     }
 
     /**
@@ -222,20 +248,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
 
         // check if the tokens can be retrieved from internal cache
+        let cachedResult: AuthenticationResult | undefined;
         try {
-            const result = await this.acquireTokensFromCache(
+            cachedResult = await this.acquireTokensFromCache(
                 this.accountId,
                 nativeRequest
             );
-            // Served from the native internal cache; token did not come directly from the broker
-            nativeATMeasurement.add({
-                isNativeBroker: false,
-            });
-            nativeATMeasurement.end({
-                success: true,
-                fromCache: true,
-            });
-            return result;
         } catch (e) {
             if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
                 this.logger.info(
@@ -248,6 +266,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 nativeATMeasurement.end({
                     success: false,
                 });
+                await this.resetGeneratedDpopRequestKey(
+                    nativeRequest,
+                    "best-effort"
+                );
                 throw e;
             }
             // continue with a native call for any and all errors
@@ -257,8 +279,22 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             );
         }
 
+        if (cachedResult) {
+            // Served from the native internal cache; token did not come directly from the broker
+            nativeATMeasurement.add({
+                isNativeBroker: false,
+            });
+            nativeATMeasurement.end({
+                success: true,
+                fromCache: true,
+            });
+            await this.resetGeneratedDpopRequestKey(nativeRequest);
+            return cachedResult;
+        }
+
         // dispatch the request to the broker
         try {
+            await this.prepareDpopBrokerRequest(nativeRequest);
             const validatedResponse: PlatformAuthResponse =
                 await this.platformAuthProvider.sendMessage(nativeRequest);
 
@@ -291,6 +327,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 e
             );
             this.setBrokerErrorTelemetry(e);
+            await this.resetGeneratedDpopRequestKey(
+                nativeRequest,
+                "best-effort"
+            );
             throw e;
         }
     }
@@ -336,12 +376,25 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             ).asArray(),
             account: cachedAccount,
             forceRefresh: false,
+            authenticationScheme: this.isDpopBrokerRequest(request)
+                ? Constants.AuthenticationScheme.DPOP
+                : (request.tokenType as Constants.AuthenticationScheme),
+            popKid: request.keyId,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
             resource: request.extraParameters?.resource,
         };
 
         // Preserve FMI partition semantics for silent cache filtering.
         if (request.attributeTokens) {
             silentRequest.attributeTokens = request.attributeTokens.split(" ");
+        }
+
+        const dpopNonce = request.extraParametersNoCache?.pop_nonce;
+        if (dpopNonce !== undefined) {
+            silentRequest.extraParameters = {
+                pop_nonce: dpopNonce,
+            };
         }
 
         return silentRequest;
@@ -450,7 +503,17 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             options?.navigateToLoginRequestUrl ?? true;
 
         try {
-            await this.platformAuthProvider.sendMessage(nativeRequest);
+            await this.prepareDpopBrokerRequest(nativeRequest);
+            const response = await this.platformAuthProvider.sendMessage(
+                nativeRequest
+            );
+            const dpopBrokerOutcome = this.validateDpopBrokerOutcome(
+                response,
+                nativeRequest
+            );
+            if (dpopBrokerOutcome === "L3") {
+                await this.resetGeneratedDpopRequestKey(nativeRequest);
+            }
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
             if (e instanceof NativeAuthError) {
@@ -472,9 +535,32 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                      * in handleRedirectPromise (phase 2).
                      */
                     this.setBrokerErrorTelemetry(e);
+                    await this.resetGeneratedDpopRequestKey(
+                        nativeRequest,
+                        "best-effort"
+                    );
                     throw e;
                 }
+                await this.resetGeneratedDpopRequestKey(
+                    nativeRequest,
+                    "best-effort"
+                );
+            } else if (this.isDpopBrokerRequest(nativeRequest)) {
+                await this.resetGeneratedDpopRequestKey(
+                    nativeRequest,
+                    "best-effort"
+                );
+                throw e;
             }
+        }
+        try {
+            await this.ensureRedirectDpopKeyIsPersisted(nativeRequest);
+        } catch (e) {
+            await this.resetGeneratedDpopRequestKey(
+                nativeRequest,
+                "best-effort"
+            );
+            throw e;
         }
         this.browserStorage.setTemporaryCache(
             TemporaryCacheKeys.NATIVE_REQUEST,
@@ -503,10 +589,23 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                   this.correlationId
               );
         rootMeasurement.end({ success: true });
-        await this.navigationClient.navigateExternal(
-            redirectUri,
-            navigationOptions
-        ); // Need to treat this as external to ensure handleRedirectPromise is run again
+        try {
+            await this.navigationClient.navigateExternal(
+                redirectUri,
+                navigationOptions
+            ); // Need to treat this as external to ensure handleRedirectPromise is run again
+        } catch (e) {
+            this.browserStorage.removeItem(
+                this.browserStorage.generateCacheKey(
+                    TemporaryCacheKeys.NATIVE_REQUEST
+                )
+            );
+            await this.resetGeneratedDpopRequestKey(
+                nativeRequest,
+                "best-effort"
+            );
+            throw e;
+        }
     }
 
     /**
@@ -567,6 +666,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const reqTimestamp = TimeUtils.nowSeconds();
 
         try {
+            await this.prepareDpopBrokerRequest(request, true);
             this.logger.verbose(
                 "NativeInteractionClient - handleRedirectPromise sending message to native broker.",
                 this.correlationId
@@ -593,7 +693,20 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             serverTelemetryManager.clearNativeBrokerErrorCode();
             return authResult;
         } catch (e) {
+            if (e instanceof NativeAuthError) {
+                const serverTelemetryManager = initializeServerTelemetryManager(
+                    this.apiId,
+                    this.config.auth.clientId,
+                    this.correlationId,
+                    this.browserStorage,
+                    this.logger,
+                    undefined,
+                    this.config.system.serverTelemetryEnabled
+                );
+                serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
+            }
             this.setBrokerErrorTelemetry(e);
+            await this.resetGeneratedDpopRequestKey(request, "best-effort");
             throw e;
         }
     }
@@ -625,6 +738,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         this.logger.trace(
             "NativeInteractionClient - handleNativeResponse called.",
             this.correlationId
+        );
+
+        const dpopBrokerOutcome = this.validateDpopBrokerOutcome(
+            response,
+            request
         );
 
         // generate identifiers
@@ -709,17 +827,27 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             idTokenClaims,
             baseAccount,
             authority.canonicalAuthority,
-            reqTimestamp
+            reqTimestamp,
+            dpopBrokerOutcome
         );
 
+        const isL3DpopResponse = dpopBrokerOutcome === "L3";
         // cache accounts and tokens in the appropriate storage
+        const shouldRemoveGeneratedDpopKey =
+            isL3DpopResponse ||
+            (this.isDpopBrokerRequest(request) &&
+                storeInCache?.accessToken === false);
+        if (shouldRemoveGeneratedDpopKey) {
+            await this.resetGeneratedDpopRequestKey(request);
+        }
+
         await invokeAsync(
             this.cacheAccount.bind(this),
             BrowserPerformanceEvents.PlatformAuthCacheAccount,
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(baseAccount, AuthToken.isKmsi(idTokenClaims));
+        )(baseAccount, AuthToken.isKmsi(idTokenClaims), !isL3DpopResponse);
         await invokeAsync(
             this.cacheNativeTokens.bind(this),
             BrowserPerformanceEvents.PlatformAuthCacheNativeTokens,
@@ -734,7 +862,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             result.tenantId,
             reqTimestamp,
             authority.getPreferredCache(), // environment
-            storeInCache
+            storeInCache,
+            dpopBrokerOutcome
         );
 
         return result;
@@ -852,7 +981,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         idTokenClaims: TokenClaims,
         accountEntity: AccountEntity,
         authority: string,
-        reqTimestamp: number
+        reqTimestamp: number,
+        dpopBrokerOutcome: "none" | "L1" | "L3" = "none"
     ): Promise<AuthenticationResult> {
         // Add Native Broker fields to Telemetry
         const mats = this.addTelemetryFromNativeResponse(
@@ -900,10 +1030,17 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             response,
             request
         );
-        const tokenType =
-            request.tokenType === Constants.AuthenticationScheme.POP
-                ? Constants.AuthenticationScheme.POP
-                : Constants.AuthenticationScheme.BEARER;
+        const isDpopRequest = this.isDpopBrokerRequest(request);
+        const tokenType = isDpopRequest
+            ? Constants.AuthenticationScheme.DPOP
+            : request.tokenType === Constants.AuthenticationScheme.POP
+            ? Constants.AuthenticationScheme.POP
+            : Constants.AuthenticationScheme.BEARER;
+        const dpopProof =
+            isDpopRequest &&
+            !(dpopBrokerOutcome === "L3" && response.DPoP === undefined)
+                ? await this.generateDpopProof(response, request)
+                : undefined;
 
         const result: AuthenticationResult = {
             authority: authority,
@@ -920,6 +1057,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 reqTimestamp + response.expires_in
             ),
             tokenType: tokenType,
+            dpopProof,
             correlationId: this.correlationId,
             state: response.state,
             fromPlatformBroker: true,
@@ -937,7 +1075,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      */
     async cacheAccount(
         accountEntity: AccountEntity,
-        kmsi: boolean
+        kmsi: boolean,
+        clearExistingTokens: boolean = true
     ): Promise<void> {
         // Store the account info and hence `nativeAccountId` in browser cache
         await this.browserStorage.setAccount(
@@ -947,10 +1086,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.apiId
         );
         // Remove any existing cached tokens for this account in browser storage
-        this.browserStorage.removeAccountContext(
-            AccountEntityUtils.getAccountInfo(accountEntity),
-            this.correlationId
-        );
+        if (clearExistingTokens) {
+            this.browserStorage.removeAccountContext(
+                AccountEntityUtils.getAccountInfo(accountEntity),
+                this.correlationId
+            );
+        }
     }
 
     /**
@@ -971,7 +1112,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         tenantId: string,
         reqTimestamp: number,
         environment: string,
-        storeInCache?: StoreInCache
+        storeInCache?: StoreInCache,
+        dpopBrokerOutcome: "none" | "L1" | "L3" = "none"
     ): Promise<void> {
         const cachedIdToken: IdTokenEntity | null =
             CacheHelpers.createIdTokenEntity(
@@ -982,48 +1124,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 idTokenClaims.tid || ""
             );
 
-        // cache accessToken in inmemory storage
-        const expiresIn: number =
-            request.tokenType === Constants.AuthenticationScheme.POP
-                ? Constants.SHR_NONCE_VALIDITY
-                : (typeof response.expires_in === "string"
-                      ? parseInt(response.expires_in, 10)
-                      : response.expires_in) || 0;
-        const tokenExpirationSeconds = reqTimestamp + expiresIn;
-        const responseScopes = this.generateScopes(
-            response.scope,
-            request.scope
-        );
-
-        const additionalCacheKeyComponents = request.attributeTokens
-            ? {
-                  attribute_tokens: request.attributeTokens,
-              }
-            : undefined;
-
-        const cachedAccessToken: AccessTokenEntity | null =
-            CacheHelpers.createAccessTokenEntity(
-                homeAccountIdentifier,
-                environment,
-                response.access_token,
-                request.clientId,
-                idTokenClaims.tid || tenantId,
-                responseScopes.printScopes(),
-                tokenExpirationSeconds,
-                0,
-                base64Decode,
-                request.correlationId,
-                undefined,
-                request.tokenType as Constants.AuthenticationScheme,
-                undefined,
-                request.keyId,
-                additionalCacheKeyComponents
-            );
-
-        if (request.extraParameters?.resource) {
-            cachedAccessToken.resource = request.extraParameters.resource;
-        }
-
         // save idtoken credential in configured browser storage
         if (!!cachedIdToken && storeInCache?.idToken !== false) {
             await this.browserStorage.setIdTokenCredential(
@@ -1031,6 +1131,27 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.correlationId,
                 AuthToken.isKmsi(idTokenClaims)
             );
+        }
+
+        if (dpopBrokerOutcome === "L3") {
+            return;
+        }
+
+        if (storeInCache?.accessToken === false) {
+            return;
+        }
+
+        const cachedAccessToken = this.createNativeAccessToken(
+            response,
+            request,
+            homeAccountIdentifier,
+            idTokenClaims,
+            tenantId,
+            reqTimestamp,
+            environment
+        );
+        if (!cachedAccessToken) {
+            return;
         }
 
         // save access token credential in memory storage
@@ -1045,6 +1166,67 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.apiId,
             storeInCache
         );
+    }
+
+    /**
+     * Creates the access-token entity returned by the native broker.
+     * @param response - Native broker response.
+     * @param request - Native broker request.
+     * @param homeAccountIdentifier - Home account identifier.
+     * @param idTokenClaims - Claims from the returned ID token.
+     * @param tenantId - Tenant identifier.
+     * @param reqTimestamp - Request timestamp in seconds.
+     * @param environment - Preferred cache environment.
+     * @returns The access-token entity representing the broker response.
+     */
+    private createNativeAccessToken(
+        response: PlatformAuthResponse,
+        request: PlatformAuthRequest,
+        homeAccountIdentifier: string,
+        idTokenClaims: TokenClaims,
+        tenantId: string,
+        reqTimestamp: number,
+        environment: string
+    ): AccessTokenEntity {
+        const expiresIn: number =
+            request.tokenType === Constants.AuthenticationScheme.POP
+                ? Constants.SHR_NONCE_VALIDITY
+                : (typeof response.expires_in === "string"
+                      ? parseInt(response.expires_in, 10)
+                      : response.expires_in) || 0;
+        const tokenExpirationSeconds = reqTimestamp + expiresIn;
+        const responseScopes = this.generateScopes(
+            response.scope,
+            request.scope
+        );
+
+        const additionalCacheKeyComponents = request.attributeTokens
+            ? { attribute_tokens: request.attributeTokens }
+            : undefined;
+
+        const accessToken = CacheHelpers.createAccessTokenEntity(
+            homeAccountIdentifier,
+            environment,
+            response.access_token,
+            request.clientId,
+            idTokenClaims.tid || tenantId,
+            responseScopes.printScopes(),
+            tokenExpirationSeconds,
+            0,
+            base64Decode,
+            request.correlationId,
+            undefined,
+            this.isDpopBrokerRequest(request)
+                ? Constants.AuthenticationScheme.DPOP
+                : (request.tokenType as Constants.AuthenticationScheme),
+            undefined,
+            request.keyId,
+            additionalCacheKeyComponents
+        );
+        if (request.extraParameters?.resource) {
+            accessToken.resource = request.extraParameters.resource;
+        }
+        return accessToken;
     }
 
     getExpiresInValue(
@@ -1149,15 +1331,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 ? undefined
                 : this.config.auth.clientCapabilities;
 
-        /*
-         * scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
-         * attributeTokens is destructured out because PlatformAuthRequest represents it as a pre-serialized string, not the caller-provided Array<string>.
-         */
-        const { scopes, claims, extraParametersNoCache, dpopNonce } =
-            request as (PopupRequest | SsoSilentRequest) & {
-                extraParametersNoCache?: PlatformAuthExtraParametersNoCache;
-                dpopNonce?: string;
-            };
+        const { scopes, claims, dpopNonce } = request as (
+            | PopupRequest
+            | SsoSilentRequest
+        ) & {
+            dpopNonce?: string;
+        };
         const scopeSet = new ScopeSet(
             [...(scopes || []), ...Constants.OIDC_DEFAULT_SCOPES],
             this.correlationId
@@ -1175,114 +1354,622 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             },
             this.correlationId
         );
+        const redirectUri = getRedirectUri(
+            request.redirectUri,
+            this.config.auth.redirectUri,
+            this.logger,
+            this.correlationId
+        );
+        const brokerParameters = this.createBrokerRequestParameters(
+            request,
+            redirectUri
+        );
+        const tokenParameters = await this.createTokenRequestParameters(
+            request
+        );
+        const extraParametersNoCache = createPlatformAuthExtraParametersNoCache(
+            tokenParameters.tokenType,
+            tokenParameters.resourceRequestMethod,
+            tokenParameters.resourceRequestUri,
+            dpopNonce
+        );
+        const attributeTokens = CacheHelpers.serializeAttributeTokens(
+            request.attributeTokens
+        );
 
-        const validatedRequest: PlatformAuthRequest = {
+        return {
             claims: mergedClaims,
             accountId: this.accountId,
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
             scope: scopeSet.printScopes(),
-            redirectUri: getRedirectUri(
-                request.redirectUri,
-                this.config.auth.redirectUri,
-                this.logger,
-                this.correlationId
-            ),
+            redirectUri: brokerParameters.redirectUri,
             prompt: this.getPrompt(request.prompt),
             correlationId: this.correlationId,
             isSts: false,
-            tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
             nonce: request.nonce,
             state: request.state,
             loginHint: request.loginHint,
-            extraParameters: {
-                ...request.extraParameters,
-                ...(request.resource && { resource: request.resource }), // resource is set for MCP scenarios
-            },
+            extraParameters: brokerParameters.extraParameters,
             extendedExpiryToken: false, // Make this configurable?
-            keyId: request.popKid,
+            ...tokenParameters,
+            ...(extraParametersNoCache && { extraParametersNoCache }),
+            ...(attributeTokens && { attributeTokens }),
+        };
+    }
+
+    private async createTokenRequestParameters(
+        request: PopupRequest | SsoSilentRequest
+    ): Promise<PlatformAuthTokenRequestParameters> {
+        switch (request.authenticationScheme) {
+            case Constants.AuthenticationScheme.POP:
+                return this.createPopRequestParameters(request);
+            case Constants.AuthenticationScheme.DPOP:
+                return this.createDpopRequestParameters(request);
+            default:
+                return {
+                    tokenType: request.authenticationScheme,
+                };
+        }
+    }
+
+    private async createPopRequestParameters(
+        request: PopupRequest | SsoSilentRequest
+    ): Promise<PlatformAuthTokenRequestParameters> {
+        const shrParameters: SignedHttpRequestParameters = {
+            resourceRequestUri: request.resourceRequestUri,
+            resourceRequestMethod: request.resourceRequestMethod,
+            shrClaims: request.shrClaims,
+            shrNonce: request.shrNonce,
+            correlationId: this.correlationId,
+        };
+        const popTokenGenerator = new PopTokenGenerator(
+            this.browserCrypto,
+            this.tokenBindingKeyManager,
+            this.performanceClient
+        );
+
+        if (request.popKid) {
+            return {
+                tokenType: Constants.AuthenticationScheme.POP,
+                keyId: request.popKid,
+                reqCnf: this.browserCrypto.base64UrlEncode(
+                    JSON.stringify({ kid: request.popKid })
+                ),
+                signPopToken: false,
+                resourceRequestMethod: request.resourceRequestMethod,
+                resourceRequestUri: request.resourceRequestUri,
+                shrClaims: request.shrClaims,
+                shrNonce: request.shrNonce,
+            };
+        }
+
+        const generatedReqCnfData = await invokeAsync(
+            popTokenGenerator.generateCnf.bind(popTokenGenerator),
+            PerformanceEvents.PopTokenGenerateCnf,
+            this.logger,
+            this.performanceClient,
+            this.correlationId
+        )(shrParameters, this.logger);
+
+        return {
+            tokenType: Constants.AuthenticationScheme.POP,
+            keyId: generatedReqCnfData.kid,
+            reqCnf: generatedReqCnfData.reqCnfString,
+            signPopToken: true,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
             shrNonce: request.shrNonce,
-            extraParametersNoCache: createPlatformAuthExtraParametersNoCache(
-                extraParametersNoCache,
-                isProofOfPossessionTokenType(request.authenticationScheme),
-                request.resourceRequestMethod,
-                request.resourceRequestUri,
-                dpopNonce
-            ),
         };
+    }
 
-        if (hasAttributeTokens) {
-            validatedRequest.attributeTokens =
-                CacheHelpers.serializeAttributeTokens(
-                    request.attributeTokens as Array<string>
-                );
-        }
-
-        // Check for PoP token requests: signPopToken should only be set to true if popKid is not set
-        if (validatedRequest.signPopToken && !!request.popKid) {
+    private createDpopRequestParameters(
+        request: PopupRequest | SsoSilentRequest
+    ): PlatformAuthTokenRequestParameters {
+        if (request.popKid) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.invalidPopTokenRequest,
+                BrowserAuthErrorCodes.dpopPopKidNotSupported,
                 this.correlationId
             );
         }
 
-        this.handleExtraBrokerParams(
-            validatedRequest,
-            request.embeddedClientId
-        );
-        validatedRequest.extraParameters =
-            validatedRequest.extraParameters || {};
-        validatedRequest.extraParameters.telemetry =
-            PlatformAuthConstants.MATS_TELEMETRY;
-
         if (
-            request.authenticationScheme === Constants.AuthenticationScheme.POP
+            !request.resourceRequestMethod?.trim() ||
+            !request.resourceRequestUri?.trim()
         ) {
-            // add POP request type
-            const shrParameters: SignedHttpRequestParameters = {
-                resourceRequestUri: request.resourceRequestUri,
-                resourceRequestMethod: request.resourceRequestMethod,
-                shrClaims: request.shrClaims,
-                shrNonce: request.shrNonce,
-                correlationId: this.correlationId,
-            };
-
-            const popTokenGenerator = new PopTokenGenerator(
-                this.browserCrypto,
-                this.tokenBindingKeyManager,
-                this.performanceClient
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.dpopMissingResourceContext,
+                this.correlationId
             );
+        }
 
-            // generate reqCnf if not provided in the request
-            let reqCnfData;
-            if (!validatedRequest.keyId) {
-                const generatedReqCnfData = await invokeAsync(
-                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
-                    PerformanceEvents.PopTokenGenerateCnf,
-                    this.logger,
-                    this.performanceClient,
-                    this.correlationId
-                )(shrParameters, this.logger);
-                reqCnfData = generatedReqCnfData.reqCnfString;
-                validatedRequest.keyId = generatedReqCnfData.kid;
-                validatedRequest.signPopToken = true;
-            } else {
-                reqCnfData = this.browserCrypto.base64UrlEncode(
-                    JSON.stringify({ kid: validatedRequest.keyId })
+        const resourceContext = normalizeDpopResourceRequestContext(
+            {
+                htm: request.resourceRequestMethod,
+                htu: request.resourceRequestUri,
+            },
+            this.correlationId
+        );
+
+        return {
+            tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
+            preferBinding: PlatformAuthBindingPreference.ATTESTED,
+            keyId: request.dpopJkt,
+            resourceRequestMethod: resourceContext.htm,
+            resourceRequestUri: resourceContext.htu,
+        };
+    }
+
+    /**
+     * Provisions the local key and confirmation data for a DPoP broker request.
+     * @param request - Broker request to prepare.
+     * @param reuseExistingKey - Whether a complete existing key binding may be reused.
+     */
+    private async prepareDpopBrokerRequest(
+        request: PlatformAuthRequest,
+        reuseExistingKey: boolean = false
+    ): Promise<void> {
+        if (request.tokenType !== PlatformAuthTokenType.DPOP_WITH_PROOF) {
+            return;
+        }
+
+        /*
+         * Phase one clears both fields after an L3 response or non-fatal broker
+         * error. In that case phase two must provision a replacement. If either
+         * field remains, treat it as a retained binding and validate it fully.
+         */
+        if (reuseExistingKey && (request.keyId || request.reqCnf)) {
+            if (!request.keyId || !request.reqCnf) {
+                throw createAuthError(
+                    AuthErrorCodes.unexpectedError,
+                    this.correlationId,
+                    "DPoP request key binding is incomplete after redirect."
                 );
-                validatedRequest.signPopToken = false;
             }
 
-            // SPAs require whole string to be passed to broker
-            validatedRequest.reqCnf = reqCnfData;
+            const expectedReqCnf = this.createDpopBrokerReqCnf(request.keyId);
+            if (request.reqCnf !== expectedReqCnf) {
+                throw createAuthError(
+                    AuthErrorCodes.unexpectedError,
+                    this.correlationId,
+                    "DPoP request key binding is invalid after redirect."
+                );
+            }
+            const hasKey =
+                this.tokenBindingKeyManager.hasTokenBindingKey !== undefined
+                    ? await this.tokenBindingKeyManager.hasTokenBindingKey(
+                          request.keyId,
+                          this.correlationId
+                      )
+                    : await this.tokenBindingKeyManager
+                          .getTokenBindingPublicKeyJwk(
+                              request.keyId,
+                              this.correlationId
+                          )
+                          .then(
+                              () => true,
+                              () => false
+                          );
+            if (!hasKey) {
+                throw createAuthError(
+                    AuthErrorCodes.unexpectedError,
+                    this.correlationId,
+                    "DPoP request key is unavailable after redirect."
+                );
+            }
+            return;
         }
-        this.addRequestSKUs(validatedRequest);
 
-        return validatedRequest;
+        if (request.reqCnf) {
+            throw createAuthError(
+                AuthErrorCodes.unexpectedError,
+                this.correlationId,
+                "Unexpected preexisting DPoP request key."
+            );
+        }
+
+        if (!request.keyId) {
+            request.keyId =
+                await this.tokenBindingKeyManager.provisionTokenBindingKey({
+                    tokenBindingKeyType:
+                        Constants.AuthenticationScheme.DPOP.toLowerCase(),
+                    tokenBindingKeyAlgorithm: JsonWebTokenAlgorithms.ES256,
+                    correlationId: this.correlationId,
+                });
+        }
+        request.reqCnf = this.createDpopBrokerReqCnf(request.keyId);
+    }
+
+    /**
+     * Creates the confirmation claim for an MSAL-owned broker DPoP key.
+     * @param keyId - Browser-managed DPoP key identifier.
+     * @returns Encoded broker confirmation claim.
+     */
+    private createDpopBrokerReqCnf(keyId: string): string {
+        return this.browserCrypto.base64UrlEncode(
+            JSON.stringify({
+                kid: keyId,
+                xms_ksl:
+                    PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_KEY_LOCATION,
+            })
+        );
+    }
+
+    /**
+     * Ensures an owned DPoP key can survive redirect navigation before the
+     * request metadata is persisted for phase two.
+     */
+    private async ensureRedirectDpopKeyIsPersisted(
+        request: PlatformAuthRequest
+    ): Promise<void> {
+        if (!request.keyId) {
+            return;
+        }
+
+        if (
+            !(await isTokenBindingKeyPersistedForRedirect(
+                request,
+                this.tokenBindingKeyManager
+            ))
+        ) {
+            throw createAuthError(
+                AuthErrorCodes.unexpectedError,
+                this.correlationId,
+                "DPoP request key could not be persisted for redirect."
+            );
+        }
+    }
+
+    /**
+     * Validates and normalizes the DPoP binding outcome returned by the broker.
+     * @param response - Broker response to validate.
+     * @param request - Broker request associated with the response.
+     * @returns The validated DPoP binding level, or `none` for non-DPoP requests.
+     */
+    private validateDpopBrokerOutcome(
+        response: PlatformAuthResponse,
+        request: PlatformAuthRequest
+    ): "none" | "L1" | "L3" {
+        const throwInvalidDpopResponse = (
+            failureReason: BrokerDpopFailureReason,
+            message: string
+        ): never => {
+            this.performanceClient.addFields(
+                {
+                    "ext.brokerDpopOutcome": "invalid_response",
+                    "ext.brokerDpopFailureReason": failureReason,
+                },
+                this.correlationId
+            );
+            throw createAuthError(
+                AuthErrorCodes.unexpectedError,
+                this.correlationId,
+                message
+            );
+        };
+        const isDpopRequest = this.isDpopBrokerRequest(request);
+        const responseProperties = response.properties as
+            | (NativeResponseProperties & {
+                  token_type?: string;
+                  DPoP?: string;
+                  binding_attested?: boolean | string;
+              })
+            | undefined;
+        const propertyTokenType = responseProperties?.token_type;
+        const topLevelTokenType = response.token_type;
+        const normalizeTokenType = (
+            tokenType: string | undefined
+        ): string | undefined =>
+            typeof tokenType === "string"
+                ? tokenType.trim().toLowerCase()
+                : undefined;
+        const normalizedPropertyTokenType =
+            normalizeTokenType(propertyTokenType);
+        const normalizedTopLevelTokenType =
+            normalizeTokenType(topLevelTokenType);
+        const normalizedResponseTokenType =
+            normalizedPropertyTokenType ?? normalizedTopLevelTokenType;
+        const hasConflictingTokenType =
+            normalizedPropertyTokenType !== undefined &&
+            normalizedTopLevelTokenType !== undefined &&
+            normalizedPropertyTokenType !== normalizedTopLevelTokenType;
+        const normalizedRequestTokenType = request.tokenType
+            ?.trim()
+            .toLowerCase();
+        const bindingPreferenceSent =
+            request.bindingPreferenceSent ??
+            request.preferBinding !== undefined;
+        const dpopTokenType = Constants.AuthenticationScheme.DPOP.toLowerCase();
+        const dpopWithProofTokenType =
+            PlatformAuthTokenType.DPOP_WITH_PROOF.toLowerCase();
+        const propertyProof = responseProperties?.DPoP;
+        const topLevelProof = response.DPoP;
+        const brokerProof = propertyProof ?? topLevelProof;
+        const proofValues = [propertyProof, topLevelProof].filter(
+            (proof): proof is string => proof !== undefined
+        );
+        const hasConflictingProof = new Set(proofValues).size > 1;
+        const normalizeBindingAttestedValue = (
+            value: boolean | string | undefined
+        ): boolean | undefined =>
+            typeof value === "boolean"
+                ? value
+                : typeof value === "string"
+                ? value.trim().toLowerCase() === "true"
+                    ? true
+                    : value.trim().toLowerCase() === "false"
+                    ? false
+                    : undefined
+                : undefined;
+        const propertyBindingAttested = responseProperties?.binding_attested;
+        const topLevelBindingAttested = response.binding_attested;
+        const normalizedPropertyBindingAttested = normalizeBindingAttestedValue(
+            propertyBindingAttested
+        );
+        const normalizedTopLevelBindingAttested = normalizeBindingAttestedValue(
+            topLevelBindingAttested
+        );
+        const normalizedBindingAttested =
+            normalizedPropertyBindingAttested ??
+            normalizedTopLevelBindingAttested;
+        const hasMalformedBindingAttested =
+            (propertyBindingAttested !== undefined &&
+                normalizedPropertyBindingAttested === undefined) ||
+            (topLevelBindingAttested !== undefined &&
+                normalizedTopLevelBindingAttested === undefined);
+        const hasConflictingBindingAttested =
+            normalizedPropertyBindingAttested !== undefined &&
+            normalizedTopLevelBindingAttested !== undefined &&
+            normalizedPropertyBindingAttested !==
+                normalizedTopLevelBindingAttested;
+        const hasDpopResponse =
+            this.isDpopBrokerTokenType(normalizedResponseTokenType) ||
+            brokerProof !== undefined ||
+            response.binding_attested !== undefined ||
+            responseProperties?.binding_attested !== undefined;
+
+        if (!isDpopRequest) {
+            if (hasDpopResponse) {
+                throwInvalidDpopResponse(
+                    "unexpected_response",
+                    "Unexpected DPoP broker response."
+                );
+            }
+            return "none";
+        }
+
+        if (!this.isDpopBrokerTokenType(normalizedResponseTokenType)) {
+            throwInvalidDpopResponse(
+                "unknown_token_type",
+                "Unknown DPoP broker response."
+            );
+        }
+
+        if (
+            hasConflictingProof ||
+            hasConflictingTokenType ||
+            hasConflictingBindingAttested
+        ) {
+            throwInvalidDpopResponse(
+                "conflicting_fields",
+                "Conflicting DPoP broker response."
+            );
+        }
+
+        if (hasMalformedBindingAttested) {
+            throwInvalidDpopResponse(
+                "invalid_attestation",
+                "Conflicting DPoP broker response."
+            );
+        }
+
+        if (bindingPreferenceSent && normalizedBindingAttested === undefined) {
+            throwInvalidDpopResponse(
+                "missing_attestation",
+                "Conflicting DPoP broker response."
+            );
+        }
+
+        response.binding_attested = normalizedBindingAttested;
+        response.DPoP = brokerProof;
+
+        const hasProof = brokerProof !== undefined;
+        if (
+            hasProof &&
+            (typeof brokerProof !== "string" || brokerProof.trim().length === 0)
+        ) {
+            throwInvalidDpopResponse(
+                "missing_proof",
+                "Malformed DPoP broker response."
+            );
+        }
+
+        if (hasProof) {
+            if (normalizedBindingAttested !== true) {
+                throwInvalidDpopResponse(
+                    "invalid_attestation",
+                    "Malformed DPoP broker response."
+                );
+            }
+            if (
+                normalizedRequestTokenType !== dpopWithProofTokenType ||
+                normalizedResponseTokenType !== dpopWithProofTokenType
+            ) {
+                throwInvalidDpopResponse(
+                    "conflicting_fields",
+                    "Malformed DPoP broker response."
+                );
+            }
+            response.token_type = PlatformAuthTokenType.DPOP_WITH_PROOF;
+            this.performanceClient.addFields(
+                {
+                    "ext.brokerDpopOutcome": "l3",
+                    "ext.brokerDpopBindingLevel": "L3",
+                },
+                this.correlationId
+            );
+            return "L3";
+        }
+
+        if (normalizedResponseTokenType !== dpopTokenType) {
+            throwInvalidDpopResponse(
+                "missing_proof",
+                "Malformed DPoP broker response."
+            );
+        }
+        response.token_type = Constants.AuthenticationScheme.DPOP;
+
+        if (normalizedRequestTokenType !== dpopWithProofTokenType) {
+            throwInvalidDpopResponse(
+                "conflicting_fields",
+                "Malformed DPoP broker L1 response."
+            );
+        }
+
+        if (
+            normalizedBindingAttested !== false &&
+            !(!bindingPreferenceSent && normalizedBindingAttested === undefined)
+        ) {
+            throwInvalidDpopResponse(
+                "invalid_attestation",
+                "Malformed DPoP broker L1 response."
+            );
+        }
+
+        if (!request.reqCnf || !request.keyId) {
+            throwInvalidDpopResponse(
+                "missing_l1_binding",
+                "Malformed DPoP broker L1 response."
+            );
+        }
+
+        this.performanceClient.addFields(
+            {
+                "ext.brokerDpopOutcome": "l1",
+                "ext.brokerDpopBindingLevel": "L1",
+            },
+            this.correlationId
+        );
+        return "L1";
+    }
+
+    /**
+     * Returns the broker proof or signs an L1 resource proof with the local key.
+     * @param response - Broker response containing the access token and optional proof.
+     * @param request - Broker request containing the proof context and local key.
+     * @returns The resource proof for the broker access token.
+     */
+    private async generateDpopProof(
+        response: PlatformAuthResponse,
+        request: PlatformAuthRequest
+    ): Promise<string> {
+        if (response.DPoP !== undefined) {
+            return response.DPoP;
+        }
+
+        const dpopProofGenerator = new DpopProofGenerator(
+            this.browserCrypto,
+            this.tokenBindingKeyManager
+        );
+        return dpopProofGenerator.generateResourceProof(
+            {
+                htu: request.resourceRequestUri,
+                htm: request.resourceRequestMethod,
+                accessToken: response.access_token,
+                nonce: request.extraParametersNoCache?.pop_nonce,
+            },
+            request.keyId as string,
+            this.correlationId
+        );
+    }
+
+    /**
+     * Removes a generated DPoP request key and clears its request metadata.
+     * @param request - Broker request whose generated key should be removed.
+     * @param mode - Whether cleanup failures should be thrown or only recorded.
+     */
+    private async resetGeneratedDpopRequestKey(
+        request: PlatformAuthRequest,
+        mode: "strict" | "best-effort" = "strict"
+    ): Promise<void> {
+        if (!this.isDpopBrokerRequest(request) || !request.keyId) {
+            return;
+        }
+
+        try {
+            if (request.keyId && !(await this.removeDpopKey(request.keyId))) {
+                throw createAuthError(
+                    AuthErrorCodes.unexpectedError,
+                    this.correlationId,
+                    "Failed to remove generated DPoP request key."
+                );
+            }
+
+            request.keyId = undefined;
+            request.reqCnf = undefined;
+        } catch (error) {
+            if (mode === "strict") {
+                throw error;
+            }
+
+            this.logger.error(
+                "Failed to remove generated DPoP request key after an operation error.",
+                this.correlationId
+            );
+            this.performanceClient.incrementFields(
+                { removeTokenBindingKeyFailure: 1 },
+                this.correlationId
+            );
+
+            request.keyId = undefined;
+            request.reqCnf = undefined;
+        }
+    }
+
+    /**
+     * Determines whether a request uses the DPoP broker protocol.
+     * @param request - Broker request to inspect.
+     * @returns Whether the request uses a DPoP token type.
+     */
+    private isDpopBrokerRequest(request: PlatformAuthRequest): boolean {
+        return this.isDpopBrokerTokenType(request.tokenType);
+    }
+
+    /**
+     * Determines whether a token type represents a DPoP broker request.
+     * @param tokenType - Token type to inspect.
+     * @returns Whether the token type is a supported DPoP broker token type.
+     */
+    private isDpopBrokerTokenType(tokenType: string | undefined): boolean {
+        const normalizedTokenType = tokenType?.trim().toLowerCase();
+        return (
+            normalizedTokenType === PlatformAuthTokenType.DPOP_WITH_PROOF ||
+            normalizedTokenType ===
+                Constants.AuthenticationScheme.DPOP.toLowerCase()
+        );
+    }
+
+    /**
+     * Removes a DPoP key while reporting cleanup failures.
+     * @param keyId - Identifier of the DPoP key to remove.
+     * @returns Whether the key was removed successfully.
+     */
+    private async removeDpopKey(keyId: string): Promise<boolean> {
+        try {
+            await this.tokenBindingKeyManager.removeTokenBindingKey(
+                keyId,
+                this.correlationId
+            );
+            return true;
+        } catch {
+            this.logger.error(
+                "Failed to remove unused DPoP key",
+                this.correlationId
+            );
+            return false;
+        }
     }
 
     private async getCanonicalAuthority(
@@ -1361,43 +2048,42 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
     }
 
-    /**
-     * Handles extra broker request parameters
-     * @param request {PlatformAuthRequest}
-     * @private
-     */
-    private handleExtraBrokerParams(
-        request: PlatformAuthRequest,
-        embeddedClientId?: string
-    ): void {
+    private createBrokerRequestParameters(
+        request: PopupRequest | SsoSilentRequest,
+        redirectUri: string
+    ): {
+        redirectUri: string;
+        extraParameters: NonNullable<PlatformAuthRequest["extraParameters"]>;
+    } {
+        const extraParameters: NonNullable<
+            PlatformAuthRequest["extraParameters"]
+        > = {
+            ...request.extraParameters,
+            ...(request.resource && { resource: request.resource }),
+            telemetry: PlatformAuthConstants.MATS_TELEMETRY,
+            [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
+        };
+        const hasOwnParameter = (parameter: string): boolean =>
+            Object.prototype.hasOwnProperty.call(extraParameters, parameter);
         const hasExtraBrokerParams =
-            request.extraParameters &&
-            request.extraParameters.hasOwnProperty(
-                AADServerParamKeys.BROKER_CLIENT_ID
-            ) &&
-            request.extraParameters.hasOwnProperty(
-                AADServerParamKeys.BROKER_REDIRECT_URI
-            ) &&
-            request.extraParameters.hasOwnProperty(
-                AADServerParamKeys.CLIENT_ID
-            );
+            hasOwnParameter(AADServerParamKeys.BROKER_CLIENT_ID) &&
+            hasOwnParameter(AADServerParamKeys.BROKER_REDIRECT_URI) &&
+            hasOwnParameter(AADServerParamKeys.CLIENT_ID);
 
-        if (!embeddedClientId && !hasExtraBrokerParams) {
-            return;
+        if (!request.embeddedClientId && !hasExtraBrokerParams) {
+            return {
+                redirectUri,
+                extraParameters,
+            };
         }
 
-        let child_client_id: string = "";
-        const child_redirect_uri = request.redirectUri;
-
-        if (embeddedClientId) {
-            request.redirectUri = this.config.auth.redirectUri;
-            child_client_id = embeddedClientId;
-        } else if (request.extraParameters) {
-            request.redirectUri =
-                request.extraParameters[AADServerParamKeys.BROKER_REDIRECT_URI];
-            child_client_id =
-                request.extraParameters[AADServerParamKeys.CLIENT_ID];
-        }
+        const childRedirectUri = redirectUri;
+        const childClientId =
+            request.embeddedClientId ||
+            extraParameters[AADServerParamKeys.CLIENT_ID];
+        const brokerRedirectUri = request.embeddedClientId
+            ? this.config.auth.redirectUri
+            : extraParameters[AADServerParamKeys.BROKER_REDIRECT_URI];
 
         const {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1407,20 +2093,24 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [AADServerParamKeys.CLIENT_ID]: _clientId,
             ...remainingExtraParameters
-        } = request.extraParameters || {};
-
-        request.extraParameters = {
+        } = extraParameters;
+        const brokerExtraParameters = {
             ...remainingExtraParameters,
-            child_client_id,
-            child_redirect_uri,
+            child_client_id: childClientId,
+            child_redirect_uri: childRedirectUri,
         };
 
         this.performanceClient?.addFields(
             {
-                embeddedClientId: child_client_id,
-                embeddedRedirectUri: child_redirect_uri,
+                embeddedClientId: childClientId,
+                embeddedRedirectUri: childRedirectUri,
             },
             this.correlationId
         );
+
+        return {
+            redirectUri: brokerRedirectUri,
+            extraParameters: brokerExtraParameters,
+        };
     }
 }

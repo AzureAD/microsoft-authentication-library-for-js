@@ -245,7 +245,6 @@ export class StandardController implements IController {
             this.browserCrypto = DEFAULT_CRYPTO_IMPLEMENTATION;
             this.tokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER;
         }
-
         this.eventHandler = new EventHandler(this.logger);
 
         // Initialize the browser storage class.
@@ -729,6 +728,10 @@ export class StandardController implements IController {
             const platformAuthProvider = this.platformAuthProvider;
 
             if (this.canUsePlatformBroker(request) && platformAuthProvider) {
+                const nativeRequest = this.sanitizeNativeBrokerRequest(
+                    request,
+                    correlationId
+                );
                 const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -750,7 +753,7 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     correlationId
-                )(request, atrMeasurement).catch((e: AuthError) => {
+                )(nativeRequest, atrMeasurement).catch((e: AuthError) => {
                     if (
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
@@ -1603,6 +1606,7 @@ export class StandardController implements IController {
             INTERACTION_TYPE.SIGNOUT
         );
 
+        await this.clearNativeCache(logoutRequest?.account, correlationId);
         const redirectClient = this.createRedirectClient(correlationId);
         return redirectClient.logout(logoutRequest);
     }
@@ -1621,9 +1625,11 @@ export class StandardController implements IController {
             );
 
             const popupClient = this.createPopupClient(correlationId);
-            return popupClient.logout(logoutRequest).finally(() => {
-                this.browserStorage.setInteractionInProgress(false);
-            });
+            return this.clearNativeCache(logoutRequest?.account, correlationId)
+                .then(() => popupClient.logout(logoutRequest))
+                .finally(() => {
+                    this.browserStorage.setInteractionInProgress(false);
+                });
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -1640,7 +1646,55 @@ export class StandardController implements IController {
         }
         const correlationId = this.getRequestCorrelationId(logoutRequest);
         const cacheClient = this.createSilentCacheClient(correlationId);
-        return cacheClient.logout(logoutRequest);
+        const nativeCacheClear = this.clearNativeCache(
+            logoutRequest?.account,
+            correlationId
+        );
+        const browserCacheClear = cacheClient.logout(logoutRequest);
+        await Promise.all([nativeCacheClear, browserCacheClear]);
+    }
+
+    private async clearNativeCache(
+        account: AccountInfo | null | undefined,
+        correlationId: string
+    ): Promise<void> {
+        const homeAccountId = account?.homeAccountId.toLowerCase();
+        const environment = account?.environment.toLowerCase();
+        const accessTokenKeys = this.nativeInternalStorage
+            .getTokenKeys()
+            .accessToken.filter((key) => {
+                if (!account) {
+                    return true;
+                }
+
+                const accessToken =
+                    this.nativeInternalStorage.getAccessTokenCredential(
+                        key,
+                        correlationId
+                    );
+                if (!accessToken) {
+                    return false;
+                }
+                return (
+                    accessToken.homeAccountId.toLowerCase() === homeAccountId &&
+                    accessToken.environment.toLowerCase() === environment
+                );
+            });
+
+        await Promise.all(
+            accessTokenKeys.map((key) =>
+                this.nativeInternalStorage.removeAccessTokenAndTokenBindingKey(
+                    key,
+                    correlationId
+                )
+            )
+        );
+
+        if (account) {
+            this.nativeInternalStorage.removeAccount(account, correlationId);
+        } else {
+            this.nativeInternalStorage.clear(correlationId);
+        }
     }
 
     // #endregion
@@ -1812,6 +1866,27 @@ export class StandardController implements IController {
     // #region Helpers
 
     /**
+     * Removes internal DPoP key state from application-originated broker requests.
+     */
+    private sanitizeNativeBrokerRequest<T extends { dpopJkt?: string }>(
+        request: T,
+        correlationId: string
+    ): T {
+        if (!request.dpopJkt) {
+            return request;
+        }
+
+        this.logger.warning(
+            "Ignoring caller-provided dpopJkt for a direct platform broker request.",
+            correlationId
+        );
+        return {
+            ...request,
+            dpopJkt: undefined,
+        };
+    }
+
+    /**
      * Acquire a token from native device (e.g. WAM)
      * @param request
      * @param apiId
@@ -1853,6 +1928,10 @@ export class StandardController implements IController {
             correlationId,
             this.tokenBindingKeyManager
         );
+        const nativeRequest = this.sanitizeNativeBrokerRequest(
+            request,
+            correlationId
+        );
 
         return invokeAsync(
             nativeClient.acquireToken.bind(nativeClient),
@@ -1860,7 +1939,7 @@ export class StandardController implements IController {
             this.logger,
             this.performanceClient,
             correlationId
-        )(request, cacheLookupPolicy);
+        )(nativeRequest, cacheLookupPolicy);
     }
 
     /**

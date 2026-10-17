@@ -23,6 +23,7 @@ import {
 import {
     AccountEntity,
     AccountInfo,
+    AccessTokenEntity,
     AuthError,
     AuthorityMetadataEntity,
     AuthorizationCodeClient,
@@ -50,6 +51,7 @@ import {
     AccountEntityUtils,
     Constants,
     updateAccountTenantProfileData,
+    TimeUtils,
 } from "@azure/msal-common/browser";
 import {
     ApiId,
@@ -62,6 +64,7 @@ import {
     WrapperSKU,
 } from "../../src/utils/BrowserConstants.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
+import { TokenBindingKeyManager } from "../../src/crypto/TokenBindingKeyManager.js";
 import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
 import * as PkceGenerator from "../../src/crypto/PkceGenerator.js";
 import { EventType } from "../../src/event/EventType.js";
@@ -88,6 +91,7 @@ import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClien
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient.js";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import * as PlatformAuthProvider from "../../src/broker/nativeBroker/PlatformAuthProvider.js";
 import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
@@ -1698,13 +1702,33 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const redirectSpy: jest.SpyInstance = jest
                 .spyOn(RedirectClient.prototype, "acquireToken")
                 .mockResolvedValue();
-            await pca.acquireTokenRedirect({
+            const warningSpy = jest.spyOn((pca as any).logger, "warning");
+            const callerDpopJkt = "caller-provided-dpop-jkt";
+            const request = {
                 scopes: ["User.Read"],
                 account: testAccount,
-            });
+                correlationId: RANDOM_TEST_GUID,
+                dpopJkt: callerDpopJkt,
+            };
+            await pca.acquireTokenRedirect(request);
 
             expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
             expect(redirectSpy).toHaveBeenCalledTimes(0);
+            expect(
+                (
+                    nativeAcquireTokenSpy.mock.calls[0][0] as {
+                        dpopJkt?: string;
+                    }
+                ).dpopJkt
+            ).toBeUndefined();
+            expect(request.dpopJkt).toBe(callerDpopJkt);
+            expect(warningSpy).toHaveBeenCalledWith(
+                "Ignoring caller-provided dpopJkt for a direct platform broker request.",
+                RANDOM_TEST_GUID
+            );
+            expect(JSON.stringify(warningSpy.mock.calls)).not.toContain(
+                callerDpopJkt
+            );
         });
 
         /*
@@ -5328,15 +5352,30 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentSpy: jest.SpyInstance = jest
                 .spyOn(SilentIframeClient.prototype, "acquireToken")
                 .mockResolvedValue(testTokenResponse);
-            const response = await pca.acquireTokenSilent({
+            const warningSpy = jest.spyOn((pca as any).logger, "warning");
+            const callerDpopJkt = "caller-provided-dpop-jkt";
+            const request = {
                 scopes: ["User.Read"],
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
-            });
+                dpopJkt: callerDpopJkt,
+            };
+            const response = await pca.acquireTokenSilent(request);
 
             expect(response).toEqual(testTokenResponse);
             expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
             expect(silentSpy).toHaveBeenCalledTimes(0);
+            expect(nativeAcquireTokenSpy.mock.calls[0][0].dpopJkt).toBe(
+                undefined
+            );
+            expect(request.dpopJkt).toBe(callerDpopJkt);
+            expect(warningSpy).toHaveBeenCalledWith(
+                "Ignoring caller-provided dpopJkt for a direct platform broker request.",
+                RANDOM_TEST_GUID
+            );
+            expect(JSON.stringify(warningSpy.mock.calls)).not.toContain(
+                callerDpopJkt
+            );
         });
 
         it("falls back to web flow if platform broker call fails due to fatal error", async () => {
@@ -7932,6 +7971,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(redirectClientSpy).toHaveBeenCalledTimes(1);
         });
 
+        it("clears the native cache before redirect logout clears the shared keystore", async () => {
+            const clearNativeCacheSpy = jest
+                .spyOn(pca as any, "clearNativeCache")
+                .mockResolvedValue(undefined);
+            const redirectClientSpy = jest
+                .spyOn(RedirectClient.prototype, "logout")
+                .mockResolvedValue();
+
+            await pca.logoutRedirect();
+
+            expect(clearNativeCacheSpy).toHaveBeenCalledWith(
+                undefined,
+                expect.any(String)
+            );
+            expect(
+                clearNativeCacheSpy.mock.invocationCallOrder[0]
+            ).toBeLessThan(redirectClientSpy.mock.invocationCallOrder[0]);
+        });
+
         it("throws an error if inside an iframe", async () => {
             const mockParentWindow = { ...window };
             jest.spyOn(window, "parent", "get").mockReturnValue(
@@ -7989,6 +8047,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.logoutPopup();
             expect(response).toEqual(undefined);
             expect(popupClientSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("clears the native cache before popup logout clears the shared keystore", async () => {
+            const clearNativeCacheSpy = jest
+                .spyOn(pca as any, "clearNativeCache")
+                .mockResolvedValue(undefined);
+            const popupClientSpy = jest
+                .spyOn(PopupClient.prototype, "logout")
+                .mockResolvedValue();
+
+            await pca.logoutPopup();
+
+            expect(clearNativeCacheSpy).toHaveBeenCalledWith(
+                undefined,
+                expect.any(String)
+            );
+            expect(
+                clearNativeCacheSpy.mock.invocationCallOrder[0]
+            ).toBeLessThan(popupClientSpy.mock.invocationCallOrder[0]);
         });
 
         it("throws error if interaction is in progress", async () => {
@@ -8064,6 +8141,221 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: "test123",
             });
             expect(pca.getActiveAccount()).toEqual(null);
+        });
+
+        it("account-scoped clearCache removes native DPoP tokens and keys", async () => {
+            jest.spyOn(
+                DatabaseStorage.prototype,
+                "setItem"
+            ).mockResolvedValue();
+            jest.spyOn(
+                DatabaseStorage.prototype,
+                "removeItem"
+            ).mockResolvedValue();
+            jest.spyOn(
+                DatabaseStorage.prototype,
+                "containsKey"
+            ).mockResolvedValue(false);
+            jest.spyOn(DatabaseStorage.prototype, "getItem").mockResolvedValue(
+                null
+            );
+            const controller = pca as unknown as {
+                nativeInternalStorage: BrowserCacheManager;
+                tokenBindingKeyManager: TokenBindingKeyManager;
+                clearCache(request: {
+                    account: AccountInfo;
+                    correlationId: string;
+                }): Promise<void>;
+            };
+            const keyId =
+                await controller.tokenBindingKeyManager.provisionTokenBindingKey(
+                    {
+                        tokenBindingKeyType: "dpop",
+                        tokenBindingKeyAlgorithm: "ES256",
+                        correlationId: "test123",
+                    }
+                );
+            const nativeAccessToken: AccessTokenEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                secret: TEST_TOKENS.ACCESS_TOKEN,
+                target: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                credentialType:
+                    Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                tokenType: Constants.AuthenticationScheme.DPOP,
+                keyId,
+                expiresOn: `${TimeUtils.nowSeconds() + 3600}`,
+                cachedAt: `${TimeUtils.nowSeconds()}`,
+                lastUpdatedAt: Date.now().toString(),
+            };
+            await controller.nativeInternalStorage.setAccessTokenCredential(
+                nativeAccessToken,
+                "test123",
+                true
+            );
+
+            await controller.clearCache({
+                account: {
+                    ...testAccountInfo,
+                    homeAccountId: testAccountInfo.homeAccountId.toUpperCase(),
+                    environment: testAccountInfo.environment.toUpperCase(),
+                },
+                correlationId: "test123",
+            });
+
+            expect(
+                controller.nativeInternalStorage.getAccessTokenCredential(
+                    controller.nativeInternalStorage.generateCredentialKey(
+                        nativeAccessToken
+                    ),
+                    "test123"
+                )
+            ).toBeNull();
+            await expect(
+                controller.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                    keyId,
+                    "test123"
+                )
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.cryptoKeyNotFound,
+            });
+        });
+
+        it("uses the same token-binding key manager for browser and native caches", () => {
+            const controller = pca as unknown as {
+                tokenBindingKeyManager: TokenBindingKeyManager;
+                nativeInternalStorage: {
+                    tokenBindingKeyManager: TokenBindingKeyManager;
+                };
+            };
+
+            expect(
+                controller.nativeInternalStorage.tokenBindingKeyManager
+            ).toBe(controller.tokenBindingKeyManager);
+        });
+
+        it("native-only cache cleanup preserves unrelated MSAL-owned keys", async () => {
+            jest.spyOn(
+                DatabaseStorage.prototype,
+                "setItem"
+            ).mockResolvedValue();
+            jest.spyOn(
+                DatabaseStorage.prototype,
+                "removeItem"
+            ).mockResolvedValue();
+            jest.spyOn(
+                DatabaseStorage.prototype,
+                "containsKey"
+            ).mockResolvedValue(false);
+            jest.spyOn(DatabaseStorage.prototype, "getItem").mockResolvedValue(
+                null
+            );
+            const controller = pca as unknown as {
+                tokenBindingKeyManager: TokenBindingKeyManager;
+                nativeInternalStorage: BrowserCacheManager;
+                clearNativeCache(
+                    account: AccountInfo | undefined,
+                    correlationId: string
+                ): Promise<void>;
+            };
+            const nativeKeyId =
+                await controller.tokenBindingKeyManager.provisionTokenBindingKey(
+                    {
+                        tokenBindingKeyType: "dpop",
+                        tokenBindingKeyAlgorithm: "ES256",
+                        correlationId: "test123",
+                    }
+                );
+            const unrelatedKeyId =
+                await controller.tokenBindingKeyManager.provisionTokenBindingKey(
+                    {
+                        tokenBindingKeyType: "dpop",
+                        tokenBindingKeyAlgorithm: "ES256",
+                        correlationId: "test123",
+                    }
+                );
+            const nativeAccessToken: AccessTokenEntity = {
+                homeAccountId: testAccountInfo.homeAccountId,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                environment: testAccountInfo.environment,
+                realm: testAccountInfo.tenantId,
+                secret: TEST_TOKENS.ACCESS_TOKEN,
+                target: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                credentialType:
+                    Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                tokenType: Constants.AuthenticationScheme.DPOP,
+                keyId: nativeKeyId,
+                expiresOn: `${TimeUtils.nowSeconds() + 3600}`,
+                cachedAt: `${TimeUtils.nowSeconds()}`,
+                lastUpdatedAt: Date.now().toString(),
+            };
+            await controller.nativeInternalStorage.setAccessTokenCredential(
+                nativeAccessToken,
+                "test123",
+                true
+            );
+
+            await controller.clearNativeCache(undefined, "test123");
+
+            await expect(
+                controller.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                    nativeKeyId,
+                    "test123"
+                )
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.cryptoKeyNotFound,
+            });
+            await expect(
+                controller.tokenBindingKeyManager.getTokenBindingPublicKeyJwk(
+                    unrelatedKeyId,
+                    "test123"
+                )
+            ).resolves.toMatchObject({
+                kty: "EC",
+            });
+            await controller.tokenBindingKeyManager.removeTokenBindingKey(
+                unrelatedKeyId,
+                "test123"
+            );
+        });
+
+        it("persists native DPoP keys for redirect handoff", async () => {
+            const databaseSetItemSpy = jest
+                .spyOn(DatabaseStorage.prototype, "setItem")
+                .mockResolvedValue();
+            jest.spyOn(
+                DatabaseStorage.prototype,
+                "removeItem"
+            ).mockResolvedValue();
+            jest.spyOn(
+                DatabaseStorage.prototype,
+                "containsKey"
+            ).mockResolvedValue(false);
+            const controller = pca as unknown as {
+                tokenBindingKeyManager: TokenBindingKeyManager;
+            };
+            const keyId =
+                await controller.tokenBindingKeyManager.provisionTokenBindingKey(
+                    {
+                        tokenBindingKeyType: "dpop",
+                        tokenBindingKeyAlgorithm: "ES256",
+                        correlationId: "test123",
+                    }
+                );
+            expect(databaseSetItemSpy).toHaveBeenCalledWith(
+                keyId,
+                expect.objectContaining({
+                    keyId,
+                    tokenBindingKeyType: "dpop",
+                    tokenBindingKeyAlgorithm: "ES256",
+                })
+            );
+            await controller.tokenBindingKeyManager.removeTokenBindingKey(
+                keyId,
+                "test123"
+            );
         });
     });
 

@@ -214,6 +214,8 @@ declare namespace BrowserAuthErrorCodes {
         nativePromptNotSupported,
         invalidBase64String,
         invalidPopTokenRequest,
+        dpopPopKidNotSupported,
+        platformAuthDomDpopNotSupported,
         unsupportedTokenBindingAlgorithm,
         tokenBindingKeyAlgorithmMismatch,
         tokenBindingKeyJwkThumbprintMismatch,
@@ -450,6 +452,9 @@ const databaseUnavailable = "database_unavailable";
 
 // @public (undocumented)
 export const DEFAULT_IFRAME_TIMEOUT_MS = 10000;
+
+// @public (undocumented)
+const dpopPopKidNotSupported = "dpop_pop_kid_not_supported";
 
 // @public (undocumented)
 const earJweEmpty = "ear_jwe_empty";
@@ -882,6 +887,9 @@ export { PerformanceEvent }
 
 // @public (undocumented)
 const pkceNotCreated = "pkce_not_created";
+
+// @public (undocumented)
+const platformAuthDomDpopNotSupported = "platform_auth_dom_dpop_not_supported";
 
 // @public (undocumented)
 export type PopupEvent = {

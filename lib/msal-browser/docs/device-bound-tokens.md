@@ -53,6 +53,19 @@ There are a few things that may behave a little differently when acquiring token
 -   If the platform broker needs to prompt the user for interaction a system prompt will be opened. This prompt looks a bit different from the browser popup windows you may be used to.
 -   Switching your account in the platform broker prompt is not supported and MSAL.js will throw an error (Error Code: user_switch) if this happens. It is your app's responsibility to catch this error and handle it in a way that makes sense for your scenarios (e.g. Show an error page, retry with the new account, retry with the original account, etc.)
 
+### DPoP with the platform broker
+
+> [!WARNING]
+> DPoP support in MSAL Browser is currently in development and is not fully rolled out or ready for production use. APIs and behavior may change. Use this feature only for evaluation and testing.
+
+DPoP broker support is currently available only through the Windows Accounts extension. When the Platform Authentication DOM API provider is active, MSAL uses the browser-managed DPoP flow instead. Applications use the same DPoP request and response handling in either case; no broker-specific configuration is required.
+
+When supported, MSAL asks the platform broker to use broker-attested binding as a best-effort security improvement. Token issuance and Conditional Access determine whether the available binding satisfies tenant policy; applications receive and use the resulting DPoP token in the same way regardless of the binding mechanism.
+
+MSAL rejects invalid or inconsistent broker responses instead of returning an unbound token. Application-managed DPoP keys are not supported through the Windows Accounts extension.
+
+DPoP requests must include the resource method and URI used to build the proof. For the complete request shape and proof usage, see [DPoP for PublicClientApplication](./access-token-proof-of-possession.md#dpop-for-publicclientapplication).
+
 ## Acquiring Device Bound Tokens using DOM API
 
 MSAL.js also supports acquiring tokens from the platform broker using DOM APIs in Edge. Instead of using a browser extension to communicate with the platform broker, MSAL.js can directly call a DOM API in the Edge browser, which in turn invokes the platform broker to acquire tokens.

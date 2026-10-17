@@ -23,7 +23,10 @@ import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
-import { getTokenBindingRequestParams } from "../request/RequestHelpers.js";
+import {
+    getTokenBindingRequestParams,
+    removeTokenBindingKeyOnFailure,
+} from "../request/RequestHelpers.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
@@ -414,7 +417,8 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.eventHandler,
                 this.logger,
                 this.performanceClient,
-                this.platformAuthProvider
+                this.platformAuthProvider,
+                this.tokenBindingKeyManager
             );
         } else {
             return invokeAsync(
@@ -434,7 +438,8 @@ export class SilentIframeClient extends StandardInteractionClient {
                 this.eventHandler,
                 this.logger,
                 this.performanceClient,
-                this.platformAuthProvider
+                this.platformAuthProvider,
+                this.tokenBindingKeyManager
             );
         }
     }
@@ -547,26 +552,37 @@ export class SilentIframeClient extends StandardInteractionClient {
         const { serverParams, pkceCodes, silentRequest } =
             await this.silentAuthorizeHelper(authClient, request);
 
-        return invokeAsync(
-            Authorize.handleResponseCode,
-            BrowserPerformanceEvents.HandleResponseCode,
-            this.logger,
-            this.performanceClient,
-            request.correlationId
-        )(
-            silentRequest,
-            serverParams,
-            pkceCodes.verifier,
-            this.apiId,
-            this.config,
-            authClient,
-            this.browserStorage,
-            this.nativeStorage,
-            this.eventHandler,
-            this.logger,
-            this.performanceClient,
-            this.platformAuthProvider
-        );
+        try {
+            return await invokeAsync(
+                Authorize.handleResponseCode,
+                BrowserPerformanceEvents.HandleResponseCode,
+                this.logger,
+                this.performanceClient,
+                request.correlationId
+            )(
+                silentRequest,
+                serverParams,
+                pkceCodes.verifier,
+                this.apiId,
+                this.config,
+                authClient,
+                this.browserStorage,
+                this.nativeStorage,
+                this.eventHandler,
+                this.logger,
+                this.performanceClient,
+                this.platformAuthProvider,
+                this.tokenBindingKeyManager
+            );
+        } catch (e) {
+            await removeTokenBindingKeyOnFailure(
+                silentRequest,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
+            throw e;
+        }
     }
 
     /**
@@ -604,91 +620,101 @@ export class SilentIframeClient extends StandardInteractionClient {
             ...tokenBindingParams,
         };
 
-        // Create the iframe, register the response listener, then navigate, so the listener is active before the iframe can respond.
-        const iframe = createHiddenIframe();
-
-        const responseType = this.config.auth.OIDCOptions.responseMode;
-        // Wait for response from the redirect bridge.
-        let responseString: string;
         try {
-            const responsePromise = invokeAsync(
-                this.waitForIframeResponse.bind(this),
-                BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(iframe, request);
-            responsePromise.catch(() => {
-                /*
-                 * If URL creation or navigation below throws before
-                 * responsePromise is awaited, the listener still rejects on
-                 * timeout. Swallow it here so it does not surface as an
-                 * unhandled rejection; the navigation error is propagated
-                 * instead.
-                 */
-            });
+            // Create the iframe, register the response listener, then navigate, so the listener is active before the iframe can respond.
+            const iframe = createHiddenIframe();
 
-            if (request.httpMethod === Constants.HttpMethod.POST) {
-                await invokeAsync(
-                    initiateCodeFlowWithPost,
-                    BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+            const responseType = this.config.auth.OIDCOptions.responseMode;
+            // Wait for response from the redirect bridge.
+            let responseString: string;
+            try {
+                const responsePromise = invokeAsync(
+                    this.waitForIframeResponse.bind(this),
+                    BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
                     this.logger,
                     this.performanceClient,
                     correlationId
-                )(
-                    iframe,
-                    this.config,
-                    authClient.authority,
-                    silentRequest,
-                    this.logger,
-                    this.performanceClient
-                );
-            } else {
-                // Create authorize request url
-                const navigateUrl = await invokeAsync(
-                    Authorize.getAuthCodeRequestUrl,
-                    PerformanceEvents.GetAuthCodeUrl,
-                    this.logger,
-                    this.performanceClient,
-                    correlationId
-                )(
-                    this.config,
-                    authClient.authority,
-                    silentRequest,
-                    this.logger,
-                    this.performanceClient
-                );
+                )(iframe, request);
+                responsePromise.catch(() => {
+                    /*
+                     * If URL creation or navigation below throws before
+                     * responsePromise is awaited, the listener still rejects on
+                     * timeout. Swallow it here so it does not surface as an
+                     * unhandled rejection; the navigation error is propagated
+                     * instead.
+                     */
+                });
 
-                // Navigate the iframe to the authorize request url
-                await invokeAsync(
-                    initiateCodeRequest,
-                    BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+                if (request.httpMethod === Constants.HttpMethod.POST) {
+                    await invokeAsync(
+                        initiateCodeFlowWithPost,
+                        BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+                        this.logger,
+                        this.performanceClient,
+                        correlationId
+                    )(
+                        iframe,
+                        this.config,
+                        authClient.authority,
+                        silentRequest,
+                        this.logger,
+                        this.performanceClient
+                    );
+                } else {
+                    // Create authorize request url
+                    const navigateUrl = await invokeAsync(
+                        Authorize.getAuthCodeRequestUrl,
+                        PerformanceEvents.GetAuthCodeUrl,
+                        this.logger,
+                        this.performanceClient,
+                        correlationId
+                    )(
+                        this.config,
+                        authClient.authority,
+                        silentRequest,
+                        this.logger,
+                        this.performanceClient
+                    );
+
+                    // Navigate the iframe to the authorize request url
+                    await invokeAsync(
+                        initiateCodeRequest,
+                        BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+                        this.logger,
+                        this.performanceClient,
+                        correlationId
+                    )(iframe, navigateUrl, this.logger, correlationId);
+                }
+
+                responseString = await responsePromise;
+            } finally {
+                invoke(
+                    removeHiddenIframe,
+                    BrowserPerformanceEvents.RemoveHiddenIframe,
                     this.logger,
                     this.performanceClient,
                     correlationId
-                )(iframe, navigateUrl, this.logger, correlationId);
+                )(iframe);
             }
 
-            responseString = await responsePromise;
-        } finally {
-            invoke(
-                removeHiddenIframe,
-                BrowserPerformanceEvents.RemoveHiddenIframe,
+            const serverParams = invoke(
+                ResponseHandler.deserializeResponse,
+                BrowserPerformanceEvents.DeserializeResponse,
                 this.logger,
                 this.performanceClient,
                 correlationId
-            )(iframe);
+            )(responseString, responseType, this.logger, this.correlationId);
+
+            return { serverParams, pkceCodes, silentRequest };
+        } catch (e) {
+            await removeTokenBindingKeyOnFailure(
+                silentRequest,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
+            throw e;
         }
-
-        const serverParams = invoke(
-            ResponseHandler.deserializeResponse,
-            BrowserPerformanceEvents.DeserializeResponse,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(responseString, responseType, this.logger, this.correlationId);
-
-        return { serverParams, pkceCodes, silentRequest };
     }
 
     protected async waitForIframeResponse(
