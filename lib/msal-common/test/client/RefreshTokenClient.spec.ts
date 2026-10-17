@@ -66,6 +66,7 @@ import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 import * as AccountEntityUtils from "../../src/cache/utils/AccountEntityUtils.js";
 import * as TokenProtocol from "../../src/protocol/Token.js";
 import { ResponseHandler } from "../../src/response/ResponseHandler.js";
+import { TokenCacheContext } from "../../src/cache/persistence/TokenCacheContext.js";
 
 const DEFAULT_OPTIONAL_ID_TOKEN_CLAIMS_WITH_TEST_CLAIMS =
     '{"access_token":{"example_claim":{"values":["example_value"]}},"id_token":{"signin_state":{"essential":false},"login_hint":{"essential":false},"tenant_region_sub_scope":{"essential":false}}}';
@@ -1565,6 +1566,176 @@ describe("RefreshTokenClient unit tests", () => {
                 },
                 TEST_CONFIG.CORRELATION_ID
             );
+        });
+    });
+
+    describe("persisting bad refresh token removal", () => {
+        let config: ClientConfiguration;
+        let client: RefreshTokenClient;
+        let request: CommonSilentFlowRequest;
+        let badTokenKey: string;
+        let beforeCacheAccess: jest.Mock;
+        let afterCacheAccess: jest.Mock;
+
+        beforeEach(async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            config = await ClientTestUtils.createTestClientConfiguration();
+            await config.storageInterface!.setRefreshTokenCredential(
+                { ...testRefreshTokenEntity },
+                TEST_CONFIG.CORRELATION_ID,
+                true
+            );
+            badTokenKey = generateCredentialKey(testRefreshTokenEntity);
+            request = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: AccountEntityUtils.getAccountInfo(testAccountEntity),
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: true,
+            };
+            config.serializableCache = {
+                serialize: jest.fn(),
+                deserialize: jest.fn(),
+            };
+            beforeCacheAccess = jest.fn().mockResolvedValue(undefined);
+            afterCacheAccess = jest.fn().mockResolvedValue(undefined);
+            config.persistencePlugin = {
+                beforeCacheAccess,
+                afterCacheAccess,
+            };
+            client = new RefreshTokenClient(config, stubPerformanceClient);
+            jest.spyOn(client, "acquireToken").mockRejectedValue(
+                new InteractionRequiredAuthError(
+                    "invalid_grant",
+                    request.correlationId,
+                    "Refresh token rejected",
+                    "bad_token"
+                )
+            );
+        });
+
+        it("loads before removal and awaits persistence before rejecting", async () => {
+            const callbacks: string[] = [];
+            let completePersistence!: () => void;
+            const persistenceComplete = new Promise<void>((resolve) => {
+                completePersistence = resolve;
+            });
+            beforeCacheAccess.mockImplementation(
+                async (context: TokenCacheContext) => {
+                    expect(context.tokenCache).toBe(config.serializableCache);
+                    expect(context.cacheHasChanged).toBe(true);
+                    expect(
+                        config.storageInterface!.getRefreshTokenCredential(
+                            badTokenKey,
+                            request.correlationId
+                        )
+                    ).not.toBeNull();
+                    callbacks.push("before");
+                }
+            );
+            afterCacheAccess.mockImplementation(
+                async (context: TokenCacheContext) => {
+                    expect(context.cacheHasChanged).toBe(true);
+                    expect(
+                        config.storageInterface!.getRefreshTokenCredential(
+                            badTokenKey,
+                            request.correlationId
+                        )
+                    ).toBeNull();
+                    await persistenceComplete;
+                    callbacks.push("after");
+                }
+            );
+
+            let requestSettled = false;
+            const acquisition = client
+                .acquireTokenByRefreshToken(request, 0)
+                .finally(() => {
+                    requestSettled = true;
+                });
+            const rejection = expect(acquisition).rejects.toMatchObject({
+                errorCode: "invalid_grant",
+                subError: "bad_token",
+            });
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            try {
+                expect(callbacks).toEqual(["before"]);
+                expect(requestSettled).toBe(false);
+            } finally {
+                completePersistence();
+            }
+            await rejection;
+            expect(callbacks).toEqual(["before", "after"]);
+            expect(beforeCacheAccess).toHaveBeenCalledTimes(1);
+            expect(afterCacheAccess).toHaveBeenCalledTimes(1);
+            expect(afterCacheAccess).toHaveBeenCalledWith(
+                beforeCacheAccess.mock.calls[0][0]
+            );
+        });
+
+        it.each(["beforeCacheAccess", "removeRefreshToken"])(
+            "calls afterCacheAccess when %s throws",
+            async (failingOperation) => {
+                const cacheError = new Error("Cache access failed");
+                if (failingOperation === "beforeCacheAccess") {
+                    beforeCacheAccess.mockRejectedValue(cacheError);
+                } else {
+                    jest.spyOn(
+                        config.storageInterface!,
+                        "removeRefreshToken"
+                    ).mockImplementation(() => {
+                        throw cacheError;
+                    });
+                }
+
+                await expect(
+                    client.acquireTokenByRefreshToken(request, 0)
+                ).rejects.toBe(cacheError);
+                expect(afterCacheAccess).toHaveBeenCalledTimes(1);
+                expect(afterCacheAccess).toHaveBeenCalledWith(
+                    beforeCacheAccess.mock.calls[0][0]
+                );
+            }
+        );
+
+        it("preserves a refresh token updated in memory while the request was in flight", async () => {
+            delete config.persistencePlugin;
+            delete config.serializableCache;
+            const clientWithoutPersistence = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const cachedToken =
+                config.storageInterface!.getRefreshTokenCredential(
+                    badTokenKey,
+                    request.correlationId
+                )!;
+            const authError = new InteractionRequiredAuthError(
+                "invalid_grant",
+                request.correlationId,
+                "Refresh token rejected",
+                "bad_token"
+            );
+            jest.spyOn(
+                clientWithoutPersistence,
+                "acquireToken"
+            ).mockImplementation(async () => {
+                cachedToken.secret = "replacement-refresh-token";
+                throw authError;
+            });
+
+            await expect(
+                clientWithoutPersistence.acquireTokenByRefreshToken(request, 0)
+            ).rejects.toBe(authError);
+            expect(
+                config.storageInterface!.getRefreshTokenCredential(
+                    badTokenKey,
+                    request.correlationId
+                )
+            ).toBe(cachedToken);
         });
     });
 
