@@ -14,6 +14,50 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.
 import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { Logger } from "../logger/Logger.js";
+import { createClientConfigurationError } from "../error/ClientConfigurationError.js";
+
+const INVALID_AZURE_REGION_ERROR_CODE = "invalid_azure_region";
+
+/**
+ * Returns whether the value follows the Azure region short-name format.
+ */
+export function isValidRegionName(region: unknown): region is string {
+    if (typeof region !== "string" || region.length === 0) {
+        return false;
+    }
+
+    const firstCharacter = region.charCodeAt(0);
+    if (firstCharacter < 97 || firstCharacter > 122) {
+        return false;
+    }
+
+    for (let i = 1; i < region.length; i++) {
+        const character = region.charCodeAt(i);
+        const isLowercaseLetter = character >= 97 && character <= 122;
+        const isDigit = character >= 48 && character <= 57;
+        const isHyphen = character === 45;
+        if (!isLowercaseLetter && !isDigit && !isHyphen) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Throws when a value does not follow the Azure region short-name format.
+ */
+export function validateRegionName(
+    region: unknown,
+    correlationId: string
+): asserts region is string {
+    if (!isValidRegionName(region)) {
+        throw createClientConfigurationError(
+            INVALID_AZURE_REGION_ERROR_CODE,
+            correlationId
+        );
+    }
+}
 
 export class RegionDiscovery {
     // Network interface to make requests with.
@@ -52,8 +96,14 @@ export class RegionDiscovery {
         environmentRegion: string | undefined,
         regionDiscoveryMetadata: RegionDiscoveryMetadata
     ): Promise<string | null> {
-        // Initialize auto detected region with the region from the envrionment
-        let autodetectedRegionName = environmentRegion;
+        let autodetectedRegionName: string | undefined;
+
+        if (environmentRegion) {
+            validateRegionName(environmentRegion, this.correlationId);
+            autodetectedRegionName = environmentRegion;
+            regionDiscoveryMetadata.region_source =
+                Constants.RegionDiscoverySources.ENVIRONMENT_VARIABLE;
+        }
 
         // Check if a region was detected from the environment, if not, attempt to get the region from IMDS
         if (!autodetectedRegionName) {
@@ -120,9 +170,10 @@ export class RegionDiscovery {
                     Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION;
                 return null;
             }
-        } else {
-            regionDiscoveryMetadata.region_source =
-                Constants.RegionDiscoverySources.ENVIRONMENT_VARIABLE;
+        }
+
+        if (autodetectedRegionName) {
+            validateRegionName(autodetectedRegionName, this.correlationId);
         }
 
         // If no region was auto detected from the environment or from the IMDS endpoint, mark the attempt as a FAILED_AUTO_DETECTION
