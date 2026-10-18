@@ -216,6 +216,8 @@ MSAL stores resource-server nonces only in memory, scoped to the `PublicClientAp
 
 Full-page redirect requests use one narrow exception to the memory-only lifecycle. When an active standard web redirect request has a matching resource origin and nonce, MSAL stores one tab-scoped `sessionStorage` handoff containing only the opaque nonce, normalized origin, request state, correlation ID, and a short expiration. `handleRedirectPromise` restores the handoff only when all bindings match and deletes it immediately. MSAL never persists the general nonce map and does not use `localStorage`, custom cache storage, URL state, or cookies for nonce transport.
 
+If a handoff storage operation fails, MSAL logs a warning and continues the redirect flow. The resource server can recover through its normal nonce challenge, and MSAL records non-sensitive dynamic performance counters in `PerformanceEvent.ext`: `dpopNonceRedirectHandoffSaveFailureCount`, `dpopNonceRedirectHandoffRestoreFailureCount`, and `dpopNonceRedirectHandoffClearFailureCount`.
+
 `loadDpopNonce` validates and stores the nonce but does not issue resource HTTP requests. The application must retry a challenged resource request no more than once, using a newly generated proof, and must stop if the retry is challenged again.
 
 ### Broker sequencing
