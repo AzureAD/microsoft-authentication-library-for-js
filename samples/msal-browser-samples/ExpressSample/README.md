@@ -77,8 +77,8 @@ The playground includes a **DPoP Nonce Diagnostics** panel for use with the MISE
 1. Start `DPoPBackend` with its nonce requirement enabled at `https://localhost:45471/WeatherForecast/DPoP`.
 1. Configure the backend to allow the Express sample origin and expose the `DPoP-Nonce` response header through CORS.
 1. Add `http://localhost:3000/dpop-nonce-redirect` as a SPA redirect URI on the test app registration.
-1. Open `http://localhost:3000/playground`, select the local MSAL build, and click **Load DPoP Nonce Defaults**.
-1. Click **Apply Configuration**, then use the DPoP controls to:
+1. Open `http://localhost:3000/playground?scenario=dpop-nonce`. The playground automatically applies the L1 DPoP test client, authority, ESTS slice, resource, and redirect configuration.
+1. Use the DPoP controls to:
    - call the backend once and inspect the challenge;
    - load and replace a matching nonce;
    - confirm a nonce loaded for a mismatched origin is omitted from the proof;
