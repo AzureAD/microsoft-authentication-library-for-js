@@ -11,8 +11,11 @@ import { showError, showSuccess } from "./utils.js";
 let playgroundMsalInstance = null;
 let lastDpopResult = null;
 
+const DPOP_CLIENT_ID = "0845a021-afdf-4126-abdd-099c5e6948e1";
+const DPOP_AUTHORITY = "https://login.microsoftonline.com/common";
 const DPOP_BACKEND_URI = "https://localhost:45471/WeatherForecast/DPoP";
 const DPOP_ESTS_DC = "ESTS-PUB-WUS3-FD000-TEST1-100";
+const DPOP_SCENARIO = "dpop-nonce";
 const DPOP_REDIRECT_PATH = "/dpop-nonce-redirect";
 const DPOP_PENDING_REDIRECT_KEY = "msal.dpopNoncePlayground.pendingRedirect";
 const DPOP_PENDING_REDIRECT_TTL_MS = 10 * 60 * 1000;
@@ -26,6 +29,12 @@ export function initializePlayground() {
         appendDpopDiagnostic("redirect-final-page-loaded", {
             handoff: getDpopHandoffSnapshot(),
         });
+        applyConfiguration();
+    } else if (
+        new URLSearchParams(window.location.search).get("scenario") ===
+        DPOP_SCENARIO
+    ) {
+        loadDpopDefaults();
         applyConfiguration();
     } else {
         loadDefaultConfiguration();
@@ -174,20 +183,17 @@ function loadDefaultConfiguration() {
 }
 
 function loadDpopDefaults() {
-    const currentConfig = createMsalConfig();
     const config = {
         auth: {
-            clientId: currentConfig.auth.clientId || "YOUR_CLIENT_ID",
-            authority:
-                currentConfig.auth.authority ||
-                "https://login.microsoftonline.com/common",
+            clientId: DPOP_CLIENT_ID,
+            authority: DPOP_AUTHORITY,
             redirectUri: `${window.location.origin}${DPOP_REDIRECT_PATH}`,
         },
         cache: {
             cacheLocation: "localStorage",
         },
         system: {
-            allowPlatformBroker: false,
+            allowNativeBroker: false,
         },
     };
     const request = {
