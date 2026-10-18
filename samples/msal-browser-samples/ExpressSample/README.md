@@ -70,6 +70,25 @@ npm run build:package
 - The Profile page will automatically fetch and display your user information from MS Graph.
 - Navigating to the `http://localhost:3000/playground` route will take you to the MSAL.js playground where you can experiment with different configurations and requests
 
+### Manually testing resource-server DPoP nonces
+
+The playground includes a **DPoP Nonce Diagnostics** panel for use with the MISE `DPoPBackend` sample.
+
+1. Start `DPoPBackend` with its nonce requirement enabled at `https://localhost:45471/WeatherForecast/DPoP`.
+1. Configure the backend to allow the Express sample origin and expose the `DPoP-Nonce` response header through CORS.
+1. Add `http://localhost:3000/dpop-nonce-redirect` as a SPA redirect URI on the test app registration.
+1. Open `http://localhost:3000/playground`, select the local MSAL build, and click **Load DPoP Nonce Defaults**.
+1. Click **Apply Configuration**, then use the DPoP controls to:
+   - call the backend once and inspect the challenge;
+   - load and replace a matching nonce;
+   - confirm a nonce loaded for a mismatched origin is omitted from the proof;
+   - confirm the oldest nonce is evicted after loading 51 resource origins;
+   - call the backend with one bounded nonce retry;
+   - use `acquireTokenRedirect` to inspect the one-shot handoff across the dedicated `/dpop-nonce-redirect` page;
+   - clear the PCA cache and confirm in-memory nonce state is discarded.
+
+The diagnostics panel shows proof method/URI claims, nonce fingerprints, redirect handoff metadata, and handoff storage failure telemetry without displaying access tokens or raw nonce values.
+
 ## Running the e2e tests
 
 The Puppeteer e2e tests live in [`./test`](./test). The EAR (Encrypted Authorize Response) web-flow suite is in [`./test/ear-basic.spec.ts`](./test/ear-basic.spec.ts).
