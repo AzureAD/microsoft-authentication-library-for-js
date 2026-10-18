@@ -527,9 +527,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
 
             expect(executePostToTokenEndpointSpy).toHaveBeenCalledTimes(1);
-            expect(
-                executePostToTokenEndpointSpy.mock.calls[0][0]
-            ).toBe(
+            expect(executePostToTokenEndpointSpy.mock.calls[0][0]).toBe(
                 `${tokenEndpoint}?client-request-id=${authCodeRequest.correlationId}`
             );
         });
@@ -2415,20 +2413,35 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
         });
 
-        it("successfully uses a new authority if cloud_instance_host_name is different", async () => {
+        it("pauses before sending a caller-owned proof to the instance-aware token endpoint", async () => {
             const client = new AuthorizationCodeClient(
                 config,
                 stubPerformanceClient
             );
+            const instanceAwareHost = "login.windows.net";
+            const finalTokenEndpoint = `https://${instanceAwareHost}/common/oauth2/v2.0/token`;
             jest.spyOn(
-                Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
-            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            jest.spyOn(
-                // @ts-ignore
-                client.networkClient,
-                "sendPostRequestAsync"
-            ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
+                config.authOptions.authority,
+                "tokenEndpoint",
+                "get"
+            ).mockReturnValue(finalTokenEndpoint);
+            const authoritySpy = jest
+                .spyOn(AuthorityFactory, "createDiscoveredInstance")
+                .mockResolvedValue(config.authOptions.authority);
+            const sendPostRequestSpy = jest
+                .spyOn(
+                    // @ts-ignore
+                    client.networkClient,
+                    "sendPostRequestAsync"
+                )
+                .mockResolvedValue({
+                    ...AUTHENTICATION_RESULT,
+                    body: {
+                        ...AUTHENTICATION_RESULT.body,
+                        token_type: Constants.AuthenticationScheme.DPOP,
+                    },
+                    headers: {},
+                });
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
@@ -2451,11 +2464,6 @@ describe("AuthorizationCodeClient unit tests", () => {
                 idTokenClaims
             );
 
-            const authoritySpy = jest.spyOn(
-                AuthorityFactory,
-                "createDiscoveredInstance"
-            );
-
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [
@@ -2467,15 +2475,32 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                dpopProof: "instance-aware-proof",
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
             };
-            await client.acquireToken(authCodeRequest, 0, {
+            const authCodePayload = {
                 code: authCodeRequest.code,
                 nonce: idTokenClaims.nonce,
-                cloud_instance_host_name: "login.windows.net",
-            });
+                cloud_instance_host_name: instanceAwareHost,
+            };
+
+            const tokenEndpoint = await client.prepareTokenRequest(
+                authCodeRequest,
+                authCodePayload
+            );
+
+            expect(tokenEndpoint).toBe(finalTokenEndpoint);
+            expect(sendPostRequestSpy).not.toHaveBeenCalled();
+            await client.acquireTokenWithPreparedAuthority(
+                authCodeRequest,
+                0,
+                authCodePayload
+            );
             expect(authoritySpy).toHaveBeenCalledWith(
-                "https://login.windows.net/common/",
+                `https://${instanceAwareHost}/common/`,
                 // @ts-ignore
                 client.networkClient,
                 // @ts-ignore
@@ -2485,6 +2510,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 RANDOM_TEST_GUID,
                 // @ts-ignore
                 client.performanceClient
+            );
+            expect(sendPostRequestSpy).toHaveBeenCalledWith(
+                `${tokenEndpoint}?client-request-id=${RANDOM_TEST_GUID}`,
+                expect.objectContaining({
+                    headers: expect.objectContaining({
+                        [Constants.HeaderNames.DPOP]: "instance-aware-proof",
+                    }),
+                })
             );
         });
     });

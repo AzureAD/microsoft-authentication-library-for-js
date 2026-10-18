@@ -4777,36 +4777,44 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("broker DPoP preparation", () => {
-        it("returns both endpoints from the same discovered authority", async () => {
-            const discoveredAuthority = {
-                authorizationEndpoint:
-                    "https://login.windows-ppe.net/common/oauth2/v2.0/authorize",
-                tokenEndpoint:
-                    "https://login.windows-ppe.net/common/oauth2/v2.0/token",
-            };
-            const authoritySpy = jest
-                .spyOn(BaseInteractionClient, "getDiscoveredAuthority")
-                .mockResolvedValue(discoveredAuthority as any);
-            const request = {
-                correlationId: RANDOM_TEST_GUID,
-                authority: "https://login.windows-ppe.net/common",
-            };
+        it.each([
+            ["public", "login.microsoftonline.com"],
+            ["PPE", "login.windows-ppe.net"],
+            ["US Government", "login.microsoftonline.us"],
+            ["China", "login.partner.microsoftonline.cn"],
+            ["Germany", "login.microsoftonline.de"],
+            ["custom authority metadata", "login.contoso.example"],
+        ])(
+            "returns both endpoints from the same discovered %s authority",
+            async (_name, authorityHost) => {
+                const discoveredAuthority = {
+                    authorizationEndpoint: `https://${authorityHost}/common/oauth2/v2.0/authorize`,
+                    tokenEndpoint: `https://${authorityHost}/common/oauth2/v2.0/token`,
+                };
+                const authoritySpy = jest
+                    .spyOn(BaseInteractionClient, "getDiscoveredAuthority")
+                    .mockResolvedValue(discoveredAuthority as any);
+                const request = {
+                    correlationId: RANDOM_TEST_GUID,
+                    authority: `https://${authorityHost}/common`,
+                };
 
-            await expect(
-                pca.prepareAuthorityEndpoints(request)
-            ).resolves.toEqual(discoveredAuthority);
-            expect(authoritySpy).toHaveBeenCalledWith(
-                expect.anything(),
-                request.correlationId,
-                expect.anything(),
-                expect.anything(),
-                expect.anything(),
-                request.authority,
-                undefined,
-                undefined,
-                undefined
-            );
-        });
+                await expect(
+                    pca.prepareAuthorityEndpoints(request)
+                ).resolves.toEqual(discoveredAuthority);
+                expect(authoritySpy).toHaveBeenCalledWith(
+                    expect.anything(),
+                    request.correlationId,
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    request.authority,
+                    undefined,
+                    undefined,
+                    undefined
+                );
+            }
+        );
 
         it("forwards authority endpoint preparation to the controller", async () => {
             const result = {
