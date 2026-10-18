@@ -515,7 +515,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 await this.resetGeneratedDpopRequestKey(nativeRequest);
             }
         } catch (e) {
-            // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
+            /*
+             * Raw persistent/transient broker errors are retrieved again in
+             * phase two. Availability errors are thrown for controller-managed
+             * web fallback, while translated cancellation, network, and
+             * interaction-required errors are surfaced without being swallowed.
+             */
             if (e instanceof NativeAuthError) {
                 const serverTelemetryManager = initializeServerTelemetryManager(
                     this.apiId,

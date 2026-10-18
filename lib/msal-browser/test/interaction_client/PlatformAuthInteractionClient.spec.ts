@@ -3620,7 +3620,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
         });
 
-        it("preserves redirect fallback for non-fatal DPoP broker errors after cleaning up the generated key", async () => {
+        it("continues to redirect phase two for persistent DPoP broker errors after cleaning up the generated key", async () => {
             jest.spyOn(
                 NavigationClient.prototype,
                 "navigateExternal"
@@ -3642,7 +3642,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 new NativeAuthError(
                     "test_native_error_code",
                     "",
-                    "account not found"
+                    "account not found",
+                    { status: NativeStatusCodes.PERSISTENT_ERROR }
                 )
             );
 
@@ -3667,6 +3668,72 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 browserCacheManager.getCachedNativeRequest()?.keyId
             ).toBeUndefined();
         });
+
+        it.each([
+            {
+                name: "user cancellation",
+                status: NativeStatusCodes.USER_CANCEL,
+                errorCode: "user_cancel",
+                expectedErrorCode: BrowserAuthErrorCodes.userCancelled,
+            },
+            {
+                name: "interaction required",
+                status: NativeStatusCodes.USER_INTERACTION_REQUIRED,
+                errorCode: "interaction_required",
+                expectedErrorCode: "interaction_required",
+            },
+        ])(
+            "surfaces translated $name to the controller instead of continuing phase two",
+            async ({ status, errorCode, expectedErrorCode }) => {
+                const navigateSpy = jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                );
+                const keyManager =
+                    // @ts-ignore
+                    platformAuthInteractionClient.tokenBindingKeyManager;
+                jest.spyOn(
+                    keyManager,
+                    "provisionTokenBindingKey"
+                ).mockResolvedValue("translated-error-dpop-key");
+                const removeKeySpy = jest
+                    .spyOn(keyManager, "removeTokenBindingKey")
+                    .mockResolvedValue();
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockRejectedValue(
+                    createNativeAuthError(
+                        errorCode,
+                        RANDOM_TEST_GUID,
+                        "translated broker error",
+                        { status }
+                    )
+                );
+
+                await expect(
+                    platformAuthInteractionClient.acquireTokenRedirect(
+                        {
+                            scopes: ["User.Read"],
+                            authenticationScheme:
+                                Constants.AuthenticationScheme.DPOP,
+                            resourceRequestMethod: "POST",
+                            resourceRequestUri:
+                                "https://graph.microsoft.com/v1.0/me",
+                        },
+                        perfMeasurement
+                    )
+                ).rejects.toMatchObject({
+                    errorCode: expectedErrorCode,
+                });
+
+                expect(navigateSpy).not.toHaveBeenCalled();
+                expect(removeKeySpy).toHaveBeenCalledWith(
+                    "translated-error-dpop-key",
+                    RANDOM_TEST_GUID
+                );
+            }
+        );
 
         it("clears DPoP request metadata before redirect fallback when key cleanup fails", async () => {
             jest.spyOn(
