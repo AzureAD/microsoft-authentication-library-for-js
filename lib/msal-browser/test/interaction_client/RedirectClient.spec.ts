@@ -88,6 +88,7 @@ import {
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
 import { version } from "../../src/packageMetadata.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
+import { DpopNonceStore } from "../../src/controllers/DpopNonceStore.js";
 
 jest.mock("@azure/msal-common/browser", () => ({
     ...jest.requireActual("@azure/msal-common/browser"),
@@ -1385,6 +1386,116 @@ describe("RedirectClient", () => {
                     `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
                 )
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+        });
+
+        it("preserves the DPoP nonce handoff until the final page processes the response", async () => {
+            const resourceRequestUri = "https://api.contoso.com/resource";
+            const dpopRequest: CommonAuthorizationUrlRequest = {
+                ...testRequest,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestUri,
+            };
+            const sourceStore = new DpopNonceStore(TEST_CONFIG.MSAL_CLIENT_ID);
+            sourceStore.setResourceServerNonce(
+                resourceRequestUri,
+                "redirect-nonce"
+            );
+            sourceStore.saveRedirectHandoff(
+                resourceRequestUri,
+                dpopRequest.state,
+                dpopRequest.correlationId
+            );
+            const handoffCacheKey = `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.dpop.nonce.redirect`;
+
+            const redirectPageStore = new DpopNonceStore(
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
+            redirectClient = new RedirectClient(
+                // @ts-ignore
+                pca.config,
+                browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                // @ts-ignore
+                pca.performanceClient,
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                dpopRequest.correlationId,
+                undefined,
+                undefined,
+                redirectPageStore
+            );
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            browserStorage.setTemporaryCache(
+                TemporaryCacheKeys.ORIGIN_URI,
+                TEST_URIS.TEST_ALTERNATE_REDIR_URI,
+                true
+            );
+
+            await redirectClient.handleRedirectPromise(
+                dpopRequest,
+                TEST_CONFIG.TEST_VERIFIER,
+                rootMeasurement
+            );
+
+            expect(
+                window.sessionStorage.getItem(handoffCacheKey)
+            ).not.toBeNull();
+            expect(
+                redirectPageStore.getResourceServerNonce(resourceRequestUri)
+            ).toBeUndefined();
+
+            const finalPageStore = new DpopNonceStore(
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
+            redirectClient = new RedirectClient(
+                // @ts-ignore
+                pca.config,
+                browserStorage,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                // @ts-ignore
+                pca.performanceClient,
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                dpopRequest.correlationId,
+                undefined,
+                undefined,
+                finalPageStore
+            );
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockResolvedValue(null);
+            window.location.hash = "";
+            browserStorage.setTemporaryCache(
+                TemporaryCacheKeys.ORIGIN_URI,
+                window.location.href,
+                true
+            );
+
+            await redirectClient.handleRedirectPromise(
+                dpopRequest,
+                TEST_CONFIG.TEST_VERIFIER,
+                rootMeasurement
+            );
+
+            expect(window.sessionStorage.getItem(handoffCacheKey)).toBeNull();
+            expect(
+                finalPageStore.getResourceServerNonce(resourceRequestUri)
+            ).toEqual({ nonce: "redirect-nonce", version: 1 });
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true, the application is loaded in an iframe and allowRedirectInIframe is true", async () => {

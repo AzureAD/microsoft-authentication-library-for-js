@@ -7,6 +7,7 @@ import {
     canonicalizeDpopResourceServer,
     DpopNonceRecord,
     IDpopNonceStore,
+    IPerformanceClient,
     Logger,
     validateDpopNonce,
 } from "@azure/msal-common/browser";
@@ -16,6 +17,11 @@ const MAX_RESOURCE_SERVER_NONCES = 50;
 const REDIRECT_HANDOFF_TTL_MS = 5 * 60 * 1000;
 const REDIRECT_HANDOFF_CACHE_SUFFIX = "dpop.nonce.redirect";
 
+/**
+ * Tab-scoped, one-shot resource-server nonce state used only to preserve an
+ * active DPoP redirect request across full-page navigation.
+ * @internal
+ */
 type DpopNonceRedirectHandoff = {
     nonce: string;
     resourceServer: string;
@@ -32,11 +38,17 @@ export class DpopNonceStore implements IDpopNonceStore {
     private readonly resourceServerNonces = new Map<string, DpopNonceRecord>();
     private readonly redirectHandoffCacheKey: string;
     private readonly logger?: Logger;
+    private readonly performanceClient?: IPerformanceClient;
     private nextVersion = 0;
 
-    constructor(clientId: string = "", logger?: Logger) {
+    constructor(
+        clientId: string = "",
+        logger?: Logger,
+        performanceClient?: IPerformanceClient
+    ) {
         this.redirectHandoffCacheKey = `${PREFIX}.${clientId}.${REDIRECT_HANDOFF_CACHE_SUFFIX}`;
         this.logger = logger;
+        this.performanceClient = performanceClient;
     }
 
     setResourceServerNonce(
@@ -110,6 +122,10 @@ export class DpopNonceStore implements IDpopNonceStore {
                 JSON.stringify(handoff)
             );
         } catch {
+            this.performanceClient?.incrementFields(
+                { "ext.dpopNonceRedirectHandoffSaveFailureCount": 1 },
+                correlationId
+            );
             this.logger?.warning(
                 "Unable to save the DPoP nonce redirect handoff.",
                 correlationId
@@ -134,6 +150,10 @@ export class DpopNonceStore implements IDpopNonceStore {
             );
             window.sessionStorage.removeItem(this.redirectHandoffCacheKey);
         } catch {
+            this.performanceClient?.incrementFields(
+                { "ext.dpopNonceRedirectHandoffRestoreFailureCount": 1 },
+                correlationId
+            );
             this.logger?.warning(
                 "Unable to read or clear the DPoP nonce redirect handoff.",
                 correlationId
@@ -194,7 +214,7 @@ export class DpopNonceStore implements IDpopNonceStore {
         );
     }
 
-    clearRedirectHandoff(): void {
+    clearRedirectHandoff(correlationId: string = ""): void {
         if (typeof window === "undefined") {
             return;
         }
@@ -202,9 +222,13 @@ export class DpopNonceStore implements IDpopNonceStore {
         try {
             window.sessionStorage.removeItem(this.redirectHandoffCacheKey);
         } catch {
+            this.performanceClient?.incrementFields(
+                { "ext.dpopNonceRedirectHandoffClearFailureCount": 1 },
+                correlationId
+            );
             this.logger?.warning(
                 "Unable to clear the DPoP nonce redirect handoff.",
-                ""
+                correlationId
             );
             // No in-memory state is affected when session storage is unavailable.
         }

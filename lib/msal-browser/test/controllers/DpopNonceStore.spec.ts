@@ -4,7 +4,10 @@
  */
 
 import { DpopNonceStore } from "../../src/controllers/DpopNonceStore.js";
-import { ClientConfigurationErrorCodes } from "@azure/msal-common/browser";
+import {
+    ClientConfigurationErrorCodes,
+    StubPerformanceClient,
+} from "@azure/msal-common/browser";
 
 describe("DpopNonceStore", () => {
     beforeEach(() => {
@@ -242,6 +245,64 @@ describe("DpopNonceStore", () => {
                 "https://api.contoso.com/resource"
             )
         ).toBeUndefined();
+    });
+
+    it("records telemetry when redirect handoff storage operations fail", () => {
+        const performanceClient = new StubPerformanceClient();
+        const incrementFieldsSpy = jest.spyOn(
+            performanceClient,
+            "incrementFields"
+        );
+        const store = new DpopNonceStore(
+            "client-id",
+            undefined,
+            performanceClient
+        );
+        store.setResourceServerNonce(
+            "https://api.contoso.com/resource",
+            "redirect-nonce"
+        );
+
+        jest.spyOn(Storage.prototype, "setItem").mockImplementationOnce(() => {
+            throw new Error("storage unavailable");
+        });
+        store.saveRedirectHandoff(
+            "https://api.contoso.com/resource",
+            "request-state",
+            "save-correlation-id"
+        );
+
+        jest.spyOn(Storage.prototype, "getItem").mockImplementationOnce(() => {
+            throw new Error("storage unavailable");
+        });
+        store.restoreRedirectHandoff(
+            "https://api.contoso.com/resource",
+            "request-state",
+            "restore-correlation-id"
+        );
+
+        jest.spyOn(Storage.prototype, "removeItem").mockImplementationOnce(
+            () => {
+                throw new Error("storage unavailable");
+            }
+        );
+        store.clearRedirectHandoff("clear-correlation-id");
+
+        expect(incrementFieldsSpy).toHaveBeenNthCalledWith(
+            1,
+            { "ext.dpopNonceRedirectHandoffSaveFailureCount": 1 },
+            "save-correlation-id"
+        );
+        expect(incrementFieldsSpy).toHaveBeenNthCalledWith(
+            2,
+            { "ext.dpopNonceRedirectHandoffRestoreFailureCount": 1 },
+            "restore-correlation-id"
+        );
+        expect(incrementFieldsSpy).toHaveBeenNthCalledWith(
+            3,
+            { "ext.dpopNonceRedirectHandoffClearFailureCount": 1 },
+            "clear-correlation-id"
+        );
     });
 
     it("clears all resource-server nonce state", () => {

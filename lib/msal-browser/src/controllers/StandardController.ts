@@ -272,7 +272,8 @@ export class StandardController implements IController {
               );
         this.dpopNonceStore = new DpopNonceStore(
             this.config.auth.clientId,
-            this.logger
+            this.logger,
+            this.performanceClient
         );
 
         // initialize in memory storage for native flows
@@ -556,17 +557,6 @@ export class StandardController implements IController {
                     this.browserStorage.getCachedRequest("");
                 cachedRedirectRequest = standardRequest;
                 const correlationId = standardRequest.correlationId;
-                if (
-                    standardRequest.authenticationScheme ===
-                        Constants.AuthenticationScheme.DPOP &&
-                    standardRequest.resourceRequestUri
-                ) {
-                    this.dpopNonceStore.restoreRedirectHandoff(
-                        standardRequest.resourceRequestUri,
-                        standardRequest.state,
-                        correlationId
-                    );
-                }
                 this.eventHandler.emitEvent(
                     EventType.HANDLE_REDIRECT_START,
                     correlationId,
