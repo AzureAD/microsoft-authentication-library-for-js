@@ -123,6 +123,8 @@ type BrokerDpopFailureReason =
     | "unexpected_response"
     | "unknown_token_type";
 
+const DPOP_POP_KID_NOT_SUPPORTED = "dpop_pop_kid_not_supported";
+
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
     protected accountId: string;
@@ -1475,7 +1477,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     ): PlatformAuthTokenRequestParameters {
         if (request.popKid) {
             throw createBrowserAuthError(
-                BrowserAuthErrorCodes.dpopPopKidNotSupported,
+                DPOP_POP_KID_NOT_SUPPORTED,
                 this.correlationId
             );
         }

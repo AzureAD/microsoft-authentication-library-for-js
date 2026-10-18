@@ -1727,9 +1727,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 })
             ).rejects.toMatchObject({
-                errorCode: BrowserAuthErrorCodes.dpopPopKidNotSupported,
+                errorCode: "dpop_pop_kid_not_supported",
                 errorMessage: getDefaultErrorMessage(
-                    BrowserAuthErrorCodes.dpopPopKidNotSupported
+                    "dpop_pop_kid_not_supported"
                 ),
             });
             expect(provisionSpy).not.toHaveBeenCalled();
@@ -3459,7 +3459,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     perfMeasurement
                 )
             ).rejects.toMatchObject({
-                errorCode: BrowserAuthErrorCodes.dpopPopKidNotSupported,
+                errorCode: "dpop_pop_kid_not_supported",
             });
             expect(provisionSpy).not.toHaveBeenCalled();
             expect(sendMessageSpy).not.toHaveBeenCalled();

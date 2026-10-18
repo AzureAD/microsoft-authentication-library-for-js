@@ -21,7 +21,6 @@ import {
     PlatformAuthTokenType,
 } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
 import { NativeAuthError } from "../../src/error/NativeAuthError.js";
-import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
 import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 
 describe("PlatformAuthDOMHandler tests", () => {
@@ -246,8 +245,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             await expect(
                 platformAuthDOMHandler?.sendMessage(testRequest)
             ).rejects.toMatchObject({
-                errorCode:
-                    BrowserAuthErrorCodes.platformAuthDomDpopNotSupported,
+                errorCode: "platform_auth_dom_dpop_not_supported",
             });
             expect(executeGetTokenMock).not.toHaveBeenCalled();
         });

@@ -24,12 +24,12 @@ import {
     PlatformDOMTokenResponse,
 } from "./PlatformAuthResponse.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
-import {
-    BrowserAuthErrorCodes,
-    createBrowserAuthError,
-} from "../../error/BrowserAuthError.js";
+import { createBrowserAuthError } from "../../error/BrowserAuthError.js";
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
+
+const PLATFORM_AUTH_DOM_DPOP_NOT_SUPPORTED =
+    "platform_auth_dom_dpop_not_supported";
 
 export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     protected logger: Logger;
@@ -179,7 +179,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 PlatformAuthTokenType.DPOP_WITH_PROOF
             ) {
                 throw createBrowserAuthError(
-                    BrowserAuthErrorCodes.platformAuthDomDpopNotSupported,
+                    PLATFORM_AUTH_DOM_DPOP_NOT_SUPPORTED,
                     correlationId
                 );
             }
