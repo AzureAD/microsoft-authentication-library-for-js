@@ -342,6 +342,10 @@ app.get('/redirect', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'redirect.html'));
 });
 
+app.get('/dpop-nonce-redirect', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'dpop-nonce-redirect.html'));
+});
+
 app.get('/profile', (req, res) => {
     res.render('profile', {
         title: 'MSAL Express Sample - Profile',
