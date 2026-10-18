@@ -96,6 +96,11 @@ export {
     SignedHttpRequest,
     SignedHttpRequestOptions,
 } from "./crypto/SignedHttpRequest.js";
+export {
+    DpopProofSigner,
+    DpopProofSignerOptions,
+} from "./crypto/DpopProofSigner.js";
+export { normalizeDpopHtu } from "@azure/msal-common/browser";
 
 export {
     PopupWindowAttributes,

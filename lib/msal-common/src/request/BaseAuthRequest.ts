@@ -99,6 +99,11 @@ export type BaseAuthRequest = {
      */
     dpopProof?: string;
     /**
+     * Supplies a DPoP proof after the token endpoint has been finalized.
+     * @internal
+     */
+    dpopProofProvider?: (tokenEndpoint: string) => Promise<string>;
+    /**
      * Embedded client id. When specified, broker client id (brk_client_id) and redirect uri (brk_redirect_uri) params are set with values from the config, overriding the corresponding extra parameters, if present.
      */
     embeddedClientId?: string;
