@@ -5,7 +5,10 @@
 
 import { CcsCredential, CcsCredentialType } from "../account/CcsCredential.js";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo.js";
-import { DpopProofGenerator } from "../crypto/DpopProofGenerator.js";
+import {
+    DpopProofGenerator,
+    normalizeDpopHtu,
+} from "../crypto/DpopProofGenerator.js";
 import { Logger } from "../logger/Logger.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import {
@@ -95,6 +98,20 @@ export async function addDpopTokenProofHeader(
         cryptoUtils,
         tokenBindingKeyManager
     );
+    if (request.dpopProofProvider) {
+        const providedProof = await request.dpopProofProvider(
+            normalizeDpopHtu(tokenEndpoint, request.correlationId)
+        );
+        if (!providedProof?.trim()) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.requestCannotBeMade,
+                request.correlationId
+            );
+        }
+        headers[HeaderNames.DPOP] = providedProof;
+        return;
+    }
+
     if (request.dpopProof?.trim()) {
         headers[HeaderNames.DPOP] = request.dpopProof;
         return;

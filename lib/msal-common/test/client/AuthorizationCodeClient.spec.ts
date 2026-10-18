@@ -2413,7 +2413,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
         });
 
-        it("pauses before sending a caller-owned proof to the instance-aware token endpoint", async () => {
+        it("requests a caller-owned proof for the instance-aware token endpoint", async () => {
             const client = new AuthorizationCodeClient(
                 config,
                 stubPerformanceClient
@@ -2463,6 +2463,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
+            const dpopProofProvider = jest
+                .fn()
+                .mockResolvedValue("instance-aware-proof");
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -2477,7 +2480,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: Constants.AuthenticationScheme.DPOP,
                 dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
-                dpopProof: "instance-aware-proof",
+                dpopProofProvider,
                 resourceRequestMethod: "GET",
                 resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
             };
@@ -2519,6 +2522,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                     }),
                 })
             );
+            expect(dpopProofProvider).toHaveBeenCalledWith(tokenEndpoint);
+            expect(dpopProofProvider).toHaveBeenCalledTimes(1);
         });
     });
 

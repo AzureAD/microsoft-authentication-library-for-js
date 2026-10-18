@@ -39,6 +39,7 @@ import { LoggerOptions } from '@azure/msal-common/browser';
 import { LogLevel } from '@azure/msal-common/browser';
 import { NetworkRequestOptions } from '@azure/msal-common/browser';
 import { NetworkResponse } from '@azure/msal-common/browser';
+import { normalizeDpopHtu } from '@azure/msal-common/browser';
 import { OIDCOptions } from '@azure/msal-common/browser';
 import { PerformanceCallbackFunction } from '@azure/msal-common/browser';
 import { PerformanceClient } from '@azure/msal-common/browser';
@@ -482,6 +483,30 @@ export const DEFAULT_IFRAME_TIMEOUT_MS = 10000;
 // @public (undocumented)
 const dpopProofRequired = "dpop_proof_required";
 
+// @public
+export class DpopProofSigner {
+    constructor(options?: DpopProofSignerOptions);
+    generatePublicKeyThumbprint(correlationId?: string): Promise<string>;
+    signResourceRequest(parameters: {
+        accessToken: string;
+        resourceRequestUri?: string;
+        resourceRequestMethod?: string;
+        resourceRequestNonce?: string;
+        correlationId: string;
+    }, publicKeyThumbprint: string): Promise<string>;
+    signTokenRequest(parameters: {
+        tokenEndpoint: string;
+        correlationId: string;
+        nonce?: string;
+    }, publicKeyThumbprint: string): Promise<string>;
+}
+
+// @public (undocumented)
+export type DpopProofSignerOptions = {
+    logger?: Logger;
+    loggerOptions?: LoggerOptions;
+};
+
 // @public (undocumented)
 const earJweEmpty = "ear_jwe_empty";
 
@@ -887,6 +912,8 @@ const nonBrowserEnvironment = "non_browser_environment";
 
 // @public (undocumented)
 const noNetworkConnectivity = "no_network_connectivity";
+
+export { normalizeDpopHtu }
 
 // @public (undocumented)
 const noStateInHash = "no_state_in_hash";

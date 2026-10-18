@@ -88,7 +88,7 @@ function normalizeHtm(htm: string, correlationId: string): string {
  * WHATWG URL serialization handles RFC 3986 syntax- and scheme-based normalization
  * such as lowercasing scheme/host and eliding default ports.
  */
-function normalizeHtu(url: string, correlationId: string): string {
+export function normalizeDpopHtu(url: string, correlationId: string): string {
     let parsedUrl: URL;
     try {
         parsedUrl = new URL(url);
@@ -177,7 +177,7 @@ export class DpopProofGenerator {
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
             htm: "POST",
-            htu: normalizeHtu(params.tokenEndpoint, correlationId),
+            htu: normalizeDpopHtu(params.tokenEndpoint, correlationId),
             iat: TimeUtils.nowSeconds(),
         };
         if (params.nonce !== undefined) {
@@ -216,7 +216,7 @@ export class DpopProofGenerator {
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
             htm: normalizeHtm(params.htm, correlationId),
-            htu: normalizeHtu(params.htu, correlationId),
+            htu: normalizeDpopHtu(params.htu, correlationId),
             ath: params.ath,
             iat: TimeUtils.nowSeconds(),
         };
