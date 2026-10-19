@@ -505,6 +505,48 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).toEqual(staleAccessToken);
         });
 
+        it("Extension: handles a DPoP response without optional properties", async () => {
+            const keyManager =
+                // @ts-ignore
+                platformAuthInteractionClient.tokenBindingKeyManager;
+            jest.spyOn(
+                keyManager,
+                "provisionTokenBindingKey"
+            ).mockResolvedValue("local-dpop-key");
+            const removeKeySpy = jest
+                .spyOn(keyManager, "removeTokenBindingKey")
+                .mockResolvedValue();
+            const responseWithoutProperties = {
+                ...MOCK_WAM_RESPONSE,
+                token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
+                DPoP: "test-dpop-proof",
+                binding_attested: true,
+            };
+            delete (responseWithoutProperties as Partial<PlatformAuthResponse>)
+                .properties;
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockResolvedValue(responseWithoutProperties);
+
+            const response = await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            });
+
+            expect(response.accessToken).toBe(MOCK_WAM_RESPONSE.access_token);
+            expect(response.dpopProof).toBe("test-dpop-proof");
+            expect(response.tokenType).toBe(
+                Constants.AuthenticationScheme.DPOP
+            );
+            expect(removeKeySpy).toHaveBeenCalledWith(
+                "local-dpop-key",
+                RANDOM_TEST_GUID
+            );
+        });
+
         it("Extension: rejects a proofless broker-owned DPoP response", async () => {
             const emittedEvents: PerformanceEvent[] = [];
             const callbackId = perfClient.addPerformanceCallback((events) => {

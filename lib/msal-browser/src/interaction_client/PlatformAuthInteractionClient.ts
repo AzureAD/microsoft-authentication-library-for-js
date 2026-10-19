@@ -992,7 +992,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     ): Promise<AuthenticationResult> {
         // Add Native Broker fields to Telemetry
         const mats = this.addTelemetryFromNativeResponse(
-            response.properties.MATS
+            response.properties?.MATS
         );
 
         // If scopes not returned in server response, use request scopes
