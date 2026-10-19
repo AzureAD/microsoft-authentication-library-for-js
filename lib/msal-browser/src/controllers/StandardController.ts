@@ -1606,7 +1606,12 @@ export class StandardController implements IController {
             INTERACTION_TYPE.SIGNOUT
         );
 
-        await this.clearNativeCache(logoutRequest?.account, correlationId);
+        try {
+            await this.clearNativeCache(logoutRequest?.account, correlationId);
+        } catch (error) {
+            this.browserStorage.setInteractionInProgress(false);
+            throw error;
+        }
         const redirectClient = this.createRedirectClient(correlationId);
         return redirectClient.logout(logoutRequest);
     }

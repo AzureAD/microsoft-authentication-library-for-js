@@ -7990,6 +7990,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             ).toBeLessThan(redirectClientSpy.mock.invocationCallOrder[0]);
         });
 
+        it("clears the interaction marker when native cache cleanup fails", async () => {
+            const cleanupError = new Error("native cache cleanup failed");
+            jest.spyOn(pca as any, "clearNativeCache").mockRejectedValue(
+                cleanupError
+            );
+            const redirectClientSpy = jest.spyOn(
+                RedirectClient.prototype,
+                "logout"
+            );
+
+            await expect(pca.logoutRedirect()).rejects.toBe(cleanupError);
+
+            expect(redirectClientSpy).not.toHaveBeenCalled();
+            expect(
+                (pca as any).browserStorage.getInteractionInProgress()
+            ).toBeNull();
+        });
+
         it("throws an error if inside an iframe", async () => {
             const mockParentWindow = { ...window };
             jest.spyOn(window, "parent", "get").mockReturnValue(
