@@ -5,7 +5,6 @@
 
 import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
 import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
 import { CodeRequiredStateV2 } from "./CodeRequiredStateV2.js";
 import { MFAVerificationRequiredStateV2 } from "./MFAVerificationRequiredStateV2.js";
@@ -160,7 +159,6 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthFlowActionRequiredSt
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: RequestChallengeErrorV2,
                 scenario: continuationState.scenario,
                 correlationId,
             });

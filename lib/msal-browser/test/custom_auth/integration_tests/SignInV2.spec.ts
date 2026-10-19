@@ -9,6 +9,7 @@ import { PasswordRequiredStateV2 } from "../../../src/custom_auth/sign_in/auth_f
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { AuthMethodSelectionRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
+import { AuthFlowErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
 import { MFAVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
@@ -127,6 +128,78 @@ describe("Sign-in V2", () => {
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
                 expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+            });
+
+            it("returns an invalid-credentials error from automatic password submission", async () => {
+                (fetch as jest.Mock)
+                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+                    .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                    .mockResolvedValueOnce(
+                        buildResponse(PASSWORD_CHALLENGE_RESPONSE)
+                    )
+                    .mockResolvedValueOnce(
+                        buildResponse(
+                            {
+                                error: {
+                                    code: "invalidGrant",
+                                    message:
+                                        "AADSTS50126: Invalid username or password.",
+                                    innerError: {
+                                        code: "invalidUserNameOrPassword",
+                                    },
+                                },
+                            },
+                            400
+                        )
+                    );
+
+                const result = await app.signInV2({
+                    username: "user@contoso.com",
+                    password: "incorrect",
+                });
+
+                expect(result.isFailed()).toBe(true);
+                expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
+                expect(result.error?.isInvalidCredentials()).toBe(true);
+                expect(result.error?.isInvalidPassword()).toBe(false);
+                expect(fetch).toHaveBeenCalledTimes(4);
+            });
+
+            it("returns an invalid-credentials error from PasswordRequiredStateV2", async () => {
+                (fetch as jest.Mock)
+                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+                    .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                    .mockResolvedValueOnce(
+                        buildResponse(PASSWORD_CHALLENGE_RESPONSE)
+                    )
+                    .mockResolvedValueOnce(
+                        buildResponse(
+                            {
+                                error: {
+                                    code: "invalidGrant",
+                                    message:
+                                        "AADSTS50126: Invalid username or password.",
+                                    innerError: {
+                                        code: "invalidUserNameOrPassword",
+                                    },
+                                },
+                            },
+                            400
+                        )
+                    );
+
+                const startResult = await app.signInV2({
+                    username: "user@contoso.com",
+                });
+                const result = await (
+                    startResult.state as PasswordRequiredStateV2
+                ).submitPassword("incorrect");
+
+                expect(result.isFailed()).toBe(true);
+                expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
+                expect(result.error?.isInvalidCredentials()).toBe(true);
+                expect(result.error?.isInvalidPassword()).toBe(false);
+                expect(fetch).toHaveBeenCalledTimes(4);
             });
         });
 

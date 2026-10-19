@@ -8,7 +8,6 @@ import type { PasswordRequiredStateParametersV2 } from "./SignInStateParametersV
 import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
 import { CompletedStateV2 } from "../../../../core/auth_flow/v2/state/CompletedStateV2.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
-import { SubmitPasswordErrorV2 } from "../error_type/SubmitPasswordErrorV2.js";
 import type { SubmitPasswordResultV2 } from "../result/SubmitPasswordResultV2.js";
 import { AuthMethodSelectionRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import {
@@ -90,7 +89,6 @@ export class PasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<Pas
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: SubmitPasswordErrorV2,
                 scenario: continuationState.scenario,
                 correlationId,
             });

@@ -4,7 +4,6 @@
  */
 
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import type { VerifyChallengeErrorV2 } from "../error/VerifyChallengeErrorV2.js";
 import type { CompletedStateV2 } from "../state/CompletedStateV2.js";
 import type { FailedStateV2 } from "../state/FailedStateV2.js";
 import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
@@ -21,6 +20,5 @@ export type MFASubmitChallengeResultStateV2 = CompletedStateV2 | FailedStateV2;
  */
 export type MFASubmitChallengeResultV2 = CustomAuthResultV2<
     MFASubmitChallengeResultStateV2,
-    VerifyChallengeErrorV2,
     CustomAuthAccountData
 >;

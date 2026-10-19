@@ -1,6 +1,7 @@
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
 import {
     ResetPasswordInputs,
+    ResetPasswordInputsV2,
     SignInInputs,
     SignInInputsV2,
     SignUpInputs,
@@ -149,6 +150,42 @@ describe("CustomAuthStandardController", () => {
             expect(result.isFailed()).toBe(true);
             expect(result.error?.isInvalidInput()).toBe(true);
             expect(signInSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("resetPasswordV2", () => {
+        it.each([
+            {
+                name: "an empty username",
+                inputs: {
+                    username: "",
+                } as ResetPasswordInputsV2,
+            },
+            {
+                name: "malformed claims",
+                inputs: {
+                    username: "user@contoso.com",
+                    claims: "not-json",
+                } as ResetPasswordInputsV2,
+            },
+            {
+                name: "malformed scopes",
+                inputs: {
+                    username: "user@contoso.com",
+                    scopes: ["User.Read", false] as unknown as string[],
+                } as ResetPasswordInputsV2,
+            },
+        ])("returns invalid input for $name", async ({ inputs }) => {
+            const resetPasswordSpy = jest.spyOn(
+                controller["flowClientV2"],
+                "resetPassword"
+            );
+
+            const result = await controller.resetPasswordV2(inputs);
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.error?.isInvalidInput()).toBe(true);
+            expect(resetPasswordSpy).not.toHaveBeenCalled();
         });
     });
 

@@ -4,8 +4,6 @@
  */
 
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import { VerifyChallengeErrorV2 } from "../error/VerifyChallengeErrorV2.js";
-import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
 import { NewPasswordRequiredStateV2 } from "../../../../reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import type { CodeRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { VerifyChallengeResultV2 } from "../result/VerifyChallengeResultV2.js";
@@ -142,7 +140,6 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: VerifyChallengeErrorV2,
                 scenario: continuationState.scenario,
                 correlationId,
             });
@@ -189,7 +186,6 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: RequestChallengeErrorV2,
                 scenario: continuationState.scenario,
                 correlationId,
             });

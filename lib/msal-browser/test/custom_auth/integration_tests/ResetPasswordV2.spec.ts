@@ -8,6 +8,7 @@ import { CustomAuthStandardController } from "../../../src/custom_auth/controlle
 import { AuthMethodSelectionRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
+import { AuthFlowErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import { NewPasswordRequiredStateV2 } from "../../../src/custom_auth/reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import { SignInContinuationStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
@@ -257,5 +258,99 @@ describe("Reset password V2 (SSPR)", () => {
         expect(String((fetch as jest.Mock).mock.calls[5][0])).toContain(
             "/risk/phone/verify"
         );
+    });
+
+    it("surfaces an invalid-code failure while awaiting a valid code", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse(
+                    {
+                        error: {
+                            code: "invalidGrant",
+                            message: "AADSTS50181: Unable to validate the otp.",
+                            innerError: { code: "invalidOneTimeCode" },
+                        },
+                    },
+                    400
+                )
+            );
+
+        const startResult = await app.resetPasswordV2({
+            username: "user@contoso.com",
+        });
+        const result = await (
+            startResult.state as CodeRequiredStateV2
+        ).submitCode("00000");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
+        expect(result.error?.isInvalidCode()).toBe(true);
+        expect(fetch).toHaveBeenCalledTimes(4);
+    });
+
+    it("surfaces an invalid-password failure while awaiting a valid password", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse(
+                    {
+                        error: {
+                            code: "invalidRequest",
+                            message:
+                                "AADSTS120002: New password doesn't meet complexity requirements.",
+                            innerError: { code: "passwordTooWeak" },
+                        },
+                    },
+                    400
+                )
+            );
+
+        const startResult = await app.resetPasswordV2({
+            username: "user@contoso.com",
+        });
+        const verifyResult = await (
+            startResult.state as CodeRequiredStateV2
+        ).submitCode("123456");
+        const result = await (
+            verifyResult.state as NewPasswordRequiredStateV2
+        ).submitNewPassword("weak");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
+        expect(result.error?.isInvalidPassword()).toBe(true);
+        expect(fetch).toHaveBeenCalledTimes(5);
+    });
+
+    it("surfaces a browser-required failure when the server asks for web fallback", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse(
+                    {
+                        error: "invalid_grant",
+                        error_description:
+                            "AADSTS55214: Non-retryable error has occurred.",
+                        error_codes: [55214],
+                        suberror: "web_redirect_required",
+                    },
+                    400
+                )
+            );
+
+        const result = await app.resetPasswordV2({
+            username: "user@contoso.com",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
+        expect(result.error?.isBrowserRequired()).toBe(true);
+        expect(fetch).toHaveBeenCalledTimes(3);
     });
 });
