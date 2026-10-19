@@ -475,13 +475,10 @@ export class StandardController implements IController {
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
         const responseMode = this.config.auth.OIDCOptions.responseMode;
-        const canCleanResponse =
-            !BrowserUtils.isInIframe() ||
-            this.config.system.allowRedirectInIframe;
+        // A client-scoped miss may belong to another client; only clean up when no interaction is pending.
         if (!this.browserStorage.isInteractionInProgress(true)) {
             if (
                 !this.browserStorage.isInteractionInProgress(false) &&
-                canCleanResponse &&
                 clearRedirectResponseFromUrl(
                     window,
                     responseMode,
@@ -503,16 +500,14 @@ export class StandardController implements IController {
         }
 
         let redirectOptions = options;
-        if (canCleanResponse) {
-            const response =
-                responseMode === Constants.ResponseMode.QUERY
-                    ? window.location.search
-                    : window.location.hash;
-            if (!options?.hash && response) {
-                redirectOptions = { ...options, hash: response };
-            }
-            clearRedirectResponseFromUrl(window, responseMode, this.logger, "");
+        const response =
+            responseMode === Constants.ResponseMode.QUERY
+                ? window.location.search
+                : window.location.hash;
+        if (!options?.hash && response) {
+            redirectOptions = { ...options, hash: response };
         }
+        clearRedirectResponseFromUrl(window, responseMode, this.logger, "");
 
         const interactionType =
             this.browserStorage.getInteractionInProgress()?.type;

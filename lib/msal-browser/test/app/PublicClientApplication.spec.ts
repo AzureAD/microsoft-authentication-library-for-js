@@ -773,20 +773,26 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(window.location.hash).toBe("");
         });
 
-        it("cleans a callback before rethrowing a missing-request error", async () => {
-            browserStorage.setInteractionInProgress(true);
-            window.location.hash = `#code=new-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`;
-            const error = new Error("Missing cached request");
-            jest.spyOn(
-                BrowserCacheManager.prototype,
-                "getCachedRequest"
-            ).mockImplementation(() => {
-                throw error;
-            });
+        it.each([false, true])(
+            "cleans a callback before rethrowing a missing-request error, inside an iframe: %s",
+            async (isInIframe) => {
+                jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(
+                    isInIframe
+                );
+                browserStorage.setInteractionInProgress(true);
+                window.location.hash = `#code=new-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`;
+                const error = new Error("Missing cached request");
+                jest.spyOn(
+                    BrowserCacheManager.prototype,
+                    "getCachedRequest"
+                ).mockImplementation(() => {
+                    throw error;
+                });
 
-            await expect(pca.handleRedirectPromise()).rejects.toBe(error);
-            expect(window.location.hash).toBe("");
-        });
+                await expect(pca.handleRedirectPromise()).rejects.toBe(error);
+                expect(window.location.hash).toBe("");
+            }
+        );
 
         it.each([false, true])(
             "cleans query responses and preserves routing, with a cached transaction: %s",
@@ -1076,6 +1082,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         ])(
             "does not erase another flow or application route: %s",
             async (hash) => {
+                jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
                 window.location.hash = hash;
 
                 await expect(pca.handleRedirectPromise()).resolves.toBeNull();
@@ -1083,12 +1090,31 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         );
 
-        it("does not clear a response without a pending interaction inside an iframe", async () => {
+        it.each([
+            TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
+            '#code=""',
+        ])(
+            "cleans a response without a pending interaction inside an iframe: %s",
+            async (hash) => {
+                jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
+                window.location.hash = hash;
+
+                await expect(pca.handleRedirectPromise()).resolves.toBeNull();
+                expect(window.location.hash).toBe("");
+            }
+        );
+
+        it("preserves another client's callback inside an iframe", async () => {
             jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
             const hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.location.hash = hash;
+            window.sessionStorage.setItem(
+                "msal.interaction.status",
+                JSON.stringify({ clientId: "other-client", type: "signin" })
+            );
 
             await expect(pca.handleRedirectPromise()).resolves.toBeNull();
+
             expect(window.location.hash).toBe(hash);
         });
 

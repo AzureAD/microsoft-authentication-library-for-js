@@ -194,6 +194,28 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             expect(window.location.href).toBe(`${base}?q=keep#/home`);
         });
 
+        it.each([
+            Constants.ResponseMode.FRAGMENT,
+            Constants.ResponseMode.QUERY,
+        ])(
+            "cleans response fields from both query and fragment in %s mode",
+            (responseMode) => {
+                const state = { route: "home" };
+                window.history.replaceState(
+                    state,
+                    "",
+                    `${base}?code=query-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=a%20b#accountId=broker-id&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&view=home`
+                );
+
+                expect(clearRedirectResponseFromUrl(window, responseMode)).toBe(
+                    true
+                );
+
+                expect(window.location.href).toBe(`${base}?q=a%20b#view=home`);
+                expect(window.history.state).toEqual(state);
+            }
+        );
+
         it("replaces the current history entry and preserves application history state", () => {
             const state = { route: "home" };
             window.history.replaceState(

@@ -230,8 +230,9 @@ It is not recommended to use both interaction types in a single application.
 ### Redirect response URL cleanup
 
 `handleRedirectPromise()` removes redirect response parameters from the
-callback URL even when processing fails. If no client has a pending interaction,
-it cleans recognized response values, logs a warning, and returns `null`.
+callback URL even when processing fails, including inside iframes. If no client
+has a pending interaction, it cleans recognized response values, logs a warning,
+and returns `null`.
 Responses belonging to another client or popup/silent flow are left untouched.
 Application routes and unrelated URL parameters are preserved. URL cleanup does
 not indicate authentication success or change response validation.

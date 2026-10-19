@@ -133,7 +133,8 @@ function removeAuthResponse(
 }
 
 /**
- * Cleans the visible redirect URL without adding history or navigating. Hash
+ * Checks both query and fragment for redirect response fields and preserves app parameters.
+ * Cleans the visible URL without adding history or navigating. Hash
  * assignment is the fallback for hosts such as Office that disable replaceState.
  * When responseValuesOnly is true, state/error metadata alone is preserved.
  * Returns whether a response was found for cleanup, even if cleanup is unavailable.
