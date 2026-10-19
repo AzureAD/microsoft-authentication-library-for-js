@@ -74,17 +74,16 @@ npm run build:package
 
 The playground includes a **DPoP Nonce Diagnostics** panel for use with the MISE `DPoPBackend` sample.
 
-1. Start `DPoPBackend` with its nonce requirement enabled at `https://localhost:45471/WeatherForecast/DPoP`.
+1. Start `DPoPBackend` at `https://localhost:45471/WeatherForecast/DPoP` with `RequireServerNonceInDPoP` and `SendServerNonceOn200` enabled. Configure `ServerNonceSigningCredentials` with an accessible RSA certificate so MISE can issue the challenge nonce.
 1. Configure the backend to allow the Express sample origin and expose the `DPoP-Nonce` response header through CORS.
-1. Add `http://localhost:3000/dpop-nonce-redirect` as a SPA redirect URI on the test app registration.
-1. Open `http://localhost:3000/playground?scenario=dpop-nonce`. The playground automatically applies the L1 DPoP test client, authority, ESTS slice, resource, and redirect configuration.
+1. Open `http://localhost:3000/playground?scenario=dpop-nonce`. The playground automatically applies the L1 DPoP test client, authority, ESTS slice, resource, and redirect configuration. Popup responses use the `/redirect` bridge, while full-page redirects use the same registered URI as an intermediate nonce-handoff page.
 1. Use the DPoP controls to:
    - call the backend once and inspect the challenge;
    - load and replace a matching nonce;
    - confirm a nonce loaded for a mismatched origin is omitted from the proof;
    - confirm the oldest nonce is evicted after loading 51 resource origins;
    - call the backend with one bounded nonce retry;
-   - use `acquireTokenRedirect` to inspect the one-shot handoff across the dedicated `/dpop-nonce-redirect` page;
+   - use `acquireTokenRedirect` to inspect the one-shot handoff through the conditional `/redirect` page;
    - clear the PCA cache and confirm in-memory nonce state is discarded.
 
 The diagnostics panel shows proof method/URI claims, nonce fingerprints, redirect handoff metadata, and handoff storage failure telemetry without displaying access tokens or raw nonce values.
