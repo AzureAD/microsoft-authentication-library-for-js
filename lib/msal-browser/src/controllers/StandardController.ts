@@ -475,7 +475,7 @@ export class StandardController implements IController {
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
         const responseMode = this.config.auth.OIDCOptions.responseMode;
-        // A client-scoped miss may belong to another client; only clean up when no interaction is pending.
+        // A client-scoped miss may belong to another client; only clean up when no interaction is pending from any client.
         if (!this.browserStorage.isInteractionInProgress(true)) {
             if (
                 !this.browserStorage.isInteractionInProgress(false) &&
