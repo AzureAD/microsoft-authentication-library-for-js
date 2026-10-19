@@ -98,6 +98,9 @@ import {
 } from "./BaseInteractionClient.js";
 import { SilentCacheClient } from "./SilentCacheClient.js";
 
+/**
+ * Token-binding parameters added to a platform broker token request.
+ */
 type PlatformAuthTokenRequestParameters = {
     tokenType: PlatformAuthRequest["tokenType"];
 } & Partial<
@@ -114,6 +117,9 @@ type PlatformAuthTokenRequestParameters = {
     >
 >;
 
+/**
+ * Bounded failure reasons emitted when validating a broker DPoP response.
+ */
 type BrokerDpopFailureReason =
     | "conflicting_fields"
     | "invalid_attestation"
