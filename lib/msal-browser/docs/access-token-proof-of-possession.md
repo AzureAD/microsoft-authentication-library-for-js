@@ -243,7 +243,7 @@ async function callResource(): Promise<Response> {
 
 | Operating context | Status | Current behavior |
 | ----------------- | ------ | ---------------- |
-| Standard browser PCA | Supported | Stores the nonce in PCA-local memory, with a one-shot `sessionStorage` handoff for full-page redirects. |
+| Standard browser PCA | Supported | Stores the nonce in PCA-local memory, with a temporary `sessionStorage` handoff for full-page redirects. |
 | NAA/nestable PCA | Pending support | `loadDpopNonce` currently rejects the operation. |
 | WAM/native broker | Pending support | Resource-server nonces are not currently forwarded to the broker. |
 | Pairwise Broker (PWB) | Pending support | Resource-server nonces are not currently forwarded to the broker. |
