@@ -2,6 +2,6 @@
     "type": "minor",
     "comment": "Add IPublicClientApplication.loadDpopNonce with origin-versioned memory state and one-shot redirect handoff (AB#3677519) [#8819](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8819)",
     "packageName": "@azure/msal-browser",
-    "email": "nugetaad@microsoft.com",
+    "email": "hemoral@microsoft.com",
     "dependentChangeType": "patch"
 }
