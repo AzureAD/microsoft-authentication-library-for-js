@@ -55,7 +55,7 @@ This guide provides framework-specific instructions for setting up the redirect 
 
 ## Redirect response URL cleanup
 
-For redirect interactions, the bridge removes sensitive response parameters from
+For redirect interactions, the bridge removes response parameters from
 the callback URL before navigating, including when navigation subsequently fails.
 The app must still call `handleRedirectPromise()` to complete authentication.
 

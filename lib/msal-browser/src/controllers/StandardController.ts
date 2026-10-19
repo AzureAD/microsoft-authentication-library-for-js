@@ -56,7 +56,7 @@ import {
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import {
     clearRedirectResponseFromUrl,
-    hasSensitiveRedirectResponse,
+    hasRedirectResponse,
     isRedirectResponse,
 } from "../utils/BrowserProtocolUtils.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
@@ -486,15 +486,15 @@ export class StandardController implements IController {
             if (
                 !this.browserStorage.isInteractionInProgress(false) &&
                 canCleanResponse &&
-                (hasSensitiveRedirectResponse(window.location.hash) ||
-                    hasSensitiveRedirectResponse(
+                (hasRedirectResponse(window.location.hash) ||
+                    hasRedirectResponse(
                         window.location.search,
                         responseMode === Constants.ResponseMode.QUERY
                     ))
             ) {
                 clearRedirectResponseFromUrl(window, responseMode, this.logger);
                 this.logger.warning(
-                    "Redirect response detected without a pending interaction. Discarding the response.",
+                    "Redirect response detected without a pending interaction. Returning null after URL cleanup.",
                     ""
                 );
             }

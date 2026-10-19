@@ -54,7 +54,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             ).toBe(`${base}?q=a%20b#view=a%20b&client_info=info`);
         });
 
-        it("removes sensitive payloads and companion response markers without removing other metadata", () => {
+        it("removes response values and companion markers without removing other metadata", () => {
             const metadata =
                 "client_info=info&session_state=session&cloud_instance_name=cloud&cloud_instance_host_name=host&cloud_graph_host_name=graph&msgraph_host=graphhost&error_uri=help&suberror=detail&timestamp=now&trace_id=trace&correlation_id=correlation&claims=claims&clientdata=data";
             expect(

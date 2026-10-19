@@ -16,14 +16,14 @@ import {
 } from "@azure/msal-common/browser";
 import { base64Decode } from "../encode/Base64Decode.js";
 
-const sensitiveAuthResponseKeys = [
+const redirectResponseKeys = [
     "code",
     "ear_jwe",
     "accountId",
     "nativeAccountId",
 ];
 const authResponseKeys = new Set([
-    ...sensitiveAuthResponseKeys,
+    ...redirectResponseKeys,
     "state",
     "error",
     "error_description",
@@ -107,21 +107,21 @@ export function isRedirectResponse(
     return (
         interactionType === InteractionType.Redirect ||
         (allowResponseWithoutState &&
-            sensitiveAuthResponseKeys.some((key) => params.has(key)))
+            redirectResponseKeys.some((key) => params.has(key)))
     );
 }
 
 /**
- * Identifies sensitive redirect payloads, including empty values, for orphan cleanup.
- * State and error metadata alone must not trigger orphan cleanup.
+ * Identifies redirect response values, including empty values, for URL cleanup.
+ * State and error metadata alone do not trigger cleanup without a pending interaction.
  */
-export function hasSensitiveRedirectResponse(
+export function hasRedirectResponse(
     response: string,
     allowResponseWithoutState: boolean = true
 ): boolean {
     const params = new URLSearchParams(response.replace(/^[#?]/, ""));
     return (
-        sensitiveAuthResponseKeys.some((key) => params.has(key)) &&
+        redirectResponseKeys.some((key) => params.has(key)) &&
         isRedirectResponse(response, allowResponseWithoutState)
     );
 }
@@ -209,7 +209,7 @@ export function clearRedirectResponseFromUrl(
     }
     try {
         const cleanLocation = new URL(cleanUrl);
-        // eslint-disable-next-line security/detect-possible-timing-attacks -- Comparing URL fragments, not validating secrets.
+        // eslint-disable-next-line security/detect-possible-timing-attacks -- Comparing URL fragments to determine whether an update is needed.
         if (hash !== cleanLocation.hash) {
             contentWindow.location.hash = cleanLocation.hash;
         }

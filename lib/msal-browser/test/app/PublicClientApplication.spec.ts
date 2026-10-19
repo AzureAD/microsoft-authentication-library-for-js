@@ -694,13 +694,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             '#code=""',
             TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
             "#accountId=",
-            "#accountId=orphaned-id",
+            "#accountId=test-id",
             "#nativeAccountId=",
-            "#nativeAccountId=orphaned-id",
+            "#nativeAccountId=test-id",
             TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
             "#ear_jwe=encrypted",
         ])(
-            "cleans an orphaned redirect response before returning null: %s",
+            "cleans a redirect response without a pending interaction before returning null: %s",
             async (hash) => {
                 window.location.hash = hash;
                 const redirect = jest.spyOn(
@@ -719,9 +719,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         );
 
-        it("warns about an orphaned response without logging its payload", async () => {
+        it("warns about a response without a pending interaction without logging its values", async () => {
             window.location.hash =
-                "#code=orphaned-secret&state=orphaned-state&view=home";
+                "#code=test-response-value&state=test-state&view=home";
             const warning = jest.spyOn(pca.getLogger(), "warning");
 
             await expect(pca.handleRedirectPromise()).resolves.toBeNull();
@@ -732,7 +732,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 ""
             );
             expect(JSON.stringify(warning.mock.calls)).not.toContain(
-                "orphaned-secret"
+                "test-response-value"
             );
         });
 
@@ -1083,7 +1083,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         );
 
-        it("does not clear an orphaned response inside an iframe", async () => {
+        it("does not clear a response without a pending interaction inside an iframe", async () => {
             jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
             const hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.location.hash = hash;
