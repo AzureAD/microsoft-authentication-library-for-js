@@ -187,7 +187,7 @@ function loadDpopDefaults() {
         auth: {
             clientId: DPOP_CLIENT_ID,
             authority: DPOP_AUTHORITY,
-            redirectUri: `${window.location.origin}${DPOP_DEFAULT_REDIRECT_PATH}`,
+            redirectUri: `${window.location.origin}${DPOP_REDIRECT_PATH}`,
         },
         cache: {
             cacheLocation: "localStorage",
