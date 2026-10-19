@@ -1935,7 +1935,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
         });
 
-        it("Extension: preserves DPoP key binding, resource context, and nonce in cache requests", () => {
+        it("Extension: does not copy broker-only DPoP parameters into cache requests", () => {
             const createSilentCacheRequest = (
                 platformAuthInteractionClient as unknown as {
                     createSilentCacheRequest(
@@ -1945,7 +1945,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         popKid?: string;
                         resourceRequestMethod?: string;
                         resourceRequestUri?: string;
-                        extraParameters?: Record<string, string>;
                     };
                 }
             ).createSilentCacheRequest.bind(platformAuthInteractionClient);
@@ -1971,11 +1970,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     popKid: "generated-dpop-key",
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                    extraParameters: {
-                        pop_nonce: "resource-nonce",
-                    },
                 })
             );
+            expect(cacheRequest).not.toHaveProperty("extraParameters");
         });
 
         it.each([

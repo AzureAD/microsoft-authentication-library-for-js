@@ -679,7 +679,6 @@ export class ResponseHandler {
                         htu: request.resourceRequestUri,
                         htm: request.resourceRequestMethod,
                         accessToken: cacheRecord.accessToken.secret,
-                        nonce: request.extraParameters?.pop_nonce,
                     },
                     cacheRecord.accessToken.keyId,
                     request.correlationId

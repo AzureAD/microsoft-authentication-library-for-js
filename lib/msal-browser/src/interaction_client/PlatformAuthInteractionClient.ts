@@ -392,13 +392,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             silentRequest.attributeTokens = request.attributeTokens.split(" ");
         }
 
-        const dpopNonce = request.extraParametersNoCache?.pop_nonce;
-        if (dpopNonce !== undefined) {
-            silentRequest.extraParameters = {
-                pop_nonce: dpopNonce,
-            };
-        }
-
         return silentRequest;
     }
 

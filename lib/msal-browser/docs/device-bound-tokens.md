@@ -64,6 +64,8 @@ When supported, MSAL asks the platform broker to use broker-attested binding as 
 
 MSAL rejects invalid or inconsistent broker responses instead of returning an unbound token. Application-managed DPoP keys are not supported through the Windows Accounts extension.
 
+Resource-server DPoP nonce forwarding is not yet supported through the Windows Accounts extension. Applications must not pass `pop_nonce` through `extraParameters`; nonce support will use a dedicated API and internal nonce store.
+
 DPoP requests must include the resource method and URI used to build the proof. For the complete request shape and proof usage, see [DPoP for PublicClientApplication](./access-token-proof-of-possession.md#dpop-for-publicclientapplication).
 
 ## Acquiring Device Bound Tokens using DOM API
