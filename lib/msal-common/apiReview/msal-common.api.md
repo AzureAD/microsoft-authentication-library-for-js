@@ -1649,6 +1649,14 @@ export type GenerateAuthenticationResultOptions = {
 // @public
 function generateAuthorityMetadataExpiresAt(): number;
 
+// @public (undocumented)
+export type GenerateDpopResourceProofParams = {
+    htu?: string;
+    htm?: string;
+    nonce?: string;
+    accessToken: string;
+};
+
 // @public
 function generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, correlationId: string, idTokenClaims?: TokenClaims): string;
 
