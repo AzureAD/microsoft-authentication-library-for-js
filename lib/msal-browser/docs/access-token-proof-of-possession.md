@@ -219,14 +219,14 @@ async function callResource(): Promise<Response> {
             },
         });
 
-        const nonce = response.headers.get("DPoP-Nonce");
-        if (nonce) {
-            await myMSALObj.loadDpopNonce(resourceRequestUri, nonce);
+        const dpopNonce = response.headers.get("DPoP-Nonce");
+        if (dpopNonce) {
+            await myMSALObj.loadDpopNonce(resourceRequestUri, dpopNonce);
         }
 
         if (
             response.status !== 401 ||
-            !nonce ||
+            !dpopNonce ||
             attempt === MAX_DPOP_NONCE_RETRIES
         ) {
             return response;
