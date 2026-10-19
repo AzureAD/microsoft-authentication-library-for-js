@@ -1936,6 +1936,10 @@ export class BrowserCacheManager extends CacheManager {
             .filter((key) => key.startsWith(DPOP_NONCE_CACHE_PREFIX));
         if (nonceKeys.length > MAX_RESOURCE_SERVER_NONCES) {
             this.internalStorage.removeItem(nonceKeys[0]);
+            this.performanceClient.incrementFields(
+                { "ext.dpopNonceCacheEvictionCount": 1 },
+                correlationId
+            );
         }
     }
 
@@ -2005,6 +2009,10 @@ export class BrowserCacheManager extends CacheManager {
                 DPOP_NONCE_REDIRECT_HANDOFF,
                 JSON.stringify(handoff),
                 true
+            );
+            this.performanceClient.incrementFields(
+                { "ext.dpopNonceRedirectHandoffSaveCount": 1 },
+                correlationId
             );
         } catch {
             this.performanceClient.incrementFields(
@@ -2085,6 +2093,10 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         this.setDpopNonce(handoff.resourceServer, handoff.nonce, correlationId);
+        this.performanceClient.incrementFields(
+            { "ext.dpopNonceRedirectHandoffRestoreCount": 1 },
+            correlationId
+        );
     }
 
     /**
