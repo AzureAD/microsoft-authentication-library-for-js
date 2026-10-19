@@ -4,14 +4,11 @@
  */
 
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import { VerifyChallengeErrorV2 } from "../error/VerifyChallengeErrorV2.js";
-import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
 import { NewPasswordRequiredStateV2 } from "../../../../reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import type { CodeRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { VerifyChallengeResultV2 } from "../result/VerifyChallengeResultV2.js";
-import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
+import type { ResendCodeResultV2 } from "../result/ResendCodeResultV2.js";
 import { CompletedStateV2 } from "./CompletedStateV2.js";
-import { MFARequiredStateV2 } from "./MFARequiredStateV2.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import {
     FLOW_ATTRIBUTES_REQUIRED_V2,
@@ -99,18 +96,19 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
             }
 
             if (result.type === FLOW_MFA_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new MFARequiredStateV2({
-                        correlationId: result.correlationId,
-                        logger,
-                        config: this.stateParameters.config,
-                        flowClient: this.stateParameters.flowClient,
-                        continuationState: result.continuationState,
-                        cacheClient: this.stateParameters.cacheClient,
-                        methods: result.methods,
-                    }),
-                    undefined,
-                    result.continuationState.scenario
+                const signInStateTransitionHandler =
+                    this.stateParameters.signInStateTransitionHandler;
+                if (!signInStateTransitionHandler) {
+                    throw new CustomAuthError(
+                        UNSUPPORTED_FLOW_TRANSITION,
+                        "Sign-in state transition handler is missing.",
+                        correlationId
+                    );
+                }
+
+                return signInStateTransitionHandler.handleMfaRequired(
+                    result,
+                    this.stateParameters
                 );
             }
 
@@ -142,7 +140,6 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: VerifyChallengeErrorV2,
                 scenario: continuationState.scenario,
                 correlationId,
             });
@@ -154,7 +151,7 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
      * contains the refreshed challenge metadata.
      * @returns The result of requesting a replacement code.
      */
-    async resendCode(): Promise<RequestChallengeResultV2> {
+    async resendCode(): Promise<ResendCodeResultV2> {
         const { correlationId, logger, continuationState } =
             this.stateParameters;
 
@@ -172,6 +169,8 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
                     cacheClient: this.stateParameters.cacheClient,
                     signUpStateTransitionHandler:
                         this.stateParameters.signUpStateTransitionHandler,
+                    signInStateTransitionHandler:
+                        this.stateParameters.signInStateTransitionHandler,
                     method: this.method,
                     sentTo: result.sentTo,
                     channel: result.channel,
@@ -187,7 +186,6 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: RequestChallengeErrorV2,
                 scenario: continuationState.scenario,
                 correlationId,
             });

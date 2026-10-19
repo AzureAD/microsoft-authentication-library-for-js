@@ -366,7 +366,7 @@ describe("FlowInteractionClientV2", () => {
     });
 
     describe("signIn", () => {
-        it("selects the first password method and returns password-required with token inputs", async () => {
+        it("automatically selects the sole supported password method", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
                 signInHref: "https://endpoint/sign-in",
@@ -434,7 +434,44 @@ describe("FlowInteractionClientV2", () => {
             });
         });
 
-        it("prefers email when no password is supplied", async () => {
+        it("uses only basic scopes when scopes is null", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                signInHref: "https://endpoint/sign-in",
+            });
+            apiClient.signInStart.mockResolvedValue({
+                continuationToken: "ct-sign-in",
+                authenticationFactor: "singleFactor",
+                methods: [
+                    {
+                        id: "password-1",
+                        type: "password",
+                        challengeHref: "https://endpoint/password/challenge",
+                    },
+                ],
+            });
+            apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
+                continuationToken: "ct-challenge",
+                verifyHref: "https://endpoint/password/verify",
+                type: "password",
+            });
+
+            const result = await client.signIn({
+                correlationId,
+                username: "user@contoso.com",
+                scopes: null,
+            });
+
+            expect(apiClient.authorizeChallengeStart).toHaveBeenCalledWith(
+                expect.objectContaining({ correlationId }),
+                ["openid", "profile", "offline_access"],
+                undefined
+            );
+            expect(result.type).toBe(FLOW_PASSWORD_REQUIRED_V2);
+        });
+
+        it("returns method selection when multiple supported methods are available", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
                 signInHref: "https://endpoint/sign-in",
@@ -456,29 +493,71 @@ describe("FlowInteractionClientV2", () => {
                     },
                 ],
             });
-            apiClient.requestChallenge.mockResolvedValue({
-                nextAction: "verify",
-                continuationToken: "ct-email",
-                verifyHref: "https://endpoint/email/verify",
-                resendHref: "https://endpoint/email/resend",
-                type: "email",
-            });
-
             const result = await client.signIn({
                 correlationId,
                 username: "user@contoso.com",
             });
 
-            expect(apiClient.requestChallenge).toHaveBeenCalledWith(
-                "https://endpoint/email/challenge",
-                { continuationToken: "ct-sign-in" },
-                expect.objectContaining({ correlationId })
-            );
-            expect(result.type).toBe(FLOW_CODE_REQUIRED_V2);
-            expect((result as FlowCodeRequiredResultV2).channel).toBe("email");
-            expect((result as FlowSignInCodeRequiredResultV2).method.id).toBe(
-                "email-1"
-            );
+            expect(result.type).toBe(FLOW_METHOD_SELECTION_REQUIRED_V2);
+            expect(
+                (result as FlowMethodSelectionRequiredResultV2).methods
+            ).toEqual([
+                {
+                    id: "password-1",
+                    type: "password",
+                    hint: undefined,
+                    challengeHref: "https://endpoint/password/challenge",
+                },
+                {
+                    id: "email-1",
+                    type: "email",
+                    hint: "u***@contoso.com",
+                    challengeHref: "https://endpoint/email/challenge",
+                },
+            ]);
+            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+        });
+
+        it("does not retain or submit an initial password when method selection is required", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                signInHref: "https://endpoint/sign-in",
+            });
+            apiClient.signInStart.mockResolvedValue({
+                continuationToken: "ct-sign-in",
+                authenticationFactor: "singleFactor",
+                methods: [
+                    {
+                        id: "password-1",
+                        type: "password",
+                        challengeHref: "https://endpoint/password/challenge",
+                    },
+                    {
+                        id: "email-1",
+                        type: "email",
+                        challengeHref: "https://endpoint/email/challenge",
+                    },
+                ],
+            });
+
+            const result = await client.signIn({
+                correlationId,
+                username: "user@contoso.com",
+                password: "initial-password",
+            });
+
+            expect(result.type).toBe(FLOW_METHOD_SELECTION_REQUIRED_V2);
+            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+            expect(apiClient.verifyChallenge).not.toHaveBeenCalled();
+            expect(
+                (result as FlowMethodSelectionRequiredResultV2)
+                    .continuationState
+            ).toEqual({
+                continuationToken: "ct-sign-in",
+                scenario: "signIn",
+                scopes: ["openid", "profile", "offline_access"],
+                links: {},
+            });
         });
 
         it("returns code-required when password is supplied for email OTP", async () => {
@@ -998,7 +1077,7 @@ describe("FlowInteractionClientV2", () => {
             });
         });
 
-        it("accepts a future non-password OTP channel", async () => {
+        it("returns code-required for an SMS challenge", async () => {
             apiClient.requestChallenge.mockResolvedValue({
                 nextAction: "verify",
                 continuationToken: "ct-challenge",
@@ -1015,20 +1094,41 @@ describe("FlowInteractionClientV2", () => {
             expect((result as FlowCodeRequiredResultV2).channel).toBe("sms");
         });
 
-        it("defaults a challenge response without a type to email", async () => {
+        it("rejects an unsupported challenge type", async () => {
+            apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
+                continuationToken: "ct-challenge",
+                verifyHref: "https://endpoint/verify",
+                type: "push",
+            });
+
+            await expect(
+                client.requestChallenge({
+                    correlationId,
+                    continuationState,
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+                errorDescription: "Challenge type 'push' is not supported.",
+            });
+        });
+
+        it("rejects a challenge response without a type", async () => {
             apiClient.requestChallenge.mockResolvedValue({
                 nextAction: "verify",
                 continuationToken: "ct-challenge",
                 verifyHref: "https://endpoint/verify",
             });
 
-            const result = await client.requestChallenge({
-                correlationId,
-                continuationState,
+            await expect(
+                client.requestChallenge({
+                    correlationId,
+                    continuationState,
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+                errorDescription: "Challenge type is missing.",
             });
-
-            expect(result.type).toBe(FLOW_CODE_REQUIRED_V2);
-            expect((result as FlowCodeRequiredResultV2).channel).toBe("email");
         });
 
         it("throws when the continuation is missing the challenge link", async () => {

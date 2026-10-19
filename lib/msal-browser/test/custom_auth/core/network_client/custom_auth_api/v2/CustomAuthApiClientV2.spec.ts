@@ -8,7 +8,6 @@ import { CustomAuthApiClientV2 } from "../../../../../../src/custom_auth/core/ne
 import { CustomAuthError } from "../../../../../../src/custom_auth/core/error/CustomAuthError.js";
 import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import {
-    REDIRECT_TO_WEB,
     CONTINUATION_TOKEN_MISSING,
     INVALID_HAL_RESPONSE,
     NO_AUTHENTICATION_METHODS,
@@ -130,6 +129,91 @@ describe("CustomAuthApiClientV2", () => {
                 apiClient.authorizeChallengeStart(context)
             ).rejects.toMatchObject({
                 error: CONTINUATION_TOKEN_MISSING,
+            });
+        });
+
+        it("preserves web_redirect_required diagnostics on an OAuth failure", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse(
+                    {
+                        error: "invalid_grant",
+                        error_description:
+                            "AADSTS55214: Non-retryable error has occurred.",
+                        error_codes: [55214],
+                        timestamp: "2026-10-12 15:43:29Z",
+                        trace_id: "c7fe3b84-3596-4d2d-a195-3aa21fb41100",
+                        correlation_id: "c556852d-edfa-4040-b472-15a62de49ad5",
+                        suberror: "web_redirect_required",
+                    },
+                    400
+                )
+            );
+
+            await expect(
+                apiClient.authorizeChallengeStart(context)
+            ).rejects.toMatchObject({
+                error: "invalid_grant",
+                errorDescription:
+                    "AADSTS55214: Non-retryable error has occurred.",
+                errorCodes: [55214],
+                subError: "web_redirect_required",
+                correlationId: "c556852d-edfa-4040-b472-15a62de49ad5",
+                traceId: "c7fe3b84-3596-4d2d-a195-3aa21fb41100",
+                timestamp: "2026-10-12 15:43:29Z",
+            });
+        });
+
+        it("accepts InsufficientAuthorization when the entry includes a continuation token", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    error: "InsufficientAuthorization",
+                    error_description:
+                        "AADSTS500127: No authenticated credentials found in request.",
+                    error_codes: [500127],
+                    timestamp: "2026-10-15 11:00:20Z",
+                    trace_id: "6a72e163-b400-45c1-82d1-2ffe597f1c00",
+                    correlation_id: "5bf14be2-24a1-425c-b8ea-6961b52105b9",
+                    continuation_token: "ct-entry",
+                    sign_in: "/tenant/api/v0.1/signin/start",
+                })
+            );
+
+            await expect(
+                apiClient.authorizeChallengeStart(context)
+            ).resolves.toEqual({
+                continuationToken: "ct-entry",
+                resetPasswordHref: undefined,
+                signInHref: "/tenant/api/v0.1/signin/start",
+                signUpHref: undefined,
+            });
+        });
+
+        it("throws InsufficientAuthorization when the entry has no continuation token", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse(
+                    {
+                        error: "InsufficientAuthorization",
+                        error_description:
+                            "AADSTS500127: No authenticated credentials found in request.",
+                        error_codes: [500127],
+                        timestamp: "2026-10-15 11:00:20Z",
+                        trace_id: "6a72e163-b400-45c1-82d1-2ffe597f1c00",
+                        correlation_id: "5bf14be2-24a1-425c-b8ea-6961b52105b9",
+                    },
+                    401
+                )
+            );
+
+            await expect(
+                apiClient.authorizeChallengeStart(context)
+            ).rejects.toMatchObject({
+                error: "InsufficientAuthorization",
+                errorDescription:
+                    "AADSTS500127: No authenticated credentials found in request.",
+                errorCodes: [500127],
+                correlationId: "5bf14be2-24a1-425c-b8ea-6961b52105b9",
+                traceId: "6a72e163-b400-45c1-82d1-2ffe597f1c00",
+                timestamp: "2026-10-15 11:00:20Z",
             });
         });
     });
@@ -531,7 +615,7 @@ describe("CustomAuthApiClientV2", () => {
                 )
             ).rejects.toMatchObject({
                 error: "invalidRequest",
-                subError: "attributeValidationError",
+                innerErrorCode: "attributeValidationError",
                 correlationId: "corr-response",
                 attributeValidationDetails: [
                     {
@@ -1266,21 +1350,7 @@ describe("CustomAuthApiClientV2", () => {
         });
     });
 
-    describe("web fallback and errors on HAL requests", () => {
-        it("throws redirect_to_web when a HAL request requires web fallback", async () => {
-            mockHttpClient.sendAsync.mockResolvedValueOnce(
-                buildResponse({ state: "webFallbackRequired" })
-            );
-
-            await expect(
-                apiClient.requestChallenge(
-                    "/tenant/api/v0.1/challenge",
-                    { continuationToken: "ct-start" },
-                    context
-                )
-            ).rejects.toMatchObject({ error: REDIRECT_TO_WEB });
-        });
-
+    describe("errors on HAL requests", () => {
         it("throws the normalized nested error on a failing HAL request", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse(
@@ -1303,7 +1373,41 @@ describe("CustomAuthApiClientV2", () => {
                 )
             ).rejects.toMatchObject({
                 error: "invalid_grant",
-                subError: "otp_expired",
+                innerErrorCode: "otp_expired",
+            });
+        });
+
+        it("preserves userNotFound on a failing HAL request", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse(
+                    {
+                        error: {
+                            code: "invalidRequest",
+                            message:
+                                "AADSTS50034: The user account does not exist in the directory.",
+                            timestamp: "2026-10-15 11:00:16Z",
+                            traceId: "6a72e163-b400-45c1-82d1-2ffe897e1c00",
+                            correlationId:
+                                "1b387df0-1092-49fd-9afa-503c14ead335",
+                            innerError: { code: "userNotFound" },
+                        },
+                    },
+                    400
+                )
+            );
+
+            await expect(
+                apiClient.verifyChallenge(
+                    "/tenant/api/v0.1/verify",
+                    { continuationToken: "ct-challenge", otp: "000000" },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: "invalidRequest",
+                innerErrorCode: "userNotFound",
+                correlationId: "1b387df0-1092-49fd-9afa-503c14ead335",
+                traceId: "6a72e163-b400-45c1-82d1-2ffe897e1c00",
+                timestamp: "2026-10-15 11:00:16Z",
             });
         });
 
