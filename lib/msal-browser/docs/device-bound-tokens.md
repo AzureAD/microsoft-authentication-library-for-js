@@ -56,11 +56,20 @@ There are a few things that may behave a little differently when acquiring token
 ### DPoP with the platform broker
 
 > [!WARNING]
-> DPoP support in MSAL Browser is currently in development and is not fully rolled out or ready for production use. APIs and behavior may change. Use this feature only for evaluation and testing.
+> Although MSAL Browser contains the client implementation, end-to-end platform-broker DPoP is not generally available today.
+>
+> It requires all of the following:
+>
+> -   A Windows build with broker DPoP support. Such builds are not currently available through public Windows releases.
+> -   A Microsoft Entra-joined device configured for platform-broker authentication.
+> -   The Windows Accounts extension.
+> -   Server-side DPoP support and enablement in the Microsoft Entra token service and target resource.
+>
+> Unless your environment has been explicitly enabled for a coordinated preview, treat platform-broker DPoP as unavailable and do not depend on it for production use. APIs and behavior may change.
 
 #### Availability and provider selection
 
-DPoP broker support is currently available only through the Windows Accounts extension. When the Platform Authentication DOM API provider is active, MSAL uses the browser-managed DPoP flow instead. Applications use the same DPoP request and response handling in either case; no broker-specific configuration is required.
+Within an explicitly enabled preview environment, DPoP broker support is available only through the Windows Accounts extension. When the Platform Authentication DOM API provider is active, MSAL uses the browser-managed DPoP flow instead. Applications use the same DPoP request and response handling in either case; no broker-specific configuration is required.
 
 #### Broker binding outcomes
 
