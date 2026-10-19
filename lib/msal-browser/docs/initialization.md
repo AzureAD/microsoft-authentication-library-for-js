@@ -229,38 +229,12 @@ It is not recommended to use both interaction types in a single application.
 
 ### Redirect response URL cleanup
 
-`handleRedirectPromise()` captures recognized redirect response parameters before
-removing them from the current URL. Cleanup does not require a matching cached
-transaction: an orphaned callback can return `null` or reject while its
-authorization code or platform-broker account identifier is still removed.
-Removing a response does not accept it or
-bypass state, nonce, or PKCE validation.
-
-When this client has no pending interaction, cleanup runs only if no other
-client has one and a sensitive redirect payload is present. MSAL logs a warning
-and returns `null`; state or error metadata alone does not trigger orphan cleanup.
-Error callbacks for pending redirects continue through normal processing.
-
-Callback cleanup recognizes flat authentication fragments such as `#code=...`,
-`#accountId=...`, and their empty forms. The supported platform-broker response
-field returned by ESTS is `accountId`; a literal `#nativeAccountId=...` fragment
-is also removed as authentication material, but is not accepted as a new
-broker response field. These flat fragments are treated as authentication response
-parameters when handling redirect callbacks, even when the value is empty or state is malformed.
-Application routing fragments such as `#/dashboard?code=...`, unrelated URL
-parameters, and responses identified as popup or silent interactions are
-preserved. An active redirect belonging to another MSAL client is not consumed.
-
-For query response mode, authentication parameters are removed from the query
-string rather than clearing the entire URL. Ordinary query parameters named
-`code`, `accountId`, or `nativeAccountId` are not removed in fragment response mode
-unless accompanied by MSAL redirect state.
-
-URL cleanup uses `history.replaceState()` and preserves application history
-state. If a host disables or rejects that API, MSAL falls back to hash cleanup.
-Query cleanup has no navigation-free fallback in that environment; a warning is
-reported rather than reloading the application or replacing the authentication
-result with a cleanup error.
+`handleRedirectPromise()` removes sensitive redirect response parameters from the
+callback URL even when processing fails. If no client has a pending interaction,
+it cleans an orphaned sensitive response, logs a warning, and returns `null`.
+Responses belonging to another client or popup/silent flow are left untouched.
+Application routes and unrelated URL parameters are preserved. URL cleanup does
+not indicate authentication success or change response validation.
 
 **Note:** `handleRedirectPromise` will optionally accept a hash value to be processed, defaulting to the current value of `window.location.hash`. This parameter only needs to be provided in scenarios where the current value of `window.location.hash` does not contain the redirect response that needs to be processed. **For almost all scenarios, applications should not need to provide this parameter explicitly.**
 

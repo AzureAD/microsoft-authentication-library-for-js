@@ -55,18 +55,9 @@ This guide provides framework-specific instructions for setting up the redirect 
 
 ## Redirect response URL cleanup
 
-For redirect interactions, the bridge captures the authentication response and
-cleans the callback URL before caching the payload or navigating. Cleanup does
-not depend on navigation succeeding. The captured payload is still passed to the
-application through the existing response cache.
-
-A clean callback URL does not mean authentication succeeded:
-the application must still call `handleRedirectPromise()`, which requires the
-original transaction and PKCE verifier to redeem the code.
-
-If the bridge script cannot load or execute, it cannot clean the URL. If the
-host disables or rejects `history.replaceState()`, hash cleanup is attempted;
-query cleanup cannot be completed without navigation and a warning is reported.
+For redirect interactions, the bridge removes sensitive response parameters from
+the callback URL before navigating, including when navigation subsequently fails.
+The app must still call `handleRedirectPromise()` to complete authentication.
 
 ## Logout and the Redirect Bridge
 
