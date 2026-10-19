@@ -1577,6 +1577,13 @@ describe("SilentIframeClient", () => {
             });
 
             it("catches a response broadcast at navigation time - EAR flow", async () => {
+                jest.spyOn(
+                    window.navigator,
+                    "userAgent",
+                    "get"
+                ).mockReturnValue(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+                );
                 const raceClient = await buildSilentClient({
                     protocolMode: ProtocolMode.EAR,
                     iframeBridgeTimeout: 3000,
@@ -1855,6 +1862,13 @@ describe("SilentIframeClient", () => {
 
             it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", async () => {
                 jest.restoreAllMocks();
+                jest.spyOn(
+                    window.navigator,
+                    "userAgent",
+                    "get"
+                ).mockReturnValue(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+                );
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
                     TEST_STATE_VALUES.TEST_STATE_SILENT
                 );

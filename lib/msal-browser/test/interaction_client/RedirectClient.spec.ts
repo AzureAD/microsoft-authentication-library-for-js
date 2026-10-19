@@ -3522,6 +3522,9 @@ describe("RedirectClient", () => {
         });
 
         it("Invokes EAR flow when protocolMode is set to EAR", (done) => {
+            jest.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+            );
             const validRequest: RedirectRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 scopes: ["openid", "profile", "offline_access"],
