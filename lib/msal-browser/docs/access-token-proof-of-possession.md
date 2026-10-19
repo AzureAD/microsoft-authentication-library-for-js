@@ -193,7 +193,7 @@ DPoP resource proofs are generated from the request method, normalized resource 
 
 ### Resource-server nonce challenges
 
-A DPoP nonce is an opaque value issued by the resource server that the client includes in its next proof to demonstrate freshness.
+A DPoP nonce is an opaque freshness value that an authorization server or resource server may require in the next proof. Enforcement is optional and can vary by resource; this example handles a resource-server challenge.
 
 Load a returned `DPoP-Nonce` before requesting a new proof. Retry a nonce challenge at most once:
 
