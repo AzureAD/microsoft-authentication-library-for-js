@@ -134,6 +134,8 @@ The bridge fails in a cross-origin iframe because third-party storage partitioni
 
 ##### The `pocd` parameter
 
+See [PocdSample](../../../samples/msal-browser-samples/PocdSample/README.md) for a runnable example of trusted and untrusted opener scenarios, with GET/POST sign-in, logout, and negative-response E2E coverage.
+
 When MSAL can show that no untrusted window is able to reach the window driving the request, it sends `pocd=1` ("popup origin check done") on the request, and Entra may then omit the COOP header. MSAL sends the parameter only when it computes `1`; it is never sent as `0`.
 
 The check is evaluated once per request and covers **every** flow — `acquireTokenPopup`, `acquireTokenRedirect`, `ssoSilent`, `acquireTokenSilent`, `logoutPopup` and `logoutRedirect` — in the auth-code (GET), form-post and EAR response modes alike. It describes the app's own window topology, which does not vary by flow.
