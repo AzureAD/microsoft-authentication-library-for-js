@@ -22,7 +22,6 @@ const authHeader = `Bearer ${accessToken}`; // The Bearer label is used in this 
 headers.append("Authorization", authHeader);
 ```
 
-
 ### Bound Access Token
 
 A.K.A `PoP Token` or `Signed HTTP Request`. When the `POP` authorization scheme is enabled in an MSAL token request, the authorization server will still provide a JSON Web Token access token secret that looks like a `Bearer` access token, which MSAL will also cache. The main difference is that when using the `POP` scheme, that access token secret will be bound to the user's browser through an asymmetric cryptographic keypair.
@@ -51,16 +50,15 @@ Once you have determined the authorization service and resource server support a
 
 ### AT PoP Request Parameters
 
-|           Name          |                      Description                            | Required |
-|-------------------------| ----------------------------------------------------------- | -------- |
-|  `authenticationScheme` | Indicates whether MSAL should acquire a `Bearer` or `PoP` token. Default is `Bearer`. | **Required** |
-| `resourceRequestMethod` | The all-caps name of the HTTP method of the request that will use the signed token (`GET`, `POST`, `PUT`, etc.) | **Required** |
-| `resourceRequestUri`    | The URL of the protected resource for which the access token is being issued | **Required** |
-|       `shrClaims`       | A stringified JSON object containing custom client claims to be added to the SignedHTTPRequest. Check out the [Custom SHR Claims](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/shr-client-claims.md) documentation for more information. | *Optional* |
-|      `shrNonce`         | A server-generated, signed timestamp that is Base64URL encoded as a string. This nonce is used to mitigate clock-skew and time-travel attacks meant to enable PoP token pre-generation. Check out the [SHR Server Nonce](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/shr-server-nonce.md) documentation for more information.| *Optional* |
+| Name                    | Description                                                                                                                                                                                                                                                                                                                                                                         | Required     |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| `authenticationScheme`  | Indicates whether MSAL should acquire a `Bearer` or `PoP` token. Default is `Bearer`.                                                                                                                                                                                                                                                                                               | **Required** |
+| `resourceRequestMethod` | The all-caps name of the HTTP method of the request that will use the signed token (`GET`, `POST`, `PUT`, etc.)                                                                                                                                                                                                                                                                     | **Required** |
+| `resourceRequestUri`    | The URL of the protected resource for which the access token is being issued                                                                                                                                                                                                                                                                                                        | **Required** |
+| `shrClaims`             | A stringified JSON object containing custom client claims to be added to the SignedHTTPRequest. Check out the [Custom SHR Claims](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/shr-client-claims.md) documentation for more information.                                                                                       | _Optional_   |
+| `shrNonce`              | A server-generated, signed timestamp that is Base64URL encoded as a string. This nonce is used to mitigate clock-skew and time-travel attacks meant to enable PoP token pre-generation. Check out the [SHR Server Nonce](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/shr-server-nonce.md) documentation for more information. | _Optional_   |
 
-
-*Note: While this document shows how to add an `shrNonce` to the `SignedHttpRequest`, the server nonce acquisition pattern is out of scope. Please review the [SHR Server Nonce dcoumentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/shr-server-nonce.md#acquiring-a-server-nonce) for more information on acquiring server-generated nonces.*
+_Note: While this document shows how to add an `shrNonce` to the `SignedHttpRequest`, the server nonce acquisition pattern is out of scope. Please review the [SHR Server Nonce dcoumentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/shr-server-nonce.md#acquiring-a-server-nonce) for more information on acquiring server-generated nonces._
 
 ### Acquire Token Redirect Request Example
 
@@ -70,10 +68,9 @@ const popTokenRequest = {
     authenticationScheme: msal.AuthenticationScheme.POP,
     resourceRequestMethod: "POST",
     resourceRequestUri: "YOUR_RESOURCE_ENDPOINT",
-    shrClaims: "{\"shrClaim1\": \"claimValue\"}",
-    shrNonce: "NONCE_ACQUIRED_FROM_RESOURCE_SERVER"
-}
-
+    shrClaims: '{"shrClaim1": "claimValue"}',
+    shrNonce: "NONCE_ACQUIRED_FROM_RESOURCE_SERVER",
+};
 ```
 
 Once the request has been configured and `POP` is set as the `authenticationScheme`, it can be sent into the `acquireTokenRedirect` MSAL v2 API.
@@ -99,10 +96,10 @@ fetch(endpoint, options)
     .catch(error => console.log(error));
 });
 ```
+
 ### Acquire Token Silent Request Example
 
 Silently acquiring PoP Access Tokens requires the same changes to the token request configuration as with the interactive `acquireToken` APIs:
-
 
 ```typescript
 const silentPopTokenRequest = {
@@ -155,7 +152,7 @@ In the event of refreshing a bound access token, MSAL will delete the cryptograp
 
 > :warning: We do not recommend using this feature unless you are familiar with the [Proof of Possession protocol](https://oauth.net/2/dpop/) and have a specific requirement to generate your own cryptographic keypair. For most cases, we recommend the PoP usage as described in the rest of this document.
 
-If you choose to generate your own cryptographic keypair, then this feature enables the application to provide the `popKid` as a request parameter. MSAL JS ensures the token issuer embeds the `cnf` in the token but returns the issued token _unsigned_. The onus of signing the access token before it is forwarded to the intended resource will be on the application. 
+If you choose to generate your own cryptographic keypair, then this feature enables the application to provide the `popKid` as a request parameter. MSAL JS ensures the token issuer embeds the `cnf` in the token but returns the issued token _unsigned_. The onus of signing the access token before it is forwarded to the intended resource will be on the application.
 
 Please also note to make sure the remaining [pop parameters](#at-pop-request-parameters) except the `AuthenticationScheme` are not set if you choose to leverage this behavior.
 
@@ -193,13 +190,13 @@ DPoP resource proofs are generated from the request method, normalized resource 
 
 ### Resource-server nonce challenges
 
-When a resource server returns a `DPoP-Nonce` response header, first check that the PCA exposes the standard DPoP nonce capability, then load the nonce before requesting a new proof:
+When a resource server returns a `DPoP-Nonce` response header, load the nonce before requesting a new proof:
 
 ```typescript
 const resourceRequestUri = "https://graph.microsoft.com/v1.0/me";
 const dpopNonce = resourceResponse.headers.get("DPoP-Nonce");
 
-if (dpopNonce && msal.isDpopNonceProvider(myMSALObj)) {
+if (dpopNonce) {
     await myMSALObj.loadDpopNonce(resourceRequestUri, dpopNonce);
     const retryResult = await myMSALObj.acquireTokenSilent({
         ...dpopRequest,
@@ -210,7 +207,7 @@ if (dpopNonce && msal.isDpopNonceProvider(myMSALObj)) {
 }
 ```
 
-`IDpopNonceProvider` is a separate optional capability. It is implemented by standard `PublicClientApplication` instances and returned by `createStandardPublicClientApplication`. It is intentionally not part of `IPublicClientApplication`, so custom implementations and nestable applications remain compatible. NAA/nestable PCA does not advertise this capability.
+`loadDpopNonce` is part of `IPublicClientApplication`. Standard browser applications store the validated nonce locally. NAA/nestable applications reject this operation as unsupported.
 
 MSAL stores resource-server nonces only in memory, scoped to the `PublicClientApplication` instance and normalized HTTPS resource origin. The state is bounded and is cleared with the application cache; it is not shared across tabs or application instances and is not written to browser or custom cache storage.
 
@@ -220,10 +217,10 @@ If a handoff storage operation fails, MSAL logs a warning and continues the redi
 
 `loadDpopNonce` validates and stores the nonce but does not issue resource HTTP requests. The application must retry a challenged resource request no more than once, using a newly generated proof, and must stop if the retry is challenged again.
 
-### Broker sequencing
+### Broker support
 
-- **NAA/nestable PCA:** Does not expose `IDpopNonceProvider` in this release.
-- **WAM/native broker:** No nonce bridge is included here. PR [#8789](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8789) must merge first; this PR must then rebase/adapt and add nonce-store to `request.dpopNonce` integration before this PR merges.
-- **Pairwise Broker (PWB):** No forwarding is included here. This PR merges first, PR [#8788](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8788) adapts afterward, and separate 1P work adds ephemeral forwarding.
+-   **NAA/nestable PCA:** Exposes `loadDpopNonce` through `IPublicClientApplication` but rejects the operation as unsupported in this release.
+-   **WAM/native broker:** Resource-server nonce forwarding is not supported in this release.
+-   **Pairwise Broker (PWB):** Resource-server nonce forwarding is not supported in this release.
 
-The capability is direct on the standard PCA. There is no token-cache accessor for DPoP nonce state.
+The API is direct on `IPublicClientApplication`. There is no token-cache accessor for DPoP nonce state.

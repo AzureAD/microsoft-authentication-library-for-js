@@ -291,6 +291,12 @@ export class UnknownOperatingContextController implements IController {
         blockNonBrowserEnvironment();
     }
 
+    loadDpopNonce(): Promise<void> {
+        blockAPICallsBeforeInitialize(this.initialized);
+        blockNonBrowserEnvironment();
+        return Promise.resolve();
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async hydrateCache(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

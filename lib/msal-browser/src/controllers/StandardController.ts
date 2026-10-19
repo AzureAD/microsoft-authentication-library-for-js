@@ -100,7 +100,6 @@ import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 import { resolveSilentRequestPreparation } from "../request/SilentRequestHelpers.js";
-import { DpopNonceStore } from "./DpopNonceStore.js";
 
 function preflightCheck(
     initialized: boolean,
@@ -129,7 +128,6 @@ export class StandardController implements IController {
 
     // Storage interface implementation
     protected readonly browserStorage: BrowserCacheManager;
-    private readonly dpopNonceStore: DpopNonceStore;
 
     // Native Cache in memory storage implementation
     protected readonly nativeInternalStorage: BrowserCacheManager;
@@ -270,12 +268,6 @@ export class StandardController implements IController {
                   undefined,
                   this.tokenBindingKeyManager
               );
-        this.dpopNonceStore = new DpopNonceStore(
-            this.config.auth.clientId,
-            this.logger,
-            this.performanceClient
-        );
-
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
@@ -1642,7 +1634,7 @@ export class StandardController implements IController {
      * @param logoutRequest
      */
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
-        this.dpopNonceStore.clear();
+        this.browserStorage.clearDpopNonces();
         if (!this.isBrowserEnvironment) {
             return;
         }
@@ -1965,8 +1957,7 @@ export class StandardController implements IController {
             correlationId,
             this.platformAuthProvider,
             this.operatingContext.getResponseHandlers()?.waitForPopupResponse,
-            this.tokenBindingKeyManager,
-            this.dpopNonceStore
+            this.tokenBindingKeyManager
         );
     }
 
@@ -1986,8 +1977,7 @@ export class StandardController implements IController {
             this.nativeInternalStorage,
             correlationId,
             this.platformAuthProvider,
-            this.tokenBindingKeyManager,
-            this.dpopNonceStore
+            this.tokenBindingKeyManager
         );
     }
 
@@ -2009,8 +1999,7 @@ export class StandardController implements IController {
             correlationId,
             this.platformAuthProvider,
             this.operatingContext.getResponseHandlers()?.waitForIframeResponse,
-            this.tokenBindingKeyManager,
-            this.dpopNonceStore
+            this.tokenBindingKeyManager
         );
     }
 
@@ -2030,8 +2019,7 @@ export class StandardController implements IController {
             this.performanceClient,
             correlationId,
             this.platformAuthProvider,
-            this.tokenBindingKeyManager,
-            this.dpopNonceStore
+            this.tokenBindingKeyManager
         );
     }
 
@@ -2051,8 +2039,7 @@ export class StandardController implements IController {
             this.performanceClient,
             correlationId,
             this.platformAuthProvider,
-            this.tokenBindingKeyManager,
-            this.dpopNonceStore
+            this.tokenBindingKeyManager
         );
     }
 
@@ -2073,8 +2060,7 @@ export class StandardController implements IController {
             this.performanceClient,
             correlationId,
             this.platformAuthProvider,
-            this.tokenBindingKeyManager,
-            this.dpopNonceStore
+            this.tokenBindingKeyManager
         );
     }
 
@@ -2135,7 +2121,7 @@ export class StandardController implements IController {
         const correlationId = createNewGuid();
         return invokeAsync(
             async (): Promise<void> => {
-                this.dpopNonceStore.setResourceServerNonce(
+                this.browserStorage.setDpopNonce(
                     resourceRequestUri,
                     dpopNonce,
                     correlationId
@@ -2345,7 +2331,7 @@ export class StandardController implements IController {
             this.platformAuthProvider,
             this.logger,
             this.performanceClient,
-            this.dpopNonceStore
+            this.browserStorage
         );
 
         const inProgressRequest = this.activeSilentTokenRequests.get(

@@ -86,20 +86,19 @@ describe("silent request preparation", () => {
             resourceRequestMethod: "GET",
             resourceRequestUri: "https://api.contoso.com/resource",
         };
-        const getResourceServerNonce = jest.fn().mockReturnValue({
+        const getDpopNonce = jest.fn().mockReturnValue({
             nonce: "opaque-nonce",
             version: 7,
         });
 
         const prepared = prepareWebSilentRequest(input, {
-            getResourceServerNonce,
-            clear: jest.fn(),
+            getDpopNonce,
         });
 
         expect(JSON.parse(prepared.key)).toMatchObject({
             dpopNonceVersion: 7,
         });
-        expect(getResourceServerNonce).toHaveBeenCalledWith(
+        expect(getDpopNonce).toHaveBeenCalledWith(
             input.request.resourceRequestUri,
             input.correlationId
         );
@@ -114,11 +113,10 @@ describe("silent request preparation", () => {
             resourceRequestUri: "https://api.contoso.com/resource",
         };
         const store = {
-            getResourceServerNonce: jest
+            getDpopNonce: jest
                 .fn()
                 .mockReturnValueOnce({ nonce: "nonce-1", version: 1 })
                 .mockReturnValueOnce({ nonce: "nonce-2", version: 2 }),
-            clear: jest.fn(),
         };
 
         const first = prepareWebSilentRequest(input, store);

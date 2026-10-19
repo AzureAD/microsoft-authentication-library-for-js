@@ -7,7 +7,6 @@ import {
     Constants,
     ScopeSet,
     getRequestThumbprint,
-    IDpopNonceStore,
 } from "@azure/msal-common/browser";
 import type {
     AccountInfo,
@@ -22,6 +21,13 @@ import type { BrowserConfiguration } from "../config/Configuration.js";
 import { CacheLookupPolicy } from "../utils/BrowserConstants.js";
 import type { SilentRequest } from "./SilentRequest.js";
 import type { SsoSilentRequest } from "./SsoSilentRequest.js";
+
+type DpopNonceCache = {
+    getDpopNonce(
+        resourceRequestUri: string,
+        correlationId?: string
+    ): { nonce: string; version: number } | undefined;
+};
 
 /**
  * Request context used by flow-specific silent request preparers.
@@ -57,7 +63,7 @@ export function resolveSilentRequestPreparation(
     platformAuthProvider: IPlatformAuthHandler | undefined,
     logger: Logger,
     performanceClient: IPerformanceClient,
-    dpopNonceStore?: IDpopNonceStore
+    cacheManager?: DpopNonceCache
 ): PreparedSilentRequest {
     const { request, account, correlationId, config } = input;
     const prepareRequest =
@@ -74,7 +80,7 @@ export function resolveSilentRequestPreparation(
             : prepareWebSilentRequest;
 
     return prepareRequest === prepareWebSilentRequest
-        ? prepareWebSilentRequest(input, dpopNonceStore)
+        ? prepareWebSilentRequest(input, cacheManager)
         : preparePlatformSilentRequest(input);
 }
 
@@ -83,7 +89,7 @@ export function resolveSilentRequestPreparation(
  */
 export function prepareWebSilentRequest(
     { request, account, correlationId, config }: SilentRequestPreparationInput,
-    dpopNonceStore?: IDpopNonceStore
+    cacheManager?: DpopNonceCache
 ): PreparedSilentRequest {
     const thumbprint = getRequestThumbprint(
         config.auth.clientId,
@@ -98,7 +104,7 @@ export function prepareWebSilentRequest(
     const dpopNonceVersion =
         request.authenticationScheme === Constants.AuthenticationScheme.DPOP &&
         request.resourceRequestUri
-            ? dpopNonceStore?.getResourceServerNonce(
+            ? cacheManager?.getDpopNonce(
                   request.resourceRequestUri,
                   correlationId
               )?.version

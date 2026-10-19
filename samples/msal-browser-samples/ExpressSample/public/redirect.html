@@ -1,147 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Redirect Page</title>
-    </head>
-    <body>
-        <p>Processing authentication...</p>
-        <pre id="status"></pre>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect Page</title>
+</head>
+<body>
+    <p>Processing authentication...</p>
 
-        <script
-            src="/lib/msal-browser/msal-browser.js"
-            type="text/javascript"
-        ></script>
-        <script
-            src="/lib/msal-browser/redirect-bridge/msal-redirect-bridge.min.js"
-            type="text/javascript"
-        ></script>
+    <script src="/lib/msal-browser/redirect-bridge/msal-redirect-bridge.min.js" type="text/javascript"></script>
 
-        <script type="text/javascript">
-            const pendingKey = "msal.dpopNoncePlayground.pendingRedirect";
-            const pendingTtlMs = 10 * 60 * 1000;
-            const diagnosticKey = "msal.dpopNoncePlayground.diagnostics";
-            const handoffSuffix = ".dpop.nonce.redirect";
-            const status = document.getElementById("status");
-
-            function getHandoffSnapshot() {
-                const entries = [];
-                for (
-                    let index = 0;
-                    index < window.sessionStorage.length;
-                    index++
-                ) {
-                    const key = window.sessionStorage.key(index);
-                    if (!key || !key.endsWith(handoffSuffix)) {
-                        continue;
-                    }
-                    const serialized = window.sessionStorage.getItem(key);
-                    let parsed = null;
-                    try {
-                        parsed = serialized ? JSON.parse(serialized) : null;
-                    } catch {
-                        parsed = null;
-                    }
-                    entries.push({
-                        key,
-                        resourceServer: parsed && parsed.resourceServer,
-                        expiresAt: parsed && parsed.expiresAt,
-                        nonceLength:
-                            parsed && typeof parsed.nonce === "string"
-                                ? new TextEncoder().encode(parsed.nonce).length
-                                : null,
-                        stateBound: Boolean(
-                            parsed && typeof parsed.state === "string"
-                        ),
-                        correlationIdBound: Boolean(
-                            parsed && typeof parsed.correlationId === "string"
-                        ),
-                    });
-                }
-                return entries;
-            }
-
-            function appendDiagnostic(type, details) {
-                let diagnostics = [];
-                try {
-                    diagnostics = JSON.parse(
-                        window.sessionStorage.getItem(diagnosticKey) || "[]"
-                    );
-                } catch {
-                    diagnostics = [];
-                }
-                diagnostics.push({
-                    timestamp: new Date().toISOString(),
-                    type,
-                    ...details,
-                });
-                window.sessionStorage.setItem(
-                    diagnosticKey,
-                    JSON.stringify(diagnostics.slice(-100))
-                );
-                status.textContent = JSON.stringify(
-                    diagnostics[diagnostics.length - 1],
-                    null,
-                    2
-                );
-            }
-
-            async function processDpopRedirect(serialized) {
-                const pending = JSON.parse(serialized);
-                if (
-                    typeof pending.createdAt !== "number" ||
-                    Date.now() - pending.createdAt > pendingTtlMs
-                ) {
-                    window.sessionStorage.removeItem(pendingKey);
-                    throw new Error(
-                        "The pending DPoP playground redirect configuration expired."
-                    );
-                }
-
-                appendDiagnostic("redirect-intermediate-page-loaded", {
-                    handoff: getHandoffSnapshot(),
-                });
-
-                const instance = new msal.PublicClientApplication(
-                    pending.config
-                );
-                await instance.initialize();
-                instance.addPerformanceCallback((events) => {
-                    events.forEach((event) => {
-                        const ext = event.ext || {};
-                        const failures = Object.fromEntries(
-                            Object.entries(ext).filter(([key]) =>
-                                key.startsWith("dpopNonceRedirectHandoff")
-                            )
-                        );
-                        if (Object.keys(failures).length > 0) {
-                            appendDiagnostic("handoff-storage-telemetry", {
-                                event: event.name,
-                                failures,
-                            });
-                        }
-                    });
-                });
-
-                await instance.handleRedirectPromise();
-                appendDiagnostic("redirect-intermediate-page-completed", {
-                    handoff: getHandoffSnapshot(),
-                });
-            }
-
-            const pending = window.sessionStorage.getItem(pendingKey);
-            if (pending) {
-                processDpopRedirect(pending).catch((error) => {
-                    appendDiagnostic("redirect-intermediate-page-error", {
-                        error: error.message,
-                        handoff: getHandoffSnapshot(),
-                    });
-                });
-            } else {
-                // Popup and iframe responses continue to use the redirect bridge.
-                msalRedirectBridge.broadcastResponseToMainFrame();
-            }
-        </script>
-    </body>
+    <script type="text/javascript">
+        // This broadcasts the auth response from popup/iframe to the main window via BroadcastChannel
+        msalRedirectBridge.broadcastResponseToMainFrame();
+    </script>
+</body>
 </html>
+

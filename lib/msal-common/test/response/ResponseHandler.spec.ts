@@ -168,6 +168,11 @@ describe("ResponseHandler.ts", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+        delete (
+            testCacheManager as CacheManager & {
+                getDpopNonce?: unknown;
+            }
+        ).getDpopNonce;
     });
 
     describe("nonce validation", () => {
@@ -1027,10 +1032,11 @@ describe("ResponseHandler.ts", () => {
                     }
                 }
             );
-            const getResourceServerNonce = jest.fn().mockReturnValue({
+            const getDpopNonce = jest.fn().mockReturnValue({
                 nonce: "resource-nonce",
                 version: 1,
             });
+            Object.assign(testCacheManager, { getDpopNonce });
 
             const responseHandler = new ResponseHandler(
                 "this-is-a-client-id",
@@ -1040,11 +1046,7 @@ describe("ResponseHandler.ts", () => {
                 stubPerformanceClient,
                 null,
                 null,
-                mockTokenBindingKeyManager,
-                {
-                    getResourceServerNonce,
-                    clear: () => undefined,
-                }
+                mockTokenBindingKeyManager
             );
             const result = await responseHandler.handleServerTokenResponse(
                 testResponse,
@@ -1058,13 +1060,97 @@ describe("ResponseHandler.ts", () => {
             expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(result.dpopProof).toBe("fresh-dpop-proof");
             expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
-            expect(getResourceServerNonce).toHaveBeenCalledWith(
+            expect(getDpopNonce).toHaveBeenCalledWith(
                 TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
                 "CORRELATION_ID"
             );
             expect(signSpy).toHaveBeenCalledWith(
                 expect.anything(),
                 expect.objectContaining({ nonce: "resource-nonce" }),
+                TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                "CORRELATION_ID"
+            );
+        });
+
+        it("uses a newer nonce loaded while the token response is still being processed", async () => {
+            const signSpy = jest
+                .spyOn(cryptoInterface, "signTokenBindingJwt")
+                .mockResolvedValue("late-bound-dpop-proof");
+            jest.spyOn(cryptoInterface, "hashString").mockResolvedValue(
+                TEST_DPOP_VALUES.ACCESS_TOKEN_ATH
+            );
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                authenticationScheme: AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                access_token: TEST_DPOP_VALUES.ACCESS_TOKEN,
+                token_type: AuthenticationScheme.DPOP,
+            };
+            claimsStub.mockImplementation(
+                (encodedToken: string): TokenClaims | null => {
+                    return encodedToken === testResponse.id_token
+                        ? (ID_TOKEN_CLAIMS as TokenClaims)
+                        : null;
+                }
+            );
+
+            let currentNonce = "older-nonce";
+            const getDpopNonce = jest.fn(() => ({
+                nonce: currentNonce,
+                version: currentNonce === "older-nonce" ? 1 : 2,
+            }));
+            Object.assign(testCacheManager, { getDpopNonce });
+
+            let releaseSave!: () => void;
+            let notifySaveStarted!: () => void;
+            const saveBlocked = new Promise<void>((resolve) => {
+                releaseSave = resolve;
+            });
+            const saveStarted = new Promise<void>((resolve) => {
+                notifySaveStarted = resolve;
+            });
+            jest.spyOn(testCacheManager, "saveCacheRecord").mockImplementation(
+                async () => {
+                    notifySaveStarted();
+                    await saveBlocked;
+                }
+            );
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null,
+                mockTokenBindingKeyManager
+            );
+            const resultPromise = responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                TimeUtils.nowSeconds(),
+                testRequest,
+                0
+            );
+
+            await saveStarted;
+            currentNonce = "newer-nonce";
+            releaseSave();
+            const result = await resultPromise;
+
+            expect(result.dpopProof).toBe("late-bound-dpop-proof");
+            expect(getDpopNonce).toHaveBeenCalledTimes(1);
+            expect(signSpy).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({ nonce: "newer-nonce" }),
                 TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
                 "CORRELATION_ID"
             );
@@ -1104,6 +1190,12 @@ describe("ResponseHandler.ts", () => {
             const cacheRecord: CacheRecord = {
                 accessToken: dpopAccessToken,
             };
+            Object.assign(testCacheManager, {
+                getDpopNonce: () => ({
+                    nonce: "cached-resource-nonce",
+                    version: 1,
+                }),
+            });
 
             const result = await ResponseHandler.generateAuthenticationResult(
                 cryptoInterface,
@@ -1115,13 +1207,7 @@ describe("ResponseHandler.ts", () => {
                 {
                     idTokenClaims: ID_TOKEN_CLAIMS as TokenClaims,
                     tokenBindingKeyManager: mockTokenBindingKeyManager,
-                    dpopNonceStore: {
-                        getResourceServerNonce: () => ({
-                            nonce: "cached-resource-nonce",
-                            version: 1,
-                        }),
-                        clear: () => undefined,
-                    },
+                    cacheManager: testCacheManager,
                 }
             );
 

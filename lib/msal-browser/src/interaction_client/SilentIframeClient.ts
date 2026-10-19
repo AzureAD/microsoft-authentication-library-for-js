@@ -18,7 +18,6 @@ import {
     AuthorizeProtocol,
     PkceCodes,
     ITokenBindingKeyManager,
-    IDpopNonceStore,
 } from "@azure/msal-common/browser";
 import {
     initializeAuthorizationRequest,
@@ -103,8 +102,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         correlationId: string,
         platformAuthProvider?: IPlatformAuthHandler,
         waitForIframeResponseHook?: WaitForIframeResponseFn,
-        tokenBindingKeyManager?: ITokenBindingKeyManager,
-        dpopNonceStore?: IDpopNonceStore
+        tokenBindingKeyManager?: ITokenBindingKeyManager
     ) {
         super(
             config,
@@ -116,8 +114,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             performanceClient,
             correlationId,
             platformAuthProvider,
-            tokenBindingKeyManager,
-            dpopNonceStore
+            tokenBindingKeyManager
         );
         this.apiId = apiId;
         this.nativeStorage = nativeStorageImpl;

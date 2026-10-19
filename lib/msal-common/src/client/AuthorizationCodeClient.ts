@@ -170,8 +170,7 @@ export class AuthorizationCodeClient {
             this.performanceClient,
             this.config.serializableCache,
             this.config.persistencePlugin,
-            this.config.tokenBindingKeyManager,
-            this.config.dpopNonceStore
+            this.config.tokenBindingKeyManager
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.

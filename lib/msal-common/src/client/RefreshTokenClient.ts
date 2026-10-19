@@ -142,8 +142,7 @@ export class RefreshTokenClient {
             this.performanceClient,
             this.config.serializableCache,
             this.config.persistencePlugin,
-            this.config.tokenBindingKeyManager,
-            this.config.dpopNonceStore
+            this.config.tokenBindingKeyManager
         );
         responseHandler.validateTokenResponse(
             response.body,

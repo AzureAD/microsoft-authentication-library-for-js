@@ -44,11 +44,6 @@ import type {
     WaitForIframeResponseFn,
     WaitForIframeRequest,
 } from "../interaction_client/SilentIframeClient.js";
-import {
-    IDpopNonceProvider,
-    isDpopNonceProvider,
-} from "./IDpopNonceProvider.js";
-import { NestedAppAuthError } from "../error/NestedAppAuthError.js";
 
 /**
  * Auth-response handlers.
@@ -64,11 +59,8 @@ export type AuthResponseHandlers = {
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
  * to obtain JWT tokens as described in the OAuth 2.0 Authorization Code Flow with PKCE specification.
  */
-export class PublicClientApplication
-    implements IPublicClientApplication, IDpopNonceProvider
-{
+export class PublicClientApplication implements IPublicClientApplication {
     protected controller: IController;
-    private readonly dpopNonceProviderAvailable: boolean;
 
     /**
      * @constructor
@@ -102,7 +94,6 @@ export class PublicClientApplication
                         this.waitForIframeResponse.bind(this),
                 })
             );
-        this.dpopNonceProviderAvailable = isDpopNonceProvider(this.controller);
     }
 
     /**
@@ -397,10 +388,6 @@ export class PublicClientApplication
         resourceRequestUri: string,
         dpopNonce: string
     ): Promise<void> {
-        if (!isDpopNonceProvider(this.controller)) {
-            return Promise.reject(NestedAppAuthError.createUnsupportedError());
-        }
-
         return this.controller.loadDpopNonce(resourceRequestUri, dpopNonce);
     }
 
@@ -498,7 +485,7 @@ export async function createNestablePublicClientApplication(
  */
 export async function createStandardPublicClientApplication(
     configuration: Configuration
-): Promise<IPublicClientApplication & IDpopNonceProvider> {
+): Promise<IPublicClientApplication> {
     const pca = new PublicClientApplication(configuration);
     await pca.initialize();
     return pca;

@@ -7,10 +7,6 @@ import {
     createStandardPublicClientApplication,
     PublicClientApplication,
 } from "../../src/app/PublicClientApplication.js";
-import {
-    IDpopNonceProvider,
-    isDpopNonceProvider,
-} from "../../src/app/IDpopNonceProvider.js";
 import { stubbedPublicClientApplication } from "../../src/app/IPublicClientApplication.js";
 import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
@@ -20,26 +16,27 @@ import {
     Authority,
     BaseAuthRequest,
     CacheRecord,
+    CacheManager,
     Constants,
     ICrypto,
-    IDpopNonceStore,
     ITokenBindingKeyManager,
     ResponseHandler,
     StubPerformanceClient,
 } from "@azure/msal-common/browser";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 
-function getDpopNonceStore(pca: unknown): IDpopNonceStore {
+function getBrowserCacheManager(pca: unknown): BrowserCacheManager {
     return (
         pca as unknown as {
             controller: {
-                dpopNonceStore: IDpopNonceStore;
+                browserStorage: BrowserCacheManager;
             };
         }
-    ).controller.dpopNonceStore;
+    ).controller.browserStorage;
 }
 
 async function generateResourceProof(
-    dpopNonceStore: IDpopNonceStore,
+    cacheManager: CacheManager,
     resourceRequestUri: string
 ): Promise<{
     proof: string | undefined;
@@ -96,7 +93,7 @@ async function generateResourceProof(
         new StubPerformanceClient(),
         {
             tokenBindingKeyManager,
-            dpopNonceStore,
+            cacheManager,
         }
     );
 
@@ -106,21 +103,22 @@ async function generateResourceProof(
     };
 }
 
-describe("IDpopNonceProvider", () => {
-    it("is exposed by standard PCA instances without changing IPublicClientApplication", async () => {
-        const pca: IDpopNonceProvider =
-            await createStandardPublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
+describe("PublicClientApplication.loadDpopNonce", () => {
+    it("is exposed directly by IPublicClientApplication", async () => {
+        const pca = await createStandardPublicClientApplication({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            },
+        });
 
         expect(pca).toBeInstanceOf(PublicClientApplication);
-        expect(isDpopNonceProvider(pca)).toBe(true);
-        expect(isDpopNonceProvider(stubbedPublicClientApplication)).toBe(false);
+        expect(typeof pca.loadDpopNonce).toBe("function");
+        expect(typeof stubbedPublicClientApplication.loadDpopNonce).toBe(
+            "function"
+        );
     });
 
-    it("is not advertised by a PCA wrapping a nestable/custom controller", () => {
+    it("delegates unsupported behavior to a nestable controller", async () => {
         const nestablePca = new PublicClientApplication(
             {
                 auth: {
@@ -130,7 +128,25 @@ describe("IDpopNonceProvider", () => {
             stubbedPublicClientApplication
         );
 
-        expect(isDpopNonceProvider(nestablePca)).toBe(false);
+        await expect(
+            nestablePca.loadDpopNonce(
+                "https://api.contoso.com/resource",
+                "nonce"
+            )
+        ).rejects.toMatchObject({
+            errorCode: "stubbed_public_client_application_called",
+        });
+    });
+
+    it("stubbedPublicClientApplication rejects with the standard stubbed error", async () => {
+        await expect(
+            stubbedPublicClientApplication.loadDpopNonce(
+                "https://api.contoso.com/resource",
+                "nonce"
+            )
+        ).rejects.toMatchObject({
+            errorCode: "stubbed_public_client_application_called",
+        });
     });
 
     it("delegates nonce loading and emits the public API performance event", async () => {
@@ -157,9 +173,9 @@ describe("IDpopNonceProvider", () => {
             "resource-nonce"
         );
 
-        const nonceStore = getDpopNonceStore(pca);
+        const cacheManager = getBrowserCacheManager(pca);
         expect(
-            nonceStore.getResourceServerNonce(
+            cacheManager.getDpopNonce(
                 "https://api.contoso.com/another-resource"
             )
         ).toEqual({
@@ -183,7 +199,7 @@ describe("IDpopNonceProvider", () => {
         );
 
         const { proof, signTokenBindingJwt } = await generateResourceProof(
-            getDpopNonceStore(pca),
+            getBrowserCacheManager(pca),
             "https://api.contoso.com/resource?query=value"
         );
 
@@ -211,7 +227,7 @@ describe("IDpopNonceProvider", () => {
         );
 
         const { signTokenBindingJwt } = await generateResourceProof(
-            getDpopNonceStore(pca),
+            getBrowserCacheManager(pca),
             "https://api.fabrikam.com/resource"
         );
 

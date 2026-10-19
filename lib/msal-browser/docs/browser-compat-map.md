@@ -10,7 +10,7 @@ This document catalogs browser Web APIs that MSAL Browser depends on, their role
 
 | API | MSAL Usage | Fallback |
 |-----|-----------|----------|
-| `sessionStorage` | Interaction status, PKCE verifier, redirect origin URL, redirect bridge response cache, one-shot DPoP nonce redirect handoff | `MemoryStorage` (response or nonce handoff lost on navigation) |
+| `sessionStorage` | Interaction status, PKCE verifier, redirect origin URL, redirect bridge response cache, one-shot DPoP nonce redirect handoff | `MemoryStorage` where supported; redirect responses and DPoP nonce handoffs have no cross-navigation fallback and are lost if `sessionStorage` is unavailable |
 | `localStorage` | Persistent token cache (when `cacheLocation: "localStorage"`) | None if configured; not used by default |
 | `IndexedDB` | PoP token RSA keypairs and DPoP token-binding keypairs | In-memory (keys lost on reload) |
 | `document.cookie` | Encryption key for localStorage cache | None — cache cannot be decrypted without it |

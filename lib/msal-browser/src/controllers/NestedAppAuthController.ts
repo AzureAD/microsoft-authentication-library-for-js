@@ -862,6 +862,10 @@ export class NestedAppAuthController implements IController {
         );
     }
 
+    loadDpopNonce(): Promise<void> {
+        return Promise.reject(NestedAppAuthError.createUnsupportedError());
+    }
+
     async hydrateCache(
         result: AuthenticationResult,
         request:
