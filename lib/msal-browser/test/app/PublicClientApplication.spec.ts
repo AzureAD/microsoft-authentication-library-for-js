@@ -8086,6 +8086,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             ).toBeLessThan(popupClientSpy.mock.invocationCallOrder[0]);
         });
 
+        it("starts popup logout without waiting for native cache cleanup", async () => {
+            let resolveNativeCacheClear = (): void => {
+                throw new Error("Native cache cleanup resolver was not set");
+            };
+            jest.spyOn(pca as any, "clearNativeCache").mockReturnValue(
+                new Promise<void>((resolve) => {
+                    resolveNativeCacheClear = resolve;
+                })
+            );
+            const popupClientSpy = jest
+                .spyOn(PopupClient.prototype, "logout")
+                .mockResolvedValue();
+
+            const logoutPromise = pca.logoutPopup();
+
+            expect(popupClientSpy).toHaveBeenCalledTimes(1);
+
+            resolveNativeCacheClear();
+            await logoutPromise;
+        });
+
         it("throws error if interaction is in progress", async () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const logger = new Logger({});

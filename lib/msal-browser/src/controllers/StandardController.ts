@@ -1630,8 +1630,13 @@ export class StandardController implements IController {
             );
 
             const popupClient = this.createPopupClient(correlationId);
-            return this.clearNativeCache(logoutRequest?.account, correlationId)
-                .then(() => popupClient.logout(logoutRequest))
+            const nativeCacheClear = this.clearNativeCache(
+                logoutRequest?.account,
+                correlationId
+            );
+            const popupLogout = popupClient.logout(logoutRequest);
+            return Promise.all([nativeCacheClear, popupLogout])
+                .then(() => undefined)
                 .finally(() => {
                     this.browserStorage.setInteractionInProgress(false);
                 });
