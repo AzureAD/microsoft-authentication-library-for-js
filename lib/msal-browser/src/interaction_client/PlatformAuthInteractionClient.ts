@@ -1604,7 +1604,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     private async ensureRedirectDpopKeyIsPersisted(
         request: PlatformAuthRequest
     ): Promise<void> {
-        if (!request.keyId) {
+        if (!this.isDpopBrokerRequest(request) || !request.keyId) {
             return;
         }
 

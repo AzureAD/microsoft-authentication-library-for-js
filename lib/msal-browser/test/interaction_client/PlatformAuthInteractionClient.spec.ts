@@ -3374,6 +3374,41 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(browserCacheManager.getCachedNativeRequest()).toBeNull();
         });
 
+        it("does not apply DPoP key persistence validation to application-managed PoP", async () => {
+            const navigateSpy = jest
+                .spyOn(NavigationClient.prototype, "navigateExternal")
+                .mockResolvedValue(true);
+            const keyManager =
+                // @ts-ignore
+                platformAuthInteractionClient.tokenBindingKeyManager;
+            const persistenceSpy = jest
+                .spyOn(keyManager, "isTokenBindingKeyPersisted")
+                .mockResolvedValue(false);
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockResolvedValue(MOCK_WAM_RESPONSE);
+
+            await platformAuthInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                    authenticationScheme: Constants.AuthenticationScheme.POP,
+                    popKid: "application-managed-pop-key",
+                },
+                perfMeasurement
+            );
+
+            expect(persistenceSpy).not.toHaveBeenCalled();
+            expect(navigateSpy).toHaveBeenCalled();
+            expect(browserCacheManager.getCachedNativeRequest()).toEqual(
+                expect.objectContaining({
+                    keyId: "application-managed-pop-key",
+                    signPopToken: false,
+                    tokenType: Constants.AuthenticationScheme.POP,
+                })
+            );
+        });
+
         it("removes generated DPoP metadata before failed redirect navigation", async () => {
             jest.spyOn(
                 NavigationClient.prototype,
