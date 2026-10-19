@@ -60,11 +60,7 @@ cleans the callback URL before caching the payload or navigating. Cleanup does
 not depend on navigation succeeding. The captured payload is still passed to the
 application through the existing response cache.
 
-The bridge also removes recognized stale authentication parameters from the
-saved return destination in memory before navigating, including stale
-authorization codes and platform-broker account identifiers. It does not rewrite the
-cached origin URL. Unrelated query parameters and application routing fragments
-are preserved. A clean callback URL does not mean authentication succeeded:
+A clean callback URL does not mean authentication succeeded:
 the application must still call `handleRedirectPromise()`, which requires the
 original transaction and PKCE verifier to redeem the code.
 

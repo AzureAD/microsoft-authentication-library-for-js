@@ -27,7 +27,6 @@ import {
 } from "../utils/StringConstants.js";
 import {
     ServerError,
-    AuthorizeResponse,
     AccountInfo,
     TokenClaims,
     CommonAuthorizationCodeRequest,
@@ -214,77 +213,6 @@ describe("RedirectClient", () => {
     });
 
     describe("handleRedirectPromise", () => {
-        it.each(["URL", "bridge cache"])(
-            "processes the new code from %s without restoring an old auth hash from ORIGIN_URI",
-            async (responseSource) => {
-                browserStorage.setInteractionInProgress(true);
-                const origin =
-                    window.location.href + "#code=old-code&state=old-state";
-                const originKey = `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`;
-                window.sessionStorage.setItem(originKey, origin);
-                if (responseSource === "URL") {
-                    window.location.hash =
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-                } else {
-                    window.sessionStorage.setItem(
-                        `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                    );
-                }
-                const result = getTestAuthenticationResult();
-                const handleResponse = jest.fn(
-                    async (response: AuthorizeResponse) => {
-                        expect(response.code).toBe("thisIsATestCode");
-                        return result;
-                    }
-                );
-                redirectClient["handleResponse"] = handleResponse;
-
-                await expect(
-                    redirectClient.handleRedirectPromise(
-                        testRequest,
-                        TEST_CONFIG.TEST_VERIFIER,
-                        rootMeasurement
-                    )
-                ).resolves.toBe(result);
-
-                expect(handleResponse).toHaveBeenCalledTimes(1);
-                expect(window.location.hash).toBe("");
-                expect(window.sessionStorage.getItem(originKey)).toBe(origin);
-            }
-        );
-
-        it.each(["code", "accountId", "nativeAccountId"])(
-            "sanitizes a different-page %s return destination without rewriting the cached origin",
-            async (key) => {
-                browserStorage.setInteractionInProgress(true);
-                const origin = `${TEST_URIS.TEST_ALTERNATE_REDIR_URI}#${key}=old-value`;
-                const originKey = `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`;
-                window.sessionStorage.setItem(originKey, origin);
-                window.location.hash =
-                    TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-
-                await redirectClient.handleRedirectPromise(
-                    testRequest,
-                    TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement
-                );
-
-                expect(
-                    NavigationClient.prototype.navigateInternal
-                ).toHaveBeenCalledWith(
-                    TEST_URIS.TEST_ALTERNATE_REDIR_URI,
-                    expect.any(Object)
-                );
-                expect(
-                    window.sessionStorage.getItem(
-                        `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`
-                    )
-                ).toBe(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
-                expect(window.sessionStorage.getItem(originKey)).toBe(origin);
-            }
-        );
-
         it("sets document.title during processing and restores original title when no title is set", (done) => {
             document.title = "";
             browserStorage.setInteractionInProgress(true);
@@ -689,7 +617,7 @@ describe("RedirectClient", () => {
 
             window.sessionStorage.setItem(
                 `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                `${TEST_URIS.TEST_REDIR_URI}#accountId=old-native-account`
+                TEST_URIS.TEST_REDIR_URI
             );
             window.sessionStorage.setItem(
                 `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`,
@@ -764,10 +692,7 @@ describe("RedirectClient", () => {
             jest.spyOn(
                 PlatformAuthInteractionClient.prototype,
                 "acquireToken"
-            ).mockImplementation(async () => {
-                expect(window.location.hash).toBe("");
-                return testTokenResponse;
-            });
+            ).mockResolvedValue(testTokenResponse);
 
             const tokenResponse = await redirectClient.handleRedirectPromise(
                 testRequest,
@@ -1069,7 +994,9 @@ describe("RedirectClient", () => {
                     testTokenResponse.expiresOn.getMilliseconds() >=
                         tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe("");
+            expect(window.location.hash).toBe(
+                `#client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
+            );
         });
 
         it("calls custom navigateInternal function then processes hash", async () => {
@@ -1227,7 +1154,9 @@ describe("RedirectClient", () => {
                 testTokenResponse.expiresOn!.getMilliseconds() >=
                     tokenResponse.expiresOn!.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe("");
+            expect(window.location.hash).toBe(
+                `#client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
+            );
         });
 
         it("processes hash if navigateToLoginRequestUri is false and request origin is different", async () => {
@@ -1370,7 +1299,9 @@ describe("RedirectClient", () => {
                     testTokenResponse.expiresOn.getMilliseconds() >=
                         tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe("");
+            expect(window.location.hash).toBe(
+                `#client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
+            );
         });
 
         it("returns null if interaction is not in progress", async () => {
@@ -1924,15 +1855,11 @@ describe("RedirectClient", () => {
     });
 
     describe("acquireToken", () => {
-        it.each([
-            undefined,
-            `${TEST_URIS.TEST_REDIR_URI}#code=old-code`,
-            `${TEST_URIS.TEST_REDIR_URI}#accountId=old-account`,
-            `${TEST_URIS.TEST_REDIR_URI}#nativeAccountId=old-account`,
-        ])(
-            "does not cache auth material in the default or explicit start page: %s",
+        it.each([undefined, `${TEST_URIS.TEST_REDIR_URI}#code=""`])(
+            "preserves the default or explicit redirect start page: %s",
             async (redirectStartPage) => {
-                window.location.hash = "#code=old-code";
+                window.location.hash = '#code=""';
+                const startPage = redirectStartPage || window.location.href;
                 jest.spyOn(
                     PkceGenerator,
                     "generatePkceCodes"
@@ -1954,7 +1881,7 @@ describe("RedirectClient", () => {
                     window.sessionStorage.getItem(
                         `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
                     )
-                ).toBe(TEST_URIS.TEST_REDIR_URI);
+                ).toBe(startPage);
             }
         );
 

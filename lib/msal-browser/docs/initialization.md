@@ -236,22 +236,20 @@ authorization code or platform-broker account identifier is still removed.
 Removing a response does not accept it or
 bypass state, nonce, or PKCE validation.
 
-Before `loginRedirect()` or `acquireTokenRedirect()` starts a new interaction,
-MSAL also removes stale, flat authentication fragments such as `#code=...`,
+When this client has no pending interaction, cleanup runs only if no other
+client has one and a sensitive redirect payload is present. MSAL logs a warning
+and returns `null`; state or error metadata alone does not trigger orphan cleanup.
+Error callbacks for pending redirects continue through normal processing.
+
+Callback cleanup recognizes flat authentication fragments such as `#code=...`,
 `#accountId=...`, and their empty forms. The supported platform-broker response
 field returned by ESTS is `accountId`; a literal `#nativeAccountId=...` fragment
-is also removed as stale authentication material, but is not accepted as a new
+is also removed as authentication material, but is not accepted as a new
 broker response field. These flat fragments are treated as authentication response
-parameters at redirect entry points, even when the value is empty or state is malformed.
+parameters when handling redirect callbacks, even when the value is empty or state is malformed.
 Application routing fragments such as `#/dashboard?code=...`, unrelated URL
 parameters, and responses identified as popup or silent interactions are
 preserved. An active redirect belonging to another MSAL client is not consumed.
-
-The saved redirect start page is sanitized before caching and again before
-return navigation or hash restoration. This prevents an old authorization code
-from being restored after a subsequent successful request, including when the
-cached destination was written by an older library version. Applications can
-continue to provide a known-clean destination through `redirectStartPage`.
 
 For query response mode, authentication parameters are removed from the query
 string rather than clearing the entire URL. Ordinary query parameters named

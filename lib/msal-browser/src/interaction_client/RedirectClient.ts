@@ -36,10 +36,7 @@ import {
 } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { shouldUseEar } from "../utils/BrowserDetection.js";
-import {
-    clearRedirectResponseFromUrl,
-    sanitizeRedirectUrl,
-} from "../utils/RedirectUtils.js";
+import { clearRedirectResponseFromUrl } from "../utils/BrowserProtocolUtils.js";
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { EventType } from "../event/EventType.js";
 import { NavigationOptions } from "../navigation/NavigationOptions.js";
@@ -491,14 +488,12 @@ export class RedirectClient extends StandardInteractionClient {
             }
 
             // If navigateToLoginRequestUrl is true, get the url where the redirect request was initiated
-            const loginRequestUrl = sanitizeRedirectUrl(
+            const loginRequestUrl =
                 this.browserStorage.getTemporaryCache(
                     TemporaryCacheKeys.ORIGIN_URI,
                     this.correlationId,
                     true
-                ) || "",
-                this.config.auth.OIDCOptions.responseMode
-            );
+                ) || "";
             const loginRequestUrlNormalized =
                 UrlUtils.normalizeUrlForComparison(
                     loginRequestUrl,
@@ -1051,9 +1046,6 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.correlationId
         );
-        return sanitizeRedirectUrl(
-            absoluteRedirectStartPage,
-            this.config.auth.OIDCOptions.responseMode
-        );
+        return absoluteRedirectStartPage;
     }
 }

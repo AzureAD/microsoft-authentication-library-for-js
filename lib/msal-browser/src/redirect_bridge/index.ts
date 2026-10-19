@@ -5,10 +5,7 @@
 
 import { parseAuthResponseFromUrl } from "../utils/BrowserUtils.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
-import {
-    clearRedirectResponseFromUrl,
-    sanitizeRedirectUrl,
-} from "../utils/RedirectUtils.js";
+import { clearRedirectResponseFromUrl } from "../utils/BrowserProtocolUtils.js";
 import {
     ApiId,
     INTERACTION_TYPE,
@@ -124,9 +121,7 @@ export async function broadcastResponseToMainFrame(
             }
         }
 
-        const url = sanitizeRedirectUrl(
-            navigateToUrl || BrowserUtils.getHomepage()
-        );
+        const url = navigateToUrl || BrowserUtils.getHomepage();
         // Strip bare trailing "?" (empty query string) to match canonical URL form
         const navigationUrl = url.endsWith("?") ? url.slice(0, -1) : url;
 

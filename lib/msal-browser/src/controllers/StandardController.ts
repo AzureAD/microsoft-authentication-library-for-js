@@ -56,8 +56,9 @@ import {
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import {
     clearRedirectResponseFromUrl,
+    hasSensitiveRedirectResponse,
     isRedirectResponse,
-} from "../utils/RedirectUtils.js";
+} from "../utils/BrowserProtocolUtils.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
@@ -477,15 +478,35 @@ export class StandardController implements IController {
     private async handleRedirectPromiseInternal(
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
+        const responseMode = this.config.auth.OIDCOptions.responseMode;
+        const canCleanResponse =
+            !BrowserUtils.isInIframe() ||
+            this.config.system.allowRedirectInIframe;
+        if (!this.browserStorage.isInteractionInProgress(true)) {
+            if (
+                !this.browserStorage.isInteractionInProgress(false) &&
+                canCleanResponse &&
+                (hasSensitiveRedirectResponse(window.location.hash) ||
+                    hasSensitiveRedirectResponse(
+                        window.location.search,
+                        responseMode === Constants.ResponseMode.QUERY
+                    ))
+            ) {
+                clearRedirectResponseFromUrl(window, responseMode, this.logger);
+                this.logger.warning(
+                    "Redirect response detected without a pending interaction. Discarding the response.",
+                    ""
+                );
+            }
+            this.logger.info(
+                "handleRedirectPromise called but there is no interaction in progress, returning null.",
+                ""
+            );
+            return null;
+        }
+
         let redirectOptions = options;
-        const interaction = this.browserStorage.getInteractionInProgress();
-        if (
-            (!interaction ||
-                interaction.clientId === this.config.auth.clientId) &&
-            (!BrowserUtils.isInIframe() ||
-                this.config.system.allowRedirectInIframe)
-        ) {
-            const responseMode = this.config.auth.OIDCOptions.responseMode;
+        if (canCleanResponse) {
             const response =
                 responseMode === Constants.ResponseMode.QUERY
                     ? window.location.search
@@ -494,14 +515,6 @@ export class StandardController implements IController {
                 redirectOptions = { ...options, hash: response };
             }
             clearRedirectResponseFromUrl(window, responseMode, this.logger, "");
-        }
-
-        if (!this.browserStorage.isInteractionInProgress(true)) {
-            this.logger.info(
-                "handleRedirectPromise called but there is no interaction in progress, returning null.",
-                ""
-            );
-            return null;
         }
 
         const interactionType =
@@ -745,12 +758,6 @@ export class StandardController implements IController {
         };
 
         try {
-            clearRedirectResponseFromUrl(
-                window,
-                this.config.auth.OIDCOptions.responseMode,
-                this.logger,
-                correlationId
-            );
             enforceResourceParameter(this.config.auth.isMcp, request);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_START,

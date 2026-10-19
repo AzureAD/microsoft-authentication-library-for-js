@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Remove stale authorization codes and broker account identifiers from redirect URLs and return destinations [#8918](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8918)",
+  "comment": "Remove authorization codes and broker account identifiers from redirect callback URLs [#8918](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8918)",
   "packageName": "@azure/msal-browser",
   "email": "lalima.sharda@gmail.com",
   "dependentChangeType": "patch"

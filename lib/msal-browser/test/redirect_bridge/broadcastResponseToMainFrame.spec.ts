@@ -10,6 +10,7 @@ import {
     TEST_HASHES,
     TEST_STATE_VALUES,
     RANDOM_TEST_GUID,
+    TEST_DATA_CLIENT_INFO,
 } from "../utils/StringConstants.js";
 import { ApiId, TemporaryCacheKeys } from "../../src/utils/BrowserConstants.js";
 
@@ -231,37 +232,12 @@ describe("broadcastResponseToMainFrame", () => {
                 expect(mockHistoryReplaceState).toHaveBeenCalledWith(
                     window.history.state,
                     "",
-                    window.location.origin + window.location.pathname
+                    window.location.origin +
+                        window.location.pathname +
+                        (hash === TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+                            ? `#client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
+                            : "")
                 );
-            }
-        );
-
-        it.each(["code", "accountId", "nativeAccountId"])(
-            "sanitizes a contaminated %s origin in memory while caching the new broker response",
-            async (key) => {
-                const clientId = "test-client";
-                const originKey = `msal.${clientId}.request.origin`;
-                const origin = `https://localhost:8081/?keep=yes#${key}=old-value&view=home`;
-                mockSessionStorage["msal.interaction.status"] = JSON.stringify({
-                    clientId,
-                    type: "signin",
-                });
-                mockSessionStorage[originKey] = origin;
-                window.location.hash =
-                    TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT;
-
-                await broadcastResponseToMainFrame();
-
-                expect(
-                    mockNavigationClient.navigateInternal
-                ).toHaveBeenCalledWith(
-                    "https://localhost:8081/?keep=yes#view=home",
-                    expect.any(Object)
-                );
-                expect(mockSessionStorage[originKey]).toBe(origin);
-                expect(
-                    mockSessionStorage[`msal.${clientId}.urlHash`]
-                ).toContain("accountId=test-nativeAccountId");
             }
         );
 
@@ -313,6 +289,31 @@ describe("broadcastResponseToMainFrame", () => {
                 cachedOriginUrl,
                 expect.any(Object)
             );
+        });
+
+        it("cleans a redirect error callback while preserving the original payload and interaction for the app", async () => {
+            const clientId = "error-client";
+            const interaction = JSON.stringify({ clientId, type: "signin" });
+            mockSessionStorage["msal.interaction.status"] = interaction;
+            const hash = TEST_HASHES.TEST_ERROR_HASH;
+            window.location.hash = hash;
+
+            await broadcastResponseToMainFrame();
+
+            expect(mockHistoryReplaceState).toHaveBeenCalledWith(
+                window.history.state,
+                "",
+                window.location.origin + window.location.pathname
+            );
+            expect(
+                mockSessionStorage[
+                    `msal.${clientId}.${TemporaryCacheKeys.URL_HASH}`
+                ]
+            ).toBe(hash.substring(1));
+            expect(mockSessionStorage["msal.interaction.status"]).toBe(
+                interaction
+            );
+            expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
         });
 
         it("navigates to hash-routed origin URL without appending auth response", async () => {
