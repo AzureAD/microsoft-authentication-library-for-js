@@ -237,7 +237,14 @@ async function callResource(): Promise<Response> {
 }
 ```
 
-`loadDpopNonce` is part of `IPublicClientApplication`. Standard browser applications store the validated nonce locally. NAA/nestable applications reject this operation as unsupported.
+`loadDpopNonce` is part of `IPublicClientApplication`. There is no token-cache accessor for DPoP nonce state. Support varies by operating context:
+
+| Operating context | Status | Current behavior |
+| ----------------- | ------ | ---------------- |
+| Standard browser PCA | Supported | Stores the nonce in PCA-local memory, with a one-shot `sessionStorage` handoff for full-page redirects. |
+| NAA/nestable PCA | Pending support | `loadDpopNonce` currently rejects the operation. |
+| WAM/native broker | Pending support | Resource-server nonces are not currently forwarded to the broker. |
+| Pairwise Broker (PWB) | Pending support | Resource-server nonces are not currently forwarded to the broker. |
 
 MSAL stores resource-server nonces only in memory, scoped to the `PublicClientApplication` instance and normalized HTTPS resource origin. The state is bounded and is cleared with the application cache; it is not shared across tabs or application instances and is not written to browser or custom cache storage.
 
@@ -246,11 +253,3 @@ Full-page redirect requests use one narrow exception to the memory-only lifecycl
 If a handoff storage operation fails, MSAL logs a warning and continues the redirect flow. The resource server can recover through its normal nonce challenge, and MSAL records non-sensitive dynamic performance counters in `PerformanceEvent.ext`: `dpopNonceRedirectHandoffSaveFailureCount`, `dpopNonceRedirectHandoffRestoreFailureCount`, and `dpopNonceRedirectHandoffClearFailureCount`.
 
 `loadDpopNonce` validates and stores the nonce but does not issue resource HTTP requests. Retry a nonce challenge immediately and at most once; use a separate bounded backoff policy for transient responses such as `429` or `503`.
-
-### Broker support
-
--   **NAA/nestable PCA:** Exposes `loadDpopNonce` through `IPublicClientApplication` but rejects the operation as unsupported in this release.
--   **WAM/native broker:** Resource-server nonce forwarding is not supported in this release.
--   **Pairwise Broker (PWB):** Resource-server nonce forwarding is not supported in this release.
-
-The API is direct on `IPublicClientApplication`. There is no token-cache accessor for DPoP nonce state.
