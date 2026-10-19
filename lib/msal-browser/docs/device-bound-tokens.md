@@ -58,17 +58,27 @@ There are a few things that may behave a little differently when acquiring token
 > [!WARNING]
 > DPoP support in MSAL Browser is currently in development and is not fully rolled out or ready for production use. APIs and behavior may change. Use this feature only for evaluation and testing.
 
+#### Availability and provider selection
+
 DPoP broker support is currently available only through the Windows Accounts extension. When the Platform Authentication DOM API provider is active, MSAL uses the browser-managed DPoP flow instead. Applications use the same DPoP request and response handling in either case; no broker-specific configuration is required.
 
-When supported, MSAL asks the platform broker to use broker-attested binding as a best-effort security improvement. Token issuance and Conditional Access determine whether the available binding satisfies tenant policy; applications receive and use the resulting DPoP token in the same way regardless of the binding mechanism.
+#### Broker binding outcomes
+
+Through the Windows Accounts extension, MSAL asks the platform broker to use broker-attested binding as a best-effort security improvement. With an L1 outcome, the token is bound to an MSAL-generated browser key and MSAL creates the resource proof locally. With an L3 outcome, the platform broker supplies the resource proof. Token issuance and Conditional Access determine whether the available binding satisfies tenant policy; applications receive and use the resulting DPoP token in the same way regardless of the binding mechanism.
 
 MSAL rejects invalid or inconsistent broker responses instead of returning an unbound token. Application-managed DPoP keys are not supported through the Windows Accounts extension.
 
+#### Redirect key persistence
+
 When `acquireTokenRedirect()` uses the Windows Accounts extension, broker interaction occurs while the current application page remains loaded. If the broker returns an L1 outcome, MSAL must retain its generated key across the subsequent application-page navigation used to resume the request through `handleRedirectPromise()`. MSAL therefore verifies that the key is available in [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) before performing that navigation and fails the request if it was not persisted. If the broker returns an L3 outcome, the broker supplies the DPoP proof, so MSAL discards the local candidate key and does not require it to survive the application-page navigation.
+
+#### Request requirements and limitations
+
+DPoP requests must include the resource method and URI used to build the proof.
 
 Resource-server DPoP nonce forwarding is not yet supported through the Windows Accounts extension. Applications must not pass `pop_nonce` through `extraParameters`; nonce support will use a dedicated API and internal nonce store.
 
-DPoP requests must include the resource method and URI used to build the proof. For the complete request shape and proof usage, see [DPoP for PublicClientApplication](./access-token-proof-of-possession.md#dpop-for-publicclientapplication).
+For the complete request shape and proof usage, see [DPoP for PublicClientApplication](./access-token-proof-of-possession.md#dpop-for-publicclientapplication).
 
 ## Acquiring Device Bound Tokens using DOM API
 
