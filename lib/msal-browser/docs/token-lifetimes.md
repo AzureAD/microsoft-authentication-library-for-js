@@ -34,6 +34,8 @@ The `PublicClientApplication` object exposes an API called `acquireTokenSilent` 
 
 See [here](./request-response-object.md#silentflowrequest) for more information on what configuration parameters you can set for the `acquireTokenSilent` method.
 
+Concurrent `acquireTokenSilent` calls with equivalent request options may share an in-flight acquisition. Request comparison accounts for default refresh options and compares extra-parameter dictionaries independently of their property insertion order. Completed acquisitions are not retained in the in-flight registry; subsequent calls follow the normal token-cache lookup policy.
+
 ### Avoiding interactive interruptions in the middle of a user's session
 
 In some cases you may want to pre-emptively invoke interaction, if needed, at the beginning of a user's session to ensure they can continue to acquire tokens silently and use your application without further interruptions. You can of course achieve this by invoking interaction each time your application is loaded for the first time, this is, however, a poor user experience and less performant when a user already has tokens from a previous session or another window/tab. Instead, with a few request parameters you can use `acquireTokenSilent` to ensure the cache has the necessary tokens available to return silently for some arbitrary length of time.

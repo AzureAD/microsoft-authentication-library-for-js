@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Improve consistency of concurrent silent token requests.",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
