@@ -7,7 +7,7 @@ import { InteractionType } from "../../src/utils/BrowserConstants.js";
 import { Constants, Logger, ProtocolUtils } from "@azure/msal-common";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage.js";
-import { TEST_HASHES, TEST_STATE_VALUES } from "./StringConstants.js";
+import { TEST_STATE_VALUES } from "./StringConstants.js";
 
 describe("BrowserProtocolUtils.ts Unit Tests", () => {
     const browserRedirectRequestState: BrowserStateObject = {
