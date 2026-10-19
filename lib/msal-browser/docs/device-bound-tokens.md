@@ -64,6 +64,8 @@ When supported, MSAL asks the platform broker to use broker-attested binding as 
 
 MSAL rejects invalid or inconsistent broker responses instead of returning an unbound token. Application-managed DPoP keys are not supported through the Windows Accounts extension.
 
+DPoP redirect requests require persistent browser key storage. Before navigation, MSAL verifies that its generated key is available in [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) and fails the request if the key cannot be persisted.
+
 Resource-server DPoP nonce forwarding is not yet supported through the Windows Accounts extension. Applications must not pass `pop_nonce` through `extraParameters`; nonce support will use a dedicated API and internal nonce store.
 
 DPoP requests must include the resource method and URI used to build the proof. For the complete request shape and proof usage, see [DPoP for PublicClientApplication](./access-token-proof-of-possession.md#dpop-for-publicclientapplication).
