@@ -519,8 +519,6 @@ describe("ExpressSample DPoP tests", () => {
                 )
             );
 
-            await populatePlayground(page, port);
-            await applyPlaygroundConfiguration(page);
             const redirectResponse = await readPlaygroundResponse(
                 page,
                 "acquireTokenRedirect",

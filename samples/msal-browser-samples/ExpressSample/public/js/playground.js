@@ -16,7 +16,7 @@ const DPOP_AUTHORITY = "https://login.microsoftonline.com/common";
 const DPOP_BACKEND_URI = "https://localhost:45471/WeatherForecast/DPoP";
 const DPOP_ESTS_DC = "ESTS-PUB-WUS3-FD000-TEST1-100";
 const DPOP_SCENARIO = "dpop-nonce";
-const DPOP_REDIRECT_PATH = "/dpop-nonce-redirect";
+const DPOP_REDIRECT_PATH = "/redirect";
 const DPOP_PENDING_REDIRECT_KEY = "msal.dpopNoncePlayground.pendingRedirect";
 const DPOP_PENDING_REDIRECT_TTL_MS = 10 * 60 * 1000;
 const DPOP_DIAGNOSTIC_LOG_KEY = "msal.dpopNoncePlayground.diagnostics";
@@ -187,7 +187,7 @@ function loadDpopDefaults() {
         auth: {
             clientId: DPOP_CLIENT_ID,
             authority: DPOP_AUTHORITY,
-            redirectUri: `${window.location.origin}${DPOP_REDIRECT_PATH}`,
+            redirectUri: `${window.location.origin}${DPOP_DEFAULT_REDIRECT_PATH}`,
         },
         cache: {
             cacheLocation: "localStorage",
@@ -211,7 +211,9 @@ function loadDpopDefaults() {
     setDpopControlValue("dpopNonceOrigin", DPOP_BACKEND_URI);
     appendDpopDiagnostic("dpop-defaults-loaded", {
         resourceRequestUri: DPOP_BACKEND_URI,
-        redirectUri: config.auth.redirectUri,
+        defaultRedirectUri: config.auth.redirectUri,
+        redirectMode:
+            "Popup uses the redirect bridge; full redirect uses the nonce handoff handler.",
     });
     showSuccess(
         'DPoP nonce defaults loaded. Click "Apply Configuration" when ready.'
@@ -302,6 +304,7 @@ async function handleApiCall(apiName) {
         let result;
         const requestText = document.getElementById("tokenRequest").value;
         let request = requestText ? JSON.parse(requestText) : {};
+        request = prepareDpopRequest(apiName, request);
 
         displayResponse(
             {
@@ -314,9 +317,6 @@ async function handleApiCall(apiName) {
 
         switch (apiName) {
             case "acquireTokenRedirect":
-                request.redirectStartPage =
-                    request.redirectStartPage ||
-                    `${window.location.origin}/playground`;
                 dpopRedirectPending = shouldUseDpopNonceRedirect(request);
                 if (dpopRedirectPending) {
                     savePendingRedirect(request);
@@ -341,6 +341,7 @@ async function handleApiCall(apiName) {
                 break;
 
             case "acquireTokenPopup":
+                window.sessionStorage.removeItem(DPOP_PENDING_REDIRECT_KEY);
                 result = await playgroundMsalInstance.acquireTokenPopup(
                     request
                 );
@@ -530,14 +531,39 @@ function savePendingRedirect(request) {
     );
 }
 
+function prepareDpopRequest(apiName, request) {
+    if (request.authenticationScheme !== "DPoP") {
+        return request;
+    }
+
+    const preparedRequest = { ...request };
+    if (apiName === "acquireTokenRedirect") {
+        preparedRequest.redirectUri =
+            preparedRequest.redirectUri ||
+            `${window.location.origin}${DPOP_REDIRECT_PATH}`;
+        preparedRequest.redirectStartPage =
+            preparedRequest.redirectStartPage ||
+            `${window.location.origin}/playground?scenario=${DPOP_SCENARIO}`;
+    } else if (
+        apiName === "acquireTokenPopup" ||
+        apiName === "acquireTokenSilent" ||
+        apiName === "ssoSilent"
+    ) {
+        preparedRequest.redirectUri =
+            preparedRequest.redirectUri ||
+            `${window.location.origin}${DPOP_REDIRECT_PATH}`;
+    }
+
+    return preparedRequest;
+}
+
 function shouldUseDpopNonceRedirect(request) {
     if (request.authenticationScheme !== "DPoP") {
         return false;
     }
 
-    const config = JSON.parse(document.getElementById("msalConfig").value);
     return (
-        new URL(config.auth.redirectUri, window.location.origin).pathname ===
+        new URL(request.redirectUri, window.location.origin).pathname ===
         DPOP_REDIRECT_PATH
     );
 }
@@ -608,8 +634,13 @@ async function acquireDpopResult(requestOverride) {
         throw new Error("Apply a configuration first.");
     }
 
-    const request = requestOverride || getDpopRequest();
     const accounts = playgroundMsalInstance.getAllAccounts();
+    const apiName =
+        accounts.length > 0 ? "acquireTokenSilent" : "acquireTokenPopup";
+    const request = prepareDpopRequest(
+        apiName,
+        requestOverride || getDpopRequest()
+    );
     let result;
 
     if (accounts.length > 0) {
@@ -618,6 +649,7 @@ async function acquireDpopResult(requestOverride) {
             account: playgroundMsalInstance.getActiveAccount() || accounts[0],
         });
     } else {
+        window.sessionStorage.removeItem(DPOP_PENDING_REDIRECT_KEY);
         result = await playgroundMsalInstance.acquireTokenPopup(request);
         if (result.account) {
             playgroundMsalInstance.setActiveAccount(result.account);
