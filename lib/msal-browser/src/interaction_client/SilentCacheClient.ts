@@ -102,8 +102,7 @@ export class SilentCacheClient extends StandardInteractionClient {
             this.browserCrypto,
             this.logger,
             this.correlationId,
-            validLogoutRequest.account,
-            this.dpopNonceStore
+            validLogoutRequest.account
         );
     }
 }

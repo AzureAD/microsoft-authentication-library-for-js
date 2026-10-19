@@ -1084,7 +1084,6 @@ export type ClientConfiguration = {
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
-    dpopNonceStore?: IDpopNonceStore;
     clientCredentials?: ClientCredentials;
     libraryInfo?: LibraryInfo;
     telemetry?: TelemetryOptions;
@@ -1207,7 +1206,6 @@ export type CommonClientConfiguration = {
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
     tokenBindingKeyManager: ITokenBindingKeyManager;
-    dpopNonceStore?: IDpopNonceStore;
     libraryInfo: LibraryInfo;
     telemetry: Required<TelemetryOptions>;
     serverTelemetryManager: ServerTelemetryManager | null;
@@ -1649,7 +1647,7 @@ export type GenerateAuthenticationResultOptions = {
     serverTokenResponse?: ServerAuthorizationTokenResponse;
     requestId?: string;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
-    dpopNonceStore?: IDpopNonceStore;
+    cacheManager?: CacheManager;
 };
 
 // @public
@@ -1833,14 +1831,6 @@ const ID_TOKEN = "id_token";
 
 // @public (undocumented)
 const ID_TOKEN_HINT = "id_token_hint";
-
-// @internal
-export interface IDpopNonceStore {
-    // (undocumented)
-    clear(): void;
-    // (undocumented)
-    getResourceServerNonce(resourceRequestUri: string, correlationId?: string): DpopNonceRecord | undefined;
-}
 
 // @internal (undocumented)
 export type IdTokenCache = Record<string, IdTokenEntity>;
@@ -2960,7 +2950,7 @@ const RESPONSE_TYPE = "response_type";
 
 // @internal
 export class ResponseHandler {
-    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, tokenBindingKeyManager?: ITokenBindingKeyManager, dpopNonceStore?: IDpopNonceStore);
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, tokenBindingKeyManager?: ITokenBindingKeyManager);
     static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, options?: GenerateAuthenticationResultOptions): Promise<AuthenticationResult>;
     handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
     validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse, correlationId: string, refreshAccessToken?: boolean): void;

@@ -53,8 +53,6 @@ import * as TimeUtils from "../utils/TimeUtils.js";
 import { AuthenticationResult } from "./AuthenticationResult.js";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
-import { IDpopNonceStore } from "../protocol/IDpopNonceStore.js";
-
 /** @internal */
 export type GenerateAuthenticationResultOptions = {
     idTokenClaims?: TokenClaims;
@@ -62,8 +60,24 @@ export type GenerateAuthenticationResultOptions = {
     serverTokenResponse?: ServerAuthorizationTokenResponse;
     requestId?: string;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
-    dpopNonceStore?: IDpopNonceStore;
+    cacheManager?: CacheManager;
 };
+
+type DpopNonceCache = {
+    getDpopNonce(
+        resourceRequestUri: string,
+        correlationId?: string
+    ): { nonce: string; version: number } | undefined;
+};
+
+function hasDpopNonceCache(
+    cacheManager: CacheManager
+): cacheManager is CacheManager & DpopNonceCache {
+    return (
+        "getDpopNonce" in cacheManager &&
+        typeof cacheManager.getDpopNonce === "function"
+    );
+}
 
 /**
  * Class that handles response parsing.
@@ -79,7 +93,6 @@ export class ResponseHandler {
     private performanceClient: IPerformanceClient;
     private serializableCache: ISerializableTokenCache | null;
     private persistencePlugin: ICachePlugin | null;
-    private dpopNonceStore?: IDpopNonceStore;
 
     constructor(
         clientId: string,
@@ -89,8 +102,7 @@ export class ResponseHandler {
         performanceClient: IPerformanceClient,
         serializableCache: ISerializableTokenCache | null,
         persistencePlugin: ICachePlugin | null,
-        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER,
-        dpopNonceStore?: IDpopNonceStore
+        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER
     ) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
@@ -100,7 +112,6 @@ export class ResponseHandler {
         this.performanceClient = performanceClient;
         this.serializableCache = serializableCache;
         this.persistencePlugin = persistencePlugin;
-        this.dpopNonceStore = dpopNonceStore;
     }
 
     /**
@@ -389,7 +400,7 @@ export class ResponseHandler {
                             requestState: requestStateObj,
                             requestId: serverRequestId,
                             tokenBindingKeyManager: this.tokenBindingKeyManager,
-                            dpopNonceStore: this.dpopNonceStore,
+                            cacheManager: this.cacheStorage,
                         }
                     );
                 }
@@ -428,7 +439,7 @@ export class ResponseHandler {
                 serverTokenResponse,
                 requestId: serverRequestId,
                 tokenBindingKeyManager: this.tokenBindingKeyManager,
-                dpopNonceStore: this.dpopNonceStore,
+                cacheManager: this.cacheStorage,
             }
         );
     }
@@ -623,7 +634,7 @@ export class ResponseHandler {
             serverTokenResponse,
             requestId,
             tokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER,
-            dpopNonceStore,
+            cacheManager,
         } = options;
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
@@ -687,10 +698,12 @@ export class ResponseHandler {
                         htu: request.resourceRequestUri,
                         htm: request.resourceRequestMethod,
                         nonce: request.resourceRequestUri
-                            ? dpopNonceStore?.getResourceServerNonce(
-                                  request.resourceRequestUri,
-                                  request.correlationId
-                              )?.nonce
+                            ? cacheManager && hasDpopNonceCache(cacheManager)
+                                ? cacheManager.getDpopNonce(
+                                      request.resourceRequestUri,
+                                      request.correlationId
+                                  )?.nonce
+                                : undefined
                             : undefined,
                         accessToken: cacheRecord.accessToken.secret,
                     },

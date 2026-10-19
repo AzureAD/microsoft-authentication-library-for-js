@@ -75,6 +75,7 @@ export interface IPublicClientApplication {
             | PopupRequest
     ): Promise<void>;
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
+    loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
@@ -220,6 +221,14 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         );
     },
     clearCache: () => {
+        return Promise.reject(
+            createBrowserConfigurationAuthError(
+                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
+                ""
+            )
+        );
+    },
+    loadDpopNonce: () => {
         return Promise.reject(
             createBrowserConfigurationAuthError(
                 BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
