@@ -54,11 +54,7 @@ import {
     INTERACTION_TYPE,
 } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
-import {
-    clearRedirectResponseFromUrl,
-    hasRedirectResponse,
-    isRedirectResponse,
-} from "../utils/BrowserProtocolUtils.js";
+import { clearRedirectResponseFromUrl } from "../utils/BrowserProtocolUtils.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
@@ -486,13 +482,14 @@ export class StandardController implements IController {
             if (
                 !this.browserStorage.isInteractionInProgress(false) &&
                 canCleanResponse &&
-                (hasRedirectResponse(window.location.hash) ||
-                    hasRedirectResponse(
-                        window.location.search,
-                        responseMode === Constants.ResponseMode.QUERY
-                    ))
+                clearRedirectResponseFromUrl(
+                    window,
+                    responseMode,
+                    this.logger,
+                    "",
+                    true
+                )
             ) {
-                clearRedirectResponseFromUrl(window, responseMode, this.logger);
                 this.logger.warning(
                     "Redirect response detected without a pending interaction. Returning null after URL cleanup.",
                     ""
@@ -511,7 +508,7 @@ export class StandardController implements IController {
                 responseMode === Constants.ResponseMode.QUERY
                     ? window.location.search
                     : window.location.hash;
-            if (!options?.hash && isRedirectResponse(response)) {
+            if (!options?.hash && response) {
                 redirectOptions = { ...options, hash: response };
             }
             clearRedirectResponseFromUrl(window, responseMode, this.logger, "");

@@ -2,7 +2,6 @@ import {
     extractBrowserRequestState,
     BrowserStateObject,
     clearRedirectResponseFromUrl,
-    sanitizeRedirectUrl,
 } from "../../src/utils/BrowserProtocolUtils.js";
 import { InteractionType } from "../../src/utils/BrowserConstants.js";
 import { Constants, Logger, ProtocolUtils } from "@azure/msal-common";
@@ -42,37 +41,55 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         it.each(["", '""', "old-code"])(
             "removes a flat code fragment with value %s",
             (code) => {
-                expect(sanitizeRedirectUrl(`${base}#code=${code}`)).toBe(base);
+                window.history.replaceState(null, "", `${base}#code=${code}`);
+
+                expect(clearRedirectResponseFromUrl(window)).toBe(true);
+                expect(window.location.href).toBe(base);
             }
         );
 
         it("preserves unrelated parameters verbatim while removing duplicate auth fields", () => {
-            expect(
-                sanitizeRedirectUrl(
-                    `${base}?q=a%20b#code=A&view=a%20b&state=invalid&code=B&client_info=info`
-                )
-            ).toBe(`${base}?q=a%20b#view=a%20b&client_info=info`);
+            window.history.replaceState(
+                null,
+                "",
+                `${base}?q=a%20b#code=A&view=a%20b&state=invalid&code=B&client_info=info`
+            );
+
+            clearRedirectResponseFromUrl(window);
+
+            expect(window.location.href).toBe(
+                `${base}?q=a%20b#view=a%20b&client_info=info`
+            );
         });
 
         it("removes response values and companion markers without removing other metadata", () => {
             const metadata =
                 "client_info=info&session_state=session&cloud_instance_name=cloud&cloud_instance_host_name=host&cloud_graph_host_name=graph&msgraph_host=graphhost&error_uri=help&suberror=detail&timestamp=now&trace_id=trace&correlation_id=correlation&claims=claims&clientdata=data";
-            expect(
-                sanitizeRedirectUrl(
-                    `${base}#code=A&ear_jwe=encrypted&accountId=broker-id&nativeAccountId=old-id&state=invalid&error=error&error_description=description&${metadata}`
-                )
-            ).toBe(`${base}#${metadata}`);
+            window.history.replaceState(
+                null,
+                "",
+                `${base}#code=A&ear_jwe=encrypted&accountId=broker-id&nativeAccountId=old-id&state=invalid&error=error&error_description=description&${metadata}`
+            );
+
+            clearRedirectResponseFromUrl(window);
+
+            expect(window.location.href).toBe(`${base}#${metadata}`);
         });
 
         it.each(["accountId", "nativeAccountId"])(
             "removes populated or empty broker identifiers from %s callback fragments",
             (key) => {
-                expect(sanitizeRedirectUrl(`${base}#${key}=`)).toBe(base);
-                expect(
-                    sanitizeRedirectUrl(
-                        `${base}?keep=yes#${key}=old-id&state=invalid&view=home`
-                    )
-                ).toBe(`${base}?keep=yes#view=home`);
+                window.history.replaceState(null, "", `${base}#${key}=`);
+                clearRedirectResponseFromUrl(window);
+                expect(window.location.href).toBe(base);
+
+                window.history.replaceState(
+                    null,
+                    "",
+                    `${base}?keep=yes#${key}=old-id&state=invalid&view=home`
+                );
+                clearRedirectResponseFromUrl(window);
+                expect(window.location.href).toBe(`${base}?keep=yes#view=home`);
             }
         );
 
@@ -85,7 +102,10 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             "#/dashboard?accountId=application-id",
             "#/dashboard?nativeAccountId=application-id",
         ])("preserves application fragment %s", (hash) => {
-            expect(sanitizeRedirectUrl(base + hash)).toBe(base + hash);
+            window.history.replaceState(null, "", base + hash);
+
+            expect(clearRedirectResponseFromUrl(window)).toBe(false);
+            expect(window.location.href).toBe(base + hash);
         });
 
         it.each([
@@ -93,56 +113,85 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             TEST_STATE_VALUES.TEST_STATE_SILENT,
         ])("leaves another interaction's response untouched", (state) => {
             const url = `${base}#code=owned-by-other-flow&state=${state}`;
-            expect(sanitizeRedirectUrl(url)).toBe(url);
+            window.history.replaceState(null, "", url);
+            expect(clearRedirectResponseFromUrl(window)).toBe(false);
+            expect(window.location.href).toBe(url);
             const brokerUrl = `${base}#accountId=owned-by-other-flow&state=${state}`;
-            expect(sanitizeRedirectUrl(brokerUrl)).toBe(brokerUrl);
+            window.history.replaceState(null, "", brokerUrl);
+            expect(clearRedirectResponseFromUrl(window)).toBe(false);
+            expect(window.location.href).toBe(brokerUrl);
         });
 
         it("removes a redirect error response and preserves unrelated parameters", () => {
-            expect(
-                sanitizeRedirectUrl(
-                    `${base}#error=access_denied&error_description=denied&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&view=home`
-                )
-            ).toBe(`${base}#view=home`);
+            window.history.replaceState(
+                null,
+                "",
+                `${base}#error=access_denied&error_description=denied&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&view=home`
+            );
+
+            clearRedirectResponseFromUrl(window);
+
+            expect(window.location.href).toBe(`${base}#view=home`);
         });
 
         it("removes encrypted redirect responses", () => {
-            expect(
-                sanitizeRedirectUrl(`${base}#ear_jwe=encrypted&state=bad`)
-            ).toBe(base);
+            window.history.replaceState(
+                null,
+                "",
+                `${base}#ear_jwe=encrypted&state=bad`
+            );
+
+            clearRedirectResponseFromUrl(window);
+
+            expect(window.location.href).toBe(base);
         });
 
         it("does not treat an ordinary query code as an auth response in fragment mode", () => {
             const url = `${base}?code=application-code&state=application-state#/home`;
-            expect(sanitizeRedirectUrl(url)).toBe(url);
+            window.history.replaceState(null, "", url);
+
+            expect(clearRedirectResponseFromUrl(window)).toBe(false);
+            expect(window.location.href).toBe(url);
         });
 
         it.each(["accountId", "nativeAccountId"])(
             "preserves ordinary query %s parameters unless query response mode is selected",
             (key) => {
                 const url = `${base}?${key}=old-id&state=invalid&q=keep#/home`;
-                expect(sanitizeRedirectUrl(url)).toBe(url);
-                expect(
-                    sanitizeRedirectUrl(url, Constants.ResponseMode.QUERY)
-                ).toBe(`${base}?q=keep#/home`);
+                window.history.replaceState(null, "", url);
+                expect(clearRedirectResponseFromUrl(window)).toBe(false);
+                expect(window.location.href).toBe(url);
+
+                clearRedirectResponseFromUrl(
+                    window,
+                    Constants.ResponseMode.QUERY
+                );
+                expect(window.location.href).toBe(`${base}?q=keep#/home`);
             }
         );
 
         it("removes query-mode responses while preserving routing and unrelated query data", () => {
-            expect(
-                sanitizeRedirectUrl(
-                    `${base}?code=A&state=invalid&q=a%20b#/home`,
-                    Constants.ResponseMode.QUERY
-                )
-            ).toBe(`${base}?q=a%20b#/home`);
+            window.history.replaceState(
+                null,
+                "",
+                `${base}?code=A&state=invalid&q=a%20b#/home`
+            );
+
+            clearRedirectResponseFromUrl(window, Constants.ResponseMode.QUERY);
+
+            expect(window.location.href).toBe(`${base}?q=a%20b#/home`);
         });
 
         it("recognizes MSAL redirect state in query callback URLs without configuration", () => {
-            expect(
-                sanitizeRedirectUrl(
-                    `${base}?code=A&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=keep#/home`
-                )
-            ).toBe(`${base}?q=keep#/home`);
+            window.history.replaceState(
+                null,
+                "",
+                `${base}?code=A&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=keep#/home`
+            );
+
+            clearRedirectResponseFromUrl(window);
+
+            expect(window.location.href).toBe(`${base}?q=keep#/home`);
         });
 
         it("replaces the current history entry and preserves application history state", () => {

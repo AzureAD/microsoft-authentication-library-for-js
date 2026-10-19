@@ -13,6 +13,7 @@ import {
     AuthError,
     Constants,
     Logger,
+    UrlUtils,
 } from "@azure/msal-common/browser";
 import { base64Decode } from "../encode/Base64Decode.js";
 
@@ -64,19 +65,29 @@ export function extractBrowserRequestState(
 }
 
 /**
- * Identifies flat redirect response parameters without accepting the response.
- * Query strings require MSAL redirect state unless query response mode is selected.
+ * Filters redirect response fields, preserving application parameters verbatim.
+ * Query strings require redirect state unless query response mode is selected.
  */
-export function isRedirectResponse(
+function removeAuthResponse(
     response: string,
-    allowResponseWithoutState: boolean = true
-): boolean {
-    const content = response.replace(/^[#?]/, "");
+    allowResponseWithoutState: boolean,
+    responseValuesOnly: boolean
+): string {
+    if (response.startsWith("#/")) {
+        return response;
+    }
+    const content = UrlUtils.stripLeadingHashOrQuery(response);
     if (!content || !/^[^=&?#/]+(?:=|&|$)/.test(content)) {
-        return false;
+        return response;
     }
 
     const params = new URLSearchParams(content);
+    const hasResponseValue = redirectResponseKeys.some((key) =>
+        params.has(key)
+    );
+    if (responseValuesOnly && !hasResponseValue) {
+        return response;
+    }
     let interactionType: string | undefined;
     const state = params.get("state");
     if (state) {
@@ -101,70 +112,17 @@ export function isRedirectResponse(
         interactionType === InteractionType.Popup ||
         interactionType === InteractionType.Silent
     ) {
-        return false;
-    }
-
-    return (
-        interactionType === InteractionType.Redirect ||
-        (allowResponseWithoutState &&
-            redirectResponseKeys.some((key) => params.has(key)))
-    );
-}
-
-/**
- * Identifies redirect response values, including empty values, for URL cleanup.
- * State and error metadata alone do not trigger cleanup without a pending interaction.
- */
-export function hasRedirectResponse(
-    response: string,
-    allowResponseWithoutState: boolean = true
-): boolean {
-    const params = new URLSearchParams(response.replace(/^[#?]/, ""));
-    return (
-        redirectResponseKeys.some((key) => params.has(key)) &&
-        isRedirectResponse(response, allowResponseWithoutState)
-    );
-}
-
-/**
- * Removes authentication parameters from a redirect callback URL, preserving
- * unrelated parameters verbatim and leaving application routing hashes intact.
- */
-export function sanitizeRedirectUrl(
-    url: string,
-    responseMode: string = Constants.ResponseMode.FRAGMENT
-): string {
-    const hashIndex = url.indexOf("#");
-    const beforeHash = hashIndex < 0 ? url : url.substring(0, hashIndex);
-    const hash = hashIndex < 0 ? "" : url.substring(hashIndex);
-    const queryIndex = beforeHash.indexOf("?");
-    const base =
-        queryIndex < 0 ? beforeHash : beforeHash.substring(0, queryIndex);
-    const query = queryIndex < 0 ? "" : beforeHash.substring(queryIndex);
-
-    return (
-        base +
-        removeAuthResponse(
-            query,
-            responseMode === Constants.ResponseMode.QUERY
-        ) +
-        removeAuthResponse(hash, true)
-    );
-}
-
-/**
- * Filters only known response fields after recognizing a redirect response.
- */
-function removeAuthResponse(
-    response: string,
-    allowResponseWithoutState: boolean
-): string {
-    if (!isRedirectResponse(response, allowResponseWithoutState)) {
         return response;
     }
 
-    const remaining = response
-        .substring(1)
+    if (
+        interactionType !== InteractionType.Redirect &&
+        !(allowResponseWithoutState && hasResponseValue)
+    ) {
+        return response;
+    }
+
+    const remaining = content
         .split("&")
         .filter((parameter) => {
             const key = new URLSearchParams(parameter).keys().next().value;
@@ -177,18 +135,27 @@ function removeAuthResponse(
 /**
  * Cleans the visible redirect URL without adding history or navigating. Hash
  * assignment is the fallback for hosts such as Office that disable replaceState.
+ * When responseValuesOnly is true, state/error metadata alone is preserved.
+ * Returns whether a response was found for cleanup, even if cleanup is unavailable.
  */
 export function clearRedirectResponseFromUrl(
     contentWindow: Window,
     responseMode: string = Constants.ResponseMode.FRAGMENT,
     logger?: Logger,
-    correlationId: string = ""
-): void {
+    correlationId: string = "",
+    responseValuesOnly: boolean = false
+): boolean {
     const { origin, pathname, search, hash } = contentWindow.location;
     const originalUrl = origin + pathname + search + hash;
-    const cleanUrl = sanitizeRedirectUrl(originalUrl, responseMode);
+    const cleanQuery = removeAuthResponse(
+        search,
+        responseMode === Constants.ResponseMode.QUERY,
+        responseValuesOnly
+    );
+    const cleanHash = removeAuthResponse(hash, true, responseValuesOnly);
+    const cleanUrl = origin + pathname + cleanQuery + cleanHash;
     if (cleanUrl === originalUrl) {
-        return;
+        return false;
     }
 
     try {
@@ -202,19 +169,18 @@ export function clearRedirectResponseFromUrl(
                 "Removed authentication response parameters from the URL.",
                 correlationId
             );
-            return;
+            return true;
         }
     } catch {
         // Some hosts expose replaceState but reject its use. Try hash cleanup.
     }
     try {
-        const cleanLocation = new URL(cleanUrl);
         // eslint-disable-next-line security/detect-possible-timing-attacks -- Comparing URL fragments to determine whether an update is needed.
-        if (hash !== cleanLocation.hash) {
-            contentWindow.location.hash = cleanLocation.hash;
+        if (hash !== cleanHash) {
+            contentWindow.location.hash = cleanHash;
         }
-        if (search === cleanLocation.search) {
-            return;
+        if (search === cleanQuery) {
+            return true;
         }
     } catch {
         // Cleanup must not replace the result or error of authentication.
@@ -229,4 +195,5 @@ export function clearRedirectResponseFromUrl(
         // eslint-disable-next-line no-console
         console.warn(message);
     }
+    return true;
 }
