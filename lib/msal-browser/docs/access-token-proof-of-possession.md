@@ -193,20 +193,47 @@ DPoP resource proofs are generated from the request method, normalized resource 
 
 ### Resource-server nonce challenges
 
-When a resource server returns a `DPoP-Nonce` response header, load the nonce before requesting a new proof:
+Load a returned `DPoP-Nonce` before requesting a new proof. Retry a nonce challenge at most once:
 
 ```typescript
+const MAX_DPOP_NONCE_RETRIES = 1;
 const resourceRequestUri = "https://graph.microsoft.com/v1.0/me";
-const dpopNonce = resourceResponse.headers.get("DPoP-Nonce");
+const resourceRequestMethod = "GET";
 
-if (dpopNonce) {
-    await myMSALObj.loadDpopNonce(resourceRequestUri, dpopNonce);
-    const retryResult = await myMSALObj.acquireTokenSilent({
-        ...dpopRequest,
-        resourceRequestUri,
-    });
+async function callResource(): Promise<Response> {
+    for (
+        let attempt = 0;
+        attempt <= MAX_DPOP_NONCE_RETRIES;
+        attempt++
+    ) {
+        const result = await myMSALObj.acquireTokenSilent({
+            ...dpopRequest,
+            resourceRequestUri,
+            resourceRequestMethod,
+        });
+        const response = await fetch(resourceRequestUri, {
+            method: resourceRequestMethod,
+            headers: {
+                Authorization: `${result.tokenType} ${result.accessToken}`,
+                DPoP: result.dpopProof,
+            },
+        });
 
-    // The application owns retrying the resource request with retryResult.dpopProof.
+        const nonce = response.headers.get("DPoP-Nonce");
+        if (nonce) {
+            await myMSALObj.loadDpopNonce(resourceRequestUri, nonce);
+        }
+
+        if (
+            response.status !== 401 ||
+            !nonce ||
+            attempt === MAX_DPOP_NONCE_RETRIES
+        ) {
+            return response;
+        }
+    }
+
+    throw new Error("Unexpected DPoP retry state.");
 }
 ```
 
@@ -218,7 +245,7 @@ Full-page redirect requests use one narrow exception to the memory-only lifecycl
 
 If a handoff storage operation fails, MSAL logs a warning and continues the redirect flow. The resource server can recover through its normal nonce challenge, and MSAL records non-sensitive dynamic performance counters in `PerformanceEvent.ext`: `dpopNonceRedirectHandoffSaveFailureCount`, `dpopNonceRedirectHandoffRestoreFailureCount`, and `dpopNonceRedirectHandoffClearFailureCount`.
 
-`loadDpopNonce` validates and stores the nonce but does not issue resource HTTP requests. The application must retry a challenged resource request no more than once, using a newly generated proof, and must stop if the retry is challenged again.
+`loadDpopNonce` validates and stores the nonce but does not issue resource HTTP requests. Retry a nonce challenge immediately and at most once; use a separate bounded backoff policy for transient responses such as `429` or `503`.
 
 ### Broker support
 
