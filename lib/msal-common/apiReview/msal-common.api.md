@@ -2548,6 +2548,8 @@ export type PerformanceEvent = {
     deduped?: boolean;
     hasAttributeTokens?: boolean;
     dpopTokenTypeMismatch?: string;
+    authenticationScheme?: string;
+    dpopNonceAppliedToProof?: boolean;
     kmsi?: boolean;
     regionSubScope?: string;
     ssoCapable?: boolean;

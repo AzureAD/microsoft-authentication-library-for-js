@@ -693,18 +693,23 @@ export class ResponseHandler {
                     cryptoObj,
                     tokenBindingKeyManager
                 );
+                const dpopNonce = request.resourceRequestUri
+                    ? cacheManager && hasDpopNonceCache(cacheManager)
+                        ? cacheManager.getDpopNonce(
+                              request.resourceRequestUri,
+                              request.correlationId
+                          )?.nonce
+                        : undefined
+                    : undefined;
+                performanceClient?.addFields(
+                    { dpopNonceAppliedToProof: Boolean(dpopNonce) },
+                    request.correlationId
+                );
                 dpopProof = await dpopProofGenerator.generateResourceProof(
                     {
                         htu: request.resourceRequestUri,
                         htm: request.resourceRequestMethod,
-                        nonce: request.resourceRequestUri
-                            ? cacheManager && hasDpopNonceCache(cacheManager)
-                                ? cacheManager.getDpopNonce(
-                                      request.resourceRequestUri,
-                                      request.correlationId
-                                  )?.nonce
-                                : undefined
-                            : undefined,
+                        nonce: dpopNonce,
                         accessToken: cacheRecord.accessToken.secret,
                     },
                     cacheRecord.accessToken.keyId,

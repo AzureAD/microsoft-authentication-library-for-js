@@ -1002,6 +1002,7 @@ describe("ResponseHandler.ts", () => {
         });
 
         it("returns raw DPoP access token with a separate resource proof", async () => {
+            const addFieldsSpy = jest.spyOn(stubPerformanceClient, "addFields");
             const hashSpy = jest
                 .spyOn(cryptoInterface, "hashString")
                 .mockResolvedValue(TEST_DPOP_VALUES.ACCESS_TOKEN_ATH);
@@ -1062,6 +1063,10 @@ describe("ResponseHandler.ts", () => {
             expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(getDpopNonce).toHaveBeenCalledWith(
                 TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+                "CORRELATION_ID"
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { dpopNonceAppliedToProof: true },
                 "CORRELATION_ID"
             );
             expect(signSpy).toHaveBeenCalledWith(
@@ -1157,6 +1162,7 @@ describe("ResponseHandler.ts", () => {
         });
 
         it("returns fresh proof for lowercase cached DPoP access token", async () => {
+            const addFieldsSpy = jest.spyOn(stubPerformanceClient, "addFields");
             const hashSpy = jest
                 .spyOn(cryptoInterface, "hashString")
                 .mockResolvedValue(TEST_DPOP_VALUES.ACCESS_TOKEN_ATH);
@@ -1191,10 +1197,7 @@ describe("ResponseHandler.ts", () => {
                 accessToken: dpopAccessToken,
             };
             Object.assign(testCacheManager, {
-                getDpopNonce: () => ({
-                    nonce: "cached-resource-nonce",
-                    version: 1,
-                }),
+                getDpopNonce: () => undefined,
             });
 
             const result = await ResponseHandler.generateAuthenticationResult(
@@ -1215,9 +1218,14 @@ describe("ResponseHandler.ts", () => {
             expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(result.dpopProof).toBe("cached-dpop-proof");
             expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { dpopNonceAppliedToProof: false },
+                "CORRELATION_ID"
+            );
+            expect(signSpy.mock.calls[0][1]).not.toHaveProperty("nonce");
             expect(signSpy).toHaveBeenCalledWith(
                 expect.anything(),
-                expect.objectContaining({ nonce: "cached-resource-nonce" }),
+                expect.anything(),
                 TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
                 "CORRELATION_ID"
             );

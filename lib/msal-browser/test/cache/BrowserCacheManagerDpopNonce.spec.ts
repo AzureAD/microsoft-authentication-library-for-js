@@ -97,7 +97,12 @@ describe("BrowserCacheManager DPoP nonce state", () => {
     });
 
     it("evicts the oldest write after reaching 50 origins", () => {
-        const cacheManager = createCacheManager();
+        const performanceClient = new StubPerformanceClient();
+        const incrementFieldsSpy = jest.spyOn(
+            performanceClient,
+            "incrementFields"
+        );
+        const cacheManager = createCacheManager("client-id", performanceClient);
 
         cacheManager.setDpopNonce(
             "https://api-0.contoso.com/resource",
@@ -127,6 +132,10 @@ describe("BrowserCacheManager DPoP nonce state", () => {
         expect(
             cacheManager.getDpopNonce("https://api-50.contoso.com/resource")
         ).toEqual({ nonce: "nonce-50", version: 52 });
+        expect(incrementFieldsSpy).toHaveBeenCalledWith(
+            { "ext.dpopNonceCacheEvictionCount": 1 },
+            ""
+        );
     });
 
     it("does not reuse nonce versions after clear or eviction", () => {
@@ -148,7 +157,12 @@ describe("BrowserCacheManager DPoP nonce state", () => {
     });
 
     it("restores a matching redirect handoff once and removes it immediately", () => {
-        const sourceCache = createCacheManager();
+        const performanceClient = new StubPerformanceClient();
+        const incrementFieldsSpy = jest.spyOn(
+            performanceClient,
+            "incrementFields"
+        );
+        const sourceCache = createCacheManager("client-id", performanceClient);
         sourceCache.setDpopNonce(
             "https://api.contoso.com/resource",
             "redirect-nonce"
@@ -160,7 +174,10 @@ describe("BrowserCacheManager DPoP nonce state", () => {
         );
         expect(window.sessionStorage.length).toBe(1);
 
-        const restoredCache = createCacheManager();
+        const restoredCache = createCacheManager(
+            "client-id",
+            performanceClient
+        );
         restoredCache.restoreDpopNonceRedirectHandoff(
             "https://api.contoso.com/other",
             "request-state",
@@ -171,6 +188,16 @@ describe("BrowserCacheManager DPoP nonce state", () => {
         expect(
             restoredCache.getDpopNonce("https://api.contoso.com/resource")
         ).toEqual({ nonce: "redirect-nonce", version: 1 });
+        expect(incrementFieldsSpy).toHaveBeenNthCalledWith(
+            1,
+            { "ext.dpopNonceRedirectHandoffSaveCount": 1 },
+            "correlation-id"
+        );
+        expect(incrementFieldsSpy).toHaveBeenNthCalledWith(
+            2,
+            { "ext.dpopNonceRedirectHandoffRestoreCount": 1 },
+            "correlation-id"
+        );
 
         const secondCache = createCacheManager();
         secondCache.restoreDpopNonceRedirectHandoff(

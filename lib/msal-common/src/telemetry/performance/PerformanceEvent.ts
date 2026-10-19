@@ -454,6 +454,16 @@ export type PerformanceEvent = {
     dpopTokenTypeMismatch?: string;
 
     /**
+     * Authentication scheme used for the request.
+     */
+    authenticationScheme?: string;
+
+    /**
+     * Whether a resource-server nonce was applied to the generated DPoP proof.
+     */
+    dpopNonceAppliedToProof?: boolean;
+
+    /**
      * Whether the user has "Keep Me Signed In" enabled
      */
     kmsi?: boolean;
