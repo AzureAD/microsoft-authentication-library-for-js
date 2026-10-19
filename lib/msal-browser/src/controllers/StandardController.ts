@@ -54,6 +54,10 @@ import {
     INTERACTION_TYPE,
 } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
+import {
+    clearRedirectResponseFromUrl,
+    isRedirectResponse,
+} from "../utils/RedirectUtils.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
@@ -473,6 +477,25 @@ export class StandardController implements IController {
     private async handleRedirectPromiseInternal(
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
+        let redirectOptions = options;
+        const interaction = this.browserStorage.getInteractionInProgress();
+        if (
+            (!interaction ||
+                interaction.clientId === this.config.auth.clientId) &&
+            (!BrowserUtils.isInIframe() ||
+                this.config.system.allowRedirectInIframe)
+        ) {
+            const responseMode = this.config.auth.OIDCOptions.responseMode;
+            const response =
+                responseMode === Constants.ResponseMode.QUERY
+                    ? window.location.search
+                    : window.location.hash;
+            if (!options?.hash && isRedirectResponse(response)) {
+                redirectOptions = { ...options, hash: response };
+            }
+            clearRedirectResponseFromUrl(window, responseMode, this.logger, "");
+        }
+
         if (!this.browserStorage.isInteractionInProgress(true)) {
             this.logger.info(
                 "handleRedirectPromise called but there is no interaction in progress, returning null.",
@@ -571,7 +594,12 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     rootMeasurement.event.correlationId
-                )(standardRequest, codeVerifier, rootMeasurement, options);
+                )(
+                    standardRequest,
+                    codeVerifier,
+                    rootMeasurement,
+                    redirectOptions
+                );
             }
         } catch (e) {
             this.browserStorage.resetRequestCache("");
@@ -717,6 +745,12 @@ export class StandardController implements IController {
         };
 
         try {
+            clearRedirectResponseFromUrl(
+                window,
+                this.config.auth.OIDCOptions.responseMode,
+                this.logger,
+                correlationId
+            );
             enforceResourceParameter(this.config.auth.isMcp, request);
             this.eventHandler.emitEvent(
                 EventType.ACQUIRE_TOKEN_START,

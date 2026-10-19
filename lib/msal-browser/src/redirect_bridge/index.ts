@@ -6,6 +6,10 @@
 import { parseAuthResponseFromUrl } from "../utils/BrowserUtils.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import {
+    clearRedirectResponseFromUrl,
+    sanitizeRedirectUrl,
+} from "../utils/RedirectUtils.js";
+import {
     ApiId,
     INTERACTION_TYPE,
     InteractionType,
@@ -55,6 +59,7 @@ export async function broadcastResponseToMainFrame(
     const { id, meta } = libraryState;
 
     if (meta["interactionType"] === InteractionType.Redirect) {
+        clearRedirectResponseFromUrl(window);
         const navClient = navigationClient || new NavigationClient();
 
         let navigateToUrl = "";
@@ -119,13 +124,14 @@ export async function broadcastResponseToMainFrame(
             }
         }
 
-        const url = navigateToUrl || BrowserUtils.getHomepage();
+        const url = sanitizeRedirectUrl(
+            navigateToUrl || BrowserUtils.getHomepage()
+        );
         // Strip bare trailing "?" (empty query string) to match canonical URL form
         const navigationUrl = url.endsWith("?") ? url.slice(0, -1) : url;
 
         await navClient.navigateInternal(navigationUrl, navigationOptions);
 
-        // Do NOT clear URL for redirect flow - we're navigating away anyway
         return;
     }
 

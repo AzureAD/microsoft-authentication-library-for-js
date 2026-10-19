@@ -80,7 +80,7 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 |-----|-----------|----------|
 | `window.location.assign()` / `.replace()` | Navigate to IdP | None |
 | `window.location.hash` / `.search` | Extract auth response from redirect URL | None |
-| `window.history.replaceState()` | Clean auth params from URL | Graceful no-op (URL stays dirty) |
+| `window.history.replaceState()` | Clean auth params from URL; redirect cleanup preserves application history state | Redirect cleanup falls back to hash assignment; query cleanup logs a warning when unavailable or rejected |
 | `pageshow` event | Detect bfcache restoration to clear stale interaction state | Graceful — may cause `interaction_in_progress` error |
 | `window.open()` | Popup auth flows | None for popup |
 | Hidden iframe | Silent token renewal (`ssoSilent`, `acquireTokenSilent` fallback) | None for silent renewal |
@@ -91,6 +91,7 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 - COOP `same-origin` on AAD severs `window.opener` in popups — redirect bridge mitigates
 - Silent iframe requires IdP to allow framing and 3P cookies to be available; breaks under Safari ITP, Firefox TCP, and Chrome with 3P cookies disabled
 - Office.js sets `history.replaceState` to `null` — MSAL guards with `typeof` check
+- Redirect response cleanup captures the payload before replacing the URL. Hash-assignment fallback can raise `hashchange`; query cleanup does not reload the page as a fallback.
 
 ### Network & DOM
 

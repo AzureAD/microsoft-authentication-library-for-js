@@ -210,6 +210,61 @@ describe("broadcastResponseToMainFrame", () => {
     });
 
     describe("Success cases - Redirect flow", () => {
+        it.each([
+            TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
+            TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
+        ])(
+            "cleans the callback before navigation even when navigation fails: %s",
+            async (hash) => {
+                window.location.hash = hash;
+                const error = new Error("Navigation failed");
+                mockNavigationClient.navigateInternal.mockImplementation(
+                    async () => {
+                        expect(mockHistoryReplaceState).toHaveBeenCalled();
+                        throw error;
+                    }
+                );
+
+                await expect(broadcastResponseToMainFrame()).rejects.toBe(
+                    error
+                );
+                expect(mockHistoryReplaceState).toHaveBeenCalledWith(
+                    window.history.state,
+                    "",
+                    window.location.origin + window.location.pathname
+                );
+            }
+        );
+
+        it.each(["code", "accountId", "nativeAccountId"])(
+            "sanitizes a contaminated %s origin in memory while caching the new broker response",
+            async (key) => {
+                const clientId = "test-client";
+                const originKey = `msal.${clientId}.request.origin`;
+                const origin = `https://localhost:8081/?keep=yes#${key}=old-value&view=home`;
+                mockSessionStorage["msal.interaction.status"] = JSON.stringify({
+                    clientId,
+                    type: "signin",
+                });
+                mockSessionStorage[originKey] = origin;
+                window.location.hash =
+                    TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT;
+
+                await broadcastResponseToMainFrame();
+
+                expect(
+                    mockNavigationClient.navigateInternal
+                ).toHaveBeenCalledWith(
+                    "https://localhost:8081/?keep=yes#view=home",
+                    expect.any(Object)
+                );
+                expect(mockSessionStorage[originKey]).toBe(origin);
+                expect(
+                    mockSessionStorage[`msal.${clientId}.urlHash`]
+                ).toContain("accountId=test-nativeAccountId");
+            }
+        );
+
         it("navigates to homepage without auth params when no interaction status is set", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
@@ -223,8 +278,7 @@ describe("broadcastResponseToMainFrame", () => {
             ).mock.calls[0][0];
             expect(navigatedUrl).not.toContain("code=");
 
-            // URL should NOT be cleared for redirect flow (we're navigating away)
-            expect(mockHistoryReplaceState).not.toHaveBeenCalled();
+            expect(mockHistoryReplaceState).toHaveBeenCalled();
 
             // window.close should NOT be called for redirect (early return)
             expect(window.close).not.toHaveBeenCalled();

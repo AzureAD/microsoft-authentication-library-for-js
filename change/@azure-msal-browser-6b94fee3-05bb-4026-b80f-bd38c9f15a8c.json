@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Remove stale authorization codes and broker account identifiers from redirect URLs and return destinations",
+  "packageName": "@azure/msal-browser",
+  "email": "lalima.sharda@gmail.com",
+  "dependentChangeType": "patch"
+}

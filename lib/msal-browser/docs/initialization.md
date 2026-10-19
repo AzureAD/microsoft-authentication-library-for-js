@@ -227,6 +227,43 @@ msalInstance
 
 It is not recommended to use both interaction types in a single application.
 
+### Redirect response URL cleanup
+
+`handleRedirectPromise()` captures recognized redirect response parameters before
+removing them from the current URL. Cleanup does not require a matching cached
+transaction: an orphaned callback can return `null` or reject while its
+authorization code or platform-broker account identifier is still removed.
+Removing a response does not accept it or
+bypass state, nonce, or PKCE validation.
+
+Before `loginRedirect()` or `acquireTokenRedirect()` starts a new interaction,
+MSAL also removes stale, flat authentication fragments such as `#code=...`,
+`#accountId=...`, and their empty forms. The supported platform-broker response
+field returned by ESTS is `accountId`; a literal `#nativeAccountId=...` fragment
+is also removed as stale authentication material, but is not accepted as a new
+broker response field. These flat fragments are treated as authentication response
+parameters at redirect entry points, even when the value is empty or state is malformed.
+Application routing fragments such as `#/dashboard?code=...`, unrelated URL
+parameters, and responses identified as popup or silent interactions are
+preserved. An active redirect belonging to another MSAL client is not consumed.
+
+The saved redirect start page is sanitized before caching and again before
+return navigation or hash restoration. This prevents an old authorization code
+from being restored after a subsequent successful request, including when the
+cached destination was written by an older library version. Applications can
+continue to provide a known-clean destination through `redirectStartPage`.
+
+For query response mode, authentication parameters are removed from the query
+string rather than clearing the entire URL. Ordinary query parameters named
+`code`, `accountId`, or `nativeAccountId` are not removed in fragment response mode
+unless accompanied by MSAL redirect state.
+
+URL cleanup uses `history.replaceState()` and preserves application history
+state. If a host disables or rejects that API, MSAL falls back to hash cleanup.
+Query cleanup has no navigation-free fallback in that environment; a warning is
+reported rather than reloading the application or replacing the authentication
+result with a cleanup error.
+
 **Note:** `handleRedirectPromise` will optionally accept a hash value to be processed, defaulting to the current value of `window.location.hash`. This parameter only needs to be provided in scenarios where the current value of `window.location.hash` does not contain the redirect response that needs to be processed. **For almost all scenarios, applications should not need to provide this parameter explicitly.**
 
 # Next Steps
