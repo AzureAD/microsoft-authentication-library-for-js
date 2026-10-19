@@ -47,6 +47,7 @@ import {
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { BrowserPerformanceClient } from "../../src/index.js";
+import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 import { buildAccountFromIdTokenClaims, buildIdToken } from "msal-test-utils";
 import { version } from "../../src/packageMetadata.js";
 import { BrowserConstants } from "../../src/utils/BrowserConstants.js";
@@ -295,6 +296,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
     describe("acquireToken Tests", () => {
         it("Extension: acquires token successfully", async () => {
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
             jest.spyOn(
                 PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
@@ -317,6 +319,12 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.account).toEqual(TEST_ACCOUNT_INFO);
             expect(response.tokenType).toEqual(
                 Constants.AuthenticationScheme.BEARER
+            );
+            expect(addFieldsSpy).not.toHaveBeenCalledWith(
+                expect.objectContaining({
+                    "ext.brokerDpopAttempted": 1,
+                }),
+                expect.any(String)
             );
         });
 
@@ -351,13 +359,14 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 RANDOM_TEST_GUID
             );
             const measurementEndSpy = jest.spyOn(measurement, "end");
-            jest.spyOn(perfClient, "startMeasurement").mockReturnValue(
-                measurement
-            );
+            const startMeasurementSpy = jest
+                .spyOn(perfClient, "startMeasurement")
+                .mockReturnValue(measurement);
             const cleanupTelemetrySpy = jest.spyOn(
                 perfClient,
                 "incrementFields"
             );
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
 
             await expect(
                 platformAuthInteractionClient.acquireToken({
@@ -374,6 +383,26 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
             expect(cleanupTelemetrySpy).toHaveBeenCalledWith(
                 { removeTokenBindingKeyFailure: 1 },
+                RANDOM_TEST_GUID
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { "ext.brokerDpopAttempted": 1 },
+                RANDOM_TEST_GUID
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { "ext.brokerDpopKeyCleanupOutcome": "failed" },
+                RANDOM_TEST_GUID
+            );
+            expect(cleanupTelemetrySpy).toHaveBeenCalledWith(
+                { "ext.brokerDpopKeyCleanupAttemptCount": 1 },
+                RANDOM_TEST_GUID
+            );
+            expect(cleanupTelemetrySpy).toHaveBeenCalledWith(
+                { "ext.brokerDpopKeyCleanupFailureCount": 1 },
+                RANDOM_TEST_GUID
+            );
+            expect(startMeasurementSpy).toHaveBeenCalledWith(
+                BrowserPerformanceEvents.PlatformAuthDpopKeyCleanup,
                 RANDOM_TEST_GUID
             );
         });
@@ -487,12 +516,19 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
             expect(dpopTelemetryEvent?.ext).toEqual(
                 expect.objectContaining({
+                    brokerDpopAttempted: 1,
                     brokerDpopOutcome: "l3",
                     brokerDpopBindingLevel: "L3",
+                    brokerDpopKeyCleanupAttemptCount: 1,
+                    brokerDpopKeyCleanupOutcome: "succeeded",
+                    platformAuthDpopKeyCleanupDurationMs: expect.any(Number),
                 })
             );
             expect(
                 dpopTelemetryEvent?.ext?.brokerDpopFailureReason
+            ).toBeUndefined();
+            expect(
+                dpopTelemetryEvent?.ext?.brokerDpopKeyCleanupFailureCount
             ).toBeUndefined();
             expect(dpopTelemetryEvent?.ext?.DPoP).toBeUndefined();
             expect(dpopTelemetryEvent?.ext?.keyId).toBeUndefined();
@@ -1216,13 +1252,23 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 tokenType: Constants.AuthenticationScheme.POP,
                 keyId: "legacy-pop-key",
             } as PlatformAuthRequest;
-            const removeKeySpy = jest.spyOn(
-                clientInternals.tokenBindingKeyManager,
-                "removeTokenBindingKey"
+            const removeKeySpy = jest
+                .spyOn(
+                    clientInternals.tokenBindingKeyManager,
+                    "removeTokenBindingKey"
+                )
+                .mockResolvedValue(undefined);
+            const startMeasurementSpy = jest.spyOn(
+                perfClient,
+                "startMeasurement"
             );
 
             await clientInternals.resetGeneratedDpopRequestKey(request);
             expect(removeKeySpy).not.toHaveBeenCalled();
+            expect(startMeasurementSpy).not.toHaveBeenCalledWith(
+                BrowserPerformanceEvents.PlatformAuthDpopKeyCleanup,
+                expect.any(String)
+            );
             expect(request.keyId).toBe("legacy-pop-key");
         });
 
@@ -1242,9 +1288,25 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 keyId: "generated-dpop-key",
                 reqCnf: "generated-req-cnf",
             } as PlatformAuthRequest;
-            const removeKeySpy = jest.spyOn(
-                clientInternals.tokenBindingKeyManager,
-                "removeTokenBindingKey"
+            const removeKeySpy = jest
+                .spyOn(
+                    clientInternals.tokenBindingKeyManager,
+                    "removeTokenBindingKey"
+                )
+                .mockResolvedValue(undefined);
+            const cleanupMeasurement = {
+                add: jest.fn(),
+                end: jest.fn(),
+                increment: jest.fn(),
+                discard: jest.fn(),
+            };
+            const startMeasurementSpy = jest
+                .spyOn(perfClient, "startMeasurement")
+                .mockReturnValue(cleanupMeasurement as any);
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+            const incrementFieldsSpy = jest.spyOn(
+                perfClient,
+                "incrementFields"
             );
 
             await clientInternals.resetGeneratedDpopRequestKey(
@@ -1256,6 +1318,21 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "generated-dpop-key",
                 expect.any(String)
             );
+            expect(startMeasurementSpy).toHaveBeenCalledWith(
+                BrowserPerformanceEvents.PlatformAuthDpopKeyCleanup,
+                RANDOM_TEST_GUID
+            );
+            expect(incrementFieldsSpy).toHaveBeenCalledWith(
+                { "ext.brokerDpopKeyCleanupAttemptCount": 1 },
+                RANDOM_TEST_GUID
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { "ext.brokerDpopKeyCleanupOutcome": "succeeded" },
+                RANDOM_TEST_GUID
+            );
+            expect(cleanupMeasurement.end).toHaveBeenCalledWith({
+                success: true,
+            });
             expect(request.keyId).toBeUndefined();
             expect(request.reqCnf).toBeUndefined();
         });
@@ -3673,6 +3750,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 perfClient,
                 "incrementFields"
             );
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
 
             await expect(
                 platformAuthInteractionClient.acquireTokenRedirect(
@@ -3690,6 +3768,14 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
             expect(cleanupTelemetrySpy).toHaveBeenCalledWith(
                 { removeTokenBindingKeyFailure: 1 },
+                RANDOM_TEST_GUID
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { "ext.brokerDpopAttempted": 1 },
+                RANDOM_TEST_GUID
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { "ext.brokerDpopKeyCleanupOutcome": "failed" },
                 RANDOM_TEST_GUID
             );
         });

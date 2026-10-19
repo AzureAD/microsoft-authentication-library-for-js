@@ -303,6 +303,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         // dispatch the request to the broker
         try {
             await this.prepareDpopBrokerRequest(nativeRequest);
+            this.addDpopBrokerAttemptTelemetry(nativeRequest);
             const validatedResponse: PlatformAuthResponse =
                 await this.platformAuthProvider.sendMessage(nativeRequest);
 
@@ -505,6 +506,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         try {
             await this.prepareDpopBrokerRequest(nativeRequest);
+            this.addDpopBrokerAttemptTelemetry(nativeRequest);
             const response = await this.platformAuthProvider.sendMessage(
                 nativeRequest
             );
@@ -673,6 +675,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
 
         try {
             await this.prepareDpopBrokerRequest(request, true);
+            this.addDpopBrokerAttemptTelemetry(request);
             this.logger.verbose(
                 "NativeInteractionClient - handleRedirectPromise sending message to native broker.",
                 this.correlationId
@@ -1904,6 +1907,15 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return;
         }
 
+        const cleanupMeasurement = this.performanceClient.startMeasurement(
+            BrowserPerformanceEvents.PlatformAuthDpopKeyCleanup,
+            this.correlationId
+        );
+        this.performanceClient.incrementFields(
+            { "ext.brokerDpopKeyCleanupAttemptCount": 1 },
+            this.correlationId
+        );
+
         try {
             if (request.keyId && !(await this.removeDpopKey(request.keyId))) {
                 throw createAuthError(
@@ -1913,9 +1925,28 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 );
             }
 
+            this.performanceClient.addFields(
+                {
+                    "ext.brokerDpopKeyCleanupOutcome": "succeeded",
+                },
+                this.correlationId
+            );
+            cleanupMeasurement.end({ success: true });
             request.keyId = undefined;
             request.reqCnf = undefined;
         } catch (error) {
+            this.performanceClient.addFields(
+                {
+                    "ext.brokerDpopKeyCleanupOutcome": "failed",
+                },
+                this.correlationId
+            );
+            this.performanceClient.incrementFields(
+                { "ext.brokerDpopKeyCleanupFailureCount": 1 },
+                this.correlationId
+            );
+            cleanupMeasurement.end({ success: false }, error);
+
             if (mode === "strict") {
                 throw error;
             }
@@ -1932,6 +1963,23 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             request.keyId = undefined;
             request.reqCnf = undefined;
         }
+    }
+
+    /**
+     * Records that a DPoP request is about to be dispatched to the platform broker.
+     * @param request - Broker request about to cross the provider boundary.
+     */
+    private addDpopBrokerAttemptTelemetry(request: PlatformAuthRequest): void {
+        if (!this.isDpopBrokerRequest(request)) {
+            return;
+        }
+
+        this.performanceClient.addFields(
+            {
+                "ext.brokerDpopAttempted": 1,
+            },
+            this.correlationId
+        );
     }
 
     /**

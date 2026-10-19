@@ -179,6 +179,7 @@ export const PlatformAuthHandleNativeResponse =
     "platformAuthHandleNativeResponse";
 export const PlatformAuthCacheAccount = "platformAuthCacheAccount";
 export const PlatformAuthCacheNativeTokens = "platformAuthCacheNativeTokens";
+export const PlatformAuthDpopKeyCleanup = "platformAuthDpopKeyCleanup";
 export const RemoveHiddenIframe = "removeHiddenIframe";
 
 export const ImportExistingCache = "importExistingCache";
