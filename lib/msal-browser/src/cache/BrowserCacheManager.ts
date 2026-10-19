@@ -1046,7 +1046,7 @@ export class BrowserCacheManager extends CacheManager {
                         throw cacheError;
                     }
                     // When cache quota is exceeded, start removing access tokens until we can successfully set the item
-                    void this.removeAccessToken(
+                    this.removeAccessToken(
                         accessTokenKeys[i],
                         correlationId,
                         false // Don't save token keys yet, do it at the end
