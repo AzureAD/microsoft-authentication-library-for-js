@@ -64,7 +64,7 @@ When supported, MSAL asks the platform broker to use broker-attested binding as 
 
 MSAL rejects invalid or inconsistent broker responses instead of returning an unbound token. Application-managed DPoP keys are not supported through the Windows Accounts extension.
 
-DPoP redirect requests that retain an MSAL-generated key across navigation require persistent browser key storage. Before navigation, MSAL verifies that any retained key is available in [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) and fails the request if the key cannot be persisted. Broker-provided L3 proofs do not require the local key to survive navigation.
+When `acquireTokenRedirect()` uses the Windows Accounts extension, broker interaction occurs while the current application page remains loaded. If the broker returns an L1 outcome, MSAL must retain its generated key across the subsequent application-page navigation used to resume the request through `handleRedirectPromise()`. MSAL therefore verifies that the key is available in [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) before performing that navigation and fails the request if it was not persisted. If the broker returns an L3 outcome, the broker supplies the DPoP proof, so MSAL discards the local candidate key and does not require it to survive the application-page navigation.
 
 Resource-server DPoP nonce forwarding is not yet supported through the Windows Accounts extension. Applications must not pass `pop_nonce` through `extraParameters`; nonce support will use a dedicated API and internal nonce store.
 
