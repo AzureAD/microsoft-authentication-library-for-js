@@ -48,6 +48,12 @@ describe("NewPasswordRequiredStateV2", () => {
                 "AADSTS120002: New password doesn't meet complexity requirements.",
                 correlationId,
                 undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
                 "passwordTooWeak"
             )
         );

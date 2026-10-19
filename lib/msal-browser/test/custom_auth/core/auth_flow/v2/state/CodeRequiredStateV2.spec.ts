@@ -131,6 +131,12 @@ describe("CodeRequiredStateV2", () => {
                 "AADSTS50181: Unable to validate the otp.",
                 correlationId,
                 undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
                 "invalidOneTimeCode"
             )
         );
@@ -152,6 +158,12 @@ describe("CodeRequiredStateV2", () => {
                 "invalidGrant",
                 "AADSTS50181: Unable to validate the otp.",
                 correlationId,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
                 undefined,
                 "invalidOneTimeCode"
             )
