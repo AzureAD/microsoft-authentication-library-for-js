@@ -8,13 +8,12 @@ import { HttpHeaderKeys } from "../../../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../../error/CustomAuthApiError.js";
 import { normalizeServerErrorV2 } from "./response/ErrorNormalizerV2.js";
 import { EmbeddedMethodV2, ParsedResponseV2 } from "./response/ResponsesV2.js";
-import { ResponseStateV2 } from "./ApiClientConstantsV2.js";
 import {
     CONTINUATION_TOKEN_MISSING,
     INVALID_HAL_RESPONSE,
     INVALID_RESPONSE_BODY,
     NO_AUTHENTICATION_METHODS,
-    REDIRECT_TO_WEB,
+    WEB_REDIRECT_REQUIRED,
 } from "./ErrorCodesV2.js";
 
 /*
@@ -38,8 +37,6 @@ export class ResponseHandlerV2 {
 
         const json = await this.parseBody(response, correlationId);
 
-        const state = typeof json.state === "string" ? json.state : undefined;
-
         const continuationToken =
             (typeof json.continuationToken === "string"
                 ? json.continuationToken
@@ -48,14 +45,9 @@ export class ResponseHandlerV2 {
                 ? json.continuation_token
                 : undefined);
 
-        const flatError =
-            typeof json.error === "string" ? json.error : undefined;
-
-        const isWebFallbackRequired =
-            flatError === REDIRECT_TO_WEB ||
-            state === ResponseStateV2.WEB_FALLBACK_REQUIRED;
-
         const error = normalizeServerErrorV2(json);
+
+        const isWebFallbackRequired = error?.subError === WEB_REDIRECT_REQUIRED;
 
         // Surface the header correlation id on the body (HalResponseBaseV2.correlationId).
         json.correlationId = correlationId;

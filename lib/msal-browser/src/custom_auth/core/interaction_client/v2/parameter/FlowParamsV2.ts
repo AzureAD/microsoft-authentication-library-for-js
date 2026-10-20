@@ -18,18 +18,17 @@ interface FlowParamsBaseV2 {
 // Begin a reset for the given account.
 export interface FlowStartParamsV2 extends FlowParamsBaseV2 {
     username: string;
+    scopes?: string[] | null;
+    claims?: string;
 }
 
 export interface FlowSignInStartParamsV2 extends FlowStartParamsV2 {
     password?: string;
-    scopes?: string[];
 }
 
 export interface FlowSignUpStartParamsV2 extends FlowStartParamsV2 {
     password?: string;
     attributes?: UserAccountAttributes;
-    scopes?: string[];
-    claims?: string;
 }
 
 // Request the challenge for the selected method, sending the one-time code to it.
@@ -62,5 +61,4 @@ export interface FlowSubmitSignUpAttributesParamsV2 extends FlowParamsBaseV2 {
 // Sign the account in by redeeming a completed flow's continuation for tokens.
 export interface FlowSignInWithContinuationParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
-    scopes?: string[];
 }
