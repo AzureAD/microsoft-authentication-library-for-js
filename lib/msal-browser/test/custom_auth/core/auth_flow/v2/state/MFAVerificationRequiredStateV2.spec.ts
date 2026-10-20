@@ -19,6 +19,7 @@ import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
 describe("MFAVerificationRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
+    const scopes = ["openid", "profile", "offline_access"];
     const flowClient = {
         submitCode: jest.fn(),
         resendCode: jest.fn(),
@@ -37,12 +38,10 @@ describe("MFAVerificationRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-mfa-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {
                     verify: "/mfa/verify",
                     resend: "/mfa/resend",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             method: {
@@ -78,12 +77,10 @@ describe("MFAVerificationRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-mfa-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {
                     verify: "/mfa/verify",
                     resend: "/mfa/resend",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             code: "123456",
@@ -91,6 +88,27 @@ describe("MFAVerificationRequiredStateV2", () => {
         expect(result.isState("completed")).toBe(true);
         expect(result.state).toBeInstanceOf(CompletedStateV2);
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+    });
+
+    it("submits a wrong-length MFA challenge and surfaces the server result", async () => {
+        flowClient.submitCode.mockResolvedValue({
+            type: FLOW_COMPLETED_V2,
+            correlationId,
+            authenticationResult: {
+                account: {
+                    homeAccountId: "uid.utid",
+                },
+            } as unknown as AuthenticationResult,
+        });
+
+        const result = await buildState().submitChallenge("12345");
+
+        expect(flowClient.submitCode).toHaveBeenCalledWith(
+            expect.objectContaining({
+                code: "12345",
+            })
+        );
+        expect(result.isState("completed")).toBe(true);
     });
 
     it("fails MFA completion when the account is missing", async () => {
@@ -116,12 +134,10 @@ describe("MFAVerificationRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-mfa-resend",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {
                     verify: "/mfa/verify",
                     resend: "/mfa/resend",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             sentTo: "+1******5678",

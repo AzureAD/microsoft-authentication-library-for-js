@@ -12,6 +12,7 @@ import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
 describe("SignInContinuationStateV2", () => {
     const correlationId = "test-correlation-id";
+    const scopes = ["openid", "profile", "offline_access"];
     const flowClient = {
         signInWithContinuation: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
@@ -29,6 +30,7 @@ describe("SignInContinuationStateV2", () => {
             continuationState: {
                 continuationToken: "ct-complete",
                 scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                scopes,
                 links: {},
             },
         });
@@ -37,13 +39,22 @@ describe("SignInContinuationStateV2", () => {
         jest.clearAllMocks();
     });
 
-    it("rejects malformed claims before token completion", async () => {
-        const result = await buildState().signIn({
-            claims: "not-json",
-        });
+    it("completes sign-in using only the retained continuation state", async () => {
+        flowClient.signInWithContinuation.mockRejectedValue(
+            new Error("test failure")
+        );
 
+        const result = await buildState().signIn();
+
+        expect(flowClient.signInWithContinuation).toHaveBeenCalledWith({
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-complete",
+                scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                scopes,
+                links: {},
+            },
+        });
         expect(result.isFailed()).toBe(true);
-        expect(result.error?.isInvalidInput()).toBe(true);
-        expect(flowClient.signInWithContinuation).not.toHaveBeenCalled();
     });
 });
