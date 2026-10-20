@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792190416477,
+  "lastUpdate": 1792488662523,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24607,6 +24607,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.58%",
             "unit": "ops/sec",
             "extra": "237 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ydi.w127@gmail.com",
+            "name": "Yongdi Wang",
+            "username": "yongdiw"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a9a1221ac325f30e73fd4d6cfbb4c0636a3ffcbe",
+          "message": "Native Auth V2 entry and validation fixes (#8898)\n\n## Summary\n\nFinalizes Native Auth V2 entry-request and input-validation behavior.\n\n- Defines explicit input types for V2 sign-in, sign-up, and\nreset-password, including optional `scopes` and `claims`, and normalizes\nrequested scopes with the required OpenID scopes.\n- Keeps continuation `signIn()` parameterless. Token redemption uses the\nserver continuation, and MSAL uses the normalized entry scopes only when\nthe token response omits its `scope` value.\n- Continues with email-code authentication when a password was supplied\nbut the service offers email verification instead of a password method.\n- Accepts any non-empty verification-code string and lets the service\nvalidate the expected code length.\n- Updates the controller/API wiring, release metadata, ownership, and\nunit/integration coverage for the finalized behavior.\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCopilot-Session: a64bca42-c756-4466-849e-4038c47bedb6\nCopilot-Session: bb74294c-cf5f-4dbe-9db6-7889fce967e9",
+          "timestamp": "2026-10-20T10:22:13+01:00",
+          "tree_id": "f17c1b5d289139b10d26672146c17b627f166be0",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/a9a1221ac325f30e73fd4d6cfbb4c0636a3ffcbe"
+        },
+        "date": 1792488659162,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 561764,
+            "range": "±2.19%",
+            "unit": "ops/sec",
+            "extra": "227 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 527844,
+            "range": "±1.58%",
+            "unit": "ops/sec",
+            "extra": "213 samples"
           }
         ]
       }
