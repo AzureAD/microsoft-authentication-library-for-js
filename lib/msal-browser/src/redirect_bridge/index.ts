@@ -55,7 +55,7 @@ export async function broadcastResponseToMainFrame(
     const { id, meta } = libraryState;
 
     if (meta["interactionType"] === InteractionType.Redirect) {
-        BrowserUtils.clearUrlResponse(window);
+        BrowserUtils.clearHash(window);
         const navClient = navigationClient || new NavigationClient();
 
         let navigateToUrl = "";

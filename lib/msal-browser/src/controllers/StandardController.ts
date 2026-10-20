@@ -478,7 +478,7 @@ export class StandardController implements IController {
         if (!this.browserStorage.isInteractionInProgress(true)) {
             if (
                 !this.browserStorage.isInteractionInProgress(false) &&
-                BrowserUtils.clearUrlResponse(
+                BrowserUtils.clearHash(
                     window,
                     responseMode,
                     this.logger,
@@ -591,12 +591,7 @@ export class StandardController implements IController {
                 )(standardRequest, codeVerifier, rootMeasurement, options);
             }
         } catch (e) {
-            BrowserUtils.clearUrlResponse(
-                window,
-                responseMode,
-                this.logger,
-                ""
-            );
+            BrowserUtils.clearHash(window, responseMode, this.logger, "");
             this.browserStorage.resetRequestCache("");
             throw e;
         }
@@ -665,7 +660,7 @@ export class StandardController implements IController {
                 return result;
             })
             .catch((e) => {
-                BrowserUtils.clearUrlResponse(
+                BrowserUtils.clearHash(
                     window,
                     responseMode,
                     this.logger,

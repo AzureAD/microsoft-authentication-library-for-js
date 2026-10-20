@@ -2,7 +2,7 @@ import {
     extractBrowserRequestState,
     BrowserStateObject,
 } from "../../src/utils/BrowserProtocolUtils.js";
-import { clearUrlResponse } from "../../src/utils/BrowserUtils.js";
+import { clearHash } from "../../src/utils/BrowserUtils.js";
 import { InteractionType } from "../../src/utils/BrowserConstants.js";
 import { Constants, Logger, ProtocolUtils } from "@azure/msal-common";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
@@ -43,7 +43,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             (code) => {
                 window.history.replaceState(null, "", `${base}#code=${code}`);
 
-                expect(clearUrlResponse(window)).toBe(true);
+                expect(clearHash(window)).toBe(true);
                 expect(window.location.href).toBe(base);
             }
         );
@@ -55,7 +55,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
                 `${base}?q=a%20b#code=A&view=a%20b&state=invalid&code=B&client_info=info`
             );
 
-            clearUrlResponse(window);
+            clearHash(window);
 
             expect(window.location.href).toBe(
                 `${base}?q=a%20b#view=a%20b&client_info=info`
@@ -71,14 +71,14 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
                 `${base}#code=A&ear_jwe=encrypted&accountId=broker-id&state=invalid&error=error&error_description=description&${metadata}`
             );
 
-            clearUrlResponse(window);
+            clearHash(window);
 
             expect(window.location.href).toBe(`${base}#${metadata}`);
         });
 
         it("removes populated or empty broker identifiers from accountId callback fragments", () => {
             window.history.replaceState(null, "", `${base}#accountId=`);
-            clearUrlResponse(window);
+            clearHash(window);
             expect(window.location.href).toBe(base);
 
             window.history.replaceState(
@@ -86,7 +86,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
                 "",
                 `${base}?keep=yes#accountId=old-id&state=invalid&view=home`
             );
-            clearUrlResponse(window);
+            clearHash(window);
             expect(window.location.href).toBe(`${base}?keep=yes#view=home`);
         });
 
@@ -103,7 +103,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         ])("preserves application fragment %s", (hash) => {
             window.history.replaceState(null, "", base + hash);
 
-            expect(clearUrlResponse(window)).toBe(false);
+            expect(clearHash(window)).toBe(false);
             expect(window.location.href).toBe(base + hash);
         });
 
@@ -113,11 +113,11 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         ])("leaves another interaction's response untouched", (state) => {
             const url = `${base}#code=owned-by-other-flow&state=${state}`;
             window.history.replaceState(null, "", url);
-            expect(clearUrlResponse(window)).toBe(false);
+            expect(clearHash(window)).toBe(false);
             expect(window.location.href).toBe(url);
             const brokerUrl = `${base}#accountId=owned-by-other-flow&state=${state}`;
             window.history.replaceState(null, "", brokerUrl);
-            expect(clearUrlResponse(window)).toBe(false);
+            expect(clearHash(window)).toBe(false);
             expect(window.location.href).toBe(brokerUrl);
         });
 
@@ -128,7 +128,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
                 `${base}#error=access_denied&error_description=denied&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&view=home`
             );
 
-            clearUrlResponse(window);
+            clearHash(window);
 
             expect(window.location.href).toBe(`${base}#view=home`);
         });
@@ -140,7 +140,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
                 `${base}#ear_jwe=encrypted&state=bad`
             );
 
-            clearUrlResponse(window);
+            clearHash(window);
 
             expect(window.location.href).toBe(base);
         });
@@ -149,17 +149,17 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             const url = `${base}?code=application-code&state=application-state#/home`;
             window.history.replaceState(null, "", url);
 
-            expect(clearUrlResponse(window)).toBe(false);
+            expect(clearHash(window)).toBe(false);
             expect(window.location.href).toBe(url);
         });
 
         it("preserves ordinary query accountId parameters unless query response mode is selected", () => {
             const url = `${base}?accountId=old-id&state=invalid&q=keep#/home`;
             window.history.replaceState(null, "", url);
-            expect(clearUrlResponse(window)).toBe(false);
+            expect(clearHash(window)).toBe(false);
             expect(window.location.href).toBe(url);
 
-            clearUrlResponse(window, Constants.ResponseMode.QUERY);
+            clearHash(window, Constants.ResponseMode.QUERY);
             expect(window.location.href).toBe(`${base}?q=keep#/home`);
         });
 
@@ -170,7 +170,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
                 `${base}?code=A&state=invalid&q=a%20b#/home`
             );
 
-            clearUrlResponse(window, Constants.ResponseMode.QUERY);
+            clearHash(window, Constants.ResponseMode.QUERY);
 
             expect(window.location.href).toBe(`${base}?q=a%20b#/home`);
         });
@@ -182,7 +182,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
                 `${base}?code=A&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=keep#/home`
             );
 
-            clearUrlResponse(window);
+            clearHash(window);
 
             expect(window.location.href).toBe(`${base}?q=keep#/home`);
         });
@@ -200,7 +200,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
                     `${base}?code=query-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=a%20b#accountId=broker-id&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&view=home`
                 );
 
-                expect(clearUrlResponse(window, responseMode)).toBe(true);
+                expect(clearHash(window, responseMode)).toBe(true);
 
                 expect(window.location.href).toBe(`${base}?q=a%20b#view=home`);
                 expect(window.history.state).toEqual(state);
@@ -216,7 +216,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             );
             const historyLength = window.history.length;
 
-            clearUrlResponse(window);
+            clearHash(window);
 
             expect(window.location.href).toBe(`${base}?q=keep#view=home`);
             expect(window.history.state).toEqual(state);
@@ -228,7 +228,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             // @ts-expect-error Office.js can disable this browser API.
             window.history.replaceState = null;
 
-            clearUrlResponse(window);
+            clearHash(window);
 
             expect(window.location.hash).toBe("");
             expect(window.location.search).toBe("?q=keep");
@@ -245,7 +245,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             const warning = jest.spyOn(logger, "warning");
 
             expect(() =>
-                clearUrlResponse(window, undefined, logger, "test-id")
+                clearHash(window, undefined, logger, "test-id")
             ).not.toThrow();
             expect(window.location.hash).toBe("");
             expect(warning).not.toHaveBeenCalled();
@@ -259,7 +259,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             const warning = jest.spyOn(logger, "warning");
 
             expect(() =>
-                clearUrlResponse(
+                clearHash(
                     window,
                     Constants.ResponseMode.QUERY,
                     logger,

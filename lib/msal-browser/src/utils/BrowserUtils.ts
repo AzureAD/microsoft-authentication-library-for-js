@@ -227,7 +227,7 @@ function removeAuthResponse(
  * When responseValuesOnly is true, state/error metadata alone is preserved.
  * Returns whether a response was found, even if URL cleanup is unavailable.
  */
-export function clearUrlResponse(
+export function clearHash(
     contentWindow: Window,
     responseMode: string = Constants.ResponseMode.FRAGMENT,
     logger?: Logger,
@@ -284,14 +284,6 @@ export function clearUrlResponse(
         console.warn(message);
     }
     return true;
-}
-
-/**
- * Removes redirect response fields from the window URL.
- * @deprecated Use clearUrlResponse instead.
- */
-export function clearHash(contentWindow: Window): void {
-    clearUrlResponse(contentWindow);
 }
 
 /**

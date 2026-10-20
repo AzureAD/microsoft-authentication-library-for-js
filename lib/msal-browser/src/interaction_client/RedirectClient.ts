@@ -467,7 +467,7 @@ export class RedirectClient extends StandardInteractionClient {
                 options?.hash || ""
             );
             if (!serverParams) {
-                BrowserUtils.clearUrlResponse(
+                BrowserUtils.clearHash(
                     window,
                     this.config.auth.OIDCOptions.responseMode,
                     this.logger,
@@ -669,7 +669,7 @@ export class RedirectClient extends StandardInteractionClient {
                 return [null, ""];
             }
 
-            BrowserUtils.clearUrlResponse(
+            BrowserUtils.clearHash(
                 window,
                 this.config.auth.OIDCOptions.responseMode,
                 this.logger,

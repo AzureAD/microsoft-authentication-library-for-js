@@ -72,7 +72,7 @@ import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
 import { EventType } from "../event/EventType.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { EventHandler } from "../event/EventHandler.js";
-import { clearUrlResponse } from "../utils/BrowserUtils.js";
+import { clearHash } from "../utils/BrowserUtils.js";
 import { version } from "../packageMetadata.js";
 import { removeElementFromArray } from "../utils/Helpers.js";
 import { EncryptedData, isEncrypted } from "./EncryptedData.js";
@@ -2358,7 +2358,7 @@ export class BrowserCacheManager extends CacheManager {
             );
             this.removeTemporaryItem(key);
             this.resetRequestCache("");
-            clearUrlResponse(window);
+            clearHash(window);
             return null;
         }
     }

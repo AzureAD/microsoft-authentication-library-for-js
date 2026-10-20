@@ -13,6 +13,7 @@ import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../../src/index.js";
+import { Constants } from "@azure/msal-common/browser";
 
 describe("BrowserUtils.ts Function Unit Tests", () => {
     const oldWindow = { ...window };
@@ -39,9 +40,9 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         jest.restoreAllMocks();
     });
 
-    it.each(["clearUrlResponse", "clearHash"] as const)(
-        "%s removes auth fields from both query and fragment while preserving app parameters",
-        (name) => {
+    it.each([Constants.ResponseMode.FRAGMENT, Constants.ResponseMode.QUERY])(
+        "clearHash removes auth fields from both query and fragment in %s mode while preserving app parameters",
+        (responseMode) => {
             const url = window.location.href;
             try {
                 history.replaceState(
@@ -51,7 +52,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
                 );
                 const historyLength = history.length;
 
-                BrowserUtils[name](window);
+                BrowserUtils.clearHash(window, responseMode);
 
                 expect(window.location.href).toBe(
                     `${window.location.origin}/callback?tenant=contoso#view=home`
