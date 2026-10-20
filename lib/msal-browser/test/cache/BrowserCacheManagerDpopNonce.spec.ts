@@ -273,6 +273,50 @@ describe("BrowserCacheManager DPoP nonce state", () => {
         ).toBeUndefined();
     });
 
+    it.each([
+        [{ nonce: "nonce" }],
+        [
+            {
+                nonce: "\u0000invalid",
+                resourceServer: "https://api.contoso.com",
+                state: "request-state",
+                correlationId: "correlation-id",
+                expiresAt: Date.now() + 5 * 60 * 1000,
+            },
+        ],
+    ])("ignores an invalid redirect handoff", (handoff) => {
+        const sourceCache = createCacheManager();
+        sourceCache.setDpopNonce(
+            "https://api.contoso.com/resource",
+            "redirect-nonce"
+        );
+        sourceCache.saveDpopNonceRedirectHandoff(
+            "https://api.contoso.com/resource",
+            "request-state",
+            "correlation-id"
+        );
+        const handoffKey = window.sessionStorage.key(0);
+        expect(handoffKey).not.toBeNull();
+        window.sessionStorage.setItem(
+            handoffKey as string,
+            JSON.stringify(handoff)
+        );
+
+        const restoredCache = createCacheManager();
+        expect(() =>
+            restoredCache.restoreDpopNonceRedirectHandoff(
+                "https://api.contoso.com/resource",
+                "request-state",
+                "correlation-id"
+            )
+        ).not.toThrow();
+
+        expect(window.sessionStorage.length).toBe(0);
+        expect(
+            restoredCache.getDpopNonce("https://api.contoso.com/resource")
+        ).toBeUndefined();
+    });
+
     it("records non-sensitive telemetry when redirect handoff storage operations fail", () => {
         const performanceClient = new StubPerformanceClient();
         const incrementFieldsSpy = jest.spyOn(

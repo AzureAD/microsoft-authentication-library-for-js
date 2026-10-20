@@ -78,6 +78,14 @@ import { clearHash } from "../utils/BrowserUtils.js";
 import { version } from "../packageMetadata.js";
 import { removeElementFromArray } from "../utils/Helpers.js";
 import { EncryptedData, isEncrypted } from "./EncryptedData.js";
+import {
+    isDpopNonceRecord,
+    isDpopNonceRedirectHandoff,
+} from "./DpopNonceCache.js";
+import type {
+    DpopNonceRecord,
+    DpopNonceRedirectHandoff,
+} from "./DpopNonceCache.js";
 
 type KmsiMap = { [homeAccountId: string]: boolean };
 
@@ -85,19 +93,6 @@ const DPOP_NONCE_CACHE_PREFIX = "dpop.nonce.";
 const DPOP_NONCE_REDIRECT_HANDOFF = "dpop.nonce.redirect";
 const MAX_RESOURCE_SERVER_NONCES = 50;
 const REDIRECT_HANDOFF_TTL_MS = 5 * 60 * 1000;
-
-type DpopNonceRecord = {
-    nonce: string;
-    version: number;
-};
-
-type DpopNonceRedirectHandoff = {
-    nonce: string;
-    resourceServer: string;
-    state: string;
-    correlationId: string;
-    expiresAt: number;
-};
 
 /**
  * Reason an old-schema cache entry was removed during migration.
@@ -1946,14 +1941,8 @@ export class BrowserCacheManager extends CacheManager {
             return undefined;
         }
 
-        const record = this.validateAndParseJson(
-            serializedRecord
-        ) as DpopNonceRecord | null;
-        return record &&
-            typeof record.nonce === "string" &&
-            typeof record.version === "number"
-            ? record
-            : undefined;
+        const record = this.validateAndParseJson(serializedRecord);
+        return record && isDpopNonceRecord(record) ? record : undefined;
     }
 
     /**
@@ -2039,20 +2028,7 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         const parsedHandoff = this.validateAndParseJson(serializedHandoff);
-        if (
-            !parsedHandoff ||
-            typeof parsedHandoff !== "object" ||
-            !("nonce" in parsedHandoff) ||
-            typeof parsedHandoff.nonce !== "string" ||
-            !("resourceServer" in parsedHandoff) ||
-            typeof parsedHandoff.resourceServer !== "string" ||
-            !("state" in parsedHandoff) ||
-            typeof parsedHandoff.state !== "string" ||
-            !("correlationId" in parsedHandoff) ||
-            typeof parsedHandoff.correlationId !== "string" ||
-            !("expiresAt" in parsedHandoff) ||
-            typeof parsedHandoff.expiresAt !== "number"
-        ) {
+        if (!parsedHandoff || !isDpopNonceRedirectHandoff(parsedHandoff)) {
             this.logger.warning(
                 "Ignoring an invalid DPoP nonce redirect handoff.",
                 correlationId
@@ -2060,7 +2036,7 @@ export class BrowserCacheManager extends CacheManager {
             return;
         }
 
-        const handoff = parsedHandoff as DpopNonceRedirectHandoff;
+        const handoff = parsedHandoff;
         if (
             handoff.expiresAt < Date.now() ||
             handoff.state !== state ||
