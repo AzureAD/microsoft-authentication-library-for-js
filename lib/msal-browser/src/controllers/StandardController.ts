@@ -499,23 +499,23 @@ export class StandardController implements IController {
             return null;
         }
 
+        const interactionType =
+            this.browserStorage.getInteractionInProgress()?.type;
+        if (interactionType === INTERACTION_TYPE.SIGNOUT) {
+            this.logger.verbose(
+                "handleRedirectPromise removing interaction_in_progress flag and returning null after sign-out",
+                ""
+            );
+            this.browserStorage.setInteractionInProgress(false);
+            return null;
+        }
+
         let loggedInAccounts: AccountInfo[];
         let rootMeasurement: InProgressPerformanceEvent;
 
         let redirectResponse: Promise<AuthenticationResult | null>;
         let cachedRedirectRequest: SsoSilentRequest | undefined;
         try {
-            const interactionType =
-                this.browserStorage.getInteractionInProgress()?.type;
-            if (interactionType === INTERACTION_TYPE.SIGNOUT) {
-                this.logger.verbose(
-                    "handleRedirectPromise removing interaction_in_progress flag and returning null after sign-out",
-                    ""
-                );
-                this.browserStorage.setInteractionInProgress(false);
-                return null;
-            }
-
             loggedInAccounts = this.getAllAccounts();
             const platformBrokerRequest: PlatformAuthRequest | null =
                 this.browserStorage.getCachedNativeRequest();
