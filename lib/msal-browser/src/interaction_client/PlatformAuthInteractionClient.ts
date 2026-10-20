@@ -1023,11 +1023,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             request
         );
         const isDpopRequest = this.isDpopBrokerRequest(request);
-        const tokenType = isDpopRequest
-            ? Constants.AuthenticationScheme.DPOP
-            : request.tokenType === Constants.AuthenticationScheme.POP
-            ? Constants.AuthenticationScheme.POP
-            : Constants.AuthenticationScheme.BEARER;
+        let tokenType: Constants.AuthenticationScheme =
+            Constants.AuthenticationScheme.BEARER;
+        if (isDpopRequest) {
+            tokenType = Constants.AuthenticationScheme.DPOP;
+        } else if (request.tokenType === Constants.AuthenticationScheme.POP) {
+            tokenType = Constants.AuthenticationScheme.POP;
+        }
         const dpopProof =
             isDpopRequest &&
             !(dpopBrokerOutcome === "L3" && response.DPoP === undefined)
