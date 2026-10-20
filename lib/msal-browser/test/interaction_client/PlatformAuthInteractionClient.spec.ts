@@ -1352,8 +1352,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             const clientInternals =
                 platformAuthInteractionClient as unknown as {
                     resetGeneratedDpopRequestKey(
-                        request: PlatformAuthRequest,
-                        mode?: "strict" | "best-effort"
+                        request: PlatformAuthRequest
                     ): Promise<void>;
                     tokenBindingKeyManager: {
                         removeTokenBindingKey(): Promise<void>;
@@ -1386,9 +1385,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
         it("Extension: removes generated DPoP keys during failure cleanup", async () => {
             const clientInternals =
                 platformAuthInteractionClient as unknown as {
-                    resetGeneratedDpopRequestKey(
-                        request: PlatformAuthRequest,
-                        mode?: "strict" | "best-effort"
+                    resetGeneratedDpopRequestKeyBestEffort(
+                        request: PlatformAuthRequest
                     ): Promise<void>;
                     tokenBindingKeyManager: {
                         removeTokenBindingKey(): Promise<void>;
@@ -1420,9 +1418,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "incrementFields"
             );
 
-            await clientInternals.resetGeneratedDpopRequestKey(
-                request,
-                "best-effort"
+            await clientInternals.resetGeneratedDpopRequestKeyBestEffort(
+                request
             );
 
             expect(removeKeySpy).toHaveBeenCalledWith(

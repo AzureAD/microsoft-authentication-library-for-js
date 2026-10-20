@@ -270,9 +270,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 nativeATMeasurement.end({
                     success: false,
                 });
-                await this.resetGeneratedDpopRequestKey(
-                    nativeRequest,
-                    "best-effort"
+                await this.resetGeneratedDpopRequestKeyBestEffort(
+                    nativeRequest
                 );
                 throw e;
             }
@@ -332,10 +331,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 e
             );
             this.setBrokerErrorTelemetry(e);
-            await this.resetGeneratedDpopRequestKey(
-                nativeRequest,
-                "best-effort"
-            );
+            await this.resetGeneratedDpopRequestKeyBestEffort(nativeRequest);
             throw e;
         }
     }
@@ -539,20 +535,17 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                      * in handleRedirectPromise (phase 2).
                      */
                     this.setBrokerErrorTelemetry(e);
-                    await this.resetGeneratedDpopRequestKey(
-                        nativeRequest,
-                        "best-effort"
+                    await this.resetGeneratedDpopRequestKeyBestEffort(
+                        nativeRequest
                     );
                     throw e;
                 }
-                await this.resetGeneratedDpopRequestKey(
-                    nativeRequest,
-                    "best-effort"
+                await this.resetGeneratedDpopRequestKeyBestEffort(
+                    nativeRequest
                 );
             } else if (this.isDpopBrokerRequest(nativeRequest)) {
-                await this.resetGeneratedDpopRequestKey(
-                    nativeRequest,
-                    "best-effort"
+                await this.resetGeneratedDpopRequestKeyBestEffort(
+                    nativeRequest
                 );
                 throw e;
             }
@@ -560,10 +553,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         try {
             await this.ensureRedirectDpopKeyIsPersisted(nativeRequest);
         } catch (e) {
-            await this.resetGeneratedDpopRequestKey(
-                nativeRequest,
-                "best-effort"
-            );
+            await this.resetGeneratedDpopRequestKeyBestEffort(nativeRequest);
             throw e;
         }
         this.browserStorage.setTemporaryCache(
@@ -604,10 +594,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     TemporaryCacheKeys.NATIVE_REQUEST
                 )
             );
-            await this.resetGeneratedDpopRequestKey(
-                nativeRequest,
-                "best-effort"
-            );
+            await this.resetGeneratedDpopRequestKeyBestEffort(nativeRequest);
             throw e;
         }
     }
@@ -711,7 +698,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 serverTelemetryManager.setNativeBrokerErrorCode(e.errorCode);
             }
             this.setBrokerErrorTelemetry(e);
-            await this.resetGeneratedDpopRequestKey(request, "best-effort");
+            await this.resetGeneratedDpopRequestKeyBestEffort(request);
             throw e;
         }
     }
@@ -1851,11 +1838,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     /**
      * Removes a generated DPoP request key and clears its request metadata.
      * @param request - Broker request whose generated key should be removed.
-     * @param mode - Whether cleanup failures should be thrown or only recorded.
      */
     private async resetGeneratedDpopRequestKey(
-        request: PlatformAuthRequest,
-        mode: "strict" | "best-effort" = "strict"
+        request: PlatformAuthRequest
     ): Promise<void> {
         if (!this.isDpopBrokerRequest(request) || !request.keyId) {
             return;
@@ -1900,11 +1885,21 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.correlationId
             );
             cleanupMeasurement.end({ success: false }, error);
+            throw error;
+        }
+    }
 
-            if (mode === "strict") {
-                throw error;
-            }
-
+    /**
+     * Attempts to remove a generated DPoP request key without replacing an
+     * existing operation error with a cleanup failure.
+     * @param request - Broker request whose generated key should be removed.
+     */
+    private async resetGeneratedDpopRequestKeyBestEffort(
+        request: PlatformAuthRequest
+    ): Promise<void> {
+        try {
+            await this.resetGeneratedDpopRequestKey(request);
+        } catch {
             this.logger.error(
                 "Failed to remove generated DPoP request key after an operation error.",
                 this.correlationId
