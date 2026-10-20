@@ -1587,6 +1587,17 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 },
             },
             {
+                name: "unexpected L1 proof",
+                expectedFailureReason: "conflicting_fields",
+                response: {
+                    properties: {
+                        token_type: "DPoP",
+                        DPoP: "unexpected-proof",
+                        binding_attested: "False",
+                    },
+                },
+            },
+            {
                 name: "missing L1 binding",
                 expectedFailureReason: "missing_l1_binding",
                 response: {

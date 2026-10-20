@@ -1617,12 +1617,22 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return "none";
         }
 
+        if (!this.isDpopBrokerTokenType(normalizedResponse.tokenType)) {
+            this.throwInvalidDpopResponse(
+                "unknown_token_type",
+                "Unknown DPoP broker response."
+            );
+        }
+
         this.validateNormalizedDpopBrokerResponse(
             normalizedResponse,
             bindingPreferenceSent
         );
 
-        if (typeof normalizedResponse.proof === "string") {
+        if (
+            normalizedResponse.tokenType ===
+            PlatformAuthTokenType.DPOP_WITH_PROOF.toLowerCase()
+        ) {
             return this.validateDpopBrokerL3Outcome(
                 normalizedRequestTokenType,
                 normalizedResponse
@@ -1683,13 +1693,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         normalizedResponse: NormalizedDpopBrokerResponse,
         bindingPreferenceSent: boolean
     ): void {
-        if (!this.isDpopBrokerTokenType(normalizedResponse.tokenType)) {
-            this.throwInvalidDpopResponse(
-                "unknown_token_type",
-                "Unknown DPoP broker response."
-            );
-        }
-
         if (normalizedResponse.hasMalformedBindingAttested) {
             this.throwInvalidDpopResponse(
                 "invalid_attestation",
@@ -1706,17 +1709,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 "Conflicting DPoP broker response."
             );
         }
-
-        if (
-            normalizedResponse.proof !== undefined &&
-            (typeof normalizedResponse.proof !== "string" ||
-                normalizedResponse.proof.trim().length === 0)
-        ) {
-            this.throwInvalidDpopResponse(
-                "missing_proof",
-                "Malformed DPoP broker response."
-            );
-        }
     }
 
     /**
@@ -1728,6 +1720,16 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     ): "L3" {
         const dpopWithProofTokenType =
             PlatformAuthTokenType.DPOP_WITH_PROOF.toLowerCase();
+
+        if (
+            typeof normalizedResponse.proof !== "string" ||
+            normalizedResponse.proof.trim().length === 0
+        ) {
+            this.throwInvalidDpopResponse(
+                "missing_proof",
+                "Malformed DPoP broker response."
+            );
+        }
 
         if (normalizedResponse.bindingAttested !== true) {
             this.throwInvalidDpopResponse(
@@ -1764,13 +1766,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         normalizedResponse: NormalizedDpopBrokerResponse,
         bindingPreferenceSent: boolean
     ): "L1" {
-        if (
-            normalizedResponse.tokenType !==
-            Constants.AuthenticationScheme.DPOP.toLowerCase()
-        ) {
+        if (normalizedResponse.proof !== undefined) {
             this.throwInvalidDpopResponse(
-                "missing_proof",
-                "Malformed DPoP broker response."
+                "conflicting_fields",
+                "Malformed DPoP broker L1 response."
             );
         }
 
