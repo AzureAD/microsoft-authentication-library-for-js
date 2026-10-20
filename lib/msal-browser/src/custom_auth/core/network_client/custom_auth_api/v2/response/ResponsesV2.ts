@@ -182,7 +182,7 @@ export interface TokenResponseV2 {
     expires_in: number;
     access_token: string;
     refresh_token?: string;
-    scope: string;
+    scope?: string;
     id_token?: string;
     client_info?: string;
     ext_expires_in?: number;

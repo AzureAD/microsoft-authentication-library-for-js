@@ -35,6 +35,7 @@ import {
     TemporaryCacheKeys,
 } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { shouldUseEar } from "../utils/BrowserDetection.js";
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { EventType } from "../event/EventType.js";
 import { NavigationOptions } from "../navigation/NavigationOptions.js";
@@ -183,10 +184,14 @@ export class RedirectClient extends StandardInteractionClient {
         window.addEventListener("pageshow", handleBackButton);
 
         try {
-            const redirectOperation =
-                this.config.system.protocolMode === ProtocolMode.EAR
-                    ? this.executeEarFlow(validRequest)
-                    : this.executeCodeFlow(validRequest);
+            const redirectOperation = shouldUseEar(
+                this.config.system.protocolMode,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )
+                ? this.executeEarFlow(validRequest)
+                : this.executeCodeFlow(validRequest);
             await Promise.race([redirectOperation, backButtonCancellation]);
         } catch (e) {
             if (e instanceof AuthError) {
