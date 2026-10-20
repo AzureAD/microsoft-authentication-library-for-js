@@ -181,8 +181,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Adds MSAL and platform broker SKUs to the request parameters.
-     * @param request - Platform broker request to update.
+     * Adds SKUs to request extra query parameters
+     * @param request {PlatformAuthRequest}
+     * @private
      */
     private addRequestSKUs(request: PlatformAuthRequest): void {
         request.extraParameters = {
