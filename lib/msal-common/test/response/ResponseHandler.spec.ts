@@ -616,6 +616,81 @@ describe("ResponseHandler.ts", () => {
             );
         });
 
+        it("uses the embedded DPoP JKT for a broker raw-token cache record", async () => {
+            const embeddedDpopJkt = "embedded-dpop-jkt";
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                authenticationScheme: AuthenticationScheme.DPOP,
+                dpopJkt: embeddedDpopJkt,
+                embeddedClientId: "embedded-client-id",
+                storeInCache: {
+                    idToken: false,
+                    accessToken: false,
+                },
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                token_type: AuthenticationScheme.DPOP,
+                key_id: undefined,
+            };
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+            const generateResultSpy = jest
+                .spyOn(ResponseHandler, "generateAuthenticationResult")
+                .mockImplementationOnce(
+                    async (
+                        cryptoObj,
+                        authority,
+                        cacheRecord,
+                        fromTokenCache,
+                        request
+                    ) => {
+                        expect(cacheRecord.accessToken?.keyId).toBe(
+                            embeddedDpopJkt
+                        );
+                        expect(request.embeddedClientId).toBe(
+                            "embedded-client-id"
+                        );
+                        expect(request.storeInCache?.accessToken).toBe(false);
+                        return {
+                            authority: TEST_CONFIG.validAuthority,
+                            uniqueId: testIdTokenClaims.oid || "",
+                            tenantId: testIdTokenClaims.tid || "",
+                            scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                            idToken: testResponse.id_token || "",
+                            idTokenClaims: testIdTokenClaims,
+                            accessToken: testResponse.access_token || "",
+                            fromCache: false,
+                            correlationId: "CORRELATION_ID",
+                            expiresOn: TestTimeUtils.nowDateWithOffset(
+                                testServerTokenResponse.body.expires_in
+                            ),
+                            account: testAccount,
+                            tokenType: AuthenticationScheme.DPOP,
+                        };
+                    }
+                );
+
+            await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                TimeUtils.nowSeconds(),
+                testRequest,
+                0
+            );
+
+            expect(generateResultSpy).toHaveBeenCalledTimes(1);
+        });
+
         it("adds rt expiry to performance fields when refresh_token_expires_in provided", async () => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
@@ -1052,6 +1127,60 @@ describe("ResponseHandler.ts", () => {
             expect(result.dpopProof).toBe("fresh-dpop-proof");
             expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(signSpy).toHaveBeenCalled();
+        });
+
+        it("returns raw DPoP access token without a resource proof when requested", async () => {
+            const signSpy = jest.spyOn(cryptoInterface, "signTokenBindingJwt");
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                authenticationScheme: AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                embeddedClientId: "embedded-client-id",
+                storeInCache: {
+                    idToken: false,
+                    accessToken: false,
+                },
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                access_token: TEST_DPOP_VALUES.ACCESS_TOKEN,
+                token_type: AuthenticationScheme.DPOP,
+            };
+            claimsStub.mockImplementation(
+                (encodedToken: string): TokenClaims | null => {
+                    switch (encodedToken) {
+                        case testResponse.id_token:
+                            return ID_TOKEN_CLAIMS as TokenClaims;
+                        default:
+                            return null;
+                    }
+                }
+            );
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null,
+                mockTokenBindingKeyManager
+            );
+            const result = await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                TimeUtils.nowSeconds(),
+                testRequest,
+                0
+            );
+
+            expect(result.tokenType).toBe(AuthenticationScheme.DPOP);
+            expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
+            expect(result.dpopProof).toBeUndefined();
+            expect(signSpy).not.toHaveBeenCalled();
         });
 
         it("returns fresh proof for lowercase cached DPoP access token", async () => {

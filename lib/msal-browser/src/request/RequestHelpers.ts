@@ -57,6 +57,13 @@ function validateDpopRequest(
     correlationId: string
 ): void {
     if (
+        request.embeddedClientId &&
+        request.storeInCache?.accessToken === false
+    ) {
+        return;
+    }
+
+    if (
         !request.resourceRequestMethod?.trim() ||
         !request.resourceRequestUri?.trim()
     ) {
