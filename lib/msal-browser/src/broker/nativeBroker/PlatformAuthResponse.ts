@@ -38,7 +38,7 @@ export type NativeResponseProperties = {
     MATS?: string;
     token_type?: string;
     DPoP?: string;
-    binding_attested?: boolean | string;
+    binding_attested?: string;
 };
 
 /**

@@ -855,7 +855,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     ...MOCK_WAM_RESPONSE,
                     properties: {
                         token_type: "DPoP",
-                        binding_attested: false,
+                        binding_attested: "False",
                     },
                 });
             });
@@ -980,7 +980,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         ...MOCK_WAM_RESPONSE,
                         properties: {
                             token_type: "DPoP",
-                            binding_attested: false,
+                            binding_attested: "False",
                         },
                     });
                 });
@@ -1142,7 +1142,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 ...MOCK_WAM_RESPONSE,
                 properties: {
                     token_type: "DPoP",
-                    binding_attested: false,
+                    binding_attested: "False",
                 },
             });
             const setAccountSpy = jest.spyOn(browserCacheManager, "setAccount");
@@ -1316,7 +1316,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 ...MOCK_WAM_RESPONSE,
                 properties: {
                     token_type: "DPoP",
-                    binding_attested: false,
+                    binding_attested: "False",
                 },
             });
 
@@ -1464,7 +1464,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 response: {
                     properties: {
                         token_type: "DPoP",
-                        binding_attested: false,
+                        binding_attested: "False",
                     },
                 },
             },
@@ -1554,6 +1554,16 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     properties: {
                         token_type: "DPoP",
                         binding_attested: "not-a-boolean",
+                    },
+                },
+            },
+            {
+                name: "native boolean attestation",
+                expectedFailureReason: "invalid_attestation",
+                response: {
+                    properties: {
+                        token_type: "DPoP",
+                        binding_attested: true as unknown as string,
                     },
                 },
             },

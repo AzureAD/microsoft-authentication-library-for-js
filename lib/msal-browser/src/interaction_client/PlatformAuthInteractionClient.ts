@@ -1654,9 +1654,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const rawBindingAttested = responseProperties?.binding_attested;
         let bindingAttested: boolean | undefined;
 
-        if (typeof rawBindingAttested === "boolean") {
-            bindingAttested = rawBindingAttested;
-        } else if (typeof rawBindingAttested === "string") {
+        if (typeof rawBindingAttested === "string") {
             const normalizedBindingAttested = rawBindingAttested
                 .trim()
                 .toLowerCase();
