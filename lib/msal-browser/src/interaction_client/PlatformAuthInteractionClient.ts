@@ -109,6 +109,16 @@ type BrokerDpopFailureReason =
     | "unexpected_response"
     | "unknown_token_type";
 
+type BrokerDpopOutcome = "none" | "L1" | "L3";
+
+type BrokerDpopResponseMetadata = {
+    tokenType?: string;
+    proof?: unknown;
+    bindingAttested?: boolean;
+    hasBindingAttested: boolean;
+    hasMalformedBindingAttested: boolean;
+};
+
 const DPOP_POP_KID_NOT_SUPPORTED = "dpop_pop_kid_not_supported";
 
 export class PlatformAuthInteractionClient extends BaseInteractionClient {
@@ -1587,74 +1597,23 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     private validateDpopBrokerOutcome(
         response: PlatformAuthResponse,
         request: PlatformAuthRequest
-    ): "none" | "L1" | "L3" {
-        const throwInvalidDpopResponse = (
-            failureReason: BrokerDpopFailureReason,
-            message: string
-        ): never => {
-            this.performanceClient.addFields(
-                {
-                    "ext.brokerDpopOutcome": "invalid_response",
-                    "ext.brokerDpopFailureReason": failureReason,
-                },
-                this.correlationId
-            );
-            throw createAuthError(
-                AuthErrorCodes.unexpectedError,
-                this.correlationId,
-                message
-            );
-        };
+    ): BrokerDpopOutcome {
         const isDpopRequest = this.isDpopBrokerRequest(request);
-        const responseProperties = response.properties as
-            | NativeResponseProperties
-            | undefined;
-        const normalizeTokenType = (
-            tokenType: string | undefined
-        ): string | undefined =>
-            typeof tokenType === "string"
-                ? tokenType.trim().toLowerCase()
-                : undefined;
-        const normalizedResponseTokenType = normalizeTokenType(
-            responseProperties?.token_type
-        );
+        const responseMetadata = this.parseDpopBrokerResponse(response);
         const normalizedRequestTokenType = request.tokenType
             ?.trim()
             .toLowerCase();
         const bindingPreferenceSent =
             request.bindingPreferenceSent ??
             request.preferBinding !== undefined;
-        const dpopTokenType = Constants.AuthenticationScheme.DPOP.toLowerCase();
-        const dpopWithProofTokenType =
-            PlatformAuthTokenType.DPOP_WITH_PROOF.toLowerCase();
-        const brokerProof = responseProperties?.DPoP;
-        const normalizeBindingAttestedValue = (
-            value: boolean | string | undefined
-        ): boolean | undefined =>
-            typeof value === "boolean"
-                ? value
-                : typeof value === "string"
-                ? value.trim().toLowerCase() === "true"
-                    ? true
-                    : value.trim().toLowerCase() === "false"
-                    ? false
-                    : undefined
-                : undefined;
-        const propertyBindingAttested = responseProperties?.binding_attested;
-        const normalizedBindingAttested = normalizeBindingAttestedValue(
-            propertyBindingAttested
-        );
-        const hasMalformedBindingAttested =
-            propertyBindingAttested !== undefined &&
-            normalizedBindingAttested === undefined;
         const hasDpopResponse =
-            this.isDpopBrokerTokenType(normalizedResponseTokenType) ||
-            brokerProof !== undefined ||
-            responseProperties?.binding_attested !== undefined;
+            this.isDpopBrokerTokenType(responseMetadata.tokenType) ||
+            responseMetadata.proof !== undefined ||
+            responseMetadata.hasBindingAttested;
 
         if (!isDpopRequest) {
             if (hasDpopResponse) {
-                throwInvalidDpopResponse(
+                this.throwInvalidDpopResponse(
                     "unexpected_response",
                     "Unexpected DPoP broker response."
                 );
@@ -1662,95 +1621,199 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return "none";
         }
 
-        if (!this.isDpopBrokerTokenType(normalizedResponseTokenType)) {
-            throwInvalidDpopResponse(
+        this.validateDpopBrokerResponseMetadata(
+            responseMetadata,
+            bindingPreferenceSent
+        );
+        response.binding_attested = responseMetadata.bindingAttested;
+
+        if (typeof responseMetadata.proof === "string") {
+            response.DPoP = responseMetadata.proof;
+            return this.validateDpopBrokerL3Outcome(
+                response,
+                normalizedRequestTokenType,
+                responseMetadata
+            );
+        }
+
+        response.DPoP = undefined;
+        return this.validateDpopBrokerL1Outcome(
+            response,
+            request,
+            normalizedRequestTokenType,
+            responseMetadata,
+            bindingPreferenceSent
+        );
+    }
+
+    /**
+     * Parses the canonical DPoP metadata returned under response properties.
+     */
+    private parseDpopBrokerResponse(
+        response: PlatformAuthResponse
+    ): BrokerDpopResponseMetadata {
+        const responseProperties = response.properties as
+            | NativeResponseProperties
+            | undefined;
+        const rawTokenType = responseProperties?.token_type;
+        const tokenType =
+            typeof rawTokenType === "string"
+                ? rawTokenType.trim().toLowerCase()
+                : undefined;
+        const rawBindingAttested = responseProperties?.binding_attested;
+        let bindingAttested: boolean | undefined;
+
+        if (typeof rawBindingAttested === "boolean") {
+            bindingAttested = rawBindingAttested;
+        } else if (typeof rawBindingAttested === "string") {
+            const normalizedBindingAttested = rawBindingAttested
+                .trim()
+                .toLowerCase();
+            if (normalizedBindingAttested === "true") {
+                bindingAttested = true;
+            } else if (normalizedBindingAttested === "false") {
+                bindingAttested = false;
+            }
+        }
+
+        return {
+            tokenType,
+            proof: responseProperties?.DPoP,
+            bindingAttested,
+            hasBindingAttested: rawBindingAttested !== undefined,
+            hasMalformedBindingAttested:
+                rawBindingAttested !== undefined &&
+                bindingAttested === undefined,
+        };
+    }
+
+    /**
+     * Validates metadata shared by L1 and L3 broker DPoP responses.
+     */
+    private validateDpopBrokerResponseMetadata(
+        responseMetadata: BrokerDpopResponseMetadata,
+        bindingPreferenceSent: boolean
+    ): void {
+        if (!this.isDpopBrokerTokenType(responseMetadata.tokenType)) {
+            this.throwInvalidDpopResponse(
                 "unknown_token_type",
                 "Unknown DPoP broker response."
             );
         }
 
-        if (hasMalformedBindingAttested) {
-            throwInvalidDpopResponse(
+        if (responseMetadata.hasMalformedBindingAttested) {
+            this.throwInvalidDpopResponse(
                 "invalid_attestation",
                 "Conflicting DPoP broker response."
             );
         }
 
-        if (bindingPreferenceSent && normalizedBindingAttested === undefined) {
-            throwInvalidDpopResponse(
+        if (
+            bindingPreferenceSent &&
+            responseMetadata.bindingAttested === undefined
+        ) {
+            this.throwInvalidDpopResponse(
                 "missing_attestation",
                 "Conflicting DPoP broker response."
             );
         }
 
-        response.binding_attested = normalizedBindingAttested;
-        response.DPoP = brokerProof;
-
-        const hasProof = brokerProof !== undefined;
         if (
-            hasProof &&
-            (typeof brokerProof !== "string" || brokerProof.trim().length === 0)
+            responseMetadata.proof !== undefined &&
+            (typeof responseMetadata.proof !== "string" ||
+                responseMetadata.proof.trim().length === 0)
         ) {
-            throwInvalidDpopResponse(
+            this.throwInvalidDpopResponse(
                 "missing_proof",
                 "Malformed DPoP broker response."
             );
         }
+    }
 
-        if (hasProof) {
-            if (normalizedBindingAttested !== true) {
-                throwInvalidDpopResponse(
-                    "invalid_attestation",
-                    "Malformed DPoP broker response."
-                );
-            }
-            if (
-                normalizedRequestTokenType !== dpopWithProofTokenType ||
-                normalizedResponseTokenType !== dpopWithProofTokenType
-            ) {
-                throwInvalidDpopResponse(
-                    "conflicting_fields",
-                    "Malformed DPoP broker response."
-                );
-            }
-            response.token_type = PlatformAuthTokenType.DPOP_WITH_PROOF;
-            this.performanceClient.addFields(
-                {
-                    "ext.brokerDpopOutcome": "l3",
-                    "ext.brokerDpopBindingLevel": "L3",
-                },
-                this.correlationId
+    /**
+     * Validates a broker-returned L3 DPoP proof outcome.
+     */
+    private validateDpopBrokerL3Outcome(
+        response: PlatformAuthResponse,
+        normalizedRequestTokenType: string | undefined,
+        responseMetadata: BrokerDpopResponseMetadata
+    ): "L3" {
+        const dpopWithProofTokenType =
+            PlatformAuthTokenType.DPOP_WITH_PROOF.toLowerCase();
+
+        if (responseMetadata.bindingAttested !== true) {
+            this.throwInvalidDpopResponse(
+                "invalid_attestation",
+                "Malformed DPoP broker response."
             );
-            return "L3";
+        }
+        if (
+            normalizedRequestTokenType !== dpopWithProofTokenType ||
+            responseMetadata.tokenType !== dpopWithProofTokenType
+        ) {
+            this.throwInvalidDpopResponse(
+                "conflicting_fields",
+                "Malformed DPoP broker response."
+            );
         }
 
-        if (normalizedResponseTokenType !== dpopTokenType) {
-            throwInvalidDpopResponse(
+        response.token_type = PlatformAuthTokenType.DPOP_WITH_PROOF;
+        this.performanceClient.addFields(
+            {
+                "ext.brokerDpopOutcome": "l3",
+                "ext.brokerDpopBindingLevel": "L3",
+            },
+            this.correlationId
+        );
+        return "L3";
+    }
+
+    /**
+     * Validates an L1 DPoP outcome that MSAL will sign with its local key.
+     */
+    private validateDpopBrokerL1Outcome(
+        response: PlatformAuthResponse,
+        request: PlatformAuthRequest,
+        normalizedRequestTokenType: string | undefined,
+        responseMetadata: BrokerDpopResponseMetadata,
+        bindingPreferenceSent: boolean
+    ): "L1" {
+        if (
+            responseMetadata.tokenType !==
+            Constants.AuthenticationScheme.DPOP.toLowerCase()
+        ) {
+            this.throwInvalidDpopResponse(
                 "missing_proof",
                 "Malformed DPoP broker response."
             );
         }
         response.token_type = Constants.AuthenticationScheme.DPOP;
 
-        if (normalizedRequestTokenType !== dpopWithProofTokenType) {
-            throwInvalidDpopResponse(
+        if (
+            normalizedRequestTokenType !==
+            PlatformAuthTokenType.DPOP_WITH_PROOF.toLowerCase()
+        ) {
+            this.throwInvalidDpopResponse(
                 "conflicting_fields",
                 "Malformed DPoP broker L1 response."
             );
         }
 
         if (
-            normalizedBindingAttested !== false &&
-            !(!bindingPreferenceSent && normalizedBindingAttested === undefined)
+            responseMetadata.bindingAttested !== false &&
+            !(
+                !bindingPreferenceSent &&
+                responseMetadata.bindingAttested === undefined
+            )
         ) {
-            throwInvalidDpopResponse(
+            this.throwInvalidDpopResponse(
                 "invalid_attestation",
                 "Malformed DPoP broker L1 response."
             );
         }
 
         if (!request.reqCnf || !request.keyId) {
-            throwInvalidDpopResponse(
+            this.throwInvalidDpopResponse(
                 "missing_l1_binding",
                 "Malformed DPoP broker L1 response."
             );
@@ -1764,6 +1827,27 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.correlationId
         );
         return "L1";
+    }
+
+    /**
+     * Emits bounded failure telemetry and rejects an invalid DPoP response.
+     */
+    private throwInvalidDpopResponse(
+        failureReason: BrokerDpopFailureReason,
+        message: string
+    ): never {
+        this.performanceClient.addFields(
+            {
+                "ext.brokerDpopOutcome": "invalid_response",
+                "ext.brokerDpopFailureReason": failureReason,
+            },
+            this.correlationId
+        );
+        throw createAuthError(
+            AuthErrorCodes.unexpectedError,
+            this.correlationId,
+            message
+        );
     }
 
     /**
