@@ -64,11 +64,11 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
 
         it("removes response values and companion markers without removing other metadata", () => {
             const metadata =
-                "client_info=info&session_state=session&cloud_instance_name=cloud&cloud_instance_host_name=host&cloud_graph_host_name=graph&msgraph_host=graphhost&error_uri=help&suberror=detail&timestamp=now&trace_id=trace&correlation_id=correlation&claims=claims&clientdata=data";
+                "nativeAccountId=old-id&client_info=info&session_state=session&cloud_instance_name=cloud&cloud_instance_host_name=host&cloud_graph_host_name=graph&msgraph_host=graphhost&error_uri=help&suberror=detail&timestamp=now&trace_id=trace&correlation_id=correlation&claims=claims&clientdata=data";
             window.history.replaceState(
                 null,
                 "",
-                `${base}#code=A&ear_jwe=encrypted&accountId=broker-id&nativeAccountId=old-id&state=invalid&error=error&error_description=description&${metadata}`
+                `${base}#code=A&ear_jwe=encrypted&accountId=broker-id&state=invalid&error=error&error_description=description&${metadata}`
             );
 
             clearRedirectResponseFromUrl(window);
@@ -76,22 +76,19 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             expect(window.location.href).toBe(`${base}#${metadata}`);
         });
 
-        it.each(["accountId", "nativeAccountId"])(
-            "removes populated or empty broker identifiers from %s callback fragments",
-            (key) => {
-                window.history.replaceState(null, "", `${base}#${key}=`);
-                clearRedirectResponseFromUrl(window);
-                expect(window.location.href).toBe(base);
+        it("removes populated or empty broker identifiers from accountId callback fragments", () => {
+            window.history.replaceState(null, "", `${base}#accountId=`);
+            clearRedirectResponseFromUrl(window);
+            expect(window.location.href).toBe(base);
 
-                window.history.replaceState(
-                    null,
-                    "",
-                    `${base}?keep=yes#${key}=old-id&state=invalid&view=home`
-                );
-                clearRedirectResponseFromUrl(window);
-                expect(window.location.href).toBe(`${base}?keep=yes#view=home`);
-            }
-        );
+            window.history.replaceState(
+                null,
+                "",
+                `${base}?keep=yes#accountId=old-id&state=invalid&view=home`
+            );
+            clearRedirectResponseFromUrl(window);
+            expect(window.location.href).toBe(`${base}?keep=yes#view=home`);
+        });
 
         it.each([
             "#/dashboard?code=application-code&state=application-state",
@@ -101,6 +98,8 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             "#error=application-error",
             "#/dashboard?accountId=application-id",
             "#/dashboard?nativeAccountId=application-id",
+            "#nativeAccountId=",
+            "#nativeAccountId=application-id",
         ])("preserves application fragment %s", (hash) => {
             window.history.replaceState(null, "", base + hash);
 
@@ -154,21 +153,15 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             expect(window.location.href).toBe(url);
         });
 
-        it.each(["accountId", "nativeAccountId"])(
-            "preserves ordinary query %s parameters unless query response mode is selected",
-            (key) => {
-                const url = `${base}?${key}=old-id&state=invalid&q=keep#/home`;
-                window.history.replaceState(null, "", url);
-                expect(clearRedirectResponseFromUrl(window)).toBe(false);
-                expect(window.location.href).toBe(url);
+        it("preserves ordinary query accountId parameters unless query response mode is selected", () => {
+            const url = `${base}?accountId=old-id&state=invalid&q=keep#/home`;
+            window.history.replaceState(null, "", url);
+            expect(clearRedirectResponseFromUrl(window)).toBe(false);
+            expect(window.location.href).toBe(url);
 
-                clearRedirectResponseFromUrl(
-                    window,
-                    Constants.ResponseMode.QUERY
-                );
-                expect(window.location.href).toBe(`${base}?q=keep#/home`);
-            }
-        );
+            clearRedirectResponseFromUrl(window, Constants.ResponseMode.QUERY);
+            expect(window.location.href).toBe(`${base}?q=keep#/home`);
+        });
 
         it("removes query-mode responses while preserving routing and unrelated query data", () => {
             window.history.replaceState(

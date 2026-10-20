@@ -17,12 +17,7 @@ import {
 } from "@azure/msal-common/browser";
 import { base64Decode } from "../encode/Base64Decode.js";
 
-const redirectResponseKeys = [
-    "code",
-    "ear_jwe",
-    "accountId",
-    "nativeAccountId",
-];
+const redirectResponseKeys = ["code", "ear_jwe", "accountId"];
 const authResponseKeys = new Set([
     ...redirectResponseKeys,
     "state",
