@@ -38,11 +38,59 @@ declare global {
     }
 }
 
-type PopupCapture = {
-    popup: Page;
-    firstResponse: HTTPResponse;
-    responses: HTTPResponse[];
-};
+async function preparePopup(app: Page, context: BrowserContext) {
+    const targetPromise = context.waitForTarget(
+        (target) =>
+            target.type() === "page" && target.opener() === app.target(),
+        { timeout: 30000 }
+    );
+    const handle = await app.evaluateHandle(() =>
+        window.open("about:blank", "_blank")
+    );
+    const popup = await (await targetPromise).page();
+    if (!popup) {
+        throw new Error("The app did not open a blank popup");
+    }
+
+    // Reuse this real popup for MSAL's next synchronous window.open, so its
+    // response listener is ready before navigation. Opener and COOP stay real.
+    await app.evaluate((preparedPopup) => {
+        if (!preparedPopup) {
+            throw new Error("The blank popup was blocked");
+        }
+        const originalOpen = window.open;
+        window.open = (url, name) => {
+            window.open = originalOpen;
+            if (url !== "about:blank") {
+                throw new Error(
+                    "Expected MSAL to open a synchronous blank popup"
+                );
+            }
+            preparedPopup.name = name || "";
+            return preparedPopup;
+        };
+    }, handle);
+    await handle.dispose();
+
+    const responses: HTTPResponse[] = [];
+    const matchesAuthorize = (response: HTTPResponse): boolean => {
+        const url = new URL(response.url());
+        return (
+            response.request().isNavigationRequest() &&
+            url.origin === "https://login.microsoftonline.com" &&
+            url.pathname.endsWith("/authorize")
+        );
+    };
+    popup.on("response", (response) => {
+        if (matchesAuthorize(response)) {
+            responses.push(response);
+        }
+    });
+    const firstResponse = popup.waitForResponse(matchesAuthorize, {
+        timeout: 30000,
+    });
+    return { popup, firstResponse, responses };
+}
 
 const scenarios = [
     { name: "trusted top-level app", untrustedOpener: false, pocd: "1" },
@@ -91,46 +139,13 @@ async function startPopup(
     app: Page,
     context: BrowserContext,
     request: PopupRequest
-): Promise<PopupCapture> {
-    const existingTargets = new Set(context.targets());
-    const matchesEndpoint = (response: HTTPResponse): boolean => {
-        const url = new URL(response.url());
-        return (
-            response.request().isNavigationRequest() &&
-            url.origin === "https://login.microsoftonline.com" &&
-            url.pathname.endsWith("/authorize")
-        );
-    };
-    const popupPromise = context
-        .waitForTarget(
-            (target) =>
-                !existingTargets.has(target) &&
-                target.type() === "page" &&
-                target.opener() === app.target(),
-            { timeout: 30000 }
-        )
-        .then(async (target) => {
-            const popup = await target.page();
-            if (!popup) {
-                throw new Error("No popup for authorize");
-            }
-            const responses: HTTPResponse[] = [];
-            popup.on("response", (response) => {
-                if (response.request().isNavigationRequest()) {
-                    responses.push(response);
-                }
-            });
-            const firstResponse = await popup.waitForResponse(matchesEndpoint, {
-                timeout: 30000,
-            });
-            return { popup, firstResponse, responses };
-        });
-
-    const [capture] = await Promise.all([
-        popupPromise,
+) {
+    const capture = await preparePopup(app, context);
+    const [firstResponse] = await Promise.all([
+        capture.firstResponse,
         startInteraction(app, request, "authorize"),
     ]);
-    return capture;
+    return { ...capture, firstResponse };
 }
 
 function startInteraction(
@@ -302,6 +317,30 @@ describe("Popup origin check (pocd) against production ESTS", () => {
         await browser.close();
     });
 
+    it.each(["GET", "POST"] as const)(
+        "retains the %s response when observed after prompt=none completes",
+        async (httpMethod) => {
+            const app = await openApp(context, false);
+            const capture = await preparePopup(app, context);
+            await startInteraction(
+                app,
+                {
+                    scopes: ["User.Read"],
+                    prompt: "none",
+                    httpMethod,
+                },
+                "authorize"
+            );
+            expect(await getOutcome(app)).toMatchObject({
+                status: "error",
+                errorCode: "login_required",
+                accountCount: 0,
+                hasAccessToken: false,
+            });
+            expectRequest(await capture.firstResponse, "1", httpMethod);
+        }
+    );
+
     it("supports POST sign-in, sign-out, and rejection from the sample UI", async () => {
         const app = await openApp(context, false);
         await app.waitForSelector("#sign-in:not([disabled])");
@@ -319,13 +358,6 @@ describe("Popup origin check (pocd) against production ESTS", () => {
         if (!popup) {
             throw new Error("The sample UI did not open an auth popup");
         }
-        const response = await popup.waitForResponse(
-            (candidate) =>
-                candidate.request().isNavigationRequest() &&
-                new URL(candidate.url()).pathname.endsWith("/authorize"),
-            { timeout: 30000 }
-        );
-        expectRequest(response, "1", "POST");
         const [username, password] = await getCredentials();
         await enterCredentials(
             popup,

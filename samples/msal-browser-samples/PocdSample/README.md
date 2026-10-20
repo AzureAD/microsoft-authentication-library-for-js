@@ -86,6 +86,12 @@ combinations (`pocd=1`, computed-zero omission, explicit `pocd=0`).
 An additional UI case drives the sample's POST sign-in, sign-out, and
 `prompt=none` controls end to end.
 
+Protocol tests pre-open a real blank popup and attach ordinary Puppeteer response
+listeners before MSAL navigates it. The popup retains the app as its opener, so
+COOP and opener-isolation checks still exercise real browser behavior. Two
+regression cases await the captured GET/POST responses only after `prompt=none`
+completes; the UI case uses the sample's normal popup creation unchanged.
+
 Successful cases assert the wire parameters, production response, enforcing COOP
 policy, actual opener isolation, token acquisition/cache, logout return through
 the bridge, and cache cleanup. Negative cases require `login_required` without
