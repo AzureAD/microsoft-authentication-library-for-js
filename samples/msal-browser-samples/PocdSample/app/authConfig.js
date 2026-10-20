@@ -2,9 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-export const ESTS_TEST_SLICE =
-    import.meta.env.VITE_ESTS_TEST_SLICE || "ESTS-PUB-SCUS-FD000-TEST3-100";
-
 export const msalConfig = {
     auth: {
         // This existing MSAL test registration is not excluded from COOP.
@@ -22,5 +19,4 @@ export const msalConfig = {
 
 export const loginRequest = {
     scopes: ["User.Read"],
-    extraQueryParameters: { dc: ESTS_TEST_SLICE },
 };

@@ -42,10 +42,8 @@ application, register a SPA and:
 1. Keep the app out of COOP exclusion lists and leave app-wide COOP overrides
    unset when validating the default POCD policy.
 
-The sample pins authorize and logout requests to `ESTS-PUB-SCUS-FD000-TEST3-100`
-using `extraQueryParameters.dc` while the feature is rolling out. Override the
-slice with `VITE_ESTS_TEST_SLICE` before building or starting the sample. This
-routing is for test validation, not a production application requirement.
+The sample sends authorize and logout requests to production Entra endpoints
+without test-slice routing parameters.
 
 ## Run the sample
 
@@ -88,17 +86,17 @@ combinations (`pocd=1`, computed-zero omission, explicit `pocd=0`).
 An additional UI case drives the sample's POST sign-in, sign-out, and
 `prompt=none` controls end to end.
 
-Successful cases assert the wire parameters, test-slice response, enforcing COOP
+Successful cases assert the wire parameters, production response, enforcing COOP
 policy, actual opener isolation, token acquisition/cache, logout return through
 the bridge, and cache cleanup. Negative cases require `login_required` without
 cached accounts or tokens. Report-only COOP never satisfies the isolation
 assertion for the zero cases.
 
+The tests also assert that authorize/logout requests omit `dc` and that
+authorize responses do not identify a test slice.
+
 ```bash
 npm run test:e2e -- --runInBand
-
-# To validate another deployed test slice:
-VITE_ESTS_TEST_SLICE=ESTS-PUB-SCUS-FD000-TEST3-100 npm run test:e2e -- --runInBand
 ```
 
 The `PocdSample` job in [the 3P E2E pipeline](../../../.pipelines/3p-e2e.yml)

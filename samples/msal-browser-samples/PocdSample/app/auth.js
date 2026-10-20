@@ -50,7 +50,6 @@ signOut.addEventListener("click", async () => {
     try {
         await msalInstance.logoutPopup({
             account: msalInstance.getActiveAccount(),
-            extraQueryParameters: loginRequest.extraQueryParameters,
         });
         signOut.disabled = true;
         output.textContent =

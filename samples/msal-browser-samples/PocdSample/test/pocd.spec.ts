@@ -21,8 +21,6 @@ import {
 
 const HOST_ORIGIN = "https://localhost:3000";
 const APP_ORIGIN = "https://localhost:3001";
-const ESTS_TEST_SLICE =
-    process.env.VITE_ESTS_TEST_SLICE || "ESTS-PUB-SCUS-FD000-TEST3-100";
 const SCREENSHOT_FOLDER = `${__dirname}/screenshots/pocd`;
 
 type PopupOutcome = {
@@ -246,7 +244,8 @@ function expectRequest(
     expect(parameters.get("client_id")).toBe(
         "0845a021-afdf-4126-abdd-099c5e6948e1"
     );
-    expect(response.headers()["x-ms-ests-server"]).toMatch(/TestSlice/i);
+    expect(response.headers()["x-ms-ests-server"]).toEqual(expect.any(String));
+    expect(response.headers()["x-ms-ests-server"]).not.toMatch(/TestSlice/i);
 }
 
 function expectParameters(
@@ -256,7 +255,7 @@ function expectParameters(
     expect(parameters.getAll("pocd")).toEqual(
         expectedPocd === null ? [] : [expectedPocd]
     );
-    expect(parameters.get("dc")).toBe(ESTS_TEST_SLICE);
+    expect(parameters.has("dc")).toBe(false);
 }
 
 async function getOutcome(app: Page): Promise<PopupOutcome> {
@@ -270,7 +269,7 @@ async function getOutcome(app: Page): Promise<PopupOutcome> {
     return outcome;
 }
 
-describe("Popup origin check (pocd) against the ESTS test slice", () => {
+describe("Popup origin check (pocd) against production ESTS", () => {
     let browser: Browser;
     let context: BrowserContext;
     let credentials: [string, string] | undefined;
@@ -369,10 +368,9 @@ describe("Popup origin check (pocd) against the ESTS test slice", () => {
                 const request: PopupRequest = {
                     scopes: ["User.Read"],
                     httpMethod,
-                    extraQueryParameters: {
-                        dc: ESTS_TEST_SLICE,
-                        ...(pocd === "0" ? { pocd: "0" } : {}),
-                    },
+                    ...(pocd === "0"
+                        ? { extraQueryParameters: { pocd: "0" } }
+                        : {}),
                 };
                 const capture = await startPopup(app, context, request);
                 expectRequest(capture.firstResponse, pocd, httpMethod);
@@ -389,13 +387,16 @@ describe("Popup origin check (pocd) against the ESTS test slice", () => {
                 );
                 const document = documents[documents.length - 1];
                 expect(document).toBeDefined();
-                expect(document.headers()["x-ms-ests-server"]).toMatch(
+                expect(document.headers()["x-ms-ests-server"]).toEqual(
+                    expect.any(String)
+                );
+                expect(document.headers()["x-ms-ests-server"]).not.toMatch(
                     /TestSlice/i
                 );
                 const coop = document.headers()["cross-origin-opener-policy"];
                 if (untrustedOpener && !coop) {
                     throw new Error(
-                        `ESTS slice ${ESTS_TEST_SLICE} did not enforce COOP for ` +
+                        "Production ESTS did not enforce COOP for " +
                             `pocd=${
                                 pocd ?? "(omitted)"
                             }. Report-only policy: ` +
@@ -404,11 +405,10 @@ describe("Popup origin check (pocd) against the ESTS test slice", () => {
                                     "cross-origin-opener-policy-report-only"
                                 ] ?? "(absent)"
                             }. ` +
-                            "Verify the app is not COOP-excluded and this test slice has enforcing pocd behavior."
+                            "Verify the app is not COOP-excluded and production has enforcing pocd behavior."
                     );
                 }
                 expect({
-                    slice: ESTS_TEST_SLICE,
                     pocd,
                     coop: coop?.split(";")[0].trim() ?? null,
                     reportOnly:
@@ -458,10 +458,9 @@ describe("Popup origin check (pocd) against the ESTS test slice", () => {
                     scopes: ["User.Read"],
                     prompt: "none",
                     httpMethod,
-                    extraQueryParameters: {
-                        dc: ESTS_TEST_SLICE,
-                        ...(pocd === "0" ? { pocd: "0" } : {}),
-                    },
+                    ...(pocd === "0"
+                        ? { extraQueryParameters: { pocd: "0" } }
+                        : {}),
                 });
                 expectRequest(capture.firstResponse, pocd, httpMethod);
                 expect(await getOutcome(app)).toMatchObject({
