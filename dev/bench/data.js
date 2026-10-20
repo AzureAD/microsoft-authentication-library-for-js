@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792488662523,
+  "lastUpdate": 1792533893554,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24645,6 +24645,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.58%",
             "unit": "ops/sec",
             "extra": "213 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "shylasummers@users.noreply.github.com",
+            "name": "shylasummers",
+            "username": "shylasummers"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bd8b2cdfb4d476b008442902fd799d321f1c5b2b",
+          "message": "Fallback from EAR to auth code flow in Safari (#8903)\n\n## Summary\n\n- Detect Safari when `ProtocolMode.EAR` is configured and transparently\nuse authorization code flow with PKCE instead.\n- Apply the fallback consistently to popup, redirect, and silent iframe\ninteractions before EAR key generation or form submission.\n- Emit `ext.earFallbackReason: safari` performance telemetry and\ndocument the compatibility behavior.\n\n## Validation\n\n- `npm run build:all` in `lib/msal-browser`\n- `npm run lint` in `lib/msal-browser`\n- Targeted Jest suites for browser detection, popup, redirect, and\nsilent iframe clients (186 tests)\n- `npm run format:check` in `lib/msal-browser`\n- `npm run apiExtractor` in `lib/msal-browser`\n\nThe full Jest suite passed 2,294 tests; one unrelated existing\nWindows-only test failed because Jest cannot redefine `os.homedir` in\n`test/scripts/decode-logs.spec.ts`.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: feature\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\n---------\n\nCopilot-Session: e5ae95c9-aa5b-4e28-b3a7-2d9abac2a2aa",
+          "timestamp": "2026-10-20T16:55:43-05:00",
+          "tree_id": "889b61361877c59157ec07c728c87902b913e73a",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/bd8b2cdfb4d476b008442902fd799d321f1c5b2b"
+        },
+        "date": 1792533889547,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 383133,
+            "range": "±0.52%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 380815,
+            "range": "±0.54%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
