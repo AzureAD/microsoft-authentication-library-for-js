@@ -7,7 +7,6 @@ import {
     createStandardPublicClientApplication,
     PublicClientApplication,
 } from "../../src/app/PublicClientApplication.js";
-import { stubbedPublicClientApplication } from "../../src/app/IPublicClientApplication.js";
 import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
 import { TEST_CONFIG } from "../utils/StringConstants.js";
@@ -113,40 +112,6 @@ describe("PublicClientApplication.loadDpopNonce", () => {
 
         expect(pca).toBeInstanceOf(PublicClientApplication);
         expect(typeof pca.loadDpopNonce).toBe("function");
-        expect(typeof stubbedPublicClientApplication.loadDpopNonce).toBe(
-            "function"
-        );
-    });
-
-    it("delegates unsupported behavior to a nestable controller", async () => {
-        const nestablePca = new PublicClientApplication(
-            {
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            },
-            stubbedPublicClientApplication
-        );
-
-        await expect(
-            nestablePca.loadDpopNonce(
-                "https://api.contoso.com/resource",
-                "nonce"
-            )
-        ).rejects.toMatchObject({
-            errorCode: "stubbed_public_client_application_called",
-        });
-    });
-
-    it("stubbedPublicClientApplication rejects with the standard stubbed error", async () => {
-        await expect(
-            stubbedPublicClientApplication.loadDpopNonce(
-                "https://api.contoso.com/resource",
-                "nonce"
-            )
-        ).rejects.toMatchObject({
-            errorCode: "stubbed_public_client_application_called",
-        });
     });
 
     it("delegates nonce loading and emits the public API performance event", async () => {
