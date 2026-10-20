@@ -119,7 +119,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected nativeStorageManager: BrowserCacheManager;
     protected skus: string;
 
-    private static readonly DPOP_BROKER_REQUEST_KEY_LOCATION =
+    /**
+     * Storage location reported for MSAL-owned browser DPoP keys in reqCnf.
+     * This does not constrain the binding selected by the platform broker.
+     */
+    private static readonly MSAL_DPOP_KEY_STORAGE_LOCATION =
         PlatformAuthEnclave.SOFTWARE;
 
     constructor(
@@ -176,6 +180,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         });
     }
 
+    /**
+     * Adds MSAL and platform broker SKUs to the request parameters.
+     * @param request - Platform broker request to update.
+     */
     private addRequestSKUs(request: PlatformAuthRequest): void {
         request.extraParameters = {
             ...request.extraParameters,
@@ -1337,6 +1345,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             loginHint: request.loginHint,
             extraParameters: {
                 ...request.extraParameters,
+                // Native broker resource is set for MCP scenarios.
                 ...(request.resource && { resource: request.resource }),
             },
             extendedExpiryToken: false, // Make this configurable?
@@ -1417,6 +1426,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         return validatedRequest;
     }
 
+    /**
+     * Creates and validates the broker-specific parameters for a DPoP request.
+     * @param request - Developer-provided token request.
+     * @returns Broker parameters for a DPoP token and resource proof.
+     */
     private createDpopRequestParameters(
         request: PopupRequest | SsoSilentRequest
     ): Partial<PlatformAuthRequest> {
@@ -1544,7 +1558,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             JSON.stringify({
                 kid: keyId,
                 xms_ksl:
-                    PlatformAuthInteractionClient.DPOP_BROKER_REQUEST_KEY_LOCATION,
+                    PlatformAuthInteractionClient.MSAL_DPOP_KEY_STORAGE_LOCATION,
             })
         );
     }
@@ -1603,11 +1617,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         };
         const isDpopRequest = this.isDpopBrokerRequest(request);
         const responseProperties = response.properties as
-            | (NativeResponseProperties & {
-                  token_type?: string;
-                  DPoP?: string;
-                  binding_attested?: boolean | string;
-              })
+            | NativeResponseProperties
             | undefined;
         const propertyTokenType = responseProperties?.token_type;
         const topLevelTokenType = response.token_type;
