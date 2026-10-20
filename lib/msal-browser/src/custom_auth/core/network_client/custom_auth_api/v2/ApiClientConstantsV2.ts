@@ -26,5 +26,4 @@ export const AuthenticationMethodTypeV2 = {
 export const ResponseStateV2 = {
     INTERACTION_REQUIRED: "interactionRequired",
     CONTINUE: "continue",
-    WEB_FALLBACK_REQUIRED: "webFallbackRequired",
 } as const;

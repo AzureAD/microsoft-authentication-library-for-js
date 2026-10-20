@@ -124,11 +124,13 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Starts sign-in using the preferred supported method offered by the server.
+     * Starts sign-in by automatically using a sole supported method or returning
+     * multiple supported methods for user selection.
      */
     async signIn(
         parameters: FlowSignInStartParamsV2
     ): Promise<
+        | FlowMethodSelectionRequiredResultV2
         | FlowPasswordRequiredResultV2
         | FlowSignInCodeRequiredResultV2
         | FlowMFARequiredResultV2
@@ -142,8 +144,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         this.logger.verbose("Starting V2 sign-in.", correlationId);
 
+        const scopes = this.getScopes(parameters.scopes);
         const entryResult = await this.apiClient.authorizeChallengeStart(
-            context
+            context,
+            scopes,
+            parameters.claims
         );
         const startResult = await this.apiClient.signInStart(
             this.requireLink(correlationId, entryResult.signInHref, {
@@ -167,10 +172,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: startResult.continuationToken,
             scenario: CustomAuthFlowScenarioV2.SignIn,
+            scopes,
             links: {},
-            tokenRequest: {
-                scopes: parameters.scopes,
-            },
         };
         const methods = startResult.methods.map((method) => ({
             id: method.id,
@@ -178,11 +181,20 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             hint: method.hint,
             challengeHref: method.challengeHref,
         }));
-        const selectedMethod = this.selectSignInMethod(
+        const supportedMethods = this.getSupportedSignInMethods(
             methods,
-            parameters.password !== undefined,
             correlationId
         );
+
+        if (supportedMethods.length > 1) {
+            return createFlowMethodSelectionRequiredResultV2({
+                correlationId,
+                continuationState,
+                methods: supportedMethods,
+            });
+        }
+
+        const selectedMethod = supportedMethods[0];
 
         const challengeResult = await this.requestChallenge({
             correlationId,
@@ -231,9 +243,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         this.logger.verbose("Starting V2 sign-up.", correlationId);
 
+        const scopes = this.getScopes(parameters.scopes);
         const entryResult = await this.apiClient.authorizeChallengeStart(
             context,
-            parameters.scopes
+            scopes,
+            parameters.claims
         );
         const startResult = await this.apiClient.signUpStart(
             this.requireLink(correlationId, entryResult.signUpHref, {
@@ -268,10 +282,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: startResult.continuationToken,
             scenario: CustomAuthFlowScenarioV2.SignUp,
+            scopes,
             links: {},
-            tokenRequest: {
-                scopes: parameters.scopes,
-            },
             signUp: {
                 passwordWasSupplied: attributes.password !== undefined,
             },
@@ -318,8 +330,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             correlationId
         );
 
+        const scopes = this.getScopes(parameters.scopes);
         const entryResult = await this.apiClient.authorizeChallengeStart(
-            context
+            context,
+            scopes,
+            parameters.claims
         );
         const startResult = await this.apiClient.resetPasswordStart(
             this.requireLink(correlationId, entryResult.resetPasswordHref, {
@@ -342,6 +357,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         const continuationState: FlowContinuationStateV2 = {
             continuationToken: startResult.continuationToken,
             scenario: CustomAuthFlowScenarioV2.PasswordReset,
+            scopes,
             links: {},
         };
         const methods = startResult.methods.map((method) => ({
@@ -423,29 +439,42 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             parameters,
             "requestChallenge"
         );
-        const challengeType =
-            challengeResult.type ?? AuthenticationMethodTypeV2.EMAIL;
+        const challengeType = challengeResult.type;
+        const normalizedChallengeType = challengeType?.toLowerCase();
         const continuationState = this.createChallengeContinuationState(
             parameters.continuationState,
             challengeResult
         );
 
-        if (
-            challengeType.toLowerCase() === AuthenticationMethodTypeV2.PASSWORD
-        ) {
+        if (normalizedChallengeType === AuthenticationMethodTypeV2.PASSWORD) {
             return createFlowPasswordRequiredResultV2({
                 correlationId: parameters.correlationId,
                 continuationState,
             });
         }
 
-        return createFlowCodeRequiredResultV2({
-            correlationId: parameters.correlationId,
-            continuationState,
-            channel: challengeType,
-            sentTo: challengeResult.hint,
-            codeLength: challengeResult.codeLength,
-        });
+        if (
+            normalizedChallengeType === AuthenticationMethodTypeV2.EMAIL ||
+            normalizedChallengeType === AuthenticationMethodTypeV2.SMS
+        ) {
+            return createFlowCodeRequiredResultV2({
+                correlationId: parameters.correlationId,
+                continuationState,
+                channel: challengeType,
+                sentTo: challengeResult.hint,
+                codeLength: challengeResult.codeLength,
+            });
+        }
+
+        const message = challengeType
+            ? `Challenge type '${challengeType}' is not supported.`
+            : "Challenge type is missing.";
+        this.logger.error(message, parameters.correlationId);
+        throw new CustomAuthError(
+            UNSUPPORTED_FLOW_TRANSITION,
+            message,
+            parameters.correlationId
+        );
     }
 
     /*
@@ -492,6 +521,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationState: {
                     continuationToken: verifyResult.continuationToken,
                     scenario: continuationState.scenario,
+                    scopes: continuationState.scopes,
                     links: { update: verifyResult.updateHref },
                 },
             });
@@ -517,10 +547,10 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             const nextContinuationState: FlowContinuationStateV2 = {
                 continuationToken: verifyResult.continuationToken,
                 scenario: continuationState.scenario,
+                scopes: continuationState.scopes,
                 links: {
                     submitAttributes: verifyResult.submitAttributesHref,
                 },
-                tokenRequest: continuationState.tokenRequest,
                 signUp: continuationState.signUp,
             };
             const attributes = verifyResult.attributes.filter(
@@ -556,8 +586,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationState: {
                     continuationToken: verifyResult.continuationToken,
                     scenario: continuationState.scenario,
+                    scopes: continuationState.scopes,
                     links: {},
-                    tokenRequest: continuationState.tokenRequest,
                 },
             });
         }
@@ -715,6 +745,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             continuationState: {
                 continuationToken: completionToken,
                 scenario: continuationState.scenario,
+                scopes: continuationState.scopes,
                 links: {},
             },
         });
@@ -756,19 +787,16 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             correlationId
         );
 
-        const scopes = this.getScopes(parameters.scopes);
-
         const tokenResponse = await this.apiClient.completeWithTokens(
             {
                 continuationToken: continuationState.continuationToken,
-                scopes,
             },
             context
         );
 
         const authenticationResult = await this.handleTokenResponse(
             tokenResponse,
-            scopes,
+            continuationState.scopes,
             correlationId,
             apiId
         );
@@ -802,8 +830,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationState: {
                     continuationToken: verifyResult.continuationToken,
                     scenario: continuationState.scenario,
+                    scopes: continuationState.scopes,
                     links: {},
-                    tokenRequest: continuationState.tokenRequest,
                 },
                 methods: verifyResult.methods.map((method) => ({
                     id: method.id,
@@ -831,43 +859,25 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         );
     }
 
-    private selectSignInMethod(
+    private getSupportedSignInMethods(
         methods: AuthenticationMethodV2[],
-        passwordProvided: boolean,
         correlationId: string
-    ): AuthenticationMethodV2 {
-        const passwordMethod = methods.find(
-            (method) =>
-                method.type.toLowerCase() ===
-                AuthenticationMethodTypeV2.PASSWORD
-        );
-        const emailMethod = methods.find(
-            (method) =>
-                method.type.toLowerCase() === AuthenticationMethodTypeV2.EMAIL
-        );
-
-        if (passwordProvided) {
-            if (passwordMethod) {
-                return passwordMethod;
-            }
-
-            const message =
-                "A password was supplied, but the sign-in response did not include a password method.";
-            this.logger.error(message, correlationId);
-            throw new CustomAuthError(
-                UNSUPPORTED_FLOW_TRANSITION,
-                message,
-                correlationId
+    ): AuthenticationMethodV2[] {
+        const supportedMethods = methods.filter((method) => {
+            const methodType = method.type.toLowerCase();
+            return (
+                methodType === AuthenticationMethodTypeV2.EMAIL ||
+                methodType === AuthenticationMethodTypeV2.PASSWORD ||
+                methodType === AuthenticationMethodTypeV2.SMS
             );
-        }
+        });
 
-        const selectedMethod = emailMethod ?? passwordMethod;
-        if (selectedMethod) {
-            return selectedMethod;
+        if (supportedMethods.length > 0) {
+            return supportedMethods;
         }
 
         const message =
-            "The sign-in start response did not include a supported email or password method.";
+            "The sign-in start response did not include a supported email, SMS, or password method.";
         this.logger.error(message, correlationId);
         throw new CustomAuthError(
             UNSUPPORTED_FLOW_TRANSITION,
@@ -889,11 +899,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationState: {
                     continuationToken: result.continuationToken,
                     scenario: continuationState.scenario,
+                    scopes: continuationState.scopes,
                     links: {
                         verify: result.verifyHref,
                         resend: result.resendHref,
                     },
-                    tokenRequest: continuationState.tokenRequest,
                     signUp: continuationState.signUp,
                 },
                 channel: result.type,
@@ -914,10 +924,10 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             const nextContinuationState: FlowContinuationStateV2 = {
                 continuationToken: result.continuationToken,
                 scenario: continuationState.scenario,
+                scopes: continuationState.scopes,
                 links: {
                     submitAttributes: result.submitAttributesHref,
                 },
-                tokenRequest: continuationState.tokenRequest,
                 signUp: continuationState.signUp,
             };
             const attributes = result.attributes.filter(
@@ -950,8 +960,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationState: {
                     continuationToken: result.continuationToken,
                     scenario: continuationState.scenario,
+                    scopes: continuationState.scopes,
                     links: {},
-                    tokenRequest: continuationState.tokenRequest,
                 },
             });
         }
@@ -1019,10 +1029,9 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             continuationState: {
                 continuationToken,
                 scenario: continuationState.scenario,
+                scopes: continuationState.scopes,
                 links: {},
-                tokenRequest: continuationState.tokenRequest,
             },
-            scopes: continuationState.tokenRequest?.scopes,
         });
     }
 
@@ -1087,6 +1096,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         return {
             continuationToken: challengeResult.continuationToken,
             scenario: continuationState.scenario,
+            scopes: continuationState.scopes,
             links: {
                 challenge: continuationState.links.challenge,
                 verify: challengeResult.verifyHref,
@@ -1094,9 +1104,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     challengeResult.resendHref ??
                     continuationState.links.resend,
             },
-            ...(continuationState.tokenRequest && {
-                tokenRequest: continuationState.tokenRequest,
-            }),
             ...(continuationState.signUp && {
                 signUp: continuationState.signUp,
             }),

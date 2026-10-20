@@ -10,6 +10,7 @@ import type {
     FlowCodeRequiredResultV2,
     FlowSubmitCodeResultV2,
 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
+import { ensureArgumentIsNotNullOrUndefined } from "../../../utils/ArgumentValidator.js";
 
 export abstract class ChallengeVerificationStateBaseV2<
     TParameters extends CodeVerificationStateParametersV2 = CodeVerificationStateParametersV2
@@ -33,9 +34,11 @@ export abstract class ChallengeVerificationStateBaseV2<
     protected async submitCodeCore(
         code: string
     ): Promise<FlowSubmitCodeResultV2> {
-        if (this.codeLength) {
-            this.ensureCodeIsValid(code, this.codeLength);
-        }
+        ensureArgumentIsNotNullOrUndefined(
+            "code",
+            code,
+            this.stateParameters.correlationId
+        );
 
         return this.stateParameters.flowClient.submitCode({
             correlationId: this.stateParameters.correlationId,

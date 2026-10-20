@@ -46,3 +46,16 @@ export function ensureArgumentIsJSONString(
         throw e; // Rethrow unexpected errors
     }
 }
+
+export function ensureArgumentIsStringArray(
+    argName: string,
+    argValue: unknown,
+    correlationId?: string
+): asserts argValue is string[] {
+    if (
+        !Array.isArray(argValue) ||
+        !argValue.every((value) => typeof value === "string")
+    ) {
+        throw new InvalidArgumentError(argName, correlationId);
+    }
+}

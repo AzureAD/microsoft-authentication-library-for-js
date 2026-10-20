@@ -36,7 +36,8 @@ export class CustomAuthApiError extends CustomAuthError {
         public continuationToken?: string,
         public traceId?: string,
         public timestamp?: string,
-        public attributeValidationDetails?: AttributeValidationDetailV2[]
+        public attributeValidationDetails?: AttributeValidationDetailV2[],
+        public innerErrorCode?: string
     ) {
         super(error, errorDescription, correlationId, errorCodes, subError);
         Object.setPrototypeOf(this, CustomAuthApiError.prototype);
