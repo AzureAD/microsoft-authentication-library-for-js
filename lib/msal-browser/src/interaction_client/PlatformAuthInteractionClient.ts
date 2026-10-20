@@ -1609,24 +1609,15 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const responseProperties = response.properties as
             | NativeResponseProperties
             | undefined;
-        const propertyTokenType = responseProperties?.token_type;
-        const topLevelTokenType = response.token_type;
         const normalizeTokenType = (
             tokenType: string | undefined
         ): string | undefined =>
             typeof tokenType === "string"
                 ? tokenType.trim().toLowerCase()
                 : undefined;
-        const normalizedPropertyTokenType =
-            normalizeTokenType(propertyTokenType);
-        const normalizedTopLevelTokenType =
-            normalizeTokenType(topLevelTokenType);
-        const normalizedResponseTokenType =
-            normalizedPropertyTokenType ?? normalizedTopLevelTokenType;
-        const hasConflictingTokenType =
-            normalizedPropertyTokenType !== undefined &&
-            normalizedTopLevelTokenType !== undefined &&
-            normalizedPropertyTokenType !== normalizedTopLevelTokenType;
+        const normalizedResponseTokenType = normalizeTokenType(
+            responseProperties?.token_type
+        );
         const normalizedRequestTokenType = request.tokenType
             ?.trim()
             .toLowerCase();
@@ -1636,13 +1627,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const dpopTokenType = Constants.AuthenticationScheme.DPOP.toLowerCase();
         const dpopWithProofTokenType =
             PlatformAuthTokenType.DPOP_WITH_PROOF.toLowerCase();
-        const propertyProof = responseProperties?.DPoP;
-        const topLevelProof = response.DPoP;
-        const brokerProof = propertyProof ?? topLevelProof;
-        const proofValues = [propertyProof, topLevelProof].filter(
-            (proof): proof is string => proof !== undefined
-        );
-        const hasConflictingProof = new Set(proofValues).size > 1;
+        const brokerProof = responseProperties?.DPoP;
         const normalizeBindingAttestedValue = (
             value: boolean | string | undefined
         ): boolean | undefined =>
@@ -1656,30 +1641,15 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     : undefined
                 : undefined;
         const propertyBindingAttested = responseProperties?.binding_attested;
-        const topLevelBindingAttested = response.binding_attested;
-        const normalizedPropertyBindingAttested = normalizeBindingAttestedValue(
+        const normalizedBindingAttested = normalizeBindingAttestedValue(
             propertyBindingAttested
         );
-        const normalizedTopLevelBindingAttested = normalizeBindingAttestedValue(
-            topLevelBindingAttested
-        );
-        const normalizedBindingAttested =
-            normalizedPropertyBindingAttested ??
-            normalizedTopLevelBindingAttested;
         const hasMalformedBindingAttested =
-            (propertyBindingAttested !== undefined &&
-                normalizedPropertyBindingAttested === undefined) ||
-            (topLevelBindingAttested !== undefined &&
-                normalizedTopLevelBindingAttested === undefined);
-        const hasConflictingBindingAttested =
-            normalizedPropertyBindingAttested !== undefined &&
-            normalizedTopLevelBindingAttested !== undefined &&
-            normalizedPropertyBindingAttested !==
-                normalizedTopLevelBindingAttested;
+            propertyBindingAttested !== undefined &&
+            normalizedBindingAttested === undefined;
         const hasDpopResponse =
             this.isDpopBrokerTokenType(normalizedResponseTokenType) ||
             brokerProof !== undefined ||
-            response.binding_attested !== undefined ||
             responseProperties?.binding_attested !== undefined;
 
         if (!isDpopRequest) {
@@ -1696,17 +1666,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             throwInvalidDpopResponse(
                 "unknown_token_type",
                 "Unknown DPoP broker response."
-            );
-        }
-
-        if (
-            hasConflictingProof ||
-            hasConflictingTokenType ||
-            hasConflictingBindingAttested
-        ) {
-            throwInvalidDpopResponse(
-                "conflicting_fields",
-                "Conflicting DPoP broker response."
             );
         }
 

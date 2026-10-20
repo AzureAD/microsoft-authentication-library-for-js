@@ -652,7 +652,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).toEqual(staleAccessToken);
         });
 
-        it("Extension: handles a DPoP response without optional properties", async () => {
+        it("Extension: rejects a DPoP response without canonical properties", async () => {
             const keyManager =
                 // @ts-ignore
                 platformAuthInteractionClient.tokenBindingKeyManager;
@@ -676,18 +676,16 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "sendMessage"
             ).mockResolvedValue(responseWithoutProperties);
 
-            const response = await platformAuthInteractionClient.acquireToken({
-                scopes: ["User.Read"],
-                authenticationScheme: Constants.AuthenticationScheme.DPOP,
-                resourceRequestMethod: "POST",
-                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            await expect(
+                platformAuthInteractionClient.acquireToken({
+                    scopes: ["User.Read"],
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                })
+            ).rejects.toMatchObject({
+                errorCode: "unexpected_error",
             });
-
-            expect(response.accessToken).toBe(MOCK_WAM_RESPONSE.access_token);
-            expect(response.dpopProof).toBe("test-dpop-proof");
-            expect(response.tokenType).toBe(
-                Constants.AuthenticationScheme.DPOP
-            );
             expect(removeKeySpy).toHaveBeenCalledWith(
                 "local-dpop-key",
                 RANDOM_TEST_GUID
@@ -1481,31 +1479,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     },
                 },
             },
-            {
-                name: "top-level token type from the extension",
-                requestTokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
-                bindingPreferenceSent: true,
-                expectedOutcome: "L1",
-                response: {
-                    token_type: "DPoP",
-                    properties: {
-                        binding_attested: false,
-                    },
-                },
-            },
-            {
-                name: "matching normalized nested and top-level token types",
-                requestTokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
-                bindingPreferenceSent: true,
-                expectedOutcome: "L1",
-                response: {
-                    token_type: " dPoP ",
-                    properties: {
-                        token_type: "DPOP",
-                        binding_attested: false,
-                    },
-                },
-            },
         ])(
             "Extension: accepts exact $name",
             ({
@@ -1565,12 +1538,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 },
             },
             {
-                name: "conflicting fields",
-                expectedFailureReason: "conflicting_fields",
+                name: "legacy top-level token type",
+                expectedFailureReason: "unknown_token_type",
                 response: {
-                    token_type: "dpop+proof",
+                    token_type: "DPoP",
                     properties: {
-                        token_type: "DPoP",
                         binding_attested: "false",
                     },
                 },
@@ -1657,28 +1629,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 ]);
             }
         );
-
-        it("Extension: rejects conflicting nested and top-level token types", () => {
-            expect(() =>
-                // @ts-ignore
-                platformAuthInteractionClient.validateDpopBrokerOutcome(
-                    {
-                        ...MOCK_WAM_RESPONSE,
-                        token_type: "Bearer",
-                        properties: {
-                            token_type: "DPoP",
-                            binding_attested: false,
-                        },
-                    },
-                    {
-                        tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
-                        keyId: "local-dpop-key",
-                        reqCnf: "test-req-cnf",
-                        bindingPreferenceSent: true,
-                    } as PlatformAuthRequest
-                )
-            ).toThrow("Conflicting DPoP broker response.");
-        });
 
         it("Extension: rejects a DPoP response without binding metadata", () => {
             expect(() =>
@@ -1777,28 +1727,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     },
                 },
             },
-            {
-                name: "conflicting top-level and property proofs",
-                response: {
-                    DPoP: "different-proof",
-                    properties: {
-                        token_type: "DPoP",
-                        DPoP: "test-dpop-proof",
-                        binding_attested: "true",
-                    },
-                },
-            },
-            {
-                name: "conflicting top-level and property binding outcomes",
-                response: {
-                    binding_attested: false,
-                    properties: {
-                        token_type: "DPoP",
-                        DPoP: "test-dpop-proof",
-                        binding_attested: "true",
-                    },
-                },
-            },
         ])(
             "Extension: rejects malformed $name without mutating cache",
             async ({ response }) => {
@@ -1853,7 +1781,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
         it.each([
             {
                 name: "broker proof",
-                response: { DPoP: "unexpected-proof" },
+                response: {
+                    properties: {
+                        DPoP: "unexpected-proof",
+                    },
+                },
             },
             {
                 name: "token type",
