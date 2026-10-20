@@ -9,8 +9,10 @@ import {
     InteractionRequiredAuthError,
     Logger,
     ProtocolMode,
+    ResponseHandler,
     Constants,
     StubPerformanceClient,
+    ITokenBindingKeyManager,
 } from "@azure/msal-common/browser";
 import * as Authorize from "../../src/protocol/Authorize.js";
 import { buildConfiguration } from "../../src/config/Configuration.js";
@@ -387,6 +389,45 @@ describe("Authorize Protocol Tests", () => {
                     performanceClient
                 );
                 expect(response).toEqual(getTestAuthenticationResult());
+            });
+
+            it("uses the supplied token-binding key manager for a successful EAR response", async () => {
+                const tokenBindingKeyManager: ITokenBindingKeyManager = {
+                    provisionTokenBindingKey: jest.fn(),
+                    removeTokenBindingKey: jest.fn(),
+                    getTokenBindingPublicKeyJwk: jest.fn(),
+                };
+                let responseHandlerKeyManager:
+                    | ITokenBindingKeyManager
+                    | undefined;
+                jest.spyOn(
+                    ResponseHandler.prototype,
+                    "handleServerTokenResponse"
+                ).mockImplementation(function (this: ResponseHandler) {
+                    responseHandlerKeyManager = (
+                        this as unknown as {
+                            tokenBindingKeyManager: ITokenBindingKeyManager;
+                        }
+                    ).tokenBindingKeyManager;
+                    return Promise.resolve(getTestAuthenticationResult());
+                });
+
+                await Authorize.handleResponseEAR(
+                    validRequest,
+                    validResponse,
+                    ApiId.acquireTokenPopup,
+                    config,
+                    authority,
+                    cacheManager,
+                    cacheManager,
+                    eventHandler,
+                    logger,
+                    performanceClient,
+                    undefined,
+                    tokenBindingKeyManager
+                );
+
+                expect(responseHandlerKeyManager).toBe(tokenBindingKeyManager);
             });
         });
     });

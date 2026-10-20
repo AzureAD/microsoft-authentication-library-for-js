@@ -728,7 +728,7 @@ export async function handleResponseEAR(
         performanceClient,
         null,
         null,
-        new TokenBindingKeyManager(logger, performanceClient)
+        tokenBindingKeyManager
     );
 
     // Validate response. This function throws a server error if an error is returned by the server.
