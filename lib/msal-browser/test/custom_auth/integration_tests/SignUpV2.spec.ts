@@ -12,6 +12,7 @@ import { SignUpPasswordRequiredStateV2 } from "../../../src/custom_auth/sign_up/
 import { SignInContinuationStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import type { SignUpInputsV2 } from "../../../src/custom_auth/CustomAuthActionInputs.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
+import { AuthFlowErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 
@@ -112,6 +113,28 @@ describe("Sign-up V2 entry", () => {
         }
     );
 
+    it("rejects malformed claims without sending a request", async () => {
+        const result = await app.signUpV2({
+            username: "user@contoso.com",
+            claims: "not-json",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidInput()).toBe(true);
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
+    it("rejects malformed scopes without sending a request", async () => {
+        const result = await app.signUpV2({
+            username: "user@contoso.com",
+            scopes: "User.Read" as unknown as string[],
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidInput()).toBe(true);
+        expect(fetch).not.toHaveBeenCalled();
+    });
+
     it("starts sign-up, submits initial data, and returns email code required", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
@@ -147,9 +170,6 @@ describe("Sign-up V2 entry", () => {
                     verify: "/tenant/api/v0.1/email/verify",
                     resend: "/tenant/api/v0.1/email/resend",
                 },
-                tokenRequest: {
-                    scopes: ["openid", "User.Read"],
-                },
                 signUp: {
                     passwordWasSupplied: true,
                 },
@@ -161,12 +181,16 @@ describe("Sign-up V2 entry", () => {
         const [, entryOptions] = (fetch as jest.Mock).mock.calls[0];
         const entryBody = new URLSearchParams(entryOptions.body);
         expect(entryBody.get("client_id")).toBe(customAuthConfig.auth.clientId);
-        expect(entryBody.get("scope")).toBe("openid User.Read");
+        expect(entryBody.get("scope")).toBe(
+            "openid User.Read profile offline_access"
+        );
+        expect(entryBody.get("claims")).toBe('{"id_token":{}}');
 
         const [, startOptions] = (fetch as jest.Mock).mock.calls[1];
         expect(JSON.parse(startOptions.body)).toEqual({
             continuationToken: "ct-entry",
         });
+        expect(startOptions.body).not.toContain("claims");
 
         const [, submitOptions] = (fetch as jest.Mock).mock.calls[2];
         expect(JSON.parse(submitOptions.body)).toEqual({
@@ -177,6 +201,7 @@ describe("Sign-up V2 entry", () => {
                 password: "valid-password",
             },
         });
+        expect(submitOptions.body).not.toContain("claims");
     });
 
     it.each([
@@ -374,6 +399,7 @@ describe("Sign-up V2 entry", () => {
         });
 
         expect(result.isFailed()).toBe(true);
+        expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
         expect(result.error?.isInvalidPassword()).toBe(true);
         expect(result.error?.correlationId).toBe("corr-password-policy");
     });
@@ -492,7 +518,7 @@ describe("Sign-up V2 entry", () => {
         });
     });
 
-    it("submits partial attributes and returns the server missing-attribute error", async () => {
+    it("returns required and invalid attribute ids after partial submission", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
             .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -537,6 +563,11 @@ describe("Sign-up V2 entry", () => {
                                         message:
                                             "Attribute 'jobTitle' is required.",
                                     },
+                                    {
+                                        attributeIds: ["city"],
+                                        code: "attributeValidationFailed",
+                                        message: "Enter a valid value.",
+                                    },
                                 ],
                             },
                         },
@@ -575,7 +606,10 @@ describe("Sign-up V2 entry", () => {
             city: "Redmond",
         });
         expect(submitResult.isFailed()).toBe(true);
+        expect(submitResult.error).toBeInstanceOf(AuthFlowErrorV2);
         expect(submitResult.error?.isMissingRequiredAttributes()).toBe(true);
+        expect(submitResult.error?.requiredAttributes).toEqual(["jobTitle"]);
+        expect(submitResult.error?.invalidAttributes).toEqual(["city"]);
 
         expect(JSON.parse((fetch as jest.Mock).mock.calls[4][1].body)).toEqual({
             continuationToken: "ct-profile",
@@ -617,11 +651,8 @@ describe("Sign-up V2 entry", () => {
             ).toEqual({
                 continuationToken: "ct-verify",
                 scenario: "signUp",
+                scopes: ["openid", "profile", "offline_access"],
                 links: {},
-                tokenRequest: {
-                    scopes: undefined,
-                    claims: undefined,
-                },
             });
         }
     });
@@ -686,9 +717,7 @@ describe("Sign-up V2 entry", () => {
             throw new Error("Expected sign-in continuation state.");
         }
 
-        const completedResult = await attributesResult.state.signIn({
-            scopes: ["User.Read"],
-        });
+        const completedResult = await attributesResult.state.signIn();
 
         expect(completedResult.isState("completed")).toBe(true);
         expect(completedResult.state).toBeInstanceOf(CompletedStateV2);
@@ -770,9 +799,7 @@ describe("Sign-up V2 entry", () => {
             throw new Error("Expected sign-in continuation state.");
         }
 
-        const completedResult = await passwordResult.state.signIn({
-            scopes: ["User.Read"],
-        });
+        const completedResult = await passwordResult.state.signIn();
 
         expect(completedResult.isState("completed")).toBe(true);
         expect(completedResult.state).toBeInstanceOf(CompletedStateV2);

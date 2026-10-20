@@ -98,6 +98,7 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 |-----|-----------|----------|
 | `fetch()` | All HTTP requests (token endpoint, discovery, custom auth) | None |
 | `navigator.onLine` | Distinguish network-offline from transport failures when token POST fails | Assumes online (retries once for non-abort transport failures) |
+| `navigator.userAgent` / `navigator.userAgentData.brands` | Identify Safari for EAR fallback using OWA's browser-check ordering | Client hints are optional; use user-agent markers when unavailable |
 | `TextEncoder` / `TextDecoder` | String ↔ binary for crypto | None |
 | `atob()` / `btoa()` | Base64 for JWK and token parsing | None |
 | Hidden form + `form.submit()` | POST-based `/authorize` (EAR, redirect POST, silent iframe POST) | None for POST flows |

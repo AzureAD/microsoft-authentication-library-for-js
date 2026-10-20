@@ -10,9 +10,10 @@ import { CodeRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth
 import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { AttributesRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { SignUpPasswordRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
-import { SignUpStateTransitionHandlerV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
 import { SignInContinuationStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
-import { MFARequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/MFARequiredStateV2.js";
+import { SignUpStateTransitionHandlerV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
+import { AuthMethodSelectionRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
+import { SignInStateTransitionHandlerV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInStateTransitionHandlerV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
     FLOW_ATTRIBUTES_REQUIRED_V2,
@@ -28,9 +29,12 @@ import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
 describe("CodeRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
+    const scopes = ["openid", "profile", "offline_access"];
     const flowClient = {
         submitCode: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
+    const signInStateTransitionHandler = new SignInStateTransitionHandlerV2();
+    const signUpStateTransitionHandler = new SignUpStateTransitionHandlerV2();
 
     const buildState = (): CodeRequiredStateV2 =>
         new CodeRequiredStateV2({
@@ -42,14 +46,13 @@ describe("CodeRequiredStateV2", () => {
             } as unknown as CustomAuthBrowserConfiguration,
             flowClient,
             cacheClient: {} as CustomAuthSilentCacheClient,
+            signInStateTransitionHandler,
             continuationState: {
                 continuationToken: "ct-mfa-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {
                     verify: "/mfa/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             method: {
@@ -73,15 +76,13 @@ describe("CodeRequiredStateV2", () => {
             } as unknown as CustomAuthBrowserConfiguration,
             flowClient,
             cacheClient: {} as CustomAuthSilentCacheClient,
-            signUpStateTransitionHandler: new SignUpStateTransitionHandlerV2(),
+            signUpStateTransitionHandler,
             continuationState: {
                 continuationToken: "ct-sign-up-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignUp,
+                scopes,
                 links: {
                     verify: "/signup/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             sentTo: "user@contoso.com",
@@ -111,11 +112,9 @@ describe("CodeRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-mfa-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {
                     verify: "/mfa/verify",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             code: "123456",
@@ -125,17 +124,71 @@ describe("CodeRequiredStateV2", () => {
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
     });
 
-    it("returns MFA required after submitting a first-factor code", async () => {
+    it("submits a wrong-length first-factor code and surfaces the server error", async () => {
+        flowClient.submitCode.mockRejectedValue(
+            new CustomAuthApiError(
+                "invalidGrant",
+                "AADSTS50181: Unable to validate the otp.",
+                correlationId,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                "invalidOneTimeCode"
+            )
+        );
+
+        const result = await buildState().submitCode("12345");
+
+        expect(flowClient.submitCode).toHaveBeenCalledWith(
+            expect.objectContaining({
+                code: "12345",
+            })
+        );
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidCode()).toBe(true);
+    });
+
+    it("submits an empty first-factor code and surfaces the server error", async () => {
+        flowClient.submitCode.mockRejectedValue(
+            new CustomAuthApiError(
+                "invalidGrant",
+                "AADSTS50181: Unable to validate the otp.",
+                correlationId,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                "invalidOneTimeCode"
+            )
+        );
+
+        const result = await buildState().submitCode("");
+
+        expect(flowClient.submitCode).toHaveBeenCalledWith(
+            expect.objectContaining({
+                code: "",
+            })
+        );
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidCode()).toBe(true);
+    });
+
+    it("returns method selection after submitting a first-factor code", async () => {
         flowClient.submitCode.mockResolvedValue({
             type: FLOW_MFA_REQUIRED_V2,
             correlationId,
             continuationState: {
                 continuationToken: "ct-mfa",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
             methods: [
                 {
@@ -148,8 +201,8 @@ describe("CodeRequiredStateV2", () => {
 
         const result = await buildState().submitCode("123456");
 
-        expect(result.isState("mfaRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(MFARequiredStateV2);
+        expect(result.isState("authMethodSelectionRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(AuthMethodSelectionRequiredStateV2);
     });
 
     it("returns attributes required after verifying a sign-up code", async () => {
@@ -159,11 +212,9 @@ describe("CodeRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-sign-up-verify",
                 scenario: CustomAuthFlowScenarioV2.SignUp,
+                scopes,
                 links: {
                     submitAttributes: "/signup/submitattributes",
-                },
-                tokenRequest: {
-                    scopes: ["User.Read"],
                 },
             },
             attributes: [
@@ -224,6 +275,7 @@ describe("CodeRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-sign-up-verify",
                 scenario: CustomAuthFlowScenarioV2.SignUp,
+                scopes,
                 links: {
                     submitAttributes: "/signup/submitattributes",
                 },
@@ -253,10 +305,8 @@ describe("CodeRequiredStateV2", () => {
             continuationState: {
                 continuationToken: "ct-sign-up-verify",
                 scenario: CustomAuthFlowScenarioV2.SignUp,
+                scopes,
                 links: {},
-                tokenRequest: {
-                    scopes: ["User.Read"],
-                },
             },
         });
 

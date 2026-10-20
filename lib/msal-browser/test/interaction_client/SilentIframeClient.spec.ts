@@ -1577,6 +1577,13 @@ describe("SilentIframeClient", () => {
             });
 
             it("catches a response broadcast at navigation time - EAR flow", async () => {
+                jest.spyOn(
+                    window.navigator,
+                    "userAgent",
+                    "get"
+                ).mockReturnValue(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+                );
                 const raceClient = await buildSilentClient({
                     protocolMode: ProtocolMode.EAR,
                     iframeBridgeTimeout: 3000,
@@ -1798,18 +1805,70 @@ describe("SilentIframeClient", () => {
                 );
             });
 
-            it("Invokes EAR flow when protocolMode is set to EAR", async () => {
-                const earFormSpy = jest
-                    .spyOn(SilentHandler, "initiateEarRequest")
-                    .mockResolvedValue(document.createElement("iframe"));
+            it.each([
+                [
+                    "Chrome",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
+                ],
+                [
+                    "Headless Chrome",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+                ],
+                [
+                    "Edge",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0",
+                ],
+            ])(
+                "Invokes EAR flow when protocolMode is set to EAR in %s",
+                async (_browser, userAgent) => {
+                    jest.spyOn(
+                        window.navigator,
+                        "userAgent",
+                        "get"
+                    ).mockReturnValue(userAgent);
+                    const earFormSpy = jest
+                        .spyOn(SilentHandler, "initiateEarRequest")
+                        .mockResolvedValue(document.createElement("iframe"));
+
+                    const result = await pca.ssoSilent(validRequest);
+                    expect(result).toEqual(getTestAuthenticationResult());
+                    expect(earFormSpy).toHaveBeenCalled();
+                }
+            );
+
+            it("uses authorization code flow instead of EAR in Safari", async () => {
+                jest.spyOn(
+                    window.navigator,
+                    "userAgent",
+                    "get"
+                ).mockReturnValue(
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Safari/605.1.15"
+                );
+                const codeFlowSpy = jest
+                    .spyOn(SilentIframeClient.prototype, "executeCodeFlow")
+                    .mockResolvedValue(getTestAuthenticationResult());
+                const earFlowSpy = jest.spyOn(
+                    SilentIframeClient.prototype,
+                    "executeEarFlow"
+                );
 
                 const result = await pca.ssoSilent(validRequest);
+
                 expect(result).toEqual(getTestAuthenticationResult());
-                expect(earFormSpy).toHaveBeenCalled();
+                expect(codeFlowSpy).toHaveBeenCalled();
+                expect(earFlowSpy).not.toHaveBeenCalled();
+                expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
             });
 
             it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", async () => {
                 jest.restoreAllMocks();
+                jest.spyOn(
+                    window.navigator,
+                    "userAgent",
+                    "get"
+                ).mockReturnValue(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+                );
                 jest.spyOn(ProtocolUtils, "setRequestState").mockReturnValue(
                     TEST_STATE_VALUES.TEST_STATE_SILENT
                 );

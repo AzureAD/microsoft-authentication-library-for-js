@@ -1,7 +1,9 @@
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
 import {
     ResetPasswordInputs,
+    ResetPasswordInputsV2,
     SignInInputs,
+    SignInInputsV2,
     SignUpInputs,
 } from "../../../src/custom_auth/CustomAuthActionInputs.js";
 import { CustomAuthOperatingContext } from "../../../src/custom_auth/operating_context/CustomAuthOperatingContext.js";
@@ -116,6 +118,75 @@ describe("CustomAuthStandardController", () => {
         expect(Reflect.get(controller["flowClientV2"], "apiClient")).toBe(
             customAuthApiClientV2
         );
+    });
+
+    describe("signInV2", () => {
+        it.each([
+            {
+                name: "an empty username",
+                inputs: {
+                    username: "",
+                } as SignInInputsV2,
+            },
+            {
+                name: "malformed claims",
+                inputs: {
+                    username: "user@contoso.com",
+                    claims: "not-json",
+                } as SignInInputsV2,
+            },
+            {
+                name: "malformed scopes",
+                inputs: {
+                    username: "user@contoso.com",
+                    scopes: ["User.Read", 1] as unknown as string[],
+                } as SignInInputsV2,
+            },
+        ])("returns invalid input for $name", async ({ inputs }) => {
+            const signInSpy = jest.spyOn(controller["flowClientV2"], "signIn");
+
+            const result = await controller.signInV2(inputs);
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.error?.isInvalidInput()).toBe(true);
+            expect(signInSpy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe("resetPasswordV2", () => {
+        it.each([
+            {
+                name: "an empty username",
+                inputs: {
+                    username: "",
+                } as ResetPasswordInputsV2,
+            },
+            {
+                name: "malformed claims",
+                inputs: {
+                    username: "user@contoso.com",
+                    claims: "not-json",
+                } as ResetPasswordInputsV2,
+            },
+            {
+                name: "malformed scopes",
+                inputs: {
+                    username: "user@contoso.com",
+                    scopes: ["User.Read", false] as unknown as string[],
+                } as ResetPasswordInputsV2,
+            },
+        ])("returns invalid input for $name", async ({ inputs }) => {
+            const resetPasswordSpy = jest.spyOn(
+                controller["flowClientV2"],
+                "resetPassword"
+            );
+
+            const result = await controller.resetPasswordV2(inputs);
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.error?.isInvalidInput()).toBe(true);
+            expect(resetPasswordSpy).not.toHaveBeenCalled();
+        });
     });
 
     describe("signIn", () => {

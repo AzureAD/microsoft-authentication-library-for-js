@@ -3655,6 +3655,9 @@ describe("RedirectClient", () => {
         });
 
         it("Invokes EAR flow when protocolMode is set to EAR", (done) => {
+            jest.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+            );
             const validRequest: RedirectRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 scopes: ["openid", "profile", "offline_access"],
@@ -3676,6 +3679,33 @@ describe("RedirectClient", () => {
             );
 
             pca.acquireTokenRedirect(validRequest).catch(() => {});
+        });
+
+        it("uses authorization code flow instead of EAR in Safari", async () => {
+            const validRequest: RedirectRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                scopes: ["openid", "profile", "offline_access"],
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                redirectUri: window.location.href,
+                state: TEST_STATE_VALUES.USER_STATE,
+                nonce: ID_TOKEN_CLAIMS.nonce,
+            };
+            jest.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Safari/605.1.15"
+            );
+            const codeFlowSpy = jest
+                .spyOn(RedirectClient.prototype, "executeCodeFlow")
+                .mockResolvedValue();
+            const earFlowSpy = jest.spyOn(
+                RedirectClient.prototype,
+                "executeEarFlow"
+            );
+
+            await pca.acquireTokenRedirect(validRequest);
+
+            expect(codeFlowSpy).toHaveBeenCalled();
+            expect(earFlowSpy).not.toHaveBeenCalled();
+            expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
         });
 
         it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", (done) => {
