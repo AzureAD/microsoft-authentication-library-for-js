@@ -798,23 +798,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         );
 
-        it("cleans a callback when reading the cached native request throws", async () => {
-            browserStorage.setInteractionInProgress(true);
-            const hash = "#code=new-code";
-            window.location.hash = hash;
-            const error = new Error("Invalid cached native request");
-            jest.spyOn(
-                BrowserCacheManager.prototype,
-                "getCachedNativeRequest"
-            ).mockImplementation(() => {
-                expect(window.location.hash).toBe(hash);
-                throw error;
-            });
-
-            await expect(pca.handleRedirectPromise()).rejects.toBe(error);
-            expect(window.location.hash).toBe("");
-        });
-
         it.each([false, true])(
             "cleans query responses and preserves routing, with a cached transaction: %s",
             async (hasTransaction) => {

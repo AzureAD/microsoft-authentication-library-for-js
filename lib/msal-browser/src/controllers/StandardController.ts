@@ -510,17 +510,16 @@ export class StandardController implements IController {
             return null;
         }
 
-        let loggedInAccounts: AccountInfo[];
+        const loggedInAccounts = this.getAllAccounts();
+        const platformBrokerRequest: PlatformAuthRequest | null =
+            this.browserStorage.getCachedNativeRequest();
+        const useNative = platformBrokerRequest && !options?.hash;
+
         let rootMeasurement: InProgressPerformanceEvent;
 
         let redirectResponse: Promise<AuthenticationResult | null>;
         let cachedRedirectRequest: SsoSilentRequest | undefined;
         try {
-            loggedInAccounts = this.getAllAccounts();
-            const platformBrokerRequest: PlatformAuthRequest | null =
-                this.browserStorage.getCachedNativeRequest();
-            const useNative = platformBrokerRequest && !options?.hash;
-
             if (useNative && this.platformAuthProvider) {
                 const correlationId =
                     platformBrokerRequest?.correlationId || "";
