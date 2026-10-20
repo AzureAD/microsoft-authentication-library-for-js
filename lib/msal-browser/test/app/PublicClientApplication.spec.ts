@@ -9645,6 +9645,41 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(result.fromCache).toEqual(true);
         });
 
+        it("hydrates a DPoP access token with the request JKT", async () => {
+            await pca.initialize();
+            const controller = (pca as any).controller;
+            const setAccessTokenSpy = jest.spyOn(
+                controller.browserStorage,
+                "setAccessTokenCredential"
+            );
+            const dpopJkt = "embedded-dpop-jkt";
+            const dpopRequest: SilentRequest = {
+                ...request,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            await pca.hydrateCache(
+                {
+                    ...testAuthenticationResult,
+                    tokenType: Constants.AuthenticationScheme.DPOP,
+                },
+                dpopRequest
+            );
+
+            expect(setAccessTokenSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    keyId: dpopJkt,
+                    tokenType: Constants.AuthenticationScheme.DPOP,
+                }),
+                expect.any(String),
+                expect.any(Boolean),
+                undefined
+            );
+        });
+
         it("hydrates internal cache if provided AuthenticationResult came from platform broker", async () => {
             let config: Configuration = {
                 auth: {

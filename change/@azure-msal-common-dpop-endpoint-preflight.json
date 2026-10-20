@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Add prepared authorization-code redemption and finalized-endpoint DPoP proof provider support",
+    "comment": "Add prepared redemption and raw pairwise-broker DPoP token result support",
     "packageName": "@azure/msal-common",
     "email": "hectormmg@microsoft.com",
     "dependentChangeType": "patch"
