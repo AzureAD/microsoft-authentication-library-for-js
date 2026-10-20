@@ -1700,9 +1700,7 @@ export class StandardController implements IController {
             )
         );
 
-        if (account) {
-            this.nativeInternalStorage.removeAccount(account, correlationId);
-        } else {
+        if (!account) {
             this.nativeInternalStorage.clear(correlationId);
         }
     }
