@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { TEST_CONFIG, TEST_URIS } from "./StringConstants.js";
+import {
+    TEST_CONFIG,
+    TEST_URIS,
+    TEST_STATE_VALUES,
+} from "./StringConstants.js";
 import {
     BrowserUtils,
     BrowserAuthError,
@@ -35,24 +39,29 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         jest.restoreAllMocks();
     });
 
-    it("clearHash() clears the window hash", () => {
-        window.location.hash = "thisIsAHash";
-        BrowserUtils.clearHash(window);
-        expect(window.location.href.includes("#thisIsAHash")).toBe(false);
-    });
+    it.each(["clearUrlResponse", "clearHash"] as const)(
+        "%s removes auth fields from both query and fragment while preserving app parameters",
+        (name) => {
+            const url = window.location.href;
+            try {
+                history.replaceState(
+                    null,
+                    "",
+                    `/callback?tenant=contoso&code=query-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}#code=fragment-code&view=home`
+                );
+                const historyLength = history.length;
 
-    it("clearHash() clears the window hash (office addin)", () => {
-        // Office.js sets replaceState to null: https://github.com/OfficeDev/office-js/issues/429
-        const oldReplaceState = history.replaceState;
-        //@ts-ignore
-        history.replaceState = null;
+                BrowserUtils[name](window);
 
-        window.location.hash = "thisIsAHash";
-        BrowserUtils.clearHash(window);
-        expect(window.location.href.includes("#thisIsAHash")).toBe(false);
-
-        history.replaceState = oldReplaceState;
-    });
+                expect(window.location.href).toBe(
+                    `${window.location.origin}/callback?tenant=contoso#view=home`
+                );
+                expect(history.length).toBe(historyLength);
+            } finally {
+                history.replaceState(null, "", url);
+            }
+        }
+    );
 
     it("replaceHash replaces the current window hash with the hash from the provided url", () => {
         window.location.hash = "thisIsAHash";

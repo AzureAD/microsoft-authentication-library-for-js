@@ -1667,7 +1667,10 @@ describe("RedirectClient", () => {
             );
 
             window.location.hash = "testHash";
-            const clearHashSpy = jest.spyOn(BrowserUtils, "clearHash");
+            const clearUrlResponseSpy = jest.spyOn(
+                BrowserUtils,
+                "clearUrlResponse"
+            );
 
             jest.spyOn(
                 RedirectClient.prototype,
@@ -1688,7 +1691,7 @@ describe("RedirectClient", () => {
                     { hash: "" }
                 )
                 .then(() => {
-                    expect(clearHashSpy).not.toHaveBeenCalled();
+                    expect(clearUrlResponseSpy).not.toHaveBeenCalled();
                     expect(window.location.hash).toEqual("#testHash");
                 });
         });

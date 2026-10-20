@@ -5,7 +5,6 @@
 
 import { parseAuthResponseFromUrl } from "../utils/BrowserUtils.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
-import { clearRedirectResponseFromUrl } from "../utils/BrowserProtocolUtils.js";
 import {
     ApiId,
     INTERACTION_TYPE,
@@ -56,7 +55,7 @@ export async function broadcastResponseToMainFrame(
     const { id, meta } = libraryState;
 
     if (meta["interactionType"] === InteractionType.Redirect) {
-        clearRedirectResponseFromUrl(window);
+        BrowserUtils.clearUrlResponse(window);
         const navClient = navigationClient || new NavigationClient();
 
         let navigateToUrl = "";

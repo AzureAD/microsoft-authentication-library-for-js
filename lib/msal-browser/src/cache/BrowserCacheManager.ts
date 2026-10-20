@@ -72,7 +72,7 @@ import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
 import { EventType } from "../event/EventType.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { EventHandler } from "../event/EventHandler.js";
-import { clearHash } from "../utils/BrowserUtils.js";
+import { clearUrlResponse } from "../utils/BrowserUtils.js";
 import { version } from "../packageMetadata.js";
 import { removeElementFromArray } from "../utils/Helpers.js";
 import { EncryptedData, isEncrypted } from "./EncryptedData.js";
@@ -2353,12 +2353,12 @@ export class BrowserCacheManager extends CacheManager {
         } catch (e) {
             // Remove interaction and other temp keys if interaction status can't be parsed
             this.logger.error(
-                `Cannot parse interaction status. Removing temporary cache items and clearing url hash. Retrying interaction should fix the error`,
+                `Cannot parse interaction status. Removing temporary cache items and clearing URL response. Retrying interaction should fix the error`,
                 ""
             );
             this.removeTemporaryItem(key);
             this.resetRequestCache("");
-            clearHash(window);
+            clearUrlResponse(window);
             return null;
         }
     }

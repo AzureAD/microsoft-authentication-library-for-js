@@ -13,6 +13,8 @@ import {
     InProgressPerformanceEvent,
     Logger,
     ProtocolUtils,
+    AuthError,
+    Constants,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
@@ -31,6 +33,14 @@ import {
     BrowserExperimentalOptions,
 } from "../config/Configuration.js";
 import { redirectBridgeEmptyResponse } from "../error/BrowserAuthErrorCodes.js";
+
+const redirectResponseKeys = ["code", "ear_jwe", "accountId"];
+const authResponseKeys = new Set([
+    ...redirectResponseKeys,
+    "state",
+    "error",
+    "error_description",
+]);
 
 /**
  * Extracts and parses the authentication response from URL (hash and/or query string).
@@ -144,19 +154,144 @@ export function parseAuthResponseFromUrl(): {
 }
 
 /**
- * Clears hash from window url.
+ * Filters redirect response fields, preserving application parameters verbatim.
+ * Query strings require redirect state unless query response mode is selected.
+ */
+function removeAuthResponse(
+    response: string,
+    allowResponseWithoutState: boolean,
+    responseValuesOnly: boolean
+): string {
+    if (response.startsWith("#/")) {
+        return response;
+    }
+    const content = UrlUtils.stripLeadingHashOrQuery(response);
+    if (!content || !/^[^=&?#/]+(?:=|&|$)/.test(content)) {
+        return response;
+    }
+
+    const params = new URLSearchParams(content);
+    const hasResponseValue = redirectResponseKeys.some((key) =>
+        params.has(key)
+    );
+    if (responseValuesOnly && !hasResponseValue) {
+        return response;
+    }
+    let interactionType: string | undefined;
+    const state = params.get("state");
+    if (state) {
+        try {
+            const { libraryState } = ProtocolUtils.parseRequestState(
+                base64Decode,
+                state,
+                ""
+            );
+            if (libraryState?.id) {
+                interactionType = libraryState.meta?.interactionType;
+            }
+        } catch (e) {
+            // Non-MSAL and malformed state cannot establish response ownership.
+            if (!(e instanceof AuthError)) {
+                throw e;
+            }
+        }
+    }
+
+    if (
+        interactionType === InteractionType.Popup ||
+        interactionType === InteractionType.Silent
+    ) {
+        return response;
+    }
+
+    if (
+        interactionType !== InteractionType.Redirect &&
+        !(allowResponseWithoutState && hasResponseValue)
+    ) {
+        return response;
+    }
+
+    const remaining = content
+        .split("&")
+        .filter((parameter) => {
+            const key = new URLSearchParams(parameter).keys().next().value;
+            return !authResponseKeys.has(key);
+        })
+        .join("&");
+    return remaining ? response.charAt(0) + remaining : "";
+}
+
+/**
+ * Removes redirect response fields from both query and fragment, preserving app parameters.
+ * Hash assignment is the fallback when history updates are unavailable.
+ * When responseValuesOnly is true, state/error metadata alone is preserved.
+ * Returns whether a response was found, even if URL cleanup is unavailable.
+ */
+export function clearUrlResponse(
+    contentWindow: Window,
+    responseMode: string = Constants.ResponseMode.FRAGMENT,
+    logger?: Logger,
+    correlationId: string = "",
+    responseValuesOnly: boolean = false
+): boolean {
+    const { origin, pathname, search, hash } = contentWindow.location;
+    const originalUrl = origin + pathname + search + hash;
+    const cleanQuery = removeAuthResponse(
+        search,
+        responseMode === Constants.ResponseMode.QUERY,
+        responseValuesOnly
+    );
+    const cleanHash = removeAuthResponse(hash, true, responseValuesOnly);
+    const cleanUrl = origin + pathname + cleanQuery + cleanHash;
+    if (cleanUrl === originalUrl) {
+        return false;
+    }
+
+    try {
+        if (typeof contentWindow.history?.replaceState === "function") {
+            contentWindow.history.replaceState(
+                contentWindow.history.state,
+                "",
+                cleanUrl
+            );
+            logger?.verbose(
+                "Removed authentication response parameters from the URL.",
+                correlationId
+            );
+            return true;
+        }
+    } catch {
+        // Some hosts expose replaceState but reject its use. Try hash cleanup.
+    }
+    try {
+        // eslint-disable-next-line security/detect-possible-timing-attacks -- Comparing URL fragments to determine whether an update is needed.
+        if (hash !== cleanHash) {
+            contentWindow.location.hash = cleanHash;
+        }
+        if (search === cleanQuery) {
+            return true;
+        }
+    } catch {
+        // Cleanup must not replace the result or error of authentication.
+    }
+
+    const message =
+        "Unable to remove authentication response parameters from the URL without navigation.";
+    if (logger) {
+        logger.warning(message, correlationId);
+    } else {
+        // eslint-disable-next-line no-console
+        console.warn(message);
+    }
+    return true;
+}
+
+/**
+ * Removes redirect response fields from the window URL.
+ * @deprecated Use clearUrlResponse instead.
  */
 export function clearHash(contentWindow: Window): void {
-    // Office.js sets history.replaceState to null
-    contentWindow.location.hash = "";
-    if (typeof contentWindow.history.replaceState === "function") {
-        // Full removes "#" from url
-        contentWindow.history.replaceState(
-            null,
-            "",
-            `${contentWindow.location.origin}${contentWindow.location.pathname}${contentWindow.location.search}`
-        );
-    }
+    clearUrlResponse(contentWindow);
 }
 
 /**

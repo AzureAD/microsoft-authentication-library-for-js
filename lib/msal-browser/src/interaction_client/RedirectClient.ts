@@ -36,7 +36,6 @@ import {
 } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { shouldUseEar } from "../utils/BrowserDetection.js";
-import { clearRedirectResponseFromUrl } from "../utils/BrowserProtocolUtils.js";
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { EventType } from "../event/EventType.js";
 import { NavigationOptions } from "../navigation/NavigationOptions.js";
@@ -468,7 +467,7 @@ export class RedirectClient extends StandardInteractionClient {
                 options?.hash || ""
             );
             if (!serverParams) {
-                clearRedirectResponseFromUrl(
+                BrowserUtils.clearUrlResponse(
                     window,
                     this.config.auth.OIDCOptions.responseMode,
                     this.logger,
@@ -670,7 +669,7 @@ export class RedirectClient extends StandardInteractionClient {
                 return [null, ""];
             }
 
-            clearRedirectResponseFromUrl(
+            BrowserUtils.clearUrlResponse(
                 window,
                 this.config.auth.OIDCOptions.responseMode,
                 this.logger,

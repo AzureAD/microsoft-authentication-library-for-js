@@ -54,7 +54,6 @@ import {
     INTERACTION_TYPE,
 } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
-import { clearRedirectResponseFromUrl } from "../utils/BrowserProtocolUtils.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
@@ -479,7 +478,7 @@ export class StandardController implements IController {
         if (!this.browserStorage.isInteractionInProgress(true)) {
             if (
                 !this.browserStorage.isInteractionInProgress(false) &&
-                clearRedirectResponseFromUrl(
+                BrowserUtils.clearUrlResponse(
                     window,
                     responseMode,
                     this.logger,
@@ -592,7 +591,12 @@ export class StandardController implements IController {
                 )(standardRequest, codeVerifier, rootMeasurement, options);
             }
         } catch (e) {
-            clearRedirectResponseFromUrl(window, responseMode, this.logger, "");
+            BrowserUtils.clearUrlResponse(
+                window,
+                responseMode,
+                this.logger,
+                ""
+            );
             this.browserStorage.resetRequestCache("");
             throw e;
         }
@@ -661,7 +665,7 @@ export class StandardController implements IController {
                 return result;
             })
             .catch((e) => {
-                clearRedirectResponseFromUrl(
+                BrowserUtils.clearUrlResponse(
                     window,
                     responseMode,
                     this.logger,

@@ -347,6 +347,7 @@ export type BrowserTelemetryOptions = {
 declare namespace BrowserUtils {
     export {
         parseAuthResponseFromUrl,
+        clearUrlResponse,
         clearHash,
         clearAuthResponseFromUrl,
         replaceHash,
@@ -407,8 +408,11 @@ export type ClearCacheRequest = {
     account?: AccountInfo | null;
 };
 
-// @public
+// @public @deprecated
 function clearHash(contentWindow: Window): void;
+
+// @public
+function clearUrlResponse(contentWindow: Window, responseMode?: string, logger?: Logger, correlationId?: string, responseValuesOnly?: boolean): boolean;
 
 export { ClientAuthError }
 

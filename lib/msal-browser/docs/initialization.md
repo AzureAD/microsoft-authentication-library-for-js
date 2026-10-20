@@ -237,6 +237,11 @@ Responses belonging to another client or popup/silent flow are left untouched.
 Application routes and unrelated URL parameters are preserved. URL cleanup does
 not indicate authentication success or change response validation.
 
+`BrowserUtils.clearUrlResponse(window)` removes recognized redirect response
+fields from both query and fragment. For query-mode callbacks without valid
+redirect state, pass `Constants.ResponseMode.QUERY` as the second argument.
+`clearHash` remains as a deprecated compatibility alias.
+
 **Note:** `handleRedirectPromise` will optionally accept a hash value to be processed, defaulting to the current value of `window.location.hash`. This parameter only needs to be provided in scenarios where the current value of `window.location.hash` does not contain the redirect response that needs to be processed. **For almost all scenarios, applications should not need to provide this parameter explicitly.**
 
 # Next Steps
