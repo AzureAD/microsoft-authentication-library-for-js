@@ -751,7 +751,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         );
 
-        it("preserves a pending redirect error for processing while cleaning its URL", async () => {
+        it("leaves a pending redirect error in the URL until processing rejects", async () => {
             browserStorage.setInteractionInProgress(true);
             browserStorage.cacheAuthorizeRequest(
                 testRequest,
@@ -763,11 +763,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const error = new Error("Redirect error");
             const redirect = jest
                 .spyOn(RedirectClient.prototype, "handleRedirectPromise")
-                .mockRejectedValue(error);
+                .mockImplementation(async () => {
+                    expect(window.location.hash).toBe(hash);
+                    throw error;
+                });
 
             await expect(pca.handleRedirectPromise()).rejects.toBe(error);
 
-            expect(redirect.mock.calls[0][3]?.hash).toBe(hash);
+            expect(redirect.mock.calls[0][3]).toBeUndefined();
             expect(window.location.hash).toBe("");
         });
 
@@ -784,6 +787,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     BrowserCacheManager.prototype,
                     "getCachedRequest"
                 ).mockImplementation(() => {
+                    expect(window.location.hash).toBe(
+                        `#code=new-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
+                    );
                     throw error;
                 });
 
@@ -791,6 +797,23 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(window.location.hash).toBe("");
             }
         );
+
+        it("cleans a callback when reading the cached native request throws", async () => {
+            browserStorage.setInteractionInProgress(true);
+            const hash = "#code=new-code";
+            window.location.hash = hash;
+            const error = new Error("Invalid cached native request");
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "getCachedNativeRequest"
+            ).mockImplementation(() => {
+                expect(window.location.hash).toBe(hash);
+                throw error;
+            });
+
+            await expect(pca.handleRedirectPromise()).rejects.toBe(error);
+            expect(window.location.hash).toBe("");
+        });
 
         it.each([false, true])(
             "cleans query responses and preserves routing, with a cached transaction: %s",
@@ -815,9 +838,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         TEST_CONFIG.TEST_VERIFIER
                     );
                 }
+                const handleRedirect =
+                    RedirectClient.prototype.handleRedirectPromise;
                 const redirect = jest
                     .spyOn(RedirectClient.prototype, "handleRedirectPromise")
-                    .mockResolvedValue(null);
+                    .mockImplementation(function (
+                        this: RedirectClient,
+                        ...args
+                    ) {
+                        this["handleResponse"] = jest
+                            .fn()
+                            .mockResolvedValue(null);
+                        return handleRedirect.apply(this, args);
+                    });
                 const originalUrl = window.location.href;
                 try {
                     window.history.replaceState(
@@ -825,16 +858,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         "",
                         `?code=new-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=keep#/home`
                     );
-                    const response = window.location.search;
-
                     await expect(
-                        queryPca.handleRedirectPromise()
+                        queryPca.handleRedirectPromise({
+                            navigateToLoginRequestUrl: false,
+                        })
                     ).resolves.toBeNull();
 
                     expect(window.location.search).toBe("?q=keep");
                     expect(window.location.hash).toBe("#/home");
                     if (hasTransaction) {
-                        expect(redirect.mock.calls[0][3]?.hash).toBe(response);
+                        expect(redirect.mock.calls[0][3]).toEqual({
+                            navigateToLoginRequestUrl: false,
+                        });
                     } else {
                         expect(redirect).not.toHaveBeenCalled();
                     }
@@ -848,7 +883,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
             TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
         ])(
-            "passes the captured response to processing after cleaning the URL: %s",
+            "leaves the response in the URL until processing rejects: %s",
             async (hash) => {
                 browserStorage.setInteractionInProgress(true);
                 browserStorage.cacheAuthorizeRequest(
@@ -864,12 +899,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const redirect = jest
                     .spyOn(RedirectClient.prototype, "handleRedirectPromise")
                     .mockImplementation(async () => {
-                        expect(window.location.hash).toBe(cleanHash);
+                        expect(window.location.hash).toBe(hash);
                         throw error;
                     });
 
                 await expect(pca.handleRedirectPromise()).rejects.toBe(error);
-                expect(redirect.mock.calls[0][3]?.hash).toBe(hash);
+                expect(redirect.mock.calls[0][3]).toBeUndefined();
                 expect(window.location.hash).toBe(cleanHash);
             }
         );
@@ -882,15 +917,48 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             window.location.hash = "#code=old";
             const hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            const handleRedirect =
+                RedirectClient.prototype.handleRedirectPromise;
             const redirect = jest
                 .spyOn(RedirectClient.prototype, "handleRedirectPromise")
-                .mockResolvedValue(null);
+                .mockImplementation(function (this: RedirectClient, ...args) {
+                    this["handleResponse"] = jest.fn().mockResolvedValue(null);
+                    return handleRedirect.apply(this, args);
+                });
+            const options = { hash, navigateToLoginRequestUrl: false };
 
-            await pca.handleRedirectPromise({ hash });
+            await pca.handleRedirectPromise(options);
 
-            expect(redirect.mock.calls[0][3]?.hash).toBe(hash);
+            expect(redirect.mock.calls[0][3]).toBe(options);
             expect(window.location.hash).toBe("");
         });
+
+        it.each([
+            ["#code=", ""],
+            ["#code=untracked&state=invalid", ""],
+            [
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP,
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP,
+            ],
+            [
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT,
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT,
+            ],
+        ])(
+            "cleans an unprocessed callback without clearing another flow: %s",
+            async (hash, remainingHash) => {
+                browserStorage.setInteractionInProgress(true);
+                browserStorage.cacheAuthorizeRequest(
+                    testRequest,
+                    TEST_CONFIG.TEST_VERIFIER
+                );
+                window.location.hash = hash;
+
+                await expect(pca.handleRedirectPromise()).resolves.toBeNull();
+
+                expect(window.location.hash).toBe(remainingHash);
+            }
+        );
 
         describe("multi-PCA response ownership", () => {
             const result: AuthenticationResult = {

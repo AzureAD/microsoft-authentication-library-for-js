@@ -468,6 +468,12 @@ export class RedirectClient extends StandardInteractionClient {
                 options?.hash || ""
             );
             if (!serverParams) {
+                clearRedirectResponseFromUrl(
+                    window,
+                    this.config.auth.OIDCOptions.responseMode,
+                    this.logger,
+                    this.correlationId
+                );
                 // Not a recognized server response hash or hash not associated with a redirect request
                 this.logger.info(
                     "handleRedirectPromise did not detect a response as a result of a redirect. Cleaning temporary cache.",

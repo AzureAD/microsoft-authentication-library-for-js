@@ -499,37 +499,28 @@ export class StandardController implements IController {
             return null;
         }
 
-        let redirectOptions = options;
-        const response =
-            responseMode === Constants.ResponseMode.QUERY
-                ? window.location.search
-                : window.location.hash;
-        if (!options?.hash && response) {
-            redirectOptions = { ...options, hash: response };
-        }
-        clearRedirectResponseFromUrl(window, responseMode, this.logger, "");
-
-        const interactionType =
-            this.browserStorage.getInteractionInProgress()?.type;
-        if (interactionType === INTERACTION_TYPE.SIGNOUT) {
-            this.logger.verbose(
-                "handleRedirectPromise removing interaction_in_progress flag and returning null after sign-out",
-                ""
-            );
-            this.browserStorage.setInteractionInProgress(false);
-            return Promise.resolve(null);
-        }
-
-        const loggedInAccounts = this.getAllAccounts();
-        const platformBrokerRequest: PlatformAuthRequest | null =
-            this.browserStorage.getCachedNativeRequest();
-        const useNative = platformBrokerRequest && !options?.hash;
-
+        let loggedInAccounts: AccountInfo[];
         let rootMeasurement: InProgressPerformanceEvent;
 
         let redirectResponse: Promise<AuthenticationResult | null>;
         let cachedRedirectRequest: SsoSilentRequest | undefined;
         try {
+            const interactionType =
+                this.browserStorage.getInteractionInProgress()?.type;
+            if (interactionType === INTERACTION_TYPE.SIGNOUT) {
+                this.logger.verbose(
+                    "handleRedirectPromise removing interaction_in_progress flag and returning null after sign-out",
+                    ""
+                );
+                this.browserStorage.setInteractionInProgress(false);
+                return null;
+            }
+
+            loggedInAccounts = this.getAllAccounts();
+            const platformBrokerRequest: PlatformAuthRequest | null =
+                this.browserStorage.getCachedNativeRequest();
+            const useNative = platformBrokerRequest && !options?.hash;
+
             if (useNative && this.platformAuthProvider) {
                 const correlationId =
                     platformBrokerRequest?.correlationId || "";
@@ -599,14 +590,10 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     rootMeasurement.event.correlationId
-                )(
-                    standardRequest,
-                    codeVerifier,
-                    rootMeasurement,
-                    redirectOptions
-                );
+                )(standardRequest, codeVerifier, rootMeasurement, options);
             }
         } catch (e) {
+            clearRedirectResponseFromUrl(window, responseMode, this.logger, "");
             this.browserStorage.resetRequestCache("");
             throw e;
         }
@@ -675,6 +662,12 @@ export class StandardController implements IController {
                 return result;
             })
             .catch((e) => {
+                clearRedirectResponseFromUrl(
+                    window,
+                    responseMode,
+                    this.logger,
+                    rootMeasurement.event.correlationId
+                );
                 this.browserStorage.resetRequestCache(
                     rootMeasurement.event.correlationId
                 );
