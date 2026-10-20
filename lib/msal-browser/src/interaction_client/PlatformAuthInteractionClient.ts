@@ -5,7 +5,6 @@
 
 import {
     AADServerParamKeys,
-    AccessTokenEntity,
     AccountEntity,
     AccountEntityUtils,
     AccountInfo,
@@ -99,25 +98,6 @@ import {
 import { SilentCacheClient } from "./SilentCacheClient.js";
 
 /**
- * Token-binding parameters added to a platform broker token request.
- */
-type PlatformAuthTokenRequestParameters = {
-    tokenType: PlatformAuthRequest["tokenType"];
-} & Partial<
-    Pick<
-        PlatformAuthRequest,
-        | "preferBinding"
-        | "keyId"
-        | "reqCnf"
-        | "signPopToken"
-        | "resourceRequestMethod"
-        | "resourceRequestUri"
-        | "shrClaims"
-        | "shrNonce"
-    >
->;
-
-/**
  * Bounded failure reasons emitted when validating a broker DPoP response.
  */
 type BrokerDpopFailureReason =
@@ -194,6 +174,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             extensionName: extensionName,
             extensionVersion: this.platformAuthProvider.getExtensionVersion(),
         });
+    }
+
+    private addRequestSKUs(request: PlatformAuthRequest): void {
+        request.extraParameters = {
+            ...request.extraParameters,
+            [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
+        };
     }
 
     /**
@@ -1150,53 +1137,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return;
         }
 
-        const cachedAccessToken = this.createNativeAccessToken(
-            response,
-            request,
-            homeAccountIdentifier,
-            idTokenClaims,
-            tenantId,
-            reqTimestamp,
-            environment
-        );
-        if (!cachedAccessToken) {
-            return;
-        }
-
-        // save access token credential in memory storage
-        const nativeCacheRecord = {
-            accessToken: cachedAccessToken,
-        };
-
-        return this.nativeStorageManager.saveCacheRecord(
-            nativeCacheRecord,
-            this.correlationId,
-            AuthToken.isKmsi(idTokenClaims),
-            this.apiId,
-            storeInCache
-        );
-    }
-
-    /**
-     * Creates the access-token entity returned by the native broker.
-     * @param response - Native broker response.
-     * @param request - Native broker request.
-     * @param homeAccountIdentifier - Home account identifier.
-     * @param idTokenClaims - Claims from the returned ID token.
-     * @param tenantId - Tenant identifier.
-     * @param reqTimestamp - Request timestamp in seconds.
-     * @param environment - Preferred cache environment.
-     * @returns The access-token entity representing the broker response.
-     */
-    private createNativeAccessToken(
-        response: PlatformAuthResponse,
-        request: PlatformAuthRequest,
-        homeAccountIdentifier: string,
-        idTokenClaims: TokenClaims,
-        tenantId: string,
-        reqTimestamp: number,
-        environment: string
-    ): AccessTokenEntity {
+        // cache accessToken in inmemory storage
         const expiresIn: number =
             request.tokenType === Constants.AuthenticationScheme.POP
                 ? Constants.SHR_NONCE_VALIDITY
@@ -1208,12 +1149,10 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             response.scope,
             request.scope
         );
-
         const additionalCacheKeyComponents = request.attributeTokens
             ? { attribute_tokens: request.attributeTokens }
             : undefined;
-
-        const accessToken = CacheHelpers.createAccessTokenEntity(
+        const cachedAccessToken = CacheHelpers.createAccessTokenEntity(
             homeAccountIdentifier,
             environment,
             response.access_token,
@@ -1233,9 +1172,21 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             additionalCacheKeyComponents
         );
         if (request.extraParameters?.resource) {
-            accessToken.resource = request.extraParameters.resource;
+            cachedAccessToken.resource = request.extraParameters.resource;
         }
-        return accessToken;
+
+        // save access token credential in memory storage
+        const nativeCacheRecord = {
+            accessToken: cachedAccessToken,
+        };
+
+        return this.nativeStorageManager.saveCacheRecord(
+            nativeCacheRecord,
+            this.correlationId,
+            AuthToken.isKmsi(idTokenClaims),
+            this.apiId,
+            storeInCache
+        );
     }
 
     getExpiresInValue(
@@ -1363,120 +1314,112 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             },
             this.correlationId
         );
-        const redirectUri = getRedirectUri(
-            request.redirectUri,
-            this.config.auth.redirectUri,
-            this.logger,
-            this.correlationId
-        );
-        const brokerParameters = this.createBrokerRequestParameters(
-            request,
-            redirectUri
-        );
-        const tokenParameters = await this.createTokenRequestParameters(
-            request
-        );
-        const extraParametersNoCache = createPlatformAuthExtraParametersNoCache(
-            tokenParameters.tokenType,
-            tokenParameters.resourceRequestMethod,
-            tokenParameters.resourceRequestUri,
-            dpopNonce
-        );
-        const attributeTokens = CacheHelpers.serializeAttributeTokens(
-            request.attributeTokens
-        );
 
-        return {
+        const validatedRequest: PlatformAuthRequest = {
             claims: mergedClaims,
             accountId: this.accountId,
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
             scope: scopeSet.printScopes(),
-            redirectUri: brokerParameters.redirectUri,
+            redirectUri: getRedirectUri(
+                request.redirectUri,
+                this.config.auth.redirectUri,
+                this.logger,
+                this.correlationId
+            ),
             prompt: this.getPrompt(request.prompt),
             correlationId: this.correlationId,
             isSts: false,
+            tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
             nonce: request.nonce,
             state: request.state,
             loginHint: request.loginHint,
-            extraParameters: brokerParameters.extraParameters,
+            extraParameters: {
+                ...request.extraParameters,
+                ...(request.resource && { resource: request.resource }),
+            },
             extendedExpiryToken: false, // Make this configurable?
-            ...tokenParameters,
-            ...(extraParametersNoCache && { extraParametersNoCache }),
-            ...(attributeTokens && { attributeTokens }),
+            keyId: request.popKid,
         };
-    }
 
-    private async createTokenRequestParameters(
-        request: PopupRequest | SsoSilentRequest
-    ): Promise<PlatformAuthTokenRequestParameters> {
-        switch (request.authenticationScheme) {
-            case Constants.AuthenticationScheme.POP:
-                return this.createPopRequestParameters(request);
-            case Constants.AuthenticationScheme.DPOP:
-                return this.createDpopRequestParameters(request);
-            default:
-                return {
-                    tokenType: request.authenticationScheme,
-                };
+        if (hasAttributeTokens) {
+            validatedRequest.attributeTokens =
+                CacheHelpers.serializeAttributeTokens(request.attributeTokens);
         }
-    }
 
-    private async createPopRequestParameters(
-        request: PopupRequest | SsoSilentRequest
-    ): Promise<PlatformAuthTokenRequestParameters> {
-        const shrParameters: SignedHttpRequestParameters = {
-            resourceRequestUri: request.resourceRequestUri,
-            resourceRequestMethod: request.resourceRequestMethod,
-            shrClaims: request.shrClaims,
-            shrNonce: request.shrNonce,
-            correlationId: this.correlationId,
-        };
-        const popTokenGenerator = new PopTokenGenerator(
-            this.browserCrypto,
-            this.tokenBindingKeyManager,
-            this.performanceClient
+        this.handleExtraBrokerParams(
+            validatedRequest,
+            request.embeddedClientId
         );
+        validatedRequest.extraParameters =
+            validatedRequest.extraParameters || {};
+        validatedRequest.extraParameters.telemetry =
+            PlatformAuthConstants.MATS_TELEMETRY;
 
-        if (request.popKid) {
-            return {
-                tokenType: Constants.AuthenticationScheme.POP,
-                keyId: request.popKid,
-                reqCnf: this.browserCrypto.base64UrlEncode(
-                    JSON.stringify({ kid: request.popKid })
-                ),
-                signPopToken: false,
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.POP
+        ) {
+            const shrParameters: SignedHttpRequestParameters = {
                 resourceRequestMethod: request.resourceRequestMethod,
                 resourceRequestUri: request.resourceRequestUri,
                 shrClaims: request.shrClaims,
                 shrNonce: request.shrNonce,
+                correlationId: this.correlationId,
             };
+            const popTokenGenerator = new PopTokenGenerator(
+                this.browserCrypto,
+                this.tokenBindingKeyManager,
+                this.performanceClient
+            );
+
+            if (!validatedRequest.keyId) {
+                const generatedReqCnfData = await invokeAsync(
+                    popTokenGenerator.generateCnf.bind(popTokenGenerator),
+                    PerformanceEvents.PopTokenGenerateCnf,
+                    this.logger,
+                    this.performanceClient,
+                    this.correlationId
+                )(shrParameters, this.logger);
+                validatedRequest.reqCnf = generatedReqCnfData.reqCnfString;
+                validatedRequest.keyId = generatedReqCnfData.kid;
+                validatedRequest.signPopToken = true;
+            } else {
+                validatedRequest.reqCnf = this.browserCrypto.base64UrlEncode(
+                    JSON.stringify({ kid: validatedRequest.keyId })
+                );
+                validatedRequest.signPopToken = false;
+            }
+
+            validatedRequest.resourceRequestMethod =
+                request.resourceRequestMethod;
+            validatedRequest.resourceRequestUri = request.resourceRequestUri;
+            validatedRequest.shrClaims = request.shrClaims;
+            validatedRequest.shrNonce = request.shrNonce;
+        } else if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            Object.assign(
+                validatedRequest,
+                this.createDpopRequestParameters(request)
+            );
         }
 
-        const generatedReqCnfData = await invokeAsync(
-            popTokenGenerator.generateCnf.bind(popTokenGenerator),
-            PerformanceEvents.PopTokenGenerateCnf,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(shrParameters, this.logger);
+        validatedRequest.extraParametersNoCache =
+            createPlatformAuthExtraParametersNoCache(
+                validatedRequest.tokenType,
+                validatedRequest.resourceRequestMethod,
+                validatedRequest.resourceRequestUri,
+                dpopNonce
+            );
+        this.addRequestSKUs(validatedRequest);
 
-        return {
-            tokenType: Constants.AuthenticationScheme.POP,
-            keyId: generatedReqCnfData.kid,
-            reqCnf: generatedReqCnfData.reqCnfString,
-            signPopToken: true,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            shrNonce: request.shrNonce,
-        };
+        return validatedRequest;
     }
 
     private createDpopRequestParameters(
         request: PopupRequest | SsoSilentRequest
-    ): PlatformAuthTokenRequestParameters {
+    ): Partial<PlatformAuthRequest> {
         if (request.popKid) {
             throw createBrowserAuthError(
                 DPOP_POP_KID_NOT_SUPPORTED,
@@ -2102,42 +2045,41 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
     }
 
-    private createBrokerRequestParameters(
-        request: PopupRequest | SsoSilentRequest,
-        redirectUri: string
-    ): {
-        redirectUri: string;
-        extraParameters: NonNullable<PlatformAuthRequest["extraParameters"]>;
-    } {
-        const extraParameters: NonNullable<
-            PlatformAuthRequest["extraParameters"]
-        > = {
-            ...request.extraParameters,
-            ...(request.resource && { resource: request.resource }),
-            telemetry: PlatformAuthConstants.MATS_TELEMETRY,
-            [AADServerParamKeys.X_CLIENT_EXTRA_SKU]: this.skus,
-        };
+    /**
+     * Handles extra broker request parameters.
+     * @param request - Platform broker request.
+     * @param embeddedClientId - Embedded application client identifier.
+     */
+    private handleExtraBrokerParams(
+        request: PlatformAuthRequest,
+        embeddedClientId?: string
+    ): void {
         const hasOwnParameter = (parameter: string): boolean =>
-            Object.prototype.hasOwnProperty.call(extraParameters, parameter);
+            Object.prototype.hasOwnProperty.call(
+                request.extraParameters,
+                parameter
+            );
         const hasExtraBrokerParams =
             hasOwnParameter(AADServerParamKeys.BROKER_CLIENT_ID) &&
             hasOwnParameter(AADServerParamKeys.BROKER_REDIRECT_URI) &&
             hasOwnParameter(AADServerParamKeys.CLIENT_ID);
 
-        if (!request.embeddedClientId && !hasExtraBrokerParams) {
-            return {
-                redirectUri,
-                extraParameters,
-            };
+        if (!embeddedClientId && !hasExtraBrokerParams) {
+            return;
         }
 
-        const childRedirectUri = redirectUri;
+        const childRedirectUri = request.redirectUri;
         const childClientId =
-            request.embeddedClientId ||
-            extraParameters[AADServerParamKeys.CLIENT_ID];
-        const brokerRedirectUri = request.embeddedClientId
-            ? this.config.auth.redirectUri
-            : extraParameters[AADServerParamKeys.BROKER_REDIRECT_URI];
+            embeddedClientId ||
+            request.extraParameters?.[AADServerParamKeys.CLIENT_ID] ||
+            "";
+
+        if (embeddedClientId) {
+            request.redirectUri = this.config.auth.redirectUri;
+        } else if (request.extraParameters) {
+            request.redirectUri =
+                request.extraParameters[AADServerParamKeys.BROKER_REDIRECT_URI];
+        }
 
         const {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -2147,8 +2089,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [AADServerParamKeys.CLIENT_ID]: _clientId,
             ...remainingExtraParameters
-        } = extraParameters;
-        const brokerExtraParameters = {
+        } = request.extraParameters || {};
+
+        request.extraParameters = {
             ...remainingExtraParameters,
             child_client_id: childClientId,
             child_redirect_uri: childRedirectUri,
@@ -2161,10 +2104,5 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             },
             this.correlationId
         );
-
-        return {
-            redirectUri: brokerRedirectUri,
-            extraParameters: brokerExtraParameters,
-        };
     }
 }

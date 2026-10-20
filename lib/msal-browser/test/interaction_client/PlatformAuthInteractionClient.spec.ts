@@ -18,6 +18,7 @@ import {
     AuthError,
     AuthErrorCodes,
     PerformanceEvent,
+    PopTokenGenerator,
 } from "@azure/msal-common";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { ApiId, CacheLookupPolicy } from "../../src/utils/BrowserConstants.js";
@@ -124,6 +125,10 @@ const testAccessTokenEntity: AccessTokenEntity = {
 function decodeReqCnf(reqCnf: string | undefined): object {
     expect(reqCnf).toEqual(expect.any(String));
     return JSON.parse(base64Decode(reqCnf as string));
+}
+
+function createPopAccessToken(keyId: string): string {
+    return `e30.${btoa(JSON.stringify({ cnf: { kid: keyId } }))}.signature`;
 }
 
 describe("PlatformAuthInteractionClient Tests", () => {
@@ -320,6 +325,112 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.tokenType).toEqual(
                 Constants.AuthenticationScheme.BEARER
             );
+            expect(addFieldsSpy).not.toHaveBeenCalledWith(
+                expect.objectContaining({
+                    "ext.brokerDpopAttempted": 1,
+                }),
+                expect.any(String)
+            );
+        });
+
+        it("Extension: returns a broker-provided SHR without signing locally", async () => {
+            const generateCnfSpy = jest
+                .spyOn(PopTokenGenerator.prototype, "generateCnf")
+                .mockResolvedValue({
+                    kid: "generated-pop-key",
+                    reqCnfString: "generated-pop-req-cnf",
+                });
+            const signPopTokenSpy = jest.spyOn(
+                PopTokenGenerator.prototype,
+                "signPopToken"
+            );
+            const sendMessageSpy = jest
+                .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
+                .mockResolvedValue({
+                    ...MOCK_WAM_RESPONSE,
+                    access_token: createPopAccessToken("generated-pop-key"),
+                    shr: "broker-provided-shr",
+                });
+
+            const response = await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                authenticationScheme: Constants.AuthenticationScheme.POP,
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                shrNonce: "broker-shr-nonce",
+                shrClaims: '{"custom":"claim"}',
+            });
+
+            expect(response.accessToken).toBe("broker-provided-shr");
+            expect(generateCnfSpy).toHaveBeenCalledTimes(1);
+            expect(sendMessageSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    tokenType: Constants.AuthenticationScheme.POP,
+                    keyId: "generated-pop-key",
+                    reqCnf: "generated-pop-req-cnf",
+                    signPopToken: true,
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                    shrNonce: "broker-shr-nonce",
+                    shrClaims: '{"custom":"claim"}',
+                })
+            );
+            expect(signPopTokenSpy).not.toHaveBeenCalled();
+        });
+
+        it("Extension: locally signs legacy PoP responses with the generated key context", async () => {
+            jest.spyOn(
+                PopTokenGenerator.prototype,
+                "generateCnf"
+            ).mockResolvedValue({
+                kid: "generated-pop-key",
+                reqCnfString: "generated-pop-req-cnf",
+            });
+            const signPopTokenSpy = jest
+                .spyOn(PopTokenGenerator.prototype, "signPopToken")
+                .mockResolvedValue("locally-signed-shr");
+            const keyManager = (
+                platformAuthInteractionClient as unknown as {
+                    tokenBindingKeyManager: {
+                        removeTokenBindingKey(): Promise<void>;
+                    };
+                }
+            ).tokenBindingKeyManager;
+            const removeKeySpy = jest.spyOn(
+                keyManager,
+                "removeTokenBindingKey"
+            );
+            const addFieldsSpy = jest.spyOn(perfClient, "addFields");
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockResolvedValue({
+                ...MOCK_WAM_RESPONSE,
+                access_token: createPopAccessToken("generated-pop-key"),
+            });
+
+            const response = await platformAuthInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                authenticationScheme: Constants.AuthenticationScheme.POP,
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                shrNonce: "local-shr-nonce",
+                shrClaims: '{"custom":"claim"}',
+            });
+
+            expect(response.accessToken).toBe("locally-signed-shr");
+            expect(signPopTokenSpy).toHaveBeenCalledWith(
+                createPopAccessToken("generated-pop-key"),
+                "generated-pop-key",
+                expect.objectContaining({
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                    shrNonce: "local-shr-nonce",
+                    shrClaims: '{"custom":"claim"}',
+                    correlationId: RANDOM_TEST_GUID,
+                })
+            );
+            expect(removeKeySpy).not.toHaveBeenCalled();
             expect(addFieldsSpy).not.toHaveBeenCalledWith(
                 expect.objectContaining({
                     "ext.brokerDpopAttempted": 1,
@@ -4352,6 +4463,109 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 fromPlatformBroker: true,
             };
             expect(response).toEqual(testTokenResponse);
+        });
+
+        it("preserves generated legacy PoP context across the redirect round trip", async () => {
+            jest.spyOn(
+                NavigationClient.prototype,
+                "navigateExternal"
+            ).mockResolvedValue(true);
+            const generateCnfSpy = jest
+                .spyOn(PopTokenGenerator.prototype, "generateCnf")
+                .mockResolvedValue({
+                    kid: "redirect-pop-key",
+                    reqCnfString: "redirect-pop-req-cnf",
+                });
+            const signPopTokenSpy = jest
+                .spyOn(PopTokenGenerator.prototype, "signPopToken")
+                .mockResolvedValue("redirect-signed-shr");
+            const keyManager = (
+                platformAuthInteractionClient as unknown as {
+                    tokenBindingKeyManager: {
+                        isTokenBindingKeyPersisted(): Promise<boolean>;
+                        removeTokenBindingKey(): Promise<void>;
+                    };
+                }
+            ).tokenBindingKeyManager;
+            const persistenceSpy = jest.spyOn(
+                keyManager,
+                "isTokenBindingKeyPersisted"
+            );
+            const removeKeySpy = jest.spyOn(
+                keyManager,
+                "removeTokenBindingKey"
+            );
+            const brokerRequests: PlatformAuthRequest[] = [];
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((request) => {
+                brokerRequests.push({ ...request });
+                return Promise.resolve({
+                    ...MOCK_WAM_RESPONSE,
+                    access_token: createPopAccessToken("redirect-pop-key"),
+                });
+            });
+            // @ts-ignore
+            pca.browserStorage.setInteractionInProgress(true);
+
+            await platformAuthInteractionClient.acquireTokenRedirect(
+                {
+                    scopes: ["User.Read"],
+                    prompt: Constants.PromptValue.LOGIN,
+                    authenticationScheme: Constants.AuthenticationScheme.POP,
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                    shrNonce: "redirect-shr-nonce",
+                    shrClaims: '{"redirect":"claim"}',
+                },
+                perfMeasurement
+            );
+            const response =
+                await platformAuthInteractionClient.handleRedirectPromise();
+
+            expect(response?.accessToken).toBe("redirect-signed-shr");
+            expect(generateCnfSpy).toHaveBeenCalledTimes(1);
+            expect(signPopTokenSpy).toHaveBeenCalledWith(
+                createPopAccessToken("redirect-pop-key"),
+                "redirect-pop-key",
+                expect.objectContaining({
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                    shrNonce: "redirect-shr-nonce",
+                    shrClaims: '{"redirect":"claim"}',
+                    correlationId: RANDOM_TEST_GUID,
+                })
+            );
+            expect(brokerRequests).toHaveLength(2);
+            expect(brokerRequests[0]).toEqual(
+                expect.objectContaining({
+                    prompt: Constants.PromptValue.LOGIN,
+                    tokenType: Constants.AuthenticationScheme.POP,
+                    keyId: "redirect-pop-key",
+                    reqCnf: "redirect-pop-req-cnf",
+                    signPopToken: true,
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                    shrNonce: "redirect-shr-nonce",
+                    shrClaims: '{"redirect":"claim"}',
+                })
+            );
+            expect(brokerRequests[1]).toEqual(
+                expect.objectContaining({
+                    tokenType: Constants.AuthenticationScheme.POP,
+                    keyId: "redirect-pop-key",
+                    reqCnf: "redirect-pop-req-cnf",
+                    signPopToken: true,
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                    shrNonce: "redirect-shr-nonce",
+                    shrClaims: '{"redirect":"claim"}',
+                })
+            );
+            expect(brokerRequests[1]).not.toHaveProperty("prompt");
+            expect(persistenceSpy).not.toHaveBeenCalled();
+            expect(removeKeySpy).not.toHaveBeenCalled();
         });
 
         it("retrieves and applies storeInCache directive persisted across the redirect", async () => {
