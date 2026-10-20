@@ -5,11 +5,19 @@
 
 import { validateDpopNonce } from "@azure/msal-common/browser";
 
+/**
+ * PCA-local nonce state for one resource-server origin.
+ * @internal
+ */
 export type DpopNonceRecord = {
     nonce: string;
     version: number;
 };
 
+/**
+ * Temporary redirect state used to restore one request-bound nonce.
+ * @internal
+ */
 export type DpopNonceRedirectHandoff = {
     nonce: string;
     resourceServer: string;
@@ -18,6 +26,10 @@ export type DpopNonceRedirectHandoff = {
     expiresAt: number;
 };
 
+/**
+ * Checks whether parsed cache data has the expected nonce-record shape.
+ * @internal
+ */
 export function isDpopNonceRecord(value: object): value is DpopNonceRecord {
     const record = value as Partial<DpopNonceRecord>;
     return (
@@ -25,6 +37,10 @@ export function isDpopNonceRecord(value: object): value is DpopNonceRecord {
     );
 }
 
+/**
+ * Checks the handoff shape and validates its untrusted persisted nonce.
+ * @internal
+ */
 export function isDpopNonceRedirectHandoff(
     value: object
 ): value is DpopNonceRedirectHandoff {
