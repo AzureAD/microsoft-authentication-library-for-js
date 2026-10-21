@@ -22,6 +22,9 @@ import { CacheLookupPolicy } from "../utils/BrowserConstants.js";
 import type { SilentRequest } from "./SilentRequest.js";
 import type { SsoSilentRequest } from "./SsoSilentRequest.js";
 
+/**
+ * Structural cache capability used to version resource-server DPoP nonces.
+ */
 type DpopNonceCache = {
     getDpopNonce(
         resourceRequestUri: string,

@@ -195,6 +195,8 @@ DPoP resource proofs are generated from the request method, normalized resource 
 
 A DPoP nonce is an opaque freshness value that an authorization server or resource server may require in the next proof. Enforcement is optional and can vary by resource; this example handles a resource-server challenge.
 
+For cross-origin requests, the resource server must include `DPoP-Nonce` in its `Access-Control-Expose-Headers` response header. Without this CORS response header, browser code cannot read the nonce.
+
 Load a returned `DPoP-Nonce` before requesting a new proof. Retry a nonce challenge at most once:
 
 ```typescript

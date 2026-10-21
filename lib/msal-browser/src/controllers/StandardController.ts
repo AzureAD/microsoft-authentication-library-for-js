@@ -2118,6 +2118,7 @@ export class StandardController implements IController {
         resourceRequestUri: string,
         dpopNonce: string
     ): Promise<void> {
+        BrowserUtils.blockNonBrowserEnvironment();
         const correlationId = createNewGuid();
         return invokeAsync(
             async (): Promise<void> => {

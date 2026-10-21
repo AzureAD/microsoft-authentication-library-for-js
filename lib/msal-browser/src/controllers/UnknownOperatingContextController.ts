@@ -291,6 +291,10 @@ export class UnknownOperatingContextController implements IController {
         blockNonBrowserEnvironment();
     }
 
+    /**
+     * Blocks DPoP nonce loading until the application has initialized in a
+     * supported browser operating context.
+     */
     loadDpopNonce(): Promise<void> {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();

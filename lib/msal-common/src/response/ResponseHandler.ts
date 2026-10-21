@@ -63,6 +63,9 @@ export type GenerateAuthenticationResultOptions = {
     cacheManager?: CacheManager;
 };
 
+/**
+ * Structural cache capability used to load a resource-server DPoP nonce.
+ */
 type DpopNonceCache = {
     getDpopNonce(
         resourceRequestUri: string,
@@ -70,6 +73,9 @@ type DpopNonceCache = {
     ): { nonce: string; version: number } | undefined;
 };
 
+/**
+ * Returns whether a cache manager supports resource-server DPoP nonces.
+ */
 function hasDpopNonceCache(
     cacheManager: CacheManager
 ): cacheManager is CacheManager & DpopNonceCache {

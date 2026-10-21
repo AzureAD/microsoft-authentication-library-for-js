@@ -1975,6 +1975,18 @@ export class BrowserCacheManager extends CacheManager {
             expiresAt: Date.now() + REDIRECT_HANDOFF_TTL_MS,
         };
 
+        if (this.temporaryCacheStorage instanceof MemoryStorage) {
+            this.performanceClient.incrementFields(
+                { "ext.dpopNonceRedirectHandoffSaveFailureCount": 1 },
+                correlationId
+            );
+            this.logger.warning(
+                "Unable to save the DPoP nonce redirect handoff.",
+                correlationId
+            );
+            return;
+        }
+
         try {
             this.setTemporaryCache(
                 DPOP_NONCE_REDIRECT_HANDOFF,

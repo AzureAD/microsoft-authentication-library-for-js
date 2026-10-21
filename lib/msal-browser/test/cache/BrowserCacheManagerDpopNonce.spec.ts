@@ -371,6 +371,40 @@ describe("BrowserCacheManager DPoP nonce state", () => {
         );
     });
 
+    it("records a save failure when session storage falls back to memory", () => {
+        const performanceClient = new StubPerformanceClient();
+        const incrementFieldsSpy = jest.spyOn(
+            performanceClient,
+            "incrementFields"
+        );
+        const sessionStorageSpy = jest
+            .spyOn(window, "sessionStorage", "get")
+            .mockImplementation(() => {
+                throw new Error("storage unavailable");
+            });
+        const cacheManager = createCacheManager("client-id", performanceClient);
+        sessionStorageSpy.mockRestore();
+        cacheManager.setDpopNonce(
+            "https://api.contoso.com/resource",
+            "redirect-nonce"
+        );
+
+        cacheManager.saveDpopNonceRedirectHandoff(
+            "https://api.contoso.com/resource",
+            "request-state",
+            "correlation-id"
+        );
+
+        expect(incrementFieldsSpy).toHaveBeenCalledWith(
+            { "ext.dpopNonceRedirectHandoffSaveFailureCount": 1 },
+            "correlation-id"
+        );
+        expect(incrementFieldsSpy).not.toHaveBeenCalledWith(
+            { "ext.dpopNonceRedirectHandoffSaveCount": 1 },
+            "correlation-id"
+        );
+    });
+
     it("clears normal nonce state and redirect handoff state", () => {
         const cacheManager = createCacheManager();
         cacheManager.setDpopNonce(
