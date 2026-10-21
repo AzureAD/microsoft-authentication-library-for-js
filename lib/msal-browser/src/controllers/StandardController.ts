@@ -1003,7 +1003,12 @@ export class StandardController implements IController {
                 return Promise.reject(e);
             })
             .finally(async () => {
-                this.browserStorage.setInteractionInProgress(false);
+                this.browserStorage.setInteractionInProgress(
+                    false,
+                    undefined,
+                    false,
+                    correlationId
+                );
                 if (!this.config.system.navigatePopups) {
                     await this.preGeneratePkceCodes(correlationId);
                 }
@@ -1656,12 +1661,19 @@ export class StandardController implements IController {
             BrowserUtils.preflightCheck(this.initialized);
             this.browserStorage.setInteractionInProgress(
                 true,
-                INTERACTION_TYPE.SIGNOUT
+                INTERACTION_TYPE.SIGNOUT,
+                false,
+                correlationId
             );
 
             const popupClient = this.createPopupClient(correlationId);
             return popupClient.logout(logoutRequest).finally(() => {
-                this.browserStorage.setInteractionInProgress(false);
+                this.browserStorage.setInteractionInProgress(
+                    false,
+                    undefined,
+                    false,
+                    correlationId
+                );
             });
         } catch (e) {
             // Since this function is syncronous we need to reject

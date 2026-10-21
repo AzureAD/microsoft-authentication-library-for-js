@@ -2346,6 +2346,7 @@ export class BrowserCacheManager extends CacheManager {
     getInteractionInProgress(): {
         clientId: string;
         type: INTERACTION_TYPE;
+        correlationId?: string;
     } | null {
         const key = `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         const value = this.getTemporaryCache(key, "", false);
@@ -2372,8 +2373,8 @@ export class BrowserCacheManager extends CacheManager {
     ): void {
         // Ensure we don't overwrite interaction in progress for a different clientId
         const key = `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
+        const existingInteraction = this.getInteractionInProgress();
         if (inProgress) {
-            const existingInteraction = this.getInteractionInProgress();
             if (existingInteraction) {
                 if (allowOverride) {
                     this.logger.warning(
@@ -2403,12 +2404,18 @@ export class BrowserCacheManager extends CacheManager {
             // Set new interaction
             this.setTemporaryCache(
                 key,
-                JSON.stringify({ clientId: this.clientId, type }),
+                JSON.stringify({
+                    clientId: this.clientId,
+                    type,
+                    ...(correlationId && { correlationId }),
+                }),
                 false
             );
         } else if (
             !inProgress &&
-            this.getInteractionInProgress()?.clientId === this.clientId
+            existingInteraction?.clientId === this.clientId &&
+            (!correlationId ||
+                existingInteraction.correlationId === correlationId)
         ) {
             this.removeTemporaryItem(key);
         }

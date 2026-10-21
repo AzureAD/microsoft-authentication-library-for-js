@@ -3548,6 +3548,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 },
             });
             await legacy.initialize();
+            const legacyController = (legacy as any).controller;
             const oldPopup = {
                 closed: false,
                 location: { href: "about:blank", hash: "" },
@@ -3593,6 +3594,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
                 await previousRejection;
                 expect(oldPopup.close).toHaveBeenCalledTimes(1);
+                expect(
+                    legacyController.browserStorage.getInteractionInProgress()
+                        ?.correlationId
+                ).toBe("new-request");
                 await expect(
                     legacy.acquireTokenPopup({ scopes: ["User.Read"] })
                 ).rejects.toMatchObject({
@@ -8729,6 +8734,33 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.logoutPopup();
             expect(response).toEqual(undefined);
             expect(popupClientSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("does not clear a replacement interaction when logout completes", async () => {
+            let resolveLogout: () => void = () => {};
+            const logoutPromise = new Promise<void>((resolve) => {
+                resolveLogout = resolve;
+            });
+            jest.spyOn(PopupClient.prototype, "logout").mockReturnValue(
+                logoutPromise
+            );
+
+            const logout = pca.logoutPopup({
+                correlationId: "logout-request",
+            });
+            pca.browserStorage.setInteractionInProgress(
+                true,
+                INTERACTION_TYPE.SIGNIN,
+                true,
+                "replacement-request"
+            );
+
+            resolveLogout();
+            await logout;
+
+            expect(
+                pca.browserStorage.getInteractionInProgress()?.correlationId
+            ).toBe("replacement-request");
         });
 
         it("throws error if interaction is in progress", async () => {
