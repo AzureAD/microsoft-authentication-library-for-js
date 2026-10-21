@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-node-extensions
 
-<!-- This log was last generated on Fri, 02 Oct 2026 19:03:43 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 21 Oct 2026 18:37:17 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.5.3
+
+Wed, 21 Oct 2026 18:37:17 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v16.14.3
 
 ## 5.5.2
 
