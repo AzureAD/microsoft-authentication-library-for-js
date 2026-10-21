@@ -17,12 +17,11 @@ const OPAQUE_ORIGIN = "null";
  * `win`. A top-level document has no ancestors, so it always passes.
  */
 export function allAncestorsSameOrigin(win: Window): boolean {
-    // Sandboxed: no origin to compare ancestors against.
-    if (win.origin === OPAQUE_ORIGIN) {
-        return false;
-    }
-
     try {
+        // Sandboxed: no origin to compare ancestors against.
+        if (win.origin === OPAQUE_ORIGIN) {
+            return false;
+        }
         let current: Window = win;
         // `window.parent` is self-referential at the top level, never falsy.
         while (current !== current.parent) {
@@ -72,9 +71,13 @@ export function topOpenerIsSameOriginOrAbsent(win: Window): boolean {
  * omit the `Cross-Origin-Opener-Policy` response header for the request.
  *
  * @param config Resolved browser configuration.
+ * @param win Window whose hosting environment is being checked. Defaults to the app window.
  * @returns `1` when the check passes, otherwise `0`.
  */
-export function computePocd(config: BrowserConfiguration): 0 | 1 {
+export function computePocd(
+    config: BrowserConfiguration,
+    win: Window | undefined = typeof window !== "undefined" ? window : undefined
+): 0 | 1 {
     /*
      * Only an explicit false opts out; anything else computes the check, so an
      * unresolved config fails closed rather than asserting pocd=1.
@@ -83,9 +86,9 @@ export function computePocd(config: BrowserConfiguration): 0 | 1 {
         return 1;
     }
 
-    if (typeof window === "undefined" || !allAncestorsSameOrigin(window)) {
+    if (!win || !allAncestorsSameOrigin(win)) {
         return 0;
     }
 
-    return topOpenerIsSameOriginOrAbsent(window) ? 1 : 0;
+    return topOpenerIsSameOriginOrAbsent(win) ? 1 : 0;
 }

@@ -9,7 +9,7 @@
         "start:https": "vite build && node server.js -h",
         "start:build": "npm run build:package && npm start",
         "build:package": "cd ../../.. && npm run build:all --workspace=lib/msal-browser",
-        "generate:certs": "openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 7 -nodes -subj /CN=localhost -addext subjectAltName=DNS:localhost",
+        "generate:certs": "openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 7 -nodes -subj /CN=localhost -addext subjectAltName=DNS:localhost,IP:127.0.0.1",
         "test:e2e": "env-cmd -f .env jest"
     },
     "dependencies": {

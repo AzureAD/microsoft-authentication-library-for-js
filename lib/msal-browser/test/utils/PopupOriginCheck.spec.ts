@@ -149,6 +149,28 @@ describe("PopupOriginCheck", () => {
             expect(computePocd(configWith(undefined))).toBe(1);
         });
 
+        it("checks a supplied window's environment independently of the app", () => {
+            setWindow(makeWindow({}));
+            const parent = makeWindow({});
+            (parent as { opener?: unknown }).opener = makeWindow({
+                crossOriginLocation: true,
+            });
+
+            expect(computePocd(configWith(true))).toBe(1);
+            expect(computePocd(configWith(true), parent)).toBe(0);
+            expect(computePocd(configWith(false), parent)).toBe(1);
+        });
+
+        it("fails closed when a supplied window's origin is unreadable", () => {
+            const parent = makeWindow({});
+            Object.defineProperty(parent, "origin", {
+                get() {
+                    throw new DOMException("Blocked a frame", "SecurityError");
+                },
+            });
+            expect(computePocd(configWith(true), parent)).toBe(0);
+        });
+
         it("returns 0 when embedded in a cross-origin host", () => {
             const host = makeWindow({
                 origin: "https://untrusted.example",

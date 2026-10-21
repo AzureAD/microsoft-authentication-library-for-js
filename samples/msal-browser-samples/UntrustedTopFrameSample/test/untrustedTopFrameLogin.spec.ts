@@ -5,6 +5,7 @@ import puppeteer, {
     Frame,
     Target,
 } from "puppeteer";
+import type { IPublicClientApplication } from "@azure/msal-browser";
 import {
     Screenshot,
     setupCredentials,
@@ -17,7 +18,28 @@ import {
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/untrusted-top-frame-tests`;
 const HOST_PORT = 3000;
-const HOST_ORIGIN = `https://localhost:${HOST_PORT}`;
+const HOST_ORIGIN = `https://127.0.0.1:${HOST_PORT}`;
+const APP_ORIGIN = "https://localhost:3001";
+
+declare global {
+    interface Window {
+        pca: IPublicClientApplication;
+    }
+}
+
+type RelayRequest =
+    | { method: "GET"; url: string }
+    | { method: "POST"; action: string; fields: Record<string, string> };
+
+async function getRelayRequest(relay: Page): Promise<RelayRequest> {
+    const raw = await relay.evaluate(() =>
+        new URLSearchParams(window.location.hash.slice(1)).get("req")
+    );
+    if (!raw) {
+        throw new Error("The relay did not receive a request");
+    }
+    return JSON.parse(raw);
+}
 
 /**
  * Returns the embedded app iframe's Frame object from within the host page.
@@ -41,10 +63,11 @@ function waitForPage(
     urlSubstring: string,
     timeoutMs = 30000
 ): Promise<Page> {
+    const existingTargets = new Set(context.targets());
     return context
         .waitForTarget(
             (target: Target) => {
-                if (target.type() !== "page") {
+                if (existingTargets.has(target) || target.type() !== "page") {
                     return false;
                 }
                 // Strip query + hash before matching. The relay page carries the
@@ -84,7 +107,7 @@ async function signInViaRelay(
     screenshot: Screenshot
 ): Promise<{ relayedMethod: string }> {
     const relayPromise = waitForPage(context, "/relay");
-    const signInButton = await frame.waitForSelector("#signIn");
+    const signInButton = await frame.waitForSelector("#signIn:not([disabled])");
     await signInButton?.click();
     const relay = await relayPromise;
     await relay.bringToFront();
@@ -92,10 +115,17 @@ async function signInViaRelay(
 
     // Capture the relayed /authorize request shape before runPopupRelay scrubs
     // it from the relay page's hash on Continue.
-    const reqRaw = await relay.evaluate(() =>
-        new URLSearchParams(window.location.hash.slice(1)).get("req")
-    );
-    const relayedMethod = reqRaw ? JSON.parse(reqRaw).method : "";
+    const request = await getRelayRequest(relay);
+    const relayedMethod = request.method;
+    const parameters = new URL(
+        request.method === "GET" ? request.url : request.action
+    ).searchParams;
+    if (request.method === "POST") {
+        for (const [name, value] of Object.entries(request.fields)) {
+            parameters.append(name, value);
+        }
+    }
+    expect(parameters.getAll("pocd")).toEqual(["1"]);
 
     const idpPromise = waitForPage(context, "login.microsoftonline.com");
     const continueButton = await relay.waitForSelector("#continue");
@@ -159,6 +189,76 @@ describe("Untrusted Top Frame Sample", () => {
 
     afterAll(async () => {
         await browser.close();
+    });
+
+    it("keeps sign-in disabled until the app initializes", async () => {
+        await page.setJavaScriptEnabled(false);
+        await page.goto(APP_ORIGIN);
+        expect(
+            await page.$eval("#signIn", (button) =>
+                button.hasAttribute("disabled")
+            )
+        ).toBe(true);
+        await page.setJavaScriptEnabled(true);
+        await page.reload();
+        await page.waitForSelector("#signIn:not([disabled])");
+    });
+
+    it("partitions BroadcastChannel between the embedded and top-level app", async () => {
+        await page.goto(HOST_ORIGIN);
+        const frame = await getEmbeddedFrame(page);
+        await frame.waitForSelector("#signIn:not([disabled])");
+        expect(new URL(page.url()).hostname).toBe("127.0.0.1");
+        expect(new URL(frame.url()).hostname).toBe("localhost");
+        const name = `relay-partition-${Date.now()}`;
+        const probe = await frame.evaluateHandle((channelName) => {
+            const state = {
+                channel: new BroadcastChannel(channelName),
+                received: false,
+            };
+            state.channel.onmessage = () => {
+                state.received = true;
+            };
+            return state;
+        }, name);
+        const topLevel = await context.newPage();
+        try {
+            await topLevel.goto(APP_ORIGIN);
+            // A same-partition control must receive the message; the embedded
+            // app with the same origin but a different top-level site must not.
+            await topLevel.evaluate(
+                (channelName) =>
+                    new Promise<void>((resolve, reject) => {
+                        const receiver = new BroadcastChannel(channelName);
+                        const sender = new BroadcastChannel(channelName);
+                        const timeout = setTimeout(() => {
+                            receiver.close();
+                            sender.close();
+                            reject(
+                                new Error(
+                                    "BroadcastChannel control did not receive the message"
+                                )
+                            );
+                        }, 5000);
+                        receiver.onmessage = () => {
+                            clearTimeout(timeout);
+                            receiver.close();
+                            sender.close();
+                            resolve();
+                        };
+                        sender.postMessage("partition-probe");
+                    }),
+                name
+            );
+            await frame.evaluate(
+                () => new Promise((resolve) => setTimeout(resolve, 500))
+            );
+            expect(await probe.evaluate((state) => state.received)).toBe(false);
+        } finally {
+            await probe.evaluate((state) => state.channel.close());
+            await probe.dispose();
+            await topLevel.close();
+        }
     });
 
     // Each variant drives a different /authorize request shape through the same
@@ -228,5 +328,54 @@ describe("Untrusted Top Frame Sample", () => {
         );
         expect(JSON.parse(json).fromCache).toBe(true);
         await screenshot.takeScreenshot(page, "Silent token acquired");
+    });
+
+    it("relays logout from a cross-site iframe and clears accounts and tokens", async () => {
+        const screenshot = new Screenshot(
+            `${SCREENSHOT_BASE_FOLDER_NAME}/logout`
+        );
+        await page.goto(HOST_ORIGIN);
+        const frame = await getEmbeddedFrame(page);
+        await signInViaRelay(
+            page,
+            context,
+            frame,
+            username,
+            accountPwd,
+            screenshot
+        );
+        expect(
+            await frame.evaluate(() => window.pca.getAllAccounts().length)
+        ).toBe(1);
+
+        const relayPromise = waitForPage(context, "/relay");
+        await frame.click("#signOut");
+        const relay = await relayPromise;
+        const request = await getRelayRequest(relay);
+        expect(request.method).toBe("GET");
+        if (request.method !== "GET") {
+            throw new Error("Logout must carry an end-session URL");
+        }
+        const logout = new URL(request.url);
+        expect(logout.pathname).toMatch(/\/logout$/);
+        expect(logout.searchParams.getAll("pocd")).toEqual(["1"]);
+        expect(logout.searchParams.get("post_logout_redirect_uri")).toBe(
+            `${APP_ORIGIN}/redirect`
+        );
+        await relay.click("#continue");
+        await frame.waitForSelector("#not-authenticated", { visible: true });
+        expect(
+            await frame.$eval("#status-text", (element) => element.textContent)
+        ).toBe("Signed out.");
+        expect(await frame.evaluate(() => window.pca.getAllAccounts())).toEqual(
+            []
+        );
+        expect(
+            await frame.evaluate(() =>
+                Object.keys(localStorage).filter((key) =>
+                    /idtoken|accesstoken|refreshtoken/.test(key)
+                )
+            )
+        ).toEqual([]);
     });
 });

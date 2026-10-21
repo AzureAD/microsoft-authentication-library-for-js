@@ -25,7 +25,7 @@ Set `auth.popupRelayUri` to a same-origin page that calls `runPopupRelay()`, and
 All of steps 1–5 are inside `@azure/msal-browser`. The app's only code is the config plus two one-line pages.
 
 ```
-Untrusted host (localhost:3000, top-level)
+Untrusted host (127.0.0.1:3000, top-level)
 └─ Embedded iframe (localhost:3001)   — partitioned under the host
    • acquireTokenPopup()  — PKCE verifier stays here; exchanges + caches
    ▲ opener.postMessage(rawResponse)   (own origin only)
@@ -50,7 +50,7 @@ sequenceDiagram
     participant R as Relay page (3001)
     participant E as Microsoft Entra (IdP)
     participant C as Redirect bridge (3001)
-    U->>H: open https://localhost:3000
+    U->>H: open https://127.0.0.1:3000
     H->>I: embeds iframe (https://localhost:3001)
     U->>I: click "Sign In"
     I->>I: acquireTokenPopup builds /authorize request + PKCE
@@ -118,11 +118,11 @@ Register these URIs on the app (`CLIENT_ID` in `app/constants.js`):
 -   **Single-page application** redirect URI: `https://localhost:3001/redirect`
 -   **Front-channel logout / post-logout redirect URI**: `https://localhost:3001/redirect`
 
-The SPA redirect URI lets the iframe complete the token exchange via CORS with PKCE; the post-logout redirect URI lets the relay page receive logout completion through the same redirect bridge. The untrusted host origin (`https://localhost:3000`) is not registered — it's never a redirect target.
+The SPA redirect URI lets the iframe complete the token exchange via CORS with PKCE; the post-logout redirect URI lets the relay page receive logout completion through the same redirect bridge. The untrusted host origin (`https://127.0.0.1:3000`) is not registered — it's never a redirect target.
 
 ## Running the Sample
 
-The sample serves over HTTPS, so it needs a local TLS cert. `npm run generate:certs` creates a gitignored, self-signed cert/key for `localhost` using `openssl`.
+The sample serves over HTTPS, so it needs a local TLS cert. `npm run generate:certs` creates a gitignored, self-signed cert/key for both `localhost` and `127.0.0.1` using `openssl`.
 
 ```bash
 # From the repository root
@@ -141,7 +141,13 @@ npm run start:https
 
 `npm start` / `npm run start:https` run `vite build` first (emitting the per-page bundles to `dist/`) and then launch the two Express servers, which serve the built app from `dist/`. `npm run build` runs just the Vite build.
 
-Open `https://localhost:3000`. Because the cert is self-signed, you'll also need to trust the iframe origin: either visit `https://localhost:3001` directly once and accept the warning, or enable `edge://flags/#allow-insecure-localhost` (`chrome://flags/#allow-insecure-localhost`). Click "Sign In" inside the iframe, then "Continue" in the relay popup, and authenticate.
+Open `https://127.0.0.1:3000`. Because the cert is self-signed, you'll also need to trust the iframe origin: either visit `https://localhost:3001` directly once and accept the warning, or enable `edge://flags/#allow-insecure-localhost` (`chrome://flags/#allow-insecure-localhost`). Click "Sign In" inside the iframe, then "Continue" in the relay popup, and authenticate.
+
+The host uses `127.0.0.1` and the app uses `localhost` so they are genuinely
+cross-site, not just different ports on the same site. This exercises
+BroadcastChannel's top-level-site partitioning. The app stays on port `3001` to
+match the registered redirect URI and the host page; only `--host-port` is
+configurable.
 
 > For a quick non-secure run, `npm start` serves the same ports over HTTP (the iframe `src` is protocol-relative). HTTPS is recommended because it matches production.
 
@@ -171,9 +177,9 @@ The relay carries whatever `/authorize` request MSAL builds, so both request sha
 | `GET` (default) | Auth code + PKCE as a **GET** navigation | default                                     |
 | `POST`          | Auth code + PKCE as a **POST** form      | `acquireTokenPopup({ httpMethod: "POST" })` |
 
-Open `https://localhost:3000/?httpMethod=POST` (or `GET`) to exercise each. Both return to `/redirect` in the fragment, so `relay.js` and `redirect.js` are identical across methods — only the iframe's request config differs.
+Open `https://127.0.0.1:3000/?httpMethod=POST` (or `GET`) to exercise each. Both return to `/redirect` in the fragment, so `relay.js` and `redirect.js` are identical across methods — only the iframe's request config differs.
 
-> **EAR (Encrypted Authorize Response)** — a POST form that also encrypts the response (`system: { protocolMode: "EAR" }`) — needs first-party app support. To turn it on once provisioned, open `https://localhost:3000/?ear=true`.
+> **EAR (Encrypted Authorize Response)** — a POST form that also encrypts the response (`system: { protocolMode: "EAR" }`) — needs first-party app support. To turn it on once provisioned, open `https://127.0.0.1:3000/?ear=true`.
 
 ## Running E2E Tests
 
@@ -183,3 +189,9 @@ npm run test:e2e
 ```
 
 The Puppeteer/Jest suite ([test/untrustedTopFrameLogin.spec.ts](test/untrustedTopFrameLogin.spec.ts)) drives the full flow against the lab tenant: load the host, click "Sign In" in the iframe, "Continue" in the relay popup, authenticate in the IdP child popup, then assert the iframe acquired and cached tokens and renders the signed-in UI, and finally that `acquireTokenSilent` reads from the native cache. The sign-in test is parameterized over both request methods (`GET`, `POST`) via `?httpMethod=`, asserting the relay carried the expected request method. It launches with `acceptInsecureCerts` and starts the server via `start:https`, so it needs the lab cert (`microsoft-authentication-library-for-js/LabCert.pem`) and the SPA redirect URI `https://localhost:3001/redirect` registered on the app.
+
+The suite also verifies sign-in remains disabled until initialization, proves
+that the cross-site iframe and top-level app cannot exchange BroadcastChannel
+messages (with a same-partition positive control), and exercises relay logout.
+The logout case asserts `pocd=1`, return through the redirect bridge, and removal
+of cached accounts and tokens.

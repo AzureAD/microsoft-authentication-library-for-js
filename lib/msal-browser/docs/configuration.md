@@ -130,7 +130,7 @@ MSAL therefore delivers popup responses over a `BroadcastChannel` "redirect brid
 | Inside a cross-origin iframe                         | [`auth.popupRelayUri`](#popup-relay-for-cross-origin-iframes) |
 | Inside a cross-origin iframe, no relay page possible | `system.enableLegacyPolling` (see caveats below)              |
 
-The bridge fails in a cross-origin iframe because third-party storage partitioning gives the frame a different `BroadcastChannel` partition than the popup, so the response never arrives. `popupRelayUri` solves this by routing the flow through a top-level page on your own origin; legacy polling solves it by not using the channel at all.
+The bridge fails in a cross-site iframe because third-party storage partitioning gives the frame a different `BroadcastChannel` partition than the popup, so the response never arrives. Different ports on the same hostname are cross-origin but still same-site and do not, by themselves, create this partition mismatch. `popupRelayUri` solves the cross-site case by routing the flow through a top-level page on your own origin; legacy polling solves it by not using the channel at all.
 
 ##### The `pocd` parameter
 
@@ -138,7 +138,7 @@ See [PocdSample](../../../samples/msal-browser-samples/PocdSample/README.md) for
 
 When MSAL can show that no untrusted window is able to reach the window driving the request, it sends `pocd=1` ("popup origin check done") on the request, and Entra may then omit the COOP header. MSAL sends the parameter only when it computes `1`; it is never sent as `0`.
 
-The check is evaluated once per request and covers **every** flow — `acquireTokenPopup`, `acquireTokenRedirect`, `ssoSilent`, `acquireTokenSilent`, `logoutPopup` and `logoutRedirect` — in the auth-code (GET), form-post and EAR response modes alike. It describes the app's own window topology, which does not vary by flow.
+The check is evaluated per request and covers **every** flow — `acquireTokenPopup`, `acquireTokenRedirect`, `ssoSilent`, `acquireTokenSilent`, `logoutPopup` and `logoutRedirect` — in the auth-code (GET), form-post and EAR response modes alike. It checks the app's hosting environment, not the authentication popup after navigation. Direct popup requests that supply a different `popupWindowParent` also require that window's hosting environment to pass; a trusted app must not assert safety on behalf of a parent with untrusted ancestors or an untrusted opener.
 
 The check passes when **both** hold:
 
@@ -151,6 +151,25 @@ Two cases are decided by topology rather than measurement:
 
 -   **Popup relay** — the identity provider's window is a grandchild popup opened by the relay page. An untrusted ancestor cannot reach a grandchild by name, so `pocd=1` is asserted.
 -   **Legacy polling** — polling cannot work while COOP is enforced, so enabling it implies `auth.originCheck: false` and always asserts `pocd=1`.
+
+##### Legacy polling callback and COOP requirements
+
+With `system.enableLegacyPolling: true`, point `redirectUri` and
+`postLogoutRedirectUri` at a same-origin callback page that leaves the response
+query/fragment intact. Do **not** run `broadcastResponseToMainFrame()`,
+`handleRedirectPromise()`, an app router, or other response-processing code on
+that page: the opener's popup/iframe poller must read the response first. An
+otherwise empty callback page with a meaningful title is sufficient. See the
+[legacy callback setup](../../../samples/msal-browser-samples/LegacyPollingSample/README.md#callback-page).
+
+Legacy popup polling requires the opener connection to survive the **entire**
+round-trip. Strict `Cross-Origin-Opener-Policy: same-origin` on the app is
+incompatible with cross-origin sign-in. `same-origin-allow-popups` on the app can
+retain popups whose cross-origin responses omit COOP or use `unsafe-none`; do not
+remove that compatible policy solely to enable polling. An enforcing policy on
+any cross-origin document in the popup's navigation chain can still sever the
+connection. The callback must also preserve that connection. Prefer the default
+redirect bridge or popup relay when possible.
 
 ##### Opting out
 
@@ -178,7 +197,7 @@ See [Caching in MSAL](./caching.md) for more.
 | `iframeBridgeTimeout`    | Timeout in milliseconds to wait for a hidden iframe to send its response via BroadcastChannel during silent token acquisition (`ssoSilent`, `acquireTokenSilent`). If the iframe does not respond within this time, the call will reject with a `timed_out` error.                                                                                                                                          | integer (milliseconds)               | `10000`                              |
 | `protocolMode`           | Enum representing the protocol mode to use. If `"AAD"`, will function on the OIDC-compliant AAD v2 endpoints; if `"OIDC"`, will function on other OIDC-compliant endpoints.                                                                                                                                                                                                                                 | string                               | `"AAD"`                              |
 | `serverTelemetryEnabled` | Enables MSER server telemetry headers and browser cache writes for failed requests. When `false`, MSAL does not send MSER headers and does not persist server telemetry data to browser storage. This option is deprecated and will be removed in a future release.                                                                                                                                         | boolean                              | `false`                              |
-| `enableLegacyPolling`    | Opt in to the legacy (non-COOP) hash-polling flow for `acquireTokenPopup`, `logoutPopup` and `ssoSilent`, polling the popup/iframe `location` instead of using the `BroadcastChannel` redirect bridge. Requires COOP to be absent on both the app origin and the STS response. Prefer `auth.popupRelayUri` where possible. See [COOP and popup responses](#cross-origin-opener-policy-and-popup-responses). | boolean                              | `false`                              |
+| `enableLegacyPolling`    | Opt in to legacy hash polling for `acquireTokenPopup`, `logoutPopup` and `ssoSilent`. Requires a passive same-origin callback (no redirect bridge) and a COOP-compatible popup round-trip. The app may use `same-origin-allow-popups` when cross-origin responses omit enforcing COOP. Prefer `auth.popupRelayUri` where possible. See [legacy callback and COOP requirements](#legacy-polling-callback-and-coop-requirements). | boolean                              | `false`                              |
 
 #### Logger Config Options
 

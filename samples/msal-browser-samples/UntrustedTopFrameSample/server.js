@@ -24,15 +24,10 @@ const fs = require("fs");
 const https = require("https");
 const path = require("path");
 const argv = require("yargs")
-    .usage("Usage: $0 --host-port [PORT] --app-port [PORT] [--https]")
+    .usage("Usage: $0 --host-port [PORT] [--https]")
     .option("host-port", {
         describe: "Untrusted host app port",
         default: 3000,
-        type: "number",
-    })
-    .option("app-port", {
-        describe: "Trusted app port",
-        default: 3001,
         type: "number",
     })
     .option("https", {
@@ -44,7 +39,7 @@ const argv = require("yargs")
     .strict().argv;
 
 const HOST_PORT = argv["host-port"];
-const APP_PORT = argv["app-port"];
+const APP_PORT = 3001;
 const USE_HTTPS = argv.https;
 const SCHEME = USE_HTTPS ? "https" : "http";
 
@@ -62,7 +57,8 @@ const credentials = USE_HTTPS
 function listen(app, port, label) {
     const onReady = () => {
         // eslint-disable-next-line no-console
-        console.log(`${label} listening on ${SCHEME}://localhost:${port}...`);
+        const hostname = port === APP_PORT ? "localhost" : "127.0.0.1";
+        console.log(`${label} listening on ${SCHEME}://${hostname}:${port}...`);
     };
     if (USE_HTTPS) {
         https.createServer(credentials, app).listen(port, onReady);
@@ -115,5 +111,5 @@ hostApp.use(express.static(path.join(__dirname, "host")));
 listen(hostApp, HOST_PORT, "Untrusted host");
 // eslint-disable-next-line no-console
 console.log(
-    `Open ${SCHEME}://localhost:${HOST_PORT} and use the embedded frame to sign in.`
+    `Open ${SCHEME}://127.0.0.1:${HOST_PORT} and use the embedded frame to sign in.`
 );

@@ -67,6 +67,7 @@ import { TestTimeUtils } from "msal-test-utils";
 import { PopupRequest } from "../../src/request/PopupRequest.js";
 import { version } from "../../src/packageMetadata.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
+import { EventHandler } from "../../src/event/EventHandler.js";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -162,6 +163,57 @@ describe("PopupClient", () => {
             window.localStorage.clear();
             window.sessionStorage.clear();
         });
+
+        it.each([
+            ["trusted parent", false, true, "", true],
+            ["parent with an untrusted opener", true, true, "", false],
+            ["explicit origin-check opt-out", true, false, "", true],
+            ["relay topology", true, true, "/relay", true],
+        ] as const)(
+            "uses the correct POCD assertion for %s",
+            async (_label, untrustedOpener, originCheck, relay, expected) => {
+                const parent = {
+                    origin: window.origin,
+                    location: window.location,
+                    opener: untrustedOpener
+                        ? {
+                              get location() {
+                                  throw new DOMException(
+                                      "Blocked a frame",
+                                      "SecurityError"
+                                  );
+                              },
+                          }
+                        : null,
+                } as Window;
+                Object.defineProperties(parent, {
+                    parent: { value: parent },
+                    top: { value: parent },
+                });
+                pca.getConfiguration().auth.originCheck = originCheck;
+                pca.getConfiguration().auth.popupRelayUri = relay;
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "openSizedPopup"
+                ).mockReturnValue({
+                    close: jest.fn(),
+                    focus: jest.fn(),
+                    document: {},
+                    location: { assign: jest.fn() },
+                } as unknown as Window);
+                const post = jest
+                    .spyOn(PopupClient.prototype, "executeCodeFlowWithPost")
+                    .mockResolvedValue(getTestAuthenticationResult());
+                await popupClient.acquireToken({
+                    scopes: ["User.Read"],
+                    httpMethod: Constants.HttpMethod.POST,
+                    popupWindowParent: parent,
+                });
+                expect(post.mock.calls[0][0].popupOriginCheckDone).toBe(
+                    expected
+                );
+            }
+        );
 
         it("throws error when AuthenticationScheme is set to SSH and SSH JWK is omitted from the request", async () => {
             const request: CommonAuthorizationUrlRequest = {
@@ -1156,6 +1208,47 @@ describe("PopupClient", () => {
         afterEach(() => {
             window.localStorage.clear();
             window.sessionStorage.clear();
+        });
+
+        it("does not assert POCD for a delegated parent with an untrusted opener", async () => {
+            const parent = {
+                origin: window.origin,
+                location: window.location,
+                opener: {
+                    get location() {
+                        throw new DOMException(
+                            "Blocked a frame",
+                            "SecurityError"
+                        );
+                    },
+                },
+            } as Window;
+            Object.defineProperties(parent, {
+                parent: { value: parent },
+                top: { value: parent },
+            });
+            const logout = jest
+                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                .mockReturnValue(TEST_URIS.TEST_END_SESSION_ENDPOINT);
+            const popup = {
+                close: jest.fn(),
+                focus: jest.fn(),
+                document: {},
+                location: { assign: jest.fn() },
+            } as unknown as Window;
+            jest.spyOn(PopupClient.prototype, "openSizedPopup").mockReturnValue(
+                popup
+            );
+            jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
+                popup
+            );
+            jest.spyOn(
+                EventHandler.prototype,
+                "emitEvent"
+            ).mockImplementation();
+
+            await popupClient.logout({ popupWindowParent: parent });
+            expect(logout.mock.calls[0][0].popupOriginCheckDone).toBe(false);
         });
 
         it("opens popup window before network request by default", async () => {

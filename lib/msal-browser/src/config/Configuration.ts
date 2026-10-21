@@ -186,8 +186,11 @@ export type BrowserSystemOptions = SystemOptions & {
      * Intended for apps in third-party frames, where storage partitioning stops
      * the bridge from delivering the response.
      *
-     * ⚠️ Polling requires COOP to be absent on both the app's origin and the
-     * STS response; it implies {@link BrowserAuthOptions.originCheck} `= false`.
+     * Polling requires a passive same-origin callback (no redirect bridge) and
+     * a COOP-compatible popup round-trip. Strict `same-origin` on the app is
+     * incompatible; `same-origin-allow-popups` can retain popups when
+     * cross-origin responses omit enforcing COOP. This option implies
+     * {@link BrowserAuthOptions.originCheck} `= false`.
      * Prefer {@link BrowserAuthOptions.popupRelayUri} where a top-level
      * same-origin page can be hosted, which keeps COOP enforced.
      *

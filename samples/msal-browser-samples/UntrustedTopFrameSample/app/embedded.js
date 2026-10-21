@@ -69,9 +69,11 @@ import { msalConfig, loginRequest, HTTP_METHOD } from "./authConfig.js";
                 msalInstance.setActiveAccount(accounts[0]);
                 showAuthenticatedUI(accounts[0]);
             }
+            document.getElementById("signIn").disabled = false;
         })
         .catch(function (error) {
             console.error("MSAL initialization failed:", error);
+            statusText.textContent = "MSAL initialization failed. See console.";
         });
 
     // ---- Sign in (interactive). acquireTokenPopup relays through the
