@@ -71,6 +71,7 @@ import { CookieStorage } from "./CookieStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
 import { EventType } from "../event/EventType.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { cancelPendingPopupPollingResponse } from "../utils/PopupMonitor.js";
 import { EventHandler } from "../event/EventHandler.js";
 import { clearHash } from "../utils/BrowserUtils.js";
 import { version } from "../packageMetadata.js";
@@ -2380,8 +2381,12 @@ export class BrowserCacheManager extends CacheManager {
                         correlationId
                     );
 
-                    // Cancel any active bridge monitor from the previous interaction
+                    // Cancel the previous interaction's response monitor.
                     BrowserUtils.cancelPendingBridgeResponse(
+                        this.logger,
+                        correlationId
+                    );
+                    cancelPendingPopupPollingResponse(
                         this.logger,
                         correlationId
                     );

@@ -192,7 +192,8 @@ export type BrowserSystemOptions = SystemOptions & {
      * cross-origin responses omit enforcing COOP. This option implies
      * {@link BrowserAuthOptions.originCheck} `= false`.
      * Prefer {@link BrowserAuthOptions.popupRelayUri} where a top-level
-     * same-origin page can be hosted, which keeps COOP enforced.
+     * same-origin page can be hosted. Its grandchild-popup topology permits
+     * asserting `pocd=1`; Entra may therefore omit enforcing COOP.
      *
      * See [Cross-Origin-Opener-Policy and popup responses](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#cross-origin-opener-policy-and-popup-responses).
      */

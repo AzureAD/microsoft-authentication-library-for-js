@@ -19,6 +19,7 @@ import {
     TEST_URIS,
     testLogoutUrl,
     verifyUrl,
+    getTestAuthenticationResult,
 } from "../utils/StringConstants.js";
 import {
     AccountEntity,
@@ -3527,6 +3528,90 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         afterEach(() => {
             window.localStorage.clear();
             window.sessionStorage.clear();
+        });
+
+        it("cancels legacy polling on retry without clearing the replacement interaction", async () => {
+            class LegacyPollingApplication extends PublicClientApplication {
+                waitForTestPopup(popup: Window, correlationId: string) {
+                    return this.waitForPopupResponse(
+                        { correlationId },
+                        popup,
+                        window
+                    );
+                }
+            }
+            const legacy = new LegacyPollingApplication({
+                auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                system: {
+                    enableLegacyPolling: true,
+                    allowPlatformBroker: false,
+                },
+            });
+            await legacy.initialize();
+            const oldPopup = {
+                closed: false,
+                location: { href: "about:blank", hash: "" },
+                close: jest.fn(),
+            };
+            const newPopup = {
+                closed: false,
+                location: { href: "about:blank", hash: "" },
+                close: jest.fn(),
+            };
+            const popups = [oldPopup, newPopup];
+            const result = getTestAuthenticationResult();
+            const acquire = jest
+                .spyOn(PopupClient.prototype, "acquireToken")
+                .mockImplementation((request) => {
+                    const popup = popups.shift();
+                    if (!popup) {
+                        throw new Error("Unexpected popup request");
+                    }
+                    return legacy
+                        .waitForTestPopup(
+                            popup as unknown as Window,
+                            request.correlationId || ""
+                        )
+                        .then(() => result);
+                });
+            jest.useFakeTimers();
+            try {
+                const previous = legacy.acquireTokenPopup({
+                    scopes: ["User.Read"],
+                    correlationId: "old-request",
+                });
+                const previousRejection = expect(
+                    previous
+                ).rejects.toMatchObject({
+                    errorCode:
+                        BrowserAuthErrorCodes.interactionInProgressCancelled,
+                });
+                const replacement = legacy.acquireTokenPopup({
+                    scopes: ["User.Read"],
+                    correlationId: "new-request",
+                    overrideInteractionInProgress: true,
+                });
+                await previousRejection;
+                expect(oldPopup.close).toHaveBeenCalledTimes(1);
+                await expect(
+                    legacy.acquireTokenPopup({ scopes: ["User.Read"] })
+                ).rejects.toMatchObject({
+                    errorCode: BrowserAuthErrorCodes.interactionInProgress,
+                });
+                expect(acquire).toHaveBeenCalledTimes(2);
+
+                oldPopup.location.href =
+                    "https://localhost/redirect#code=stale";
+                oldPopup.location.hash = "#code=stale";
+                newPopup.location.href = "https://localhost/redirect#code=new";
+                newPopup.location.hash = "#code=new";
+                jest.advanceTimersByTime(30);
+                await expect(replacement).resolves.toBe(result);
+                expect(newPopup.close).toHaveBeenCalledTimes(1);
+                expect(browserStorage.isInteractionInProgress()).toBe(false);
+            } finally {
+                jest.useRealTimers();
+            }
         });
 
         it("throws an error if initialize was not called prior", async () => {

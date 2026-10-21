@@ -179,8 +179,11 @@ If NAA is unavailable and the identity provider refuses to render in an iframe,
 set [`auth.popupRelayUri`](./configuration.md#popup-relay-for-cross-origin-iframes)
 to a same-origin page that calls `runPopupRelay()`. MSAL opens that page
 top-level instead of navigating the popup straight to the IdP, so the flow runs
-outside the host's storage partition and `Cross-Origin-Opener-Policy` stays
-enforced. `acquireTokenPopup()` and `logoutPopup()` both work unchanged.
+outside the host's storage partition. The relay opens the IdP as a child popup,
+which the untrusted host cannot reach by name. MSAL asserts `pocd=1` for this
+grandchild-popup topology, allowing Entra to omit enforcing COOP; the relay does
+not guarantee that Entra keeps that header. `acquireTokenPopup()` and
+`logoutPopup()` both work unchanged.
 
 Where no top-level relay page can be hosted, `system.enableLegacyPolling` falls
 back to reading the popup URL directly instead of using `BroadcastChannel`. It

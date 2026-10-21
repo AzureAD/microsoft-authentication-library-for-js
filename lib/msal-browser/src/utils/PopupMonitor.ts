@@ -10,6 +10,28 @@ import { clearAuthResponseFromUrl } from "./BrowserUtils.js";
 
 export const POPUP_POLL_INTERVAL_MS = 30;
 
+let activePopupPoller: { cancel: () => void } | undefined;
+
+/**
+ * Cancels legacy popup polling when an interaction is superseded.
+ *
+ * @internal
+ * @param logger Logger for the interaction.
+ * @param correlationId Correlation ID of the overriding request.
+ */
+export function cancelPendingPopupPollingResponse(
+    logger: Logger,
+    correlationId: string
+): void {
+    if (activePopupPoller) {
+        logger.verbose(
+            "PopupMonitor.cancelPendingPopupPollingResponse - Cancelling pending popup poller",
+            correlationId
+        );
+        activePopupPoller.cancel();
+    }
+}
+
 /**
  * Monitors a popup window for a URL change to the same origin as the parent application.
  * Polls the popup at a specified interval until it is redirected back to the application,
@@ -33,6 +55,7 @@ export async function monitorPopupForHash(
     unloadWindow: (e: Event) => void,
     correlationId: string
 ): Promise<string> {
+    let poller: { cancel: () => void };
     return new Promise<string>((resolve, reject) => {
         logger.verbose(
             "PopupMonitor.monitorPopupForHash - polling started",
@@ -85,7 +108,26 @@ export async function monitorPopupForHash(
 
             resolve(responseString);
         }, POPUP_POLL_INTERVAL_MS);
+
+        poller = {
+            cancel: () => {
+                window.clearInterval(intervalId);
+                if (activePopupPoller === poller) {
+                    activePopupPoller = undefined;
+                }
+                reject(
+                    new BrowserAuthError(
+                        BrowserAuthErrorCodes.interactionInProgressCancelled,
+                        correlationId
+                    )
+                );
+            },
+        };
+        activePopupPoller = poller;
     }).finally(() => {
+        if (activePopupPoller === poller) {
+            activePopupPoller = undefined;
+        }
         cleanPopup(popupWindow, popupWindowParent, unloadWindow);
     });
 }

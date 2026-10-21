@@ -85,18 +85,23 @@ sequenceDiagram
 The whole integration:
 
 ```js
-// authConfig.js — the only MSAL change
-import { LogLevel } from "@azure/msal-browser";
+// authConfig.js
 export const msalConfig = {
-    auth: { clientId: CLIENT_ID, popupRelayUri: "/relay" },
+    auth: {
+        clientId: CLIENT_ID,
+        redirectUri: "/redirect",
+        postLogoutRedirectUri: "/redirect",
+        popupRelayUri: "/relay",
+    },
 };
 
 // embedded.js — instantiate MSAL and call acquireTokenPopup / logoutPopup
 import { PublicClientApplication } from "@azure/msal-browser";
 const msalInstance = new PublicClientApplication(msalConfig);
-await msalInstance.acquireTokenPopup({ scopes: ["User.Read"] });
+await msalInstance.initialize();
+const result = await msalInstance.acquireTokenPopup({ scopes: ["User.Read"] });
 // Sign-out ends the IdP session too; it is relayed through the same page.
-await msalInstance.logoutPopup({ account });
+await msalInstance.logoutPopup({ account: result.account });
 
 // relay.js — the popupRelayUri page (open child on a click to dodge popup blockers)
 import { runPopupRelay } from "@azure/msal-browser/popup-relay";

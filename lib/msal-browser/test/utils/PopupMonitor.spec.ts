@@ -8,6 +8,7 @@ import * as BrowserAuthErrorCodes from "../../src/error/BrowserAuthErrorCodes.js
 import {
     monitorPopupForHash,
     POPUP_POLL_INTERVAL_MS,
+    cancelPendingPopupPollingResponse,
 } from "../../src/utils/PopupMonitor.js";
 
 const logger = new Logger({});
@@ -243,5 +244,96 @@ describe("PopupMonitor.monitorPopupForHash", () => {
         }, NAV_DELAY_MS + POPUP_POLL_INTERVAL_MS);
 
         await expect(promise).resolves.toBe("#code=ok");
+    });
+
+    describe("interaction cancellation", () => {
+        beforeEach(() => {
+            jest.useFakeTimers();
+        });
+
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it("rejects and cleans up a superseded popup without polling its later response", async () => {
+            const popup = makeFakePopup();
+            const close = jest.spyOn(popup, "close");
+            const clearInterval = jest.spyOn(window, "clearInterval");
+            const response = monitorPopupForHash(
+                popup,
+                parentWindow,
+                Constants.ResponseMode.FRAGMENT,
+                logger,
+                unloadHandler,
+                CORR_ID
+            );
+            const rejection = expect(response).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.interactionInProgressCancelled,
+                correlationId: CORR_ID,
+            });
+
+            cancelPendingPopupPollingResponse(logger, "replacement-request");
+            await rejection;
+            expect(clearInterval).toHaveBeenCalled();
+            expect(close).toHaveBeenCalledTimes(1);
+            expect(removeListenerSpy).toHaveBeenCalledWith(
+                "beforeunload",
+                unloadHandler
+            );
+            (popup as any)._setHref("http://localhost/redirect#code=stale");
+            jest.advanceTimersByTime(POPUP_POLL_INTERVAL_MS * 2);
+            expect(jest.getTimerCount()).toBe(0);
+            clearInterval.mockRestore();
+        });
+
+        it("does not unregister a new poller when the cancelled poller finishes cleanup", async () => {
+            const first = monitorPopupForHash(
+                makeFakePopup(),
+                parentWindow,
+                Constants.ResponseMode.FRAGMENT,
+                logger,
+                unloadHandler,
+                CORR_ID
+            );
+            const firstRejection = expect(first).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.interactionInProgressCancelled,
+            });
+            cancelPendingPopupPollingResponse(logger, "second-request");
+            const second = monitorPopupForHash(
+                makeFakePopup(),
+                parentWindow,
+                Constants.ResponseMode.FRAGMENT,
+                logger,
+                unloadHandler,
+                "second-request"
+            );
+            const secondRejection = expect(second).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.interactionInProgressCancelled,
+                correlationId: "second-request",
+            });
+
+            await firstRejection;
+            cancelPendingPopupPollingResponse(logger, "third-request");
+            await secondRejection;
+            expect(jest.getTimerCount()).toBe(0);
+        });
+
+        it("unregisters a completed poller before a later override", async () => {
+            const popup = makeFakePopup("http://localhost/redirect#code=ok");
+            const response = monitorPopupForHash(
+                popup,
+                parentWindow,
+                Constants.ResponseMode.FRAGMENT,
+                logger,
+                unloadHandler,
+                CORR_ID
+            );
+            jest.advanceTimersByTime(POPUP_POLL_INTERVAL_MS);
+            await expect(response).resolves.toBe("#code=ok");
+            const verbose = jest.spyOn(logger, "verbose");
+            cancelPendingPopupPollingResponse(logger, "later-request");
+            expect(verbose).not.toHaveBeenCalled();
+            verbose.mockRestore();
+        });
     });
 });
