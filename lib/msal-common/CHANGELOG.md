@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Fri, 02 Oct 2026 19:03:42 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 21 Oct 2026 18:37:17 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.14.3
+
+Wed, 21 Oct 2026 18:37:17 GMT
+
+### Patches
+
+- Add a bridge type field to performance telemetry [#8864](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8864) (Sameera.Gajjarapu@microsoft.com)
 
 ## 16.14.2
 
