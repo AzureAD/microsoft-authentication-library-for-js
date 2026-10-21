@@ -692,7 +692,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it.each([
             '#code=""',
             TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
-            "#accountId=test-id",
             TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
             "#ear_jwe=encrypted",
         ])(

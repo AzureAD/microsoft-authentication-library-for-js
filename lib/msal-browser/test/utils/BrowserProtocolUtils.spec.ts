@@ -60,16 +60,6 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             expect(window.location.href).toBe(`${base}?q=a%20b`);
         });
 
-        it("recognizes a standalone accountId callback without state", () => {
-            window.history.replaceState(
-                null,
-                "",
-                `${base}#accountId=broker-id`
-            );
-            expect(clearHash(window)).toBe(true);
-            expect(window.location.href).toBe(base);
-        });
-
         it("removes populated broker identifiers from accountId callback fragments", () => {
             window.history.replaceState(
                 null,

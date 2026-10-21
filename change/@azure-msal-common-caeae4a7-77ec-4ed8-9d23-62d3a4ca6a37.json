@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Recognize accountId in authorization responses [#8918](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8918)",
-  "packageName": "@azure/msal-common",
-  "email": "lalima.sharda@gmail.com",
-  "dependentChangeType": "patch"
-}

@@ -32,7 +32,7 @@ export function stripLeadingHashOrQuery(responseString: string): string {
 }
 
 /**
- * Deserializes a query or fragment containing known authorization response fields.
+ * Returns URL hash as server auth code response object.
  */
 export function getDeserializedResponse(
     responseString: string
@@ -53,7 +53,6 @@ export function getDeserializedResponse(
         if (
             deserializedHash.code ||
             deserializedHash.ear_jwe ||
-            deserializedHash.accountId ||
             deserializedHash.error ||
             deserializedHash.error_description ||
             deserializedHash.state

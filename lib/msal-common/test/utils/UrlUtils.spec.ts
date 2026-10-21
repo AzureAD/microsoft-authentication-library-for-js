@@ -23,20 +23,6 @@ describe("UrlUtils.ts Class Unit Tests", () => {
     });
 
     describe("getDeserializedResponse Tests", () => {
-        it.each(["#", "?"])(
-            "recognizes a standalone accountId response with prefix %s",
-            (prefix) => {
-                expect(
-                    UrlUtils.getDeserializedResponse(
-                        `${prefix}accountId=broker-id`
-                    )
-                ).toEqual({ accountId: "broker-id" });
-                expect(
-                    UrlUtils.getDeserializedResponse(`${prefix}accountId=`)
-                ).toBeNull();
-            }
-        );
-
         it("getDeserializedResponse returns object if hash contains known properties", () => {
             expect(UrlUtils.getDeserializedResponse("#code=value")).toEqual({
                 code: "value",

@@ -240,7 +240,7 @@ change response validation.
 
 `BrowserUtils.clearHash(window, responseMode)` clears a recognized redirect
 response from the fragment by default, or from the query when the response mode
-is `query`. Response recognition includes nonempty `accountId` values.
+is `query`.
 
 **Note:** `handleRedirectPromise` will optionally accept a hash value to be processed, defaulting to the current value of `window.location.hash`. This parameter only needs to be provided in scenarios where the current value of `window.location.hash` does not contain the redirect response that needs to be processed. **For almost all scenarios, applications should not need to provide this parameter explicitly.**
 
