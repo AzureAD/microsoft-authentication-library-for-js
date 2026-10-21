@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Expose required and invalid Native Auth V2 attribute IDs [#8900](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8900)",
-  "packageName": "@azure/msal-browser",
-  "email": "yongdiwang@microsoft.com",
-  "dependentChangeType": "patch"
-}
