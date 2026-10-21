@@ -13,6 +13,9 @@ import {
 } from "./brokerHarness";
 import {
     accessTokenForScopesExists,
+    enterAadCredentials,
+    getLabCredentials,
+    readBrowserTokenStore,
     readAccountKeys,
     readSessionTokenStore,
 } from "./naaTestUtils";
@@ -23,7 +26,7 @@ const { HOST_APP_PORT, NESTED_APP_PORT } = require("../sampleConfig.cjs") as {
     NESTED_APP_PORT: number;
 };
 
-const HOST_URL = `https://localhost:${HOST_APP_PORT}`;
+const HOST_URL = `https://localhost:${HOST_APP_PORT}?kmsi=true`;
 const NESTED_URL = `https://localhost:${NESTED_APP_PORT}`;
 const ACTION_TIMEOUT = 60000;
 const SCOPES = ["User.Read"];
@@ -137,11 +140,11 @@ async function resetNestedFrame(page: Page): Promise<Frame> {
 }
 
 async function verifyHostTokenStore(page: Page): Promise<void> {
-    const store = await readSessionTokenStore(page);
+    const store = await readBrowserTokenStore(page, "localStorage");
     expect(store.idTokens).toHaveLength(1);
     expect(store.accessTokens).toHaveLength(0);
     expect(store.refreshTokens).toHaveLength(0);
-    expect(await readAccountKeys(page)).toHaveLength(1);
+    expect(await readAccountKeys(page, "localStorage")).toHaveLength(1);
 }
 
 describe("Keep Me Signed In + NAA through the platform broker", () => {
@@ -165,6 +168,19 @@ describe("Keep Me Signed In + NAA through the platform broker", () => {
             waitUntil: "domcontentloaded",
             timeout: ACTION_TIMEOUT,
         });
+        const loginButton = hostPage.getByRole("button", {
+            name: "Login",
+            exact: true,
+        });
+        try {
+            await loginButton.waitFor({ timeout: 10000 });
+        } catch {
+            await hostPage.reload({
+                waitUntil: "domcontentloaded",
+                timeout: ACTION_TIMEOUT,
+            });
+            await loginButton.waitFor({ timeout: ACTION_TIMEOUT });
+        }
     }
 
     async function acquireNestedToken(
@@ -315,11 +331,27 @@ describe("Keep Me Signed In + NAA through the platform broker", () => {
         // Jest's global setup owns the two HTTPS sample servers.
         broker = await launchBrokerContext();
         await openHost();
+        const { username, password } = await getLabCredentials();
+        const popupPromise = broker.context
+            .waitForEvent("page", { timeout: 15000 })
+            .catch(() => null);
         await hostPage
             .getByRole("button", { name: "Login", exact: true })
             .click({
                 timeout: ACTION_TIMEOUT,
             });
+        const popup = await popupPromise;
+        if (popup) {
+            await popup.waitForLoadState("domcontentloaded");
+            const hasLogin = await popup
+                .locator("input[type='email'], #i0116")
+                .first()
+                .isVisible()
+                .catch(() => false);
+            if (hasLogin) {
+                await enterAadCredentials(popup, username, password);
+            }
+        }
         initialHostResult = await readHostAuthResult(hostPage);
         await verifyHostTokenStore(hostPage);
     });
@@ -341,12 +373,15 @@ describe("Keep Me Signed In + NAA through the platform broker", () => {
         await broker.context.close();
         broker = await launchBrokerContext(userDataDir);
         await openHost();
-        expect(await readSessionTokenStore(hostPage)).toEqual({
-            idTokens: [],
+        expect(await readBrowserTokenStore(hostPage, "localStorage")).toEqual({
+            idTokens: expect.any(Array),
             accessTokens: [],
             refreshTokens: [],
         });
-        expect(await readAccountKeys(hostPage)).toBeNull();
+        expect(
+            (await readBrowserTokenStore(hostPage, "localStorage")).idTokens
+        ).toHaveLength(1);
+        expect(await readAccountKeys(hostPage, "localStorage")).toHaveLength(1);
 
         const popups: Page[] = [];
         const onPage = (page: Page): void => {

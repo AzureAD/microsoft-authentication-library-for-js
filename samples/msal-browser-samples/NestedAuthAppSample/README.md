@@ -176,10 +176,15 @@ the nested token audience and account continuity, and confirms that no refresh
 token is returned to the nested app.
 
 It then fully closes and relaunches the browser with the same temporary profile.
-Both apps retain their existing `sessionStorage` configuration, so the restarted
-host starts with no cached tokens or accounts. Host `ssoSilent` and both silent
-nested APIs must recover the same KMSI broker account without opening a popup.
-The temporary profile is removed when the suite finishes.
+The KMSI suite opts the host into MSAL `localStorage` with `?kmsi=true`, matching
+the existing ExpressSample persistence model, while the nested app continues to
+use `sessionStorage`. The restarted host therefore retains the broker-linked
+account and its `nativeAccountId`; host `ssoSilent` must refresh that account
+through WAM, after which both silent nested APIs must recover the same KMSI
+account without opening a popup. The temporary profile is removed when the
+suite finishes. KMSI mode also omits the EAR test-slice `dc` parameter so the
+WAM account uses its normal production routing; the EAR suites continue to use
+the allow-listed test slice.
 
 The host UI exposes `ssoSilent` for manual recovery checks and a token-free
 authentication summary (broker provenance, correlation ID, account IDs, and

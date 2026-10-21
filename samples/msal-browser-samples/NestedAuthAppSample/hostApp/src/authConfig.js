@@ -12,6 +12,8 @@ export function isEarEnabled() {
 }
 
 const earEnabled = isEarEnabled();
+const kmsiEnabled =
+    new URLSearchParams(window.location.search).get("kmsi") === "true";
 
 export const msalConfig = {
     auth: {
@@ -25,7 +27,7 @@ export const msalConfig = {
         redirectUri: window.location.origin,
     },
     cache: {
-        cacheLocation: "sessionStorage",
+        cacheLocation: kmsiEnabled ? "localStorage" : "sessionStorage",
     },
     system: {
         allowPlatformBroker: true,
@@ -59,16 +61,22 @@ const TEST_SLICE_1 = { dc: "ESTS-PUB-EUS-FD000-TEST1-100" };
 
 export const loginRequest = {
     scopes: ["User.Read"],
-    extraQueryParameters: { ...TEST_SLICE_1 },
-    extraParameters: { ...TEST_SLICE_1 },
+    ...(kmsiEnabled
+        ? {}
+        : {
+              extraQueryParameters: { ...TEST_SLICE_1 },
+              extraParameters: { ...TEST_SLICE_1 },
+          }),
 };
 
 // Applied by the host when it brokers a nested-app token, so the brokered
 // authorize AND token requests hit the same test slice as the host's own login.
-export const brokerExtraParams = {
-    extraQueryParameters: { ...TEST_SLICE_1 },
-    extraParameters: { ...TEST_SLICE_1 },
-};
+export const brokerExtraParams = kmsiEnabled
+    ? {}
+    : {
+          extraQueryParameters: { ...TEST_SLICE_1 },
+          extraParameters: { ...TEST_SLICE_1 },
+      };
 
 // Port the nested app is served on; injected by server.js.
 export const nestedAppPort = import.meta.env.VITE_NESTED_APP_PORT;
