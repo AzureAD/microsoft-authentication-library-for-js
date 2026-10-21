@@ -204,7 +204,7 @@ describe("PopupMonitor.monitorPopupForHash", () => {
 
     it("calls cleanPopup on failure (window-closed)", async () => {
         const popup = makeFakePopup();
-        const closeSpy = jest.spyOn(popup, "close");
+        jest.spyOn(popup, "close");
 
         const promise = monitorPopupForHash(
             popup,
