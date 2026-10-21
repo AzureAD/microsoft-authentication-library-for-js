@@ -1885,7 +1885,9 @@ export class StandardController implements IController {
             correlationId,
             this.platformAuthProvider,
             request.authenticationScheme,
-            this.performanceClient
+            this.performanceClient,
+            request.dpopProof !== undefined ||
+                request.dpopProofProvider !== undefined
         );
         if (!platformAuthAllowed) {
             this.logger.trace(
@@ -2610,7 +2612,9 @@ export class StandardController implements IController {
                 silentRequest.correlationId,
                 this.platformAuthProvider,
                 silentRequest.authenticationScheme,
-                this.performanceClient
+                this.performanceClient,
+                silentRequest.dpopProof !== undefined ||
+                    silentRequest.dpopProofProvider !== undefined
             ) &&
             silentRequest.account.nativeAccountId
         ) {

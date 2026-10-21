@@ -66,7 +66,9 @@ export function resolveSilentRequestPreparation(
             correlationId,
             platformAuthProvider,
             request.authenticationScheme,
-            performanceClient
+            performanceClient,
+            request.dpopProof !== undefined ||
+                request.dpopProofProvider !== undefined
         )
             ? preparePlatformSilentRequest
             : prepareWebSilentRequest;

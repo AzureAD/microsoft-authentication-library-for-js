@@ -184,6 +184,23 @@ describe("silent request preparation", () => {
         expect(prepared.account).toBe(prepared.request.account);
     });
 
+    it("keeps web preparation for an externally managed DPoP proof", () => {
+        input.request.authenticationScheme =
+            Constants.AuthenticationScheme.BEARER;
+        input.request.dpopProofProvider = jest.fn();
+
+        const prepared = resolveSilentRequestPreparation(
+            input,
+            provider,
+            logger,
+            performanceClient
+        );
+
+        expect(prepared).toEqual(prepareWebSilentRequest(input));
+        expect(prepared.request).toBe(input.request);
+        expect(prepared.account).toBe(input.account);
+    });
+
     it.each([
         Constants.AuthenticationScheme.DPOP,
         Constants.AuthenticationScheme.SSH,

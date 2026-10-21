@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Add broker endpoint preparation, DPoP token hydration, and browser-owned proof signing seams [#8917](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8917)",
+    "comment": "Add broker endpoint preparation, DPoP token hydration, browser-owned proof signing seams, and safe native broker routing [#8917](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8917)",
     "packageName": "@azure/msal-browser",
     "email": "hemoral@microsoft.com",
     "dependentChangeType": "patch"
