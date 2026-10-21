@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792533893554,
+  "lastUpdate": 1792604671279,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24683,6 +24683,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.54%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sameera.gajjarapu@microsoft.com",
+            "name": "Sameera Gajjarapu",
+            "username": "sameerag"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "16a4714f38ba2844f34d154dd59dd8f1402457c9",
+          "message": "Fix web silent-request deduplication for refresh policies and extra parameters (#8919)\n\n## Summary\n\nImprove consistency of concurrent silent token request handling in MSAL\nBrowser.\n\n- Align web request-option normalization with existing browser\nconventions.\n- Preserve existing broker behavior and shared cache behavior.\n- Add focused regression coverage and a brief documentation\nclarification.\n\n## Validation\n\n- All 123 browser test suites pass (2,308 tests passed, 3 skipped).\n- Lint, formatting, declaration generation, and API Extractor pass.\n- Local build caveat: Rollup emits all bundles but does not exit on\neither Node 22 or Node 25. The stalled processes were stopped; the full\nbuild command is not reported as passing.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: bug\nagent-tool: copilot-cli\nagent-model: gpt-6.1-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCopilot-Session: 41c7e6a4-a4f2-4e65-873c-ebe2948ba242",
+          "timestamp": "2026-10-21T10:35:35-07:00",
+          "tree_id": "5f652ae8ef3f4cd5ab2036fba117701118108288",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/16a4714f38ba2844f34d154dd59dd8f1402457c9"
+        },
+        "date": 1792604665348,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 374681,
+            "range": "±0.63%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 374157,
+            "range": "±0.64%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
           }
         ]
       }
