@@ -408,7 +408,7 @@ export type ClearCacheRequest = {
 };
 
 // @public
-function clearHash(contentWindow: Window, logger?: Logger, correlationId?: string): boolean;
+function clearHash(contentWindow: Window, logger?: Logger, correlationId?: string): void;
 
 export { ClientAuthError }
 

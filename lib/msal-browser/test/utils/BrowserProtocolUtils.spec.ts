@@ -43,7 +43,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             (code) => {
                 window.history.replaceState(null, "", `${base}#code=${code}`);
 
-                expect(clearHash(window)).toBe(true);
+                clearHash(window);
                 expect(window.location.href).toBe(base);
             }
         );
@@ -55,7 +55,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         ])("removes a slash-prefixed callback: %s", (response) => {
             window.history.replaceState(null, "", `${base}#/${response}`);
 
-            expect(clearHash(window)).toBe(true);
+            clearHash(window);
             expect(window.location.href).toBe(base);
         });
 
@@ -65,7 +65,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         ])("preserves application-only state: %s", (url) => {
             window.history.replaceState(null, "", url);
 
-            expect(clearHash(window)).toBe(false);
+            clearHash(window);
             expect(window.location.href).toBe(url);
         });
 
@@ -102,7 +102,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         ])("preserves application fragment %s", (hash) => {
             window.history.replaceState(null, "", base + hash);
 
-            expect(clearHash(window)).toBe(false);
+            clearHash(window);
             expect(window.location.href).toBe(base + hash);
         });
 
@@ -112,11 +112,11 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         ])("leaves another interaction's response untouched", (state) => {
             const url = `${base}#code=owned-by-other-flow&state=${state}`;
             window.history.replaceState(null, "", url);
-            expect(clearHash(window)).toBe(false);
+            clearHash(window);
             expect(window.location.href).toBe(url);
             const brokerUrl = `${base}#accountId=owned-by-other-flow&state=${state}`;
             window.history.replaceState(null, "", brokerUrl);
-            expect(clearHash(window)).toBe(false);
+            clearHash(window);
             expect(window.location.href).toBe(brokerUrl);
         });
 
@@ -148,14 +148,14 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             const url = `${base}?code=application-code&state=application-state#/home`;
             window.history.replaceState(null, "", url);
 
-            expect(clearHash(window)).toBe(false);
+            clearHash(window);
             expect(window.location.href).toBe(url);
         });
 
         it("does not clear a broker response from the query string", () => {
             const url = `${base}?accountId=old-id&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=keep#/home`;
             window.history.replaceState(null, "", url);
-            expect(clearHash(window)).toBe(false);
+            clearHash(window);
             expect(window.location.href).toBe(url);
         });
 
@@ -166,7 +166,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
                 `${base}?code=A&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=keep#/home`
             );
 
-            expect(clearHash(window)).toBe(false);
+            clearHash(window);
 
             expect(window.location.href).toBe(
                 `${base}?code=A&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=keep#/home`

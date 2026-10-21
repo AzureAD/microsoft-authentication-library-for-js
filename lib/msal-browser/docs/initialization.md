@@ -231,8 +231,7 @@ It is not recommended to use both interaction types in a single application.
 
 `handleRedirectPromise()` removes redirect response fragments from the
 callback URL even when processing fails. If no client
-has a pending interaction, it cleans recognized authorization responses, logs a warning,
-and returns `null`.
+has a pending interaction, it cleans recognized authorization responses and returns `null`.
 Responses belonging to another client or popup/silent flow are left untouched.
 Application-only `state` parameters are not treated as authorization responses.
 The entire response-bearing fragment is cleared; the query string is

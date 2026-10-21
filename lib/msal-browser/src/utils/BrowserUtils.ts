@@ -147,22 +147,21 @@ export function parseAuthResponseFromUrl(): {
 /**
  * Clears a recognized redirect response fragment, preserving the query string.
  * Hash assignment is the fallback when history updates are unavailable.
- * Returns whether a response was found, even if URL cleanup is unavailable.
  */
 export function clearHash(
     contentWindow: Window,
     logger?: Logger,
     correlationId: string = ""
-): boolean {
+): void {
     const { origin, pathname, search, hash } = contentWindow.location;
     const content = UrlUtils.stripLeadingHashOrQuery(hash);
     if (!content || !/^[^=&?#/]+(?:=|&|$)/.test(content)) {
-        return false;
+        return;
     }
 
     const serverParams = UrlUtils.getDeserializedResponse(content);
     if (!serverParams) {
-        return false;
+        return;
     }
     let interactionType: string | undefined;
     const state = serverParams.state;
@@ -188,7 +187,7 @@ export function clearHash(
         interactionType === InteractionType.Popup ||
         interactionType === InteractionType.Silent
     ) {
-        return false;
+        return;
     }
 
     // State alone may be an application parameter rather than an MSAL response.
@@ -201,7 +200,7 @@ export function clearHash(
             serverParams.error_description
         )
     ) {
-        return false;
+        return;
     }
     const cleanUrl = origin + pathname + search;
 
@@ -216,14 +215,14 @@ export function clearHash(
                 "Removed authentication response parameters from the URL.",
                 correlationId
             );
-            return true;
+            return;
         }
     } catch {
         // Some hosts expose replaceState but reject its use. Try hash cleanup.
     }
     try {
         contentWindow.location.hash = "";
-        return true;
+        return;
     } catch {
         // Cleanup must not replace the result or error of authentication.
     }
@@ -236,7 +235,6 @@ export function clearHash(
         // eslint-disable-next-line no-console
         console.warn(message);
     }
-    return true;
 }
 
 /**

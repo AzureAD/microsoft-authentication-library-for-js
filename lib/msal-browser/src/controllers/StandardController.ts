@@ -475,14 +475,8 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult | null> {
         // A client-scoped miss may belong to another client; only clean up when no interaction is pending from any client.
         if (!this.browserStorage.isInteractionInProgress(true)) {
-            if (
-                !this.browserStorage.isInteractionInProgress(false) &&
-                BrowserUtils.clearHash(window, this.logger, "")
-            ) {
-                this.logger.warning(
-                    "Redirect response detected without a pending interaction. Returning null after URL cleanup.",
-                    ""
-                );
+            if (!this.browserStorage.isInteractionInProgress(false)) {
+                BrowserUtils.clearHash(window, this.logger, "");
             }
             this.logger.info(
                 "handleRedirectPromise called but there is no interaction in progress, returning null.",

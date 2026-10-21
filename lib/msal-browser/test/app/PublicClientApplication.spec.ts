@@ -752,23 +752,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         );
 
-        it("warns about a response without a pending interaction without logging its values", async () => {
-            window.location.hash =
-                "#code=test-response-value&state=test-state&view=home";
-            const warning = jest.spyOn(pca.getLogger(), "warning");
-
-            await expect(pca.handleRedirectPromise()).resolves.toBeNull();
-
-            expect(window.location.hash).toBe("");
-            expect(warning).toHaveBeenCalledWith(
-                expect.stringContaining("without a pending interaction"),
-                ""
-            );
-            expect(JSON.stringify(warning.mock.calls)).not.toContain(
-                "test-response-value"
-            );
-        });
-
         it.each([
             `#state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
             TEST_HASHES.TEST_ERROR_HASH,
@@ -777,15 +760,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             "cleans responses recognized by the shared parser without a pending interaction: %s",
             async (hash) => {
                 window.location.hash = hash;
-                const warning = jest.spyOn(pca.getLogger(), "warning");
 
                 await expect(pca.handleRedirectPromise()).resolves.toBeNull();
 
                 expect(window.location.hash).toBe("");
-                expect(warning).toHaveBeenCalledWith(
-                    expect.stringContaining("without a pending interaction"),
-                    ""
-                );
             }
         );
 
