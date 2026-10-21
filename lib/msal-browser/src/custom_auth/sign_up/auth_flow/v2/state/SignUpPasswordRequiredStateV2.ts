@@ -6,7 +6,6 @@
 import type { SignUpAttributeV2 } from "../../../../core/network_client/custom_auth_api/v2/result/SignUpResultsV2.js";
 import type { UserAccountAttributes } from "../../../../UserAccountAttributes.js";
 import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
-import { SubmitAttributesErrorV2 } from "../error_type/SubmitAttributesErrorV2.js";
 import type { SubmitAttributesResultV2 } from "../result/SubmitAttributesResultV2.js";
 import { SignUpAttributesRequiredStateBaseV2 } from "./SignUpAttributesRequiredStateBaseV2.js";
 import type { SignUpPasswordRequiredStateParametersV2 } from "./SignUpStateParametersV2.js";
@@ -54,7 +53,6 @@ export class SignUpPasswordRequiredStateV2 extends SignUpAttributesRequiredState
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: SubmitAttributesErrorV2,
                 scenario: continuationState.scenario,
                 correlationId,
             });

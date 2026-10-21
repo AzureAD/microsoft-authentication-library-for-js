@@ -263,4 +263,27 @@ describe("ArgumentValidator", () => {
             }).toThrow(InvalidArgumentError);
         });
     });
+
+    describe("ensureArgumentIsStringArray", () => {
+        it.each([
+            { value: [] },
+            { value: ["User.Read"] },
+            { value: ["", "openid"] },
+        ])("accepts an array containing only strings", ({ value }) => {
+            expect(() =>
+                ArgumentValidator.ensureArgumentIsStringArray("testArg", value)
+            ).not.toThrow();
+        });
+
+        it.each([
+            { value: "User.Read" },
+            { value: {} },
+            { value: [1] },
+            { value: ["User.Read", 1] },
+        ])("rejects a non-string-array value", ({ value }) => {
+            expect(() =>
+                ArgumentValidator.ensureArgumentIsStringArray("testArg", value)
+            ).toThrow(InvalidArgumentError);
+        });
+    });
 });

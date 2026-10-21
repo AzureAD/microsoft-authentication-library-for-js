@@ -1173,7 +1173,7 @@ const msalConfig = {
 
 -   The HTTP request to the authentication server failed.
 
-#### `redirect_to_web`
+#### `web_redirect_required`
 
 -   The native authentication flow must continue in a web browser.
 
