@@ -8794,6 +8794,121 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             ).toBe("replacement-request");
         });
 
+        it("cancels logout while authority discovery is pending", async () => {
+            const legacy = new PublicClientApplication({
+                auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                system: {
+                    enableLegacyPolling: true,
+                    allowPlatformBroker: false,
+                },
+            });
+            await legacy.initialize();
+            const legacyController = (legacy as any).controller;
+            let startOldDiscovery!: () => void;
+            const oldDiscoveryStarted = new Promise<void>((resolve) => {
+                startOldDiscovery = resolve;
+            });
+            let releaseOldDiscovery!: () => void;
+            const oldDiscovery = new Promise<void>((resolve) => {
+                releaseOldDiscovery = resolve;
+            });
+            jest.spyOn(
+                AuthorityFactory,
+                "createDiscoveredInstance"
+            ).mockImplementation(async (...args) => {
+                if (args[5] === "old-logout-request") {
+                    startOldDiscovery();
+                    await oldDiscovery;
+                }
+                return new Authority(...args);
+            });
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue("https://login.microsoftonline.com/auth");
+            const result = getTestAuthenticationResult();
+            jest.spyOn(
+                AuthorizeProtocol,
+                "handleResponseCode"
+            ).mockResolvedValue(result);
+            const oldPopup = {
+                closed: false,
+                location: {
+                    href: "about:blank",
+                    hash: "",
+                    assign: jest.fn(),
+                },
+                close: jest.fn(function (this: { closed: boolean }) {
+                    this.closed = true;
+                }),
+                document: { title: "" },
+                focus: jest.fn(),
+            };
+            let startReplacementNavigation!: () => void;
+            const replacementNavigation = new Promise<void>((resolve) => {
+                startReplacementNavigation = resolve;
+            });
+            const newPopup = {
+                closed: false,
+                location: {
+                    href: "about:blank",
+                    hash: "",
+                    assign: jest.fn(() => startReplacementNavigation()),
+                },
+                close: jest.fn(function (this: { closed: boolean }) {
+                    this.closed = true;
+                }),
+                document: { title: "" },
+                focus: jest.fn(),
+            };
+            jest.useFakeTimers();
+            jest.spyOn(window, "open")
+                .mockReturnValueOnce(oldPopup as unknown as Window)
+                .mockReturnValueOnce(newPopup as unknown as Window);
+            try {
+                const previous = legacy.logoutPopup({
+                    correlationId: "old-logout-request",
+                });
+                await oldDiscoveryStarted;
+                const previousRejection = expect(
+                    previous
+                ).rejects.toMatchObject({
+                    errorCode:
+                        BrowserAuthErrorCodes.interactionInProgressCancelled,
+                });
+                const replacement = legacy.acquireTokenPopup({
+                    scopes: ["User.Read"],
+                    correlationId: "new-request",
+                    overrideInteractionInProgress: true,
+                });
+                releaseOldDiscovery();
+                await previousRejection;
+                expect(oldPopup.close).toHaveBeenCalledTimes(1);
+                expect(oldPopup.location.assign).not.toHaveBeenCalled();
+                await replacementNavigation;
+                newPopup.location.href = "https://localhost/redirect";
+                newPopup.location.hash = "#code=new";
+                expect(
+                    legacyController.browserStorage.getInteractionInProgress()
+                        ?.correlationId
+                ).toBe("new-request");
+                await expect(
+                    legacy.acquireTokenPopup({ scopes: ["User.Read"] })
+                ).rejects.toMatchObject({
+                    errorCode: BrowserAuthErrorCodes.interactionInProgress,
+                });
+                jest.advanceTimersByTime(30);
+                await expect(replacement).resolves.toBe(result);
+                expect(newPopup.close).toHaveBeenCalledTimes(1);
+                expect(
+                    legacyController.browserStorage.isInteractionInProgress()
+                ).toBe(false);
+            } finally {
+                releaseOldDiscovery();
+                jest.useRealTimers();
+            }
+        });
+
         it("throws error if interaction is in progress", async () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const logger = new Logger({});

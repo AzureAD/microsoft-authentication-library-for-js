@@ -1671,9 +1671,11 @@ export class StandardController implements IController {
                 false,
                 correlationId
             );
+            registerPopupRequestCancellation(correlationId);
 
             const popupClient = this.createPopupClient(correlationId);
             return popupClient.logout(logoutRequest).finally(() => {
+                clearPopupRequestCancellation(correlationId);
                 this.browserStorage.setInteractionInProgress(
                     false,
                     undefined,

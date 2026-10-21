@@ -796,6 +796,8 @@ export class PopupClient extends StandardInteractionClient {
                 account: validRequest.account || undefined,
             });
 
+            throwIfPopupRequestCancelled(this.correlationId);
+
             try {
                 authClient.authority.endSessionEndpoint;
             } catch {
