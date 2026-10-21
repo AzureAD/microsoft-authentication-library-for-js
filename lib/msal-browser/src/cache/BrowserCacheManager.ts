@@ -2389,7 +2389,7 @@ export class BrowserCacheManager extends CacheManager {
                     );
                     cancelPendingPopupPollingResponse(
                         this.logger,
-                        correlationId
+                        existingInteraction.correlationId
                     );
 
                     // Clear existing interaction to allow new one

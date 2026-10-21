@@ -9,6 +9,8 @@ import {
     monitorPopupForHash,
     POPUP_POLL_INTERVAL_MS,
     cancelPendingPopupPollingResponse,
+    clearPopupRequestCancellation,
+    registerPopupRequestCancellation,
 } from "../../src/utils/PopupMonitor.js";
 
 const logger = new Logger({});
@@ -272,7 +274,7 @@ describe("PopupMonitor.monitorPopupForHash", () => {
                 correlationId: CORR_ID,
             });
 
-            cancelPendingPopupPollingResponse(logger, "replacement-request");
+            cancelPendingPopupPollingResponse(logger, CORR_ID);
             await rejection;
             expect(clearInterval).toHaveBeenCalled();
             expect(close).toHaveBeenCalledTimes(1);
@@ -298,7 +300,7 @@ describe("PopupMonitor.monitorPopupForHash", () => {
             const firstRejection = expect(first).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.interactionInProgressCancelled,
             });
-            cancelPendingPopupPollingResponse(logger, "second-request");
+            cancelPendingPopupPollingResponse(logger, CORR_ID);
             const second = monitorPopupForHash(
                 makeFakePopup(),
                 parentWindow,
@@ -313,13 +315,16 @@ describe("PopupMonitor.monitorPopupForHash", () => {
             });
 
             await firstRejection;
-            cancelPendingPopupPollingResponse(logger, "third-request");
+            cancelPendingPopupPollingResponse(logger, "second-request");
             await secondRejection;
             expect(jest.getTimerCount()).toBe(0);
         });
 
-        it("unregisters a completed poller before a later override", async () => {
-            const popup = makeFakePopup("http://localhost/redirect#code=ok");
+        it("cancels a popup request before polling starts", async () => {
+            const popup = makeFakePopup();
+            const close = jest.spyOn(popup, "close");
+            registerPopupRequestCancellation(CORR_ID);
+            cancelPendingPopupPollingResponse(logger, CORR_ID);
             const response = monitorPopupForHash(
                 popup,
                 parentWindow,
@@ -328,12 +333,16 @@ describe("PopupMonitor.monitorPopupForHash", () => {
                 unloadHandler,
                 CORR_ID
             );
-            jest.advanceTimersByTime(POPUP_POLL_INTERVAL_MS);
-            await expect(response).resolves.toBe("#code=ok");
-            const verbose = jest.spyOn(logger, "verbose");
-            cancelPendingPopupPollingResponse(logger, "later-request");
-            expect(verbose).not.toHaveBeenCalled();
-            verbose.mockRestore();
+            await expect(response).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.interactionInProgressCancelled,
+                correlationId: CORR_ID,
+            });
+            clearPopupRequestCancellation(CORR_ID);
+            expect(close).toHaveBeenCalledTimes(1);
+            expect(removeListenerSpy).toHaveBeenCalledWith(
+                "beforeunload",
+                unloadHandler
+            );
         });
     });
 });

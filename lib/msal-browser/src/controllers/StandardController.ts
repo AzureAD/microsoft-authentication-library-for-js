@@ -54,6 +54,10 @@ import {
     INTERACTION_TYPE,
 } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
+import {
+    clearPopupRequestCancellation,
+    registerPopupRequestCancellation,
+} from "../utils/PopupMonitor.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
@@ -879,6 +883,7 @@ export class StandardController implements IController {
                 request.overrideInteractionInProgress,
                 correlationId
             );
+            registerPopupRequestCancellation(correlationId);
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -1009,6 +1014,7 @@ export class StandardController implements IController {
                     false,
                     correlationId
                 );
+                clearPopupRequestCancellation(correlationId);
                 if (!this.config.system.navigatePopups) {
                     await this.preGeneratePkceCodes(correlationId);
                 }
