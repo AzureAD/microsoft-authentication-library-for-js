@@ -690,10 +690,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.initialize();
         });
         it.each([
-            "#code=",
             '#code=""',
             TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
-            "#accountId=",
             "#accountId=test-id",
             TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
             "#ear_jwe=encrypted",
@@ -735,15 +733,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             TEST_HASHES.TEST_ERROR_HASH,
             `#client_info=info&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
         ])(
-            "does not scrub metadata-only responses without a pending interaction: %s",
+            "cleans responses recognized by the shared parser without a pending interaction: %s",
             async (hash) => {
                 window.location.hash = hash;
                 const warning = jest.spyOn(pca.getLogger(), "warning");
 
                 await expect(pca.handleRedirectPromise()).resolves.toBeNull();
 
-                expect(window.location.hash).toBe(hash);
-                expect(warning).not.toHaveBeenCalled();
+                expect(window.location.hash).toBe("");
+                expect(warning).toHaveBeenCalledWith(
+                    expect.stringContaining("without a pending interaction"),
+                    ""
+                );
             }
         );
 
@@ -909,7 +910,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it.each([
-            ["#code=", ""],
+            ["#code=", "#code="],
             ["#code=untracked&state=invalid", ""],
             [
                 TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP,

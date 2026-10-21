@@ -478,13 +478,7 @@ export class StandardController implements IController {
         if (!this.browserStorage.isInteractionInProgress(true)) {
             if (
                 !this.browserStorage.isInteractionInProgress(false) &&
-                BrowserUtils.clearHash(
-                    window,
-                    responseMode,
-                    this.logger,
-                    "",
-                    true
-                )
+                BrowserUtils.clearHash(window, responseMode, this.logger, "")
             ) {
                 this.logger.warning(
                     "Redirect response detected without a pending interaction. Returning null after URL cleanup.",

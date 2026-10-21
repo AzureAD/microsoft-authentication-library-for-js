@@ -34,8 +34,6 @@ import {
 } from "../config/Configuration.js";
 import { redirectBridgeEmptyResponse } from "../error/BrowserAuthErrorCodes.js";
 
-const redirectResponseKeys = ["code", "ear_jwe", "accountId"];
-
 /**
  * Extracts and parses the authentication response from URL (hash and/or query string).
  * This is a shared utility used across multiple components in msal-browser.
@@ -150,10 +148,7 @@ export function parseAuthResponseFromUrl(): {
 /**
  * Recognizes redirect responses without consuming another interaction's response.
  */
-function hasRedirectResponse(
-    response: string,
-    responseValuesOnly: boolean
-): boolean {
+function hasRedirectResponse(response: string): boolean {
     if (response.startsWith("#/")) {
         return false;
     }
@@ -162,15 +157,12 @@ function hasRedirectResponse(
         return false;
     }
 
-    const params = new URLSearchParams(content);
-    const hasResponseValue = redirectResponseKeys.some((key) =>
-        params.has(key)
-    );
-    if (responseValuesOnly && !hasResponseValue) {
+    const serverParams = UrlUtils.getDeserializedResponse(response);
+    if (!serverParams) {
         return false;
     }
     let interactionType: string | undefined;
-    const state = params.get("state");
+    const state = serverParams.state;
     if (state) {
         try {
             const { libraryState } = ProtocolUtils.parseRequestState(
@@ -196,26 +188,24 @@ function hasRedirectResponse(
         return false;
     }
 
-    return interactionType === InteractionType.Redirect || hasResponseValue;
+    return true;
 }
 
 /**
  * Clears the entire response-bearing query or fragment, based on responseMode.
  * The other URL component is preserved.
  * Hash assignment is the fallback when history updates are unavailable.
- * When responseValuesOnly is true, state/error metadata alone is preserved.
  * Returns whether a response was found, even if URL cleanup is unavailable.
  */
 export function clearHash(
     contentWindow: Window,
     responseMode: string = Constants.ResponseMode.FRAGMENT,
     logger?: Logger,
-    correlationId: string = "",
-    responseValuesOnly: boolean = false
+    correlationId: string = ""
 ): boolean {
     const { origin, pathname, search, hash } = contentWindow.location;
     const isQuery = responseMode === Constants.ResponseMode.QUERY;
-    if (!hasRedirectResponse(isQuery ? search : hash, responseValuesOnly)) {
+    if (!hasRedirectResponse(isQuery ? search : hash)) {
         return false;
     }
     const cleanUrl = origin + pathname + (isQuery ? hash : search);
