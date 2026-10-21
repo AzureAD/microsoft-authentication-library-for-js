@@ -121,7 +121,7 @@ broadcastResponseToMainFrame();
 Register these URIs on the app (`CLIENT_ID` in `app/constants.js`):
 
 -   **Single-page application** redirect URI: `https://localhost:3001/redirect`
--   **Front-channel logout / post-logout redirect URI**: `https://localhost:3001/redirect`
+-   **Post-logout redirect URI**: `https://localhost:3001/redirect` (reuse the registered SPA redirect URI; this page is not a front-channel logout endpoint).
 
 The SPA redirect URI lets the iframe complete the token exchange via CORS with PKCE; the post-logout redirect URI lets the relay page receive logout completion through the same redirect bridge. The untrusted host origin (`https://127.0.0.1:3000`) is not registered — it's never a redirect target.
 
