@@ -146,18 +146,25 @@ export function parseAuthResponseFromUrl(): {
 }
 
 /**
- * Recognizes redirect responses without consuming another interaction's response.
+ * Clears the entire response-bearing query or fragment, based on responseMode.
+ * The other URL component is preserved.
+ * Hash assignment is the fallback when history updates are unavailable.
+ * Returns whether a response was found, even if URL cleanup is unavailable.
  */
-function hasRedirectResponse(response: string): boolean {
-    if (response.startsWith("#/")) {
-        return false;
-    }
-    const content = UrlUtils.stripLeadingHashOrQuery(response);
+export function clearHash(
+    contentWindow: Window,
+    responseMode: string = Constants.ResponseMode.FRAGMENT,
+    logger?: Logger,
+    correlationId: string = ""
+): boolean {
+    const { origin, pathname, search, hash } = contentWindow.location;
+    const isQuery = responseMode === Constants.ResponseMode.QUERY;
+    const content = UrlUtils.stripLeadingHashOrQuery(isQuery ? search : hash);
     if (!content || !/^[^=&?#/]+(?:=|&|$)/.test(content)) {
         return false;
     }
 
-    const serverParams = UrlUtils.getDeserializedResponse(response);
+    const serverParams = UrlUtils.getDeserializedResponse(content);
     if (!serverParams) {
         return false;
     }
@@ -188,24 +195,16 @@ function hasRedirectResponse(response: string): boolean {
         return false;
     }
 
-    return true;
-}
-
-/**
- * Clears the entire response-bearing query or fragment, based on responseMode.
- * The other URL component is preserved.
- * Hash assignment is the fallback when history updates are unavailable.
- * Returns whether a response was found, even if URL cleanup is unavailable.
- */
-export function clearHash(
-    contentWindow: Window,
-    responseMode: string = Constants.ResponseMode.FRAGMENT,
-    logger?: Logger,
-    correlationId: string = ""
-): boolean {
-    const { origin, pathname, search, hash } = contentWindow.location;
-    const isQuery = responseMode === Constants.ResponseMode.QUERY;
-    if (!hasRedirectResponse(isQuery ? search : hash)) {
+    // State alone may be an application parameter rather than an MSAL response.
+    if (
+        interactionType !== InteractionType.Redirect &&
+        !(
+            serverParams.code ||
+            serverParams.ear_jwe ||
+            serverParams.error ||
+            serverParams.error_description
+        )
+    ) {
         return false;
     }
     const cleanUrl = origin + pathname + (isQuery ? hash : search);

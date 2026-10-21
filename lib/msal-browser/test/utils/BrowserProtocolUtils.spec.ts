@@ -48,6 +48,31 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             }
         );
 
+        it.each([
+            `code=old-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+            `accountId=broker-id&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+            "code=old-code&state=invalid",
+        ])("removes a slash-prefixed callback: %s", (response) => {
+            window.history.replaceState(null, "", `${base}#/${response}`);
+
+            expect(clearHash(window)).toBe(true);
+            expect(window.location.href).toBe(base);
+        });
+
+        it.each([
+            Constants.ResponseMode.FRAGMENT,
+            Constants.ResponseMode.QUERY,
+        ])("preserves application-only state in %s mode", (responseMode) => {
+            const url =
+                responseMode === Constants.ResponseMode.QUERY
+                    ? `${base}?state=CA&tab=orders#/home`
+                    : `${base}?q=keep#state=CA&tab=orders`;
+            window.history.replaceState(null, "", url);
+
+            expect(clearHash(window, responseMode)).toBe(false);
+            expect(window.location.href).toBe(url);
+        });
+
         it("clears the complete response fragment while preserving the query", () => {
             window.history.replaceState(
                 null,
@@ -64,7 +89,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             window.history.replaceState(
                 null,
                 "",
-                `${base}?keep=yes#accountId=old-id&state=invalid&view=home`
+                `${base}?keep=yes#accountId=old-id&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&view=home`
             );
             clearHash(window);
             expect(window.location.href).toBe(`${base}?keep=yes`);
@@ -131,8 +156,8 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             expect(window.location.href).toBe(url);
         });
 
-        it("preserves ordinary query accountId parameters unless query response mode is selected", () => {
-            const url = `${base}?accountId=old-id&state=invalid&q=keep#/home`;
+        it("clears a query broker response only when query response mode is selected", () => {
+            const url = `${base}?accountId=old-id&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=keep#/home`;
             window.history.replaceState(null, "", url);
             expect(clearHash(window)).toBe(false);
             expect(window.location.href).toBe(url);

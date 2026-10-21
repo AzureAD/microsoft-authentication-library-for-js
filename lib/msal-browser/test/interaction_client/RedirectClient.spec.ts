@@ -1739,65 +1739,71 @@ describe("RedirectClient", () => {
                 });
         });
 
-        it("clears hash if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash", (done) => {
-            let pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
-
-            // @ts-ignore
-            redirectClient = new RedirectClient(
-                // @ts-ignore
-                pca.config,
-                // @ts-ignore
-                pca.browserStorage,
-                // @ts-ignore
-                pca.browserCrypto,
-                // @ts-ignore
-                pca.logger,
-                // @ts-ignore
-                pca.eventHandler,
-                // @ts-ignore
-                pca.navigationClient,
-                // @ts-ignore
-                pca.performanceClient,
-                // @ts-ignore
-                pca.nativeInternalStorage
-            );
-
-            browserStorage.setInteractionInProgress(true);
-            const loginRequestUrl = window.location.href + "#testHash";
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-            window.sessionStorage.setItem(
-                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                loginRequestUrl
-            );
-            jest.spyOn(
-                RedirectClient.prototype,
-                <any>"handleResponse"
-            ).mockImplementation((response) => {
-                expect(window.location.href).not.toContain("#testHash");
-                expect(response).toEqual({
-                    code: "thisIsATestCode",
-                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+        it.each(["#", "#/"])(
+            "clears a %s callback if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash",
+            (prefix, done) => {
+                let pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
                 });
-                done();
-            });
-            redirectClient.handleRedirectPromise(
-                testRequest,
-                TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement,
-                {
-                    hash: "",
-                    navigateToLoginRequestUrl: false,
-                }
-            );
-        });
+
+                //PCA implementation moved to controller
+                pca = (pca as any).controller;
+
+                // @ts-ignore
+                redirectClient = new RedirectClient(
+                    // @ts-ignore
+                    pca.config,
+                    // @ts-ignore
+                    pca.browserStorage,
+                    // @ts-ignore
+                    pca.browserCrypto,
+                    // @ts-ignore
+                    pca.logger,
+                    // @ts-ignore
+                    pca.eventHandler,
+                    // @ts-ignore
+                    pca.navigationClient,
+                    // @ts-ignore
+                    pca.performanceClient,
+                    // @ts-ignore
+                    pca.nativeInternalStorage
+                );
+
+                browserStorage.setInteractionInProgress(true);
+                const loginRequestUrl = window.location.href + "#testHash";
+                window.location.hash = `${prefix}${TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT.substring(
+                    1
+                )}`;
+                window.sessionStorage.setItem(
+                    `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                    loginRequestUrl
+                );
+                jest.spyOn(
+                    RedirectClient.prototype,
+                    <any>"handleResponse"
+                ).mockImplementation((response) => {
+                    expect(window.location.href).not.toContain("#testHash");
+                    expect(window.location.hash).toBe("");
+                    expect(response).toEqual({
+                        code: "thisIsATestCode",
+                        client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    });
+                    done();
+                });
+                redirectClient.handleRedirectPromise(
+                    testRequest,
+                    TEST_CONFIG.TEST_VERIFIER,
+                    rootMeasurement,
+                    {
+                        hash: "",
+                        navigateToLoginRequestUrl: false,
+                    }
+                );
+            }
+        );
 
         it("mutes no_server_response error when back navigation is detected", async () => {
             // @ts-ignore

@@ -234,6 +234,7 @@ callback URL even when processing fails. If no client
 has a pending interaction, it cleans recognized authorization responses, logs a warning,
 and returns `null`.
 Responses belonging to another client or popup/silent flow are left untouched.
+Application-only `state` parameters are not treated as authorization responses.
 The entire response-bearing fragment or query is cleared; the other URL
 component is preserved. URL cleanup does not indicate authentication success or
 change response validation.

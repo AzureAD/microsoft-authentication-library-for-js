@@ -694,6 +694,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
             TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
             "#ear_jwe=encrypted",
+            `#/code=old-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
         ])(
             "cleans a redirect response without a pending interaction before returning null: %s",
             async (hash) => {
@@ -707,6 +708,47 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 expect(window.location.hash).toBe("");
                 expect(redirect).not.toHaveBeenCalled();
+            }
+        );
+
+        it.each([
+            Constants.ResponseMode.FRAGMENT,
+            Constants.ResponseMode.QUERY,
+        ])(
+            "preserves application-only state without a pending interaction in %s mode",
+            async (responseMode) => {
+                const statePca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        OIDCOptions: { responseMode },
+                    },
+                    system: {
+                        protocolMode: ProtocolMode.OIDC,
+                        allowPlatformBroker: false,
+                    },
+                });
+                await statePca.initialize();
+                const warning = jest.spyOn(statePca.getLogger(), "warning");
+                const originalUrl = window.location.href;
+                try {
+                    window.history.replaceState(
+                        null,
+                        "",
+                        responseMode === Constants.ResponseMode.QUERY
+                            ? "?state=CA&tab=orders#/home"
+                            : "?q=keep#state=CA&tab=orders"
+                    );
+                    const url = window.location.href;
+
+                    await expect(
+                        statePca.handleRedirectPromise()
+                    ).resolves.toBeNull();
+
+                    expect(window.location.href).toBe(url);
+                    expect(warning).not.toHaveBeenCalled();
+                } finally {
+                    window.history.replaceState(null, "", originalUrl);
+                }
             }
         );
 
@@ -861,6 +903,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it.each([
             TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
             TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
+            `#/code=old-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
         ])(
             "leaves the response in the URL until processing rejects: %s",
             async (hash) => {
