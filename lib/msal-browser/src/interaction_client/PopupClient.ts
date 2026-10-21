@@ -315,7 +315,19 @@ export class PopupClient extends StandardInteractionClient {
                 this.correlationId
             )
         ) {
-            return this.executeEarFlow(validRequest, popupParams, pkceCodes);
+            try {
+                return await this.executeEarFlow(
+                    validRequest,
+                    popupParams,
+                    pkceCodes
+                );
+            } catch (e) {
+                const popupWindow = popupParams.popup || this.currentWindow;
+                if (popupWindow && !popupWindow.closed) {
+                    popupWindow.close();
+                }
+                throw e;
+            }
         } else {
             return this.executeCodeFlow(validRequest, popupParams, pkceCodes);
         }
