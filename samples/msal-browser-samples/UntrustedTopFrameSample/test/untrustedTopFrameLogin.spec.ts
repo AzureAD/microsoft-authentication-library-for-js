@@ -221,7 +221,7 @@ describe("Untrusted Top Frame Sample", () => {
         // Silent acquisition reads from MSAL's native cache — no relay popup.
         const silentButton = await frame.waitForSelector("#acquireTokenSilent");
         await silentButton?.click();
-        await frame.waitForSelector("#token-info");
+        await frame.waitForSelector("#token-info", { visible: true });
         const json = await frame.$eval(
             "#token-response",
             (el) => el.textContent || ""
