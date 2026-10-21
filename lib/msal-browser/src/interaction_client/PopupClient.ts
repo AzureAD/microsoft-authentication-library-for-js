@@ -301,7 +301,10 @@ export class PopupClient extends StandardInteractionClient {
             this.logger,
             this.correlationId,
             this.platformAuthProvider,
-            request.authenticationScheme
+            request.authenticationScheme,
+            undefined,
+            request.dpopProof !== undefined ||
+                request.dpopProofProvider !== undefined
         );
         validRequest.platformBroker = isPlatformBroker;
 
