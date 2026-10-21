@@ -128,15 +128,25 @@ async function getNestedFrame(page: Page): Promise<Frame> {
 async function resetNestedFrame(page: Page): Promise<Frame> {
     const frame = await getNestedFrame(page);
     await frame.evaluate(() => window.sessionStorage.clear());
-    await page.evaluate(() => {
-        const iframe = document.querySelector<HTMLIFrameElement>(
-            "iframe[title='nestedApp']"
-        );
-        if (iframe) {
+    await Promise.all([
+        frame.waitForNavigation({
+            waitUntil: "domcontentloaded",
+            timeout: ACTION_TIMEOUT,
+        }),
+        page.evaluate(() => {
+            const iframe = document.querySelector<HTMLIFrameElement>(
+                "iframe[title='nestedApp']"
+            );
+            if (!iframe) {
+                throw new Error("Nested app iframe is missing");
+            }
             iframe.src = iframe.src;
-        }
+        }),
+    ]);
+    await frame.waitForSelector("#acquireTokenSilent", {
+        timeout: ACTION_TIMEOUT,
     });
-    return getNestedFrame(page);
+    return frame;
 }
 
 async function verifyHostTokenStore(page: Page): Promise<void> {
