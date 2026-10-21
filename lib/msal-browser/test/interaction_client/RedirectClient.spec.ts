@@ -994,9 +994,7 @@ describe("RedirectClient", () => {
                     testTokenResponse.expiresOn.getMilliseconds() >=
                         tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe(
-                `#client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
-            );
+            expect(window.location.hash).toBe("");
         });
 
         it("calls custom navigateInternal function then processes hash", async () => {
@@ -1154,9 +1152,7 @@ describe("RedirectClient", () => {
                 testTokenResponse.expiresOn!.getMilliseconds() >=
                     tokenResponse.expiresOn!.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe(
-                `#client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
-            );
+            expect(window.location.hash).toBe("");
         });
 
         it("processes hash if navigateToLoginRequestUri is false and request origin is different", async () => {
@@ -1299,9 +1295,7 @@ describe("RedirectClient", () => {
                     testTokenResponse.expiresOn.getMilliseconds() >=
                         tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe(
-                `#client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
-            );
+            expect(window.location.hash).toBe("");
         });
 
         it("returns null if interaction is not in progress", async () => {

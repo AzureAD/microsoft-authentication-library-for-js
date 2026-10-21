@@ -35,12 +35,6 @@ import {
 import { redirectBridgeEmptyResponse } from "../error/BrowserAuthErrorCodes.js";
 
 const redirectResponseKeys = ["code", "ear_jwe", "accountId"];
-const authResponseKeys = new Set([
-    ...redirectResponseKeys,
-    "state",
-    "error",
-    "error_description",
-]);
 
 /**
  * Extracts and parses the authentication response from URL (hash and/or query string).
@@ -154,20 +148,18 @@ export function parseAuthResponseFromUrl(): {
 }
 
 /**
- * Filters redirect response fields, preserving application parameters verbatim.
- * Query strings require redirect state unless query response mode is selected.
+ * Recognizes redirect responses without consuming another interaction's response.
  */
-function removeAuthResponse(
+function hasRedirectResponse(
     response: string,
-    allowResponseWithoutState: boolean,
     responseValuesOnly: boolean
-): string {
+): boolean {
     if (response.startsWith("#/")) {
-        return response;
+        return false;
     }
     const content = UrlUtils.stripLeadingHashOrQuery(response);
     if (!content || !/^[^=&?#/]+(?:=|&|$)/.test(content)) {
-        return response;
+        return false;
     }
 
     const params = new URLSearchParams(content);
@@ -175,7 +167,7 @@ function removeAuthResponse(
         params.has(key)
     );
     if (responseValuesOnly && !hasResponseValue) {
-        return response;
+        return false;
     }
     let interactionType: string | undefined;
     const state = params.get("state");
@@ -201,28 +193,15 @@ function removeAuthResponse(
         interactionType === InteractionType.Popup ||
         interactionType === InteractionType.Silent
     ) {
-        return response;
+        return false;
     }
 
-    if (
-        interactionType !== InteractionType.Redirect &&
-        !(allowResponseWithoutState && hasResponseValue)
-    ) {
-        return response;
-    }
-
-    const remaining = content
-        .split("&")
-        .filter((parameter) => {
-            const key = new URLSearchParams(parameter).keys().next().value;
-            return !authResponseKeys.has(key);
-        })
-        .join("&");
-    return remaining ? response.charAt(0) + remaining : "";
+    return interactionType === InteractionType.Redirect || hasResponseValue;
 }
 
 /**
- * Removes redirect response fields from both query and fragment, preserving app parameters.
+ * Clears the entire response-bearing query or fragment, based on responseMode.
+ * The other URL component is preserved.
  * Hash assignment is the fallback when history updates are unavailable.
  * When responseValuesOnly is true, state/error metadata alone is preserved.
  * Returns whether a response was found, even if URL cleanup is unavailable.
@@ -235,17 +214,11 @@ export function clearHash(
     responseValuesOnly: boolean = false
 ): boolean {
     const { origin, pathname, search, hash } = contentWindow.location;
-    const originalUrl = origin + pathname + search + hash;
-    const cleanQuery = removeAuthResponse(
-        search,
-        responseMode === Constants.ResponseMode.QUERY,
-        responseValuesOnly
-    );
-    const cleanHash = removeAuthResponse(hash, true, responseValuesOnly);
-    const cleanUrl = origin + pathname + cleanQuery + cleanHash;
-    if (cleanUrl === originalUrl) {
+    const isQuery = responseMode === Constants.ResponseMode.QUERY;
+    if (!hasRedirectResponse(isQuery ? search : hash, responseValuesOnly)) {
         return false;
     }
+    const cleanUrl = origin + pathname + (isQuery ? hash : search);
 
     try {
         if (typeof contentWindow.history?.replaceState === "function") {
@@ -264,11 +237,8 @@ export function clearHash(
         // Some hosts expose replaceState but reject its use. Try hash cleanup.
     }
     try {
-        // eslint-disable-next-line security/detect-possible-timing-attacks -- Comparing URL fragments to determine whether an update is needed.
-        if (hash !== cleanHash) {
-            contentWindow.location.hash = cleanHash;
-        }
-        if (search === cleanQuery) {
+        if (!isQuery) {
+            contentWindow.location.hash = "";
             return true;
         }
     } catch {

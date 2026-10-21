@@ -708,11 +708,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 await expect(pca.handleRedirectPromise()).resolves.toBeNull();
 
-                expect(window.location.hash).toBe(
-                    hash === TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                        ? `#client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
-                        : ""
-                );
+                expect(window.location.hash).toBe("");
                 expect(redirect).not.toHaveBeenCalled();
             }
         );
@@ -724,7 +720,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             await expect(pca.handleRedirectPromise()).resolves.toBeNull();
 
-            expect(window.location.hash).toBe("#view=home");
+            expect(window.location.hash).toBe("");
             expect(warning).toHaveBeenCalledWith(
                 expect.stringContaining("without a pending interaction"),
                 ""
@@ -847,7 +843,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         })
                     ).resolves.toBeNull();
 
-                    expect(window.location.search).toBe("?q=keep");
+                    expect(window.location.search).toBe("");
                     expect(window.location.hash).toBe("#/home");
                     if (hasTransaction) {
                         expect(redirect.mock.calls[0][3]).toEqual({
@@ -875,10 +871,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 );
                 window.location.hash = hash;
                 const error = new Error("Response processing failed");
-                const cleanHash =
-                    hash === TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                        ? `#client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
-                        : "";
                 const redirect = jest
                     .spyOn(RedirectClient.prototype, "handleRedirectPromise")
                     .mockImplementation(async () => {
@@ -888,7 +880,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 await expect(pca.handleRedirectPromise()).rejects.toBe(error);
                 expect(redirect.mock.calls[0][3]).toBeUndefined();
-                expect(window.location.hash).toBe(cleanHash);
+                expect(window.location.hash).toBe("");
             }
         );
 
@@ -1060,12 +1052,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(handleResponse.mock.calls[0][2]).toBe(
                         TEST_CONFIG.TEST_VERIFIER
                     );
-                    expect(window.location.hash).toBe(
-                        !bridgeResponse &&
-                            hash === TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                            ? `#client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
-                            : ""
-                    );
+                    expect(window.location.hash).toBe("");
                 }
             );
 
@@ -1113,11 +1100,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         })
                     ).resolves.toEqual(result);
                     expect(handleResponse).toHaveBeenCalledTimes(1);
-                    expect(window.location.hash).toBe(
-                        hash === TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                            ? `#client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
-                            : ""
-                    );
+                    expect(window.location.hash).toBe("");
                 }
             );
         });

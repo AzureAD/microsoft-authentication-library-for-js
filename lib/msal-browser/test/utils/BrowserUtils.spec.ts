@@ -41,7 +41,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
     });
 
     it.each([Constants.ResponseMode.FRAGMENT, Constants.ResponseMode.QUERY])(
-        "clearHash removes auth fields from both query and fragment in %s mode while preserving app parameters",
+        "clearHash clears the complete %s response and preserves the other URL component",
         (responseMode) => {
             const url = window.location.href;
             try {
@@ -55,7 +55,9 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
                 BrowserUtils.clearHash(window, responseMode);
 
                 expect(window.location.href).toBe(
-                    `${window.location.origin}/callback?tenant=contoso#view=home`
+                    responseMode === Constants.ResponseMode.QUERY
+                        ? `${window.location.origin}/callback#code=fragment-code&view=home`
+                        : `${window.location.origin}/callback?tenant=contoso&code=query-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
                 );
                 expect(history.length).toBe(historyLength);
             } finally {

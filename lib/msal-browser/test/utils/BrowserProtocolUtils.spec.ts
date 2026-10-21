@@ -48,7 +48,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             }
         );
 
-        it("preserves unrelated parameters verbatim while removing duplicate auth fields", () => {
+        it("clears the complete response fragment while preserving the query", () => {
             window.history.replaceState(
                 null,
                 "",
@@ -57,23 +57,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
 
             clearHash(window);
 
-            expect(window.location.href).toBe(
-                `${base}?q=a%20b#view=a%20b&client_info=info`
-            );
-        });
-
-        it("removes response values and companion markers without removing other metadata", () => {
-            const metadata =
-                "nativeAccountId=old-id&client_info=info&session_state=session&cloud_instance_name=cloud&cloud_instance_host_name=host&cloud_graph_host_name=graph&msgraph_host=graphhost&error_uri=help&suberror=detail&timestamp=now&trace_id=trace&correlation_id=correlation&claims=claims&clientdata=data";
-            window.history.replaceState(
-                null,
-                "",
-                `${base}#code=A&ear_jwe=encrypted&accountId=broker-id&state=invalid&error=error&error_description=description&${metadata}`
-            );
-
-            clearHash(window);
-
-            expect(window.location.href).toBe(`${base}#${metadata}`);
+            expect(window.location.href).toBe(`${base}?q=a%20b`);
         });
 
         it("removes populated or empty broker identifiers from accountId callback fragments", () => {
@@ -87,7 +71,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
                 `${base}?keep=yes#accountId=old-id&state=invalid&view=home`
             );
             clearHash(window);
-            expect(window.location.href).toBe(`${base}?keep=yes#view=home`);
+            expect(window.location.href).toBe(`${base}?keep=yes`);
         });
 
         it.each([
@@ -121,7 +105,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             expect(window.location.href).toBe(brokerUrl);
         });
 
-        it("removes a redirect error response and preserves unrelated parameters", () => {
+        it("clears the complete redirect error response fragment", () => {
             window.history.replaceState(
                 null,
                 "",
@@ -130,7 +114,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
 
             clearHash(window);
 
-            expect(window.location.href).toBe(`${base}#view=home`);
+            expect(window.location.href).toBe(base);
         });
 
         it("removes encrypted redirect responses", () => {
@@ -160,10 +144,10 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             expect(window.location.href).toBe(url);
 
             clearHash(window, Constants.ResponseMode.QUERY);
-            expect(window.location.href).toBe(`${base}?q=keep#/home`);
+            expect(window.location.href).toBe(`${base}#/home`);
         });
 
-        it("removes query-mode responses while preserving routing and unrelated query data", () => {
+        it("clears the complete query-mode response while preserving fragment routing", () => {
             window.history.replaceState(
                 null,
                 "",
@@ -172,40 +156,43 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
 
             clearHash(window, Constants.ResponseMode.QUERY);
 
-            expect(window.location.href).toBe(`${base}?q=a%20b#/home`);
+            expect(window.location.href).toBe(`${base}#/home`);
         });
 
-        it("recognizes MSAL redirect state in query callback URLs without configuration", () => {
+        it("does not clear query responses when fragment mode is selected", () => {
             window.history.replaceState(
                 null,
                 "",
                 `${base}?code=A&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=keep#/home`
             );
 
-            clearHash(window);
+            expect(clearHash(window)).toBe(false);
 
-            expect(window.location.href).toBe(`${base}?q=keep#/home`);
+            expect(window.location.href).toBe(
+                `${base}?code=A&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=keep#/home`
+            );
         });
 
         it.each([
             Constants.ResponseMode.FRAGMENT,
             Constants.ResponseMode.QUERY,
-        ])(
-            "cleans response fields from both query and fragment in %s mode",
-            (responseMode) => {
-                const state = { route: "home" };
-                window.history.replaceState(
-                    state,
-                    "",
-                    `${base}?code=query-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=a%20b#accountId=broker-id&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&view=home`
-                );
+        ])("clears only the component selected by %s mode", (responseMode) => {
+            const state = { route: "home" };
+            window.history.replaceState(
+                state,
+                "",
+                `${base}?code=query-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=a%20b#accountId=broker-id&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&view=home`
+            );
 
-                expect(clearHash(window, responseMode)).toBe(true);
+            expect(clearHash(window, responseMode)).toBe(true);
 
-                expect(window.location.href).toBe(`${base}?q=a%20b#view=home`);
-                expect(window.history.state).toEqual(state);
-            }
-        );
+            expect(window.location.href).toBe(
+                responseMode === Constants.ResponseMode.QUERY
+                    ? `${base}#accountId=broker-id&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&view=home`
+                    : `${base}?code=query-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=a%20b`
+            );
+            expect(window.history.state).toEqual(state);
+        });
 
         it("replaces the current history entry and preserves application history state", () => {
             const state = { route: "home" };
@@ -218,7 +205,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
 
             clearHash(window);
 
-            expect(window.location.href).toBe(`${base}?q=keep#view=home`);
+            expect(window.location.href).toBe(`${base}?q=keep`);
             expect(window.history.state).toEqual(state);
             expect(window.history.length).toBe(historyLength);
         });

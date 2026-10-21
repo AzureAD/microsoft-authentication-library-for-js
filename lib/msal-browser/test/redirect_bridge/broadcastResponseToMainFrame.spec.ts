@@ -10,7 +10,6 @@ import {
     TEST_HASHES,
     TEST_STATE_VALUES,
     RANDOM_TEST_GUID,
-    TEST_DATA_CLIENT_INFO,
 } from "../utils/StringConstants.js";
 import { ApiId, TemporaryCacheKeys } from "../../src/utils/BrowserConstants.js";
 
@@ -232,11 +231,7 @@ describe("broadcastResponseToMainFrame", () => {
                 expect(mockHistoryReplaceState).toHaveBeenCalledWith(
                     window.history.state,
                     "",
-                    window.location.origin +
-                        window.location.pathname +
-                        (hash === TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
-                            ? `#client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
-                            : "")
+                    window.location.origin + window.location.pathname
                 );
             }
         );
@@ -571,6 +566,14 @@ describe("broadcastResponseToMainFrame", () => {
             window.location.hash = "#app_hash_fragment";
 
             await broadcastResponseToMainFrame();
+
+            expect(mockHistoryReplaceState).toHaveBeenCalledWith(
+                window.history.state,
+                "",
+                window.location.origin +
+                    window.location.pathname +
+                    "#app_hash_fragment"
+            );
 
             // For redirect flow, payload should be cached in sessionStorage
             expect(window.sessionStorage.setItem).toHaveBeenCalledWith(

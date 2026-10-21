@@ -234,12 +234,13 @@ callback URL even when processing fails. If no client
 has a pending interaction, it cleans recognized response values, logs a warning,
 and returns `null`.
 Responses belonging to another client or popup/silent flow are left untouched.
-Application routes and unrelated URL parameters are preserved. URL cleanup does
-not indicate authentication success or change response validation.
+The entire response-bearing fragment or query is cleared; the other URL
+component is preserved. URL cleanup does not indicate authentication success or
+change response validation.
 
-`BrowserUtils.clearHash(window, responseMode)` removes recognized redirect response
-fields from both query and fragment. For query-mode callbacks without valid
-redirect state, pass `Constants.ResponseMode.QUERY` as the second argument.
+`BrowserUtils.clearHash(window, responseMode)` clears a recognized redirect
+response from the fragment by default, or from the query when the response mode
+is `query`.
 
 **Note:** `handleRedirectPromise` will optionally accept a hash value to be processed, defaulting to the current value of `window.location.hash`. This parameter only needs to be provided in scenarios where the current value of `window.location.hash` does not contain the redirect response that needs to be processed. **For almost all scenarios, applications should not need to provide this parameter explicitly.**
 
