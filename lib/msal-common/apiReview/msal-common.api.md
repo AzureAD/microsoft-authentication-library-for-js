@@ -928,6 +928,9 @@ const cannotRemoveEmptyScope = "cannot_remove_empty_scope";
 // @public (undocumented)
 const cannotSetOIDCOptions = "cannot_set_OIDCOptions";
 
+// @internal
+export function canonicalizeDpopResourceServer(resourceRequestUri: unknown, correlationId?: string): string;
+
 // @public (undocumented)
 const CCS_HEADER = "X-AnchorMailbox";
 
@@ -1538,6 +1541,9 @@ const DOMAIN_HINT = "domain_hint";
 // @public (undocumented)
 const DPOP_JKT = "dpop_jkt";
 
+// @internal
+export const DPOP_NONCE_MAX_SIZE_BYTES = 1024;
+
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";
 
@@ -1624,6 +1630,7 @@ export type GenerateAuthenticationResultOptions = {
     serverTokenResponse?: ServerAuthorizationTokenResponse;
     requestId?: string;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
+    cacheManager?: CacheManager;
 };
 
 // @public
@@ -2537,6 +2544,8 @@ export type PerformanceEvent = {
     deduped?: boolean;
     hasAttributeTokens?: boolean;
     dpopTokenTypeMismatch?: string;
+    authenticationScheme?: string;
+    dpopNonceAppliedToProof?: boolean;
     kmsi?: boolean;
     regionSubScope?: string;
     ssoCapable?: boolean;
@@ -3482,6 +3491,9 @@ const USERNAME = "username";
 
 // @public
 function validateAuthorizationResponse(serverResponse: AuthorizeResponse, requestState: string, correlationId: string): void;
+
+// @internal
+export function validateDpopNonce(nonce: unknown, correlationId?: string): string;
 
 // @public
 function validateUrl(url: string, logger?: Logger, correlationId?: string): void;

@@ -139,6 +139,17 @@ export class RedirectClient extends StandardInteractionClient {
             this.platformAuthProvider,
             request.authenticationScheme
         );
+        if (
+            validRequest.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP &&
+            validRequest.resourceRequestUri
+        ) {
+            this.browserStorage.saveDpopNonceRedirectHandoff(
+                validRequest.resourceRequestUri,
+                validRequest.state,
+                validRequest.correlationId
+            );
+        }
 
         let rejectBackButtonCancellation!: (reason?: unknown) => void;
         const backButtonCancellation = new Promise<never>((_, reject) => {
@@ -147,6 +158,9 @@ export class RedirectClient extends StandardInteractionClient {
         const handleBackButton = (event: PageTransitionEvent) => {
             // Clear temporary cache if the back button is clicked during the redirect flow.
             if (event.persisted) {
+                this.browserStorage.clearDpopNonceRedirectHandoff(
+                    this.correlationId
+                );
                 this.logger.verbose(
                     "Page was restored from back/forward cache. Clearing temporary cache.",
                     this.correlationId
@@ -194,6 +208,9 @@ export class RedirectClient extends StandardInteractionClient {
                 : this.executeCodeFlow(validRequest);
             await Promise.race([redirectOperation, backButtonCancellation]);
         } catch (e) {
+            this.browserStorage.clearDpopNonceRedirectHandoff(
+                this.correlationId
+            );
             if (e instanceof AuthError) {
                 e.correlationId = this.correlationId;
             }
@@ -472,6 +489,7 @@ export class RedirectClient extends StandardInteractionClient {
                     "handleRedirectPromise did not detect a response as a result of a redirect. Cleaning temporary cache.",
                     this.correlationId
                 );
+                this.clearDpopNonceRedirectHandoff(request);
                 this.browserStorage.resetRequestCache(this.correlationId);
 
                 // Do not instrument "no_server_response" if user clicked back button
@@ -520,6 +538,7 @@ export class RedirectClient extends StandardInteractionClient {
                     BrowserUtils.replaceHash(loginRequestUrl);
                 }
 
+                this.restoreDpopNonceRedirectHandoff(request);
                 const handleHashResult = await this.handleResponse(
                     serverParams,
                     request,
@@ -533,6 +552,7 @@ export class RedirectClient extends StandardInteractionClient {
                     "NavigateToLoginRequestUrl set to false, handling response",
                     this.correlationId
                 );
+                this.restoreDpopNonceRedirectHandoff(request);
                 return await this.handleResponse(
                     serverParams,
                     request,
@@ -598,6 +618,7 @@ export class RedirectClient extends StandardInteractionClient {
 
                 // If navigateInternal implementation returns false, handle the hash now
                 if (!processHashOnRedirect) {
+                    this.restoreDpopNonceRedirectHandoff(request);
                     return await this.handleResponse(
                         serverParams,
                         request,
@@ -616,6 +637,34 @@ export class RedirectClient extends StandardInteractionClient {
             throw e;
         } finally {
             document.title = originalTitle;
+        }
+    }
+
+    private restoreDpopNonceRedirectHandoff(
+        request: CommonAuthorizationUrlRequest
+    ): void {
+        if (
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP &&
+            request.resourceRequestUri
+        ) {
+            this.browserStorage.restoreDpopNonceRedirectHandoff(
+                request.resourceRequestUri,
+                request.state,
+                request.correlationId
+            );
+        }
+    }
+
+    private clearDpopNonceRedirectHandoff(
+        request: CommonAuthorizationUrlRequest
+    ): void {
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            this.browserStorage.clearDpopNonceRedirectHandoff(
+                request.correlationId
+            );
         }
     }
 
@@ -847,6 +896,9 @@ export class RedirectClient extends StandardInteractionClient {
                 return;
             }
         } else {
+            this.browserStorage.clearDpopNonceRedirectHandoff(
+                this.correlationId
+            );
             // Throw error if request URL is empty.
             this.logger.info(
                 "RedirectHandler.initiateAuthRequest: Navigate url is empty",

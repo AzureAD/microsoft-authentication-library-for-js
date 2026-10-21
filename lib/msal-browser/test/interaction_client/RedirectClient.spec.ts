@@ -1387,6 +1387,139 @@ describe("RedirectClient", () => {
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
+        it("preserves the DPoP nonce handoff until the final page processes the response", async () => {
+            const resourceRequestUri = "https://api.contoso.com/resource";
+            const dpopRequest: CommonAuthorizationUrlRequest = {
+                ...testRequest,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestUri,
+            };
+            const sourceCache = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.performanceClient,
+                // @ts-ignore
+                pca.eventHandler
+            );
+            sourceCache.setDpopNonce(resourceRequestUri, "redirect-nonce");
+            sourceCache.saveDpopNonceRedirectHandoff(
+                resourceRequestUri,
+                dpopRequest.state,
+                dpopRequest.correlationId
+            );
+            const handoffCacheKey = `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.dpop.nonce.redirect`;
+
+            const redirectPageCache = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.performanceClient,
+                // @ts-ignore
+                pca.eventHandler
+            );
+            redirectClient = new RedirectClient(
+                // @ts-ignore
+                pca.config,
+                redirectPageCache,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                // @ts-ignore
+                pca.performanceClient,
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                dpopRequest.correlationId,
+                undefined
+            );
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            redirectPageCache.setTemporaryCache(
+                TemporaryCacheKeys.ORIGIN_URI,
+                TEST_URIS.TEST_ALTERNATE_REDIR_URI,
+                true
+            );
+
+            await redirectClient.handleRedirectPromise(
+                dpopRequest,
+                TEST_CONFIG.TEST_VERIFIER,
+                rootMeasurement
+            );
+
+            expect(
+                window.sessionStorage.getItem(handoffCacheKey)
+            ).not.toBeNull();
+            expect(
+                redirectPageCache.getDpopNonce(resourceRequestUri)
+            ).toBeUndefined();
+
+            const finalPageCache = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.performanceClient,
+                // @ts-ignore
+                pca.eventHandler
+            );
+            redirectClient = new RedirectClient(
+                // @ts-ignore
+                pca.config,
+                finalPageCache,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                // @ts-ignore
+                pca.performanceClient,
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                dpopRequest.correlationId,
+                undefined
+            );
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockResolvedValue(null);
+            window.location.hash = "";
+            finalPageCache.setTemporaryCache(
+                TemporaryCacheKeys.ORIGIN_URI,
+                window.location.href,
+                true
+            );
+
+            await redirectClient.handleRedirectPromise(
+                dpopRequest,
+                TEST_CONFIG.TEST_VERIFIER,
+                rootMeasurement
+            );
+
+            expect(window.sessionStorage.getItem(handoffCacheKey)).toBeNull();
+            expect(finalPageCache.getDpopNonce(resourceRequestUri)).toEqual({
+                nonce: "redirect-nonce",
+                version: 1,
+            });
+        });
+
         it("navigates and caches hash if navigateToLoginRequestUri is true, the application is loaded in an iframe and allowRedirectInIframe is true", async () => {
             let pca = new PublicClientApplication({
                 auth: {

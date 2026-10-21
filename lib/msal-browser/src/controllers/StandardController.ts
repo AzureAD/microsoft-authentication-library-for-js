@@ -268,7 +268,6 @@ export class StandardController implements IController {
                   undefined,
                   this.tokenBindingKeyManager
               );
-
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
@@ -1635,6 +1634,7 @@ export class StandardController implements IController {
      * @param logoutRequest
      */
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
+        this.browserStorage.clearDpopNonces();
         if (!this.isBrowserEnvironment) {
             return;
         }
@@ -2112,6 +2112,30 @@ export class StandardController implements IController {
     }
 
     /**
+     * Stores a resource-server DPoP nonce for the matching HTTPS origin.
+     */
+    public async loadDpopNonce(
+        resourceRequestUri: string,
+        dpopNonce: string
+    ): Promise<void> {
+        BrowserUtils.blockNonBrowserEnvironment();
+        const correlationId = createNewGuid();
+        return invokeAsync(
+            async (): Promise<void> => {
+                this.browserStorage.setDpopNonce(
+                    resourceRequestUri,
+                    dpopNonce,
+                    correlationId
+                );
+            },
+            BrowserPerformanceEvents.StandardControllerLoadDpopNonce,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
+    }
+
+    /**
      * Replaces the default logger set in configurations with new Logger with new configurations
      * @param logger Logger instance
      */
@@ -2307,7 +2331,8 @@ export class StandardController implements IController {
             },
             this.platformAuthProvider,
             this.logger,
-            this.performanceClient
+            this.performanceClient,
+            this.browserStorage
         );
 
         const inProgressRequest = this.activeSilentTokenRequests.get(

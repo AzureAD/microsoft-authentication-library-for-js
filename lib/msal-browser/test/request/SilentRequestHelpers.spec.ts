@@ -79,6 +79,52 @@ describe("silent request preparation", () => {
         expect(input.request.correlationId).toBeUndefined();
     });
 
+    it("includes only the matching DPoP nonce version in the web request key", () => {
+        input.request = {
+            scopes: ["User.Read"],
+            authenticationScheme: Constants.AuthenticationScheme.DPOP,
+            resourceRequestMethod: "GET",
+            resourceRequestUri: "https://api.contoso.com/resource",
+        };
+        const getDpopNonce = jest.fn().mockReturnValue({
+            nonce: "opaque-nonce",
+            version: 7,
+        });
+
+        const prepared = prepareWebSilentRequest(input, {
+            getDpopNonce,
+        });
+
+        expect(JSON.parse(prepared.key)).toMatchObject({
+            dpopNonceVersion: 7,
+        });
+        expect(getDpopNonce).toHaveBeenCalledWith(
+            input.request.resourceRequestUri,
+            input.correlationId
+        );
+        expect(prepared.key).not.toContain("opaque-nonce");
+    });
+
+    it("changes the web request key when the matching nonce version changes", () => {
+        input.request = {
+            scopes: ["User.Read"],
+            authenticationScheme: Constants.AuthenticationScheme.DPOP,
+            resourceRequestMethod: "GET",
+            resourceRequestUri: "https://api.contoso.com/resource",
+        };
+        const store = {
+            getDpopNonce: jest
+                .fn()
+                .mockReturnValueOnce({ nonce: "nonce-1", version: 1 })
+                .mockReturnValueOnce({ nonce: "nonce-2", version: 2 }),
+        };
+
+        const first = prepareWebSilentRequest(input, store);
+        const second = prepareWebSilentRequest(input, store);
+
+        expect(first.key).not.toBe(second.key);
+    });
+
     it("prepares a single consistent broker key, request snapshot, and account", () => {
         input.request = {
             scopes: [" Mail.Read ", "User.Read", "User.Read"],

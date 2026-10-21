@@ -75,6 +75,13 @@ export interface IPublicClientApplication {
             | PopupRequest
     ): Promise<void>;
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
+    /**
+     * Stores an opaque resource-server DPoP nonce for subsequent proofs to the
+     * normalized HTTPS origin derived from the resource request URI.
+     * Rejects invalid URIs and nonce values. Unsupported operating contexts
+     * reject the operation.
+     */
+    loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
@@ -220,6 +227,14 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         );
     },
     clearCache: () => {
+        return Promise.reject(
+            createBrowserConfigurationAuthError(
+                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
+                ""
+            )
+        );
+    },
+    loadDpopNonce: () => {
         return Promise.reject(
             createBrowserConfigurationAuthError(
                 BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,

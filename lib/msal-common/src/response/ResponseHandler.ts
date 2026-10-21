@@ -53,7 +53,6 @@ import * as TimeUtils from "../utils/TimeUtils.js";
 import { AuthenticationResult } from "./AuthenticationResult.js";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
-
 /** @internal */
 export type GenerateAuthenticationResultOptions = {
     idTokenClaims?: TokenClaims;
@@ -61,7 +60,30 @@ export type GenerateAuthenticationResultOptions = {
     serverTokenResponse?: ServerAuthorizationTokenResponse;
     requestId?: string;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
+    cacheManager?: CacheManager;
 };
+
+/**
+ * Structural cache capability used to load a resource-server DPoP nonce.
+ */
+type DpopNonceCache = {
+    getDpopNonce(
+        resourceRequestUri: string,
+        correlationId?: string
+    ): { nonce: string; version: number } | undefined;
+};
+
+/**
+ * Returns whether a cache manager supports resource-server DPoP nonces.
+ */
+function hasDpopNonceCache(
+    cacheManager: CacheManager
+): cacheManager is CacheManager & DpopNonceCache {
+    return (
+        "getDpopNonce" in cacheManager &&
+        typeof cacheManager.getDpopNonce === "function"
+    );
+}
 
 /**
  * Class that handles response parsing.
@@ -384,6 +406,7 @@ export class ResponseHandler {
                             requestState: requestStateObj,
                             requestId: serverRequestId,
                             tokenBindingKeyManager: this.tokenBindingKeyManager,
+                            cacheManager: this.cacheStorage,
                         }
                     );
                 }
@@ -422,6 +445,7 @@ export class ResponseHandler {
                 serverTokenResponse,
                 requestId: serverRequestId,
                 tokenBindingKeyManager: this.tokenBindingKeyManager,
+                cacheManager: this.cacheStorage,
             }
         );
     }
@@ -616,6 +640,7 @@ export class ResponseHandler {
             serverTokenResponse,
             requestId,
             tokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+            cacheManager,
         } = options;
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
@@ -674,10 +699,23 @@ export class ResponseHandler {
                     cryptoObj,
                     tokenBindingKeyManager
                 );
+                const dpopNonce = request.resourceRequestUri
+                    ? cacheManager && hasDpopNonceCache(cacheManager)
+                        ? cacheManager.getDpopNonce(
+                              request.resourceRequestUri,
+                              request.correlationId
+                          )?.nonce
+                        : undefined
+                    : undefined;
+                performanceClient?.addFields(
+                    { dpopNonceAppliedToProof: Boolean(dpopNonce) },
+                    request.correlationId
+                );
                 dpopProof = await dpopProofGenerator.generateResourceProof(
                     {
                         htu: request.resourceRequestUri,
                         htm: request.resourceRequestMethod,
+                        nonce: dpopNonce,
                         accessToken: cacheRecord.accessToken.secret,
                     },
                     cacheRecord.accessToken.keyId,

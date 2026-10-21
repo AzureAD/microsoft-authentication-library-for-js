@@ -130,6 +130,17 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             expect(pca.getActiveAccount()).toBeNull();
             done();
         });
+
+        it("rejects loadDpopNonce as unsupported", async () => {
+            await expect(
+                pca.loadDpopNonce(
+                    "https://api.contoso.com/resource",
+                    "resource-nonce"
+                )
+            ).rejects.toMatchObject({
+                errorCode: "unsupported_method",
+            });
+        });
     });
 
     describe("acquireTokenInteractive tests", () => {
