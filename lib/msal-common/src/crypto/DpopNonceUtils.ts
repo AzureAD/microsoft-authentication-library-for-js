@@ -16,6 +16,9 @@ export const DPOP_NONCE_MAX_SIZE_BYTES = 1024;
 
 const DPOP_NONCE_CONTROL_CHARACTER_REGEX = /[\u0000-\u001f\u007f-\u009f]/;
 
+/**
+ * Returns the byte length of a string after UTF-8 encoding.
+ */
 function getUtf8ByteLength(value: string): number {
     return new TextEncoder().encode(value).length;
 }

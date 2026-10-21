@@ -862,6 +862,10 @@ export class NestedAppAuthController implements IController {
         );
     }
 
+    /**
+     * Rejects DPoP nonce loading until nested app authentication supports
+     * forwarding the complete resource proof context.
+     */
     loadDpopNonce(): Promise<void> {
         return Promise.reject(NestedAppAuthError.createUnsupportedError());
     }
