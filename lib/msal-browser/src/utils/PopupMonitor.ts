@@ -19,9 +19,7 @@ const pendingPopupRequests = new Map<string, boolean>();
  * Tracks a popup request so it can be cancelled before response monitoring begins.
  * @param correlationId Correlation ID of the popup request.
  */
-export function registerPopupRequestCancellation(
-    correlationId: string
-): void {
+export function registerPopupRequestCancellation(correlationId: string): void {
     pendingPopupRequests.set(correlationId, false);
 }
 

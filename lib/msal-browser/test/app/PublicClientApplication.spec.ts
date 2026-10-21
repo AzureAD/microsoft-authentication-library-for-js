@@ -209,6 +209,9 @@ const testRequest: CommonAuthorizationUrlRequest = {
 
 jest.mock("@azure/msal-common/browser", () => ({
     ...jest.requireActual("@azure/msal-common/browser"),
+    AuthorityFactory: {
+        ...jest.requireActual("@azure/msal-common/browser").AuthorityFactory,
+    },
     ProtocolUtils: {
         ...jest.requireActual("@azure/msal-common/browser").ProtocolUtils,
         setRequestState: jest.fn(),
@@ -3551,22 +3554,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const oldDiscovery = new Promise<void>((resolve) => {
                 releaseOldDiscovery = resolve;
             });
-            jest.spyOn(AuthorityFactory, "createDiscoveredInstance")
-                .mockImplementation(async (...args) => {
-                    if (args[5] === "old-request") {
-                        startOldDiscovery();
-                        await oldDiscovery;
-                    }
-                    return {} as Authority;
-                });
+            jest.spyOn(
+                AuthorityFactory,
+                "createDiscoveredInstance"
+            ).mockImplementation(async (...args) => {
+                if (args[5] === "old-request") {
+                    startOldDiscovery();
+                    await oldDiscovery;
+                }
+                return new Authority(...args);
+            });
             jest.spyOn(
                 AuthorizeProtocol,
                 "getAuthCodeRequestUrl"
             ).mockResolvedValue("https://login.microsoftonline.com/auth");
             const result = getTestAuthenticationResult();
-            jest.spyOn(AuthorizeProtocol, "handleResponseCode").mockResolvedValue(
-                result
-            );
+            jest.spyOn(
+                AuthorizeProtocol,
+                "handleResponseCode"
+            ).mockResolvedValue(result);
             const oldPopup = {
                 closed: false,
                 location: {
