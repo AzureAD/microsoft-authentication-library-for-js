@@ -2,6 +2,12 @@
 
 This guide provides framework-specific instructions for setting up the redirect bridge page introduced in MSAL Browser v5. For background on why the redirect bridge is needed, see the [v4 to v5 migration guide](./v4-migration.md#cross-origin-opener-policy-coop-support).
 
+These instructions apply to the default bridge flow and popup relay. Apps that
+explicitly enable `system.enableLegacyPolling` instead need a
+[passive callback page](./configuration.md#legacy-polling-callback-and-coop-requirements)
+that does **not** call `broadcastResponseToMainFrame()`. The bridge strips the
+response and closes popups, racing the legacy poller that needs to read the URL.
+
 > **Important:** The redirect bridge page must **NOT** be served with `Cross-Origin-Opener-Policy` headers. The bridge page is an intermediary that receives the authentication response after the IdP completes the OAuth flow. If COOP headers are set on the bridge page, the browser performs a browsing context group swap that severs the communication channel back to the main application — reintroducing the exact problem the bridge is designed to solve.
 
 > [!IMPORTANT]
@@ -12,7 +18,7 @@ This guide provides framework-specific instructions for setting up the redirect 
 > Failure to update the app registration will result in `redirect_uri_mismatch` errors.
 
 > [!WARNING]
-> If the redirect bridge is **not** set up, all authentication flows that rely
+> In the default response mode, if the redirect bridge is **not** set up, authentication flows that rely
 > on a popup or hidden iframe will stop working. `ssoSilent`,
 > `acquireTokenPopup`, and `loginPopup` depend on the redirect bridge to
 > receive the authentication response from the identity provider.
@@ -55,9 +61,12 @@ This guide provides framework-specific instructions for setting up the redirect 
 
 ## Logout and the Redirect Bridge
 
-### `logoutPopup()` — redirect bridge is **required**
+### `logoutPopup()` — redirect bridge is required by default
 
 When using `logoutPopup()`, the `postLogoutRedirectUri` **must** point to a page that implements the redirect bridge (calls `broadcastResponseToMainFrame()`). After ESTS completes the sign-out, it redirects the popup to the `postLogoutRedirectUri`. The redirect bridge on that page broadcasts the response back to the main window and closes the popup. Without the bridge, the popup will remain open after logout because COOP headers prevent the main window from closing it directly.
+
+The explicit legacy-polling opt-in is the exception: its post-logout callback
+must leave the response intact for the poller and must not run the bridge.
 
 The simplest configuration is to set `postLogoutRedirectUri` to the same value as `redirectUri`:
 
@@ -92,7 +101,7 @@ For `logoutRedirect()`, hosting the redirect bridge on the `postLogoutRedirectUr
 
 The redirect bridge relies on the [BroadcastChannel API](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel) to send the authentication response from the popup back to the main application window. Starting with **Chromium 115+** (Chrome, Edge, and other Chromium-based browsers), [third-party storage partitioning](https://developers.google.com/privacy-sandbox/cookies/storage-partitioning) is enforced, which means `BroadcastChannel` is **partitioned by top-level site**, not just by origin. Other browsers are expected to adopt similar partitioning in the future.
 
-This causes **popup-based flows** to fail when your application runs inside a **cross-origin iframe**:
+This causes **popup-based flows** to fail when your application runs inside a **cross-site iframe**. Cross-origin frames that are still same-site (for example, different ports on `localhost`) do not reproduce this top-level-site partition mismatch:
 
 | Context | Top-level site | BroadcastChannel partition |
 |---|---|---|
@@ -175,7 +184,10 @@ enforced. `acquireTokenPopup()` and `logoutPopup()` both work unchanged.
 
 Where no top-level relay page can be hosted, `system.enableLegacyPolling` falls
 back to reading the popup URL directly instead of using `BroadcastChannel`. It
-requires COOP to be absent on both your origin and the IdP response — see
+requires a passive callback and an opener connection that survives the full
+popup round-trip. Strict app `COOP: same-origin` is incompatible, whereas
+`same-origin-allow-popups` can work when cross-origin responses omit enforcing
+COOP — see
 [Cross-Origin-Opener-Policy and popup responses](./configuration.md#cross-origin-opener-policy-and-popup-responses)
 for the trade-offs before enabling it.
 
