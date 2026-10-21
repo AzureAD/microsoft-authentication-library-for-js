@@ -8748,7 +8748,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const logout = pca.logoutPopup({
                 correlationId: "logout-request",
             });
-            pca.browserStorage.setInteractionInProgress(
+            browserStorage.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNIN,
                 true,
@@ -8759,7 +8759,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await logout;
 
             expect(
-                pca.browserStorage.getInteractionInProgress()?.correlationId
+                browserStorage.getInteractionInProgress()?.correlationId
             ).toBe("replacement-request");
         });
 
