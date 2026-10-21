@@ -473,12 +473,11 @@ export class StandardController implements IController {
     private async handleRedirectPromiseInternal(
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
-        const responseMode = this.config.auth.OIDCOptions.responseMode;
         // A client-scoped miss may belong to another client; only clean up when no interaction is pending from any client.
         if (!this.browserStorage.isInteractionInProgress(true)) {
             if (
                 !this.browserStorage.isInteractionInProgress(false) &&
-                BrowserUtils.clearHash(window, responseMode, this.logger, "")
+                BrowserUtils.clearHash(window, this.logger, "")
             ) {
                 this.logger.warning(
                     "Redirect response detected without a pending interaction. Returning null after URL cleanup.",
@@ -585,7 +584,7 @@ export class StandardController implements IController {
                 )(standardRequest, codeVerifier, rootMeasurement, options);
             }
         } catch (e) {
-            BrowserUtils.clearHash(window, responseMode, this.logger, "");
+            BrowserUtils.clearHash(window, this.logger, "");
             this.browserStorage.resetRequestCache("");
             throw e;
         }
@@ -656,7 +655,6 @@ export class StandardController implements IController {
             .catch((e) => {
                 BrowserUtils.clearHash(
                     window,
-                    responseMode,
                     this.logger,
                     rootMeasurement.event.correlationId
                 );

@@ -53,12 +53,6 @@ This guide provides framework-specific instructions for setting up the redirect 
 > the redirect bridge with your application and serving it from the same origin
 > helps avoid this class of issue.
 
-## Redirect response URL cleanup
-
-For redirect interactions, the bridge removes response parameters from
-the callback URL before navigating, including when navigation subsequently fails.
-The app must still call `handleRedirectPromise()` to complete authentication.
-
 ## Logout and the Redirect Bridge
 
 ### `logoutPopup()` — redirect bridge is **required**

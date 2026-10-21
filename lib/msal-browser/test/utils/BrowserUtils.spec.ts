@@ -13,7 +13,6 @@ import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
 } from "../../src/index.js";
-import { Constants } from "@azure/msal-common/browser";
 
 describe("BrowserUtils.ts Function Unit Tests", () => {
     const oldWindow = { ...window };
@@ -40,31 +39,26 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         jest.restoreAllMocks();
     });
 
-    it.each([Constants.ResponseMode.FRAGMENT, Constants.ResponseMode.QUERY])(
-        "clearHash clears the complete %s response and preserves the other URL component",
-        (responseMode) => {
-            const url = window.location.href;
-            try {
-                history.replaceState(
-                    null,
-                    "",
-                    `/callback?tenant=contoso&code=query-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}#code=fragment-code&view=home`
-                );
-                const historyLength = history.length;
+    it("clearHash clears the response fragment and preserves the complete query string", () => {
+        const url = window.location.href;
+        try {
+            history.replaceState(
+                null,
+                "",
+                `/callback?tenant=contoso&code=query-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}#code=fragment-code&view=home`
+            );
+            const historyLength = history.length;
 
-                BrowserUtils.clearHash(window, responseMode);
+            BrowserUtils.clearHash(window);
 
-                expect(window.location.href).toBe(
-                    responseMode === Constants.ResponseMode.QUERY
-                        ? `${window.location.origin}/callback#code=fragment-code&view=home`
-                        : `${window.location.origin}/callback?tenant=contoso&code=query-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
-                );
-                expect(history.length).toBe(historyLength);
-            } finally {
-                history.replaceState(null, "", url);
-            }
+            expect(window.location.href).toBe(
+                `${window.location.origin}/callback?tenant=contoso&code=query-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
+            );
+            expect(history.length).toBe(historyLength);
+        } finally {
+            history.replaceState(null, "", url);
         }
-    );
+    });
 
     it("replaceHash replaces the current window hash with the hash from the provided url", () => {
         window.location.hash = "thisIsAHash";

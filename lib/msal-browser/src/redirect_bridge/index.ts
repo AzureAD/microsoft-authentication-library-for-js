@@ -15,7 +15,6 @@ import { NavigationOptions } from "../navigation/NavigationOptions.js";
 import { DEFAULT_REDIRECT_TIMEOUT_MS } from "../config/Configuration.js";
 import { NavigationClient } from "../navigation/NavigationClient.js";
 import { PREFIX } from "../cache/CacheKeys.js";
-import { Constants } from "@azure/msal-common/browser";
 
 /**
  * Processes the authentication response from the redirect URL
@@ -56,12 +55,6 @@ export async function broadcastResponseToMainFrame(
     const { id, meta } = libraryState;
 
     if (meta["interactionType"] === InteractionType.Redirect) {
-        if (hasResponseInHash) {
-            BrowserUtils.clearHash(window);
-        }
-        if (hasResponseInQuery) {
-            BrowserUtils.clearHash(window, Constants.ResponseMode.QUERY);
-        }
         const navClient = navigationClient || new NavigationClient();
 
         let navigateToUrl = "";
@@ -132,6 +125,7 @@ export async function broadcastResponseToMainFrame(
 
         await navClient.navigateInternal(navigationUrl, navigationOptions);
 
+        // Do NOT clear URL for redirect flow - we're navigating away anyway
         return;
     }
 

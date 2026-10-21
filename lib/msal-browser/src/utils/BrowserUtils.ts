@@ -14,7 +14,6 @@ import {
     Logger,
     ProtocolUtils,
     AuthError,
-    Constants,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
@@ -146,20 +145,17 @@ export function parseAuthResponseFromUrl(): {
 }
 
 /**
- * Clears the entire response-bearing query or fragment, based on responseMode.
- * The other URL component is preserved.
+ * Clears a recognized redirect response fragment, preserving the query string.
  * Hash assignment is the fallback when history updates are unavailable.
  * Returns whether a response was found, even if URL cleanup is unavailable.
  */
 export function clearHash(
     contentWindow: Window,
-    responseMode: string = Constants.ResponseMode.FRAGMENT,
     logger?: Logger,
     correlationId: string = ""
 ): boolean {
     const { origin, pathname, search, hash } = contentWindow.location;
-    const isQuery = responseMode === Constants.ResponseMode.QUERY;
-    const content = UrlUtils.stripLeadingHashOrQuery(isQuery ? search : hash);
+    const content = UrlUtils.stripLeadingHashOrQuery(hash);
     if (!content || !/^[^=&?#/]+(?:=|&|$)/.test(content)) {
         return false;
     }
@@ -207,7 +203,7 @@ export function clearHash(
     ) {
         return false;
     }
-    const cleanUrl = origin + pathname + (isQuery ? hash : search);
+    const cleanUrl = origin + pathname + search;
 
     try {
         if (typeof contentWindow.history?.replaceState === "function") {
@@ -226,10 +222,8 @@ export function clearHash(
         // Some hosts expose replaceState but reject its use. Try hash cleanup.
     }
     try {
-        if (!isQuery) {
-            contentWindow.location.hash = "";
-            return true;
-        }
+        contentWindow.location.hash = "";
+        return true;
     } catch {
         // Cleanup must not replace the result or error of authentication.
     }

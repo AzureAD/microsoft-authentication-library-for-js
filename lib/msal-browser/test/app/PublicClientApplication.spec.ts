@@ -837,7 +837,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         );
 
         it.each([false, true])(
-            "cleans query responses and preserves routing, with a cached transaction: %s",
+            "preserves query responses and routing, with a cached transaction: %s",
             async (hasTransaction) => {
                 const queryPca = new PublicClientApplication({
                     auth: {
@@ -879,13 +879,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         "",
                         `?code=new-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=keep#/home`
                     );
+                    const query = window.location.search;
                     await expect(
                         queryPca.handleRedirectPromise({
                             navigateToLoginRequestUrl: false,
                         })
                     ).resolves.toBeNull();
 
-                    expect(window.location.search).toBe("");
+                    expect(window.location.search).toBe(query);
                     expect(window.location.hash).toBe("#/home");
                     if (hasTransaction) {
                         expect(redirect.mock.calls[0][3]).toEqual({

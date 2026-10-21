@@ -4,7 +4,7 @@ import {
 } from "../../src/utils/BrowserProtocolUtils.js";
 import { clearHash } from "../../src/utils/BrowserUtils.js";
 import { InteractionType } from "../../src/utils/BrowserConstants.js";
-import { Constants, Logger, ProtocolUtils } from "@azure/msal-common";
+import { Logger, ProtocolUtils } from "@azure/msal-common";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage.js";
 import { TEST_STATE_VALUES } from "./StringConstants.js";
@@ -60,16 +60,12 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         });
 
         it.each([
-            Constants.ResponseMode.FRAGMENT,
-            Constants.ResponseMode.QUERY,
-        ])("preserves application-only state in %s mode", (responseMode) => {
-            const url =
-                responseMode === Constants.ResponseMode.QUERY
-                    ? `${base}?state=CA&tab=orders#/home`
-                    : `${base}?q=keep#state=CA&tab=orders`;
+            `${base}?state=CA&tab=orders#/home`,
+            `${base}?q=keep#state=CA&tab=orders`,
+        ])("preserves application-only state: %s", (url) => {
             window.history.replaceState(null, "", url);
 
-            expect(clearHash(window, responseMode)).toBe(false);
+            expect(clearHash(window)).toBe(false);
             expect(window.location.href).toBe(url);
         });
 
@@ -148,7 +144,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             expect(window.location.href).toBe(base);
         });
 
-        it("does not treat an ordinary query code as an auth response in fragment mode", () => {
+        it("does not clear an authorization code from the query string", () => {
             const url = `${base}?code=application-code&state=application-state#/home`;
             window.history.replaceState(null, "", url);
 
@@ -156,29 +152,14 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             expect(window.location.href).toBe(url);
         });
 
-        it("clears a query broker response only when query response mode is selected", () => {
+        it("does not clear a broker response from the query string", () => {
             const url = `${base}?accountId=old-id&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=keep#/home`;
             window.history.replaceState(null, "", url);
             expect(clearHash(window)).toBe(false);
             expect(window.location.href).toBe(url);
-
-            clearHash(window, Constants.ResponseMode.QUERY);
-            expect(window.location.href).toBe(`${base}#/home`);
         });
 
-        it("clears the complete query-mode response while preserving fragment routing", () => {
-            window.history.replaceState(
-                null,
-                "",
-                `${base}?code=A&state=invalid&q=a%20b#/home`
-            );
-
-            clearHash(window, Constants.ResponseMode.QUERY);
-
-            expect(window.location.href).toBe(`${base}#/home`);
-        });
-
-        it("does not clear query responses when fragment mode is selected", () => {
+        it("preserves query responses and fragment routing", () => {
             window.history.replaceState(
                 null,
                 "",
@@ -190,27 +171,6 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             expect(window.location.href).toBe(
                 `${base}?code=A&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=keep#/home`
             );
-        });
-
-        it.each([
-            Constants.ResponseMode.FRAGMENT,
-            Constants.ResponseMode.QUERY,
-        ])("clears only the component selected by %s mode", (responseMode) => {
-            const state = { route: "home" };
-            window.history.replaceState(
-                state,
-                "",
-                `${base}?code=query-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=a%20b#accountId=broker-id&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&view=home`
-            );
-
-            expect(clearHash(window, responseMode)).toBe(true);
-
-            expect(window.location.href).toBe(
-                responseMode === Constants.ResponseMode.QUERY
-                    ? `${base}#accountId=broker-id&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&view=home`
-                    : `${base}?code=query-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=a%20b`
-            );
-            expect(window.history.state).toEqual(state);
         });
 
         it("replaces the current history entry and preserves application history state", () => {
@@ -250,33 +210,9 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             const logger = new Logger({});
             const warning = jest.spyOn(logger, "warning");
 
-            expect(() =>
-                clearHash(window, undefined, logger, "test-id")
-            ).not.toThrow();
+            expect(() => clearHash(window, logger, "test-id")).not.toThrow();
             expect(window.location.hash).toBe("");
             expect(warning).not.toHaveBeenCalled();
-        });
-
-        it("reports query cleanup failure without throwing or navigating", () => {
-            window.history.replaceState(null, "", `${base}?code=A#/home`);
-            // @ts-expect-error Office.js can disable this browser API.
-            window.history.replaceState = null;
-            const logger = new Logger({});
-            const warning = jest.spyOn(logger, "warning");
-
-            expect(() =>
-                clearHash(
-                    window,
-                    Constants.ResponseMode.QUERY,
-                    logger,
-                    "test-id"
-                )
-            ).not.toThrow();
-            expect(warning).toHaveBeenCalledWith(
-                expect.not.stringContaining("code=A"),
-                "test-id"
-            );
-            expect(window.location.hash).toBe("#/home");
         });
     });
 

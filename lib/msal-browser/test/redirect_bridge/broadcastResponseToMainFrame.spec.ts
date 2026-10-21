@@ -210,32 +210,6 @@ describe("broadcastResponseToMainFrame", () => {
     });
 
     describe("Success cases - Redirect flow", () => {
-        it.each([
-            TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
-            TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
-        ])(
-            "cleans the callback before navigation even when navigation fails: %s",
-            async (hash) => {
-                window.location.hash = hash;
-                const error = new Error("Navigation failed");
-                mockNavigationClient.navigateInternal.mockImplementation(
-                    async () => {
-                        expect(mockHistoryReplaceState).toHaveBeenCalled();
-                        throw error;
-                    }
-                );
-
-                await expect(broadcastResponseToMainFrame()).rejects.toBe(
-                    error
-                );
-                expect(mockHistoryReplaceState).toHaveBeenCalledWith(
-                    window.history.state,
-                    "",
-                    window.location.origin + window.location.pathname
-                );
-            }
-        );
-
         it("navigates to homepage without auth params when no interaction status is set", async () => {
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
 
@@ -249,7 +223,8 @@ describe("broadcastResponseToMainFrame", () => {
             ).mock.calls[0][0];
             expect(navigatedUrl).not.toContain("code=");
 
-            expect(mockHistoryReplaceState).toHaveBeenCalled();
+            // URL should NOT be cleared for redirect flow (we're navigating away)
+            expect(mockHistoryReplaceState).not.toHaveBeenCalled();
 
             // window.close should NOT be called for redirect (early return)
             expect(window.close).not.toHaveBeenCalled();
@@ -284,31 +259,6 @@ describe("broadcastResponseToMainFrame", () => {
                 cachedOriginUrl,
                 expect.any(Object)
             );
-        });
-
-        it("cleans a redirect error callback while preserving the original payload and interaction for the app", async () => {
-            const clientId = "error-client";
-            const interaction = JSON.stringify({ clientId, type: "signin" });
-            mockSessionStorage["msal.interaction.status"] = interaction;
-            const hash = TEST_HASHES.TEST_ERROR_HASH;
-            window.location.hash = hash;
-
-            await broadcastResponseToMainFrame();
-
-            expect(mockHistoryReplaceState).toHaveBeenCalledWith(
-                window.history.state,
-                "",
-                window.location.origin + window.location.pathname
-            );
-            expect(
-                mockSessionStorage[
-                    `msal.${clientId}.${TemporaryCacheKeys.URL_HASH}`
-                ]
-            ).toBe(hash.substring(1));
-            expect(mockSessionStorage["msal.interaction.status"]).toBe(
-                interaction
-            );
-            expect(mockNavigationClient.navigateInternal).toHaveBeenCalled();
         });
 
         it("navigates to hash-routed origin URL without appending auth response", async () => {
@@ -566,14 +516,6 @@ describe("broadcastResponseToMainFrame", () => {
             window.location.hash = "#app_hash_fragment";
 
             await broadcastResponseToMainFrame();
-
-            expect(mockHistoryReplaceState).toHaveBeenCalledWith(
-                window.history.state,
-                "",
-                window.location.origin +
-                    window.location.pathname +
-                    "#app_hash_fragment"
-            );
 
             // For redirect flow, payload should be cached in sessionStorage
             expect(window.sessionStorage.setItem).toHaveBeenCalledWith(

@@ -229,19 +229,18 @@ It is not recommended to use both interaction types in a single application.
 
 ### Redirect response URL cleanup
 
-`handleRedirectPromise()` removes redirect response parameters from the
+`handleRedirectPromise()` removes redirect response fragments from the
 callback URL even when processing fails. If no client
 has a pending interaction, it cleans recognized authorization responses, logs a warning,
 and returns `null`.
 Responses belonging to another client or popup/silent flow are left untouched.
 Application-only `state` parameters are not treated as authorization responses.
-The entire response-bearing fragment or query is cleared; the other URL
-component is preserved. URL cleanup does not indicate authentication success or
+The entire response-bearing fragment is cleared; the query string is
+preserved. URL cleanup does not indicate authentication success or
 change response validation.
 
-`BrowserUtils.clearHash(window, responseMode)` clears a recognized redirect
-response from the fragment by default, or from the query when the response mode
-is `query`.
+`BrowserUtils.clearHash(window)` clears a recognized redirect response fragment
+without modifying the query string.
 
 **Note:** `handleRedirectPromise` will optionally accept a hash value to be processed, defaulting to the current value of `window.location.hash`. This parameter only needs to be provided in scenarios where the current value of `window.location.hash` does not contain the redirect response that needs to be processed. **For almost all scenarios, applications should not need to provide this parameter explicitly.**
 
