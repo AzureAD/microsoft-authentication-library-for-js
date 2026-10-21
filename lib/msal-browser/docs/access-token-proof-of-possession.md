@@ -213,6 +213,10 @@ async function callResource(): Promise<Response> {
             resourceRequestUri,
             resourceRequestMethod,
         });
+        if (!result.dpopProof) {
+            throw new Error("The DPoP proof was not returned.");
+        }
+
         const response = await fetch(resourceRequestUri, {
             method: resourceRequestMethod,
             headers: {
