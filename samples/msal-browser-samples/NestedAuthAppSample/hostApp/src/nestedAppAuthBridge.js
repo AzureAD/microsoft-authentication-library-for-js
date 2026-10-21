@@ -20,17 +20,20 @@ function buildInitContext(hostPca) {
         capabilities: { queryAccount: false },
         accountContext: account
             ? {
-                homeAccountId: account.homeAccountId,
-                environment: account.environment,
-                tenantId: account.tenantId,
-            }
+                  homeAccountId: account.homeAccountId,
+                  environment: account.environment,
+                  tenantId: account.tenantId,
+              }
             : undefined,
     };
 }
 
 function toNaaAuthResult(result) {
     const expiresIn = result.expiresOn
-        ? Math.max(0, Math.round((result.expiresOn.getTime() - Date.now()) / 1000))
+        ? Math.max(
+              0,
+              Math.round((result.expiresOn.getTime() - Date.now()) / 1000)
+          )
         : 0;
     return {
         token: {
@@ -50,6 +53,7 @@ function toNaaAuthResult(result) {
             name: result.account.name,
             idToken: result.idToken,
             idTokenClaims: result.account.idTokenClaims,
+            platformBrokerId: result.account.nativeAccountId,
         },
     };
 }
@@ -66,7 +70,9 @@ function toBridgeError(error) {
     let status;
     if (
         error?.name === "InteractionRequiredAuthError" ||
-        /interaction_required|login_required|consent_required/i.test(String(code))
+        /interaction_required|login_required|consent_required/i.test(
+            String(code)
+        )
     ) {
         status = "USER_INTERACTION_REQUIRED";
     } else if (/user_cancel/i.test(String(code))) {

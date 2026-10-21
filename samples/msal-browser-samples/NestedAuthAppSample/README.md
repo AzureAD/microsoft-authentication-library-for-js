@@ -132,12 +132,13 @@ expected for local use.
 
 The end-to-end suites live in `test/`:
 
-| Spec / suite                      | Flows tested                          | Runs in CI?              | Command                       |
-| --------------------------------- | ------------------------------------- | ------------------------ | ----------------------------- |
-| `naa-basic.spec.ts`               | Basic NAA e2e tests                   | Yes (`naa-basic` filter) | `npm run test:e2e:naa-basic`  |
-| `naa-ear.spec.ts`                 | NAA + EAR e2e tests                   | Yes (`naa-ear` filter)   | `npm run test:e2e:ear`        |
-| `naa-platform-broker.spec.ts`     | NAA + platform broker e2e tests       | No (self-hosted)         | `npm run test:e2e:broker`     |
-| `naa-ear-platform-broker.spec.ts` | NAA + EAR + platform broker e2e tests | No (self-hosted)         | `npm run test:e2e:ear-broker` |
+| Spec / suite                       | Flows tested                           | Runs in CI?              | Command                        |
+| ---------------------------------- | -------------------------------------- | ------------------------ | ------------------------------ |
+| `naa-basic.spec.ts`                | Basic NAA e2e tests                    | Yes (`naa-basic` filter) | `npm run test:e2e:naa-basic`   |
+| `naa-ear.spec.ts`                  | NAA + EAR e2e tests                    | Yes (`naa-ear` filter)   | `npm run test:e2e:ear`         |
+| `naa-platform-broker.spec.ts`      | NAA + platform broker e2e tests        | No (self-hosted)         | `npm run test:e2e:broker`      |
+| `naa-ear-platform-broker.spec.ts`  | NAA + EAR + platform broker e2e tests  | No (self-hosted)         | `npm run test:e2e:ear-broker`  |
+| `naa-kmsi-platform-broker.spec.ts` | KMSI + NAA + platform broker e2e tests | No (self-hosted)         | `npm run test:e2e:kmsi-broker` |
 
 The nested app receives tokens through `window.nestedAppAuthBridge`, stores
 account artifacts and returned tokens according to its MSAL cache configuration,
@@ -156,6 +157,34 @@ For a local Chrome for Testing setup, set `CHROME_FOR_TESTING_PATH` to its
 executable and `SSO_EXTENSION_PATH` to an unpacked Microsoft SSO extension
 directory before running either broker command. The BrowserCore native
 messaging host must be registered for that browser.
+
+### Keep Me Signed In + NAA (AB#3688362)
+
+Run `npm run test:e2e:kmsi-broker -- --runInBand` on a WAM-enabled Windows
+machine whose broker account has persistent sign-in enabled. The suite does
+not enter lab credentials or accept web fallback: the host response must have
+`fromPlatformBroker: true` and a `nativeAccountId`. Both host and nested ID
+token claims must pass the shared KMSI assertion (`kmsi` or `dvc_dmjd` in
+`signin_state`). A missing claim fails the suite rather than skipping coverage;
+extension installation alone does not establish that KMSI is available.
+
+The suite exercises `acquireTokenSilent`, `ssoSilent`, `acquireTokenPopup`, and
+`loginPopup` from an empty nested cache. It reloads the host before each API to
+discard its in-memory native token cache and require an actual broker response.
+It checks the corresponding NAA bridge method and host correlation ID, verifies
+the nested token audience and account continuity, and confirms that no refresh
+token is returned to the nested app.
+
+It then fully closes and relaunches the browser with the same temporary profile.
+Both apps retain their existing `sessionStorage` configuration, so the restarted
+host starts with no cached tokens or accounts. Host `ssoSilent` and both silent
+nested APIs must recover the same KMSI broker account without opening a popup.
+The temporary profile is removed when the suite finishes.
+
+The host UI exposes `ssoSilent` for manual recovery checks and a token-free
+authentication summary (broker provenance, correlation ID, account IDs, and
+`signin_state`) for both host and brokered nested requests. Existing login and
+EAR behavior is unchanged.
 
 End-to-end tests must run over HTTPS. The Jest configuration starts the HTTPS
 servers automatically.
