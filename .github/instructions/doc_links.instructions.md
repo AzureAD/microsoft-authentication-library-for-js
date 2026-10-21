@@ -7,6 +7,8 @@ description: "Use when editing, reviewing, or creating markdown files. Validates
 
 When editing markdown files or deleting/renaming/moving files and directories, verify that all internal links remain valid.
 
+When a repository's link validator reports a broken link, correct the reported link or restore its intended target, then rerun validation. Do not suppress the check merely because the target exists locally. Investigate Git or configuration errors separately rather than assuming every validation failure requires a documentation edit.
+
 ## When to check
 
 - **Editing a `.md` file**: Validate all links within the file being edited
