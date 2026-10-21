@@ -226,7 +226,7 @@ describe("Untrusted Top Frame Sample", () => {
             "#token-response",
             (el) => el.textContent || ""
         );
-        expect(json).toContain('"fromCache"');
+        expect(JSON.parse(json).fromCache).toBe(true);
         await screenshot.takeScreenshot(page, "Silent token acquired");
     });
 });
