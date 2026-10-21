@@ -375,10 +375,7 @@ const AuthClientExecuteTokenRequest = "authClientExecuteTokenRequest";
 
 // @public
 export class AuthenticationHeaderParser {
-    constructor(headers: Record<string, string> | {
-        get(name: string): string | null;
-    });
-    getDPoPNonce(): string | null;
+    constructor(headers: Record<string, string>);
     getShrNonce(): string;
 }
 
@@ -1707,7 +1704,6 @@ const HeaderNames: {
     readonly CONTENT_TYPE: "Content-Type";
     readonly CONTENT_LENGTH: "Content-Length";
     readonly DPOP: "DPoP";
-    readonly DPOP_NONCE: "DPoP-Nonce";
     readonly RETRY_AFTER: "Retry-After";
     readonly CCS_HEADER: "X-AnchorMailbox";
     readonly WWWAuthenticate: "WWW-Authenticate";
