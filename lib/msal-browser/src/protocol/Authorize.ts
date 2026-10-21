@@ -278,6 +278,26 @@ export type AuthorizeFormData = {
     fields: Record<string, string>;
 };
 
+function getAuthorizeFormAction(
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    parameters: Map<string, string>
+): string {
+    const queryParams = new Map<string, string>();
+    RequestParameterBuilder.addExtraParameters(
+        queryParams,
+        request.extraQueryParameters || {}
+    );
+    if (parameters.has(AADServerParamKeys.POPUP_ORIGIN_CHECK_DONE)) {
+        queryParams.delete(AADServerParamKeys.POPUP_ORIGIN_CHECK_DONE);
+    }
+    RequestParameterBuilder.addCorrelationId(
+        queryParams,
+        request.correlationId
+    );
+    return AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
+}
+
 /**
  * Builds the action URL + POST-body fields for the EAR /authorize form.
  */
@@ -320,19 +340,7 @@ export async function getEARFormData(
         ...request.extraParameters,
     });
 
-    const queryParams = new Map<string, string>();
-    RequestParameterBuilder.addExtraParameters(
-        queryParams,
-        request.extraQueryParameters || {}
-    );
-
-    // Add correlationId to query params so gateway can propagate it to IDPs
-    RequestParameterBuilder.addCorrelationId(
-        queryParams,
-        request.correlationId
-    );
-
-    const action = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
+    const action = getAuthorizeFormAction(authority, request, parameters);
 
     return { action, fields: Object.fromEntries(parameters) };
 }
@@ -392,20 +400,7 @@ export async function getCodeFormData(
         ...request.extraParameters,
     });
 
-    // Add extraQueryParameters to be appended to request URL
-    const queryParams = new Map<string, string>();
-    RequestParameterBuilder.addExtraParameters(
-        queryParams,
-        request.extraQueryParameters || {}
-    );
-
-    // Add correlationId to query params so gateway can propagate it to IDPs
-    RequestParameterBuilder.addCorrelationId(
-        queryParams,
-        request.correlationId
-    );
-
-    const action = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
+    const action = getAuthorizeFormAction(authority, request, parameters);
 
     return { action, fields: Object.fromEntries(parameters) };
 }

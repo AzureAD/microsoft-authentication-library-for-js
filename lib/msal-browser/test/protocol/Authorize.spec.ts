@@ -879,11 +879,15 @@ describe("Authorize Protocol Tests", () => {
                 document,
                 baseConfig,
                 authority,
-                validRequest,
+                {
+                    ...validRequest,
+                    extraQueryParameters: { [POCD]: "0" },
+                },
                 logger,
                 performanceClient
             );
             expect(formValue(form, POCD)).toBe("1");
+            expect(new URL(form.action).searchParams.has(POCD)).toBe(false);
         });
 
         it("emits pocd=1 on the EAR form post", async () => {
@@ -891,11 +895,15 @@ describe("Authorize Protocol Tests", () => {
                 document,
                 baseConfig,
                 authority,
-                validRequest,
+                {
+                    ...validRequest,
+                    extraQueryParameters: { [POCD]: "0" },
+                },
                 logger,
                 performanceClient
             );
             expect(formValue(form, POCD)).toBe("1");
+            expect(new URL(form.action).searchParams.has(POCD)).toBe(false);
         });
 
         it("emits pocd=1 when the app opts out of the origin check", async () => {
