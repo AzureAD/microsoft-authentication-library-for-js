@@ -690,7 +690,6 @@ export interface IPublicClientApplication {
     initialize(request?: InitializeApplicationRequest): Promise<void>;
     // (undocumented)
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
-    // (undocumented)
     loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
     // (undocumented)
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
