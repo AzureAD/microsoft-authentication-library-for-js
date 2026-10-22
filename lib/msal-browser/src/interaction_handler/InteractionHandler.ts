@@ -160,6 +160,7 @@ export class InteractionHandler {
 
                 redeemed = true;
                 this.authCodeRequest.dpopProof = dpopProof;
+                this.authCodeRequest.dpopProofProvider = undefined;
                 return (await invokeAsync(
                     this.authModule.acquireTokenWithPreparedAuthority.bind(
                         this.authModule
