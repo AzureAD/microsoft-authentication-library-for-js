@@ -22,8 +22,7 @@ export type TokenBindingKeyProvisioningParameters = {
 };
 
 /**
- * Internal key lifecycle abstraction for browser token-binding keys.
- * @internal
+ * Key lifecycle abstraction for browser token-binding keys.
  */
 export interface ITokenBindingKeyManager {
     /**

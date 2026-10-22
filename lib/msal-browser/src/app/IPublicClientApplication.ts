@@ -6,8 +6,10 @@
 import {
     AccountFilter,
     AccountInfo,
+    AzureCloudOptions,
     Logger,
     PerformanceCallbackFunction,
+    StringDict,
 } from "@azure/msal-common/browser";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
@@ -29,6 +31,24 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
+
+export type TokenEndpointResolutionRequest = {
+    authority?: string;
+    azureCloudOptions?: AzureCloudOptions;
+    extraQueryParameters?: StringDict;
+    account?: AccountInfo;
+    correlationId: string;
+};
+
+/**
+ * Request used to validate a candidate token endpoint against the metadata and
+ * alias set of the request's original authority. Extends the resolution inputs
+ * with the candidate endpoint to be trust-validated.
+ * @internal
+ */
+export type TokenEndpointValidationRequest = TokenEndpointResolutionRequest & {
+    candidateTokenEndpoint: string;
+};
 
 export interface IPublicClientApplication {
     // TODO: Make request mandatory in the next major version?
@@ -66,6 +86,14 @@ export interface IPublicClientApplication {
     setNavigationClient(navigationClient: INavigationClient): void;
     /** @internal */
     getConfiguration(): BrowserConfiguration;
+    /** @internal */
+    resolveTokenEndpoint(
+        request: TokenEndpointResolutionRequest
+    ): Promise<string>;
+    /** @internal */
+    validateTokenEndpoint(
+        request: TokenEndpointValidationRequest
+    ): Promise<string>;
     hydrateCache(
         result: AuthenticationResult,
         request:
@@ -209,6 +237,22 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         throw createBrowserConfigurationAuthError(
             BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
             ""
+        );
+    },
+    resolveTokenEndpoint: () => {
+        return Promise.reject(
+            createBrowserConfigurationAuthError(
+                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
+                ""
+            )
+        );
+    },
+    validateTokenEndpoint: () => {
+        return Promise.reject(
+            createBrowserConfigurationAuthError(
+                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
+                ""
+            )
         );
     },
     hydrateCache: () => {

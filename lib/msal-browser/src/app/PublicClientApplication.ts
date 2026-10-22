@@ -9,7 +9,11 @@ import { PopupRequest } from "../request/PopupRequest.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { WrapperSKU } from "../utils/BrowserConstants.js";
-import { IPublicClientApplication } from "./IPublicClientApplication.js";
+import {
+    IPublicClientApplication,
+    TokenEndpointResolutionRequest,
+    TokenEndpointValidationRequest,
+} from "./IPublicClientApplication.js";
 import { IController } from "../controllers/IController.js";
 import {
     PerformanceCallbackFunction,
@@ -404,6 +408,28 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     getConfiguration(): BrowserConfiguration {
         return this.controller.getConfiguration();
+    }
+
+    /**
+     * Resolves the token endpoint using the controller's configured authority metadata cache.
+     * @internal
+     */
+    resolveTokenEndpoint(
+        request: TokenEndpointResolutionRequest
+    ): Promise<string> {
+        return this.controller.resolveTokenEndpoint(request);
+    }
+
+    /**
+     * Validates a candidate token endpoint against the metadata and alias set
+     * of the request's original authority using the controller's configured
+     * authority metadata cache. Returns the normalized, validated candidate.
+     * @internal
+     */
+    validateTokenEndpoint(
+        request: TokenEndpointValidationRequest
+    ): Promise<string> {
+        return this.controller.validateTokenEndpoint(request);
     }
 
     /**
