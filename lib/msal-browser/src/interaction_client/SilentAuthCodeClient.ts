@@ -207,54 +207,65 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             this.config.system.serverTelemetryEnabled
         );
 
-        const tokenBindingParams = await getTokenBindingRequestParams(
-            silentRequest,
-            this.tokenBindingKeyManager,
-            this.logger,
-            this.performanceClient
-        );
-        const authCodeRequest: CommonAuthorizationCodeRequest = {
-            ...silentRequest,
-            code: request.code,
-            ...tokenBindingParams,
-        };
-
-        const clientConfig = await invokeAsync(
-            this.getClientConfiguration.bind(this),
-            BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )({
-            serverTelemetryManager,
-            requestAuthority: silentRequest.authority,
-            requestAzureCloudOptions: silentRequest.azureCloudOptions,
-            requestExtraQueryParameters: silentRequest.extraQueryParameters,
-            account: silentRequest.account,
-        });
-        const authClient = new HybridSpaAuthorizationCodeClient(
-            clientConfig,
-            this.performanceClient
-        );
-        this.logger.verbose("Auth code client created", this.correlationId);
-
-        return {
-            interactionHandler: new InteractionHandler(
-                authClient,
-                this.browserStorage,
-                authCodeRequest,
+        try {
+            const tokenBindingParams = await getTokenBindingRequestParams(
+                silentRequest,
+                this.tokenBindingKeyManager,
                 this.logger,
                 this.performanceClient
-            ),
-            silentRequest,
-            authCodeResponse: {
+            );
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                ...silentRequest,
                 code: request.code,
-                msgraph_host: request.msGraphHost,
-                cloud_graph_host_name: request.cloudGraphHostName,
-                cloud_instance_host_name: request.cloudInstanceHostName,
-            },
-            serverTelemetryManager,
-        };
+                ...tokenBindingParams,
+            };
+
+            const clientConfig = await invokeAsync(
+                this.getClientConfiguration.bind(this),
+                BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )({
+                serverTelemetryManager,
+                requestAuthority: silentRequest.authority,
+                requestAzureCloudOptions: silentRequest.azureCloudOptions,
+                requestExtraQueryParameters: silentRequest.extraQueryParameters,
+                account: silentRequest.account,
+            });
+            const authClient = new HybridSpaAuthorizationCodeClient(
+                clientConfig,
+                this.performanceClient
+            );
+            this.logger.verbose(
+                "Auth code client created",
+                this.correlationId
+            );
+
+            return {
+                interactionHandler: new InteractionHandler(
+                    authClient,
+                    this.browserStorage,
+                    authCodeRequest,
+                    this.logger,
+                    this.performanceClient
+                ),
+                silentRequest,
+                authCodeResponse: {
+                    code: request.code,
+                    msgraph_host: request.msGraphHost,
+                    cloud_graph_host_name: request.cloudGraphHostName,
+                    cloud_instance_host_name: request.cloudInstanceHostName,
+                },
+                serverTelemetryManager,
+            };
+        } catch (e) {
+            if (e instanceof AuthError) {
+                e.correlationId = this.correlationId;
+                serverTelemetryManager.cacheFailedRequest(e);
+            }
+            throw e;
+        }
     }
 
     /**
