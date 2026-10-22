@@ -183,6 +183,7 @@ describe("Refresh token persistence", () => {
     it("preserves a replacement persisted while the rejected refresh request was in flight", async () => {
         const { client, persistence, postRequest, request } =
             await createPersistedClient();
+        const afterCacheAccess = jest.spyOn(persistence, "afterCacheAccess");
         const replacementCache: JsonCache = JSON.parse(
             persistence.persistedCache
         );
@@ -192,6 +193,7 @@ describe("Refresh token persistence", () => {
         postRequest.mockImplementationOnce(async () => {
             // Another process refreshes the same cache entry before this request fails.
             persistence.persistedCache = JSON.stringify(replacementCache);
+            afterCacheAccess.mockClear();
             return badTokenResponse;
         });
 
@@ -199,6 +201,9 @@ describe("Refresh token persistence", () => {
             errorCode: "invalid_grant",
             subError: "bad_token",
         });
+        expect(persistence.writes).toBe(1);
+        expect(afterCacheAccess).toHaveBeenCalledTimes(1);
+        expect(afterCacheAccess.mock.calls[0][0].cacheHasChanged).toBe(false);
         expect(JSON.parse(persistence.persistedCache)).toEqual(
             replacementCache
         );
@@ -224,5 +229,47 @@ describe("Refresh token persistence", () => {
                 "refresh_token"
             )
         ).toBe("replacement-refresh-token");
+    });
+
+    it("does not overwrite a persisted replacement when reloading the cache fails", async () => {
+        const { client, persistence, postRequest, request } =
+            await createPersistedClient();
+        const seededCache: JsonCache = JSON.parse(persistence.persistedCache);
+        const replacementCache: JsonCache = JSON.parse(
+            persistence.persistedCache
+        );
+        const refreshTokenKey = Object.keys(replacementCache.RefreshToken)[0];
+        replacementCache.RefreshToken[refreshTokenKey].secret =
+            "replacement-refresh-token";
+        const reloadError = new Error("Cache reload failed");
+        const beforeCacheAccess = jest.spyOn(persistence, "beforeCacheAccess");
+        const afterCacheAccess = jest.spyOn(persistence, "afterCacheAccess");
+        let reloadHasChanged: boolean | undefined;
+        postRequest.mockImplementationOnce(async () => {
+            persistence.persistedCache = JSON.stringify(replacementCache);
+            beforeCacheAccess.mockClear();
+            afterCacheAccess.mockClear();
+            beforeCacheAccess.mockImplementationOnce(async (context) => {
+                reloadHasChanged = context.cacheHasChanged;
+                throw reloadError;
+            });
+            return badTokenResponse;
+        });
+
+        await expect(client.acquireTokenSilent(request)).rejects.toBe(
+            reloadError
+        );
+
+        expect(persistence.writes).toBe(1);
+        expect(JSON.parse(persistence.persistedCache)).toEqual(
+            replacementCache
+        );
+        expect(JSON.parse(client.getTokenCache().serialize())).toEqual(
+            seededCache
+        );
+        expect(beforeCacheAccess).toHaveBeenCalledTimes(1);
+        expect(reloadHasChanged).toBe(true);
+        expect(afterCacheAccess).toHaveBeenCalledTimes(1);
+        expect(afterCacheAccess.mock.calls[0][0].cacheHasChanged).toBe(false);
     });
 });

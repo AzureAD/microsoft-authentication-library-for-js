@@ -1698,6 +1698,9 @@ describe("RefreshTokenClient unit tests", () => {
                 expect(afterCacheAccess).toHaveBeenCalledWith(
                     beforeCacheAccess.mock.calls[0][0]
                 );
+                expect(afterCacheAccess.mock.calls[0][0].cacheHasChanged).toBe(
+                    false
+                );
             }
         );
 

@@ -336,6 +336,7 @@ export class RefreshTokenClient {
                     const { persistencePlugin, serializableCache } =
                         this.config;
                     let cacheContext;
+                    let refreshTokenRemoved = false;
                     try {
                         if (persistencePlugin && serializableCache) {
                             cacheContext = new TokenCacheContext(
@@ -361,6 +362,7 @@ export class RefreshTokenClient {
                                 badRefreshTokenKey,
                                 request.correlationId
                             );
+                            refreshTokenRemoved = true;
                         }
                     } finally {
                         if (
@@ -368,6 +370,8 @@ export class RefreshTokenClient {
                             serializableCache &&
                             cacheContext
                         ) {
+                            // Persist only a successful removal.
+                            cacheContext.hasChanged = refreshTokenRemoved;
                             await persistencePlugin.afterCacheAccess(
                                 cacheContext
                             );
