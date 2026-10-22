@@ -24,6 +24,19 @@ export interface PlatformBrokerProfile {
     userDataDir: string;
 }
 
+export interface PlatformBrokerResponse {
+    homeAccountId?: string;
+    nativeAccountId: string;
+}
+
+interface PlatformBrokerAuthData {
+    account?: {
+        homeAccountId?: string;
+        nativeAccountId?: string;
+    };
+    fromPlatformBroker?: boolean;
+}
+
 function isPlatformAuthEnabled(): boolean {
     try {
         const output = execFileSync(
@@ -128,4 +141,67 @@ export async function verifyPlatformBrokerTokenStore(
     expect(tokenStore.idTokens.length).toBe(1);
     expect(tokenStore.accessTokens.length).toBe(0);
     expect(tokenStore.refreshTokens.length).toBe(0);
+}
+
+async function getPlatformBrokerAuthData(
+    target: puppeteer.Page
+): Promise<PlatformBrokerAuthData> {
+    if (!target.url().endsWith("profile")) {
+        await target.locator("a#viewProfileButton").click();
+    }
+
+    const authDataText = await target
+        .locator("pre#auth-json")
+        .filter(
+            (value) => !!value.textContent && value.textContent !== "Loading..."
+        )
+        .map((value) => value.textContent)
+        .wait();
+    return JSON.parse(authDataText || "") as PlatformBrokerAuthData;
+}
+
+function requirePlatformBrokerAccount(
+    authData: PlatformBrokerAuthData
+): PlatformBrokerResponse {
+    expect(authData.fromPlatformBroker).toBe(true);
+    expect(authData.account?.nativeAccountId).toBeTruthy();
+    if (!authData.account?.nativeAccountId) {
+        throw new Error(
+            "Platform-broker response did not contain account.nativeAccountId"
+        );
+    }
+
+    return {
+        homeAccountId: authData.account.homeAccountId,
+        nativeAccountId: authData.account.nativeAccountId,
+    };
+}
+
+export async function verifyPlatformBrokerResponse(
+    target: puppeteer.Page
+): Promise<PlatformBrokerResponse> {
+    return requirePlatformBrokerAccount(
+        await getPlatformBrokerAuthData(target)
+    );
+}
+
+/**
+ * Verifies that the current account is broker-linked without asserting that
+ * the Profile page's later acquireTokenSilent response came from the broker.
+ */
+export async function verifyPlatformBrokerAccount(
+    target: puppeteer.Page
+): Promise<PlatformBrokerResponse> {
+    const authData = await getPlatformBrokerAuthData(target);
+    expect(authData.account?.nativeAccountId).toBeTruthy();
+    if (!authData.account?.nativeAccountId) {
+        throw new Error(
+            "Platform-broker account did not contain account.nativeAccountId"
+        );
+    }
+
+    return {
+        homeAccountId: authData.account.homeAccountId,
+        nativeAccountId: authData.account.nativeAccountId,
+    };
 }

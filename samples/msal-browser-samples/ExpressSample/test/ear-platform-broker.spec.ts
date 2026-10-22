@@ -9,10 +9,10 @@ import {
     PLATFORM_LOGIN_TIMEOUT,
     PlatformBrokerProfile,
     removePlatformBrokerProfile,
+    verifyPlatformBrokerResponse,
     verifyPlatformBrokerTokenStore,
 } from "e2e-test-utils";
 import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
-import { verifyPlatformBrokerResponse } from "./platformBrokerTestUtils";
 
 // CommonJS helper; require by relative path.
 // eslint-disable-next-line @typescript-eslint/no-var-requires

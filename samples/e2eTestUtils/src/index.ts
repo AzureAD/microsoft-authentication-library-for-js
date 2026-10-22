@@ -72,9 +72,14 @@ export {
     launchPlatformBrokerBrowser,
     PLATFORM_LOGIN_TIMEOUT,
     removePlatformBrokerProfile,
+    verifyPlatformBrokerAccount,
+    verifyPlatformBrokerResponse,
     verifyPlatformBrokerTokenStore,
 } from "./PlatformBrokerTestUtils";
-export type { PlatformBrokerProfile } from "./PlatformBrokerTestUtils";
+export type {
+    PlatformBrokerProfile,
+    PlatformBrokerResponse,
+} from "./PlatformBrokerTestUtils";
 export { Browser, Page, BrowserContext, Frame } from "puppeteer";
 export { NodeCacheTestUtils } from "./NodeCacheTestUtils";
 export { storagePoller } from "./TestUtils";

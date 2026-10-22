@@ -74,7 +74,7 @@ npm run build:package
 
 The Puppeteer e2e tests live in [`./test`](./test). The EAR (Encrypted Authorize Response) web-flow suite is in [`./test/ear-basic.spec.ts`](./test/ear-basic.spec.ts).
 
-Platform-broker suites import their shared profile, browser-launch, and token-cache helpers from `e2e-test-utils`. Only ExpressSample-specific response-page assertions remain in [`./test/platformBrokerTestUtils.ts`](./test/platformBrokerTestUtils.ts).
+Platform-broker suites import their profile, browser-launch, token-cache, account, and response assertions from `e2e-test-utils`. The account and response assertions read the sample's Profile page; the account assertion checks broker linkage, while the response assertion also requires `fromPlatformBroker: true`.
 
 The [`./test/kmsi-basic.spec.ts`](./test/kmsi-basic.spec.ts) suite verifies that both standard web and Encrypted Authorize Response sign-ins with KMSI persist across a complete browser restart:
 

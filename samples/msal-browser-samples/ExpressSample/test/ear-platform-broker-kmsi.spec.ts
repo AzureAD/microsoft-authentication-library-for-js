@@ -15,10 +15,10 @@ import {
     PLATFORM_LOGIN_TIMEOUT,
     PlatformBrokerProfile,
     removePlatformBrokerProfile,
+    verifyPlatformBrokerAccount,
     verifyPlatformBrokerTokenStore,
 } from "e2e-test-utils";
 import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
-import { verifyPlatformBrokerAccount } from "./platformBrokerTestUtils";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serverUtils = require("../../../e2eTestUtils/jest-puppeteer-utils/serverUtils");
