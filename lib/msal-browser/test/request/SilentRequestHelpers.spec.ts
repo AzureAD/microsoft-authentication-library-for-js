@@ -18,6 +18,8 @@ import {
     resolveSilentRequestPreparation,
 } from "../../src/request/SilentRequestHelpers.js";
 import type { SilentRequestPreparationInput } from "../../src/request/SilentRequestHelpers.js";
+import type { SilentRequest } from "../../src/request/SilentRequest.js";
+import { CacheLookupPolicy } from "../../src/utils/BrowserConstants.js";
 import { TEST_CONFIG } from "../utils/StringConstants.js";
 
 describe("silent request preparation", () => {
@@ -56,7 +58,7 @@ describe("silent request preparation", () => {
         };
     });
 
-    it("preserves the original web key and request/account identities", () => {
+    it("extends the web key while preserving request/account identities", () => {
         input.request = {
             scopes: [" Mail.Read ", "User.Read", "Mail.Read"],
             forceRefresh: true,
@@ -72,12 +74,87 @@ describe("silent request preparation", () => {
             },
             input.account.homeAccountId
         );
-        expect(prepared.key).toBe(JSON.stringify(originalThumbprint));
+        expect(JSON.parse(prepared.key)).toEqual({
+            ...originalThumbprint,
+            forceRefresh: true,
+            cacheLookupPolicy: CacheLookupPolicy.Default,
+            extraParameters: [["custom", "value"]],
+            extraQueryParameters: [],
+        });
         expect(prepared.request).toBe(input.request);
         expect(prepared.account).toBe(input.account);
         expect(input.request.account).toBeUndefined();
         expect(input.request.correlationId).toBeUndefined();
     });
+
+    it.each([
+        ["force refresh", { forceRefresh: true }],
+        [
+            "access token only",
+            { cacheLookupPolicy: CacheLookupPolicy.AccessToken },
+        ],
+        [
+            "access and refresh token",
+            { cacheLookupPolicy: CacheLookupPolicy.AccessTokenAndRefreshToken },
+        ],
+        [
+            "refresh token only",
+            { cacheLookupPolicy: CacheLookupPolicy.RefreshToken },
+        ],
+        [
+            "refresh token and network",
+            { cacheLookupPolicy: CacheLookupPolicy.RefreshTokenAndNetwork },
+        ],
+        ["skip cache", { cacheLookupPolicy: CacheLookupPolicy.Skip }],
+        ["extra parameters", { extraParameters: { custom: "value" } }],
+        [
+            "extra query parameters",
+            { extraQueryParameters: { custom: "value" } },
+        ],
+    ] satisfies Array<[string, Partial<SilentRequest>]>)(
+        "distinguishes web requests with different %s",
+        (_name, difference) => {
+            const baseline = prepareWebSilentRequest(input);
+            const prepared = prepareWebSilentRequest({
+                ...input,
+                request: { ...input.request, ...difference },
+            });
+            expect(prepared.key).not.toBe(baseline.key);
+        }
+    );
+
+    it("normalizes omitted web refresh options and empty parameter dictionaries", () => {
+        const baseline = prepareWebSilentRequest(input);
+        const prepared = prepareWebSilentRequest({
+            ...input,
+            request: {
+                ...input.request,
+                forceRefresh: false,
+                cacheLookupPolicy: CacheLookupPolicy.Default,
+                extraParameters: {},
+                extraQueryParameters: {},
+            },
+        });
+        expect(prepared.key).toBe(baseline.key);
+    });
+
+    it.each(["extraParameters", "extraQueryParameters"] as const)(
+        "canonicalizes web %s without changing keys or values",
+        (field) => {
+            const prepare = (parameters: Record<string, string>) =>
+                prepareWebSilentRequest({
+                    ...input,
+                    request: { ...input.request, [field]: parameters },
+                }).key;
+            const parameters = { z: "Value", a: "a=b&c" };
+            const key = prepare(parameters);
+            expect(key).toBe(prepare({ a: "a=b&c", z: "Value" }));
+            expect(key).not.toBe(prepare({ a: "a=b&c", z: "value" }));
+            expect(key).not.toBe(prepare({ a: "a=b&c", Z: "Value" }));
+            expect(key).not.toBe(prepare({ a: "a=b", c: "", z: "Value" }));
+            expect(Object.keys(parameters)).toEqual(["z", "a"]);
+        }
+    );
 
     it("prepares a single consistent broker key, request snapshot, and account", () => {
         input.request = {
