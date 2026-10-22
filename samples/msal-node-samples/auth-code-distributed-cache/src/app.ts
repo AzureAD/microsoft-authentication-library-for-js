@@ -12,6 +12,7 @@ import {
     PerformanceEntry,
 } from "perf_hooks";
 import express, { Express, NextFunction, Request, Response } from "express";
+import { create } from "express-handlebars";
 import session from "express-session";
 import RedisStore from "connect-redis";
 import { createClient, RedisClientType } from "redis";
@@ -84,6 +85,14 @@ async function main() {
     );
 
     // view engine setup
+    app.engine(
+        "hbs",
+        create({
+            extname: ".hbs",
+            defaultLayout: "layout",
+            layoutsDir: path.join(__dirname, "views"),
+        }).engine
+    );
     app.set("views", path.join(__dirname, "views"));
     app.set("view engine", "hbs");
 
