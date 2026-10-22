@@ -237,10 +237,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 clientConfig,
                 this.performanceClient
             );
-            this.logger.verbose(
-                "Auth code client created",
-                this.correlationId
-            );
+            this.logger.verbose("Auth code client created", this.correlationId);
 
             return {
                 interactionHandler: new InteractionHandler(

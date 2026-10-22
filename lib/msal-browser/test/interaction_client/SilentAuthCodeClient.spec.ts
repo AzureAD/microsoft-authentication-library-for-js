@@ -223,9 +223,8 @@ describe("SilentAuthCodeClient", () => {
                 "Client configuration failed"
             );
             (silentAuthCodeClient as any).correlationId = RANDOM_TEST_GUID;
-            (
-                silentAuthCodeClient as any
-            ).config.system.serverTelemetryEnabled = true;
+            (silentAuthCodeClient as any).config.system.serverTelemetryEnabled =
+                true;
             jest.spyOn(
                 silentAuthCodeClient as any,
                 "getClientConfiguration"
@@ -255,11 +254,13 @@ describe("SilentAuthCodeClient", () => {
                 const cacheFailedRequest = jest.fn();
                 const redeem = jest.fn().mockRejectedValue(testError);
                 const interactionHandler = {
-                    prepareCodeRedemptionFromServer: jest.fn().mockResolvedValue({
-                        tokenEndpoint:
-                            "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-                        redeem,
-                    }),
+                    prepareCodeRedemptionFromServer: jest
+                        .fn()
+                        .mockResolvedValue({
+                            tokenEndpoint:
+                                "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                            redeem,
+                        }),
                 };
                 jest.spyOn(
                     silentAuthCodeClient as any,
@@ -273,14 +274,16 @@ describe("SilentAuthCodeClient", () => {
                 (silentAuthCodeClient as any).correlationId = RANDOM_TEST_GUID;
 
                 const continuation =
-                    await silentAuthCodeClient.prepareAuthorizationCodeRedemption({
-                        code: "test-code",
-                        scopes: ["User.Read"],
-                    });
+                    await silentAuthCodeClient.prepareAuthorizationCodeRedemption(
+                        {
+                            code: "test-code",
+                            scopes: ["User.Read"],
+                        }
+                    );
 
-                await expect(
-                    continuation.redeem("signed-proof")
-                ).rejects.toBe(testError);
+                await expect(continuation.redeem("signed-proof")).rejects.toBe(
+                    testError
+                );
                 expect(testError.correlationId).toBe(RANDOM_TEST_GUID);
                 expect(cacheFailedRequest).toHaveBeenCalledWith(testError);
             });
