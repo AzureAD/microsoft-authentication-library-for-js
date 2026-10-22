@@ -39,6 +39,7 @@ import { LoggerOptions } from '@azure/msal-common/browser';
 import { LogLevel } from '@azure/msal-common/browser';
 import { NetworkRequestOptions } from '@azure/msal-common/browser';
 import { NetworkResponse } from '@azure/msal-common/browser';
+import { normalizeDpopHtu } from '@azure/msal-common/browser';
 import { OIDCOptions } from '@azure/msal-common/browser';
 import { PerformanceCallbackFunction } from '@azure/msal-common/browser';
 import { PerformanceClient } from '@azure/msal-common/browser';
@@ -92,6 +93,9 @@ export type ApiId = (typeof ApiId)[keyof typeof ApiId];
 const authCodeOrNativeAccountIdRequired = "auth_code_or_nativeAccountId_required";
 
 // @public (undocumented)
+const authCodeRedemptionContinuationAlreadyUsed = "auth_code_redemption_continuation_already_used";
+
+// @public (undocumented)
 const authCodeRequired = "auth_code_required";
 
 export { AuthenticationHeaderParser }
@@ -115,6 +119,27 @@ export type AuthenticationScheme = Constants.AuthenticationScheme;
 export { AuthError }
 
 export { AuthErrorCodes }
+
+// @internal
+export type AuthorityEndpointPreparationRequest = {
+    authority?: string;
+    azureCloudOptions?: AzureCloudOptions;
+    extraQueryParameters?: StringDict;
+    account?: AccountInfo;
+    correlationId: string;
+};
+
+// @internal
+export type AuthorityEndpointPreparationResult = {
+    authorizationEndpoint: string;
+    tokenEndpoint: string;
+};
+
+// @internal
+export type AuthorizationCodeRedemptionContinuation = {
+    tokenEndpoint: string;
+    redeem(dpopProof: string): Promise<AuthenticationResult>;
+};
 
 // @public
 export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "code" | "enableSpaAuthorizationCode">> & {
@@ -203,6 +228,8 @@ declare namespace BrowserAuthErrorCodes {
         cryptoKeyNotFound,
         invalidPublicJwk,
         authCodeRequired,
+        dpopProofRequired,
+        authCodeRedemptionContinuationAlreadyUsed,
         authCodeOrNativeAccountIdRequired,
         spaCodeAndNativeAccountIdPresent,
         databaseUnavailable,
@@ -452,6 +479,33 @@ const databaseUnavailable = "database_unavailable";
 export const DEFAULT_IFRAME_TIMEOUT_MS = 10000;
 
 // @public (undocumented)
+const dpopProofRequired = "dpop_proof_required";
+
+// @public
+export class DpopProofSigner {
+    constructor(options?: DpopProofSignerOptions);
+    generatePublicKeyThumbprint(correlationId?: string): Promise<string>;
+    signResourceRequest(parameters: {
+        accessToken: string;
+        resourceRequestUri?: string;
+        resourceRequestMethod?: string;
+        resourceRequestNonce?: string;
+        correlationId: string;
+    }, publicKeyThumbprint: string): Promise<string>;
+    signTokenRequest(parameters: {
+        tokenEndpoint: string;
+        correlationId: string;
+        nonce?: string;
+    }, publicKeyThumbprint: string): Promise<string>;
+}
+
+// @public (undocumented)
+export type DpopProofSignerOptions = {
+    logger?: Logger;
+    loggerOptions?: LoggerOptions;
+};
+
+// @public (undocumented)
 const earJweEmpty = "ear_jwe_empty";
 
 // @public (undocumented)
@@ -698,6 +752,10 @@ export interface IPublicClientApplication {
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
     // (undocumented)
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
+    // @internal (undocumented)
+    prepareAuthorityEndpoints(request: AuthorityEndpointPreparationRequest): Promise<AuthorityEndpointPreparationResult>;
+    // @internal (undocumented)
+    prepareAuthorizationCodeRedemption(request: AuthorizationCodeRequest): Promise<AuthorizationCodeRedemptionContinuation>;
     // (undocumented)
     removeEventCallback(callbackId: string): void;
     // (undocumented)
@@ -853,6 +911,8 @@ const nonBrowserEnvironment = "non_browser_environment";
 // @public (undocumented)
 const noNetworkConnectivity = "no_network_connectivity";
 
+export { normalizeDpopHtu }
+
 // @public (undocumented)
 const noStateInHash = "no_state_in_hash";
 
@@ -967,6 +1027,10 @@ export class PublicClientApplication implements IPublicClientApplication {
     loginRedirect(request?: RedirectRequest | undefined): Promise<void>;
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
+    // @internal
+    prepareAuthorityEndpoints(request: AuthorityEndpointPreparationRequest): Promise<AuthorityEndpointPreparationResult>;
+    // @internal
+    prepareAuthorizationCodeRedemption(request: AuthorizationCodeRequest): Promise<AuthorizationCodeRedemptionContinuation>;
     removeEventCallback(callbackId: string): void;
     removePerformanceCallback(callbackId: string): boolean;
     setActiveAccount(account: AccountInfo | null): void;

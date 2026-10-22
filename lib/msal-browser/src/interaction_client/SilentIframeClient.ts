@@ -179,7 +179,10 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.logger,
             this.correlationId,
             this.platformAuthProvider,
-            silentRequest.authenticationScheme
+            silentRequest.authenticationScheme,
+            undefined,
+            inputRequest.dpopProof !== undefined ||
+                inputRequest.dpopProofProvider !== undefined
         );
         BrowserUtils.preconnect(silentRequest.authority);
 

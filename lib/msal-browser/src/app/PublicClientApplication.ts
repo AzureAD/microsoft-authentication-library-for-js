@@ -9,7 +9,12 @@ import { PopupRequest } from "../request/PopupRequest.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
 import { WrapperSKU } from "../utils/BrowserConstants.js";
-import { IPublicClientApplication } from "./IPublicClientApplication.js";
+import {
+    AuthorityEndpointPreparationRequest,
+    AuthorityEndpointPreparationResult,
+    AuthorizationCodeRedemptionContinuation,
+    IPublicClientApplication,
+} from "./IPublicClientApplication.js";
 import { IController } from "../controllers/IController.js";
 import {
     PerformanceCallbackFunction,
@@ -404,6 +409,26 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     getConfiguration(): BrowserConfiguration {
         return this.controller.getConfiguration();
+    }
+
+    /**
+     * Prepares the authority endpoints selected by this PCA's controller.
+     * @internal
+     */
+    prepareAuthorityEndpoints(
+        request: AuthorityEndpointPreparationRequest
+    ): Promise<AuthorityEndpointPreparationResult> {
+        return this.controller.prepareAuthorityEndpoints(request);
+    }
+
+    /**
+     * Pauses authorization-code redemption after final endpoint resolution.
+     * @internal
+     */
+    prepareAuthorizationCodeRedemption(
+        request: AuthorizationCodeRequest
+    ): Promise<AuthorizationCodeRedemptionContinuation> {
+        return this.controller.prepareAuthorizationCodeRedemption(request);
     }
 
     /**

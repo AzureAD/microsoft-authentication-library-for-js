@@ -87,6 +87,7 @@ import { PopupClient } from "../../src/interaction_client/PopupClient.js";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient.js";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient.js";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient.js";
+import * as BaseInteractionClient from "../../src/interaction_client/BaseInteractionClient.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import * as PlatformAuthProvider from "../../src/broker/nativeBroker/PlatformAuthProvider.js";
@@ -4775,6 +4776,90 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
+    describe("broker DPoP preparation", () => {
+        it.each([
+            ["public", "login.microsoftonline.com"],
+            ["PPE", "login.windows-ppe.net"],
+            ["US Government", "login.microsoftonline.us"],
+            ["China", "login.partner.microsoftonline.cn"],
+            ["Germany", "login.microsoftonline.de"],
+            ["custom authority metadata", "login.contoso.example"],
+        ])(
+            "returns both endpoints from the same discovered %s authority",
+            async (_name, authorityHost) => {
+                const discoveredAuthority = {
+                    authorizationEndpoint: `https://${authorityHost}/common/oauth2/v2.0/authorize`,
+                    tokenEndpoint: `https://${authorityHost}/common/oauth2/v2.0/token`,
+                };
+                const authoritySpy = jest
+                    .spyOn(BaseInteractionClient, "getDiscoveredAuthority")
+                    .mockResolvedValue(discoveredAuthority as any);
+                const request = {
+                    correlationId: RANDOM_TEST_GUID,
+                    authority: `https://${authorityHost}/common`,
+                };
+
+                await expect(
+                    pca.prepareAuthorityEndpoints(request)
+                ).resolves.toEqual(discoveredAuthority);
+                expect(authoritySpy).toHaveBeenCalledWith(
+                    expect.anything(),
+                    request.correlationId,
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    request.authority,
+                    undefined,
+                    undefined,
+                    undefined
+                );
+            }
+        );
+
+        it("forwards authority endpoint preparation to the controller", async () => {
+            const result = {
+                authorizationEndpoint:
+                    "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+                tokenEndpoint:
+                    "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+            };
+            const controller = (pca as any).controller as StandardController;
+            const prepareSpy = jest
+                .spyOn(controller, "prepareAuthorityEndpoints")
+                .mockResolvedValue(result);
+            const request = {
+                correlationId: RANDOM_TEST_GUID,
+                authority: TEST_CONFIG.validAuthority,
+            };
+
+            await expect(
+                pca.prepareAuthorityEndpoints(request)
+            ).resolves.toEqual(result);
+            expect(prepareSpy).toHaveBeenCalledWith(request);
+        });
+
+        it("forwards authorization-code redemption preparation to the controller", async () => {
+            const continuation = {
+                tokenEndpoint:
+                    "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                redeem: jest.fn(),
+            };
+            const controller = (pca as any).controller as StandardController;
+            const prepareSpy = jest
+                .spyOn(controller, "prepareAuthorizationCodeRedemption")
+                .mockResolvedValue(continuation);
+            const request: AuthorizationCodeRequest = {
+                code: "auth-code",
+                correlationId: RANDOM_TEST_GUID,
+            };
+
+            await expect(
+                pca.prepareAuthorizationCodeRedemption(request)
+            ).resolves.toBe(continuation);
+            expect(prepareSpy).toHaveBeenCalledWith(request);
+        });
+    });
+
     describe("acquireTokenByCode", () => {
         beforeEach(async () => {
             pca = (pca as any).controller;
@@ -6236,6 +6321,63 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentATStub).toHaveBeenCalledWith(tokenRequest1, 61);
             expect(silentATStub).toHaveBeenCalledWith(tokenRequest2, 61);
             expect(silentATStub).toHaveBeenCalledTimes(2);
+        });
+
+        it("does not deduplicate concurrent DPoP requests for different embedded keys", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "test-tenant",
+                username: "user@contoso.com",
+            };
+            const acquireTokenSpy = jest
+                .spyOn(
+                    StandardController.prototype,
+                    <any>"acquireTokenSilentAsync"
+                )
+                .mockImplementation(async (...args: unknown[]) => {
+                    const request = args[0] as SilentRequest;
+                    await new Promise((resolve) => setTimeout(resolve, 10));
+                    return {
+                        authority: TEST_CONFIG.validAuthority,
+                        uniqueId: testAccount.localAccountId,
+                        tenantId: testAccount.tenantId,
+                        scopes: request.scopes,
+                        idToken: "",
+                        accessToken: `token-for-${request.dpopJkt}`,
+                        fromCache: false,
+                        correlationId: request.correlationId || "",
+                        expiresOn: new Date(Date.now() + 3600 * 1000),
+                        account: testAccount,
+                        tokenType: Constants.AuthenticationScheme.DPOP,
+                    } as AuthenticationResult;
+                });
+            const baseRequest: SilentRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                forceRefresh: true,
+                dpopProofProvider: jest.fn(),
+            };
+
+            const [first, second] = await Promise.all([
+                pca.acquireTokenSilent({
+                    ...baseRequest,
+                    correlationId: "first-correlation-id",
+                    dpopJkt: "first-key",
+                }),
+                pca.acquireTokenSilent({
+                    ...baseRequest,
+                    correlationId: "second-correlation-id",
+                    dpopJkt: "second-key",
+                }),
+            ]);
+
+            expect(acquireTokenSpy).toHaveBeenCalledTimes(2);
+            expect(first.accessToken).toBe("token-for-first-key");
+            expect(second.accessToken).toBe("token-for-second-key");
         });
 
         it("throws error that SilentFlowClient.acquireToken() throws", async () => {
@@ -8848,6 +8990,41 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(result.idToken).toEqual(testAuthenticationResult.idToken);
             expect(result.account).toEqual(testAccount);
             expect(result.fromCache).toEqual(true);
+        });
+
+        it("hydrates a DPoP access token with the request JKT", async () => {
+            await pca.initialize();
+            const controller = (pca as any).controller;
+            const setAccessTokenSpy = jest.spyOn(
+                controller.browserStorage,
+                "setAccessTokenCredential"
+            );
+            const dpopJkt = "embedded-dpop-jkt";
+            const dpopRequest: SilentRequest = {
+                ...request,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            await pca.hydrateCache(
+                {
+                    ...testAuthenticationResult,
+                    tokenType: Constants.AuthenticationScheme.DPOP,
+                },
+                dpopRequest
+            );
+
+            expect(setAccessTokenSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    keyId: dpopJkt,
+                    tokenType: Constants.AuthenticationScheme.DPOP,
+                }),
+                expect.any(String),
+                expect.any(Boolean),
+                undefined
+            );
         });
 
         it("hydrates internal cache if provided AuthenticationResult came from platform broker", async () => {

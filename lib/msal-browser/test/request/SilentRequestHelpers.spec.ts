@@ -80,6 +80,7 @@ describe("silent request preparation", () => {
             cacheLookupPolicy: CacheLookupPolicy.Default,
             extraParameters: [["custom", "value"]],
             extraQueryParameters: [],
+            externalDpopKeyIdentity: undefined,
         });
         expect(prepared.request).toBe(input.request);
         expect(prepared.account).toBe(input.account);
@@ -136,6 +137,32 @@ describe("silent request preparation", () => {
             },
         });
         expect(prepared.key).toBe(baseline.key);
+    });
+
+    it("distinguishes externally managed DPoP requests by key identity", () => {
+        input.request.authenticationScheme =
+            Constants.AuthenticationScheme.DPOP;
+        input.request.dpopJkt = "first-key";
+        const first = prepareWebSilentRequest(input);
+        const second = prepareWebSilentRequest({
+            ...input,
+            request: {
+                ...input.request,
+                dpopJkt: "second-key",
+            },
+        });
+
+        expect(first.key).not.toBe(second.key);
+    });
+
+    it("does not deduplicate proof providers without a key identity", () => {
+        input.request.authenticationScheme =
+            Constants.AuthenticationScheme.DPOP;
+        input.request.dpopProofProvider = jest.fn();
+
+        expect(prepareWebSilentRequest(input).key).not.toBe(
+            prepareWebSilentRequest(input).key
+        );
     });
 
     it.each(["extraParameters", "extraQueryParameters"] as const)(
@@ -259,6 +286,24 @@ describe("silent request preparation", () => {
         expect(prepared.key.startsWith("platform:")).toBe(true);
         expect(prepared.request).not.toBe(input.request);
         expect(prepared.account).toBe(prepared.request.account);
+    });
+
+    it("keeps web preparation for an externally managed DPoP proof", () => {
+        input.request.authenticationScheme =
+            Constants.AuthenticationScheme.BEARER;
+        input.request.dpopJkt = "embedded-key";
+        input.request.dpopProofProvider = jest.fn();
+
+        const prepared = resolveSilentRequestPreparation(
+            input,
+            provider,
+            logger,
+            performanceClient
+        );
+
+        expect(prepared).toEqual(prepareWebSilentRequest(input));
+        expect(prepared.request).toBe(input.request);
+        expect(prepared.account).toBe(input.account);
     });
 
     it.each([

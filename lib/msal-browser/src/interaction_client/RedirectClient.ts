@@ -115,6 +115,14 @@ export class RedirectClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
+        if (request.dpopProofProvider) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.invalidPopTokenRequest,
+                this.correlationId,
+                "dpop_proof_provider_redirect_unsupported"
+            );
+        }
+
         const validRequest = await invokeAsync(
             initializeAuthorizationRequest,
             BrowserPerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest,
@@ -137,7 +145,10 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.correlationId,
             this.platformAuthProvider,
-            request.authenticationScheme
+            request.authenticationScheme,
+            undefined,
+            request.dpopProof !== undefined ||
+                request.dpopProofProvider !== undefined
         );
 
         let rejectBackButtonCancellation!: (reason?: unknown) => void;

@@ -58,6 +58,11 @@ import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import * as AccountManager from "../cache/AccountManager.js";
 import { AccountContext } from "../naa/BridgeAccountContext.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
+import {
+    AuthorityEndpointPreparationRequest,
+    AuthorityEndpointPreparationResult,
+    AuthorizationCodeRedemptionContinuation,
+} from "../app/IPublicClientApplication.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 
@@ -663,6 +668,18 @@ export class NestedAppAuthController implements IController {
     acquireTokenByCode(
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
+        throw NestedAppAuthError.createUnsupportedError(request?.correlationId);
+    }
+
+    prepareAuthorityEndpoints(
+        request: AuthorityEndpointPreparationRequest
+    ): Promise<AuthorityEndpointPreparationResult> {
+        throw NestedAppAuthError.createUnsupportedError(request.correlationId);
+    }
+
+    prepareAuthorizationCodeRedemption(
+        request: AuthorizationCodeRequest
+    ): Promise<AuthorizationCodeRedemptionContinuation> {
         throw NestedAppAuthError.createUnsupportedError(request?.correlationId);
     }
 

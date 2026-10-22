@@ -8,8 +8,8 @@ parameters:
       type: string
       default: "windows"
       values:
-        - "windows"
-        - "linux"
+          - "windows"
+          - "linux"
     - name: "npmInstallTimeout"
       displayName: "NPM Install Timeout (Tests)"
       type: number
@@ -61,6 +61,10 @@ extends:
                             - name: "Broker_WAMTestApp"
                             - name: "PerformanceTelemetrySample"
                             - name: "BrokerTestApp-React"
+                              testFilter: "simpleBroker\\.spec|deeply\\.nested\\.spec"
+                            - name: "BrokerTestApp-React-DPoP"
+                              dir: "BrokerTestApp-React"
+                              testFilter: "dpopBroker\\.spec"
                             - name: "BrokerSingleFrameTestApp"
                             - name: "LegacyPollingSample"
                         debug: ${{ parameters.debug }}

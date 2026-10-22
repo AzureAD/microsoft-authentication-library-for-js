@@ -26,6 +26,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { AuthorizationCodeRedemptionContinuation } from "../app/IPublicClientApplication.js";
 
 /**
  * Abstract class which defines operations for a browser interaction handling class.
@@ -104,6 +105,84 @@ export class InteractionHandler {
         apiId: ApiId,
         validateNonce: boolean = true
     ): Promise<AuthenticationResult> {
+        this.prepareCodeRequest(authCodeResponse, request, validateNonce);
+
+        // Acquire token with retrieved code.
+        const tokenResponse = (await invokeAsync(
+            this.authModule.acquireToken.bind(this.authModule),
+            BrowserPerformanceEvents.AuthClientAcquireToken,
+            this.logger,
+            this.performanceClient,
+            request.correlationId
+        )(
+            this.authCodeRequest,
+            apiId,
+            authCodeResponse
+        )) as AuthenticationResult;
+        return tokenResponse;
+    }
+
+    /**
+     * Prepares authorization-code redemption and pauses after the final token
+     * endpoint has been selected.
+     * @internal
+     */
+    async prepareCodeRedemptionFromServer(
+        authCodeResponse: AuthorizationCodePayload,
+        request: CommonAuthorizationUrlRequest,
+        apiId: ApiId,
+        validateNonce: boolean = true
+    ): Promise<AuthorizationCodeRedemptionContinuation> {
+        this.prepareCodeRequest(authCodeResponse, request, validateNonce);
+        const tokenEndpoint = await this.authModule.prepareTokenRequest(
+            this.authCodeRequest,
+            authCodeResponse
+        );
+        let redeemed = false;
+
+        return {
+            tokenEndpoint,
+            redeem: async (
+                dpopProof: string
+            ): Promise<AuthenticationResult> => {
+                if (redeemed) {
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.authCodeRedemptionContinuationAlreadyUsed,
+                        request.correlationId
+                    );
+                }
+                if (!dpopProof.trim()) {
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.dpopProofRequired,
+                        request.correlationId
+                    );
+                }
+
+                redeemed = true;
+                this.authCodeRequest.dpopProof = dpopProof;
+                this.authCodeRequest.dpopProofProvider = undefined;
+                return (await invokeAsync(
+                    this.authModule.acquireTokenWithPreparedAuthority.bind(
+                        this.authModule
+                    ),
+                    BrowserPerformanceEvents.AuthClientAcquireToken,
+                    this.logger,
+                    this.performanceClient,
+                    request.correlationId
+                )(
+                    this.authCodeRequest,
+                    apiId,
+                    authCodeResponse
+                )) as AuthenticationResult;
+            },
+        };
+    }
+
+    private prepareCodeRequest(
+        authCodeResponse: AuthorizationCodePayload,
+        request: CommonAuthorizationUrlRequest,
+        validateNonce: boolean
+    ): void {
         this.logger.trace(
             "InteractionHandler.handleCodeResponseFromServer called",
             request.correlationId
@@ -129,20 +208,6 @@ export class InteractionHandler {
                 this.authCodeRequest.ccsCredential = ccsCred;
             }
         }
-
-        // Acquire token with retrieved code.
-        const tokenResponse = (await invokeAsync(
-            this.authModule.acquireToken.bind(this.authModule),
-            BrowserPerformanceEvents.AuthClientAcquireToken,
-            this.logger,
-            this.performanceClient,
-            request.correlationId
-        )(
-            this.authCodeRequest,
-            apiId,
-            authCodeResponse
-        )) as AuthenticationResult;
-        return tokenResponse;
     }
 
     /**

@@ -191,6 +191,34 @@ describe("RequestHelpers tests", () => {
             );
         });
 
+        it("should allow broker raw-token requests to omit DPoP resource context", async () => {
+            const request: Partial<BaseAuthRequest> & {
+                correlationId: string;
+            } = {
+                correlationId: "test-correlation-id",
+                scopes: ["User.Read"],
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                embeddedClientId: "embedded-client-id",
+                storeInCache: {
+                    idToken: false,
+                    accessToken: false,
+                },
+            };
+
+            const result = await RequestHelpers.initializeBaseRequest(
+                request,
+                mockConfig,
+                mockPerformanceClient,
+                mockLogger,
+                TEST_CONFIG.CORRELATION_ID
+            );
+
+            expect(result.embeddedClientId).toBe("embedded-client-id");
+            expect(result.storeInCache?.accessToken).toBe(false);
+            expect(result.resourceRequestMethod).toBeUndefined();
+            expect(result.resourceRequestUri).toBeUndefined();
+        });
+
         it("should only validate DPoP context during base request initialization", async () => {
             const provisionSpy = jest
                 .spyOn(

@@ -309,6 +309,31 @@ describe("PlatformAuthProvider tests", () => {
             );
             expect(result).toBe(false);
         });
+
+        it("returns false when the request uses an externally managed DPoP proof", () => {
+            const traceSpy = jest.spyOn(logger, "trace");
+            const result = PlatformAuthProvider.isPlatformAuthAllowed(
+                config,
+                logger,
+                TEST_CONFIG.CORRELATION_ID,
+                new PlatformAuthExtensionHandler(
+                    logger,
+                    2000,
+                    performanceClient,
+                    "test-extension-id"
+                ),
+                Constants.AuthenticationScheme.DPOP,
+                performanceClient,
+                true
+            );
+
+            expect(result).toBe(false);
+            expect(traceSpy).toHaveBeenCalledWith(
+                "isPlatformAuthAllowed: externally managed DPoP proof is not supported by the platform broker, returning false",
+                TEST_CONFIG.CORRELATION_ID
+            );
+        });
+
         it("returns false when authentication scheme is not supported", () => {
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,

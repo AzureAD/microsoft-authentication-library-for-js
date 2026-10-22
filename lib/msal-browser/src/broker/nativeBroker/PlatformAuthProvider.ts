@@ -155,6 +155,8 @@ export async function getPlatformAuthProvider(
  * @param correlationId
  * @param platformAuthProvider
  * @param authenticationScheme
+ * @param performanceClient
+ * @param hasExternalDpopProof
  */
 export function isPlatformAuthAllowed(
     config: BrowserConfiguration,
@@ -162,7 +164,8 @@ export function isPlatformAuthAllowed(
     correlationId: string,
     platformAuthProvider?: IPlatformAuthHandler,
     authenticationScheme?: Constants.AuthenticationScheme,
-    performanceClient?: IPerformanceClient
+    performanceClient?: IPerformanceClient,
+    hasExternalDpopProof: boolean = false
 ): boolean {
     logger.trace("isPlatformAuthAllowed called", correlationId);
     const schemeSupported =
@@ -208,6 +211,19 @@ export function isPlatformAuthAllowed(
             correlationId
         );
         // Platform broker auth providers are not available
+        return false;
+    }
+
+    if (hasExternalDpopProof) {
+        /*
+         * Pairwise Broker keeps the DPoP key in the embedded app. The native
+         * broker cannot invoke its proof callback, so retain the broker PCA's
+         * web token path for this request.
+         */
+        logger.trace(
+            "isPlatformAuthAllowed: externally managed DPoP proof is not supported by the platform broker, returning false",
+            correlationId
+        );
         return false;
     }
 
