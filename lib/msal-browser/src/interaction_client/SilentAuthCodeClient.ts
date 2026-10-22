@@ -117,7 +117,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         } = await this.initializeAuthorizationCodeRedemption(request);
 
         try {
-            return await invokeAsync(
+            const continuation = await invokeAsync(
                 interactionHandler.prepareCodeRedemptionFromServer.bind(
                     interactionHandler
                 ),
@@ -126,6 +126,23 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 this.performanceClient,
                 this.correlationId
             )(authCodeResponse, silentRequest, this.apiId, false);
+
+            return {
+                ...continuation,
+                redeem: async (
+                    dpopProof: string
+                ): Promise<AuthenticationResult> => {
+                    try {
+                        return await continuation.redeem(dpopProof);
+                    } catch (e) {
+                        if (e instanceof AuthError) {
+                            e.correlationId = this.correlationId;
+                            serverTelemetryManager.cacheFailedRequest(e);
+                        }
+                        throw e;
+                    }
+                },
+            };
         } catch (e) {
             if (e instanceof AuthError) {
                 (e as AuthError).correlationId = this.correlationId;
