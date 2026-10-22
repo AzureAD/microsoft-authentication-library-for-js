@@ -229,20 +229,8 @@ It is not recommended to use both interaction types in a single application.
 
 ### Redirect response URL cleanup
 
-`handleRedirectPromise()` captures the response and removes recognized response
-fragments before processing the redirect, so the fragment is cleared even if
-request setup or response processing fails. If no client
-has a pending interaction, it cleans recognized authorization responses and returns `null`.
-If another client has a pending interaction, its response is left untouched.
-Fragment response detection uses the shared URL parser: a nonempty `state`
-parameter qualifies for cleanup just like `code`, without checking the
-interaction type encoded in state. Route-shaped fragments are preserved.
-The entire response-bearing fragment is cleared; the query string is
-preserved. URL cleanup does not indicate authentication success or
-change response validation.
-Recognized response fragments are also cleared when `handleRedirectPromise()`
-returns after `logoutRedirect()` completes.
-
+`handleRedirectPromise()` removes recognized redirect response fragments from the
+callback URL even when redirect processing fails.
 
 **Note:** `handleRedirectPromise` will optionally accept a hash value to be processed, defaulting to the current value of `window.location.hash`. This parameter only needs to be provided in scenarios where the current value of `window.location.hash` does not contain the redirect response that needs to be processed. **For almost all scenarios, applications should not need to provide this parameter explicitly.**
 
