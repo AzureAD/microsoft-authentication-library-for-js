@@ -10,16 +10,14 @@ import {
     BrowserCacheUtils,
     Screenshot,
     verifyKmsiFromResponse,
-} from "e2e-test-utils";
-import {
     createPlatformBrokerProfile,
     launchPlatformBrokerBrowser,
     PLATFORM_LOGIN_TIMEOUT,
     PlatformBrokerProfile,
     removePlatformBrokerProfile,
-    verifyPlatformBrokerResponse,
     verifyPlatformBrokerTokenStore,
-} from "./platformBrokerTestUtils";
+} from "e2e-test-utils";
+import { verifyPlatformBrokerResponse } from "./platformBrokerTestUtils";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serverUtils = require("../../../e2eTestUtils/jest-puppeteer-utils/serverUtils");
