@@ -191,14 +191,10 @@ export function clearHash(
         // Cleanup must not replace the result or error of authentication.
     }
 
-    const message =
-        "Unable to remove authentication response parameters from the URL without navigation.";
-    if (logger) {
-        logger.warning(message, correlationId);
-    } else {
-        // eslint-disable-next-line no-console
-        console.warn(message);
-    }
+    logger?.warning(
+        "Unable to remove authentication response parameters from the URL without navigation.",
+        correlationId
+    );
 }
 
 /**
