@@ -311,8 +311,10 @@ const clientInfoEmptyError = "client_info_empty_error";
 export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication {
     constructor(configuration: Configuration);
     acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult>;
     acquireTokenByUserFederatedIdentityCredential(request: UserFederatedIdentityCredentialRequest): Promise<AuthenticationResult | null>;
     acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null>;
+    getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
     SetAppTokenProvider(provider: IAppTokenProvider): void;
 }
 
@@ -1024,6 +1026,6 @@ export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest
 export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity | AuthorityMetadataEntity | ServerTelemetryEntity | ThrottlingEntity | string;
 
 // @public (undocumented)
-export const version = "6.0.1";
+export const version = "7.1.1";
 
 ```

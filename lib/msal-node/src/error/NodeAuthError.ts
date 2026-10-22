@@ -17,6 +17,10 @@ export const NodeAuthErrorMessage = {
         code: "thumbprint_missing_from_client_certificate",
         desc: "Client certificate does not contain a SHA-1 or SHA-256 thumbprint.",
     },
+    unsupportedCcaInstanceAware: {
+        code: "unsupported_cca_instance_aware",
+        desc: "Instance-aware configuration is not supported by ConfidentialClientApplication.",
+    },
 };
 
 export class NodeAuthError extends AuthError {
@@ -48,6 +52,19 @@ export class NodeAuthError extends AuthError {
             NodeAuthErrorMessage.thumbprintMissing.code,
             "",
             NodeAuthErrorMessage.thumbprintMissing.desc
+        );
+    }
+
+    /**
+     * Creates an error thrown when instance-aware behavior is requested for a confidential client.
+     */
+    static createUnsupportedCcaInstanceAwareError(
+        correlationId: string = ""
+    ): NodeAuthError {
+        return new NodeAuthError(
+            NodeAuthErrorMessage.unsupportedCcaInstanceAware.code,
+            correlationId,
+            NodeAuthErrorMessage.unsupportedCcaInstanceAware.desc
         );
     }
 }

@@ -1,6 +1,6 @@
-# MSAL Node v7 migration
+# Migrating from MSAL Node v7 to v8
 
-MSAL Node v7 removes public client support from `@azure/msal-node`. The package now contains confidential client and Managed Identity functionality only.
+MSAL Node v8 removes public client support from `@azure/msal-node`. The package now contains confidential client and Managed Identity functionality only.
 
 Package metadata supports Node.js 20 and Node.js 22 or later. Node.js 21 is not accepted; use a supported LTS release.
 
