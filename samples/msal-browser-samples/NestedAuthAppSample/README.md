@@ -161,12 +161,15 @@ messaging host must be registered for that browser.
 ### Keep Me Signed In + NAA (AB#3688362)
 
 Run `npm run test:e2e:kmsi-broker -- --runInBand` on a WAM-enabled Windows
-machine whose broker account has persistent sign-in enabled. The suite does
-not enter lab credentials or accept web fallback: the host response must have
-`fromPlatformBroker: true` and a `nativeAccountId`. Both host and nested ID
-token claims must pass the shared KMSI assertion (`kmsi` or `dvc_dmjd` in
-`signin_state`). A missing claim fails the suite rather than skipping coverage;
-extension installation alone does not establish that KMSI is available.
+machine whose broker account has persistent sign-in enabled. The suite uses the
+existing WAM session when available. If the initial bootstrap opens an AAD
+credential form, it fetches the lab credentials only at that point and completes
+the prompt. The resulting host response must still have
+`fromPlatformBroker: true` and a `nativeAccountId`; a standard web result is not
+accepted. Both host and nested ID token claims must pass the shared KMSI
+assertion (`kmsi` or `dvc_dmjd` in `signin_state`). A missing claim fails the
+suite rather than skipping coverage; extension installation alone does not
+establish that KMSI is available.
 
 The suite exercises `acquireTokenSilent`, `ssoSilent`, `acquireTokenPopup`, and
 `loginPopup` from an empty nested cache. It reloads the host before each API to

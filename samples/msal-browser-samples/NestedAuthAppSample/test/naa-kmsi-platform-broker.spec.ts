@@ -341,7 +341,6 @@ describe("Keep Me Signed In + NAA through the platform broker", () => {
         // Jest's global setup owns the two HTTPS sample servers.
         broker = await launchBrokerContext();
         await openHost();
-        const { username, password } = await getLabCredentials();
         const popupPromise = broker.context
             .waitForEvent("page", { timeout: 15000 })
             .catch(() => null);
@@ -353,12 +352,15 @@ describe("Keep Me Signed In + NAA through the platform broker", () => {
         const popup = await popupPromise;
         if (popup) {
             await popup.waitForLoadState("domcontentloaded");
-            const hasLogin = await popup
+            const loginInput = popup
                 .locator("input[type='email'], #i0116")
-                .first()
-                .isVisible()
+                .first();
+            const hasLogin = await loginInput
+                .waitFor({ state: "visible", timeout: 10000 })
+                .then(() => true)
                 .catch(() => false);
             if (hasLogin) {
+                const { username, password } = await getLabCredentials();
                 await enterAadCredentials(popup, username, password);
             }
         }
