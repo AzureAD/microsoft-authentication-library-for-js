@@ -439,6 +439,49 @@ describe("InteractionHandler.ts Unit Tests", () => {
             ).resolves.toBeDefined();
             expect(redeemSpy).toHaveBeenCalledTimes(1);
         });
+
+        it("uses the supplied proof instead of a retained proof provider", async () => {
+            const dpopProofProvider = jest
+                .fn()
+                .mockResolvedValue("provider-proof");
+            testAuthCodeRequest.dpopProofProvider = dpopProofProvider;
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "prepareTokenRequest"
+            ).mockResolvedValue(
+                `${TEST_URIS.DEFAULT_INSTANCE}common/oauth2/v2.0/token`
+            );
+            const redeemSpy = jest
+                .spyOn(
+                    AuthorizationCodeClient.prototype,
+                    "acquireTokenWithPreparedAuthority"
+                )
+                .mockResolvedValue({} as AuthenticationResult);
+            const interactionHandler = new TestInteractionHandler(
+                authCodeModule,
+                browserStorage
+            );
+
+            const continuation =
+                await interactionHandler.prepareCodeRedemptionFromServer(
+                    codeResponse,
+                    request,
+                    ApiId.acquireTokenPopup,
+                    false
+                );
+
+            await continuation.redeem("signed-proof");
+            expect(redeemSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    dpopProof: "signed-proof",
+                    dpopProofProvider: undefined,
+                }),
+                ApiId.acquireTokenPopup,
+                codeResponse
+            );
+            expect(dpopProofProvider).not.toHaveBeenCalled();
+            delete testAuthCodeRequest.dpopProofProvider;
+        });
     });
 
     describe("handleCodeResponse()", () => {
