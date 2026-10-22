@@ -15,6 +15,7 @@ export const COLLECT_ATTRIBUTES_RELATION = "collectAttributes";
 export const ENROLL_RELATION = "enroll";
 export const ACTIVATE_RELATION = "activate";
 export const RESEND_RELATION = "resend";
+export const POLL_RELATION = "poll";
 
 export const AuthenticationMethodTypeV2 = {
     EMAIL: "email",

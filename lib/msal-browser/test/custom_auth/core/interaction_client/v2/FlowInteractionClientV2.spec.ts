@@ -33,8 +33,10 @@ import { FlowContinuationStateV2 } from "../../../../../src/custom_auth/core/int
 import { FlowAuthMethodRegistrationRequiredParamsV2 } from "../../../../../src/custom_auth/core/interaction_client/v2/parameter/FlowParamsV2.js";
 import { CustomAuthAuthority } from "../../../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { CustomAuthApiClientV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
+import type { ResetPasswordPollResultV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/ResetPasswordResultsV2.js";
 import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import {
+    CONTINUATION_LINK_MISSING,
     RESET_PASSWORD_UNSUPPORTED,
     SIGN_IN_UNSUPPORTED,
     UNSUPPORTED_FLOW_TRANSITION,
@@ -820,20 +822,29 @@ describe("FlowInteractionClientV2", () => {
             expect(result.type).toBe(FLOW_MFA_REQUIRED_V2);
         });
 
-        it("rejects a missing sign-in link before calling sign-in start", async () => {
-            apiClient.authorizeChallengeStart.mockResolvedValue({
-                continuationToken: "ct-entry",
-            });
+        it.each([undefined, "", "   ", "\t\r\n"])(
+            "rejects invalid sign-in link %p before calling sign-in start",
+            async (signInHref) => {
+                apiClient.authorizeChallengeStart.mockResolvedValue({
+                    continuationToken: "ct-entry",
+                    signInHref,
+                });
 
-            await expect(
-                client.signIn({
+                await expect(
+                    client.signIn({
+                        correlationId,
+                        username: "user@contoso.com",
+                    })
+                ).rejects.toMatchObject({
+                    error: SIGN_IN_UNSUPPORTED,
+                    errorDescription:
+                        "The authorize-challenge entry response did not include a sign-in link.",
                     correlationId,
-                    username: "user@contoso.com",
-                })
-            ).rejects.toMatchObject({ error: SIGN_IN_UNSUPPORTED });
+                });
 
-            expect(apiClient.signInStart).not.toHaveBeenCalled();
-        });
+                expect(apiClient.signInStart).not.toHaveBeenCalled();
+            }
+        );
     });
 
     describe("resetPassword", () => {
@@ -1184,19 +1195,27 @@ describe("FlowInteractionClientV2", () => {
             });
         });
 
-        it("throws when the continuation is missing the challenge link", async () => {
-            await expect(
-                client.requestChallenge({
+        it.each([undefined, "", "   ", "\t\r\n"])(
+            "rejects invalid continuation challenge link %p before calling the API",
+            async (challenge) => {
+                await expect(
+                    client.requestChallenge({
+                        correlationId,
+                        continuationState: {
+                            ...continuationState,
+                            links: { challenge },
+                        },
+                    })
+                ).rejects.toMatchObject({
+                    error: CONTINUATION_LINK_MISSING,
+                    errorDescription:
+                        "The continuation state is missing a link required to advance the flow.",
                     correlationId,
-                    continuationState: {
-                        ...continuationState,
-                        links: {},
-                    },
-                })
-            ).rejects.toThrow();
+                });
 
-            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
-        });
+                expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+            }
+        );
     });
 
     describe("submitCode", () => {
@@ -2160,6 +2179,183 @@ describe("FlowInteractionClientV2", () => {
             links: { update: "https://endpoint/update" },
         };
 
+        it("offers enrollment after the password update is polled", async () => {
+            apiClient.submitNewPassword.mockResolvedValue({
+                continuationToken: "ct-update",
+                pollHref: "https://endpoint/poll",
+            });
+            apiClient.poll.mockResolvedValue({
+                continuationToken: "ct-enroll",
+                nextAction: "enroll",
+                enrollmentMethods: [
+                    { type: "email", enrollHref: "/enroll/email" },
+                ],
+            });
+
+            const result = await client.submitNewPassword({
+                correlationId,
+                continuationState,
+                newPassword: "new-valid-password",
+            });
+
+            expect(result.type).toBe(FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2);
+            if (result.type === FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2) {
+                expect(result.methods).toEqual([
+                    { type: "email", enrollHref: "/enroll/email" },
+                ]);
+                expect(result.continuationState).toEqual({
+                    ...continuationState,
+                    continuationToken: "ct-enroll",
+                    links: {},
+                });
+            }
+            expect(apiClient.poll).toHaveBeenCalledTimes(1);
+        });
+
+        it("stops polling and offers enrollment after an in-progress response", async () => {
+            jest.useFakeTimers();
+            apiClient.submitNewPassword.mockResolvedValue({
+                continuationToken: "ct-update",
+                pollHref: "https://endpoint/poll",
+            });
+            apiClient.poll
+                .mockResolvedValueOnce({
+                    continuationToken: "ct-poll",
+                    nextAction: "poll",
+                    pollHref: "https://endpoint/poll-next",
+                })
+                .mockResolvedValueOnce({
+                    continuationToken: "ct-enroll",
+                    nextAction: "enroll",
+                    enrollmentMethods: [
+                        {
+                            type: "phone",
+                            channels: ["sms"],
+                            enrollHref: "/enroll/phone",
+                        },
+                    ],
+                });
+
+            const promise = client.submitNewPassword({
+                correlationId,
+                continuationState,
+                newPassword: "new-valid-password",
+            });
+
+            await jest.advanceTimersByTimeAsync(1500);
+            const result = await promise;
+
+            expect(apiClient.poll).toHaveBeenCalledTimes(2);
+            expect(apiClient.poll).toHaveBeenLastCalledWith(
+                "https://endpoint/poll-next",
+                { continuationToken: "ct-poll" },
+                expect.objectContaining({ correlationId })
+            );
+            expect(result).toMatchObject({
+                type: FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+                methods: [
+                    {
+                        type: "phone",
+                        channels: ["sms"],
+                        enrollHref: "/enroll/phone",
+                    },
+                ],
+                continuationState: {
+                    ...continuationState,
+                    continuationToken: "ct-enroll",
+                    links: {},
+                },
+            });
+            expect(apiClient.enrollAuthMethod).not.toHaveBeenCalled();
+            expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
+            expect(jest.getTimerCount()).toBe(0);
+        });
+
+        it.each<ResetPasswordPollResultV2>([
+            { continuationToken: "ct-poll", nextAction: "future-action" },
+            {
+                continuationToken: "ct-poll",
+                nextAction: "future-action",
+                pollHref: "https://endpoint/poll",
+            },
+            { continuationToken: "ct-poll", nextAction: "interactionRequired" },
+            { continuationToken: "ct-enroll", nextAction: "enroll" },
+        ])(
+            "rejects unsupported poll result %j without retrying",
+            async (pollResult) => {
+                const errorSpy = jest.spyOn(
+                    Reflect.get(client, "logger") as Logger,
+                    "error"
+                );
+                apiClient.submitNewPassword.mockResolvedValue({
+                    continuationToken: "ct-update",
+                    pollHref: "https://endpoint/poll",
+                });
+                apiClient.poll.mockResolvedValue(pollResult);
+
+                await expect(
+                    client.submitNewPassword({
+                        correlationId,
+                        continuationState,
+                        newPassword: "new-valid-password",
+                    })
+                ).rejects.toMatchObject({
+                    error: UNSUPPORTED_FLOW_TRANSITION,
+                    correlationId,
+                });
+
+                expect(apiClient.poll).toHaveBeenCalledTimes(1);
+                expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
+                expect(errorSpy).toHaveBeenCalledWith(
+                    `Password reset poll next action '${pollResult.nextAction}' is not supported.`,
+                    correlationId
+                );
+            }
+        );
+
+        it.each(["ct-update", "ct-poll-1"])(
+            "uses the token provided by the API client (%s)",
+            async (continuationToken) => {
+                jest.useFakeTimers();
+                apiClient.submitNewPassword.mockResolvedValue({
+                    continuationToken: "ct-update",
+                    pollHref: "https://endpoint/poll",
+                });
+                apiClient.poll
+                    .mockResolvedValueOnce({
+                        continuationToken,
+                        nextAction: "poll",
+                        pollHref: "https://endpoint/poll-next",
+                    })
+                    .mockResolvedValueOnce({
+                        continuationToken,
+                        nextAction: "continue",
+                    });
+
+                const promise = client.submitNewPassword({
+                    correlationId,
+                    continuationState,
+                    newPassword: "new-valid-password",
+                });
+                await jest.advanceTimersByTimeAsync(1500);
+                const result = await promise;
+
+                expect(apiClient.poll).toHaveBeenLastCalledWith(
+                    "https://endpoint/poll-next",
+                    { continuationToken },
+                    expect.objectContaining({ correlationId })
+                );
+                expect(result).toMatchObject({
+                    type: FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
+                    continuationState: {
+                        ...continuationState,
+                        continuationToken,
+                        links: {},
+                    },
+                });
+            }
+        );
+
         it("submits the password, polls once, and returns sign-in-after-reset", async () => {
             apiClient.submitNewPassword.mockResolvedValue({
                 continuationToken: "ct-update",
@@ -2167,7 +2363,7 @@ describe("FlowInteractionClientV2", () => {
             });
             apiClient.poll.mockResolvedValue({
                 continuationToken: "ct-complete",
-                isCompleted: true,
+                nextAction: "continue",
             });
 
             const result = await client.submitNewPassword({
@@ -2213,11 +2409,12 @@ describe("FlowInteractionClientV2", () => {
             apiClient.poll
                 .mockResolvedValueOnce({
                     continuationToken: "ct-poll-1",
-                    isCompleted: false,
+                    nextAction: "poll",
+                    pollHref: "https://endpoint/poll",
                 })
                 .mockResolvedValueOnce({
                     continuationToken: "ct-complete",
-                    isCompleted: true,
+                    nextAction: "continue",
                 });
 
             const promise = client.submitNewPassword({
@@ -2249,12 +2446,12 @@ describe("FlowInteractionClientV2", () => {
             apiClient.poll
                 .mockResolvedValueOnce({
                     continuationToken: "ct-poll-1",
-                    isCompleted: false,
+                    nextAction: "poll",
                     pollHref: "https://endpoint/poll-relocated",
                 })
                 .mockResolvedValueOnce({
                     continuationToken: "ct-complete",
-                    isCompleted: true,
+                    nextAction: "continue",
                 });
 
             const promise = client.submitNewPassword({
@@ -2283,6 +2480,54 @@ describe("FlowInteractionClientV2", () => {
             );
             expect(result.type).toBe(FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2);
         });
+        it.each([
+            ["enroll", FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2],
+            ["continue", FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2],
+        ])(
+            "handles %s on the last allowed poll attempt",
+            async (nextAction, resultType) => {
+                jest.useFakeTimers();
+                apiClient.submitNewPassword.mockResolvedValue({
+                    continuationToken: "ct-update",
+                    pollHref: "https://endpoint/poll",
+                });
+                for (let attempt = 1; attempt < 5; attempt++) {
+                    apiClient.poll.mockResolvedValueOnce({
+                        continuationToken: `ct-poll-${attempt}`,
+                        nextAction: "poll",
+                        pollHref: "https://endpoint/poll",
+                    });
+                }
+                apiClient.poll.mockResolvedValueOnce({
+                    nextAction,
+                    continuationToken: "ct-final",
+                    enrollmentMethods:
+                        nextAction === "enroll"
+                            ? [{ type: "email", enrollHref: "/enroll/email" }]
+                            : undefined,
+                });
+
+                const promise = client.submitNewPassword({
+                    correlationId,
+                    continuationState,
+                    newPassword: "new-valid-password",
+                });
+                await jest.advanceTimersByTimeAsync(1500 * 4);
+
+                await expect(promise).resolves.toMatchObject({
+                    type: resultType,
+                    continuationState: {
+                        continuationToken: "ct-final",
+                        scenario: continuationState.scenario,
+                        scopes: continuationState.scopes,
+                    },
+                });
+                expect(apiClient.poll).toHaveBeenCalledTimes(5);
+                expect(jest.getTimerCount()).toBe(0);
+                expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
+            }
+        );
+
         it("throws a timeout error when polling never completes", async () => {
             jest.useFakeTimers();
             const errorSpy = jest.spyOn(
@@ -2295,7 +2540,8 @@ describe("FlowInteractionClientV2", () => {
             });
             apiClient.poll.mockResolvedValue({
                 continuationToken: "ct-poll",
-                isCompleted: false,
+                nextAction: "poll",
+                pollHref: "https://endpoint/poll",
             });
 
             const promise = client.submitNewPassword({

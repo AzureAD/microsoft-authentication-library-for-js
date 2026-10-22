@@ -69,6 +69,7 @@ import {
     ACTIVATE_RELATION,
     ENROLL_RELATION,
     RESEND_RELATION,
+    POLL_RELATION,
 } from "./ApiClientConstantsV2.js";
 import {
     INVALID_HAL_RESPONSE,
@@ -414,7 +415,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
     }
 
     /*
-     * Polls once for reset completion and returns the next server-provided link.
+     * Sends a poll request and validates the data needed for the next flow step.
      */
     async poll(
         pollHref: string,
@@ -428,21 +429,54 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             context
         );
 
-        const isCompleted =
-            parsedResponse.body.state === ResponseStateV2.CONTINUE;
+        const correlationId = parsedResponse.correlationId;
+        const continuationToken = this.handler.requireContinuationToken(
+            parsedResponse.continuationToken,
+            correlationId
+        );
+        const nextAction =
+            parsedResponse.body.action ?? parsedResponse.body.state;
 
-        return {
-            continuationToken:
-                parsedResponse.continuationToken ?? request.continuationToken,
-            isCompleted,
-            pollHref: isCompleted
-                ? undefined
-                : this.handler.requireHref(
-                      parsedResponse.body._links?.poll?.href,
-                      "poll",
-                      parsedResponse.correlationId
-                  ),
-        };
+        if (nextAction === ENROLL_RELATION) {
+            return {
+                nextAction,
+                continuationToken,
+                enrollmentMethods: this.resolveEnrollmentMethods(
+                    this.handler.requireMethods(
+                        parsedResponse.body._embedded?.methods,
+                        correlationId
+                    ),
+                    correlationId
+                ),
+            };
+        }
+
+        if (nextAction === POLL_RELATION) {
+            return {
+                nextAction: POLL_RELATION,
+                continuationToken,
+                pollHref: this.handler.requireHref(
+                    parsedResponse.body._links?.poll?.href,
+                    POLL_RELATION,
+                    correlationId
+                ),
+            };
+        }
+
+        if (nextAction === ResponseStateV2.CONTINUE) {
+            return {
+                nextAction,
+                continuationToken,
+            };
+        }
+
+        const message = `Password reset poll next action '${nextAction}' is not supported.`;
+        this.logger?.error(message, correlationId);
+        throw new CustomAuthApiError(
+            INVALID_HAL_RESPONSE,
+            message,
+            correlationId
+        );
     }
 
     private async sendStartRequest(

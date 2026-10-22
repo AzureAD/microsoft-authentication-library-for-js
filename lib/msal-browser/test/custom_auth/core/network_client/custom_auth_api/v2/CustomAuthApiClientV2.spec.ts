@@ -14,6 +14,7 @@ import {
     UNEXPECTED_AUTHENTICATION_FACTOR,
 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { HttpMethod } from "../../../../../../src/custom_auth/core/network_client/http_client/IHttpClient.js";
+import type { PollResponseV2 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/response/ResponsesV2.js";
 
 const mockTelemetryManager = {
     generateCurrentRequestHeaderValue: jest.fn(() => "cur"),
@@ -2130,30 +2131,173 @@ describe("CustomAuthApiClientV2", () => {
     });
 
     describe("poll", () => {
-        it("reports completion on state continue", async () => {
+        it("validates and maps the enrollment response for the interaction client", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
-                    state: "continue",
-                    continuationToken: "ct-poll",
+                    continuationToken: "ct-enroll",
+                    state: "interactionRequired",
+                    action: "enroll",
+                    _embedded: {
+                        methods: [
+                            {
+                                type: "email",
+                                _links: { enroll: { href: "/enroll/email" } },
+                            },
+                        ],
+                    },
                 })
             );
 
-            const result = await apiClient.poll(
-                "/tenant/api/v0.1/poll",
-                { continuationToken: "ct-update" },
-                context
-            );
-
-            expect(result).toEqual({
-                continuationToken: "ct-poll",
-                isCompleted: true,
+            await expect(
+                apiClient.poll(
+                    "/tenant/api/v0.1/poll",
+                    { continuationToken: "ct-update" },
+                    context
+                )
+            ).resolves.toEqual({
+                nextAction: "enroll",
+                continuationToken: "ct-enroll",
+                enrollmentMethods: [
+                    {
+                        type: "email",
+                        channels: undefined,
+                        enrollHref: "/enroll/email",
+                    },
+                ],
             });
         });
 
-        it("returns the refreshed poll href and reports not completed while in progress", async () => {
+        it.each<{ body: PollResponseV2; error: string }>([
+            {
+                body: { continuationToken: "ct-enroll", action: "enroll" },
+                error: NO_AUTHENTICATION_METHODS,
+            },
+            {
+                body: {
+                    continuationToken: "ct-enroll",
+                    action: "enroll",
+                    _embedded: { methods: [] },
+                },
+                error: NO_AUTHENTICATION_METHODS,
+            },
+            {
+                body: {
+                    action: "enroll",
+                    _embedded: {
+                        methods: [
+                            {
+                                type: "email",
+                                _links: { enroll: { href: "/enroll/email" } },
+                            },
+                        ],
+                    },
+                },
+                error: CONTINUATION_TOKEN_MISSING,
+            },
+            {
+                body: {
+                    continuationToken: "ct-enroll",
+                    action: "enroll",
+                    _embedded: {
+                        methods: [
+                            {
+                                type: "",
+                                _links: { enroll: { href: "/enroll/email" } },
+                            },
+                        ],
+                    },
+                },
+                error: INVALID_HAL_RESPONSE,
+            },
+            {
+                body: {
+                    continuationToken: "ct-enroll",
+                    action: "enroll",
+                    _embedded: {
+                        methods: [
+                            {
+                                type: "phone",
+                                channels: [],
+                                _links: { enroll: { href: "/enroll/phone" } },
+                            },
+                        ],
+                    },
+                },
+                error: INVALID_HAL_RESPONSE,
+            },
+            {
+                body: {
+                    continuationToken: "ct-enroll",
+                    action: "enroll",
+                    _embedded: { methods: [{ type: "email" }] },
+                },
+                error: INVALID_HAL_RESPONSE,
+            },
+            {
+                body: {
+                    continuationToken: "ct-poll",
+                    action: "poll",
+                    _links: { poll: { href: " " } },
+                },
+                error: INVALID_HAL_RESPONSE,
+            },
+            {
+                body: { continuationToken: "ct-poll", action: "poll" },
+                error: INVALID_HAL_RESPONSE,
+            },
+        ])(
+            "rejects malformed poll response $body with $error",
+            async ({ body, error }) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse(body)
+                );
+
+                await expect(
+                    apiClient.poll(
+                        "/tenant/api/v0.1/poll",
+                        { continuationToken: "ct-update" },
+                        context
+                    )
+                ).rejects.toMatchObject({
+                    error,
+                    correlationId: context.correlationId,
+                });
+            }
+        );
+
+        it.each([undefined, "/tenant/api/v0.1/poll-next"])(
+            "returns continue without a poll href (advertised poll href: %s)",
+            async (pollHref) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        state: "continue",
+                        continuationToken: "ct-poll",
+                        _links: pollHref
+                            ? { poll: { href: pollHref } }
+                            : undefined,
+                    })
+                );
+
+                const result = await apiClient.poll(
+                    "/tenant/api/v0.1/poll",
+                    { continuationToken: "ct-update" },
+                    context
+                );
+
+                expect(result).toEqual({
+                    continuationToken: "ct-poll",
+                    nextAction: "continue",
+                    pollHref: undefined,
+                });
+                expect(result.pollHref).toBeUndefined();
+            }
+        );
+
+        it("returns poll with the response token and sends the request token", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
-                    state: "interactionRequired",
+                    action: "poll",
+                    continuationToken: "ct-poll",
                     _links: {
                         poll: { href: "/tenant/api/v0.1/poll-next" },
                     },
@@ -2166,10 +2310,119 @@ describe("CustomAuthApiClientV2", () => {
                 context
             );
 
-            expect(result.isCompleted).toBe(false);
-            expect(result.continuationToken).toBe("ct-update");
-            expect(result.pollHref).toBe("/tenant/api/v0.1/poll-next");
+            expect(result).toEqual({
+                continuationToken: "ct-poll",
+                nextAction: "poll",
+                pollHref: "/tenant/api/v0.1/poll-next",
+            });
+            const [url, options] = mockHttpClient.sendAsync.mock.calls[0];
+            expect(String(url)).toContain("/api/v0.1/poll");
+            expect(options.method).toBe(HttpMethod.POST);
+            expect(JSON.parse(options.body as string)).toEqual({
+                continuationToken: "ct-update",
+            });
         });
+
+        it("returns the rotated token and relocated link with nextAction poll", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    action: "poll",
+                    continuationToken: "ct-poll",
+                    _links: {
+                        poll: { href: "/tenant/api/v0.1/poll-next" },
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.poll(
+                    "/tenant/api/v0.1/poll",
+                    { continuationToken: "ct-update" },
+                    context
+                )
+            ).resolves.toEqual({
+                nextAction: "poll",
+                continuationToken: "ct-poll",
+                pollHref: "/tenant/api/v0.1/poll-next",
+            });
+        });
+
+        it.each<PollResponseV2>([
+            { action: "future-action" },
+            { action: "future-action", state: "continue" },
+            { state: "future-state" },
+            { state: "interactionRequired" },
+            {},
+        ])(
+            "rejects unsupported nextAction in %j even with a poll link",
+            async (body) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        ...body,
+                        continuationToken: "ct-poll",
+                        _links: {
+                            poll: { href: "/tenant/api/v0.1/poll-next" },
+                        },
+                    })
+                );
+
+                await expect(
+                    apiClient.poll(
+                        "/tenant/api/v0.1/poll",
+                        { continuationToken: "ct-update" },
+                        context
+                    )
+                ).rejects.toMatchObject({
+                    error: INVALID_HAL_RESPONSE,
+                    errorDescription: `Password reset poll next action '${
+                        body.action ?? body.state
+                    }' is not supported.`,
+                    correlationId: context.correlationId,
+                });
+            }
+        );
+
+        it.each<PollResponseV2>([
+            { action: "enroll" },
+            { action: "poll" },
+            { state: "continue" },
+        ])(
+            "rejects missing or empty response tokens for %j instead of reusing the request token",
+            async (body) => {
+                for (const continuationToken of [undefined, ""]) {
+                    mockHttpClient.sendAsync.mockResolvedValueOnce(
+                        buildResponse({
+                            ...body,
+                            continuationToken,
+                            _links: {
+                                poll: { href: "/tenant/api/v0.1/poll-next" },
+                            },
+                            _embedded: {
+                                methods: [
+                                    {
+                                        type: "email",
+                                        _links: {
+                                            enroll: { href: "/enroll/email" },
+                                        },
+                                    },
+                                ],
+                            },
+                        })
+                    );
+
+                    await expect(
+                        apiClient.poll(
+                            "/tenant/api/v0.1/poll",
+                            { continuationToken: "ct-poll" },
+                            context
+                        )
+                    ).rejects.toMatchObject({
+                        error: CONTINUATION_TOKEN_MISSING,
+                        correlationId: context.correlationId,
+                    });
+                }
+            }
+        );
     });
 
     describe("errors on HAL requests", () => {

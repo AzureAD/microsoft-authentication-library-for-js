@@ -88,6 +88,7 @@ import {
     CHALLENGE_RELATION,
     COLLECT_ATTRIBUTES_RELATION,
     ENROLL_RELATION,
+    POLL_RELATION,
     PhoneRegistrationChannelV2,
     RISK_VERIFY_RELATION,
     UPDATE_RELATION,
@@ -103,6 +104,7 @@ import {
 } from "../../network_client/custom_auth_api/v2/result/SignUpResultsV2.js";
 import type { AuthMethodRegistrationRequestV2 } from "../../network_client/custom_auth_api/v2/request/RequestsV2.js";
 import { InvalidArgumentError } from "../../error/InvalidArgumentError.js";
+import type { ResetPasswordPollResultV2 } from "../../network_client/custom_auth_api/v2/result/ResetPasswordResultsV2.js";
 
 /*
  * Polls up to five times for password-update completion, waiting 1.5 seconds
@@ -757,7 +759,10 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      */
     async submitNewPassword(
         parameters: FlowSubmitNewPasswordParamsV2
-    ): Promise<FlowSignInContinuationRequiredResultV2> {
+    ): Promise<
+        | FlowSignInContinuationRequiredResultV2
+        | FlowAuthMethodRegistrationRequiredResultV2
+    > {
         const continuationState = parameters.continuationState;
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
@@ -782,29 +787,30 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         let pollToken = updateResult.continuationToken;
         let pollHref = updateResult.pollHref;
-        let completionToken: string | undefined;
+        let pollResult: ResetPasswordPollResultV2 | undefined;
+        let isPolling = false;
 
         for (let attempt = 1; attempt <= POLL_MAX_ATTEMPTS; attempt++) {
-            const pollResult = await this.apiClient.poll(
+            pollResult = await this.apiClient.poll(
                 pollHref,
                 { continuationToken: pollToken },
                 context
             );
 
-            if (pollResult.isCompleted) {
-                completionToken = pollResult.continuationToken;
+            isPolling = pollResult.nextAction === POLL_RELATION;
+            if (!isPolling) {
                 break;
             }
 
             pollToken = pollResult.continuationToken;
-            pollHref = pollResult.pollHref ?? pollHref;
+            pollHref = this.requireLink(correlationId, pollResult.pollHref);
 
             if (attempt < POLL_MAX_ATTEMPTS) {
                 await delay(POLL_INTERVAL_MS);
             }
         }
 
-        if (!completionToken) {
+        if (!pollResult || isPolling) {
             const message =
                 "The password reset did not complete within the allotted number of polling attempts.";
             this.logger.error(message, correlationId);
@@ -816,20 +822,45 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             );
         }
 
-        this.logger.verbose(
-            "V2 password reset applied; sign-in required.",
+        if (
+            pollResult.nextAction === ENROLL_RELATION &&
+            pollResult.enrollmentMethods
+        ) {
+            return this.createAuthMethodRegistrationRequiredResult({
+                correlationId,
+                continuationState: {
+                    ...continuationState,
+                    continuationToken: pollResult.continuationToken,
+                    links: {},
+                },
+                methods: pollResult.enrollmentMethods,
+            });
+        }
+
+        if (pollResult.nextAction === ResponseStateV2.CONTINUE) {
+            this.logger.verbose(
+                "V2 password reset applied; sign-in required.",
+                correlationId
+            );
+
+            return createFlowSignInContinuationRequiredResultV2({
+                correlationId,
+                continuationState: {
+                    continuationToken: pollResult.continuationToken,
+                    scenario: continuationState.scenario,
+                    scopes: continuationState.scopes,
+                    links: {},
+                },
+            });
+        }
+
+        const message = `Password reset poll next action '${pollResult.nextAction}' is not supported.`;
+        this.logger.error(message, correlationId);
+        throw new CustomAuthError(
+            UNSUPPORTED_FLOW_TRANSITION,
+            message,
             correlationId
         );
-
-        return createFlowSignInContinuationRequiredResultV2({
-            correlationId,
-            continuationState: {
-                continuationToken: completionToken,
-                scenario: continuationState.scenario,
-                scopes: continuationState.scopes,
-                links: {},
-            },
-        });
     }
 
     /*
@@ -1436,7 +1467,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         href: string | undefined,
         missingLinkError?: { code: string; message: string }
     ): string {
-        if (!href) {
+        if (typeof href !== "string" || !href.trim()) {
             const errorCode =
                 missingLinkError?.code ?? CONTINUATION_LINK_MISSING;
             const message =
