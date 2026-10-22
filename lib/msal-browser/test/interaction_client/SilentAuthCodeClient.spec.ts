@@ -17,6 +17,7 @@ import {
 } from "../utils/StringConstants.js";
 import {
     AccountInfo,
+    AuthError,
     TokenClaims,
     AuthorizationCodeClient,
     Constants,
@@ -213,6 +214,46 @@ describe("SilentAuthCodeClient", () => {
                     code: "test-code",
                 })
             );
+        });
+
+        describe("prepareAuthorizationCodeRedemption", () => {
+            it("caches deferred redemption failures for server telemetry", async () => {
+                const testError = new AuthError(
+                    "token_endpoint_error",
+                    "original-correlation-id"
+                );
+                const cacheFailedRequest = jest.fn();
+                const redeem = jest.fn().mockRejectedValue(testError);
+                const interactionHandler = {
+                    prepareCodeRedemptionFromServer: jest.fn().mockResolvedValue({
+                        tokenEndpoint:
+                            "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+                        redeem,
+                    }),
+                };
+                jest.spyOn(
+                    silentAuthCodeClient as any,
+                    "initializeAuthorizationCodeRedemption"
+                ).mockResolvedValue({
+                    interactionHandler,
+                    silentRequest: {},
+                    authCodeResponse: { code: "test-code" },
+                    serverTelemetryManager: { cacheFailedRequest },
+                });
+                (silentAuthCodeClient as any).correlationId = RANDOM_TEST_GUID;
+
+                const continuation =
+                    await silentAuthCodeClient.prepareAuthorizationCodeRedemption({
+                        code: "test-code",
+                        scopes: ["User.Read"],
+                    });
+
+                await expect(
+                    continuation.redeem("signed-proof")
+                ).rejects.toBe(testError);
+                expect(testError.correlationId).toBe(RANDOM_TEST_GUID);
+                expect(cacheFailedRequest).toHaveBeenCalledWith(testError);
+            });
         });
 
         describe("storeInCache tests", () => {
