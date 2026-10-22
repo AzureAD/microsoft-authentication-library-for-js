@@ -220,19 +220,17 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             expect(window.location.search).toBe("?q=keep");
         });
 
-        it("keeps the hash cleared when replaceState throws", () => {
+        it("propagates history errors after clearing the hash", () => {
             window.history.replaceState(null, "", `${base}#code=A`);
+            const error = new Error("History unavailable");
             jest.spyOn(window.history, "replaceState").mockImplementation(
                 () => {
-                    throw new Error("History unavailable");
+                    throw error;
                 }
             );
-            const logger = new Logger({});
-            const warning = jest.spyOn(logger, "warning");
 
-            expect(() => clearHash(window, logger, "test-id")).not.toThrow();
+            expect(() => clearHash(window)).toThrow(error);
             expect(window.location.hash).toBe("");
-            expect(warning).not.toHaveBeenCalled();
         });
     });
 

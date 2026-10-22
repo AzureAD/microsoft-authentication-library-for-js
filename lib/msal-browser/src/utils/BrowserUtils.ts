@@ -147,43 +147,21 @@ export function parseAuthResponseFromUrl(): {
  * Clears a recognized authentication response fragment, preserving the query string.
  * Assigns an empty hash, then removes the trailing # when history updates are available.
  */
-export function clearHash(
-    contentWindow: Window,
-    logger?: Logger,
-    correlationId: string = ""
-): void {
-    const { origin, pathname, search, hash } = contentWindow.location;
-    const serverParams = UrlUtils.getDeserializedResponse(hash);
+export function clearHash(contentWindow: Window): void {
+    const serverParams = UrlUtils.getDeserializedResponse(
+        contentWindow.location.hash
+    );
     if (!serverParams) {
         return;
     }
-    const cleanUrl = origin + pathname + search;
-    let hashCleared = false;
-
-    try {
-        contentWindow.location.hash = "";
-        hashCleared = true;
-    } catch {
-        // Try history cleanup even if hash assignment is unavailable.
-    }
-
-    try {
-        if (typeof contentWindow.history?.replaceState === "function") {
-            contentWindow.history.replaceState(null, "", cleanUrl);
-            logger?.verbose(
-                "Removed authentication response parameters from the URL.",
-                correlationId
-            );
-            return;
-        }
-    } catch {
-        // Hash assignment may already have cleared the response.
-    }
-
-    if (!hashCleared) {
-        logger?.warning(
-            "Unable to remove authentication response parameters from the URL without navigation.",
-            correlationId
+    // Office.js sets history.replaceState to null
+    contentWindow.location.hash = "";
+    if (typeof contentWindow.history.replaceState === "function") {
+        // Full removes "#" from url
+        contentWindow.history.replaceState(
+            null,
+            "",
+            `${contentWindow.location.origin}${contentWindow.location.pathname}${contentWindow.location.search}`
         );
     }
 }

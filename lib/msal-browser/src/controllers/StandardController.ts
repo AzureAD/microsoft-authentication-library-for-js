@@ -493,7 +493,7 @@ export class StandardController implements IController {
          * and application routes, and does nothing when no response fragment is present.
          */
         if (!anyClientInteractionInProgress || currentClientInteraction) {
-            BrowserUtils.clearHash(window, this.logger, "");
+            BrowserUtils.clearHash(window);
         }
 
         if (!currentClientInteraction) {
