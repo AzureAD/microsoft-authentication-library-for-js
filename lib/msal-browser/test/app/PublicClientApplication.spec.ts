@@ -772,7 +772,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         );
 
-        it("leaves a pending redirect error in the URL until processing rejects", async () => {
+        it("captures and clears a pending redirect error before processing rejects", async () => {
             browserStorage.setInteractionInProgress(true);
             browserStorage.cacheAuthorizeRequest(
                 testRequest,
@@ -781,18 +781,35 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
             const hash = TEST_HASHES.TEST_ERROR_HASH;
             window.location.hash = hash;
+            const clearHash = jest.spyOn(BrowserUtils, "clearHash");
             const error = new Error("Redirect error");
             const redirect = jest
                 .spyOn(RedirectClient.prototype, "handleRedirectPromise")
                 .mockImplementation(async () => {
-                    expect(window.location.hash).toBe(hash);
+                    expect(window.location.hash).toBe("");
                     throw error;
                 });
 
             await expect(pca.handleRedirectPromise()).rejects.toBe(error);
 
-            expect(redirect.mock.calls[0][3]).toBeUndefined();
+            expect(redirect.mock.calls[0][3]).toEqual({ hash });
             expect(window.location.hash).toBe("");
+            expect(clearHash).toHaveBeenCalledTimes(1);
+        });
+
+        it("clears the response before account setup can throw", async () => {
+            browserStorage.setInteractionInProgress(true);
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            const error = new Error("Account setup failed");
+            jest.spyOn(
+                StandardController.prototype,
+                "getAllAccounts"
+            ).mockImplementation(() => {
+                expect(window.location.hash).toBe("");
+                throw error;
+            });
+
+            await expect(pca.handleRedirectPromise()).rejects.toBe(error);
         });
 
         it.each([false, true])(
@@ -808,9 +825,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     BrowserCacheManager.prototype,
                     "getCachedRequest"
                 ).mockImplementation(() => {
-                    expect(window.location.hash).toBe(
-                        `#code=new-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
-                    );
+                    expect(window.location.hash).toBe("");
                     throw error;
                 });
 
@@ -874,6 +889,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     if (hasTransaction) {
                         expect(redirect.mock.calls[0][3]).toEqual({
                             navigateToLoginRequestUrl: false,
+                            hash: query,
                         });
                     } else {
                         expect(redirect).not.toHaveBeenCalled();
@@ -889,7 +905,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
             `#/code=old-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
         ])(
-            "leaves the response in the URL until processing rejects: %s",
+            "captures and clears the response before processing rejects: %s",
             async (hash) => {
                 browserStorage.setInteractionInProgress(true);
                 browserStorage.cacheAuthorizeRequest(
@@ -901,12 +917,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const redirect = jest
                     .spyOn(RedirectClient.prototype, "handleRedirectPromise")
                     .mockImplementation(async () => {
-                        expect(window.location.hash).toBe(hash);
+                        expect(window.location.hash).toBe("");
                         throw error;
                     });
 
                 await expect(pca.handleRedirectPromise()).rejects.toBe(error);
-                expect(redirect.mock.calls[0][3]).toBeUndefined();
+                expect(redirect.mock.calls[0][3]).toEqual({ hash });
                 expect(window.location.hash).toBe("");
             }
         );

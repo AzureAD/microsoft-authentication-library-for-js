@@ -467,7 +467,6 @@ export class RedirectClient extends StandardInteractionClient {
                 options?.hash || ""
             );
             if (!serverParams) {
-                BrowserUtils.clearHash(window, this.logger, this.correlationId);
                 // Not a recognized server response hash or hash not associated with a redirect request
                 this.logger.info(
                     "handleRedirectPromise did not detect a response as a result of a redirect. Cleaning temporary cache.",
@@ -664,7 +663,6 @@ export class RedirectClient extends StandardInteractionClient {
                 return [null, ""];
             }
 
-            BrowserUtils.clearHash(window, this.logger, this.correlationId);
             this.logger.verbose(
                 "Hash contains known properties, returning response hash",
                 this.correlationId

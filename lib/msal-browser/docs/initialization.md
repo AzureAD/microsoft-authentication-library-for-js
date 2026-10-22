@@ -229,8 +229,9 @@ It is not recommended to use both interaction types in a single application.
 
 ### Redirect response URL cleanup
 
-`handleRedirectPromise()` removes redirect response fragments from the
-callback URL even when processing fails. If no client
+`handleRedirectPromise()` captures the response and removes recognized response
+fragments before processing the redirect, so the fragment is cleared even if
+request setup or response processing fails. If no client
 has a pending interaction, it cleans recognized authorization responses and returns `null`.
 If another client has a pending interaction, its response is left untouched.
 Fragment response detection uses the shared URL parser: a nonempty `state`

@@ -473,11 +473,30 @@ export class StandardController implements IController {
     private async handleRedirectPromiseInternal(
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
-        // A client-scoped miss may belong to another client; only clean up when no interaction is pending from any client.
-        if (!this.browserStorage.isInteractionInProgress(true)) {
-            if (!this.browserStorage.isInteractionInProgress(false)) {
-                BrowserUtils.clearHash(window, this.logger, "");
-            }
+        // Preserve the response for RedirectClient before removing it from the URL.
+        const responseString =
+            options?.hash ||
+            (this.config.auth.OIDCOptions.responseMode ===
+            Constants.ResponseMode.QUERY
+                ? window.location.search
+                : window.location.hash);
+        const anyClientInteractionInProgress =
+            this.browserStorage.isInteractionInProgress(false);
+        const currentClientInteraction =
+            this.browserStorage.isInteractionInProgress(true);
+        /*
+         * Clear recognized response fragments for:
+         * - Stale callbacks with no pending interaction.
+         * - This client's login callback, even if request setup or response validation fails.
+         * - This client's logout callback containing state, before the SIGNOUT early return.
+         * Leave another client's callback untouched. clearHash preserves query strings
+         * and application routes, and does nothing when no response fragment is present.
+         */
+        if (!anyClientInteractionInProgress || currentClientInteraction) {
+            BrowserUtils.clearHash(window, this.logger, "");
+        }
+
+        if (!currentClientInteraction) {
             this.logger.info(
                 "handleRedirectPromise called but there is no interaction in progress, returning null.",
                 ""
@@ -493,7 +512,6 @@ export class StandardController implements IController {
                 ""
             );
             this.browserStorage.setInteractionInProgress(false);
-            BrowserUtils.clearHash(window, this.logger, "");
             return null;
         }
 
@@ -576,10 +594,16 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     rootMeasurement.event.correlationId
-                )(standardRequest, codeVerifier, rootMeasurement, options);
+                )(
+                    standardRequest,
+                    codeVerifier,
+                    rootMeasurement,
+                    options?.hash
+                        ? options
+                        : { ...options, hash: responseString }
+                );
             }
         } catch (e) {
-            BrowserUtils.clearHash(window, this.logger, "");
             this.browserStorage.resetRequestCache("");
             throw e;
         }
@@ -648,11 +672,6 @@ export class StandardController implements IController {
                 return result;
             })
             .catch((e) => {
-                BrowserUtils.clearHash(
-                    window,
-                    this.logger,
-                    rootMeasurement.event.correlationId
-                );
                 this.browserStorage.resetRequestCache(
                     rootMeasurement.event.correlationId
                 );

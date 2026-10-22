@@ -314,7 +314,7 @@ describe("RedirectClient", () => {
                 });
         });
 
-        it("cleans temporary cache and the response fragment, returning null for non-redirect state", async () => {
+        it("cleans temporary cache, returning null for non-redirect state without modifying the URL", async () => {
             browserStorage.setInteractionInProgress(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
             const response = await redirectClient.handleRedirectPromise(
@@ -330,7 +330,9 @@ describe("RedirectClient", () => {
             expect(
                 window.sessionStorage.getItem(CacheKeys.VERSION_CACHE_KEY)
             ).toEqual(version);
-            expect(window.location.hash).toBe("");
+            expect(window.location.hash).toBe(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+            );
         });
 
         it("return null if state cannot be decoded", (done) => {
@@ -987,7 +989,9 @@ describe("RedirectClient", () => {
                     testTokenResponse.expiresOn.getMilliseconds() >=
                         tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe("");
+            expect(window.location.hash).toBe(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
         });
 
         it("calls custom navigateInternal function then processes hash", async () => {
@@ -1145,7 +1149,9 @@ describe("RedirectClient", () => {
                 testTokenResponse.expiresOn!.getMilliseconds() >=
                     tokenResponse.expiresOn!.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe("");
+            expect(window.location.hash).toBe(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
         });
 
         it("processes hash if navigateToLoginRequestUri is false and request origin is different", async () => {
@@ -1288,7 +1294,9 @@ describe("RedirectClient", () => {
                     testTokenResponse.expiresOn.getMilliseconds() >=
                         tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe("");
+            expect(window.location.hash).toBe(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
         });
 
         it("returns null if interaction is not in progress", async () => {
@@ -1733,7 +1741,7 @@ describe("RedirectClient", () => {
         });
 
         it.each(["#", "#/"])(
-            "clears a %s callback if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash",
+            "processes a %s callback without modifying it if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash",
             (prefix, done) => {
                 let pca = new PublicClientApplication({
                     auth: {
@@ -1778,7 +1786,11 @@ describe("RedirectClient", () => {
                     <any>"handleResponse"
                 ).mockImplementation((response) => {
                     expect(window.location.href).not.toContain("#testHash");
-                    expect(window.location.hash).toBe("");
+                    expect(window.location.hash).toBe(
+                        `${prefix}${TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT.substring(
+                            1
+                        )}`
+                    );
                     expect(response).toEqual({
                         code: "thisIsATestCode",
                         client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,

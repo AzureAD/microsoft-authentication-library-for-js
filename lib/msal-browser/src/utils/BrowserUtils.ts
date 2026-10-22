@@ -153,16 +153,7 @@ export function clearHash(
     correlationId: string = ""
 ): void {
     const { origin, pathname, search, hash } = contentWindow.location;
-    /*
-     * Normalize for the route guard, not response deserialization.
-     * Avoid treating app routes with auth-like parameters as auth responses.
-     */
-    const content = UrlUtils.stripLeadingHashOrQuery(hash);
-    if (!content || !/^[^=&?#/]+(?:=|&|$)/.test(content)) {
-        return;
-    }
-
-    const serverParams = UrlUtils.getDeserializedResponse(content);
+    const serverParams = UrlUtils.getDeserializedResponse(hash);
     if (!serverParams) {
         return;
     }
