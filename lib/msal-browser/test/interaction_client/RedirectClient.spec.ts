@@ -1849,6 +1849,25 @@ describe("RedirectClient", () => {
     });
 
     describe("acquireToken", () => {
+        it("rejects a DPoP proof provider before redirect navigation", async () => {
+            const request: RedirectRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["User.Read"],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt: "embedded-key",
+                dpopProofProvider: jest.fn(),
+            };
+
+            await expect(redirectClient.acquireToken(request)).rejects.toMatchObject(
+                {
+                    errorCode: BrowserAuthErrorCodes.invalidPopTokenRequest,
+                    subError: "dpop_proof_provider_redirect_unsupported",
+                }
+            );
+        });
+
         it("throws error when AuthenticationScheme is set to SSH and SSH JWK is omitted from the request", async () => {
             const loginRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
