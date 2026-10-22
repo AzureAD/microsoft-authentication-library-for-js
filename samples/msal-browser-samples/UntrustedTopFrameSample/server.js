@@ -90,6 +90,7 @@ appServer.get("/relay", (req, res) => {
 // page's child popup lands here with ?code=... It lives on the trusted origin
 // only.
 appServer.get("/redirect", (req, res) => {
+    res.set("Cache-Control", "no-store");
     res.sendFile(path.join(DIST_DIR, "redirect.html"));
 });
 

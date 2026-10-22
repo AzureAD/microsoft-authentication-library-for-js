@@ -4824,53 +4824,6 @@ describe("BrowserCacheManager tests", () => {
                     ).toEqual(TEST_CONFIG.MSAL_CLIENT_ID);
                 });
 
-                it("only clears the interaction owned by the given correlation ID", () => {
-                    const perfClient = new BrowserPerformanceClient({
-                        auth: {
-                            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        },
-                    });
-                    const cacheManager = new BrowserCacheManager(
-                        TEST_CONFIG.MSAL_CLIENT_ID,
-                        cacheConfig,
-                        browserCrypto,
-                        logger,
-                        perfClient,
-                        new EventHandler()
-                    );
-
-                    cacheManager.setInteractionInProgress(
-                        true,
-                        INTERACTION_TYPE.SIGNIN,
-                        false,
-                        "old-request"
-                    );
-                    cacheManager.setInteractionInProgress(
-                        true,
-                        INTERACTION_TYPE.SIGNIN,
-                        true,
-                        "replacement-request"
-                    );
-                    cacheManager.setInteractionInProgress(
-                        false,
-                        undefined,
-                        false,
-                        "old-request"
-                    );
-
-                    expect(
-                        cacheManager.getInteractionInProgress()?.correlationId
-                    ).toEqual("replacement-request");
-
-                    cacheManager.setInteractionInProgress(
-                        false,
-                        undefined,
-                        false,
-                        "replacement-request"
-                    );
-                    expect(cacheManager.getInteractionInProgress()).toBeNull();
-                });
-
                 it("calls cancelPendingBridgeResponse when overriding interaction", () => {
                     const perfClient = new BrowserPerformanceClient({
                         auth: {

@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Prevent superseded popup requests from navigating during setup [#8793](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8793)",
-    "packageName": "@azure/msal-browser",
-    "email": "198982749+Copilot@users.noreply.github.com",
-    "dependentChangeType": "patch"
-}

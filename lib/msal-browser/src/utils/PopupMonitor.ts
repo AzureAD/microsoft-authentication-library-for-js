@@ -13,60 +13,20 @@ export const POPUP_POLL_INTERVAL_MS = 30;
 let activePopupPoller:
     | { correlationId: string; cancel: () => void }
     | undefined;
-const pendingPopupRequests = new Map<string, boolean>();
-
-/**
- * Tracks a popup request so it can be cancelled before response monitoring begins.
- * @param correlationId Correlation ID of the popup request.
- */
-export function registerPopupRequestCancellation(correlationId: string): void {
-    pendingPopupRequests.set(correlationId, false);
-}
-
 /**
  * Cancels legacy popup polling when an interaction is superseded.
  *
  * @internal
  * @param logger Logger for the interaction.
- * @param correlationId Correlation ID of the superseded request.
  */
-export function cancelPendingPopupPollingResponse(
-    logger: Logger,
-    correlationId?: string
-): void {
-    if (
-        activePopupPoller &&
-        (!correlationId || activePopupPoller.correlationId === correlationId)
-    ) {
+export function cancelPendingPopupPollingResponse(logger: Logger): void {
+    if (activePopupPoller) {
         logger.verbose(
             "PopupMonitor.cancelPendingPopupPollingResponse - Cancelling pending popup poller",
-            correlationId || ""
+            activePopupPoller.correlationId
         );
         activePopupPoller.cancel();
-    } else if (correlationId && pendingPopupRequests.has(correlationId)) {
-        pendingPopupRequests.set(correlationId, true);
     }
-}
-
-/**
- * Throws when a tracked popup request has been superseded.
- * @param correlationId Correlation ID of the popup request.
- */
-export function throwIfPopupRequestCancelled(correlationId: string): void {
-    if (pendingPopupRequests.get(correlationId)) {
-        throw new BrowserAuthError(
-            BrowserAuthErrorCodes.interactionInProgressCancelled,
-            correlationId
-        );
-    }
-}
-
-/**
- * Stops tracking a popup request after it settles.
- * @param correlationId Correlation ID of the popup request.
- */
-export function clearPopupRequestCancellation(correlationId: string): void {
-    pendingPopupRequests.delete(correlationId);
 }
 
 /**
@@ -94,13 +54,6 @@ export async function monitorPopupForHash(
 ): Promise<string> {
     let poller: { correlationId: string; cancel: () => void } | undefined;
     return new Promise<string>((resolve, reject) => {
-        try {
-            throwIfPopupRequestCancelled(correlationId);
-        } catch (e) {
-            reject(e);
-            return;
-        }
-
         logger.verbose(
             "PopupMonitor.monitorPopupForHash - polling started",
             correlationId

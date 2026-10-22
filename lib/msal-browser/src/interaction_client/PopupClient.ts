@@ -62,7 +62,6 @@ import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
 import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
-import { throwIfPopupRequestCancelled } from "../utils/PopupMonitor.js";
 import {
     clearCacheOnLogout,
     getDiscoveredAuthority,
@@ -138,7 +137,6 @@ export class PopupClient extends StandardInteractionClient {
     ): Promise<AuthenticationResult> {
         let popupParams: PopupParams | undefined = undefined;
         try {
-            throwIfPopupRequestCancelled(this.correlationId);
             const popupName = this.generatePopupName(
                 request.scopes || Constants.OIDC_DEFAULT_SCOPES,
                 request.authority || this.config.auth.authority
@@ -315,19 +313,7 @@ export class PopupClient extends StandardInteractionClient {
                 this.correlationId
             )
         ) {
-            try {
-                return await this.executeEarFlow(
-                    validRequest,
-                    popupParams,
-                    pkceCodes
-                );
-            } catch (e) {
-                const popupWindow = popupParams.popup || this.currentWindow;
-                if (popupWindow && !popupWindow.closed) {
-                    popupWindow.close();
-                }
-                throw e;
-            }
+            return this.executeEarFlow(validRequest, popupParams, pkceCodes);
         } else {
             return this.executeCodeFlow(validRequest, popupParams, pkceCodes);
         }
@@ -796,8 +782,6 @@ export class PopupClient extends StandardInteractionClient {
                 account: validRequest.account || undefined,
             });
 
-            throwIfPopupRequestCancelled(this.correlationId);
-
             try {
                 authClient.authority.endSessionEndpoint;
             } catch {
@@ -962,8 +946,6 @@ export class PopupClient extends StandardInteractionClient {
      * @param requestUrl
      */
     initiateAuthRequest(requestUrl: string, params: PopupParams): Window {
-        throwIfPopupRequestCancelled(this.correlationId);
-
         // Check that request url is not empty.
         if (requestUrl) {
             this.logger.infoPii(
@@ -1213,8 +1195,6 @@ export class PopupClient extends StandardInteractionClient {
         correlationId: string,
         isEAR: boolean
     ): Promise<Window> {
-        throwIfPopupRequestCancelled(correlationId);
-
         const popupRelayUri = this.config.auth.popupRelayUri;
         if (popupRelayUri) {
             const getFormData = isEAR
@@ -1251,14 +1231,6 @@ export class PopupClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        try {
-            throwIfPopupRequestCancelled(correlationId);
-        } catch (e) {
-            if (popupParams.popup !== popupWindow) {
-                popupWindow.close();
-            }
-            throw e;
-        }
         form.submit();
         return popupWindow;
     }
@@ -1268,19 +1240,6 @@ export class PopupClient extends StandardInteractionClient {
         popupWindow: Window,
         popupWindowParent: Window
     ): Promise<string> {
-        const usesLegacyPollingHook =
-            !this.config.auth.popupRelayUri &&
-            this.config.system.enableLegacyPolling &&
-            this.waitForPopupResponseHook;
-        if (!usesLegacyPollingHook) {
-            try {
-                throwIfPopupRequestCancelled(request.correlationId);
-            } catch (e) {
-                popupWindow.close();
-                throw e;
-            }
-        }
-
         /*
          * When a popup-relay page is configured the response is relayed back to
          * this frame by the relay page via postMessage, and the relay popup's

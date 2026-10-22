@@ -112,7 +112,7 @@ import { msalConfig, loginRequest, HTTP_METHOD } from "./authConfig.js";
                     if (error instanceof InteractionRequiredAuthError) {
                         msalInstance
                             .acquireTokenPopup({
-                                scopes: loginRequest.scopes,
+                                ...loginRequest,
                                 account: currentAccount,
                             })
                             .then(function (result) {

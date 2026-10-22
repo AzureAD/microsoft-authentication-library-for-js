@@ -71,7 +71,6 @@ import { CookieStorage } from "./CookieStorage.js";
 import { getAccountKeys, getTokenKeys } from "./CacheHelpers.js";
 import { EventType } from "../event/EventType.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
-import { cancelPendingPopupPollingResponse } from "../utils/PopupMonitor.js";
 import { EventHandler } from "../event/EventHandler.js";
 import { clearHash } from "../utils/BrowserUtils.js";
 import { version } from "../packageMetadata.js";
@@ -2346,7 +2345,6 @@ export class BrowserCacheManager extends CacheManager {
     getInteractionInProgress(): {
         clientId: string;
         type: INTERACTION_TYPE;
-        correlationId?: string;
     } | null {
         const key = `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         const value = this.getTemporaryCache(key, "", false);
@@ -2373,8 +2371,8 @@ export class BrowserCacheManager extends CacheManager {
     ): void {
         // Ensure we don't overwrite interaction in progress for a different clientId
         const key = `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
-        const existingInteraction = this.getInteractionInProgress();
         if (inProgress) {
+            const existingInteraction = this.getInteractionInProgress();
             if (existingInteraction) {
                 if (allowOverride) {
                     this.logger.warning(
@@ -2382,14 +2380,10 @@ export class BrowserCacheManager extends CacheManager {
                         correlationId
                     );
 
-                    // Cancel the previous interaction's response monitor.
+                    // Cancel any active bridge monitor from the previous interaction
                     BrowserUtils.cancelPendingBridgeResponse(
                         this.logger,
                         correlationId
-                    );
-                    cancelPendingPopupPollingResponse(
-                        this.logger,
-                        existingInteraction.correlationId
                     );
 
                     // Clear existing interaction to allow new one
@@ -2404,18 +2398,12 @@ export class BrowserCacheManager extends CacheManager {
             // Set new interaction
             this.setTemporaryCache(
                 key,
-                JSON.stringify({
-                    clientId: this.clientId,
-                    type,
-                    ...(correlationId && { correlationId }),
-                }),
+                JSON.stringify({ clientId: this.clientId, type }),
                 false
             );
         } else if (
             !inProgress &&
-            existingInteraction?.clientId === this.clientId &&
-            (!correlationId ||
-                existingInteraction.correlationId === correlationId)
+            this.getInteractionInProgress()?.clientId === this.clientId
         ) {
             this.removeTemporaryItem(key);
         }

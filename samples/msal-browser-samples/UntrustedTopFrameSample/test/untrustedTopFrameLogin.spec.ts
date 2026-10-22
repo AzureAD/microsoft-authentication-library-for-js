@@ -105,7 +105,7 @@ async function signInViaRelay(
     username: string,
     accountPwd: string,
     screenshot: Screenshot
-): Promise<{ relayedMethod: string }> {
+): Promise<{ relayedMethod: string; routingSlice: string | null }> {
     const relayPromise = waitForPage(context, "/relay");
     const signInButton = await frame.waitForSelector("#signIn:not([disabled])");
     await signInButton?.click();
@@ -143,7 +143,7 @@ async function signInViaRelay(
         visible: true,
         timeout: 30000,
     });
-    return { relayedMethod };
+    return { relayedMethod, routingSlice: parameters.get("dc") };
 }
 
 describe("Untrusted Top Frame Sample", () => {
@@ -191,6 +191,11 @@ describe("Untrusted Top Frame Sample", () => {
         await browser.close();
     });
 
+    it("serves the redirect bridge without caching", async () => {
+        const response = await page.goto(`${APP_ORIGIN}/redirect`);
+        expect(response?.headers()["cache-control"]).toBe("no-store");
+    });
+
     it("keeps sign-in disabled until the app initializes", async () => {
         await page.setJavaScriptEnabled(false);
         await page.goto(APP_ORIGIN);
@@ -208,6 +213,11 @@ describe("Untrusted Top Frame Sample", () => {
         await page.goto(HOST_ORIGIN);
         const frame = await getEmbeddedFrame(page);
         await frame.waitForSelector("#signIn:not([disabled])");
+        expect(
+            await page.$eval("#embedded-iframe", (iframe) =>
+                iframe.getAttribute("title")
+            )
+        ).toBe("Trusted authentication app");
         expect(new URL(page.url()).hostname).toBe("127.0.0.1");
         expect(new URL(frame.url()).hostname).toBe("localhost");
         const name = `relay-partition-${Date.now()}`;
@@ -269,7 +279,7 @@ describe("Untrusted Top Frame Sample", () => {
         ["POST", "httpMethod=POST", "POST"],
         // ["EAR", "ear=true", "POST"],
     ])(
-        "signs in through the popup relay (%s)",
+        "signs in and preserves the request configuration on interactive fallback (%s)",
         async (label, query, expectedMethod) => {
             const screenshot = new Screenshot(
                 `${SCREENSHOT_BASE_FOLDER_NAME}/signIn-${label}`
@@ -281,7 +291,7 @@ describe("Untrusted Top Frame Sample", () => {
             const frame = await getEmbeddedFrame(page);
             await frame.waitForSelector("#not-authenticated");
 
-            const { relayedMethod } = await signInViaRelay(
+            const { relayedMethod, routingSlice } = await signInViaRelay(
                 page,
                 context,
                 frame,
@@ -297,6 +307,54 @@ describe("Untrusted Top Frame Sample", () => {
             );
             expect(displayed).toContain(username);
             await screenshot.takeScreenshot(page, "Embedded app signed in");
+
+            await frame.evaluate(() => {
+                const acquireTokenSilent = window.pca.acquireTokenSilent.bind(
+                    window.pca
+                );
+                window.pca.acquireTokenSilent = (request) =>
+                    acquireTokenSilent({ ...request, forceRefresh: true });
+                const fetch = window.fetch.bind(window);
+                window.fetch = async (input, init) => {
+                    const url = new URL(
+                        input instanceof Request ? input.url : String(input)
+                    );
+                    const body = new URLSearchParams(
+                        typeof init?.body === "string" ? init.body : ""
+                    );
+                    if (
+                        url.pathname.endsWith("/token") &&
+                        body.get("grant_type") === "refresh_token"
+                    ) {
+                        return new Response(
+                            JSON.stringify({
+                                error: "interaction_required",
+                                error_description:
+                                    "Interactive sign-in required",
+                            }),
+                            {
+                                status: 400,
+                                headers: { "Content-Type": "application/json" },
+                            }
+                        );
+                    }
+                    return fetch(input, init);
+                };
+            });
+            const fallbackPromise = waitForPage(context, "/relay");
+            await frame.click("#acquireTokenSilent");
+            const fallback = await fallbackPromise;
+            const fallbackRequest = await getRelayRequest(fallback);
+            expect(fallbackRequest.method).toBe(expectedMethod);
+            expect(routingSlice).toBeTruthy();
+            expect(
+                new URL(
+                    fallbackRequest.method === "GET"
+                        ? fallbackRequest.url
+                        : fallbackRequest.action
+                ).searchParams.get("dc")
+            ).toBe(routingSlice);
+            await fallback.close();
         }
     );
 

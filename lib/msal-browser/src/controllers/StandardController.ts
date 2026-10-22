@@ -54,10 +54,7 @@ import {
     INTERACTION_TYPE,
 } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
-import {
-    clearPopupRequestCancellation,
-    registerPopupRequestCancellation,
-} from "../utils/PopupMonitor.js";
+import { cancelPendingPopupPollingResponse } from "../utils/PopupMonitor.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
@@ -883,7 +880,9 @@ export class StandardController implements IController {
                 request.overrideInteractionInProgress,
                 correlationId
             );
-            registerPopupRequestCancellation(correlationId);
+            if (request.overrideInteractionInProgress) {
+                cancelPendingPopupPollingResponse(this.logger);
+            }
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -1008,13 +1007,7 @@ export class StandardController implements IController {
                 return Promise.reject(e);
             })
             .finally(async () => {
-                this.browserStorage.setInteractionInProgress(
-                    false,
-                    undefined,
-                    false,
-                    correlationId
-                );
-                clearPopupRequestCancellation(correlationId);
+                this.browserStorage.setInteractionInProgress(false);
                 if (!this.config.system.navigatePopups) {
                     await this.preGeneratePkceCodes(correlationId);
                 }
@@ -1667,21 +1660,12 @@ export class StandardController implements IController {
             BrowserUtils.preflightCheck(this.initialized);
             this.browserStorage.setInteractionInProgress(
                 true,
-                INTERACTION_TYPE.SIGNOUT,
-                false,
-                correlationId
+                INTERACTION_TYPE.SIGNOUT
             );
-            registerPopupRequestCancellation(correlationId);
 
             const popupClient = this.createPopupClient(correlationId);
             return popupClient.logout(logoutRequest).finally(() => {
-                clearPopupRequestCancellation(correlationId);
-                this.browserStorage.setInteractionInProgress(
-                    false,
-                    undefined,
-                    false,
-                    correlationId
-                );
+                this.browserStorage.setInteractionInProgress(false);
             });
         } catch (e) {
             // Since this function is syncronous we need to reject

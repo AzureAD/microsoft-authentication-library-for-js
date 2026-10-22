@@ -199,4 +199,6 @@ The suite also verifies sign-in remains disabled until initialization, proves
 that the cross-site iframe and top-level app cannot exchange BroadcastChannel
 messages (with a same-partition positive control), and exercises relay logout.
 The logout case asserts `pocd=1`, return through the redirect bridge, and removal
-of cached accounts and tokens.
+of cached accounts and tokens. Interactive token-acquisition fallback preserves
+the selected GET/POST method and test-slice routing, and the redirect bridge
+response is checked for `Cache-Control: no-store`.

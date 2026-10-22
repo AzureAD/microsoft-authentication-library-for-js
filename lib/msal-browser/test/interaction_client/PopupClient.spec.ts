@@ -1096,46 +1096,6 @@ describe("PopupClient", () => {
                 expect(earFormSpy).toHaveBeenCalled();
             });
 
-            it("closes the pre-opened popup when the EAR flow is cancelled", async () => {
-                jest.spyOn(
-                    window.navigator,
-                    "userAgent",
-                    "get"
-                ).mockReturnValue(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
-                );
-                const validRequest: PopupRequest = {
-                    authority: TEST_CONFIG.validAuthority,
-                    scopes: ["openid", "profile", "offline_access"],
-                    correlationId: TEST_CONFIG.CORRELATION_ID,
-                    redirectUri: window.location.href,
-                    state: TEST_STATE_VALUES.USER_STATE,
-                    nonce: ID_TOKEN_CLAIMS.nonce,
-                };
-                jest.spyOn(
-                    PopupClient.prototype,
-                    "openSizedPopup"
-                ).mockReturnValue(popupWindow);
-                const closeSpy = jest.spyOn(popupWindow, "close");
-                jest.spyOn(
-                    PopupClient.prototype,
-                    "executeEarFlow"
-                ).mockRejectedValue(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.interactionInProgressCancelled,
-                        TEST_CONFIG.CORRELATION_ID
-                    )
-                );
-
-                await expect(
-                    pca.acquireTokenPopup(validRequest)
-                ).rejects.toMatchObject({
-                    errorCode:
-                        BrowserAuthErrorCodes.interactionInProgressCancelled,
-                });
-                expect(closeSpy).toHaveBeenCalledTimes(1);
-            });
-
             it("uses authorization code flow instead of EAR in Safari", async () => {
                 const validRequest: PopupRequest = {
                     authority: TEST_CONFIG.validAuthority,

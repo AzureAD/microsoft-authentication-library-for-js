@@ -9,8 +9,6 @@ import {
     monitorPopupForHash,
     POPUP_POLL_INTERVAL_MS,
     cancelPendingPopupPollingResponse,
-    clearPopupRequestCancellation,
-    registerPopupRequestCancellation,
 } from "../../src/utils/PopupMonitor.js";
 
 const logger = new Logger({});
@@ -274,7 +272,7 @@ describe("PopupMonitor.monitorPopupForHash", () => {
                 correlationId: CORR_ID,
             });
 
-            cancelPendingPopupPollingResponse(logger, CORR_ID);
+            cancelPendingPopupPollingResponse(logger);
             await rejection;
             expect(clearInterval).toHaveBeenCalled();
             expect(close).toHaveBeenCalledTimes(1);
@@ -300,7 +298,7 @@ describe("PopupMonitor.monitorPopupForHash", () => {
             const firstRejection = expect(first).rejects.toMatchObject({
                 errorCode: BrowserAuthErrorCodes.interactionInProgressCancelled,
             });
-            cancelPendingPopupPollingResponse(logger, CORR_ID);
+            cancelPendingPopupPollingResponse(logger);
             const second = monitorPopupForHash(
                 makeFakePopup(),
                 parentWindow,
@@ -315,34 +313,9 @@ describe("PopupMonitor.monitorPopupForHash", () => {
             });
 
             await firstRejection;
-            cancelPendingPopupPollingResponse(logger, "second-request");
+            cancelPendingPopupPollingResponse(logger);
             await secondRejection;
             expect(jest.getTimerCount()).toBe(0);
-        });
-
-        it("cancels a popup request before polling starts", async () => {
-            const popup = makeFakePopup();
-            const close = jest.spyOn(popup, "close");
-            registerPopupRequestCancellation(CORR_ID);
-            cancelPendingPopupPollingResponse(logger, CORR_ID);
-            const response = monitorPopupForHash(
-                popup,
-                parentWindow,
-                Constants.ResponseMode.FRAGMENT,
-                logger,
-                unloadHandler,
-                CORR_ID
-            );
-            await expect(response).rejects.toMatchObject({
-                errorCode: BrowserAuthErrorCodes.interactionInProgressCancelled,
-                correlationId: CORR_ID,
-            });
-            clearPopupRequestCancellation(CORR_ID);
-            expect(close).toHaveBeenCalledTimes(1);
-            expect(removeListenerSpy).toHaveBeenCalledWith(
-                "beforeunload",
-                unloadHandler
-            );
         });
     });
 });
