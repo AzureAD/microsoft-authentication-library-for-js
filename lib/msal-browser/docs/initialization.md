@@ -242,8 +242,6 @@ change response validation.
 Recognized response fragments are also cleared when `handleRedirectPromise()`
 returns after `logoutRedirect()` completes.
 
-`BrowserUtils.clearHash(window)` clears a recognized authentication response fragment
-without modifying the query string.
 
 **Note:** `handleRedirectPromise` will optionally accept a hash value to be processed, defaulting to the current value of `window.location.hash`. This parameter only needs to be provided in scenarios where the current value of `window.location.hash` does not contain the redirect response that needs to be processed. **For almost all scenarios, applications should not need to provide this parameter explicitly.**
 
