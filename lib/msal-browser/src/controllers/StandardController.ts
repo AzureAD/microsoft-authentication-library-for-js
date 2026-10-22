@@ -493,6 +493,7 @@ export class StandardController implements IController {
                 ""
             );
             this.browserStorage.setInteractionInProgress(false);
+            BrowserUtils.clearHash(window, this.logger, "");
             return null;
         }
 

@@ -60,14 +60,21 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         });
 
         it.each([
-            `${base}?state=CA&tab=orders#/home`,
-            `${base}?q=keep#state=CA&tab=orders`,
-        ])("preserves application-only state: %s", (url) => {
-            window.history.replaceState(null, "", url);
+            [
+                `${base}?state=CA&tab=orders#/home`,
+                `${base}?state=CA&tab=orders#/home`,
+            ],
+            [`${base}?q=keep#state=CA&tab=orders`, `${base}?q=keep`],
+            [`${base}?q=keep#state=CA`, `${base}?q=keep`],
+        ])(
+            "clears fragment state while preserving query state: %s",
+            (url, expectedUrl) => {
+                window.history.replaceState(null, "", url);
 
-            clearHash(window);
-            expect(window.location.href).toBe(url);
-        });
+                clearHash(window);
+                expect(window.location.href).toBe(expectedUrl);
+            }
+        );
 
         it("clears the complete response fragment while preserving the query", () => {
             window.history.replaceState(
@@ -109,16 +116,22 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         it.each([
             TEST_STATE_VALUES.TEST_STATE_POPUP,
             TEST_STATE_VALUES.TEST_STATE_SILENT,
-        ])("leaves another interaction's response untouched", (state) => {
-            const url = `${base}#code=owned-by-other-flow&state=${state}`;
-            window.history.replaceState(null, "", url);
-            clearHash(window);
-            expect(window.location.href).toBe(url);
-            const brokerUrl = `${base}#accountId=owned-by-other-flow&state=${state}`;
-            window.history.replaceState(null, "", brokerUrl);
-            clearHash(window);
-            expect(window.location.href).toBe(brokerUrl);
-        });
+        ])(
+            "clears recognized responses regardless of interaction type",
+            (state) => {
+                const url = `${base}#code=owned-by-other-flow&state=${state}`;
+                window.history.replaceState(null, "", url);
+                clearHash(window);
+                expect(window.location.href).toBe(base);
+                const brokerUrl = `${base}#accountId=owned-by-other-flow&state=${state}`;
+                window.history.replaceState(null, "", brokerUrl);
+                clearHash(window);
+                expect(window.location.href).toBe(base);
+                window.history.replaceState(null, "", `${base}#state=${state}`);
+                clearHash(window);
+                expect(window.location.href).toBe(base);
+            }
+        );
 
         it("clears the complete redirect error response fragment", () => {
             window.history.replaceState(

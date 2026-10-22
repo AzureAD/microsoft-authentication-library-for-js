@@ -13,7 +13,6 @@ import {
     InProgressPerformanceEvent,
     Logger,
     ProtocolUtils,
-    AuthError,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
@@ -145,7 +144,7 @@ export function parseAuthResponseFromUrl(): {
 }
 
 /**
- * Clears a recognized redirect response fragment, preserving the query string.
+ * Clears a recognized authentication response fragment, preserving the query string.
  * Hash assignment is the fallback when history updates are unavailable.
  */
 export function clearHash(
@@ -154,6 +153,10 @@ export function clearHash(
     correlationId: string = ""
 ): void {
     const { origin, pathname, search, hash } = contentWindow.location;
+    /*
+     * Normalize for the route guard, not response deserialization.
+     * Avoid treating app routes with auth-like parameters as auth responses.
+     */
     const content = UrlUtils.stripLeadingHashOrQuery(hash);
     if (!content || !/^[^=&?#/]+(?:=|&|$)/.test(content)) {
         return;
@@ -161,45 +164,6 @@ export function clearHash(
 
     const serverParams = UrlUtils.getDeserializedResponse(content);
     if (!serverParams) {
-        return;
-    }
-    let interactionType: string | undefined;
-    const state = serverParams.state;
-    if (state) {
-        try {
-            const { libraryState } = ProtocolUtils.parseRequestState(
-                base64Decode,
-                state,
-                ""
-            );
-            if (libraryState?.id) {
-                interactionType = libraryState.meta?.interactionType;
-            }
-        } catch (e) {
-            // Non-MSAL and malformed state cannot establish response ownership.
-            if (!(e instanceof AuthError)) {
-                throw e;
-            }
-        }
-    }
-
-    if (
-        interactionType === InteractionType.Popup ||
-        interactionType === InteractionType.Silent
-    ) {
-        return;
-    }
-
-    // State alone may be an application parameter rather than an MSAL response.
-    if (
-        interactionType !== InteractionType.Redirect &&
-        !(
-            serverParams.code ||
-            serverParams.ear_jwe ||
-            serverParams.error ||
-            serverParams.error_description
-        )
-    ) {
         return;
     }
     const cleanUrl = origin + pathname + search;

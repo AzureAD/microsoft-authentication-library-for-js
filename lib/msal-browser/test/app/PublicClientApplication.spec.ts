@@ -715,7 +715,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             Constants.ResponseMode.FRAGMENT,
             Constants.ResponseMode.QUERY,
         ])(
-            "preserves application-only state without a pending interaction in %s mode",
+            "clears fragment state and preserves query state without a pending interaction in %s mode",
             async (responseMode) => {
                 const statePca = new PublicClientApplication({
                     auth: {
@@ -744,7 +744,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         statePca.handleRedirectPromise()
                     ).resolves.toBeNull();
 
-                    expect(window.location.href).toBe(url);
+                    expect(window.location.href).toBe(
+                        responseMode === Constants.ResponseMode.QUERY
+                            ? url
+                            : url.split("#")[0]
+                    );
                     expect(warning).not.toHaveBeenCalled();
                 } finally {
                     window.history.replaceState(null, "", originalUrl);
@@ -753,6 +757,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         );
 
         it.each([
+            "#state=CA",
             `#state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
             TEST_HASHES.TEST_ERROR_HASH,
             `#client_info=info&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
@@ -933,16 +938,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it.each([
             ["#code=", "#code="],
             ["#code=untracked&state=invalid", ""],
-            [
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP,
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP,
-            ],
-            [
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT,
-                TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT,
-            ],
+            [TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP, ""],
+            [TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT, ""],
         ])(
-            "cleans an unprocessed callback without clearing another flow: %s",
+            "cleans an unprocessed callback recognized by the shared parser: %s",
             async (hash, remainingHash) => {
                 browserStorage.setInteractionInProgress(true);
                 browserStorage.cacheAuthorizeRequest(
@@ -1132,17 +1131,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT,
             TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP,
             TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT,
-            "#/dashboard?code=application-code",
         ])(
-            "does not erase another flow or application route: %s",
+            "cleans recognized responses without checking interaction type inside an iframe: %s",
             async (hash) => {
                 jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
                 window.location.hash = hash;
 
                 await expect(pca.handleRedirectPromise()).resolves.toBeNull();
-                expect(window.location.hash).toBe(hash);
+                expect(window.location.hash).toBe("");
             }
         );
+
+        it("preserves an application route inside an iframe", async () => {
+            jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
+            const hash = "#/dashboard?code=application-code";
+            window.location.hash = hash;
+
+            await expect(pca.handleRedirectPromise()).resolves.toBeNull();
+            expect(window.location.hash).toBe(hash);
+        });
 
         it.each([
             TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
@@ -1915,28 +1922,52 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(emitSpy).toHaveBeenCalledTimes(0);
         });
 
-        it("removes interaction_in_progress and returns null after sign-out", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-            await pca.initialize();
+        it.each([
+            ["", ""],
+            [
+                `?dashboard=new#state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+                "?dashboard=new",
+            ],
+            [
+                `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}#/home`,
+                `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}#/home`,
+            ],
+            ["#/home", "#/home"],
+        ])(
+            "removes the sign-out interaction flag and only recognized response fragments: %s",
+            async (url, expectedUrl) => {
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                });
+                await pca.initialize();
 
-            window.sessionStorage.setItem(
-                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                JSON.stringify({
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    type: INTERACTION_TYPE.SIGNOUT,
-                })
-            );
-            const res = await pca.handleRedirectPromise();
-            expect(res).toBeNull();
-            expect(
-                // @ts-ignore
-                pca.controller.browserStorage.getInteractionInProgress()
-            ).toBeFalsy();
-        });
+                window.sessionStorage.setItem(
+                    `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                    JSON.stringify({
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        type: INTERACTION_TYPE.SIGNOUT,
+                    })
+                );
+                const originalUrl = window.location.href;
+                const base = window.location.origin + window.location.pathname;
+                try {
+                    window.history.replaceState(null, "", base + url);
+
+                    const res = await pca.handleRedirectPromise();
+
+                    expect(res).toBeNull();
+                    expect(window.location.href).toBe(base + expectedUrl);
+                    expect(
+                        // @ts-ignore
+                        pca.controller.browserStorage.getInteractionInProgress()
+                    ).toBeFalsy();
+                } finally {
+                    window.history.replaceState(null, "", originalUrl);
+                }
+            }
+        );
 
         it("removes interaction_in_progress and throws after sign-in when there are no tokens in cache", async () => {
             pca = new PublicClientApplication({

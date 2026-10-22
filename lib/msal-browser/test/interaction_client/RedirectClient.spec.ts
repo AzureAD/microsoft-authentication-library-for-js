@@ -314,30 +314,23 @@ describe("RedirectClient", () => {
                 });
         });
 
-        it("If response hash is not a Redirect response cleans temporary cache, return null and do not remove hash", (done) => {
+        it("cleans temporary cache and the response fragment, returning null for non-redirect state", async () => {
             browserStorage.setInteractionInProgress(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
-            redirectClient
-                .handleRedirectPromise(
-                    testRequest,
-                    TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement,
-                    { hash: "" }
-                )
-                .then((response) => {
-                    expect(response).toBe(null);
-                    expect(window.localStorage.length).toEqual(0);
-                    expect(window.sessionStorage.length).toEqual(1);
-                    expect(
-                        window.sessionStorage.getItem(
-                            CacheKeys.VERSION_CACHE_KEY
-                        )
-                    ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
-                    expect(window.location.hash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
-                    );
-                    done();
-                });
+            const response = await redirectClient.handleRedirectPromise(
+                testRequest,
+                TEST_CONFIG.TEST_VERIFIER,
+                rootMeasurement,
+                { hash: "" }
+            );
+
+            expect(response).toBe(null);
+            expect(window.localStorage.length).toEqual(0);
+            expect(window.sessionStorage.length).toEqual(1);
+            expect(
+                window.sessionStorage.getItem(CacheKeys.VERSION_CACHE_KEY)
+            ).toEqual(version);
+            expect(window.location.hash).toBe("");
         });
 
         it("return null if state cannot be decoded", (done) => {
