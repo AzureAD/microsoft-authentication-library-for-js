@@ -1901,12 +1901,12 @@ describe("RedirectClient", () => {
                 dpopProofProvider: jest.fn(),
             };
 
-            await expect(redirectClient.acquireToken(request)).rejects.toMatchObject(
-                {
-                    errorCode: BrowserAuthErrorCodes.invalidPopTokenRequest,
-                    subError: "dpop_proof_provider_redirect_unsupported",
-                }
-            );
+            await expect(
+                redirectClient.acquireToken(request)
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.invalidPopTokenRequest,
+                subError: "dpop_proof_provider_redirect_unsupported",
+            });
         });
 
         it("throws error when AuthenticationScheme is set to SSH and SSH JWK is omitted from the request", async () => {
