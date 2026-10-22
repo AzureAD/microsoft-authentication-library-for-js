@@ -6323,6 +6323,63 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentATStub).toHaveBeenCalledTimes(2);
         });
 
+        it("does not deduplicate concurrent DPoP requests for different embedded keys", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "test-tenant",
+                username: "user@contoso.com",
+            };
+            const acquireTokenSpy = jest
+                .spyOn(
+                    StandardController.prototype,
+                    <any>"acquireTokenSilentAsync"
+                )
+                .mockImplementation(async (...args: unknown[]) => {
+                    const request = args[0] as SilentRequest;
+                    await new Promise((resolve) => setTimeout(resolve, 10));
+                    return {
+                        authority: TEST_CONFIG.validAuthority,
+                        uniqueId: testAccount.localAccountId,
+                        tenantId: testAccount.tenantId,
+                        scopes: request.scopes,
+                        idToken: "",
+                        accessToken: `token-for-${request.dpopJkt}`,
+                        fromCache: false,
+                        correlationId: request.correlationId || "",
+                        expiresOn: new Date(Date.now() + 3600 * 1000),
+                        account: testAccount,
+                        tokenType: Constants.AuthenticationScheme.DPOP,
+                    } as AuthenticationResult;
+                });
+            const baseRequest: SilentRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                forceRefresh: true,
+                dpopProofProvider: jest.fn(),
+            };
+
+            const [first, second] = await Promise.all([
+                pca.acquireTokenSilent({
+                    ...baseRequest,
+                    correlationId: "first-correlation-id",
+                    dpopJkt: "first-key",
+                }),
+                pca.acquireTokenSilent({
+                    ...baseRequest,
+                    correlationId: "second-correlation-id",
+                    dpopJkt: "second-key",
+                }),
+            ]);
+
+            expect(acquireTokenSpy).toHaveBeenCalledTimes(2);
+            expect(first.accessToken).toBe("token-for-first-key");
+            expect(second.accessToken).toBe("token-for-second-key");
+        });
+
         it("throws error that SilentFlowClient.acquireToken() throws", async () => {
             // Enable server telemetry so cacheFailedRequest writes to storage
             //@ts-ignore
