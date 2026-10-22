@@ -13,6 +13,34 @@ export type NativeAccountInfo = {
 };
 
 /**
+ * Bounded failure reasons emitted when validating a broker DPoP response.
+ */
+export type BrokerDpopFailureReason =
+    | "conflicting_fields"
+    | "invalid_attestation"
+    | "missing_attestation"
+    | "missing_l1_binding"
+    | "missing_proof"
+    | "unexpected_response"
+    | "unknown_token_type";
+
+/**
+ * Validated binding outcome for a broker DPoP response.
+ */
+export type BrokerDpopOutcome = "none" | "L1" | "L3";
+
+/**
+ * Normalized DPoP fields used to validate a broker response.
+ */
+export type NormalizedDpopBrokerResponse = {
+    tokenType?: string;
+    proof?: unknown;
+    bindingAttested?: boolean;
+    hasBindingAttested: boolean;
+    hasMalformedBindingAttested: boolean;
+};
+
+/**
  * Token response returned by Native Platform
  */
 export type PlatformAuthResponse = {

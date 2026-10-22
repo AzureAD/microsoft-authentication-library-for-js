@@ -52,8 +52,11 @@ import {
     PlatformAuthTokenType,
 } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import {
+    BrokerDpopFailureReason,
+    BrokerDpopOutcome,
     MATS,
     NativeResponseProperties,
+    NormalizedDpopBrokerResponse,
     PlatformAuthResponse,
 } from "../broker/nativeBroker/PlatformAuthResponse.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
@@ -96,28 +99,6 @@ import {
     initializeServerTelemetryManager,
 } from "./BaseInteractionClient.js";
 import { SilentCacheClient } from "./SilentCacheClient.js";
-
-/**
- * Bounded failure reasons emitted when validating a broker DPoP response.
- */
-type BrokerDpopFailureReason =
-    | "conflicting_fields"
-    | "invalid_attestation"
-    | "missing_attestation"
-    | "missing_l1_binding"
-    | "missing_proof"
-    | "unexpected_response"
-    | "unknown_token_type";
-
-type BrokerDpopOutcome = "none" | "L1" | "L3";
-
-type NormalizedDpopBrokerResponse = {
-    tokenType?: string;
-    proof?: unknown;
-    bindingAttested?: boolean;
-    hasBindingAttested: boolean;
-    hasMalformedBindingAttested: boolean;
-};
 
 const DPOP_POP_KID_NOT_SUPPORTED = "dpop_pop_kid_not_supported";
 
