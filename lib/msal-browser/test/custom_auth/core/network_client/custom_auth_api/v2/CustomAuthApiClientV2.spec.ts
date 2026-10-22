@@ -675,6 +675,140 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
+        it("maps email and phone enrollment from sign-up attributes", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-enroll",
+                    state: "interactionRequired",
+                    action: "enroll",
+                    _embedded: {
+                        methods: [
+                            {
+                                type: "phone",
+                                channels: ["sms"],
+                                _links: {
+                                    enroll: {
+                                        href: "/tenant/api/v2.0/auth/methods/phone",
+                                    },
+                                },
+                            },
+                            {
+                                type: "email",
+                                _links: {
+                                    enroll: {
+                                        href: "/tenant/api/v2.0/auth/methods/email",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.submitSignUpAttributes(
+                    "/tenant/api/v2.0/auth/submitattributes",
+                    {
+                        continuationToken: "ct-start",
+                        attributes: { email: "user@test.com" },
+                    },
+                    context
+                )
+            ).resolves.toEqual({
+                nextAction: "enroll",
+                continuationToken: "ct-enroll",
+                methods: [
+                    {
+                        type: "phone",
+                        channels: ["sms"],
+                        enrollHref: "/tenant/api/v2.0/auth/methods/phone",
+                    },
+                    {
+                        type: "email",
+                        channels: undefined,
+                        enrollHref: "/tenant/api/v2.0/auth/methods/email",
+                    },
+                ],
+            });
+        });
+
+        it("rejects sign-up enrollment without embedded methods", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-enroll",
+                    action: "enroll",
+                })
+            );
+
+            await expect(
+                apiClient.submitSignUpAttributes(
+                    "/submitattributes",
+                    { continuationToken: "ct-start", attributes: {} },
+                    context
+                )
+            ).rejects.toMatchObject({ error: NO_AUTHENTICATION_METHODS });
+        });
+
+        it("rejects sign-up enrollment without a continuation token", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    action: "enroll",
+                    _embedded: {
+                        methods: [
+                            {
+                                type: "email",
+                                _links: { enroll: { href: "/enroll/email" } },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.submitSignUpAttributes(
+                    "/submitattributes",
+                    { continuationToken: "ct-start", attributes: {} },
+                    context
+                )
+            ).rejects.toMatchObject({ error: CONTINUATION_TOKEN_MISSING });
+        });
+
+        it("rejects malformed sign-up enrollment methods and links", async () => {
+            for (const methods of [
+                [{ type: "email" }],
+                [
+                    {
+                        type: "phone",
+                        channels: [],
+                        _links: { enroll: { href: "/enroll/phone" } },
+                    },
+                ],
+                [
+                    {
+                        type: "phone",
+                        channels: "sms",
+                        _links: { enroll: { href: "/enroll/phone" } },
+                    },
+                ],
+            ]) {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-enroll",
+                        action: "enroll",
+                        _embedded: { methods },
+                    })
+                );
+
+                await expect(
+                    apiClient.submitSignUpAttributes(
+                        "/submitattributes",
+                        { continuationToken: "ct-start", attributes: {} },
+                        context
+                    )
+                ).rejects.toMatchObject({ error: INVALID_HAL_RESPONSE });
+            }
+        });
+
         it("maps a completed attribute submission", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
@@ -1286,7 +1420,7 @@ describe("CustomAuthApiClientV2", () => {
                         methods: [
                             {
                                 type: "unknown",
-                                channels: ["unknown"],
+                                channels: ["unknown", ""],
                                 _links: {
                                     enroll: {
                                         href: "/tenant/api/v0.1/enroll/unknown",
@@ -1330,7 +1464,7 @@ describe("CustomAuthApiClientV2", () => {
                 methods: [
                     {
                         type: "unknown",
-                        channels: ["unknown"],
+                        channels: ["unknown", ""],
                         enrollHref: "/tenant/api/v0.1/enroll/unknown",
                     },
                     {
@@ -1345,6 +1479,27 @@ describe("CustomAuthApiClientV2", () => {
                     },
                 ],
             });
+        });
+
+        it("rejects verify enrollment with an empty method list", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-enroll",
+                    action: "enroll",
+                    _embedded: { methods: [] },
+                })
+            );
+
+            await expect(
+                apiClient.verifyChallenge(
+                    "/tenant/api/v0.1/password/verify",
+                    {
+                        continuationToken: "ct-password",
+                        password: "valid-password",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({ error: NO_AUTHENTICATION_METHODS });
         });
 
         it("rejects an enrollment method without an enroll link", async () => {
@@ -1377,7 +1532,7 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
-        it("rejects malformed enrollment channels", async () => {
+        it("rejects a challenge-only method from an enrollment response", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
                     continuationToken: "ct-enroll",
@@ -1385,12 +1540,9 @@ describe("CustomAuthApiClientV2", () => {
                     _embedded: {
                         methods: [
                             {
-                                type: "phone",
-                                channels: ["sms", 42],
+                                type: "email",
                                 _links: {
-                                    enroll: {
-                                        href: "/tenant/api/v0.1/enroll/phone",
-                                    },
+                                    challenge: { href: "/challenge/email" },
                                 },
                             },
                         ],
@@ -1409,10 +1561,49 @@ describe("CustomAuthApiClientV2", () => {
                 )
             ).rejects.toMatchObject({
                 error: INVALID_HAL_RESPONSE,
-                errorDescription:
-                    "Invalid HAL response: enrollment method channels are malformed",
+                errorDescription: "Invalid HAL response: missing 'enroll' link",
             });
         });
+
+        it.each([[], "sms", null])(
+            "rejects verify enrollment with invalid channels %j",
+            async (channels) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-enroll",
+                        action: "enroll",
+                        _embedded: {
+                            methods: [
+                                {
+                                    type: "phone",
+                                    channels,
+                                    _links: {
+                                        enroll: {
+                                            href: "/tenant/api/v0.1/enroll/phone",
+                                        },
+                                    },
+                                },
+                            ],
+                        },
+                    })
+                );
+
+                await expect(
+                    apiClient.verifyChallenge(
+                        "/tenant/api/v0.1/password/verify",
+                        {
+                            continuationToken: "ct-password",
+                            password: "valid-password",
+                        },
+                        context
+                    )
+                ).rejects.toMatchObject({
+                    error: INVALID_HAL_RESPONSE,
+                    errorDescription:
+                        "Invalid HAL response: enrollment method channels are malformed",
+                });
+            }
+        );
 
         it.each([undefined, null, "", "unknownFactor"])(
             "rejects challenge authentication factor %s",

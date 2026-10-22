@@ -7,6 +7,7 @@ import { CustomAuthPublicClientApplication } from "../../../src/custom_auth/Cust
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
 import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
+import { AuthMethodRegistrationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import { AttributesRequiredStateV2 } from "../../../src/custom_auth/sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { SignUpPasswordRequiredStateV2 } from "../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
 import { SignInContinuationStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
@@ -15,6 +16,15 @@ import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth
 import { AuthFlowErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
+import {
+    ACTIVATED_CONTINUE_RESPONSE,
+    CONTINUE_RESPONSE,
+    ENROLL_ACTIVATION_RESPONSE,
+    ENROLL_REQUIRED_RESPONSE,
+    ENTRY_RESPONSE,
+    START_RESPONSE,
+    SUBMIT_ATTRIBUTES_RESPONSE,
+} from "./SignUpV2Constants.js";
 
 const buildResponse = (
     body: unknown,
@@ -28,51 +38,6 @@ const buildResponse = (
         },
         json: async () => body,
     } as unknown as Response);
-
-const ENTRY_RESPONSE = {
-    error: "InsufficientAuthorization",
-    error_description: "No authenticated credentials found in request.",
-    continuation_token: "ct-entry",
-    sign_up: "/tenant/api/v0.1/signup/start",
-};
-
-const START_RESPONSE = {
-    continuationToken: "ct-start",
-    state: "interactionRequired",
-    action: "collectAttributes",
-    attributes: [
-        {
-            attributeId: "email",
-            inputType: "text",
-            required: true,
-            canChange: true,
-            label: "Email Address",
-            regex: "^.*",
-        },
-    ],
-    _links: {
-        submitAttributes: {
-            href: "/tenant/api/v0.1/signup/submitattributes",
-            name: "submitAttributes",
-        },
-    },
-};
-
-const SUBMIT_ATTRIBUTES_RESPONSE = {
-    continuationToken: "ct-challenge",
-    state: "interactionRequired",
-    action: "verify",
-    id: "email-1",
-    codeLength: 8,
-    hint: "u***@contoso.com",
-    type: "email",
-    _links: {
-        verify: { href: "/tenant/api/v0.1/email/verify" },
-        resend: { href: "/tenant/api/v0.1/email/resend" },
-    },
-};
-
-const CONTINUE_RESPONSE = { code: "auth-code-1" };
 
 describe("Sign-up V2 entry", () => {
     let app: CustomAuthPublicClientApplication;
@@ -281,6 +246,263 @@ describe("Sign-up V2 entry", () => {
                 continuationToken: "ct-start",
                 attributes: expectedAttributes,
             });
+        }
+    );
+
+    it("rejects enrollment before verification or additional attributes", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(ENROLL_REQUIRED_RESPONSE));
+
+        const startResult = await app.signUpV2({
+            username: "user@contoso.com",
+            password: "valid-password",
+            scopes: ["User.Read"],
+        });
+
+        expect(startResult.isFailed()).toBe(true);
+        expect(startResult.error?.errorData).toMatchObject({
+            error: "unsupported_flow_transition",
+        });
+        expect(fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it("registers after additional attributes without code verification", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-attributes",
+                    state: "interactionRequired",
+                    action: "collectAttributes",
+                    attributes: [
+                        {
+                            attributeId: "jobTitle",
+                            inputType: "text",
+                            required: true,
+                        },
+                    ],
+                    _links: {
+                        submitAttributes: {
+                            href: "/tenant/api/v0.1/signup/submitattributes",
+                        },
+                    },
+                })
+            )
+            .mockResolvedValueOnce(buildResponse(ENROLL_REQUIRED_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(ENROLL_ACTIVATION_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(ACTIVATED_CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+        const startResult = await app.signUpV2({
+            username: "user@contoso.com",
+            password: "valid-password",
+            attributes: { givenName: "Test" },
+        });
+        if (!startResult.isState("attributesRequired")) {
+            throw new Error("Expected more attributes before verification.");
+        }
+
+        const registrationResult = await startResult.state.submitAttributes({
+            jobTitle: "Engineer",
+        });
+        if (!registrationResult.isState("authMethodRegistrationRequired")) {
+            throw new Error(
+                "Expected registration after additional attributes."
+            );
+        }
+
+        const activationResult =
+            await registrationResult.state.enrollAuthMethod(
+                registrationResult.state.methods[1],
+                "user@contoso.com"
+            );
+        if (!activationResult.isState("authMethodVerificationRequired")) {
+            throw new Error("Expected activation challenge.");
+        }
+        const completedResult = await activationResult.state.submitChallenge(
+            "123456"
+        );
+
+        expect(completedResult.isState("completed")).toBe(true);
+        const requests = (fetch as jest.Mock).mock.calls;
+        expect(requests).toHaveLength(8);
+        expect(JSON.parse(requests[2][1].body)).toMatchObject({
+            attributes: {
+                email: "user@contoso.com",
+                password: "valid-password",
+                givenName: "Test",
+            },
+        });
+        expect(JSON.parse(requests[3][1].body)).toEqual({
+            continuationToken: "ct-attributes",
+            attributes: { jobTitle: "Engineer" },
+        });
+        expect(
+            requests.some(([url]: [string]) =>
+                String(url).includes("/email/verify")
+            )
+        ).toBe(false);
+    });
+
+    it("registers after sign-up code verification without repeating that code", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(SUBMIT_ATTRIBUTES_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(ENROLL_REQUIRED_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(ENROLL_ACTIVATION_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(ACTIVATED_CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+        const startResult = await app.signUpV2({
+            username: "user@contoso.com",
+            password: "valid-password",
+        });
+        if (!startResult.isState("codeRequired")) {
+            throw new Error("Expected sign-up email-code challenge.");
+        }
+
+        const registrationResult = await startResult.state.submitCode(
+            "12345678"
+        );
+        if (!registrationResult.isState("authMethodRegistrationRequired")) {
+            throw new Error("Expected registration after code verification.");
+        }
+        const activationResult =
+            await registrationResult.state.enrollAuthMethod(
+                registrationResult.state.methods[1],
+                "user@contoso.com"
+            );
+        if (!activationResult.isState("authMethodVerificationRequired")) {
+            throw new Error("Expected activation challenge.");
+        }
+
+        const completedResult = await activationResult.state.submitChallenge(
+            "123456"
+        );
+        expect(completedResult.isState("completed")).toBe(true);
+        expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);
+        expect(fetch).toHaveBeenCalledTimes(8);
+        expect(
+            ((fetch as jest.Mock).mock.calls[6][1].body as URLSearchParams).get(
+                "continuation_token"
+            )
+        ).toBe("ct-activated");
+    });
+
+    it.each(["attributes", "password"] as const)(
+        "registers after deferred %s submission and completes sign-up",
+        async (submission) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(SUBMIT_ATTRIBUTES_RESPONSE)
+                )
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-attributes",
+                        state: "interactionRequired",
+                        action: "collectAttributes",
+                        attributes: [
+                            ...(submission === "password"
+                                ? [
+                                      {
+                                          attributeId: "password",
+                                          inputType: "password",
+                                          required: true,
+                                      },
+                                  ]
+                                : []),
+                            {
+                                attributeId: "jobTitle",
+                                inputType: "text",
+                                required: true,
+                            },
+                        ],
+                        _links: {
+                            submitAttributes: {
+                                href: "/tenant/api/v0.1/signup/submitattributes",
+                            },
+                        },
+                    })
+                )
+                .mockResolvedValueOnce(buildResponse(ENROLL_REQUIRED_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(ENROLL_ACTIVATION_RESPONSE)
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(ACTIVATED_CONTINUE_RESPONSE)
+                )
+                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+            const startResult = await app.signUpV2({
+                username: "user@contoso.com",
+                ...(submission === "attributes"
+                    ? { password: "valid-password" }
+                    : {}),
+            });
+            if (!startResult.isState("codeRequired")) {
+                throw new Error("Expected sign-up email-code challenge.");
+            }
+
+            const verifyResult = await startResult.state.submitCode("12345678");
+            const registrationResult =
+                submission === "attributes" &&
+                verifyResult.isState("attributesRequired")
+                    ? await verifyResult.state.submitAttributes({
+                          jobTitle: "Engineer",
+                      })
+                    : submission === "password" &&
+                      verifyResult.isState("passwordRequired")
+                    ? await verifyResult.state.submitPassword(
+                          "valid-password",
+                          { jobTitle: "Engineer" }
+                      )
+                    : undefined;
+            if (
+                !registrationResult?.isState("authMethodRegistrationRequired")
+            ) {
+                throw new Error(
+                    "Expected registration after deferred attributes."
+                );
+            }
+
+            const activationResult =
+                await registrationResult.state.enrollAuthMethod(
+                    registrationResult.state.methods[1],
+                    "user@contoso.com"
+                );
+            if (!activationResult.isState("authMethodVerificationRequired")) {
+                throw new Error("Expected activation challenge.");
+            }
+            const completedResult =
+                await activationResult.state.submitChallenge("123456");
+
+            expect(completedResult.isState("completed")).toBe(true);
+            expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);
+            const requests = (fetch as jest.Mock).mock.calls;
+            expect(requests).toHaveLength(9);
+            expect(JSON.parse(requests[4][1].body)).toMatchObject({
+                continuationToken: "ct-attributes",
+                attributes: {
+                    jobTitle: "Engineer",
+                    ...(submission === "password"
+                        ? { password: "valid-password" }
+                        : {}),
+                },
+            });
+            expect(
+                (requests[7][1].body as URLSearchParams).get(
+                    "continuation_token"
+                )
+            ).toBe("ct-activated");
         }
     );
 

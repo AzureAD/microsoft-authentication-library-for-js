@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Support Native Auth V2 JIT email and SMS enrollment during sign-in.",
+  "comment": "Support Native Auth V2 JIT email and SMS enrollment during sign-in and sign-up.",
   "packageName": "@azure/msal-browser",
   "dependentChangeType": "patch"
 }

@@ -131,6 +131,7 @@ export type FlowSignUpActionResultV2 =
     | FlowCodeRequiredResultV2
     | FlowSignUpPasswordRequiredResultV2
     | FlowAttributesRequiredResultV2
+    | FlowAuthMethodRegistrationRequiredResultV2
     | FlowSignInContinuationRequiredResultV2;
 
 // Result type discriminators.

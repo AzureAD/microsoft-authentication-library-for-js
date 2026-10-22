@@ -21,7 +21,6 @@ import {
     ActivationResultV2,
     EnrollmentResultV2,
     EnrollmentMethodV2,
-    EnrollmentRequiredResultV2,
 } from "./result/BaseResultsV2.js";
 import {
     SignUpStartApiResultV2,
@@ -43,7 +42,6 @@ import {
     ParsedResponseV2,
     EmbeddedMethodV2,
     EmbeddedEnrollmentMethodV2,
-    EnrollmentRequiredResponseV2,
     EnrollmentResponseV2,
     HalResponseBaseV2,
 } from "./response/ResponsesV2.js";
@@ -190,6 +188,20 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             return {
                 ...this.toChallengeVerificationResult(parsedResponse),
                 attributes: parsedResponse.body.attributes,
+            };
+        }
+
+        if (parsedResponse.body.action === ENROLL_RELATION) {
+            return {
+                nextAction: ENROLL_RELATION,
+                continuationToken,
+                methods: this.resolveEnrollmentMethods(
+                    this.handler.requireMethods(
+                        parsedResponse.body._embedded?.methods,
+                        correlationId
+                    ),
+                    correlationId
+                ),
             };
         }
 
@@ -450,7 +462,10 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
         return {
             continuationToken,
             methods: this.resolveMethods(
-                parsedResponse.body,
+                this.handler.requireMethods(
+                    parsedResponse.body._embedded?.methods,
+                    parsedResponse.correlationId
+                ),
                 parsedResponse.correlationId
             ),
             authenticationFactor: this.resolveAuthenticationFactor(
@@ -511,25 +526,26 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                     correlationId
                 ),
                 methods: this.resolveMethods(
-                    parsedResponse.body as {
-                        _embedded?: {
-                            methods?: EmbeddedMethodV2[];
-                        };
-                    },
+                    this.handler.requireMethods(
+                        parsedResponse.body._embedded?.methods,
+                        correlationId
+                    ) as EmbeddedMethodV2[],
                     correlationId
                 ),
             };
         }
 
         if (parsedResponse.body.action === ENROLL_RELATION) {
-            const enrollmentResult = this.toEnrollmentRequiredResult(
-                parsedResponse as ParsedResponseV2<EnrollmentRequiredResponseV2>
-            );
-
             return {
                 nextAction: ENROLL_RELATION,
-                continuationToken: enrollmentResult.continuationToken,
-                methods: enrollmentResult.methods,
+                continuationToken,
+                methods: this.resolveEnrollmentMethods(
+                    this.handler.requireMethods(
+                        parsedResponse.body._embedded?.methods,
+                        correlationId
+                    ) as EmbeddedEnrollmentMethodV2[],
+                    correlationId
+                ),
             };
         }
 
@@ -540,62 +556,41 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
         );
     }
 
-    private toEnrollmentRequiredResult(
-        parsedResponse: ParsedResponseV2<EnrollmentRequiredResponseV2>
-    ): EnrollmentRequiredResultV2 {
-        return {
-            nextAction: ENROLL_RELATION,
-            continuationToken: this.handler.requireContinuationToken(
-                parsedResponse.continuationToken,
-                parsedResponse.correlationId
-            ),
-            methods: this.resolveEnrollmentMethods(
-                parsedResponse.body._embedded?.methods,
-                parsedResponse.correlationId
-            ),
-        };
-    }
-
     private resolveEnrollmentMethods(
-        methods: EmbeddedEnrollmentMethodV2[] | undefined,
+        methods: EmbeddedEnrollmentMethodV2[],
         correlationId: string
     ): EnrollmentMethodV2[] {
-        return this.handler
-            .requireMethods(methods, correlationId)
-            .map((method) => {
-                if (typeof method.type !== "string" || !method.type.trim()) {
-                    throw new CustomAuthApiError(
-                        INVALID_HAL_RESPONSE,
-                        "Invalid HAL response: enrollment method type is malformed",
-                        correlationId
-                    );
-                }
+        return methods.map((method) => {
+            if (typeof method.type !== "string" || !method.type.trim()) {
+                throw new CustomAuthApiError(
+                    INVALID_HAL_RESPONSE,
+                    "Invalid HAL response: enrollment method type is malformed",
+                    correlationId
+                );
+            }
 
-                if (
-                    method.channels !== undefined &&
-                    (!Array.isArray(method.channels) ||
-                        method.channels.some(
-                            (channel) =>
-                                typeof channel !== "string" || !channel.trim()
-                        ))
-                ) {
-                    throw new CustomAuthApiError(
-                        INVALID_HAL_RESPONSE,
-                        "Invalid HAL response: enrollment method channels are malformed",
-                        correlationId
-                    );
-                }
+            if (
+                method.channels !== undefined &&
+                (!Array.isArray(method.channels) ||
+                    method.channels.length === 0)
+            ) {
+                throw new CustomAuthApiError(
+                    INVALID_HAL_RESPONSE,
+                    "Invalid HAL response: enrollment method channels are malformed",
+                    correlationId
+                );
+            }
 
-                return {
-                    type: method.type,
-                    channels: method.channels,
-                    enrollHref: this.handler.requireHref(
-                        method._links?.enroll?.href,
-                        ENROLL_RELATION,
-                        correlationId
-                    ),
-                };
-            });
+            return {
+                type: method.type,
+                channels: method.channels,
+                enrollHref: this.handler.requireHref(
+                    method._links?.enroll?.href,
+                    ENROLL_RELATION,
+                    correlationId
+                ),
+            };
+        });
     }
 
     private resolveAuthenticationFactor(
@@ -704,17 +699,9 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
     }
 
     private resolveMethods(
-        body: {
-            _embedded?: {
-                methods?: EmbeddedMethodV2[];
-            };
-        },
+        methods: EmbeddedMethodV2[],
         correlationId: string
     ): StartMethodV2[] {
-        const methods = this.handler.requireMethods(
-            body._embedded?.methods,
-            correlationId
-        );
         const resolved: StartMethodV2[] = [];
 
         methods.forEach((method, index) => {

@@ -145,12 +145,15 @@ export type ChallengeResponseV2 =
 export type RiskVerificationResponseV2 = CodeChallengeResponseV2;
 
 export interface SignUpSubmitAttributesResponseV2
-    extends Omit<CodeChallengeResponseV2, "_links"> {
+    extends Omit<CodeChallengeResponseV2, "_links" | "_embedded"> {
     attributes?: SignUpAttributeResponseV2[];
     _links?: {
         verify?: HalLink;
         resend?: HalLink;
         submitAttributes?: HalLink;
+    };
+    _embedded?: {
+        methods?: EmbeddedEnrollmentMethodV2[];
     };
 }
 

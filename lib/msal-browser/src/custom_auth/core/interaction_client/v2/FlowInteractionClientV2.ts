@@ -37,6 +37,7 @@ import {
     createFlowAuthMethodVerificationRequiredResultV2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
+    FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
 } from "./result/FlowActionResultV2.js";
 import type {
     FlowMethodSelectionRequiredResultV2,
@@ -315,9 +316,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             correlationId
         );
 
-        if (result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2) {
-            const message =
-                "Initial sign-up attribute submission cannot complete without code verification or additional attributes.";
+        if (
+            result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2 ||
+            result.type === FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2
+        ) {
+            const message = `Initial sign-up attribute submission returned unsupported next action '${submitResult.nextAction}'.`;
             this.logger.error(message, correlationId);
             throw new CustomAuthError(
                 UNSUPPORTED_FLOW_TRANSITION,
@@ -662,61 +665,12 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             );
         }
 
-        if (
-            continuationState.scenario === CustomAuthFlowScenarioV2.SignUp &&
-            verifyResult.nextAction === COLLECT_ATTRIBUTES_RELATION
-        ) {
-            const requiredPasswordAttribute = verifyResult.attributes.find(
-                (attribute) =>
-                    attribute.attributeId.toLowerCase() === "password" &&
-                    attribute.required === true
+        if (continuationState.scenario === CustomAuthFlowScenarioV2.SignUp) {
+            return this.handleSignUpVerification(
+                continuationState,
+                verifyResult,
+                correlationId
             );
-            const nextContinuationState: FlowContinuationStateV2 = {
-                continuationToken: verifyResult.continuationToken,
-                scenario: continuationState.scenario,
-                scopes: continuationState.scopes,
-                links: {
-                    submitAttributes: verifyResult.submitAttributesHref,
-                },
-                signUp: continuationState.signUp,
-            };
-            const attributes = verifyResult.attributes.filter(
-                (attribute) =>
-                    attribute.attributeId.toLowerCase() !== "password"
-            );
-
-            if (
-                requiredPasswordAttribute &&
-                continuationState.signUp?.passwordWasSupplied !== true
-            ) {
-                return createFlowSignUpPasswordRequiredResultV2({
-                    correlationId,
-                    continuationState: nextContinuationState,
-                    attributes,
-                    requiredPasswordAttribute,
-                });
-            }
-
-            return createFlowAttributesRequiredResultV2({
-                correlationId,
-                continuationState: nextContinuationState,
-                attributes,
-            });
-        }
-
-        if (
-            continuationState.scenario === CustomAuthFlowScenarioV2.SignUp &&
-            verifyResult.nextAction === ResponseStateV2.CONTINUE
-        ) {
-            return createFlowSignInContinuationRequiredResultV2({
-                correlationId,
-                continuationState: {
-                    continuationToken: verifyResult.continuationToken,
-                    scenario: continuationState.scenario,
-                    scopes: continuationState.scopes,
-                    links: {},
-                },
-            });
         }
 
         const message = `Verification next action '${verifyResult.nextAction}' is not supported for the '${continuationState.scenario}' flow.`;
@@ -1006,6 +960,87 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         );
     }
 
+    private handleSignUpVerification(
+        continuationState: FlowContinuationStateV2,
+        verifyResult: VerifyResultV2,
+        correlationId: string
+    ):
+        | FlowAuthMethodRegistrationRequiredResultV2
+        | FlowSignUpPasswordRequiredResultV2
+        | FlowAttributesRequiredResultV2
+        | FlowSignInContinuationRequiredResultV2 {
+        if (verifyResult.nextAction === COLLECT_ATTRIBUTES_RELATION) {
+            const requiredPasswordAttribute = verifyResult.attributes.find(
+                (attribute) =>
+                    attribute.attributeId.toLowerCase() === "password" &&
+                    attribute.required === true
+            );
+            const nextContinuationState: FlowContinuationStateV2 = {
+                continuationToken: verifyResult.continuationToken,
+                scenario: continuationState.scenario,
+                scopes: continuationState.scopes,
+                links: {
+                    submitAttributes: verifyResult.submitAttributesHref,
+                },
+                signUp: continuationState.signUp,
+            };
+            const attributes = verifyResult.attributes.filter(
+                (attribute) =>
+                    attribute.attributeId.toLowerCase() !== "password"
+            );
+
+            if (
+                requiredPasswordAttribute &&
+                continuationState.signUp?.passwordWasSupplied !== true
+            ) {
+                return createFlowSignUpPasswordRequiredResultV2({
+                    correlationId,
+                    continuationState: nextContinuationState,
+                    attributes,
+                    requiredPasswordAttribute,
+                });
+            }
+
+            return createFlowAttributesRequiredResultV2({
+                correlationId,
+                continuationState: nextContinuationState,
+                attributes,
+            });
+        }
+
+        if (verifyResult.nextAction === ENROLL_RELATION) {
+            return this.createAuthMethodRegistrationRequiredResult({
+                correlationId,
+                continuationState: {
+                    ...continuationState,
+                    continuationToken: verifyResult.continuationToken,
+                    links: {},
+                },
+                methods: verifyResult.methods,
+            });
+        }
+
+        if (verifyResult.nextAction === ResponseStateV2.CONTINUE) {
+            return createFlowSignInContinuationRequiredResultV2({
+                correlationId,
+                continuationState: {
+                    continuationToken: verifyResult.continuationToken,
+                    scenario: continuationState.scenario,
+                    scopes: continuationState.scopes,
+                    links: {},
+                },
+            });
+        }
+
+        const message = `Verification next action '${verifyResult.nextAction}' is not supported for the '${continuationState.scenario}' flow.`;
+        this.logger.error(message, correlationId);
+        throw new CustomAuthError(
+            UNSUPPORTED_FLOW_TRANSITION,
+            message,
+            correlationId
+        );
+    }
+
     private getSupportedSignInMethods(
         methods: AuthenticationMethodV2[],
         correlationId: string
@@ -1162,6 +1197,18 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 channel: result.type,
                 sentTo: result.hint,
                 codeLength: result.codeLength,
+            });
+        }
+
+        if (result.nextAction === SignUpSubmitAttributesNextActionV2.ENROLL) {
+            return this.createAuthMethodRegistrationRequiredResult({
+                correlationId,
+                continuationState: {
+                    ...continuationState,
+                    continuationToken: result.continuationToken,
+                    links: {},
+                },
+                methods: result.methods,
             });
         }
 

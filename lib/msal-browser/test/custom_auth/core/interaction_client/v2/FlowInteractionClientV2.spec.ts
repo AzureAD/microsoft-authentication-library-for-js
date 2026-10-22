@@ -170,6 +170,43 @@ describe("FlowInteractionClientV2", () => {
     });
 
     describe("signUp", () => {
+        it("rejects registration from initial attribute submission", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                signUpHref: "https://endpoint/signup/start",
+            });
+            apiClient.signUpStart.mockResolvedValue({
+                continuationToken: "ct-start",
+                submitAttributesHref: "https://endpoint/signup/attributes",
+            });
+            apiClient.submitSignUpAttributes.mockResolvedValue({
+                nextAction: "enroll",
+                continuationToken: "ct-enroll",
+                methods: [
+                    {
+                        type: "phone",
+                        channels: ["sms"],
+                        enrollHref: "https://endpoint/enroll/phone",
+                    },
+                    {
+                        type: "email",
+                        enrollHref: "https://endpoint/enroll/email",
+                    },
+                ],
+            });
+
+            await expect(
+                client.signUp({
+                    correlationId,
+                    username: "user@contoso.com",
+                    password: "valid-password",
+                    scopes: ["User.Read"],
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+            });
+        });
+
         it("submits all initial attributes once without retaining their values", async () => {
             const contextSpy = jest.spyOn(
                 client as unknown as {
@@ -1356,41 +1393,88 @@ describe("FlowInteractionClientV2", () => {
             });
         });
 
-        it.each(["signUp", "passwordReset"] as const)(
-            "rejects registration-required after verifying a %s code",
-            async (scenario) => {
-                apiClient.verifyChallenge.mockResolvedValue({
-                    nextAction: "enroll",
-                    continuationToken: "ct-enroll",
-                    methods: [
-                        {
-                            type: "email",
-                            enrollHref: "https://endpoint/enroll/email",
-                        },
-                    ],
-                });
+        it("returns registration-required after verifying a sign-up code", async () => {
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "enroll",
+                continuationToken: "ct-enroll",
+                methods: [
+                    {
+                        type: "email",
+                        enrollHref: "https://endpoint/enroll/email",
+                    },
+                ],
+            });
 
-                await expect(
-                    client.submitCode({
-                        correlationId,
-                        continuationState: {
-                            ...continuationState,
-                            scenario,
-                            ...(scenario === "signUp"
-                                ? {
-                                      signUp: {
-                                          passwordWasSupplied: false,
-                                      },
-                                  }
-                                : {}),
-                        },
-                        code: "123456",
-                    })
-                ).rejects.toMatchObject({
-                    error: UNSUPPORTED_FLOW_TRANSITION,
-                });
-            }
-        );
+            const result = await client.submitCode({
+                correlationId,
+                continuationState: {
+                    continuationToken: "ct-challenge",
+                    scenario: "signUp",
+                    scopes: ["openid", "profile", "offline_access"],
+                    links: { verify: "https://endpoint/signup/verify" },
+                    signUp: { passwordWasSupplied: true },
+                },
+                code: "12345678",
+            });
+
+            expect(result).toMatchObject({
+                type: FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+                continuationState: {
+                    continuationToken: "ct-enroll",
+                    scenario: "signUp",
+                    scopes: ["openid", "profile", "offline_access"],
+                    links: {},
+                    signUp: { passwordWasSupplied: true },
+                },
+                methods: [{ type: "email" }],
+            });
+        });
+
+        it("rejects an unsupported sign-up verification action", async () => {
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "update",
+                continuationToken: "ct-update",
+                updateHref: "https://endpoint/reset/update",
+            });
+
+            await expect(
+                client.submitCode({
+                    correlationId,
+                    continuationState: {
+                        continuationToken: "ct-challenge",
+                        scenario: "signUp",
+                        scopes: ["openid"],
+                        links: { verify: "https://endpoint/signup/verify" },
+                    },
+                    code: "12345678",
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+            });
+        });
+
+        it("rejects registration-required after verifying a password-reset code", async () => {
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "enroll",
+                continuationToken: "ct-enroll",
+                methods: [
+                    {
+                        type: "email",
+                        enrollHref: "https://endpoint/enroll/email",
+                    },
+                ],
+            });
+
+            await expect(
+                client.submitCode({
+                    correlationId,
+                    continuationState,
+                    code: "123456",
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+            });
+        });
 
         it("does not request a password again after it was previously submitted", async () => {
             const signUpContinuationState: FlowContinuationStateV2 = {
@@ -1726,6 +1810,61 @@ describe("FlowInteractionClientV2", () => {
                 passwordWasSupplied: false,
             },
         };
+
+        it("preserves sign-up context when later attributes return enrollment", async () => {
+            apiClient.submitSignUpAttributes.mockResolvedValue({
+                nextAction: "enroll",
+                continuationToken: "ct-enroll",
+                methods: [
+                    {
+                        type: "email",
+                        enrollHref: "https://endpoint/enroll/email",
+                    },
+                ],
+            });
+
+            const result = await client.submitSignUpAttributes({
+                correlationId,
+                continuationState,
+                attributes: { password: "valid-password" },
+            });
+
+            expect(result).toMatchObject({
+                type: FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+                continuationState: {
+                    continuationToken: "ct-enroll",
+                    scenario: "signUp",
+                    scopes: ["openid", "profile", "offline_access"],
+                    links: {},
+                    signUp: { passwordWasSupplied: true },
+                },
+                methods: [{ type: "email" }],
+            });
+        });
+
+        it("rejects unsupported sign-up enrollment methods", async () => {
+            apiClient.submitSignUpAttributes.mockResolvedValue({
+                nextAction: "enroll",
+                continuationToken: "ct-enroll",
+                methods: [
+                    {
+                        type: "phone",
+                        channels: ["voice"],
+                        enrollHref: "https://endpoint/enroll/phone",
+                    },
+                ],
+            });
+
+            await expect(
+                client.submitSignUpAttributes({
+                    correlationId,
+                    continuationState,
+                    attributes: { password: "valid-password" },
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+            });
+        });
 
         it("submits mixed password and profile attributes in one request", async () => {
             const contextSpy = jest.spyOn(
