@@ -8,6 +8,8 @@ See [caching doc](../../../lib/msal-node/docs/caching.md) for more information.
 
 ## Setup
 
+The sample uses `express-handlebars` to render `.hbs` views with the existing `src/views/layout.hbs` layout.
+
 Locate the folder where `package.json` resides in your terminal. Then type:
 
 ```console

@@ -186,6 +186,8 @@ $ git push origin my-feature-branch
 
 Once your changes have all been pushed to your branch and you are confident that the code is ready to be reviewed, you can [open a new pull request](https://github.com/AzureAD/microsoft-authentication-library-for-js/compare). This will create a form and notify the code owners that you are ready to merge a change. This will also run some pipeline build and test tasks to make sure that there are no errors in the build.
 
+Please note that we cannot merge an external pull request directly. If the change is accepted, an MSAL.js maintainer will create a separate pull request from a maintainer-owned branch. Depending on the circumstances, that pull request may include the external contributor's commits or may reproduce the change without those commits.
+
 Pull requests are usually reviewed within a few days. If there are comments to address, apply your changes in a separate commit and push that to your feature branch. Post a comment in the pull request afterwards; GitHub does not send out notifications when you add commits.
 
 [on GitHub]: https://github.com/AzureAD/microsoft-authentication-library-for-js

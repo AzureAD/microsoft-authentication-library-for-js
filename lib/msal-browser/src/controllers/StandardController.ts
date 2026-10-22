@@ -17,7 +17,6 @@ import {
     IPerformanceClient,
     BaseAuthRequest,
     InProgressPerformanceEvent,
-    getRequestThumbprint,
     invokeAsync,
     createClientAuthError,
     ClientAuthErrorCodes,
@@ -100,6 +99,7 @@ import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandle
 import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
+import { resolveSilentRequestPreparation } from "../request/SilentRequestHelpers.js";
 
 function preflightCheck(
     initialized: boolean,
@@ -227,6 +227,9 @@ export class StandardController implements IController {
 
         // Initialize performance client
         this.performanceClient = this.config.telemetry.client;
+        this.performanceClient.addGlobalFields({
+            allowPlatformBroker: this.config.system.allowPlatformBroker,
+        });
 
         // Initialize environment-specific crypto and token-binding services.
         if (this.isBrowserEnvironment) {
@@ -723,11 +726,9 @@ export class StandardController implements IController {
             );
 
             let result: Promise<void>;
+            const platformAuthProvider = this.platformAuthProvider;
 
-            if (
-                this.platformAuthProvider &&
-                this.canUsePlatformBroker(request)
-            ) {
+            if (this.canUsePlatformBroker(request) && platformAuthProvider) {
                 const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -737,7 +738,7 @@ export class StandardController implements IController {
                     this.navigationClient,
                     ApiId.acquireTokenRedirect,
                     this.performanceClient,
-                    this.platformAuthProvider,
+                    platformAuthProvider,
                     this.getNativeAccountId(request),
                     this.nativeInternalStorage,
                     correlationId,
@@ -1872,23 +1873,15 @@ export class StandardController implements IController {
     ): boolean {
         const correlationId = this.getRequestCorrelationId(request);
         this.logger.trace("canUsePlatformBroker called", correlationId);
-        if (!this.platformAuthProvider) {
-            this.logger.trace(
-                "canUsePlatformBroker: platform broker unavilable, returning false",
-                correlationId
-            );
-            return false;
-        }
-
-        if (
-            !isPlatformAuthAllowed(
-                this.config,
-                this.logger,
-                correlationId,
-                this.platformAuthProvider,
-                request.authenticationScheme
-            )
-        ) {
+        const platformAuthAllowed = isPlatformAuthAllowed(
+            this.config,
+            this.logger,
+            correlationId,
+            this.platformAuthProvider,
+            request.authenticationScheme,
+            this.performanceClient
+        );
+        if (!platformAuthAllowed) {
             this.logger.trace(
                 "canUsePlatformBroker: isPlatformAuthAllowed returned false, returning false",
                 correlationId
@@ -2305,19 +2298,21 @@ export class StandardController implements IController {
         account: AccountInfo,
         correlationId: string
     ): Promise<AuthenticationResult> {
-        const thumbprint = getRequestThumbprint(
-            this.config.auth.clientId,
+        const preparedRequest = resolveSilentRequestPreparation(
             {
-                ...request,
-                authority: request.authority || this.config.auth.authority,
-                correlationId: correlationId,
+                request,
+                account,
+                correlationId,
+                config: this.config,
             },
-            account.homeAccountId
+            this.platformAuthProvider,
+            this.logger,
+            this.performanceClient
         );
-        const silentRequestKey = JSON.stringify(thumbprint);
 
-        const inProgressRequest =
-            this.activeSilentTokenRequests.get(silentRequestKey);
+        const inProgressRequest = this.activeSilentTokenRequests.get(
+            preparedRequest.key
+        );
 
         if (typeof inProgressRequest === "undefined") {
             this.logger.verbose(
@@ -2334,15 +2329,18 @@ export class StandardController implements IController {
                 correlationId
             )(
                 {
-                    ...request,
+                    ...preparedRequest.request,
                     correlationId,
                 },
-                account
+                preparedRequest.account
             );
-            this.activeSilentTokenRequests.set(silentRequestKey, activeRequest);
+            this.activeSilentTokenRequests.set(
+                preparedRequest.key,
+                activeRequest
+            );
 
             return activeRequest.finally(() => {
-                this.activeSilentTokenRequests.delete(silentRequestKey);
+                this.activeSilentTokenRequests.delete(preparedRequest.key);
             });
         } else {
             this.logger.verbose(
@@ -2554,7 +2552,8 @@ export class StandardController implements IController {
                 this.logger,
                 silentRequest.correlationId,
                 this.platformAuthProvider,
-                silentRequest.authenticationScheme
+                silentRequest.authenticationScheme,
+                this.performanceClient
             ) &&
             silentRequest.account.nativeAccountId
         ) {

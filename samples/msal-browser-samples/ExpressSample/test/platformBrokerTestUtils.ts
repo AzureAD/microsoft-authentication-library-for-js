@@ -6,12 +6,16 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import { execFileSync } from "child_process";
 import * as puppeteer from "puppeteer";
 import { BrowserCacheUtils } from "e2e-test-utils";
 
 const SSO_EXTENSION_PATH = process.env.SSO_EXTENSION_PATH || "";
 const SSO_EXTENSION_ID = "ppnbnpeolgkicgegkbkbjmhlideopiji";
 const SSO_EXTENSION_TIMEOUT = 20000;
+const BROWSERCORE_POLICY_KEY =
+    "HKLM\\SOFTWARE\\Policies\\Microsoft\\BrowserCore";
+const ENABLE_PLATFORM_AUTH_VALUE = "EnablePlatformAuth";
 
 export const PLATFORM_LOGIN_TIMEOUT = 180000;
 
@@ -20,12 +24,55 @@ export interface PlatformBrokerProfile {
     userDataDir: string;
 }
 
-export function createPlatformBrokerProfile(): PlatformBrokerProfile {
+export interface PlatformBrokerResponse {
+    homeAccountId?: string;
+    nativeAccountId: string;
+}
+
+function isPlatformAuthEnabled(): boolean {
+    try {
+        const output = execFileSync(
+            "reg.exe",
+            ["query", BROWSERCORE_POLICY_KEY, "/v", ENABLE_PLATFORM_AUTH_VALUE],
+            { encoding: "utf8" }
+        );
+        return new RegExp(
+            `${ENABLE_PLATFORM_AUTH_VALUE}\\s+REG_DWORD\\s+0x1\\s*$`,
+            "m"
+        ).test(output);
+    } catch {
+        return false;
+    }
+}
+
+function verifyPlatformBrokerPrerequisites(): void {
+    if (process.platform !== "win32") {
+        throw new Error(
+            "Platform-broker e2e tests require a WAM-enabled Windows machine"
+        );
+    }
     if (!SSO_EXTENSION_PATH) {
         throw new Error(
             "SSO_EXTENSION_PATH must point to the unpacked Microsoft SSO extension"
         );
     }
+    if (!fs.existsSync(path.join(SSO_EXTENSION_PATH, "manifest.json"))) {
+        throw new Error(
+            `SSO_EXTENSION_PATH does not contain manifest.json: ${SSO_EXTENSION_PATH}`
+        );
+    }
+
+    if (!isPlatformAuthEnabled()) {
+        throw new Error(
+            "BrowserCore platform authentication is disabled. In Registry Editor, " +
+                `create ${BROWSERCORE_POLICY_KEY} and add a REG_DWORD named ` +
+                `${ENABLE_PLATFORM_AUTH_VALUE} with value 1.`
+        );
+    }
+}
+
+export function createPlatformBrokerProfile(): PlatformBrokerProfile {
+    verifyPlatformBrokerPrerequisites();
 
     const extensionDir = fs.mkdtempSync(path.join(os.tmpdir(), "sso-ext-"));
     const userDataDir = fs.mkdtempSync(
@@ -51,11 +98,20 @@ export async function launchPlatformBrokerBrowser(
         ],
     });
 
-    await browser.waitForTarget(
-        (target) =>
-            target.url().startsWith(`chrome-extension://${SSO_EXTENSION_ID}/`),
-        { timeout: SSO_EXTENSION_TIMEOUT }
-    );
+    try {
+        await browser.waitForTarget(
+            (target) =>
+                target
+                    .url()
+                    .startsWith(`chrome-extension://${SSO_EXTENSION_ID}/`),
+            { timeout: SSO_EXTENSION_TIMEOUT }
+        );
+    } catch {
+        await browser.close().catch(() => {});
+        throw new Error(
+            `Microsoft SSO extension ${SSO_EXTENSION_ID} did not start from SSO_EXTENSION_PATH`
+        );
+    }
 
     return browser;
 }
@@ -72,7 +128,7 @@ export function removePlatformBrokerProfile(
 
 export async function verifyPlatformBrokerResponse(
     target: puppeteer.Page
-): Promise<void> {
+): Promise<PlatformBrokerResponse> {
     if (!target.url().endsWith("profile")) {
         await target.locator("a#viewProfileButton").click();
     }
@@ -86,6 +142,7 @@ export async function verifyPlatformBrokerResponse(
         .wait();
     const authData = JSON.parse(authDataText || "") as {
         account?: {
+            homeAccountId?: string;
             nativeAccountId?: string;
         };
         fromPlatformBroker?: boolean;
@@ -93,6 +150,16 @@ export async function verifyPlatformBrokerResponse(
 
     expect(authData.fromPlatformBroker).toBe(true);
     expect(authData.account?.nativeAccountId).toBeTruthy();
+    if (!authData.account?.nativeAccountId) {
+        throw new Error(
+            "Platform-broker response did not contain account.nativeAccountId"
+        );
+    }
+
+    return {
+        homeAccountId: authData.account.homeAccountId,
+        nativeAccountId: authData.account.nativeAccountId,
+    };
 }
 
 export async function verifyPlatformBrokerTokenStore(

@@ -16,6 +16,7 @@ import {
 } from "@azure/msal-common/browser";
 import {
     AuthError,
+    BrowserCacheLocation,
     CacheLookupPolicy,
     ClientAuthError,
     ClientAuthErrorCodes,
@@ -80,6 +81,9 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,
+            },
+            cache: {
+                cacheLocation: BrowserCacheLocation.SessionStorage,
             },
         };
 
@@ -365,6 +369,51 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
 
             expect(response.accessToken).toEqual(testResponse.accessToken);
             expect(hydrateCacheSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("stores bridge-returned tokens (ID and access tokens) in configured storage", async () => {
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+
+            await pca.acquireTokenSilent({
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                cacheLookupPolicy: CacheLookupPolicy.Skip,
+                correlationId: NAA_CORRELATION_ID,
+            });
+
+            const cacheKeys = Object.keys(window.sessionStorage);
+            const localStorageKeys = Object.keys(window.localStorage);
+            const internalMemoryKeys = (
+                (pca as any).controller.browserStorage.internalStorage as {
+                    getKeys: () => string[];
+                }
+            ).getKeys();
+
+            expect(
+                cacheKeys.filter((key) => key.includes("idtoken"))
+            ).toHaveLength(1);
+            expect(
+                cacheKeys.filter((key) => key.includes("accesstoken"))
+            ).toHaveLength(1);
+            expect(
+                cacheKeys.filter((key) => key.includes("refreshtoken"))
+            ).toHaveLength(0);
+            expect(
+                localStorageKeys.filter(
+                    (key) =>
+                        key.includes("idtoken") ||
+                        key.includes("accesstoken") ||
+                        key.includes("refreshtoken")
+                )
+            ).toHaveLength(0);
+            expect(
+                internalMemoryKeys.filter(
+                    (key) =>
+                        key.includes("idtoken") ||
+                        key.includes("accesstoken") ||
+                        key.includes("refreshtoken")
+                )
+            ).toHaveLength(0);
         });
 
         it("acquireTokenSilent ignores cache if forceRefresh is on", async () => {
@@ -952,6 +1001,11 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
 
             const result = await localPca.acquireTokenPopup(testRequest);
 
+            expect(mockMeasurement.add).toHaveBeenCalledWith({
+                nestedAppAuthRequest: true,
+                bridgeType: "NAA",
+            });
+
             // Verify measurement.end was called with account parameter
             expect(mockMeasurement.end).toHaveBeenCalledWith(
                 expect.objectContaining({ success: true }),
@@ -1023,6 +1077,11 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
 
             const result = await localPca.acquireTokenSilent(silentRequest);
 
+            expect(mockMeasurement.add).toHaveBeenCalledWith({
+                nestedAppAuthRequest: true,
+                bridgeType: "NAA",
+            });
+
             // Verify measurement.end was called with account parameter
             expect(mockMeasurement.end).toHaveBeenCalledWith(
                 expect.objectContaining({ success: true }),
@@ -1038,6 +1097,41 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
 
             expect(result).toBeDefined();
             expect(result.account).toBeDefined();
+        });
+
+        it("should add the NAA bridge type to silent cache measurements", async () => {
+            const mockMeasurement = {
+                end: jest.fn().mockReturnValue({}),
+                discard: jest.fn(),
+                add: jest.fn(),
+                increment: jest.fn(),
+                event: {
+                    eventId: "test-event-id",
+                    status: "InProgress" as any,
+                    authority: TEST_CONFIG.validAuthority,
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    correlationId: RANDOM_TEST_GUID,
+                    name: "test-event",
+                    startTimeMs: Date.now(),
+                    libraryName: "msal-browser",
+                    libraryVersion: "test-version",
+                },
+                measurement: {},
+            };
+
+            jest.spyOn(performanceClient, "startMeasurement").mockReturnValue(
+                mockMeasurement as any
+            );
+
+            await (localPca as any).controller.acquireTokenFromCache({
+                scopes: ["user.read"],
+                forceRefresh: true,
+            });
+
+            expect(mockMeasurement.add).toHaveBeenCalledWith({
+                nestedAppAuthRequest: true,
+                bridgeType: "NAA",
+            });
         });
 
         it("should not pass account when account is not provided in request", async () => {

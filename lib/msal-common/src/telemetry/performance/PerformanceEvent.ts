@@ -318,11 +318,15 @@ export type PerformanceEvent = {
     extensionInstalled?: boolean;
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;
+    platformAuthProviderAvailable?: boolean;
+    platformAuthProviderType?: string;
+    platformAuthRequestCorrelationId?: string;
 
     /**
      * Nested App Auth Fields
      */
     nestedAppAuthRequest?: boolean;
+    bridgeType?: "NAA" | "PWB";
 
     /**
      * Multiple matched access/id/refresh tokens in the cache

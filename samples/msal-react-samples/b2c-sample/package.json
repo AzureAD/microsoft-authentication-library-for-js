@@ -12,14 +12,14 @@
         "@mui/material": "^5.9.0",
         "react": "^19.2.1",
         "react-dom": "^19.2.1",
-        "react-router-dom": "^6.7.0"
+        "react-router-dom": "^7.18.4"
     },
     "devDependencies": {
         "@types/jest": "^29.5.0",
         "@vitejs/plugin-react": "^5.0.0",
         "e2e-test-utils": "file:../../e2eTestUtils",
         "jest": "^29.5.0",
-        "jest-junit": "^16.0.0",
+        "jest-junit": "^17.0.0",
         "ts-jest": "^29.4.11",
         "vite": "^7.0.0"
     },
