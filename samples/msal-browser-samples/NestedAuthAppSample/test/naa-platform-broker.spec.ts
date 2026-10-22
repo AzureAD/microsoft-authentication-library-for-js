@@ -3,39 +3,24 @@
  * Licensed under the MIT License.
  */
 
-// Platform-broker (JS-WAM) Nested App Authentication e2e.
-//
-// Exercises every token API a nestable public client supports — acquireTokenSilent
-// and ssoSilent (bridge GetToken), acquireTokenPopup and loginPopup (bridge
-// GetTokenPopup) — asserting the nested app receives tokens through the host's
-// broker. The broker signature: neither the host nor the nested cache holds a
-// refresh token (the OS broker holds it). Also asserts acquireTokenRedirect is
-// rejected as unsupported.
-//
-// Self-hosted only: requires branded Chrome, the Microsoft SSO extension, WAM,
-// and lab credentials, so it is excluded from CI by the `naa-basic` testFilter
-// in the e2e pipeline. Run locally via `npm run test:e2e:broker`.
+// Tests the NAA and platform broker end-to-end flow.
 
-import { BrowserContext, Page, Frame } from "playwright-core";
-import { spawn, ChildProcess } from "child_process";
+import { ChildProcess, spawn } from "child_process";
 import * as path from "path";
+import { BrowserContext, Frame, Page } from "playwright-core";
 import {
-    LabClient,
-    setupCredentials,
-    LabApiQueryParams,
-    AzureEnvironments,
-    AppTypes,
-} from "e2e-test-utils";
-import {
-    launchBrokerContext,
-    closeBrokerContext,
     BrokerContext,
-    enterAadCredentials,
-    readSessionTokenStore,
-    readAccountKeys,
-    accessTokenForScopesExists,
-    TokenStore,
+    closeBrokerContext,
+    launchBrokerContext,
 } from "./brokerHarness";
+import {
+    TokenStore,
+    accessTokenForScopesExists,
+    enterAadCredentials,
+    getLabCredentials,
+    readAccountKeys,
+    readSessionTokenStore,
+} from "./naaTestUtils";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serverUtils = require("../../../e2eTestUtils/jest-puppeteer-utils/serverUtils");
@@ -49,14 +34,10 @@ const { HOST_APP_PORT, NESTED_APP_PORT } = require("../sampleConfig.cjs") as {
 const SAMPLE_ROOT = path.join(__dirname, "..");
 const HOST_URL = `https://localhost:${HOST_APP_PORT}`;
 const NESTED_IFRAME = "iframe[title='nestedApp']";
-const SCOPES = ["User.Read"];
 const ACTION_TIMEOUT = 60000;
 const SERVER_READY_TIMEOUT_MS = 120000;
-
-// Error code NestedAppAuthController throws for unsupported APIs (e.g. redirect).
 const UNSUPPORTED_METHOD_CODE = "unsupported_method";
-
-// The token APIs under test and the bridge method each one drives.
+const SCOPES = ["User.Read"];
 const TOKEN_APIS = [
     { name: "acquireTokenSilent", bridge: "GetToken" },
     { name: "ssoSilent", bridge: "GetToken" },
@@ -64,11 +45,6 @@ const TOKEN_APIS = [
     { name: "loginPopup", bridge: "GetTokenPopup" },
 ] as const;
 
-// Excluded from CI by the pipeline testFilter; throws in beforeAll if the broker
-// prerequisites are missing when run elsewhere.
-const brokerDescribe = describe;
-
-// Resolves the nested app's iframe as a Frame once its buttons are present.
 async function getNestedFrame(hostPage: Page): Promise<Frame> {
     const handle = await hostPage.waitForSelector(NESTED_IFRAME, {
         timeout: ACTION_TIMEOUT,
@@ -83,13 +59,6 @@ async function getNestedFrame(hostPage: Page): Promise<Frame> {
     return frame;
 }
 
-// Resets the nested app to a pristine state before each case: clears its MSAL
-// cache and reloads the iframe so the nested PCA re-initializes with an empty
-// token cache. Without this the cases share one nested cache, so a cache-first
-// API (e.g. ssoSilent after acquireTokenSilent) would be served the token a
-// previous case cached and never issue its own bridge request. The account
-// context is restored from the host bridge on reload, so every API still
-// resolves — but only by genuinely exercising its bridge path.
 async function resetNestedFrame(hostPage: Page): Promise<Frame> {
     const frame = await getNestedFrame(hostPage);
     await frame.evaluate(() => window.sessionStorage.clear());
@@ -98,7 +67,6 @@ async function resetNestedFrame(hostPage: Page): Promise<Frame> {
             selector
         ) as HTMLIFrameElement | null;
         if (iframe) {
-            // Re-assigning src (even to the same URL) reloads the iframe.
             // eslint-disable-next-line no-self-assign
             iframe.src = iframe.src;
         }
@@ -106,8 +74,6 @@ async function resetNestedFrame(hostPage: Page): Promise<Frame> {
     return getNestedFrame(hostPage);
 }
 
-// Asserts a nestable-client token store: one id + access token for the scopes,
-// and no refresh token (the broker holds it).
 function assertNestedTokenStore(store: TokenStore): void {
     expect(store.idTokens.length).toBe(1);
     expect(store.accessTokens.length).toBe(1);
@@ -115,7 +81,7 @@ function assertNestedTokenStore(store: TokenStore): void {
     expect(accessTokenForScopesExists(store.accessTokens, SCOPES)).toBe(true);
 }
 
-brokerDescribe("NAA token APIs brokered through the platform broker", () => {
+describe("NAA token APIs brokered through the platform broker", () => {
     jest.setTimeout(300000);
 
     let broker: BrokerContext;
@@ -123,11 +89,9 @@ brokerDescribe("NAA token APIs brokered through the platform broker", () => {
     let hostPage: Page;
     let nestedFrame: Frame;
     let serverProcess: ChildProcess;
-
     let username: string;
-    let accountPwd: string;
+    let password: string;
 
-    // Auto-completes any AAD login popup the interactive APIs open.
     function autoCompleteAadPopups(): void {
         context.on("page", async (popup) => {
             try {
@@ -138,21 +102,18 @@ brokerDescribe("NAA token APIs brokered through the platform broker", () => {
                     .isVisible()
                     .catch(() => false);
                 if (hasLogin) {
-                    await enterAadCredentials(popup, username, accountPwd);
+                    await enterAadCredentials(popup, username, password);
                 }
             } catch {
-                // Popup closed itself (silent broker completion) — nothing to do.
+                // Popup closed itself after silent broker completion.
             }
         });
     }
 
     beforeAll(async () => {
-        // Start the sample from .env (the real broker registrations). The default
-        // jest globalSetup may have started the .env.e2e server on these ports, so
-        // free them first, then bring up host + nested over HTTPS.
         await serverUtils.killServer(HOST_APP_PORT);
         await serverUtils.killServer(NESTED_APP_PORT);
-        serverProcess = spawn("node server.js --https", {
+        serverProcess = spawn("npm run start:e2e", {
             shell: true,
             cwd: SAMPLE_ROOT,
             stdio: ["ignore", "inherit", "inherit"],
@@ -168,19 +129,7 @@ brokerDescribe("NAA token APIs brokered through the platform broker", () => {
             );
         }
 
-        const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD,
-        };
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParams
-        );
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
-        );
-
+        ({ username, password } = await getLabCredentials());
         broker = await launchBrokerContext();
         if (!broker.extensionPresent) {
             throw new Error(
@@ -191,9 +140,10 @@ brokerDescribe("NAA token APIs brokered through the platform broker", () => {
         }
         context = broker.context;
 
-        // Sign the host in, filling the credential prompt if one appears.
         hostPage = await context.newPage();
-        await hostPage.goto(HOST_URL, { waitUntil: "domcontentloaded" });
+        await hostPage.goto(HOST_URL, {
+            waitUntil: "domcontentloaded",
+        });
 
         const popupPromise = context
             .waitForEvent("page", { timeout: 15000 })
@@ -210,7 +160,7 @@ brokerDescribe("NAA token APIs brokered through the platform broker", () => {
                 .isVisible()
                 .catch(() => false);
             if (hasLogin) {
-                await enterAadCredentials(popup, username, accountPwd);
+                await enterAadCredentials(popup, username, password);
             }
         }
 
@@ -218,15 +168,13 @@ brokerDescribe("NAA token APIs brokered through the platform broker", () => {
             .getByText("Signed in as", { exact: false })
             .waitFor({ timeout: ACTION_TIMEOUT });
 
-        // Host signed in through the broker holds no refresh token (the OS broker
-        // does); a non-zero count means it fell back to the web flow.
         const hostStore = await readSessionTokenStore(hostPage);
+        expect(hostStore.accessTokens.length).toBe(0);
         expect(hostStore.refreshTokens.length).toBe(0);
         expect(hostStore.idTokens.length).toBe(1);
         expect(await readAccountKeys(hostPage)).not.toBeNull();
 
         autoCompleteAadPopups();
-
         nestedFrame = await getNestedFrame(hostPage);
     });
 
@@ -239,8 +187,6 @@ brokerDescribe("NAA token APIs brokered through the platform broker", () => {
         await serverUtils.killServer(NESTED_APP_PORT);
     });
 
-    // Reset the nested cache before every case so each API exercises its own
-    // bridge path instead of being served a token a prior case cached.
     beforeEach(async () => {
         nestedFrame = await resetNestedFrame(hostPage);
     });
@@ -252,7 +198,6 @@ brokerDescribe("NAA token APIs brokered through the platform broker", () => {
                 .locator(`#${name}`)
                 .click({ timeout: ACTION_TIMEOUT });
 
-            // The nested UI tags the result table with the API that produced it.
             const resultTable = nestedFrame.locator(
                 `table[data-testid='lastApi'][data-api='${name}']`
             );
@@ -271,7 +216,6 @@ brokerDescribe("NAA token APIs brokered through the platform broker", () => {
             .locator("#acquireTokenRedirect")
             .click({ timeout: ACTION_TIMEOUT });
 
-        // The nested UI surfaces the thrown NestedAppAuthError with its code.
         const errorEl = nestedFrame.locator(
             "pre[data-testid='apiError'][data-api='acquireTokenRedirect']"
         );
@@ -280,7 +224,6 @@ brokerDescribe("NAA token APIs brokered through the platform broker", () => {
             UNSUPPORTED_METHOD_CODE
         );
 
-        // The rejected call must not mint or drop any tokens.
         const after = await readSessionTokenStore(nestedFrame);
         expect(after.idTokens.length).toBe(before.idTokens.length);
         expect(after.accessTokens.length).toBe(before.accessTokens.length);

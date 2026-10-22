@@ -32,6 +32,12 @@ describe("ScopeSet.ts", () => {
             );
         });
 
+        it("Does not throw if default OIDC scopes are provided", () => {
+            expect(
+                () => new ScopeSet([...Constants.OIDC_DEFAULT_SCOPES], "")
+            ).not.toThrow();
+        });
+
         it("Trims array string values", () => {
             const testScope1 = "    TestScope1";
             const trimmedTestScope1 = "TestScope1";

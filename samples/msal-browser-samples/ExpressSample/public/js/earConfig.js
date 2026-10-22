@@ -13,9 +13,6 @@ export const earConfig = {
         redirectUri: "/redirect",
         postLogoutRedirectUri: "/redirect",
     },
-    cache: {
-        cacheLocation: "sessionStorage",
-    },
     system: {
         allowPlatformBroker: false,
     },

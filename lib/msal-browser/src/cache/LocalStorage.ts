@@ -4,6 +4,7 @@
  */
 
 import {
+    Constants,
     TokenKeys,
     IPerformanceClient,
     invokeAsync,
@@ -152,7 +153,12 @@ export class LocalStorage implements IWindowStorage<string> {
 
         // Register listener for cache updates in other tabs
         this.broadcast.addEventListener("message", (event: MessageEvent) => {
-            this.updateCache(event, correlationId);
+            this.updateCache(event, correlationId).catch(() => {
+                this.logger.error(
+                    "Failed to process cache update broadcast",
+                    correlationId
+                );
+            });
         });
 
         this.initialized = true;
@@ -267,20 +273,22 @@ export class LocalStorage implements IWindowStorage<string> {
         this.broadcast.postMessage({
             key: key,
             value: value,
-            context: this.getContext(key),
+            context: this.getBroadcastContext(key),
         });
     }
 
     removeItem(key: string): void {
-        if (this.memoryStorage.containsKey(key)) {
-            this.memoryStorage.removeItem(key);
+        const itemExists =
+            this.containsKey(key) || this.memoryStorage.containsKey(key);
+        window.localStorage.removeItem(key);
+        this.memoryStorage.removeItem(key);
+        if (itemExists) {
             this.broadcast.postMessage({
                 key: key,
                 value: null,
-                context: this.getContext(key),
+                context: this.getBroadcastContext(key),
             });
         }
-        window.localStorage.removeItem(key);
     }
 
     getKeys(): string[] {
@@ -459,21 +467,78 @@ export class LocalStorage implements IWindowStorage<string> {
         return importedArr;
     }
 
-    /**
-     * Gets encryption context for a given cache entry. This is clientId for app specific entries, empty string for shared entries
-     * @param key
-     * @returns
-     */
     private getContext(key: string): string {
-        let context = "";
-        if (key.includes(this.clientId)) {
-            context = this.clientId; // Used to bind encryption key to this appId
-        }
-
-        return context;
+        return key.includes(this.clientId) ? this.clientId : "";
     }
 
-    private updateCache(event: MessageEvent, correlationId: string): void {
+    private getBroadcastContext(key: string): string {
+        const normalizedKey = key.toLowerCase();
+        const keySegments = normalizedKey.split(CacheKeys.CACHE_KEY_SEPARATOR);
+        if (keySegments.length > 1) {
+            return keySegments[4] === this.clientId.toLowerCase()
+                ? this.clientId
+                : "";
+        }
+
+        const credentialType = this.getCredentialType(normalizedKey);
+        if (credentialType) {
+            const ownerPrefix = `-${credentialType}-${this.clientId.toLowerCase()}-`;
+            return normalizedKey.includes(ownerPrefix) ? this.clientId : "";
+        }
+
+        return normalizedKey.includes(this.clientId.toLowerCase())
+            ? this.clientId
+            : "";
+    }
+
+    private getCredentialType(key: string): string | undefined {
+        const normalizedKey = key.toLowerCase();
+        const keySegments = normalizedKey.split(CacheKeys.CACHE_KEY_SEPARATOR);
+        const structuredCredentialType = keySegments[3];
+
+        return Object.values(Constants.CredentialType)
+            .map((type) => type.toLowerCase())
+            .find(
+                (type) =>
+                    structuredCredentialType === type ||
+                    normalizedKey.includes(`-${type}-`)
+            );
+    }
+
+    private isFamilyRefreshToken(key: string, credentialType: string): boolean {
+        if (
+            credentialType !==
+            Constants.CredentialType.REFRESH_TOKEN.toLowerCase()
+        ) {
+            return false;
+        }
+
+        const normalizedKey = key.toLowerCase();
+        const keySegments = normalizedKey.split(CacheKeys.CACHE_KEY_SEPARATOR);
+        return keySegments.length > 1
+            ? keySegments[4] === Constants.THE_FAMILY_ID
+            : normalizedKey.includes(
+                  `-${credentialType}-${Constants.THE_FAMILY_ID}-`
+              );
+    }
+
+    private isContextValid(key: string, context: string): boolean {
+        const credentialType = this.getCredentialType(key);
+        const isFamilyRefreshToken =
+            credentialType && this.isFamilyRefreshToken(key, credentialType);
+        const isClientBoundCredential =
+            !!credentialType && !isFamilyRefreshToken;
+
+        return (
+            (!isClientBoundCredential || !!context) &&
+            context === this.getBroadcastContext(key)
+        );
+    }
+
+    private async updateCache(
+        event: MessageEvent,
+        correlationId: string
+    ): Promise<void> {
         this.logger.trace(
             "Updating internal cache from broadcast event",
             correlationId
@@ -483,14 +548,27 @@ export class LocalStorage implements IWindowStorage<string> {
         );
         perfMeasurement.add({ isBackground: true });
 
-        const { key, value, context } = event.data;
-        if (!key) {
+        const key = event.data?.key;
+        const context = event.data?.context;
+        if (typeof key !== "string" || !key) {
             this.logger.error("Broadcast event missing key", correlationId);
             perfMeasurement.end({ success: false, errorCode: "noKey" });
             return;
         }
 
-        if (context && context !== this.clientId) {
+        if (typeof context !== "string") {
+            this.logger.error(
+                "Broadcast event missing cache context",
+                correlationId
+            );
+            perfMeasurement.end({
+                success: false,
+                errorCode: "noContext",
+            });
+            return;
+        }
+
+        if (!this.isContextValid(key, context)) {
             this.logger.trace(
                 `Ignoring broadcast event from clientId: '${context}'`,
                 correlationId
@@ -512,19 +590,48 @@ export class LocalStorage implements IWindowStorage<string> {
             return;
         }
 
-        if (!value) {
+        const persistedValue = this.getItem(key);
+        try {
+            const value = await this.getItemFromEncryptedCache(
+                key,
+                correlationId
+            );
+
+            // A newer write or removal occurred while this entry was decrypted.
+            if (this.getItem(key) !== persistedValue) {
+                perfMeasurement.discard();
+                return;
+            }
+
+            if (!value) {
+                this.memoryStorage.removeItem(key);
+                this.logger.verbose(
+                    "Removed item from internal cache",
+                    correlationId
+                );
+            } else {
+                this.memoryStorage.setItem(key, value);
+                this.logger.verbose(
+                    "Updated item in internal cache",
+                    correlationId
+                );
+            }
+            perfMeasurement.end({ success: true });
+        } catch {
+            if (this.getItem(key) !== persistedValue) {
+                perfMeasurement.discard();
+                return;
+            }
+
             this.memoryStorage.removeItem(key);
-            this.logger.verbose(
-                "Removed item from internal cache",
+            this.logger.error(
+                "Failed to update internal cache from persistent storage",
                 correlationId
             );
-        } else {
-            this.memoryStorage.setItem(key, value);
-            this.logger.verbose(
-                "Updated item in internal cache",
-                correlationId
-            );
+            perfMeasurement.end({
+                success: false,
+                errorCode: "cacheUpdateFailed",
+            });
         }
-        perfMeasurement.end({ success: true });
     }
 }

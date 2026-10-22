@@ -34,9 +34,11 @@ const result = await pca.acquireTokenInteractive({
 });
 ```
 
-### Opting back into `query`
+### Deprecated `responseMode` option
 
-If your application depends on the `query` response mode, set `responseMode` explicitly:
+The `responseMode` option on `acquireTokenInteractive` is deprecated in v6 and will be removed in MSAL Node v7. Omit it to use the default `form_post` behavior.
+
+Existing v6 applications that still depend on `query` may set it explicitly during migration:
 
 ```ts
 const result = await pca.acquireTokenInteractive({
@@ -48,7 +50,7 @@ const result = await pca.acquireTokenInteractive({
 });
 ```
 
-Only `query` and `form_post` are supported. Any other value (for example `fragment`) throws a `ClientConfigurationError` with the code `invalid_response_mode`.
+Explicitly supplying any `responseMode` value logs a deprecation warning. Migrate query-based applications to the built-in `form_post` handling before upgrading to v7. `fragment` remains unsupported and throws a `ClientConfigurationError` with the code `invalid_response_mode`.
 
 ## `loopbackClient` option and `ILoopbackClient` interface removed
 

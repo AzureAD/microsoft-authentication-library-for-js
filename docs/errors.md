@@ -72,6 +72,10 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   State not found.
 
+### `unsupported_cca_instance_aware`
+
+-   ConfidentialClientApplication does not support instance-aware configuration or authorization requests.
+
 ### `nonce_mismatch`
 
 -   Nonce mismatch error.
@@ -1160,6 +1164,62 @@ const msalConfig = {
 #### `http_request_failed`
 
 -   The HTTP request to the authentication server failed.
+
+#### `web_redirect_required`
+
+-   The native authentication flow must continue in a web browser.
+
+#### `invalid_input`
+
+-   The native authentication request contains invalid input.
+
+#### `authorization_code_missing`
+
+-   The authorization code is missing from the native authentication response.
+
+#### `invalid_token_response`
+
+-   The token response returned by the native authentication server is invalid.
+
+#### `invalid_hal_response`
+
+-   The HAL response returned by the native authentication server is invalid.
+
+#### `reset_password_unsupported`
+
+-   Password reset is not supported by the native authentication server.
+
+#### `sign_in_unsupported`
+
+-   Sign-in is not supported by the native authentication server.
+
+#### `sign_up_unsupported`
+
+-   Sign-up is not supported by the native authentication server.
+
+#### `continuation_link_missing`
+
+-   A server-provided link required to continue the native authentication flow is missing.
+
+#### `reset_password_timeout`
+
+-   The native authentication password-reset operation timed out.
+
+#### `unsupported_flow_step`
+
+-   The requested native authentication flow step is not supported.
+
+#### `unsupported_flow_transition`
+
+-   The native authentication server returned an outcome that is not supported for the current flow step.
+
+#### `unexpected_authentication_factor`
+
+-   The native authentication server returned an authentication factor that is not expected for the current flow step.
+
+#### `no_authentication_methods`
+
+-   The native authentication server did not return any available authentication methods.
 
 #### `invalid_request`
 
