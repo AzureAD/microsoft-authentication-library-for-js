@@ -5,6 +5,7 @@
 /tmp
 /out-tsc
 /bazel-out
+/public/redirect/msal-redirect-bridge.min.js
 
 # Node
 /node_modules

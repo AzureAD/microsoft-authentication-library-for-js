@@ -29,5 +29,7 @@ If you are trying to run this sample locally in the MSAL.js repo, run `npm run b
 
 ## Additional notes
 
+- `/redirect` serves the bridge-only page in `public/redirect/index.html`, not an Angular route. The start, build, watch, and test commands copy the installed MSAL redirect bridge bundle alongside it; the generated copy is not committed. Both `redirectUri` and `postLogoutRedirectUri` continue to use `/redirect`; production hosting must serve its directory index before applying the SPA fallback.
+- The callback page must not bootstrap Angular, create a `PublicClientApplication`, or call `handleRedirectObservable()`. Otherwise, redirect handling can clear a popup response before the bridge broadcasts it to the main window.
 - This sample does not use the `MsalRedirectComponent`, but subscribes to `handleRedirectObservable` in the `app.component.ts` file. See our doc on [redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/redirects.md) for more information.
 - The default interaction type for the sample is redirects. The sample can be configured to use redirects by changing the `interactionType` in `main.ts` to `InteractionType.Popup`.
