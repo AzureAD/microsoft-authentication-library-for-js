@@ -27,6 +27,8 @@ All of the following commands should be run in each package directory where chan
 1. Run `npm run apiExtractor` to ensure the API documentation is up to date
     - If there are changes to the API documentation, run `npm run apiExtractor -- --local` to update the API documentation
 
+Test-only changes to a package still require `npm run lint`, `npm test`, and `npm run format:check` in that package, even though no changefile is required and no build output is affected. In particular, when a source change in one package (e.g. msal-common) requires updating tests in a dependent package (e.g. msal-browser), run the validation steps in the dependent package too — do not skip it just because only its test files changed.
+
 ### Changefiles
 
 - To check if changefiles are required, run `npm run beachball:check` from the root of the repo.
