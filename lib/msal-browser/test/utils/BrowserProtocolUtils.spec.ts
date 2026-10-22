@@ -186,7 +186,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             );
         });
 
-        it("replaces the current history entry and preserves application history state", () => {
+        it("clears the hash before replacing the history entry with null state", () => {
             const state = { route: "home" };
             window.history.replaceState(
                 state,
@@ -194,15 +194,22 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
                 `${base}?q=keep#code=A&view=home`
             );
             const historyLength = window.history.length;
+            const replace = jest
+                .spyOn(window.history, "replaceState")
+                .mockImplementation((data, unused, url) => {
+                    expect(window.location.hash).toBe("");
+                    replaceState.call(window.history, data, unused, url);
+                });
 
             clearHash(window);
 
             expect(window.location.href).toBe(`${base}?q=keep`);
-            expect(window.history.state).toEqual(state);
-            expect(window.history.length).toBe(historyLength);
+            expect(window.history.state).toBeNull();
+            expect(replace).toHaveBeenCalledWith(null, "", `${base}?q=keep`);
+            expect(window.history.length).toBe(historyLength + 1);
         });
 
-        it("falls back to clearing the hash when Office disables replaceState", () => {
+        it("clears the hash when Office disables replaceState", () => {
             window.history.replaceState(null, "", `${base}?q=keep#code=A`);
             // @ts-expect-error Office.js can disable this browser API.
             window.history.replaceState = null;
@@ -213,7 +220,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             expect(window.location.search).toBe("?q=keep");
         });
 
-        it("falls back to hash cleanup when replaceState throws", () => {
+        it("keeps the hash cleared when replaceState throws", () => {
             window.history.replaceState(null, "", `${base}#code=A`);
             jest.spyOn(window.history, "replaceState").mockImplementation(
                 () => {

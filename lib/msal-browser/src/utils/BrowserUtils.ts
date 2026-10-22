@@ -145,7 +145,7 @@ export function parseAuthResponseFromUrl(): {
 
 /**
  * Clears a recognized authentication response fragment, preserving the query string.
- * Hash assignment is the fallback when history updates are unavailable.
+ * Assigns an empty hash, then removes the trailing # when history updates are available.
  */
 export function clearHash(
     contentWindow: Window,
@@ -158,14 +158,18 @@ export function clearHash(
         return;
     }
     const cleanUrl = origin + pathname + search;
+    let hashCleared = false;
+
+    try {
+        contentWindow.location.hash = "";
+        hashCleared = true;
+    } catch {
+        // Try history cleanup even if hash assignment is unavailable.
+    }
 
     try {
         if (typeof contentWindow.history?.replaceState === "function") {
-            contentWindow.history.replaceState(
-                contentWindow.history.state,
-                "",
-                cleanUrl
-            );
+            contentWindow.history.replaceState(null, "", cleanUrl);
             logger?.verbose(
                 "Removed authentication response parameters from the URL.",
                 correlationId
@@ -173,19 +177,15 @@ export function clearHash(
             return;
         }
     } catch {
-        // Some hosts expose replaceState but reject its use. Try hash cleanup.
-    }
-    try {
-        contentWindow.location.hash = "";
-        return;
-    } catch {
-        // Cleanup must not replace the result or error of authentication.
+        // Hash assignment may already have cleared the response.
     }
 
-    logger?.warning(
-        "Unable to remove authentication response parameters from the URL without navigation.",
-        correlationId
-    );
+    if (!hashCleared) {
+        logger?.warning(
+            "Unable to remove authentication response parameters from the URL without navigation.",
+            correlationId
+        );
+    }
 }
 
 /**

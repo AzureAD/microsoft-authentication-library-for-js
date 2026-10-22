@@ -80,7 +80,7 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 |-----|-----------|----------|
 | `window.location.assign()` / `.replace()` | Navigate to IdP | None |
 | `window.location.hash` / `.search` | Extract auth response from redirect URL | None |
-| `window.history.replaceState()` | Clear a recognized response fragment while preserving the query string | Cleanup falls back to hash assignment (may raise `hashchange`) |
+| `window.history.replaceState()` | Remove the trailing `#` after clearing a recognized response fragment by hash assignment; preserve the query string and reset history state to `null` | Hash assignment clears the response even if history updates are unavailable (may raise `hashchange`) |
 | `pageshow` event | Detect bfcache restoration to clear stale interaction state | Graceful — may cause `interaction_in_progress` error |
 | `window.open()` | Popup auth flows | None for popup |
 | Hidden iframe | Silent token renewal (`ssoSilent`, `acquireTokenSilent` fallback) | None for silent renewal |

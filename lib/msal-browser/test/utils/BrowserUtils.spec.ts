@@ -54,7 +54,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             expect(window.location.href).toBe(
                 `${window.location.origin}/callback?tenant=contoso&code=query-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
             );
-            expect(history.length).toBe(historyLength);
+            expect(history.length).toBe(historyLength + 1);
         } finally {
             history.replaceState(null, "", url);
         }
