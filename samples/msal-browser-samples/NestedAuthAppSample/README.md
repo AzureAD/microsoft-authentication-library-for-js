@@ -162,3 +162,12 @@ servers automatically.
 
 The e2e specs use Playwright for browser automation and consume the shared
 lab-account utilities from `samples/e2eTestUtils`.
+
+Broker cleanup allows 10 seconds for context closure, then attempts to close
+the owned browser with the same limit if context closure fails or hangs.
+Cleanup errors still fail the suite, and both sample servers are stopped even
+when browser cleanup fails. The temporary profile is removed only after a
+successful context or browser close.
+
+Run the broker cleanup regression tests with `npm run test:unit` from this
+directory; they do not require WAM, credentials, or running sample servers.
