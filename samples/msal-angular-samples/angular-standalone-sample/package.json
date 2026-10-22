@@ -3,11 +3,11 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "node copyRedirectBridge.js && ng serve",
-    "build": "npm run postinstall:msal-angular && node copyRedirectBridge.js && ng build",
+    "start": "ng serve",
+    "build": "npm run postinstall:msal-angular && ng build",
     "postinstall:msal-angular": "node ../sample-scripts/useMsalAngularTarball.js",
-    "watch": "node copyRedirectBridge.js && ng build --watch --configuration development",
-    "test": "node copyRedirectBridge.js && ng test",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
     "lint": "ng lint",
     "test:e2e": "jest"
   },
