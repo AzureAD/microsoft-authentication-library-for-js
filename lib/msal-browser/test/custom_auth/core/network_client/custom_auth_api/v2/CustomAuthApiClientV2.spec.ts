@@ -507,7 +507,10 @@ describe("CustomAuthApiClientV2", () => {
                 context
             );
 
-            expect(result.attributes).toBeUndefined();
+            expect("nextAction" in result).toBe(false);
+            if (!("nextAction" in result)) {
+                expect(result.attributes).toBeUndefined();
+            }
         });
     });
 
@@ -735,7 +738,10 @@ describe("CustomAuthApiClientV2", () => {
                     continuationToken: "ct-challenge",
                     action: "verify",
                     payload: { codeLength: 8 },
-                    _links: { verify: { href: "/tenant/api/v0.1/verify" } },
+                    _links: {
+                        verify: { href: "/tenant/api/v0.1/verify" },
+                        resend: { href: "/tenant/api/v0.1/resend" },
+                    },
                 })
             );
 
@@ -747,6 +753,84 @@ describe("CustomAuthApiClientV2", () => {
             expect(result).toMatchObject({
                 nextAction: "verify",
                 codeLength: 8,
+            });
+        });
+
+        it.each([undefined, 0])(
+            "rejects a code challenge with codeLength %s",
+            async (codeLength) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-challenge",
+                        action: "verify",
+                        type: "email",
+                        codeLength,
+                        _links: {
+                            verify: { href: "/tenant/api/v0.1/verify" },
+                            resend: { href: "/tenant/api/v0.1/resend" },
+                        },
+                    })
+                );
+
+                await expect(
+                    apiClient.requestChallenge(
+                        "/tenant/api/v0.1/challenge",
+                        { continuationToken: "ct-start" },
+                        context
+                    )
+                ).rejects.toMatchObject({
+                    error: INVALID_HAL_RESPONSE,
+                    errorDescription:
+                        "Invalid HAL response: challenge code length is missing or malformed",
+                });
+            }
+        );
+
+        it("rejects a malformed challenge resend link", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-challenge",
+                    action: "verify",
+                    _links: {
+                        verify: { href: "/tenant/api/v0.1/verify" },
+                        resend: { href: 42 },
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.requestChallenge(
+                    "/tenant/api/v0.1/challenge",
+                    { continuationToken: "ct-start" },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription: "Invalid HAL response: missing 'resend' link",
+            });
+        });
+
+        it("rejects a challenge resend relation without an href", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-challenge",
+                    action: "verify",
+                    _links: {
+                        verify: { href: "/tenant/api/v0.1/verify" },
+                        resend: {},
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.requestChallenge(
+                    "/tenant/api/v0.1/challenge",
+                    { continuationToken: "ct-start" },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription: "Invalid HAL response: missing 'resend' link",
             });
         });
 
@@ -833,7 +917,7 @@ describe("CustomAuthApiClientV2", () => {
                     context
                 )
             ).resolves.toEqual({
-                nextAction: "riskVerify",
+                nextAction: "riskverify",
                 continuationToken: "ct-risk",
                 riskVerifyHref: "/tenant/api/v1.0-internal/risk/phone/verify",
             });
@@ -1192,6 +1276,144 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
+        it("maps enrollment methods in server order without applying flow support policy", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-enroll",
+                    state: "interactionRequired",
+                    action: "enroll",
+                    _embedded: {
+                        methods: [
+                            {
+                                type: "unknown",
+                                channels: ["unknown"],
+                                _links: {
+                                    enroll: {
+                                        href: "/tenant/api/v0.1/enroll/unknown",
+                                    },
+                                },
+                            },
+                            {
+                                type: "email",
+                                _links: {
+                                    enroll: {
+                                        href: "/tenant/api/v0.1/enroll/email",
+                                    },
+                                },
+                            },
+                            {
+                                type: "phone",
+                                channels: ["voice"],
+                                _links: {
+                                    enroll: {
+                                        href: "/tenant/api/v0.1/enroll/voice",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            const result = await apiClient.verifyChallenge(
+                "/tenant/api/v0.1/password/verify",
+                {
+                    continuationToken: "ct-password",
+                    password: "valid-password",
+                },
+                context
+            );
+
+            expect(result).toEqual({
+                nextAction: "enroll",
+                continuationToken: "ct-enroll",
+                methods: [
+                    {
+                        type: "unknown",
+                        channels: ["unknown"],
+                        enrollHref: "/tenant/api/v0.1/enroll/unknown",
+                    },
+                    {
+                        type: "email",
+                        channels: undefined,
+                        enrollHref: "/tenant/api/v0.1/enroll/email",
+                    },
+                    {
+                        type: "phone",
+                        channels: ["voice"],
+                        enrollHref: "/tenant/api/v0.1/enroll/voice",
+                    },
+                ],
+            });
+        });
+
+        it("rejects an enrollment method without an enroll link", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-enroll",
+                    action: "enroll",
+                    _embedded: {
+                        methods: [
+                            {
+                                type: "email",
+                            },
+                        ],
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.verifyChallenge(
+                    "/tenant/api/v0.1/password/verify",
+                    {
+                        continuationToken: "ct-password",
+                        password: "valid-password",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription: "Invalid HAL response: missing 'enroll' link",
+            });
+        });
+
+        it("rejects malformed enrollment channels", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-enroll",
+                    action: "enroll",
+                    _embedded: {
+                        methods: [
+                            {
+                                type: "phone",
+                                channels: ["sms", 42],
+                                _links: {
+                                    enroll: {
+                                        href: "/tenant/api/v0.1/enroll/phone",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.verifyChallenge(
+                    "/tenant/api/v0.1/password/verify",
+                    {
+                        continuationToken: "ct-password",
+                        password: "valid-password",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription:
+                    "Invalid HAL response: enrollment method channels are malformed",
+            });
+        });
+
         it.each([undefined, null, "", "unknownFactor"])(
             "rejects challenge authentication factor %s",
             async (authenticationFactor) => {
@@ -1276,6 +1498,415 @@ describe("CustomAuthApiClientV2", () => {
                     context
                 )
             ).rejects.toMatchObject({ error: INVALID_HAL_RESPONSE });
+        });
+    });
+
+    describe("enrollAuthMethod", () => {
+        it("posts email enrollment without a channel and maps activation metadata", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-activate",
+                    state: "interactionRequired",
+                    action: "activate",
+                    type: "email",
+                    hint: "u***@test.com",
+                    codeLength: 6,
+                    _links: {
+                        activate: {
+                            href: "/tenant/api/v0.1/activate/email",
+                        },
+                        resend: {
+                            href: "/tenant/api/v0.1/enroll/email",
+                        },
+                    },
+                })
+            );
+
+            const result = await apiClient.enrollAuthMethod(
+                "/tenant/api/v0.1/enroll/email",
+                {
+                    email: "user@test.com",
+                    continuationToken: "ct-enroll",
+                },
+                context
+            );
+
+            expect(result).toEqual({
+                nextAction: "activate",
+                continuationToken: "ct-activate",
+                hint: "u***@test.com",
+                codeLength: 6,
+                activateHref: "/tenant/api/v0.1/activate/email",
+                resendHref: "/tenant/api/v0.1/enroll/email",
+            });
+
+            const [url, options] = mockHttpClient.sendAsync.mock.calls[0];
+            expect(url.href).toBe(
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/enroll/email"
+            );
+            expect(options.method).toBe(HttpMethod.POST);
+            expect(JSON.parse(options.body)).toEqual({
+                email: "user@test.com",
+                continuationToken: "ct-enroll",
+            });
+        });
+
+        it("posts phone enrollment with the SMS channel", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-activate",
+                    action: "activate",
+                    type: "phone",
+                    codeLength: 6,
+                    _links: {
+                        activate: {
+                            href: "/tenant/api/v0.1/activate/phone",
+                        },
+                        resend: {
+                            href: "/tenant/api/v0.1/enroll/phone",
+                        },
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.enrollAuthMethod(
+                    "/tenant/api/v0.1/enroll/phone",
+                    {
+                        phoneNumber: "+15555550123",
+                        channel: "sms",
+                        continuationToken: "ct-enroll",
+                    },
+                    context
+                )
+            ).resolves.toMatchObject({
+                nextAction: "activate",
+                codeLength: 6,
+            });
+
+            const [, options] = mockHttpClient.sendAsync.mock.calls[0];
+            expect(JSON.parse(options.body)).toEqual({
+                phoneNumber: "+15555550123",
+                channel: "sms",
+                continuationToken: "ct-enroll",
+            });
+        });
+
+        it("does not require method type in an activation response", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-activate",
+                    action: "activate",
+                    codeLength: 6,
+                    _links: {
+                        activate: {
+                            href: "/tenant/api/v0.1/activate/email",
+                        },
+                        resend: {
+                            href: "/tenant/api/v0.1/enroll/email",
+                        },
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.enrollAuthMethod(
+                    "/tenant/api/v0.1/enroll/email",
+                    {
+                        email: "user@test.com",
+                        continuationToken: "ct-enroll",
+                    },
+                    context
+                )
+            ).resolves.toMatchObject({
+                nextAction: "activate",
+            });
+        });
+
+        it("rejects an activation response without an activate link", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-activate",
+                    action: "activate",
+                    type: "email",
+                    codeLength: 6,
+                })
+            );
+
+            await expect(
+                apiClient.enrollAuthMethod(
+                    "/tenant/api/v0.1/enroll/email",
+                    {
+                        email: "user@test.com",
+                        continuationToken: "ct-enroll",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription:
+                    "Invalid HAL response: missing 'activate' link",
+            });
+        });
+
+        it("rejects a malformed activate link", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-activate",
+                    action: "activate",
+                    type: "email",
+                    codeLength: 6,
+                    _links: {
+                        activate: {
+                            href: 42,
+                        },
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.enrollAuthMethod(
+                    "/tenant/api/v0.1/enroll/email",
+                    {
+                        email: "user@test.com",
+                        continuationToken: "ct-enroll",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription:
+                    "Invalid HAL response: missing 'activate' link",
+            });
+        });
+
+        it("rejects a malformed resend link", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-activate",
+                    action: "activate",
+                    type: "email",
+                    codeLength: 6,
+                    _links: {
+                        activate: {
+                            href: "/tenant/api/v0.1/activate/email",
+                        },
+                        resend: {
+                            href: 42,
+                        },
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.enrollAuthMethod(
+                    "/tenant/api/v0.1/enroll/email",
+                    {
+                        email: "user@test.com",
+                        continuationToken: "ct-enroll",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription: "Invalid HAL response: missing 'resend' link",
+            });
+        });
+
+        it("rejects an activation resend relation without an href", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-activate",
+                    action: "activate",
+                    type: "email",
+                    codeLength: 6,
+                    _links: {
+                        activate: {
+                            href: "/tenant/api/v0.1/activate/email",
+                        },
+                        resend: {},
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.enrollAuthMethod(
+                    "/tenant/api/v0.1/enroll/email",
+                    {
+                        email: "user@test.com",
+                        continuationToken: "ct-enroll",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription: "Invalid HAL response: missing 'resend' link",
+            });
+        });
+
+        it("rejects a malformed activation code length", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-activate",
+                    action: "activate",
+                    type: "email",
+                    codeLength: 0,
+                    _links: {
+                        activate: {
+                            href: "/tenant/api/v0.1/activate/email",
+                        },
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.enrollAuthMethod(
+                    "/tenant/api/v0.1/enroll/email",
+                    {
+                        email: "user@test.com",
+                        continuationToken: "ct-enroll",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription:
+                    "Invalid HAL response: enrollment activation code length is missing or malformed",
+            });
+        });
+
+        it("rejects a missing activation code length", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-activate",
+                    action: "activate",
+                    type: "email",
+                    _links: {
+                        activate: {
+                            href: "/tenant/api/v0.1/activate/email",
+                        },
+                        resend: {
+                            href: "/tenant/api/v0.1/enroll/email",
+                        },
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.enrollAuthMethod(
+                    "/tenant/api/v0.1/enroll/email",
+                    {
+                        email: "user@test.com",
+                        continuationToken: "ct-enroll",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription:
+                    "Invalid HAL response: enrollment activation code length is missing or malformed",
+            });
+        });
+    });
+
+    describe("resendAuthMethodRegistrationChallenge", () => {
+        it("posts only the continuation token and maps activation metadata", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-resend",
+                    action: "activate",
+                    type: "email",
+                    hint: "u***@test.com",
+                    codeLength: 6,
+                    _links: {
+                        activate: {
+                            href: "/tenant/api/v0.1/activate/email",
+                        },
+                        resend: {
+                            href: "/tenant/api/v0.1/enroll/email",
+                        },
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.resendAuthMethodRegistrationChallenge(
+                    "/tenant/api/v0.1/enroll/email",
+                    {
+                        continuationToken: "ct-activate",
+                    },
+                    context
+                )
+            ).resolves.toMatchObject({
+                nextAction: "activate",
+                continuationToken: "ct-resend",
+                hint: "u***@test.com",
+                codeLength: 6,
+            });
+
+            const [url, options] = mockHttpClient.sendAsync.mock.calls[0];
+            expect(url.href).toBe(
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/enroll/email"
+            );
+            expect(options.method).toBe(HttpMethod.POST);
+            expect(JSON.parse(options.body)).toEqual({
+                continuationToken: "ct-activate",
+            });
+        });
+    });
+
+    describe("activateAuthMethod", () => {
+        it("posts the OTP and returns the continuation token", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-continue",
+                    state: "continue",
+                })
+            );
+
+            const result = await apiClient.activateAuthMethod(
+                "/tenant/api/v0.1/activate/email",
+                {
+                    otp: "866334",
+                    continuationToken: "ct-activate",
+                },
+                context
+            );
+
+            expect(result).toEqual({
+                nextAction: "continue",
+                continuationToken: "ct-continue",
+            });
+
+            const [, options] = mockHttpClient.sendAsync.mock.calls[0];
+            expect(JSON.parse(options.body)).toEqual({
+                otp: "866334",
+                continuationToken: "ct-activate",
+            });
+        });
+
+        it("rejects activation without the continue state", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-continue",
+                    state: "interactionRequired",
+                })
+            );
+
+            await expect(
+                apiClient.activateAuthMethod(
+                    "/tenant/api/v0.1/activate/email",
+                    {
+                        otp: "866334",
+                        continuationToken: "ct-activate",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription:
+                    "Invalid HAL response: activation returned no continuation state",
+            });
         });
     });
 

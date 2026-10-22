@@ -36,6 +36,7 @@ import { SignInStartResultV2 } from "../sign_in/auth_flow/v2/result/SignInStartR
 import { SignUpStartResultV2 } from "../sign_up/auth_flow/v2/result/SignUpStartResultV2.js";
 import {
     FLOW_COMPLETED_V2,
+    FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
     FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_METHOD_SELECTION_REQUIRED_V2,
@@ -52,6 +53,7 @@ import { PasswordRequiredStateV2 } from "../sign_in/auth_flow/v2/state/PasswordR
 import { SignUpStateTransitionHandlerV2 } from "../sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
 import { SignUpPasswordRequiredStateV2 } from "../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
 import { AttributesRequiredStateV2 } from "../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
+import { AuthMethodRegistrationRequiredStateV2 } from "../core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
@@ -798,6 +800,22 @@ export class CustomAuthStandardController
                         flowClient: this.flowClientV2,
                         continuationState: result.continuationState,
                         cacheClient: this.cacheClient,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new AuthMethodRegistrationRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                        methods: result.methods,
                     }),
                     undefined,
                     result.continuationState.scenario

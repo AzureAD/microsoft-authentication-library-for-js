@@ -15,6 +15,8 @@ import {
     FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
     FLOW_COMPLETED_V2,
+    FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+    FLOW_AUTH_METHOD_VERIFICATION_REQUIRED_V2,
     FlowMethodSelectionRequiredResultV2,
     FlowCodeRequiredResultV2,
     FlowSignInCodeRequiredResultV2,
@@ -25,8 +27,10 @@ import {
     FlowAttributesRequiredResultV2,
     FlowSignInContinuationRequiredResultV2,
     FlowCompletedResultV2,
+    FlowAuthMethodRegistrationRequiredResultV2,
 } from "../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { FlowContinuationStateV2 } from "../../../../../src/custom_auth/core/interaction_client/v2/FlowContinuationStateV2.js";
+import { FlowAuthMethodRegistrationRequiredParamsV2 } from "../../../../../src/custom_auth/core/interaction_client/v2/parameter/FlowParamsV2.js";
 import { CustomAuthAuthority } from "../../../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { CustomAuthApiClientV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
@@ -46,6 +50,9 @@ import {
     getDefaultPerformanceClient,
 } from "../../../test_resources/TestModules.js";
 import {
+    JIT_V2_ENROLL_AUTH_METHOD,
+    JIT_V2_RESEND_CHALLENGE,
+    JIT_V2_SUBMIT_CHALLENGE,
     SIGN_IN_V2_SUBMIT_CODE,
     SIGN_IN_V2_SUBMIT_PASSWORD,
     SIGN_UP_V2_COMPLETE,
@@ -72,6 +79,9 @@ describe("FlowInteractionClientV2", () => {
             | "submitNewPassword"
             | "poll"
             | "completeWithTokens"
+            | "enrollAuthMethod"
+            | "resendAuthMethodRegistrationChallenge"
+            | "activateAuthMethod"
         >
     >;
 
@@ -118,6 +128,9 @@ describe("FlowInteractionClientV2", () => {
             submitNewPassword: jest.fn(),
             poll: jest.fn(),
             completeWithTokens: jest.fn(),
+            enrollAuthMethod: jest.fn(),
+            resendAuthMethodRegistrationChallenge: jest.fn(),
+            activateAuthMethod: jest.fn(),
         } as unknown as jest.Mocked<
             Pick<
                 CustomAuthApiClientV2,
@@ -132,6 +145,9 @@ describe("FlowInteractionClientV2", () => {
                 | "submitNewPassword"
                 | "poll"
                 | "completeWithTokens"
+                | "enrollAuthMethod"
+                | "resendAuthMethodRegistrationChallenge"
+                | "activateAuthMethod"
             >
         >;
 
@@ -1295,6 +1311,87 @@ describe("FlowInteractionClientV2", () => {
             expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
         });
 
+        it("returns registration-required after verifying a first-factor code", async () => {
+            const signInContinuationState: FlowContinuationStateV2 = {
+                continuationToken: "ct-email",
+                scenario: "signIn",
+                scopes: ["openid", "profile", "offline_access"],
+                links: {
+                    verify: "https://endpoint/email/verify",
+                },
+            };
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "enroll",
+                continuationToken: "ct-enroll",
+                methods: [
+                    {
+                        type: "phone",
+                        channels: ["sms"],
+                        enrollHref: "https://endpoint/enroll/phone",
+                    },
+                ],
+            });
+
+            const result = await client.submitCode({
+                correlationId,
+                continuationState: signInContinuationState,
+                code: "123456",
+            });
+
+            expect(result).toMatchObject({
+                type: FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+                continuationState: {
+                    continuationToken: "ct-enroll",
+                    scenario: "signIn",
+                    scopes: ["openid", "profile", "offline_access"],
+                    links: {},
+                },
+                methods: [
+                    {
+                        type: "phone",
+                        channels: ["sms"],
+                        enrollHref: "https://endpoint/enroll/phone",
+                    },
+                ],
+            });
+        });
+
+        it.each(["signUp", "passwordReset"] as const)(
+            "rejects registration-required after verifying a %s code",
+            async (scenario) => {
+                apiClient.verifyChallenge.mockResolvedValue({
+                    nextAction: "enroll",
+                    continuationToken: "ct-enroll",
+                    methods: [
+                        {
+                            type: "email",
+                            enrollHref: "https://endpoint/enroll/email",
+                        },
+                    ],
+                });
+
+                await expect(
+                    client.submitCode({
+                        correlationId,
+                        continuationState: {
+                            ...continuationState,
+                            scenario,
+                            ...(scenario === "signUp"
+                                ? {
+                                      signUp: {
+                                          passwordWasSupplied: false,
+                                      },
+                                  }
+                                : {}),
+                        },
+                        code: "123456",
+                    })
+                ).rejects.toMatchObject({
+                    error: UNSUPPORTED_FLOW_TRANSITION,
+                });
+            }
+        );
+
         it("does not request a password again after it was previously submitted", async () => {
             const signUpContinuationState: FlowContinuationStateV2 = {
                 continuationToken: "ct-sign-up-challenge",
@@ -1563,6 +1660,58 @@ describe("FlowInteractionClientV2", () => {
                 error: UNSUPPORTED_FLOW_TRANSITION,
             });
         });
+
+        it("returns registration-required after password verification", async () => {
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "enroll",
+                continuationToken: "ct-enroll",
+                methods: [
+                    {
+                        type: "email",
+                        enrollHref: "https://endpoint/enroll/email",
+                    },
+                    {
+                        type: "phone",
+                        channels: ["sms"],
+                        enrollHref: "https://endpoint/enroll/phone",
+                    },
+                ],
+            });
+
+            const result = await client.submitSignInPassword({
+                correlationId,
+                continuationState: {
+                    continuationToken: "ct-password",
+                    scenario: "signIn",
+                    scopes: ["openid", "profile", "offline_access"],
+                    links: {
+                        verify: "https://endpoint/password/verify",
+                    },
+                },
+                password: "valid-password",
+            });
+
+            expect(result).toMatchObject({
+                type: FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+                continuationState: {
+                    continuationToken: "ct-enroll",
+                    scenario: "signIn",
+                    scopes: ["openid", "profile", "offline_access"],
+                    links: {},
+                },
+                methods: [
+                    {
+                        type: "email",
+                        enrollHref: "https://endpoint/enroll/email",
+                    },
+                    {
+                        type: "phone",
+                        channels: ["sms"],
+                        enrollHref: "https://endpoint/enroll/phone",
+                    },
+                ],
+            });
+        });
     });
 
     describe("submitSignUpAttributes", () => {
@@ -1744,7 +1893,7 @@ describe("FlowInteractionClientV2", () => {
 
         it("completes SMS risk verification before returning a code-required result", async () => {
             apiClient.requestChallenge.mockResolvedValue({
-                nextAction: "riskVerify",
+                nextAction: "riskverify",
                 continuationToken: "ct-risk",
                 riskVerifyHref: "https://endpoint/risk/verify",
             });
@@ -1857,7 +2006,10 @@ describe("FlowInteractionClientV2", () => {
                 continuationState,
             });
 
-            expect(result.channel).toBe("sms");
+            expect(result.type).toBe(FLOW_CODE_REQUIRED_V2);
+            if (result.type === FLOW_CODE_REQUIRED_V2) {
+                expect(result.channel).toBe("sms");
+            }
         });
     });
 
@@ -2215,6 +2367,380 @@ describe("FlowInteractionClientV2", () => {
                 }),
                 expect.any(Number)
             );
+        });
+    });
+
+    describe("JIT authentication-method registration", () => {
+        const continuationState: FlowContinuationStateV2 = {
+            continuationToken: "ct-enroll",
+            scenario: "signIn",
+            scopes: ["User.Read", "openid", "profile", "offline_access"],
+            links: {
+                verify: "/signin/verify",
+            },
+        };
+        const rawMethods = [
+            {
+                type: "email",
+                enrollHref: "/enroll/email",
+            },
+            {
+                type: "phone",
+                channels: ["voice", "sms"],
+                enrollHref: "/enroll/sms",
+            },
+        ];
+        const createRegistrationRequiredResult = (
+            parameters: FlowAuthMethodRegistrationRequiredParamsV2
+        ): FlowAuthMethodRegistrationRequiredResultV2 =>
+            (
+                client as unknown as {
+                    createAuthMethodRegistrationRequiredResult: (
+                        parameters: FlowAuthMethodRegistrationRequiredParamsV2
+                    ) => FlowAuthMethodRegistrationRequiredResultV2;
+                }
+            ).createAuthMethodRegistrationRequiredResult(parameters);
+
+        const createRegistrationRequired = () =>
+            createRegistrationRequiredResult({
+                correlationId,
+                continuationState,
+                methods: rawMethods,
+            });
+
+        it("returns supported methods in server order", () => {
+            const first = createRegistrationRequired();
+            const second = createRegistrationRequired();
+
+            expect(first.type).toBe(FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2);
+            expect(first.methods).toEqual([
+                {
+                    type: "email",
+                    enrollHref: "/enroll/email",
+                },
+                {
+                    type: "phone",
+                    channels: ["sms"],
+                    enrollHref: "/enroll/sms",
+                },
+            ]);
+            expect(second.methods).toEqual(first.methods);
+            expect(first.continuationState).toBe(continuationState);
+        });
+
+        it("fails when a method type is unsupported", () => {
+            expect(() =>
+                createRegistrationRequiredResult({
+                    correlationId,
+                    continuationState,
+                    methods: [
+                        {
+                            type: "unknown",
+                            enrollHref: "/enroll/unknown",
+                        },
+                    ],
+                })
+            ).toThrow();
+        });
+
+        it.each([[[]], [["voice"]], [["SMS"]]] as [string[]][])(
+            "fails when a phone method has unsupported channels %j",
+            (channels) => {
+                expect(() =>
+                    createRegistrationRequiredResult({
+                        correlationId,
+                        continuationState,
+                        methods: [
+                            {
+                                type: "phone",
+                                channels,
+                                enrollHref: "/enroll/phone",
+                            },
+                            {
+                                type: "email",
+                                enrollHref: "/enroll/email",
+                            },
+                        ],
+                    })
+                ).toThrow();
+            }
+        );
+
+        it("ignores channels on an email method", () => {
+            const result = createRegistrationRequiredResult({
+                correlationId,
+                continuationState,
+                methods: [
+                    {
+                        type: "email",
+                        channels: ["sms"],
+                        enrollHref: "/enroll/email",
+                    },
+                ],
+            });
+
+            expect(result.methods).toEqual([
+                {
+                    type: "email",
+                    enrollHref: "/enroll/email",
+                },
+            ]);
+        });
+
+        it("fails when a phone method omits channels", () => {
+            expect(() =>
+                createRegistrationRequiredResult({
+                    correlationId,
+                    continuationState,
+                    methods: [
+                        {
+                            type: "phone",
+                            enrollHref: "/enroll/phone",
+                        },
+                    ],
+                })
+            ).toThrow();
+        });
+
+        it("rejects a selected method without an enrollment link", async () => {
+            const required = createRegistrationRequired();
+
+            await expect(
+                client.registerAuthMethod({
+                    correlationId,
+                    continuationState: required.continuationState,
+                    method: {
+                        ...required.methods[0],
+                        enrollHref: "",
+                    },
+                    verificationContact: "user@contoso.com",
+                })
+            ).rejects.toThrow();
+
+            expect(apiClient.enrollAuthMethod).not.toHaveBeenCalled();
+        });
+
+        it("maps email registration and preserves continuation context", async () => {
+            const required = createRegistrationRequired();
+            const contextSpy = jest.spyOn(
+                client as unknown as {
+                    createRequestContext: (
+                        apiId: number,
+                        correlationId: string
+                    ) => unknown;
+                },
+                "createRequestContext"
+            );
+            apiClient.enrollAuthMethod.mockResolvedValue({
+                nextAction: "activate",
+                continuationToken: "ct-activate",
+                hint: "u***@contoso.com",
+                codeLength: 6,
+                activateHref: "/activate/email",
+                resendHref: "/resend/email",
+            });
+
+            const result = await client.registerAuthMethod({
+                correlationId,
+                continuationState: required.continuationState,
+                method: required.methods[0],
+                verificationContact: "user@contoso.com",
+            });
+
+            expect(apiClient.enrollAuthMethod).toHaveBeenCalledWith(
+                "/enroll/email",
+                {
+                    continuationToken: "ct-enroll",
+                    email: "user@contoso.com",
+                },
+                expect.objectContaining({ correlationId })
+            );
+            expect(contextSpy).toHaveBeenCalledWith(
+                JIT_V2_ENROLL_AUTH_METHOD,
+                correlationId
+            );
+            expect(result.type).toBe(FLOW_AUTH_METHOD_VERIFICATION_REQUIRED_V2);
+            expect(result).toMatchObject({
+                sentTo: "u***@contoso.com",
+                codeLength: 6,
+                continuationState: {
+                    continuationToken: "ct-activate",
+                    scenario: "signIn",
+                    scopes: continuationState.scopes,
+                    links: {
+                        activate: "/activate/email",
+                        resend: "/resend/email",
+                    },
+                },
+            });
+        });
+
+        it("maps phone registration using the response SMS channel", async () => {
+            const required = createRegistrationRequired();
+            apiClient.enrollAuthMethod.mockResolvedValue({
+                nextAction: "activate",
+                continuationToken: "ct-activate",
+                codeLength: 6,
+                activateHref: "/activate/sms",
+                resendHref: "/resend/sms",
+            });
+
+            const result = await client.registerAuthMethod({
+                correlationId,
+                continuationState: required.continuationState,
+                method: required.methods[1],
+                verificationContact: "+15555550123",
+            });
+
+            expect(apiClient.enrollAuthMethod).toHaveBeenCalledWith(
+                "/enroll/sms",
+                {
+                    continuationToken: "ct-enroll",
+                    phoneNumber: "+15555550123",
+                    channel: "sms",
+                },
+                expect.objectContaining({ correlationId })
+            );
+        });
+
+        it("activates the method and completes through the token path", async () => {
+            const required = createRegistrationRequired();
+            const contextSpy = jest.spyOn(
+                client as unknown as {
+                    createRequestContext: (
+                        apiId: number,
+                        correlationId: string
+                    ) => unknown;
+                },
+                "createRequestContext"
+            );
+            apiClient.enrollAuthMethod.mockResolvedValue({
+                nextAction: "activate",
+                continuationToken: "ct-activate",
+                codeLength: 6,
+                activateHref: "/activate/email",
+                resendHref: "/resend/email",
+            });
+            const verification = await client.registerAuthMethod({
+                correlationId,
+                continuationState: required.continuationState,
+                method: required.methods[0],
+                verificationContact: "user@contoso.com",
+            });
+            apiClient.activateAuthMethod.mockResolvedValue({
+                nextAction: "continue",
+                continuationToken: "ct-complete",
+            });
+            apiClient.completeWithTokens.mockResolvedValue({
+                token_type: "Bearer",
+                expires_in: 3600,
+                access_token: "at",
+                refresh_token: "rt",
+                scope: "openid profile offline_access",
+                id_token: "id",
+                client_info: "ci",
+            });
+            jest.spyOn(
+                client as unknown as {
+                    handleTokenResponse: (
+                        ...args: unknown[]
+                    ) => Promise<unknown>;
+                },
+                "handleTokenResponse"
+            ).mockResolvedValue({
+                account: { homeAccountId: "uid.utid" },
+            });
+
+            const result = await client.verifyAuthMethodRegistration({
+                correlationId,
+                continuationState: verification.continuationState,
+                code: "123456",
+            });
+
+            expect(apiClient.activateAuthMethod).toHaveBeenCalledWith(
+                "/activate/email",
+                {
+                    continuationToken: "ct-activate",
+                    otp: "123456",
+                },
+                expect.objectContaining({ correlationId })
+            );
+            expect(contextSpy).toHaveBeenCalledWith(
+                JIT_V2_SUBMIT_CHALLENGE,
+                correlationId
+            );
+            expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
+                {
+                    continuationToken: "ct-complete",
+                },
+                expect.objectContaining({ correlationId })
+            );
+            expect(result.type).toBe(FLOW_COMPLETED_V2);
+        });
+
+        it("resends through the retained server href with only the continuation token", async () => {
+            const required = createRegistrationRequired();
+            const contextSpy = jest.spyOn(
+                client as unknown as {
+                    createRequestContext: (
+                        apiId: number,
+                        correlationId: string
+                    ) => unknown;
+                },
+                "createRequestContext"
+            );
+            apiClient.enrollAuthMethod.mockResolvedValueOnce({
+                nextAction: "activate",
+                continuationToken: "ct-activate",
+                hint: "u***@contoso.com",
+                codeLength: 6,
+                activateHref: "/activate/email",
+                resendHref: "/resend/email",
+            });
+            const verification = await client.registerAuthMethod({
+                correlationId,
+                continuationState: required.continuationState,
+                method: required.methods[0],
+                verificationContact: "user@contoso.com",
+            });
+            apiClient.resendAuthMethodRegistrationChallenge.mockResolvedValue({
+                nextAction: "activate",
+                continuationToken: "ct-resend",
+                hint: "u***@contoso.com",
+                codeLength: 8,
+                activateHref: "/activate/email/new",
+                resendHref: "/resend/email/new",
+            });
+
+            const result = await client.resendAuthMethodRegistrationChallenge({
+                correlationId,
+                continuationState: verification.continuationState,
+            });
+
+            expect(
+                apiClient.resendAuthMethodRegistrationChallenge
+            ).toHaveBeenCalledWith(
+                "/resend/email",
+                {
+                    continuationToken: "ct-activate",
+                },
+                expect.objectContaining({ correlationId })
+            );
+            expect(contextSpy).toHaveBeenCalledWith(
+                JIT_V2_RESEND_CHALLENGE,
+                correlationId
+            );
+            expect(result).toMatchObject({
+                type: FLOW_AUTH_METHOD_VERIFICATION_REQUIRED_V2,
+                codeLength: 8,
+                continuationState: {
+                    continuationToken: "ct-resend",
+                    links: {
+                        activate: "/activate/email/new",
+                        resend: "/resend/email/new",
+                    },
+                },
+            });
         });
     });
 });

@@ -8,6 +8,16 @@
  * every V2 flow. Distinct from the per-flow result DTOs (e.g. ResetPasswordResultsV2).
  */
 import type { SignUpAttributeV2 } from "./SignUpResultsV2.js";
+import {
+    ACTIVATE_RELATION,
+    CHALLENGE_RELATION,
+    COLLECT_ATTRIBUTES_RELATION,
+    ENROLL_RELATION,
+    RISK_VERIFY_RELATION,
+    UPDATE_RELATION,
+    VERIFY_RELATION,
+    ResponseStateV2,
+} from "../ApiClientConstantsV2.js";
 
 // Initial continuation token and available flow links.
 export interface AuthorizeChallengeEntryResultV2 {
@@ -27,6 +37,32 @@ export interface StartMethodV2 {
     type?: string;
     hint?: string;
     challengeHref: string;
+}
+
+export interface EnrollmentMethodV2 {
+    type: string;
+    channels?: string[];
+    enrollHref: string;
+}
+
+export interface EnrollmentRequiredResultV2 {
+    nextAction: typeof ENROLL_RELATION;
+    continuationToken: string;
+    methods: EnrollmentMethodV2[];
+}
+
+export interface EnrollmentResultV2 {
+    nextAction: typeof ACTIVATE_RELATION;
+    continuationToken: string;
+    hint?: string;
+    codeLength: number;
+    activateHref: string;
+    resendHref: string;
+}
+
+export interface ActivationResultV2 {
+    nextAction: typeof ResponseStateV2.CONTINUE;
+    continuationToken: string;
 }
 
 export const AuthenticationFactorV2 = {
@@ -51,13 +87,8 @@ export interface StartResultV2 {
 export type ResetPasswordStartApiResultV2 = StartResultV2;
 export type SignInStartApiResultV2 = StartResultV2;
 
-export const ChallengeNextActionV2 = {
-    VERIFY: "verify",
-    RISK_VERIFY: "riskVerify",
-} as const;
-
 export interface ChallengeVerificationResultV2 {
-    nextAction: typeof ChallengeNextActionV2.VERIFY;
+    nextAction: typeof VERIFY_RELATION;
     continuationToken: string;
     verifyHref: string;
     resendHref?: string;
@@ -67,7 +98,7 @@ export interface ChallengeVerificationResultV2 {
 }
 
 export interface RiskVerificationRequiredResultV2 {
-    nextAction: typeof ChallengeNextActionV2.RISK_VERIFY;
+    nextAction: typeof RISK_VERIFY_RELATION;
     continuationToken: string;
     riskVerifyHref: string;
 }
@@ -76,36 +107,30 @@ export type ChallengeResultV2 =
     | ChallengeVerificationResultV2
     | RiskVerificationRequiredResultV2;
 
-export const VerifyNextActionV2 = {
-    UPDATE: "update",
-    CONTINUE: "continue",
-    CHALLENGE: "challenge",
-    COLLECT_ATTRIBUTES: "collectAttributes",
-} as const;
-
 /*
  * Result of verifying a credential. The discriminated union identifies whether
  * another update is required or token redemption can continue.
  */
 export type VerifyResultV2 =
     | {
-          nextAction: typeof VerifyNextActionV2.UPDATE;
+          nextAction: typeof UPDATE_RELATION;
           continuationToken: string;
           updateHref: string;
       }
     | {
-          nextAction: typeof VerifyNextActionV2.CONTINUE;
+          nextAction: typeof ResponseStateV2.CONTINUE;
           continuationToken: string;
       }
     | {
-          nextAction: typeof VerifyNextActionV2.CHALLENGE;
+          nextAction: typeof CHALLENGE_RELATION;
           continuationToken: string;
           authenticationFactor: AuthenticationFactorV2;
           methods: StartMethodV2[];
       }
     | {
-          nextAction: typeof VerifyNextActionV2.COLLECT_ATTRIBUTES;
+          nextAction: typeof COLLECT_ATTRIBUTES_RELATION;
           continuationToken: string;
           attributes: SignUpAttributeV2[];
           submitAttributesHref: string;
-      };
+      }
+    | EnrollmentRequiredResultV2;

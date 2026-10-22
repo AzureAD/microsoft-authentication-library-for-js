@@ -7,6 +7,7 @@ import { AuthenticationResult } from "../../../../../response/AuthenticationResu
 import { AuthenticationMethodV2 } from "../../../auth_flow/v2/AuthenticationMethodV2.js";
 import { FlowContinuationStateV2 } from "../FlowContinuationStateV2.js";
 import { SignUpAttributeV2 } from "../../../network_client/custom_auth_api/v2/result/SignUpResultsV2.js";
+import { AuthenticationMethodRegistrationV2 } from "../../../auth_flow/v2/AuthenticationMethodRegistrationV2.js";
 
 /*
  * Unified outcome envelope returned by V2 interaction-client actions. The L1
@@ -102,12 +103,28 @@ export interface FlowCompletedResultV2 extends FlowActionResultBaseV2 {
     authenticationResult: AuthenticationResult;
 }
 
+export interface FlowAuthMethodRegistrationRequiredResultV2
+    extends FlowActionResultBaseV2 {
+    type: typeof FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2;
+    continuationState: FlowContinuationStateV2;
+    methods: AuthenticationMethodRegistrationV2[];
+}
+
+export interface FlowAuthMethodVerificationRequiredResultV2
+    extends FlowActionResultBaseV2 {
+    type: typeof FLOW_AUTH_METHOD_VERIFICATION_REQUIRED_V2;
+    continuationState: FlowContinuationStateV2;
+    sentTo?: string;
+    codeLength: number;
+}
+
 export type FlowSubmitCodeResultV2 =
     | FlowNewPasswordRequiredResultV2
     | FlowSignUpPasswordRequiredResultV2
     | FlowAttributesRequiredResultV2
     | FlowSignInContinuationRequiredResultV2
     | FlowMFARequiredResultV2
+    | FlowAuthMethodRegistrationRequiredResultV2
     | FlowCompletedResultV2;
 
 export type FlowSignUpActionResultV2 =
@@ -129,6 +146,10 @@ export const FLOW_ATTRIBUTES_REQUIRED_V2 = "FlowAttributesRequiredResultV2";
 export const FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2 =
     "FlowSignInContinuationRequiredResultV2";
 export const FLOW_COMPLETED_V2 = "FlowCompletedResultV2";
+export const FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2 =
+    "FlowAuthMethodRegistrationRequiredResultV2";
+export const FLOW_AUTH_METHOD_VERIFICATION_REQUIRED_V2 =
+    "FlowAuthMethodVerificationRequiredResultV2";
 
 export function createFlowMethodSelectionRequiredResultV2(
     input: Omit<FlowMethodSelectionRequiredResultV2, "type">
@@ -182,4 +203,16 @@ export function createFlowCompletedResultV2(
     input: Omit<FlowCompletedResultV2, "type">
 ): FlowCompletedResultV2 {
     return { type: FLOW_COMPLETED_V2, ...input };
+}
+
+export function createFlowAuthMethodRegistrationRequiredResultV2(
+    input: Omit<FlowAuthMethodRegistrationRequiredResultV2, "type">
+): FlowAuthMethodRegistrationRequiredResultV2 {
+    return { type: FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2, ...input };
+}
+
+export function createFlowAuthMethodVerificationRequiredResultV2(
+    input: Omit<FlowAuthMethodVerificationRequiredResultV2, "type">
+): FlowAuthMethodVerificationRequiredResultV2 {
+    return { type: FLOW_AUTH_METHOD_VERIFICATION_REQUIRED_V2, ...input };
 }

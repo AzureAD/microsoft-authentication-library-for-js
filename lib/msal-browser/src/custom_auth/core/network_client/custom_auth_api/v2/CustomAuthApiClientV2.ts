@@ -15,11 +15,13 @@ import {
     StartResultV2,
     StartMethodV2,
     ChallengeResultV2,
-    ChallengeNextActionV2,
     ChallengeVerificationResultV2,
     VerifyResultV2,
-    VerifyNextActionV2,
     AuthenticationFactorV2,
+    ActivationResultV2,
+    EnrollmentResultV2,
+    EnrollmentMethodV2,
+    EnrollmentRequiredResultV2,
 } from "./result/BaseResultsV2.js";
 import {
     SignUpStartApiResultV2,
@@ -40,6 +42,10 @@ import {
     PollResponseV2,
     ParsedResponseV2,
     EmbeddedMethodV2,
+    EmbeddedEnrollmentMethodV2,
+    EnrollmentRequiredResponseV2,
+    EnrollmentResponseV2,
+    HalResponseBaseV2,
 } from "./response/ResponsesV2.js";
 import {
     RequestContextV2,
@@ -51,6 +57,8 @@ import {
     VerifyRequestV2,
     UpdatePasswordRequestV2,
     PollRequestV2,
+    AuthMethodRegistrationRequestV2,
+    AuthMethodRegistrationVerificationRequestV2,
 } from "./request/RequestsV2.js";
 import {
     CHALLENGE_RELATION,
@@ -60,6 +68,9 @@ import {
     RISK_VERIFY_RELATION,
     AuthenticationMethodTypeV2,
     ResponseStateV2,
+    ACTIVATE_RELATION,
+    ENROLL_RELATION,
+    RESEND_RELATION,
 } from "./ApiClientConstantsV2.js";
 import {
     INVALID_HAL_RESPONSE,
@@ -265,6 +276,100 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
         return this.toVerifyResult(parsedResponse);
     }
 
+    async enrollAuthMethod(
+        enrollHref: string,
+        request: AuthMethodRegistrationRequestV2,
+        context: RequestContextV2
+    ): Promise<EnrollmentResultV2> {
+        return this.sendEnrollmentRequest(enrollHref, request, context);
+    }
+
+    async resendAuthMethodRegistrationChallenge(
+        resendHref: string,
+        request: ChallengeRequestV2,
+        context: RequestContextV2
+    ): Promise<EnrollmentResultV2> {
+        return this.sendEnrollmentRequest(resendHref, request, context);
+    }
+
+    private async sendEnrollmentRequest(
+        href: string,
+        request: ChallengeRequestV2,
+        context: RequestContextV2
+    ): Promise<EnrollmentResultV2> {
+        const parsedResponse =
+            await this.sendActionRequest<EnrollmentResponseV2>(
+                href,
+                HttpMethod.POST,
+                request,
+                context
+            );
+
+        if (parsedResponse.body.action !== ACTIVATE_RELATION) {
+            throw new CustomAuthApiError(
+                INVALID_HAL_RESPONSE,
+                "Invalid HAL response: enrollment returned no activation action",
+                parsedResponse.correlationId
+            );
+        }
+
+        const codeLength = this.handler.requirePositiveInteger(
+            parsedResponse.body.codeLength,
+            "enrollment activation code length",
+            parsedResponse.correlationId
+        );
+        const links = parsedResponse.body._links;
+
+        return {
+            nextAction: ACTIVATE_RELATION,
+            continuationToken: this.handler.requireContinuationToken(
+                parsedResponse.continuationToken,
+                parsedResponse.correlationId
+            ),
+            hint: parsedResponse.body.hint,
+            codeLength,
+            activateHref: this.handler.requireHref(
+                links?.activate?.href,
+                ACTIVATE_RELATION,
+                parsedResponse.correlationId
+            ),
+            resendHref: this.handler.requireHref(
+                links?.resend?.href,
+                RESEND_RELATION,
+                parsedResponse.correlationId
+            ),
+        };
+    }
+
+    async activateAuthMethod(
+        activateHref: string,
+        request: AuthMethodRegistrationVerificationRequestV2,
+        context: RequestContextV2
+    ): Promise<ActivationResultV2> {
+        const parsedResponse = await this.sendActionRequest<HalResponseBaseV2>(
+            activateHref,
+            HttpMethod.POST,
+            request,
+            context
+        );
+
+        if (parsedResponse.body.state !== ResponseStateV2.CONTINUE) {
+            throw new CustomAuthApiError(
+                INVALID_HAL_RESPONSE,
+                "Invalid HAL response: activation returned no continuation state",
+                parsedResponse.correlationId
+            );
+        }
+
+        return {
+            nextAction: ResponseStateV2.CONTINUE,
+            continuationToken: this.handler.requireContinuationToken(
+                parsedResponse.continuationToken,
+                parsedResponse.correlationId
+            ),
+        };
+    }
+
     /*
      * Submits the new password and returns the link used to poll for completion.
      */
@@ -367,14 +472,14 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
 
         if (parsedResponse.body.state === ResponseStateV2.CONTINUE) {
             return {
-                nextAction: VerifyNextActionV2.CONTINUE,
+                nextAction: ResponseStateV2.CONTINUE,
                 continuationToken,
             };
         }
 
         if (parsedResponse.body.action === COLLECT_ATTRIBUTES_RELATION) {
             return {
-                nextAction: VerifyNextActionV2.COLLECT_ATTRIBUTES,
+                nextAction: COLLECT_ATTRIBUTES_RELATION,
                 continuationToken,
                 attributes: parsedResponse.body.attributes ?? [],
                 submitAttributesHref: this.handler.requireHref(
@@ -387,7 +492,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
 
         if (parsedResponse.body.action === UPDATE_RELATION) {
             return {
-                nextAction: VerifyNextActionV2.UPDATE,
+                nextAction: UPDATE_RELATION,
                 continuationToken,
                 updateHref: this.handler.requireHref(
                     parsedResponse.body._links?.update?.href,
@@ -399,16 +504,32 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
 
         if (parsedResponse.body.action === CHALLENGE_RELATION) {
             return {
-                nextAction: VerifyNextActionV2.CHALLENGE,
+                nextAction: CHALLENGE_RELATION,
                 continuationToken,
                 authenticationFactor: this.resolveAuthenticationFactor(
                     parsedResponse.body.challengeContext?.authenticationFactor,
                     correlationId
                 ),
                 methods: this.resolveMethods(
-                    parsedResponse.body,
+                    parsedResponse.body as {
+                        _embedded?: {
+                            methods?: EmbeddedMethodV2[];
+                        };
+                    },
                     correlationId
                 ),
+            };
+        }
+
+        if (parsedResponse.body.action === ENROLL_RELATION) {
+            const enrollmentResult = this.toEnrollmentRequiredResult(
+                parsedResponse as ParsedResponseV2<EnrollmentRequiredResponseV2>
+            );
+
+            return {
+                nextAction: ENROLL_RELATION,
+                continuationToken: enrollmentResult.continuationToken,
+                methods: enrollmentResult.methods,
             };
         }
 
@@ -417,6 +538,64 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             "Invalid HAL response: verify returned no known next action",
             correlationId
         );
+    }
+
+    private toEnrollmentRequiredResult(
+        parsedResponse: ParsedResponseV2<EnrollmentRequiredResponseV2>
+    ): EnrollmentRequiredResultV2 {
+        return {
+            nextAction: ENROLL_RELATION,
+            continuationToken: this.handler.requireContinuationToken(
+                parsedResponse.continuationToken,
+                parsedResponse.correlationId
+            ),
+            methods: this.resolveEnrollmentMethods(
+                parsedResponse.body._embedded?.methods,
+                parsedResponse.correlationId
+            ),
+        };
+    }
+
+    private resolveEnrollmentMethods(
+        methods: EmbeddedEnrollmentMethodV2[] | undefined,
+        correlationId: string
+    ): EnrollmentMethodV2[] {
+        return this.handler
+            .requireMethods(methods, correlationId)
+            .map((method) => {
+                if (typeof method.type !== "string" || !method.type.trim()) {
+                    throw new CustomAuthApiError(
+                        INVALID_HAL_RESPONSE,
+                        "Invalid HAL response: enrollment method type is malformed",
+                        correlationId
+                    );
+                }
+
+                if (
+                    method.channels !== undefined &&
+                    (!Array.isArray(method.channels) ||
+                        method.channels.some(
+                            (channel) =>
+                                typeof channel !== "string" || !channel.trim()
+                        ))
+                ) {
+                    throw new CustomAuthApiError(
+                        INVALID_HAL_RESPONSE,
+                        "Invalid HAL response: enrollment method channels are malformed",
+                        correlationId
+                    );
+                }
+
+                return {
+                    type: method.type,
+                    channels: method.channels,
+                    enrollHref: this.handler.requireHref(
+                        method._links?.enroll?.href,
+                        ENROLL_RELATION,
+                        correlationId
+                    ),
+                };
+            });
     }
 
     private resolveAuthenticationFactor(
@@ -450,7 +629,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 parsedResponse.body as RiskVerificationRequiredResponseV2;
 
             return {
-                nextAction: ChallengeNextActionV2.RISK_VERIFY,
+                nextAction: RISK_VERIFY_RELATION,
                 continuationToken: this.handler.requireContinuationToken(
                     parsedResponse.continuationToken,
                     parsedResponse.correlationId
@@ -490,19 +669,35 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             "payload" in parsedResponse.body
                 ? parsedResponse.body
                 : undefined;
+        const isPasswordChallenge =
+            parsedResponse.body.type?.toLowerCase() ===
+            AuthenticationMethodTypeV2.PASSWORD;
+        const verifyHref = this.handler.requireHref(
+            links?.verify?.href,
+            VERIFY_RELATION,
+            parsedResponse.correlationId
+        );
+        const resendHref = isPasswordChallenge
+            ? undefined
+            : this.handler.requireHref(
+                  links && "resend" in links ? links.resend?.href : undefined,
+                  RESEND_RELATION,
+                  parsedResponse.correlationId
+              );
+        const codeLength = isPasswordChallenge
+            ? undefined
+            : this.handler.requirePositiveInteger(
+                  codeMetadata?.codeLength ?? codeMetadata?.payload?.codeLength,
+                  "challenge code length",
+                  parsedResponse.correlationId
+              );
 
         return {
-            nextAction: ChallengeNextActionV2.VERIFY,
+            nextAction: VERIFY_RELATION,
             continuationToken,
-            verifyHref: this.handler.requireHref(
-                links?.verify?.href,
-                "verify",
-                parsedResponse.correlationId
-            ),
-            resendHref:
-                links && "resend" in links ? links.resend?.href : undefined,
-            codeLength:
-                codeMetadata?.codeLength ?? codeMetadata?.payload?.codeLength,
+            verifyHref,
+            resendHref,
+            codeLength,
             hint: codeMetadata?.hint,
             type: parsedResponse.body.type,
         };

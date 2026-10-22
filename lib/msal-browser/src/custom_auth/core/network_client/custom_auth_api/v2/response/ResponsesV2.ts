@@ -34,6 +34,28 @@ export interface EmbeddedMethodV2 extends Omit<HalResource, "_links"> {
 }
 
 /*
+ * An enrollment option embedded under `_embedded.methods[]`. Enrollment
+ * methods intentionally remain distinct from challenge methods because they
+ * have no server-issued id and advertise an `enroll` link rather than a
+ * `challenge` link.
+ */
+export interface EmbeddedEnrollmentMethodV2
+    extends Omit<HalResource, "_links"> {
+    type?: string;
+    channels?: string[];
+    _links?: {
+        enroll?: HalLink;
+    };
+}
+
+export interface EnrollmentRequiredResponseV2
+    extends Omit<HalResponseBaseV2, "_embedded"> {
+    _embedded?: {
+        methods?: EmbeddedEnrollmentMethodV2[];
+    };
+}
+
+/*
  * Authorize-challenge continuation response containing the authorization code
  * that is redeemed at the token endpoint.
  */
@@ -146,7 +168,18 @@ export interface VerifyResponseV2 extends Omit<HalResponseBaseV2, "_links"> {
         submitAttributes?: HalLink;
     };
     _embedded?: {
-        methods?: EmbeddedMethodV2[];
+        methods?: (EmbeddedMethodV2 | EmbeddedEnrollmentMethodV2)[];
+    };
+}
+
+export interface EnrollmentResponseV2
+    extends Omit<HalResponseBaseV2, "_links"> {
+    codeLength?: number;
+    type?: string;
+    hint?: string;
+    _links?: {
+        activate?: HalLink;
+        resend?: HalLink;
     };
 }
 

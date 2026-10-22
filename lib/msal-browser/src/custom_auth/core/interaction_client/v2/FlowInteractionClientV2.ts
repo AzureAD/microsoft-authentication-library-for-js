@@ -19,6 +19,9 @@ import {
     FlowSubmitSignInPasswordParamsV2,
     FlowSubmitSignUpAttributesParamsV2,
     FlowSignInWithContinuationParamsV2,
+    FlowAuthMethodRegistrationRequiredParamsV2,
+    FlowRegisterAuthMethodParamsV2,
+    FlowVerifyAuthMethodRegistrationParamsV2,
 } from "./parameter/FlowParamsV2.js";
 import {
     createFlowMethodSelectionRequiredResultV2,
@@ -30,6 +33,8 @@ import {
     createFlowAttributesRequiredResultV2,
     createFlowSignInContinuationRequiredResultV2,
     createFlowCompletedResultV2,
+    createFlowAuthMethodRegistrationRequiredResultV2,
+    createFlowAuthMethodVerificationRequiredResultV2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "./result/FlowActionResultV2.js";
@@ -46,6 +51,8 @@ import type {
     FlowCompletedResultV2,
     FlowSignUpActionResultV2,
     FlowSubmitCodeResultV2,
+    FlowAuthMethodRegistrationRequiredResultV2,
+    FlowAuthMethodVerificationRequiredResultV2,
 } from "./result/FlowActionResultV2.js";
 import { BrowserConfiguration } from "../../../../config/Configuration.js";
 import { BrowserCacheManager } from "../../../../cache/BrowserCacheManager.js";
@@ -71,18 +78,30 @@ import {
 } from "../../telemetry/FlowApiIdHelperV2.js";
 import {
     AuthenticationFactorV2,
-    ChallengeNextActionV2,
     type ChallengeVerificationResultV2,
-    VerifyNextActionV2,
+    type EnrollmentResultV2,
     type VerifyResultV2,
 } from "../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
-import { AuthenticationMethodTypeV2 } from "../../network_client/custom_auth_api/v2/ApiClientConstantsV2.js";
+import {
+    AuthenticationMethodTypeV2,
+    CHALLENGE_RELATION,
+    COLLECT_ATTRIBUTES_RELATION,
+    ENROLL_RELATION,
+    PhoneRegistrationChannelV2,
+    RISK_VERIFY_RELATION,
+    UPDATE_RELATION,
+    VERIFY_RELATION,
+    ResponseStateV2,
+} from "../../network_client/custom_auth_api/v2/ApiClientConstantsV2.js";
 import type { FlowContinuationStateV2 } from "./FlowContinuationStateV2.js";
 import type { AuthenticationMethodV2 } from "../../auth_flow/v2/AuthenticationMethodV2.js";
+import type { AuthenticationMethodRegistrationV2 } from "../../auth_flow/v2/AuthenticationMethodRegistrationV2.js";
 import {
     SignUpSubmitAttributesNextActionV2,
     type SignUpSubmitAttributesApiResultV2,
 } from "../../network_client/custom_auth_api/v2/result/SignUpResultsV2.js";
+import type { AuthMethodRegistrationRequestV2 } from "../../network_client/custom_auth_api/v2/request/RequestsV2.js";
+import { InvalidArgumentError } from "../../error/InvalidArgumentError.js";
 
 /*
  * Polls up to five times for password-update completion, waiting 1.5 seconds
@@ -134,6 +153,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         | FlowPasswordRequiredResultV2
         | FlowSignInCodeRequiredResultV2
         | FlowMFARequiredResultV2
+        | FlowAuthMethodRegistrationRequiredResultV2
         | FlowCompletedResultV2
     > {
         const correlationId = parameters.correlationId;
@@ -478,6 +498,113 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
+     * Registers the selected offered method and returns activation metadata.
+     */
+    async registerAuthMethod(
+        parameters: FlowRegisterAuthMethodParamsV2
+    ): Promise<FlowAuthMethodVerificationRequiredResultV2> {
+        const { continuationState, correlationId } = parameters;
+        if (!parameters.verificationContact?.trim()) {
+            throw new InvalidArgumentError(
+                "verificationContact",
+                correlationId
+            );
+        }
+
+        const registrationRequest = this.createRegistrationRequest(
+            parameters.method,
+            parameters.verificationContact,
+            continuationState.continuationToken,
+            correlationId
+        );
+        const context = this.createRequestContext(
+            PublicApiId.JIT_V2_ENROLL_AUTH_METHOD,
+            correlationId
+        );
+
+        this.logger.verbose(
+            "Registering a V2 authentication method.",
+            correlationId
+        );
+        const result = await this.apiClient.enrollAuthMethod(
+            this.requireLink(correlationId, parameters.method.enrollHref),
+            registrationRequest,
+            context
+        );
+
+        return this.createAuthMethodVerificationRequiredResult(
+            continuationState,
+            result,
+            correlationId
+        );
+    }
+
+    /*
+     * Activates the registered method and redeems the resulting continuation
+     * for tokens.
+     */
+    async verifyAuthMethodRegistration(
+        parameters: FlowVerifyAuthMethodRegistrationParamsV2
+    ): Promise<FlowCompletedResultV2> {
+        const { continuationState, correlationId } = parameters;
+
+        const context = this.createRequestContext(
+            PublicApiId.JIT_V2_SUBMIT_CHALLENGE,
+            correlationId
+        );
+        this.logger.verbose(
+            "Activating a V2 authentication method.",
+            correlationId
+        );
+        const result = await this.apiClient.activateAuthMethod(
+            this.requireLink(correlationId, continuationState.links.activate),
+            {
+                continuationToken: continuationState.continuationToken,
+                otp: parameters.code,
+            },
+            context
+        );
+
+        return this.completeSignInAfterVerification(
+            continuationState,
+            result.continuationToken,
+            correlationId
+        );
+    }
+
+    /*
+     * Requests a replacement activation challenge through the server-provided
+     * resend link using the latest continuation token.
+     */
+    async resendAuthMethodRegistrationChallenge(
+        parameters: FlowChallengeParamsV2
+    ): Promise<FlowAuthMethodVerificationRequiredResultV2> {
+        const { continuationState, correlationId } = parameters;
+        const context = this.createRequestContext(
+            PublicApiId.JIT_V2_RESEND_CHALLENGE,
+            correlationId
+        );
+        this.logger.verbose(
+            "Resending a V2 authentication-method activation challenge.",
+            correlationId
+        );
+        const result =
+            await this.apiClient.resendAuthMethodRegistrationChallenge(
+                this.requireLink(correlationId, continuationState.links.resend),
+                {
+                    continuationToken: continuationState.continuationToken,
+                },
+                context
+            );
+
+        return this.createAuthMethodVerificationRequiredResult(
+            continuationState,
+            result,
+            correlationId
+        );
+    }
+
+    /*
      * Verifies the submitted one-time code using the server-provided link. The
      * response determines the next required action.
      */
@@ -514,7 +641,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         if (
             continuationState.scenario ===
                 CustomAuthFlowScenarioV2.PasswordReset &&
-            verifyResult.nextAction === VerifyNextActionV2.UPDATE
+            verifyResult.nextAction === UPDATE_RELATION
         ) {
             return createFlowNewPasswordRequiredResultV2({
                 correlationId,
@@ -537,7 +664,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         if (
             continuationState.scenario === CustomAuthFlowScenarioV2.SignUp &&
-            verifyResult.nextAction === VerifyNextActionV2.COLLECT_ATTRIBUTES
+            verifyResult.nextAction === COLLECT_ATTRIBUTES_RELATION
         ) {
             const requiredPasswordAttribute = verifyResult.attributes.find(
                 (attribute) =>
@@ -579,7 +706,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         if (
             continuationState.scenario === CustomAuthFlowScenarioV2.SignUp &&
-            verifyResult.nextAction === VerifyNextActionV2.CONTINUE
+            verifyResult.nextAction === ResponseStateV2.CONTINUE
         ) {
             return createFlowSignInContinuationRequiredResultV2({
                 correlationId,
@@ -756,7 +883,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      */
     async submitSignInPassword(
         parameters: FlowSubmitSignInPasswordParamsV2
-    ): Promise<FlowMFARequiredResultV2 | FlowCompletedResultV2> {
+    ): Promise<
+        | FlowMFARequiredResultV2
+        | FlowAuthMethodRegistrationRequiredResultV2
+        | FlowCompletedResultV2
+    > {
         const verifyResult = await this.verifySignInPassword(parameters);
 
         return this.handleSignInVerification(
@@ -816,8 +947,24 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         continuationState: FlowContinuationStateV2,
         verifyResult: VerifyResultV2,
         correlationId: string
-    ): Promise<FlowMFARequiredResultV2 | FlowCompletedResultV2> {
-        if (verifyResult.nextAction === VerifyNextActionV2.CHALLENGE) {
+    ): Promise<
+        | FlowMFARequiredResultV2
+        | FlowAuthMethodRegistrationRequiredResultV2
+        | FlowCompletedResultV2
+    > {
+        if (verifyResult.nextAction === ENROLL_RELATION) {
+            return this.createAuthMethodRegistrationRequiredResult({
+                correlationId,
+                continuationState: {
+                    ...continuationState,
+                    continuationToken: verifyResult.continuationToken,
+                    links: {},
+                },
+                methods: verifyResult.methods,
+            });
+        }
+
+        if (verifyResult.nextAction === CHALLENGE_RELATION) {
             this.ensureAuthenticationFactor(
                 verifyResult.authenticationFactor,
                 AuthenticationFactorV2.MULTI_FACTOR,
@@ -842,7 +989,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             });
         }
 
-        if (verifyResult.nextAction === VerifyNextActionV2.CONTINUE) {
+        if (verifyResult.nextAction === ResponseStateV2.CONTINUE) {
             return this.completeSignInAfterVerification(
                 continuationState,
                 verifyResult.continuationToken,
@@ -884,6 +1031,112 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             message,
             correlationId
         );
+    }
+
+    private createRegistrationRequest(
+        method: AuthenticationMethodRegistrationV2,
+        verificationContact: string,
+        continuationToken: string,
+        correlationId: string
+    ): AuthMethodRegistrationRequestV2 {
+        if (method.type === AuthenticationMethodTypeV2.EMAIL) {
+            return {
+                continuationToken,
+                email: verificationContact,
+            };
+        }
+
+        const [channel] = method.channels ?? [];
+        if (
+            method.type === AuthenticationMethodTypeV2.PHONE &&
+            channel === PhoneRegistrationChannelV2.SMS
+        ) {
+            return {
+                continuationToken,
+                phoneNumber: verificationContact,
+                channel,
+            };
+        }
+
+        throw new CustomAuthError(
+            UNSUPPORTED_FLOW_TRANSITION,
+            "The selected authentication method is not supported for registration.",
+            correlationId
+        );
+    }
+
+    private createAuthMethodRegistrationRequiredResult(
+        parameters: FlowAuthMethodRegistrationRequiredParamsV2
+    ): FlowAuthMethodRegistrationRequiredResultV2 {
+        const { correlationId, continuationState } = parameters;
+        const methods = parameters.methods.map((method) => {
+            const methodType = method.type.trim().toLowerCase();
+            const channel = method.channels?.find(
+                (candidate) => candidate === PhoneRegistrationChannelV2.SMS
+            );
+
+            if (methodType === AuthenticationMethodTypeV2.EMAIL) {
+                return {
+                    type: AuthenticationMethodTypeV2.EMAIL,
+                    enrollHref: this.requireLink(
+                        correlationId,
+                        method.enrollHref
+                    ),
+                };
+            }
+
+            if (
+                methodType === AuthenticationMethodTypeV2.PHONE &&
+                channel === PhoneRegistrationChannelV2.SMS
+            ) {
+                return {
+                    type: AuthenticationMethodTypeV2.PHONE,
+                    channels: [channel],
+                    enrollHref: this.requireLink(
+                        correlationId,
+                        method.enrollHref
+                    ),
+                };
+            }
+
+            const message =
+                "The enrollment response included an unsupported registration method.";
+            this.logger.error(message, correlationId);
+            throw new CustomAuthError(
+                UNSUPPORTED_FLOW_TRANSITION,
+                message,
+                correlationId
+            );
+        });
+
+        return createFlowAuthMethodRegistrationRequiredResultV2({
+            correlationId,
+            continuationState,
+            methods,
+        });
+    }
+
+    private createAuthMethodVerificationRequiredResult(
+        continuationState: FlowContinuationStateV2,
+        result: EnrollmentResultV2,
+        correlationId: string
+    ): FlowAuthMethodVerificationRequiredResultV2 {
+        return createFlowAuthMethodVerificationRequiredResultV2({
+            correlationId,
+            continuationState: {
+                ...continuationState,
+                continuationToken: result.continuationToken,
+                links: {
+                    activate: this.requireLink(
+                        correlationId,
+                        result.activateHref
+                    ),
+                    resend: this.requireLink(correlationId, result.resendHref),
+                },
+            },
+            sentTo: result.hint,
+            codeLength: result.codeLength,
+        });
     }
 
     private toSignUpActionResult(
@@ -1068,11 +1321,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         );
         const nextAction: string = challengeResult.nextAction;
 
-        if (challengeResult.nextAction === ChallengeNextActionV2.VERIFY) {
+        if (challengeResult.nextAction === VERIFY_RELATION) {
             return challengeResult;
         }
 
-        if (challengeResult.nextAction === ChallengeNextActionV2.RISK_VERIFY) {
+        if (challengeResult.nextAction === RISK_VERIFY_RELATION) {
             return this.apiClient.verifyRisk(
                 challengeResult.riskVerifyHref,
                 { continuationToken: challengeResult.continuationToken },
