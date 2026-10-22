@@ -10,7 +10,7 @@
 1. [About](#about)
 1. [FAQ](#faq)
 1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/CHANGELOG.md)
-1. [Migration from v6 to v7](./docs/v7-migration.md)
+1. [Migration from v7 to v8](./docs/v8-migration.md)
 1. [Prerequisites](#prerequisites)
 1. [Installation](#installation)
 1. [Node Version Support](#node-version-support)
@@ -82,7 +82,8 @@ Any major MSAL Node release:
 
 | MSAL Node version | MSAL support status | Supported Node versions |
 | ----------------- | ------------------- | ----------------------- |
-| 7.x.x             | Active development  | 20, 22, 24              |
+| 8.x.x             | Active development  | 20, 22, 24              |
+| 7.x.x             | In maintenance      | 20, 22, 24              |
 | 6.x.x             | In maintenance      | 20, 22, 24              |
 | 5.x.x             | In maintenance      | 20, 22, 24              |
 | 4.x.x             | In maintenance      | 20, 22, 24              |

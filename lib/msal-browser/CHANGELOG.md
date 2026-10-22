@@ -1,8 +1,71 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 15 Sep 2026 19:42:08 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 21 Oct 2026 18:37:16 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.26.0
+
+Wed, 21 Oct 2026 18:37:16 GMT
+
+### Minor changes
+
+- Add Native Auth V2 authorization inputs and challenge validation fixes [#8898](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8898) (yongdiwang@microsoft.com)
+- Unify Native Auth V2 authentication method selection [#8899](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8899) (yongdiwang@microsoft.com)
+- Expose required and invalid Native Auth V2 attribute IDs [#8900](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8900) (yongdiwang@microsoft.com)
+- Bump @azure/msal-common to v16.14.3
+
+### Patches
+
+- Fall back from EAR to authorization code flow with PKCE in Safari [#8903](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8903) (shylasummers@microsoft.com)
+- Improve consistency of concurrent silent token requests [#8919](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8919) (sameera.gajjarapu@microsoft.com)
+- Identify Nested App Auth performance events with the NAA bridge type [#8864](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8864) (Sameera.Gajjarapu@microsoft.com)
+
+## 5.25.1
+
+Tue, 13 Oct 2026 19:04:35 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+
+## 5.25.0
+
+Tue, 06 Oct 2026 20:48:41 GMT
+
+### Minor changes
+
+- Coalesce concurrent platform-broker acquireTokenSilent requests [#8886](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8886) (kshabelko@microsoft.com)
+
+## 5.24.0
+
+Fri, 02 Oct 2026 19:03:42 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to match @azure/msal-browser-1p (msaljsbuilds@microsoft.com)
+- Bump @azure/msal-common to v16.14.2
+
+### Patches
+
+- Validate cache broadcast context and reload values from persistent storage [#8869](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8869) (spingale@microsoft.com)
+- Add observability across extension and DOM platform broker flows [#8824](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8824) (lalimasharda@microsoft.com)
+- Allow platform broker token requests with empty scopes [#8863](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8863) (lalima.sharda@gmail.com)
+
+## 5.23.0
+
+Wed, 23 Sep 2026 15:49:43 GMT
+
+### Minor changes
+
+- Add Native Auth V2 password reset, sign-in, sign-up, and SMS MFA flows. [#8830](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8830) (yongdiwang@microsoft.com)
+- Add platform broker DPoP request and response contract support [#8772](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8772) (hectormmg@microsoft.com)
+- Export shared web broker bridge performance event names. [#8832](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8832) (shylasummers@microsoft.com)
+
+### Patches
+
+- Treat bfcache restoration during redirects as user cancellation [#8839](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8839) (thomas.norling@microsoft.com)
+- Preserve the requested resource when caching platform broker access tokens [#8848](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8848) (nugetaad@microsoft.com)
 
 ## 5.22.0
 
