@@ -48,6 +48,8 @@ type PlatformSilentRequest = SilentRequest &
         dpopNonce?: string;
     };
 
+let externalDpopRequestSequence = 0;
+
 /**
  * Selects request preparation using the current account and broker availability.
  */
@@ -85,6 +87,11 @@ export function prepareWebSilentRequest({
     correlationId,
     config,
 }: SilentRequestPreparationInput): PreparedSilentRequest {
+    const externalDpopKeyIdentity =
+        request.dpopJkt ||
+        (request.dpopProofProvider
+            ? `request-${externalDpopRequestSequence++}`
+            : undefined);
     const thumbprint = getRequestThumbprint(
         config.auth.clientId,
         {
@@ -105,6 +112,7 @@ export function prepareWebSilentRequest({
             extraQueryParameters: canonicalizeStringDict(
                 request.extraQueryParameters
             ),
+            externalDpopKeyIdentity,
         }),
         request,
         account,
