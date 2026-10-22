@@ -13,7 +13,6 @@ import {
     PerformanceEvents,
     invokeAsync,
     invoke,
-    ProtocolMode,
     CommonAuthorizationUrlRequest,
     AuthorizeProtocol,
     PkceCodes,
@@ -51,6 +50,7 @@ import {
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { shouldUseEar } from "../utils/BrowserDetection.js";
 import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
@@ -186,7 +186,14 @@ export class SilentIframeClient extends StandardInteractionClient {
         );
         BrowserUtils.preconnect(silentRequest.authority);
 
-        if (this.config.system.protocolMode === ProtocolMode.EAR) {
+        if (
+            shouldUseEar(
+                this.config.system.protocolMode,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )
+        ) {
             return this.executeEarFlow(silentRequest);
         } else {
             return this.executeCodeFlow(silentRequest);

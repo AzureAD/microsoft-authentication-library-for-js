@@ -41,6 +41,7 @@ import {
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
 import { NavigationOptions } from "../navigation/NavigationOptions.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { shouldUseEar } from "../utils/BrowserDetection.js";
 import * as PopupRelay from "../popup_relay/relayClient.js";
 import { base64Decode } from "../encode/Base64Decode.js";
 import { PopupRequest } from "../request/PopupRequest.js";
@@ -301,7 +302,14 @@ export class PopupClient extends StandardInteractionClient {
         );
         validRequest.platformBroker = isPlatformBroker;
 
-        if (this.config.system.protocolMode === ProtocolMode.EAR) {
+        if (
+            shouldUseEar(
+                this.config.system.protocolMode,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )
+        ) {
             return this.executeEarFlow(validRequest, popupParams, pkceCodes);
         } else {
             return this.executeCodeFlow(validRequest, popupParams, pkceCodes);

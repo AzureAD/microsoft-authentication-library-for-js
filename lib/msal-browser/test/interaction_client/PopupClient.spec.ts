@@ -1050,6 +1050,13 @@ describe("PopupClient", () => {
             });
 
             it("Invokes EAR flow when protocolMode is set to EAR", async () => {
+                jest.spyOn(
+                    window.navigator,
+                    "userAgent",
+                    "get"
+                ).mockReturnValue(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+                );
                 const validRequest: PopupRequest = {
                     authority: TEST_CONFIG.validAuthority,
                     scopes: ["openid", "profile", "offline_access"],
@@ -1077,6 +1084,42 @@ describe("PopupClient", () => {
                 const result = await pca.acquireTokenPopup(validRequest);
                 expect(result).toEqual(getTestAuthenticationResult());
                 expect(earFormSpy).toHaveBeenCalled();
+            });
+
+            it("uses authorization code flow instead of EAR in Safari", async () => {
+                const validRequest: PopupRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    scopes: ["openid", "profile", "offline_access"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: window.location.href,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    nonce: ID_TOKEN_CLAIMS.nonce,
+                };
+                jest.spyOn(
+                    window.navigator,
+                    "userAgent",
+                    "get"
+                ).mockReturnValue(
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Safari/605.1.15"
+                );
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "openSizedPopup"
+                ).mockReturnValue(popupWindow);
+                const codeFlowSpy = jest
+                    .spyOn(PopupClient.prototype, "executeCodeFlow")
+                    .mockResolvedValue(getTestAuthenticationResult());
+                const earFlowSpy = jest.spyOn(
+                    PopupClient.prototype,
+                    "executeEarFlow"
+                );
+
+                const result = await pca.acquireTokenPopup(validRequest);
+
+                expect(result).toEqual(getTestAuthenticationResult());
+                expect(codeFlowSpy).toHaveBeenCalled();
+                expect(earFlowSpy).not.toHaveBeenCalled();
+                expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
             });
 
             it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", async () => {
