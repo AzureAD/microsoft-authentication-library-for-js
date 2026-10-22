@@ -22,6 +22,7 @@ import {
     AuthorizationCodeClient,
     Constants,
 } from "@azure/msal-common";
+import { ServerTelemetryManager } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -214,6 +215,35 @@ describe("SilentAuthCodeClient", () => {
                     code: "test-code",
                 })
             );
+        });
+
+        it("caches client-configuration failures for server telemetry", async () => {
+            const testError = new AuthError(
+                "client_configuration_error",
+                "Client configuration failed"
+            );
+            (silentAuthCodeClient as any).correlationId = RANDOM_TEST_GUID;
+            (
+                silentAuthCodeClient as any
+            ).config.system.serverTelemetryEnabled = true;
+            jest.spyOn(
+                silentAuthCodeClient as any,
+                "getClientConfiguration"
+            ).mockRejectedValue(testError);
+            const telemetrySpy = jest.spyOn(
+                ServerTelemetryManager.prototype,
+                "cacheFailedRequest"
+            );
+
+            await expect(
+                silentAuthCodeClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    code: "test-code",
+                })
+            ).rejects.toBe(testError);
+
+            expect(testError.correlationId).toBe(RANDOM_TEST_GUID);
+            expect(telemetrySpy).toHaveBeenCalledWith(testError);
         });
 
         describe("prepareAuthorizationCodeRedemption", () => {
