@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792615968881,
+  "lastUpdate": 1792782549206,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24759,6 +24759,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.79%",
             "unit": "ops/sec",
             "extra": "218 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0f98b8ca3718486015e2b13600943e92fd10d1fb",
+          "message": "Improve redirect response URL cleanup (#8918)\n\nImprove redirect response fragment cleanup in handleRedirectPromise\nwhile preserving pending interactions and existing redirect-bridge\nbehavior.\n\n```text\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: bug\nagent-tool: copilot-cli\nagent-model: gpt-6.1-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n```\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>\nCopilot-Session: 61e491fb-2bf0-4654-87cd-b5d0e993f44e",
+          "timestamp": "2026-10-23T12:00:50-07:00",
+          "tree_id": "b065bb6ac3b0b41b75c8c609fc58f6385c51b022",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/0f98b8ca3718486015e2b13600943e92fd10d1fb"
+        },
+        "date": 1792782545249,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 376491,
+            "range": "±0.74%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 368497,
+            "range": "±0.99%",
+            "unit": "ops/sec",
+            "extra": "217 samples"
           }
         ]
       }
