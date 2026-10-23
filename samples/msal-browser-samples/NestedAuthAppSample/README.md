@@ -35,8 +35,8 @@ in this sample the host app supplies its own implementation
 (`hostApp/src/nestedAppAuthBridge.js`).
 
 -   **Injection** — the host installs the bridge on `window` by calling
-    `installHostNestedAppAuthBridge(hostPca, nestedOrigin, brokerExtraParams)`
-    from `hostApp/src/index.jsx` after MSAL initializes. The bridge only accepts
+    `installHostNestedAppAuthBridge(hostPca, nestedOrigin)` from
+    `hostApp/src/index.jsx` after MSAL initializes. The bridge only accepts
     `postMessage` requests from the nested app's origin.
 -   **Usage** — the nested app creates its client with
     `createNestablePublicClientApplication()`, which detects the bridge and
@@ -97,13 +97,12 @@ For manual runs with `npm start` or `npm run start:https`, create a local
 | `VITE_AUTHORITY`        | Authority URL, e.g. `https://login.microsoftonline.com/<tenant>`. |
 
 The checked-in `.env.e2e` contains the concrete public test registrations used
-by the automated suites. Those registrations are linked for NAA and allow-listed
-for EAR in the `ESTS-PUB-EUS-FD000-TEST1-100` test slice. The sample adds that
-slice as the `dc` parameter to both authorize and token requests.
+by the automated suites. Those registrations are linked for NAA and configured
+for EAR.
 
 Do not replace or commit changes to `.env.e2e` for a manual run. If you need to
 run the e2e suites with different registrations, use registrations that are
-linked for NAA and independently allow-listed for EAR.
+linked for NAA and configured for EAR.
 
 ## Running the sample
 
@@ -132,19 +131,20 @@ expected for local use.
 
 The end-to-end suites live in `test/`:
 
-| Spec / suite                      | Flows tested                          | Runs in CI?              | Command                       |
-| --------------------------------- | ------------------------------------- | ------------------------ | ----------------------------- |
-| `naa-basic.spec.ts`               | Basic NAA e2e tests                   | Yes (`naa-basic` filter) | `npm run test:e2e:naa-basic`  |
-| `naa-ear.spec.ts`                 | NAA + EAR e2e tests                   | Yes (`naa-ear` filter)   | `npm run test:e2e:ear`        |
-| `naa-platform-broker.spec.ts`     | NAA + platform broker e2e tests       | No (self-hosted)         | `npm run test:e2e:broker`     |
-| `naa-ear-platform-broker.spec.ts` | NAA + EAR + platform broker e2e tests | No (self-hosted)         | `npm run test:e2e:ear-broker` |
+| Spec / suite                       | Flows tested                           | Runs in CI?              | Command                        |
+| ---------------------------------- | -------------------------------------- | ------------------------ | ------------------------------ |
+| `naa-basic.spec.ts`                | Basic NAA e2e tests                    | Yes (`naa-basic` filter) | `npm run test:e2e:naa-basic`   |
+| `naa-ear.spec.ts`                  | NAA + EAR e2e tests                    | Yes (`naa-ear` filter)   | `npm run test:e2e:ear`         |
+| `naa-platform-broker.spec.ts`      | NAA + platform broker e2e tests        | No (self-hosted)         | `npm run test:e2e:broker`      |
+| `naa-ear-platform-broker.spec.ts`  | NAA + EAR + platform broker e2e tests  | No (self-hosted)         | `npm run test:e2e:ear-broker`  |
+| `naa-kmsi-platform-broker.spec.ts` | KMSI + NAA + platform broker e2e tests | No (self-hosted)         | `npm run test:e2e:kmsi-broker` |
 
 The nested app receives tokens through `window.nestedAppAuthBridge`, stores
 account artifacts and returned tokens according to its MSAL cache configuration,
 and does not receive a refresh token.
 
-EAR is enabled with `?ear=true` and `ProtocolMode.EAR`. The EAR suites use the
-allow-listed test slice and verify decryption with a `crypto.subtle.decrypt` spy.
+EAR is enabled with `?ear=true` and `ProtocolMode.EAR`. The EAR suites verify
+decryption with a `crypto.subtle.decrypt` spy.
 
 The platform-broker suites are **self-hosted only**: they require branded
 Chrome, the Microsoft SSO extension, WAM, and a brokerable signed-in Windows
@@ -156,6 +156,40 @@ For a local Chrome for Testing setup, set `CHROME_FOR_TESTING_PATH` to its
 executable and `SSO_EXTENSION_PATH` to an unpacked Microsoft SSO extension
 directory before running either broker command. The BrowserCore native
 messaging host must be registered for that browser.
+
+### Keep Me Signed In + NAA (AB#3688362)
+
+Run `npm run test:e2e:kmsi-broker -- --runInBand` on a WAM-enabled Windows
+machine whose broker account has persistent sign-in enabled. The suite uses the
+existing WAM session when available. If the initial bootstrap opens an AAD
+credential form, it fetches the lab credentials only at that point and completes
+the prompt. The resulting host response must still have
+`fromPlatformBroker: true` and a `nativeAccountId`; a standard web result is not
+accepted. Both host and nested ID token claims must pass the shared KMSI
+assertion (`kmsi` or `dvc_dmjd` in `signin_state`). A missing claim fails the
+suite rather than skipping coverage; extension installation alone does not
+establish that KMSI is available.
+
+The suite exercises `acquireTokenSilent`, `ssoSilent`, `acquireTokenPopup`, and
+`loginPopup` from an empty nested cache. It reloads the host before each API to
+discard its in-memory native token cache and require an actual broker response.
+It checks the corresponding NAA bridge method and host correlation ID, verifies
+the nested token audience and account continuity, and confirms that no refresh
+token is returned to the nested app.
+
+It then fully closes and relaunches the browser with the same temporary profile.
+The KMSI suite opts the host into MSAL `localStorage` with `?kmsi=true`, matching
+the existing ExpressSample persistence model, while the nested app continues to
+use `sessionStorage`. The restarted host therefore retains the broker-linked
+account and its `nativeAccountId`; host `ssoSilent` must refresh that account
+through WAM, after which both silent nested APIs must recover the same KMSI
+account without opening a popup. The temporary profile is removed when the
+suite finishes.
+
+The host UI exposes `ssoSilent` for manual recovery checks and a token-free
+authentication summary (broker provenance, correlation ID, account IDs, and
+`signin_state`) for both host and brokered nested requests. Existing login and
+EAR behavior is unchanged.
 
 End-to-end tests must run over HTTPS. The Jest configuration starts the HTTPS
 servers automatically.

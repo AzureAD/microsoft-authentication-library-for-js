@@ -49,11 +49,19 @@ export interface TokenStore {
     refreshTokens: string[];
 }
 
-export async function readSessionTokenStore(
-    page: Page | Frame
+type BrowserStorageName = "localStorage" | "sessionStorage";
+
+export async function readBrowserTokenStore(
+    page: Page | Frame,
+    storageName: BrowserStorageName
 ): Promise<TokenStore> {
-    const storage = await page.evaluate(() =>
-        Object.assign({}, window.sessionStorage)
+    const storage = await page.evaluate(
+        (selectedStorage) =>
+            Object.assign({}, window[selectedStorage]) as Record<
+                string,
+                string
+            >,
+        storageName
     );
     const store: TokenStore = {
         idTokens: [],
@@ -72,11 +80,18 @@ export async function readSessionTokenStore(
     return store;
 }
 
+export function readSessionTokenStore(page: Page | Frame): Promise<TokenStore> {
+    return readBrowserTokenStore(page, "sessionStorage");
+}
+
 export async function readAccountKeys(
-    page: Page | Frame
+    page: Page | Frame,
+    storageName: BrowserStorageName = "sessionStorage"
 ): Promise<string[] | null> {
     const raw = await page.evaluate(
-        () => window.sessionStorage["msal.3.account.keys"]
+        (selectedStorage) =>
+            window[selectedStorage].getItem("msal.3.account.keys"),
+        storageName
     );
     return raw ? (JSON.parse(raw) as string[]) : null;
 }

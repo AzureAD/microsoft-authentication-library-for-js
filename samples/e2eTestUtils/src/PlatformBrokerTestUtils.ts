@@ -8,7 +8,7 @@ import * as os from "os";
 import * as path from "path";
 import { execFileSync } from "child_process";
 import * as puppeteer from "puppeteer";
-import { BrowserCacheUtils } from "e2e-test-utils";
+import { BrowserCacheUtils } from "./BrowserCacheTestUtils";
 
 const SSO_EXTENSION_PATH = process.env.SSO_EXTENSION_PATH || "";
 const SSO_EXTENSION_ID = "ppnbnpeolgkicgegkbkbjmhlideopiji";
@@ -27,6 +27,14 @@ export interface PlatformBrokerProfile {
 export interface PlatformBrokerResponse {
     homeAccountId?: string;
     nativeAccountId: string;
+}
+
+interface PlatformBrokerAuthData {
+    account?: {
+        homeAccountId?: string;
+        nativeAccountId?: string;
+    };
+    fromPlatformBroker?: boolean;
 }
 
 function isPlatformAuthEnabled(): boolean {
@@ -126,9 +134,18 @@ export function removePlatformBrokerProfile(
     fs.rmSync(profile.userDataDir, { recursive: true, force: true });
 }
 
-export async function verifyPlatformBrokerResponse(
+export async function verifyPlatformBrokerTokenStore(
+    browserCache: BrowserCacheUtils
+): Promise<void> {
+    const tokenStore = await browserCache.getTokens();
+    expect(tokenStore.idTokens.length).toBe(1);
+    expect(tokenStore.accessTokens.length).toBe(0);
+    expect(tokenStore.refreshTokens.length).toBe(0);
+}
+
+async function getPlatformBrokerAuthData(
     target: puppeteer.Page
-): Promise<PlatformBrokerResponse> {
+): Promise<PlatformBrokerAuthData> {
     if (!target.url().endsWith("profile")) {
         await target.locator("a#viewProfileButton").click();
     }
@@ -140,14 +157,12 @@ export async function verifyPlatformBrokerResponse(
         )
         .map((value) => value.textContent)
         .wait();
-    const authData = JSON.parse(authDataText || "") as {
-        account?: {
-            homeAccountId?: string;
-            nativeAccountId?: string;
-        };
-        fromPlatformBroker?: boolean;
-    };
+    return JSON.parse(authDataText || "") as PlatformBrokerAuthData;
+}
 
+function requirePlatformBrokerAccount(
+    authData: PlatformBrokerAuthData
+): PlatformBrokerResponse {
     expect(authData.fromPlatformBroker).toBe(true);
     expect(authData.account?.nativeAccountId).toBeTruthy();
     if (!authData.account?.nativeAccountId) {
@@ -162,11 +177,31 @@ export async function verifyPlatformBrokerResponse(
     };
 }
 
-export async function verifyPlatformBrokerTokenStore(
-    browserCache: BrowserCacheUtils
-): Promise<void> {
-    const tokenStore = await browserCache.getTokens();
-    expect(tokenStore.idTokens.length).toBe(1);
-    expect(tokenStore.accessTokens.length).toBe(0);
-    expect(tokenStore.refreshTokens.length).toBe(0);
+export async function verifyPlatformBrokerResponse(
+    target: puppeteer.Page
+): Promise<PlatformBrokerResponse> {
+    return requirePlatformBrokerAccount(
+        await getPlatformBrokerAuthData(target)
+    );
+}
+
+/**
+ * Verifies that the current account is broker-linked without asserting that
+ * the Profile page's later acquireTokenSilent response came from the broker.
+ */
+export async function verifyPlatformBrokerAccount(
+    target: puppeteer.Page
+): Promise<PlatformBrokerResponse> {
+    const authData = await getPlatformBrokerAuthData(target);
+    expect(authData.account?.nativeAccountId).toBeTruthy();
+    if (!authData.account?.nativeAccountId) {
+        throw new Error(
+            "Platform-broker account did not contain account.nativeAccountId"
+        );
+    }
+
+    return {
+        homeAccountId: authData.account.homeAccountId,
+        nativeAccountId: authData.account.nativeAccountId,
+    };
 }
