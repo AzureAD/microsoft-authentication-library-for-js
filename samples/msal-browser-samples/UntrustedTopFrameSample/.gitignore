@@ -1,0 +1,8 @@
+# Vite build output
+dist/
+
+# Dependencies
+node_modules/
+
+# Keep the checked-in e2e env file (repo root .gitignore excludes .env)
+!.env
