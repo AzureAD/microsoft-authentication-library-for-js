@@ -25,6 +25,7 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
     > **Terminology:** In the codebase, the term "Custom Auth" is used instead of "Native Auth". You will find classes, interfaces, and configuration options prefixed with `CustomAuth` (e.g., `CustomAuthPublicClientApplication`, `CustomAuthConfiguration`). Please refer to these when implementing or exploring the native authentication feature in the code.
 
 -   [Microsoft Authentication Library for React](lib/msal-react/): A wrapper of the msal-browser library for apps using React.
+-   [MSAL Bridge](lib/msal-bridge/): An unpublished portable Nested App Authentication bridge release candidate for WKWebView and WebView2 hosts.
 -   [Microsoft Authentication Library for Angular](lib/msal-angular/): A wrapper of the msal-browser library for apps using Angular framework.
 -   [Microsoft Authentication Extensions for Node](extensions/msal-node-extensions/): The Microsoft Authentication Extensions for Node offers secure mechanisms for client applications to perform cross-platform token cache serialization and persistence. It gives additional support to the Microsoft Authentication Library for Node (MSAL).
 
