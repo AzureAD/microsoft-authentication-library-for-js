@@ -56,6 +56,11 @@ Note that the in-memory cache is not scalable for server-side applications and p
 
 > :warning: We recommend **persisting** the cache with **encryption** for all production applications both for security and desired cache longevity. If you choose not to persist the cache, the [TokenCache](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.tokencache.html) interface is still available to access the cached entities.
 
+In MSAL Node v7, `TokenCache.getKVStore()` returns a defensive snapshot for
+inspection. Mutating that object does not update MSAL's in-memory cache. Cache
+persistence and replacement must use the supported `serialize()` and
+`deserialize()` APIs through a cache plugin.
+
 ## Persistent cache
 
 MSAL Node fires events when the in-memory cache is accessed and apps can choose whether to persist the cache (see: [TokenCacheContext](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_common.tokencachecontext.html)) (e.g. to a file, a SQL database and etc.). This constitutes two actions:

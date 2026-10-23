@@ -28,7 +28,7 @@ import { CACHE } from "../utils/Constants.js";
  * resulting hash is a stable cross-SDK cache key. The final credential key is lowercased
  * downstream in `generateCredentialKey`.
  */
-function computeAdditionalCacheKeyHash(
+export function computeAdditionalCacheKeyHash(
     components: Record<string, string>
 ): string {
     const sortedKeys = Object.keys(components).sort();

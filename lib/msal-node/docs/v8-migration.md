@@ -30,6 +30,15 @@ Applications importing these APIs must remove those imports and configuration be
 
 `ManagedIdentityApplication` and all supported Managed Identity sources remain available. This release does not change cache keys, serialized cache values, or persistence behavior.
 
+### Token cache key-value snapshots
+
+`TokenCache.getKVStore()` now returns a defensive snapshot for inspection.
+Mutating the returned object no longer changes MSAL's in-memory cache. Replace
+code that mutated this object with a cache plugin that uses `serialize()` and
+`deserialize()` in its `beforeCacheAccess` and `afterCacheAccess` callbacks.
+Persisted cache keys, serialized values, and plugin callback behavior are
+unchanged.
+
 ## `msal-common` package independence
 
 `@azure/msal-node` no longer depends on or re-exports runtime objects from `@azure/msal-common`. Applications that import `@azure/msal-common` directly must declare it as their own dependency.
