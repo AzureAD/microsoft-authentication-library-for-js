@@ -484,6 +484,10 @@ export class StandardController implements IController {
             this.browserStorage.isInteractionInProgress(false);
         const currentClientInteraction =
             this.browserStorage.isInteractionInProgress(true);
+        const isBridgeCallback =
+            BrowserUtils.isInPopup() ||
+            (BrowserUtils.isInIframe() &&
+                !this.config.system.allowRedirectInIframe);
         /*
          * Clear recognized response fragments for:
          * - Stale callbacks with no pending interaction.
@@ -491,8 +495,13 @@ export class StandardController implements IController {
          * - This client's logout callback containing state, before the SIGNOUT early return.
          * Leave another client's callback untouched. clearHash preserves query strings
          * and application routes, and does nothing when no response fragment is present.
+         * Skip popup and non-redirect iframe callbacks: legacy apps may call HRP
+         * before their redirect bridge reads and broadcasts the response.
          */
-        if (!anyClientInteractionInProgress || currentClientInteraction) {
+        if (
+            !isBridgeCallback &&
+            (!anyClientInteractionInProgress || currentClientInteraction)
+        ) {
             BrowserUtils.clearHash(window);
         }
 

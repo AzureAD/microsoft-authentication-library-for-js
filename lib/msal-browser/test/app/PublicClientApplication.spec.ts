@@ -83,6 +83,7 @@ import {
 } from "../../src/error/BrowserAuthError.js";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient.js";
+import { broadcastResponseToMainFrame } from "../../src/redirect_bridge/index.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient.js";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient.js";
@@ -812,25 +813,42 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(pca.handleRedirectPromise()).rejects.toBe(error);
         });
 
-        it.each([false, true])(
-            "cleans a callback before rethrowing a missing-request error, inside an iframe: %s",
-            async (isInIframe) => {
+        it.each([
+            [false, false],
+            [true, false],
+            [true, true],
+        ])(
+            "cleans only redirect-capable callbacks before a missing-request error, iframe: %s, redirects allowed: %s",
+            async (isInIframe, allowRedirectInIframe) => {
+                const iframePca = new PublicClientApplication({
+                    auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                    system: {
+                        allowPlatformBroker: false,
+                        allowRedirectInIframe,
+                    },
+                });
+                await iframePca.initialize();
                 jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(
                     isInIframe
                 );
                 browserStorage.setInteractionInProgress(true);
-                window.location.hash = `#code=new-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`;
+                const hash = `#code=new-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`;
+                window.location.hash = hash;
+                const expectedHash =
+                    isInIframe && !allowRedirectInIframe ? hash : "";
                 const error = new Error("Missing cached request");
                 jest.spyOn(
                     BrowserCacheManager.prototype,
                     "getCachedRequest"
                 ).mockImplementation(() => {
-                    expect(window.location.hash).toBe("");
+                    expect(window.location.hash).toBe(expectedHash);
                     throw error;
                 });
 
-                await expect(pca.handleRedirectPromise()).rejects.toBe(error);
-                expect(window.location.hash).toBe("");
+                await expect(iframePca.handleRedirectPromise()).rejects.toBe(
+                    error
+                );
+                expect(window.location.hash).toBe(expectedHash);
             }
         );
 
@@ -954,10 +972,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it.each([
             ["#code=", "#code="],
             ["#code=untracked&state=invalid", ""],
-            [TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP, ""],
+            [
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP,
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP,
+            ],
             [TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT, ""],
         ])(
-            "cleans an unprocessed callback recognized by the shared parser: %s",
+            "cleans an unprocessed callback unless it belongs to a popup bridge: %s",
             async (hash, remainingHash) => {
                 browserStorage.setInteractionInProgress(true);
                 browserStorage.cacheAuthorizeRequest(
@@ -1147,16 +1168,87 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT,
             TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP,
             TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT,
-        ])(
-            "cleans recognized responses without checking interaction type inside an iframe: %s",
-            async (hash) => {
-                jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
-                window.location.hash = hash;
+        ])("preserves bridge responses inside an iframe: %s", async (hash) => {
+            jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
+            window.location.hash = hash;
 
-                await expect(pca.handleRedirectPromise()).resolves.toBeNull();
+            await expect(pca.handleRedirectPromise()).resolves.toBeNull();
+            expect(window.location.hash).toBe(hash);
+        });
+
+        it.each([
+            [InteractionType.Popup, "none"],
+            [InteractionType.Popup, "missing"],
+            [InteractionType.Popup, "cached"],
+            [InteractionType.Silent, "none"],
+            [InteractionType.Silent, "missing"],
+            [InteractionType.Silent, "cached"],
+        ])(
+            "allows the %s bridge to broadcast after HRP with request cache %s",
+            async (interactionType, requestCache) => {
+                jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(
+                    interactionType === InteractionType.Silent
+                );
+                const hash =
+                    interactionType === InteractionType.Popup
+                        ? TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+                        : TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT;
+                window.location.hash = hash;
+                if (requestCache !== "none") {
+                    browserStorage.setInteractionInProgress(true);
+                }
+                if (requestCache === "cached") {
+                    browserStorage.cacheAuthorizeRequest(
+                        testRequest,
+                        TEST_CONFIG.TEST_VERIFIER
+                    );
+                }
+                const clearHash = jest.spyOn(BrowserUtils, "clearHash");
+
+                const response = pca.handleRedirectPromise({ hash });
+                if (requestCache === "missing") {
+                    await expect(response).rejects.toMatchObject({
+                        errorCode:
+                            BrowserAuthErrorCodes.noTokenRequestCacheError,
+                    });
+                } else {
+                    await expect(response).resolves.toBeNull();
+                }
+
+                expect(clearHash).not.toHaveBeenCalled();
+                expect(window.location.hash).toBe(hash);
+                const broadcast = jest.spyOn(
+                    BroadcastChannel.prototype,
+                    "postMessage"
+                );
+                jest.spyOn(window, "close").mockReturnValue(undefined);
+
+                await broadcastResponseToMainFrame();
+
+                expect(broadcast).toHaveBeenCalledWith({
+                    v: 1,
+                    payload: hash.substring(1),
+                });
                 expect(window.location.hash).toBe("");
             }
         );
+
+        it("cleans an iframe redirect callback when iframe redirects are enabled", async () => {
+            const iframePca = new PublicClientApplication({
+                auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                system: {
+                    allowPlatformBroker: false,
+                    allowRedirectInIframe: true,
+                },
+            });
+            await iframePca.initialize();
+            jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await expect(iframePca.handleRedirectPromise()).resolves.toBeNull();
+
+            expect(window.location.hash).toBe("");
+        });
 
         it("preserves an application route inside an iframe", async () => {
             jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
@@ -1171,13 +1263,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
             '#code=""',
         ])(
-            "cleans a response without a pending interaction inside an iframe: %s",
+            "preserves a response without a pending interaction inside an iframe: %s",
             async (hash) => {
                 jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
                 window.location.hash = hash;
+                const callbackHash = window.location.hash;
 
                 await expect(pca.handleRedirectPromise()).resolves.toBeNull();
-                expect(window.location.hash).toBe("");
+                expect(window.location.hash).toBe(callbackHash);
             }
         );
 
