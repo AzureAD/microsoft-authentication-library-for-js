@@ -86,7 +86,17 @@ export class ManagedIdentityApplication {
                 this.logger,
                 this.config.managedIdentityId.id,
                 DEFAULT_CRYPTO_IMPLEMENTATION,
-                fakeStatusAuthorityOptions
+                fakeStatusAuthorityOptions,
+                this.config.cache
+            );
+        } else if (
+            !ManagedIdentityApplication.nodeStorage.isCacheConfigurationCompatible(
+                configuration?.cache
+            )
+        ) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.managedIdentityCacheConfigurationMismatch,
+                ""
             );
         }
 

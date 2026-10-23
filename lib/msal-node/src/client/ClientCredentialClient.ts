@@ -25,7 +25,10 @@ import { ServerAuthorizationTokenResponse } from "../common/response/ServerAutho
 import { ServerTelemetryManager } from "../common/telemetry/server/ServerTelemetryManager.js";
 import { StringUtils } from "../common/utils/StringUtils.js";
 import * as TimeUtils from "../common/utils/TimeUtils.js";
-import { TokenCacheContext } from "../common/cache/persistence/TokenCacheContext.js";
+import {
+    acquireTokenCacheAccessLock,
+    TokenCacheContext,
+} from "../common/cache/persistence/TokenCacheContext.js";
 import { UrlString } from "../common/url/UrlString.js";
 import { ClientAssertion } from "../common/account/ClientCredentials.js";
 import { getClientAssertion } from "../common/utils/ClientAssertionUtils.js";
@@ -158,38 +161,50 @@ export class ClientCredentialClient extends BaseClient {
             Constants.CacheOutcome.NOT_APPLICABLE;
 
         // read the user-supplied cache into memory, if applicable
-        let cacheContext;
-        if (
+        const releaseCacheAccess =
             clientConfiguration.serializableCache &&
             clientConfiguration.persistencePlugin
-        ) {
-            cacheContext = new TokenCacheContext(
-                clientConfiguration.serializableCache,
-                false
-            );
-            await clientConfiguration.persistencePlugin.beforeCacheAccess(
-                cacheContext
-            );
-        }
+                ? await acquireTokenCacheAccessLock(
+                      clientConfiguration.serializableCache
+                  )
+                : undefined;
+        let cacheContext;
+        let cachedAccessToken: AccessTokenEntity | null;
+        try {
+            if (
+                clientConfiguration.serializableCache &&
+                clientConfiguration.persistencePlugin
+            ) {
+                cacheContext = new TokenCacheContext(
+                    clientConfiguration.serializableCache,
+                    false
+                );
+                await clientConfiguration.persistencePlugin.beforeCacheAccess(
+                    cacheContext
+                );
+            }
 
-        const cachedAccessToken = this.readAccessTokenFromCache(
-            authority,
-            managedIdentityConfiguration.managedIdentityId?.id ||
-                clientConfiguration.authOptions.clientId,
-            new ScopeSet(request.scopes || [], request.correlationId),
-            cacheManager,
-            request.correlationId,
-            additionalCacheKeyComponents
-        );
-
-        if (
-            clientConfiguration.serializableCache &&
-            clientConfiguration.persistencePlugin &&
-            cacheContext
-        ) {
-            await clientConfiguration.persistencePlugin.afterCacheAccess(
-                cacheContext
+            cachedAccessToken = this.readAccessTokenFromCache(
+                authority,
+                managedIdentityConfiguration.managedIdentityId?.id ||
+                    clientConfiguration.authOptions.clientId,
+                new ScopeSet(request.scopes || [], request.correlationId),
+                cacheManager,
+                request.correlationId,
+                additionalCacheKeyComponents
             );
+
+            if (
+                clientConfiguration.serializableCache &&
+                clientConfiguration.persistencePlugin &&
+                cacheContext
+            ) {
+                await clientConfiguration.persistencePlugin.afterCacheAccess(
+                    cacheContext
+                );
+            }
+        } finally {
+            releaseCacheAccess?.();
         }
 
         // must refresh due to non-existent access_token

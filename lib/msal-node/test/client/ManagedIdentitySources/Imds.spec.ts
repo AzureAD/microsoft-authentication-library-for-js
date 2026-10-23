@@ -1032,6 +1032,143 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             );
             expect(allCacheKeysExistandAreCorrect).toBe(true);
         });
+
+        test("uses an immutable first-owner cache policy across managed identity instances", () => {
+            delete ManagedIdentityApplication["nodeStorage"];
+            new ManagedIdentityApplication({
+                ...systemAssignedConfig,
+                cache: {
+                    maxTokenCacheEntries: 2,
+                    maxTokenCacheSizeInBytes: 4096,
+                },
+            });
+
+            expect(
+                () =>
+                    new ManagedIdentityApplication({
+                        ...userAssignedClientIdConfig,
+                    })
+            ).not.toThrow();
+            expect(
+                () =>
+                    new ManagedIdentityApplication({
+                        ...userAssignedClientIdConfig,
+                        cache: {
+                            maxTokenCacheSizeInBytes: 4096,
+                        },
+                    })
+            ).not.toThrow();
+            expect(
+                () =>
+                    new ManagedIdentityApplication({
+                        ...userAssignedClientIdConfig,
+                        cache: {
+                            maxTokenCacheEntries: 2,
+                            maxTokenCacheSizeInBytes: 4096,
+                        },
+                    })
+            ).not.toThrow();
+
+            const storageBeforeConflict =
+                ManagedIdentityApplication["nodeStorage"];
+            expect(
+                () =>
+                    new ManagedIdentityApplication({
+                        ...userAssignedObjectIdConfig,
+                        cache: {
+                            maxTokenCacheEntries: 3,
+                        },
+                    })
+            ).toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.managedIdentityCacheConfigurationMismatch,
+                    ""
+                )
+            );
+            expect(ManagedIdentityApplication["nodeStorage"]).toBe(
+                storageBeforeConflict
+            );
+        });
+
+        test("shares bounded eviction and cache-hit recency across managed identity instances", async () => {
+            delete ManagedIdentityApplication["nodeStorage"];
+            const firstApplication = new ManagedIdentityApplication({
+                ...systemAssignedConfig,
+                cache: {
+                    maxTokenCacheEntries: 2,
+                    maxTokenCacheSizeInBytes: 1024 * 1024,
+                },
+            });
+            const firstResource = MANAGED_IDENTITY_RESOURCE;
+            const secondResource = "https://vault.azure.net/.default";
+            const thirdResource = "https://storage.azure.com/.default";
+            const sendSpy = jest.spyOn(
+                networkClient,
+                <any>"sendGetRequestAsync"
+            );
+            sendSpy.mockImplementation(async (...args: unknown[]) => {
+                const url = args[0] as string;
+                const response = await networkClient.getSuccessResponse<{
+                    resource: string;
+                }>();
+                response.body.resource = new URL(url).searchParams.get(
+                    ManagedIdentityQueryParameters.RESOURCE
+                ) as string;
+                return response;
+            });
+
+            await firstApplication.acquireToken({ resource: firstResource });
+            expect(sendSpy).toHaveBeenCalledTimes(1);
+            await firstApplication.acquireToken({ resource: secondResource });
+            expect(sendSpy).toHaveBeenCalledTimes(2);
+
+            const ownedStorage = ManagedIdentityApplication[
+                "nodeStorage"
+            ] as NodeStorage;
+            const recencyBeforeConflict = Array.from(
+                ownedStorage["credentialCache"].keys()
+            );
+            expect(
+                () =>
+                    new ManagedIdentityApplication({
+                        ...systemAssignedConfig,
+                        cache: {
+                            maxTokenCacheEntries: 3,
+                        },
+                    })
+            ).toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.managedIdentityCacheConfigurationMismatch,
+                    ""
+                )
+            );
+            expect(ManagedIdentityApplication["nodeStorage"]).toBe(
+                ownedStorage
+            );
+            expect(Array.from(ownedStorage["credentialCache"].keys())).toEqual(
+                recencyBeforeConflict
+            );
+
+            const clone = new ManagedIdentityApplication(systemAssignedConfig);
+            expect(
+                (await clone.acquireToken({ resource: secondResource }))
+                    .fromCache
+            ).toBe(true);
+            expect(sendSpy).toHaveBeenCalledTimes(2);
+            await clone.acquireToken({ resource: thirdResource });
+            expect(sendSpy).toHaveBeenCalledTimes(3);
+            expect(
+                (await clone.acquireToken({ resource: firstResource }))
+                    .fromCache
+            ).toBe(false);
+
+            expect(sendSpy).toHaveBeenCalledTimes(4);
+            expect(
+                (
+                    ManagedIdentityApplication["nodeStorage"] as NodeStorage
+                ).getTokenKeys().accessToken
+            ).toHaveLength(2);
+        });
     });
 
     describe("Errors", () => {

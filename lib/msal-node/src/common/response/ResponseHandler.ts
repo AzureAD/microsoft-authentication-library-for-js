@@ -23,7 +23,10 @@ import { IdTokenEntity } from "../cache/entities/IdTokenEntity.js";
 import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity.js";
 import { ICachePlugin } from "../cache/interface/ICachePlugin.js";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache.js";
-import { TokenCacheContext } from "../cache/persistence/TokenCacheContext.js";
+import {
+    acquireTokenCacheAccessLock,
+    TokenCacheContext,
+} from "../cache/persistence/TokenCacheContext.js";
 import * as AccountEntityUtils from "../cache/utils/AccountEntityUtils.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 import { ICrypto } from "../crypto/ICrypto.js";
@@ -330,6 +333,10 @@ export class ResponseHandler {
             cacheKeyComponents
         );
         let cacheContext;
+        const releaseCacheAccess =
+            this.persistencePlugin && this.serializableCache
+                ? await acquireTokenCacheAccessLock(this.serializableCache)
+                : undefined;
         try {
             if (this.persistencePlugin && this.serializableCache) {
                 this.logger.verbose(
@@ -396,16 +403,20 @@ export class ResponseHandler {
                 request.storeInCache
             );
         } finally {
-            if (
-                this.persistencePlugin &&
-                this.serializableCache &&
-                cacheContext
-            ) {
-                this.logger.verbose(
-                    "Persistence enabled, calling afterCacheAccess",
-                    request.correlationId
-                );
-                await this.persistencePlugin.afterCacheAccess(cacheContext);
+            try {
+                if (
+                    this.persistencePlugin &&
+                    this.serializableCache &&
+                    cacheContext
+                ) {
+                    this.logger.verbose(
+                        "Persistence enabled, calling afterCacheAccess",
+                        request.correlationId
+                    );
+                    await this.persistencePlugin.afterCacheAccess(cacheContext);
+                }
+            } finally {
+                releaseCacheAccess?.();
             }
         }
 

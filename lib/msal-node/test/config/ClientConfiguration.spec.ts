@@ -22,6 +22,15 @@ import {
 } from "../../src/index.js";
 import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest.js";
 import { RANDOM_TEST_GUID } from "../test_kit/StringConstants.js";
+import {
+    ClientConfigurationErrorCodes,
+    createClientConfigurationError,
+} from "../../src/common/error/ClientConfigurationError.js";
+import {
+    DEFAULT_MAX_TOKEN_CACHE_ENTRIES,
+    DEFAULT_MAX_TOKEN_CACHE_SIZE_IN_BYTES,
+    buildManagedIdentityConfiguration,
+} from "../../src/config/Configuration.js";
 
 describe("ClientConfiguration tests", () => {
     test("builds configuration and assigns default functions", () => {
@@ -89,10 +98,45 @@ describe("ClientConfiguration tests", () => {
         );
         expect(config.auth!.azureCloudOptions?.tenant).toEqual("");
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
+        expect(config.cache!.maxTokenCacheEntries).toBe(
+            DEFAULT_MAX_TOKEN_CACHE_ENTRIES
+        );
+        expect(config.cache!.maxTokenCacheSizeInBytes).toBe(
+            DEFAULT_MAX_TOKEN_CACHE_SIZE_IN_BYTES
+        );
 
         // telemetry
         expect(config.telemetry!.application!.appName).toEqual("");
         expect(config.telemetry!.application!.appVersion).toEqual("");
+    });
+
+    test.each([
+        [
+            { maxTokenCacheEntries: 0 },
+            ClientConfigurationErrorCodes.invalidMaxTokenCacheEntries,
+        ],
+        [
+            { maxTokenCacheEntries: Number.POSITIVE_INFINITY },
+            ClientConfigurationErrorCodes.invalidMaxTokenCacheEntries,
+        ],
+        [
+            { maxTokenCacheEntries: 1_000_001 },
+            ClientConfigurationErrorCodes.invalidMaxTokenCacheEntries,
+        ],
+        [
+            { maxTokenCacheSizeInBytes: 1.5 },
+            ClientConfigurationErrorCodes.invalidMaxTokenCacheSizeInBytes,
+        ],
+    ])("rejects invalid in-memory cache limits", (cache, errorCode) => {
+        expect(() =>
+            buildAppConfiguration({
+                auth: { clientId: TEST_CONSTANTS.CLIENT_ID },
+                cache,
+            })
+        ).toThrow(createClientConfigurationError(errorCode, ""));
+        expect(() => buildManagedIdentityConfiguration({ cache })).toThrow(
+            createClientConfigurationError(errorCode, "")
+        );
     });
 
     test("builds configuration and assigns default functions", () => {

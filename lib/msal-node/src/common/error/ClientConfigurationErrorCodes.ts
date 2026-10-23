@@ -36,3 +36,8 @@ export const invalidDpopHtm = "invalid_dpop_htm";
 export const invalidDpopHtu = "invalid_dpop_htu";
 export const invalidDpopNonce = "invalid_dpop_nonce";
 export const dpopMissingResourceContext = "dpop_missing_resource_context";
+export const invalidMaxTokenCacheEntries = "invalid_max_token_cache_entries";
+export const invalidMaxTokenCacheSizeInBytes =
+    "invalid_max_token_cache_size_in_bytes";
+export const managedIdentityCacheConfigurationMismatch =
+    "managed_identity_cache_configuration_mismatch";

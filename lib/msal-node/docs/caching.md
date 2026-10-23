@@ -52,6 +52,26 @@ In production, MSAL's in-memory token cache does not scale. Use the [distributed
 
 MSAL maintains an in-memory cache. The in-memory cache is representative of the application cache state. The lifetime of in-memory cache is the same as the MSAL application object. If the process using MSAL restarts, the cache is erased when the process lifecycle finishes. If the in-memory cache is empty and there is no persistent cache to restore the cache from, users will have to re-authenticate. When this happens, if the user still has an active session with Azure AD, they might re-authenticate without any prompts, however this still degrades the user experience. Service-to-service scenarios (i.e. client credentials flow, on-behalf-of flow) also suffer because getting a token from Azure AD involves HTTP requests, and is much slower than getting a token from cache.
 
+### Bounded credential cache
+
+MSAL Node bounds in-memory access token, refresh token, and ID token credentials by both entry count and logical weight. The default limits are 10,000 credentials and 20 MiB of logical weight. Both limits apply simultaneously and are provisional pending benchmark calibration. Configure them with `cache.maxTokenCacheEntries` and `cache.maxTokenCacheSizeInBytes`; both must use the finite positive ranges described in [configuration](./configuration.md#cache-config-options), and neither limit can be disabled.
+
+The least recently used credential is evicted when admitting or updating a credential would exceed either limit. A credential returned by a structurally successful cache selection becomes most recently used before later authentication validation, even if that validation rejects it because of expiry, resource, or token-binding-key requirements. Cache misses, filter failures, and ambiguous duplicate selections do not promote a credential. A credential whose individual logical weight exceeds the configured byte limit is not retained. Replacing an existing credential with an oversized value removes the old value without evicting unrelated credentials.
+
+Logical weight is deterministic cache accounting, not a measurement or guarantee of process heap or RSS. For each credential it includes:
+
+-   the UTF-8 byte length of the serialized persisted cache key and credential value;
+-   the UTF-8 byte lengths of the tuple and normalized scope strings actually stored for that credential (access-token scopes are represented in both the standard and OBO indexes); and
+-   one logical byte for each generated index posting.
+
+The entry-count limit provides a separate guard for object overhead not represented by this formula. Account, application metadata, authority metadata, telemetry, throttling, and unrecognized records are not credential entries and are not evicted when credential capacity is reached. The persisted cache schema, keys, and value shapes are unchanged.
+
+Each `ConfidentialClientApplication` owns its in-memory limits. Managed Identity preserves its process-wide shared cache: the first `ManagedIdentityApplication` instance owns an immutable process-wide policy, and later instances must omit limits or specify matching values. Explicit conflicts fail without resizing or replacing the shared cache.
+
+When a cache plugin loads more credentials than the configured limits, MSAL deterministically trims the in-memory state and reports `cacheHasChanged` during the corresponding `afterCacheAccess` callback. Plugins that follow the standard `cacheHasChanged` contract persist the trimmed state, preventing evicted credentials from being restored by the next plugin load.
+
+MSAL serializes each cache plugin's `beforeCacheAccess` and `afterCacheAccess` lifecycle per token cache instance, so concurrent requests cannot persist another request's in-memory snapshot. Different token cache instances remain independent.
+
 Note that the in-memory cache is not scalable for server-side applications and performance will degrade after holding a few 100 tokens in cache. For web app and web API scenarios, this approximates to serving a few 100 users. For daemon app scenarios using client credentials grant to call other apps, this means a few 100 tenants. See [performance](#performance-and-security) below for more.
 
 > :warning: We recommend **persisting** the cache with **encryption** for all production applications both for security and desired cache longevity. If you choose not to persist the cache, the [TokenCache](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.tokencache.html) interface is still available to access the cached entities.
