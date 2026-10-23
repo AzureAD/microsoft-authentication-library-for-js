@@ -92,7 +92,8 @@ async function getResource() {
         scopes: scopes,
     };
     // Acquire Token Silently to be used in Resource API calll
-    pca.acquireTokenSilent(silentRequest)
+    myMSALObj
+        .acquireTokenSilent(silentRequest)
         .then((response) => {
             // Handle successful resource API response
         })

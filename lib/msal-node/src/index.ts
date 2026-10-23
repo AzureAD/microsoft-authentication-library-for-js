@@ -17,14 +17,12 @@ import { Constants as CommonConstants } from "@azure/msal-common/node";
 export { internals };
 
 // Interfaces
-export { IPublicClientApplication } from "./client/IPublicClientApplication.js";
 export { IConfidentialClientApplication } from "./client/IConfidentialClientApplication.js";
 export { ITokenCache } from "./cache/ITokenCache.js";
 export { ICacheClient } from "./cache/distributed/ICacheClient.js";
 export { IPartitionManager } from "./cache/distributed/IPartitionManager.js";
 
 // Clients and Configuration
-export { PublicClientApplication } from "./client/PublicClientApplication.js";
 export { ConfidentialClientApplication } from "./client/ConfidentialClientApplication.js";
 export { ManagedIdentityApplication } from "./client/ManagedIdentityApplication.js";
 
@@ -34,7 +32,6 @@ export {
     ManagedIdentityIdParams,
     NodeAuthOptions,
     NodeSystemOptions,
-    BrokerOptions,
     NodeTelemetryOptions,
     CacheOptions,
 } from "./config/Configuration.js";
@@ -61,14 +58,11 @@ export { ManagedIdentitySourceNames } from "./utils/Constants.js";
 export type { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest.js";
 export type { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest.js";
 export type { ClientCredentialRequest } from "./request/ClientCredentialRequest.js";
-export type { DeviceCodeRequest } from "./request/DeviceCodeRequest.js";
 export type { OnBehalfOfRequest } from "./request/OnBehalfOfRequest.js";
 export type { UserFederatedIdentityCredentialRequest } from "./request/UserFederatedIdentityCredentialRequest.js";
 export type { UsernamePasswordRequest } from "./request/UsernamePasswordRequest.js";
 export type { RefreshTokenRequest } from "./request/RefreshTokenRequest.js";
 export type { SilentFlowRequest } from "./request/SilentFlowRequest.js";
-export type { InteractiveRequest } from "./request/InteractiveRequest.js";
-export type { SignOutRequest } from "./request/SignOutRequest.js";
 export type { ManagedIdentityRequestParams } from "./request/ManagedIdentityRequestParams.js";
 
 const PromptValue = CommonConstants.PromptValue;
@@ -116,7 +110,6 @@ export {
     IAppTokenProvider,
     AppTokenProviderParameters,
     AppTokenProviderResult,
-    INativeBrokerPlugin,
     ClientAssertionCallback,
 } from "@azure/msal-common/node";
 

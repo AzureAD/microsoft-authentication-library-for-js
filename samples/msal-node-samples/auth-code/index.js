@@ -4,10 +4,10 @@
  */
 
 const express = require("express");
-const session = require("express-session")
-const msal = require('@azure/msal-node');
-const url = require('url');
-require('dotenv').config();
+const session = require("express-session");
+const msal = require("@azure/msal-node");
+const url = require("url");
+require("dotenv").config();
 
 /**
  * Command line arguments can be used to configure:
@@ -20,7 +20,7 @@ const { request } = require("express");
 
 const SERVER_PORT = argv.p || 3000;
 const cacheLocation = argv.c || "./data/cache.json";
-const cachePlugin = require('../cachePlugin')(cacheLocation);
+const cachePlugin = require("../cachePlugin")(cacheLocation);
 
 /**
  * The scenario string is the name of a .json file which contains the MSAL client configuration
@@ -39,8 +39,8 @@ const sessionConfig = {
     saveUninitialized: false,
     cookie: {
         secure: false, // set this to true on production
-    }
-}
+    },
+};
 
 // Sample Application Code
 const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
@@ -49,63 +49,40 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     // Create Express App and Routes
     const app = express();
 
-    app.use(session(sessionConfig))
+    app.use(session(sessionConfig));
 
     const requestConfig = scenarioConfig.request;
 
     app.get("/", (req, res) => {
         // if redirectUri is set to the main route "/", redirect to "/redirect" route for handling authZ code
-        if (req.query.code) return res.redirect(url.format({ pathname: "/redirect", query: req.query }));
+        if (req.query.code)
+            return res.redirect(
+                url.format({ pathname: "/redirect", query: req.query })
+            );
 
-        const { authCodeUrlParameters } = requestConfig;
-
-        const cryptoProvider = new msal.CryptoProvider()
+        const cryptoProvider = new msal.CryptoProvider();
+        const authCodeUrlParameters = {
+            ...requestConfig.authCodeUrlParameters,
+            state: cryptoProvider.createNewGuid(),
+            nonce: cryptoProvider.createNewGuid(),
+        };
 
         if (req.query) {
-            // Check for the state parameter
-            /**
-            * MSAL Node supports the OAuth2.0 state parameter which is used to prevent CSRF attacks.
-            * The CryptoProvider class provided by MSAL exposes the createNewGuid() API that generates random GUID
-            * used to populate the state value if none is provided.
-            * 
-            * The generated state is then cached and passed as part of authCodeUrlParameters during authentication request.
-            * The cached state must then be passed as part of authCodeResponse in ClientApplicaiton.acquireTokenByCode API call, 
-            * to be validated before the authorization code is sent to the server in exchange for an access token.
-            * 
-            * For security and privacy reasons, we do not recommend putting URLs or other sensitive data directly in the state 
-            * parameter. Instead, use a key or identifier that corresponds to data stored in server-side storage 
-            * (e.g., session storage, database), allowing your app to securely reference the necessary data after authentication.
-            * 
-            * For more information about state,
-            * visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6
-            */
-            authCodeUrlParameters.state = req.query.state ? req.query.state : cryptoProvider.createNewGuid();
-            // Check for nonce parameter
-            /**
-             * MSAL Node supports the OIDC nonce feature which is used to protect against token replay.
-             * The CryptoProvider class provided by MSAL exposes the createNewGuid() API that generates random GUID
-             * used to populate the nonce value if none is provided.
-             *
-             * The generated nonce is then cached and passed as part of authCodeUrlParameters during authentication request.
-             *
-             * For more information about nonce,
-             * visit https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-4.5.3.2
-             */
-
-            authCodeUrlParameters.nonce = req.query.nonce ? req.query.nonce : cryptoProvider.createNewGuid();
-
             // Check for the prompt parameter
-            if (req.query.prompt) authCodeUrlParameters.prompt = req.query.prompt;
+            if (req.query.prompt)
+                authCodeUrlParameters.prompt = req.query.prompt;
 
             // Check for the loginHint parameter
-            if (req.query.loginHint) authCodeUrlParameters.loginHint = req.query.loginHint;
+            if (req.query.loginHint)
+                authCodeUrlParameters.loginHint = req.query.loginHint;
 
             // Check for the domainHint parameter
-            if (req.query.domainHint) authCodeUrlParameters.domainHint = req.query.domainHint;
+            if (req.query.domainHint)
+                authCodeUrlParameters.domainHint = req.query.domainHint;
         }
 
-        req.session.nonce = authCodeUrlParameters.nonce //switch to a more persistent storage method.
-        req.session.state = authCodeUrlParameters.state
+        req.session.nonce = authCodeUrlParameters.nonce;
+        req.session.state = authCodeUrlParameters.state;
 
         /**
          * MSAL Usage
@@ -117,16 +94,37 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
          * returned by MSAL, the express application is redirected to said request URL, concluding the first leg of the
          * Authorization Code Grant flow.
          */
-        clientApplication.getAuthCodeUrl(authCodeUrlParameters).then((authCodeUrl) => {
-            res.redirect(authCodeUrl);
-        });
+        clientApplication
+            .getAuthCodeUrl(authCodeUrlParameters)
+            .then((authCodeUrl) => {
+                res.redirect(authCodeUrl);
+            });
     });
 
     app.get("/redirect", (req, res) => {
-        const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code, nonce: req.session.nonce, state: req.query.state };
+        const expectedState = req.session.state;
+        const expectedNonce = req.session.nonce;
+
+        delete req.session.state;
+        delete req.session.nonce;
+
+        if (
+            !req.query.code ||
+            !expectedState ||
+            req.query.state !== expectedState
+        ) {
+            return res.status(400).send("Invalid authorization response.");
+        }
+
+        const tokenRequest = {
+            ...requestConfig.tokenRequest,
+            code: req.query.code,
+            nonce: expectedNonce,
+            state: expectedState,
+        };
         const authCodeResponse = {
             code: req.query.code,
-            state: req.session.state
+            state: req.query.state,
         };
 
         /**
@@ -141,22 +139,29 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
          * which can be added to the `Authorization` header in a protected resource request to demonstrate authorization.
          */
 
-        clientApplication.acquireTokenByCode(tokenRequest, authCodeResponse).then((response) => {
-            console.log("Successfully acquired token using Authorization Code.");
-            res.sendStatus(200);
-        }).catch((error) => {
-            res.status(500).send(error.errorMessage);
-        });
+        clientApplication
+            .acquireTokenByCode(tokenRequest, authCodeResponse)
+            .then((response) => {
+                console.log(
+                    "Successfully acquired token using Authorization Code."
+                );
+                res.sendStatus(200);
+            })
+            .catch((error) => {
+                res.status(500).send(error.errorMessage);
+            });
     });
 
-    return app.listen(serverPort, () => console.log(`Msal Node Auth Code Sample app listening on port ${serverPort}!`));
-}
-
-
+    return app.listen(serverPort, () =>
+        console.log(
+            `Msal Node Auth Code Sample app listening on port ${serverPort}!`
+        )
+    );
+};
 
 /**
  * The code below checks if the script is being executed manually or in automation.
- * If the script was executed manually, it will initialize a PublicClientApplication object
+ * If the script was executed manually, it will initialize a ConfidentialClientApplication object
  * and execute the sample application.
  */
 if (argv.$0 === "index.js") {
@@ -166,31 +171,31 @@ if (argv.$0 === "index.js") {
         },
         piiLoggingEnabled: true,
         logLevel: msal.LogLevel.Trace,
-    }
+    };
 
     // Build MSAL ClientApplication Configuration object
     const clientConfig = {
         auth: {
             clientId: config.authOptions.clientId,
             authority: config.authOptions.authority,
-            clientSecret: process.env.AZURE_CLIENT_SECRET,
-            knownAuthorities: config.authOptions.knownAuthorities
+            clientSecret: process.env.CLIENT_SECRET,
+            knownAuthorities: config.authOptions.knownAuthorities,
         },
         cache: {
-            cachePlugin
+            cachePlugin,
         },
         // Uncomment the code below to enable the MSAL logger
         system: {
-            loggerOptions: loggerOptions
-        }
-         
+            loggerOptions: loggerOptions,
+        },
     };
 
-    // Create an MSAL PublicClientApplication object
-    const publicClientApplication = new msal.PublicClientApplication(clientConfig);
+    // Create an MSAL ConfidentialClientApplication object
+    const confidentialClientApplication =
+        new msal.ConfidentialClientApplication(clientConfig);
 
-    // Execute sample application with the configured MSAL PublicClientApplication
-    return getTokenAuthCode(config, publicClientApplication, null);
+    // Execute sample application with the configured MSAL ConfidentialClientApplication
+    return getTokenAuthCode(config, confidentialClientApplication, null);
 }
 
 // The application code is exported so it can be executed in automation environments

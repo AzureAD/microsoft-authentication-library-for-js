@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-var msal = require('@azure/msal-node');
+var msal = require("@azure/msal-node");
 
 /**
  * Command line arguments can be used to configure:
@@ -14,23 +14,24 @@ var msal = require('@azure/msal-node');
 const argv = require("../cliArgs");
 
 const cacheLocation = argv.c || "./data/cache.json";
-const cachePlugin = require('../cachePlugin')(cacheLocation);
+const cachePlugin = require("../cachePlugin")(cacheLocation);
 
-require('dotenv').config();
+require("dotenv").config();
 
 /**
  * The scenario string is the name of a .json file which contains the MSAL client configuration
  * For an example of what a configuration file should look like, check out the customConfig.json file in the
  * /config directory.
- * 
+ *
  * You can create your own configuration file and replace the path inside the "config" require statement below
  * with the path to your custom configuraiton.
  */
 const runtimeOptions = argv.ro || null;
 const config = require(`./config/AAD.json`);
+const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
 
 function getClientCredentialsToken(cca, clientCredentialRequestScopes, ro) {
-    // With client credentials flows permissions need to be granted in the portal by a tenant administrator. 
+    // With client credentials flows permissions need to be granted in the portal by a tenant administrator.
     // The scope is always in the format "<resource>/.default"
     const clientCredentialRequest = {
         scopes: clientCredentialRequestScopes,
@@ -46,15 +47,15 @@ function getClientCredentialsToken(cca, clientCredentialRequestScopes, ro) {
  * If the script was executed manually, it will initialize a ConfidentialClientApplication object
  * and execute the sample client credentials application.
  */
-if(argv.$0 === "index.js") {
+if (argv.$0 === "index.js") {
     const loggerOptions = {
         loggerCallback(loglevel, message, containsPii) {
             console.log(message);
         },
         piiLoggingEnabled: false,
         logLevel: msal.LogLevel.Verbose,
-    }
-    
+    };
+
     // Build MSAL ClientApplication Configuration object
     const clientConfig = {
         auth: {
@@ -63,19 +64,24 @@ if(argv.$0 === "index.js") {
             clientSecret: process.env.CLIENT_SECRET,
         },
         cache: {
-            cachePlugin
+            cachePlugin,
         },
         // Uncomment or comment the code below to enable or disable the MSAL logger respectively
         // system: {
         //    loggerOptions,
         // }
     };
-    
-    // Create msal application object
-    const confidentialClientApplication = new msal.ConfidentialClientApplication(clientConfig);
 
-    // Execute sample application with the configured MSAL PublicClientApplication
-    return getClientCredentialsToken(confidentialClientApplication, runtimeOptions);
+    // Create msal application object
+    const confidentialClientApplication =
+        new msal.ConfidentialClientApplication(clientConfig);
+
+    // Execute sample application with the configured MSAL ConfidentialClientApplication
+    return getClientCredentialsToken(
+        confidentialClientApplication,
+        clientCredentialRequestScopes,
+        runtimeOptions
+    );
 }
 
 module.exports = getClientCredentialsToken;

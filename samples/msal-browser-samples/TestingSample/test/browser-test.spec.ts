@@ -1,11 +1,10 @@
 import { test, expect, type Page } from "@playwright/test";
-import { PublicClientApplication } from "@azure/msal-node";
+import { ConfidentialClientApplication } from "@azure/msal-node";
 
 const msalConfig = {
     auth: {
         clientId: "Enter_Your_Client_Id_Here", // Add same clientId here as in app/authConfig.js
-        authority:
-            "https://login.microsoftonline.com/Enter_the_Tenant_Id_Here", // Add same tenanted authority here as in app/authConfig.js
+        authority: "https://login.microsoftonline.com/Enter_the_Tenant_Id_Here", // Add same tenanted authority here as in app/authConfig.js
     },
     cache: {
         cacheLocation: "sessionStorage",
@@ -24,10 +23,16 @@ const scopes = ["User.Read"];
  */
 async function getServerTokenResponse(
     username: string,
-    password: string
+    password: string,
+    clientSecret: string
 ): Promise<Record<string, unknown>> {
-    const pca = new PublicClientApplication({ auth: msalConfig.auth });
-    const result = await pca.acquireTokenByUsernamePassword({
+    const cca = new ConfidentialClientApplication({
+        auth: {
+            ...msalConfig.auth,
+            clientSecret,
+        },
+    });
+    const result = await cca.acquireTokenByUsernamePassword({
         scopes,
         username,
         password,
@@ -86,24 +91,29 @@ async function loadTokensInBrowser(
     );
 }
 
-function getCredentials(): [string, string] {
+function getCredentials(): [string, string, string] {
     // Implement a secure way to retrieve test credentials, e.g. from environment
     // variables or a secrets manager. Never hard-code credentials in test files.
     const username = process.env.TEST_USERNAME;
     const password = process.env.TEST_PASSWORD;
-    if (!username || !password) {
+    const clientSecret = process.env.TEST_CLIENT_SECRET;
+    if (!username || !password || !clientSecret) {
         throw new Error(
-            "TEST_USERNAME and TEST_PASSWORD environment variables must be set before running tests."
+            "TEST_USERNAME, TEST_PASSWORD, and TEST_CLIENT_SECRET environment variables must be set before running tests."
         );
     }
-    return [username, password];
+    return [username, password, clientSecret];
 }
 
 let serverResponse: Record<string, unknown>;
 
 test.beforeAll(async () => {
-    const [username, password] = getCredentials();
-    serverResponse = await getServerTokenResponse(username, password);
+    const [username, password, clientSecret] = getCredentials();
+    serverResponse = await getServerTokenResponse(
+        username,
+        password,
+        clientSecret
+    );
 });
 
 test.beforeEach(async ({ page }) => {

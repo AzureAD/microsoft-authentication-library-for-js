@@ -2,15 +2,15 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-const express = require('express');
-const session = require('express-session');
-const hbs = require('express-handlebars');
-const msal = require('@azure/msal-node');
-const url = require('url');
-require('dotenv').config();
+const express = require("express");
+const session = require("express-session");
+const hbs = require("express-handlebars");
+const msal = require("@azure/msal-node");
+const url = require("url");
+require("dotenv").config();
 
-const fetch = require('./fetch');
-const config = require('./config/customConfig.json');
+const fetch = require("./fetch");
+const config = require("./config/customConfig.json");
 
 /**
  * Command line arguments can be used to configure:
@@ -21,18 +21,16 @@ const config = require('./config/customConfig.json');
 const argv = require("../cliArgs");
 const SERVER_PORT = argv.p || 3000;
 const cacheLocation = argv.c || "./data/cache.json";
-const cachePlugin = require('../cachePlugin')(cacheLocation);
-
+const cachePlugin = require("../cachePlugin")(cacheLocation);
 
 const APP_STAGES = {
-    SIGN_IN: 'sign_in',
-    PASSWORD_RESET: 'password_reset',
-    EDIT_PROFILE: 'edit_profile',
-    ACQUIRE_TOKEN: 'acquire_token'
+    SIGN_IN: "sign_in",
+    PASSWORD_RESET: "password_reset",
+    EDIT_PROFILE: "edit_profile",
+    ACQUIRE_TOKEN: "acquire_token",
 };
 
 function main(scenarioConfig, clientApplication, port, redirectUri) {
-
     const cryptoProvider = new msal.CryptoProvider();
 
     // Set the port that the express server will listen on
@@ -51,16 +49,16 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
         saveUninitialized: false,
         cookie: {
             secure: false, // set this to true on production
-        }
-    }
+        },
+    };
 
     app.use(session(sessionConfig));
     app.use(express.urlencoded({ extended: false }));
     app.use(express.json());
 
     // Set handlebars view engine
-    app.engine('.hbs', hbs({ extname: '.hbs' }));
-    app.set('view engine', '.hbs');
+    app.engine(".hbs", hbs({ extname: ".hbs" }));
+    app.set("view engine", ".hbs");
 
     /**
      * Prepares the auth code request parameters and initiates the first leg of auth code flow
@@ -71,14 +69,20 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
      * @param authCodeUrlRequestParams: parameters for requesting an auth code url
      * @param authCodeRequestParams: parameters for requesting tokens using auth code
      */
-    const redirectToAuthCodeUrl = async (req, res, next, authCodeUrlRequestParams, authCodeRequestParams) => {
-
+    const redirectToAuthCodeUrl = async (
+        req,
+        res,
+        next,
+        authCodeUrlRequestParams,
+        authCodeRequestParams
+    ) => {
         // Generate PKCE Codes before starting the authorization flow
-        const { verifier, challenge } = await cryptoProvider.generatePkceCodes();
+        const { verifier, challenge } =
+            await cryptoProvider.generatePkceCodes();
 
         // Set generated PKCE codes and method as session vars
         req.session.pkceCodes = {
-            challengeMethod: 'S256',
+            challengeMethod: "S256",
             verifier: verifier,
             challenge: challenge,
         };
@@ -105,7 +109,9 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
 
         // Get url to sign user in and consent to scopes needed for application
         try {
-            const authCodeUrlResponse = await clientApplication.getAuthCodeUrl(req.session.authCodeUrlRequest);
+            const authCodeUrlResponse = await clientApplication.getAuthCodeUrl(
+                req.session.authCodeUrlRequest
+            );
             res.redirect(authCodeUrlResponse);
         } catch (error) {
             next(error);
@@ -125,10 +131,12 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
             const tokenCache = clientApplication.getTokenCache();
 
             const account = req.session.account.homeAccountId
-                ?
-                await tokenCache.getAccountByHomeId(req.session.account.homeAccountId)
-                :
-                await tokenCache.getAccountByLocalId(req.session.account.localAccountId);
+                ? await tokenCache.getAccountByHomeId(
+                      req.session.account.homeAccountId
+                  )
+                : await tokenCache.getAccountByLocalId(
+                      req.session.account.localAccountId
+                  );
 
             const silentRequest = {
                 account: account,
@@ -136,12 +144,16 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
             };
 
             // acquire token silently to be used in resource call
-            const tokenResponse = await clientApplication.acquireTokenSilent(silentRequest);
+            const tokenResponse = await clientApplication.acquireTokenSilent(
+                silentRequest
+            );
 
             if (!tokenResponse || tokenResponse.accessToken.length === 0) {
                 // In B2C scenarios, sometimes an access token is returned empty.
                 // In that case, we will acquire token interactively instead.
-                throw new InteractionRequiredAuthError(ErrorMessages.INTERACTION_REQUIRED);
+                throw new InteractionRequiredAuthError(
+                    ErrorMessages.INTERACTION_REQUIRED
+                );
             }
 
             return tokenResponse;
@@ -157,7 +169,9 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
                 );
 
                 const authCodeUrlRequestParams = {
-                    authority: scenarioConfig.policies.authorities.signUpSignIn.authority,
+                    authority:
+                        scenarioConfig.policies.authorities.signUpSignIn
+                            .authority,
                     state: state,
                 };
 
@@ -165,33 +179,42 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
                     scopes: scopes,
                 };
 
-                return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
+                return redirectToAuthCodeUrl(
+                    req,
+                    res,
+                    next,
+                    authCodeUrlRequestParams,
+                    authCodeRequestParams
+                );
             }
 
             next(error);
         }
-    }
+    };
 
-    app.get('/', function (req, res, next) {
+    app.get("/", function (req, res, next) {
         // if redirectUri is set to the main route "/", redirect to "/redirect" route for handling authZ code
-        if (req.query.code) return res.redirect(url.format({ pathname: "/redirect", query: req.query }));
+        if (req.query.code)
+            return res.redirect(
+                url.format({ pathname: "/redirect", query: req.query })
+            );
 
-        res.render('index', {
+        res.render("index", {
             isAuthenticated: req.session.isAuthenticated,
-            username: req.session.account ? req.session.account.username : '',
+            username: req.session.account ? req.session.account.username : "",
         });
     });
 
-    app.get('/id', (req, res) => {
+    app.get("/id", (req, res) => {
         if (!req.session.account) {
-            return res.redirect('/sign-in');
+            return res.redirect("/sign-in");
         }
 
-        res.render('id', { idTokenClaims: req.session.account.idTokenClaims });
+        res.render("id", { idTokenClaims: req.session.account.idTokenClaims });
     });
 
     // Initiates auth code grant for LOGIN
-    app.get('/sign-in', (req, res, next) => {
+    app.get("/sign-in", (req, res, next) => {
         // create a GUID against crsf
         req.session.csrfToken = cryptoProvider.createNewGuid();
 
@@ -199,9 +222,9 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
          * The MSAL Node library allows you to pass your custom state as state parameter in the Request object.
          * The state parameter can also be used to encode information of the app's state before redirect.
          * You can pass the user's state in the app, such as the page or view they were on, as input to this parameter.
-         * 
+         *
          * For security and privacy reasons, we do not recommend putting URLs or other sensitive data directly in the
-         * state parameter. Instead, use a key or identifier that corresponds to data stored in server-side storage 
+         * state parameter. Instead, use a key or identifier that corresponds to data stored in server-side storage
          * (e.g., session storage, database), allowing your app to securely reference the necessary data after authentication.
          */
         const state = cryptoProvider.base64Encode(
@@ -212,7 +235,8 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
         );
 
         const authCodeUrlRequestParams = {
-            authority: scenarioConfig.policies.authorities.signUpSignIn.authority,
+            authority:
+                scenarioConfig.policies.authorities.signUpSignIn.authority,
             state: state,
         };
 
@@ -224,13 +248,19 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
             scopes: [],
         };
 
-        return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
+        return redirectToAuthCodeUrl(
+            req,
+            res,
+            next,
+            authCodeUrlRequestParams,
+            authCodeRequestParams
+        );
     });
 
     // Initiates auth code grant for edit_profile user flow
-    app.get('/edit-profile', (req, res, next) => {
+    app.get("/edit-profile", (req, res, next) => {
         if (!req.session.account) {
-            return res.redirect('/sign-in');
+            return res.redirect("/sign-in");
         }
 
         req.session.csrfToken = cryptoProvider.createNewGuid();
@@ -243,47 +273,61 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
         );
 
         const authCodeUrlRequestParams = {
-            authority: scenarioConfig.policies.authorities.editProfile.authority,
+            authority:
+                scenarioConfig.policies.authorities.editProfile.authority,
             state: state,
         };
 
         const authCodeRequestParams = {
-            authority: scenarioConfig.policies.authorities.editProfile.authority,
+            authority:
+                scenarioConfig.policies.authorities.editProfile.authority,
         };
 
-        return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
+        return redirectToAuthCodeUrl(
+            req,
+            res,
+            next,
+            authCodeUrlRequestParams,
+            authCodeRequestParams
+        );
     });
 
-    app.get('/call-api', async (req, res, next) => {
+    app.get("/call-api", async (req, res, next) => {
         if (!req.session.account) {
-            return res.redirect('/sign-in');
+            return res.redirect("/sign-in");
         }
 
-        const tokenResponse = await getToken(req, res, next, [...scenarioConfig.resourceApi.scopes]);
-        const apiResponse = await fetch(scenarioConfig.resourceApi.endpoint, tokenResponse.accessToken);
+        const tokenResponse = await getToken(req, res, next, [
+            ...scenarioConfig.resourceApi.scopes,
+        ]);
+        const apiResponse = await fetch(
+            scenarioConfig.resourceApi.endpoint,
+            tokenResponse.accessToken
+        );
 
-        res.render('api', {
+        res.render("api", {
             response: apiResponse,
         });
     });
 
-    app.get('/sign-out', async (req, res, next) => {
+    app.get("/sign-out", async (req, res, next) => {
         /**
          * Construct a logout URI and redirect the user to end the
          * session with Azure AD B2C. For more information, visit:
          * https://docs.microsoft.com/azure/active-directory-b2c/openid-connect#send-a-sign-out-request
          */
-        const logoutUri =
-            `${scenarioConfig.policies.authorities.signUpSignIn.authority}/oauth2/v2.0/logout?post_logout_redirect_uri=http://localhost:${serverPort}`;
+        const logoutUri = `${scenarioConfig.policies.authorities.signUpSignIn.authority}/oauth2/v2.0/logout?post_logout_redirect_uri=http://localhost:${serverPort}`;
 
         try {
             const tokenCache = clientApplication.getTokenCache();
 
             const account = req.session.account.homeAccountId
-                ?
-                await tokenCache.getAccountByHomeId(req.session.account.homeAccountId)
-                :
-                await tokenCache.getAccountByLocalId(req.session.account.localAccountId);
+                ? await tokenCache.getAccountByHomeId(
+                      req.session.account.homeAccountId
+                  )
+                : await tokenCache.getAccountByLocalId(
+                      req.session.account.localAccountId
+                  );
 
             await tokenCache.removeAccount(account);
 
@@ -296,9 +340,9 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
     });
 
     // Second leg of auth code grant
-    app.get('/redirect', async (req, res, next) => {
+    app.get("/redirect", async (req, res, next) => {
         if (!req.query.state) {
-            return next(new Error('State not found'));
+            return next(new Error("State not found"));
         }
 
         // read the state object and determine the stage of the flow
@@ -308,13 +352,17 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
             switch (state.appStage) {
                 case APP_STAGES.SIGN_IN:
                     req.session.authCodeRequest.code = req.query.code; // authZ code
-                    req.session.authCodeRequest.codeVerifier = req.session.pkceCodes.verifier // PKCE Code Verifier
+                    req.session.authCodeRequest.codeVerifier =
+                        req.session.pkceCodes.verifier; // PKCE Code Verifier
 
                     try {
-                        const tokenResponse = await clientApplication.acquireTokenByCode(req.session.authCodeRequest);
+                        const tokenResponse =
+                            await clientApplication.acquireTokenByCode(
+                                req.session.authCodeRequest
+                            );
                         req.session.account = tokenResponse.account;
                         req.session.isAuthenticated = true;
-                        res.redirect('/');
+                        res.redirect("/");
                     } catch (error) {
                         if (req.query.error) {
                             /**
@@ -322,9 +370,14 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
                              * We are to catch this error and redirect the user to LOGIN again with the resetPassword authority.
                              * For more information, visit: https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview#linking-user-flows
                              */
-                            if (JSON.stringify(req.query.error_description).includes('AADB2C90118')) {
+                            if (
+                                JSON.stringify(
+                                    req.query.error_description
+                                ).includes("AADB2C90118")
+                            ) {
                                 // create a GUID against crsf
-                                req.session.csrfToken = cryptoProvider.createNewGuid();
+                                req.session.csrfToken =
+                                    cryptoProvider.createNewGuid();
 
                                 const state = cryptoProvider.base64Encode(
                                     JSON.stringify({
@@ -334,14 +387,22 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
                                 );
 
                                 const authCodeUrlRequestParams = {
-                                    authority: scenarioConfig.policies.authorities.resetPassword.authority,
+                                    authority:
+                                        scenarioConfig.policies.authorities
+                                            .resetPassword.authority,
                                     state: state,
                                 };
 
                                 const authCodeRequestParams = {};
 
                                 // if coming for password reset, set the authority to password reset
-                                return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
+                                return redirectToAuthCodeUrl(
+                                    req,
+                                    res,
+                                    next,
+                                    authCodeUrlRequestParams,
+                                    authCodeRequestParams
+                                );
                             }
                         }
                         next(error);
@@ -350,12 +411,16 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
                     break;
                 case APP_STAGES.ACQUIRE_TOKEN:
                     req.session.authCodeRequest.code = req.query.code; // authZ code
-                    req.session.authCodeRequest.codeVerifier = req.session.pkceCodes.verifier // PKCE Code Verifier
+                    req.session.authCodeRequest.codeVerifier =
+                        req.session.pkceCodes.verifier; // PKCE Code Verifier
 
                     try {
-                        const tokenResponse = await clientApplication.acquireTokenByCode(req.session.authCodeRequest);
+                        const tokenResponse =
+                            await clientApplication.acquireTokenByCode(
+                                req.session.authCodeRequest
+                            );
                         req.session.accessToken = tokenResponse.accessToken;
-                        res.redirect('/call-api');
+                        res.redirect("/call-api");
                     } catch (error) {
                         next(error);
                     }
@@ -363,39 +428,51 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
                     break;
                 case APP_STAGES.PASSWORD_RESET:
                     // After a password reset the user must sign in again with their new password
-                    res.redirect('/sign-in');
+                    res.redirect("/sign-in");
                     break;
                 case APP_STAGES.EDIT_PROFILE:
                     if (req.query.error) {
                         // User cancelled edit profile or B2C returned an error — return to home
-                        return res.redirect('/');
+                        return res.redirect("/");
                     }
 
                     if (!req.query.code) {
-                        return next(new Error('Authorization code not found in edit profile redirect'));
+                        return next(
+                            new Error(
+                                "Authorization code not found in edit profile redirect"
+                            )
+                        );
                     }
 
                     req.session.authCodeRequest.code = req.query.code; // authZ code
-                    req.session.authCodeRequest.codeVerifier = req.session.pkceCodes.verifier; // PKCE Code Verifier
+                    req.session.authCodeRequest.codeVerifier =
+                        req.session.pkceCodes.verifier; // PKCE Code Verifier
 
                     try {
-                        const tokenResponse = await clientApplication.acquireTokenByCode(req.session.authCodeRequest);
+                        const tokenResponse =
+                            await clientApplication.acquireTokenByCode(
+                                req.session.authCodeRequest
+                            );
                         req.session.account = tokenResponse.account; // update session with new profile data
-                        res.redirect('/');
+                        res.redirect("/");
                     } catch (error) {
                         next(error);
                     }
 
                     break;
                 default:
-                    next(new Error('cannot determine app stage'));
+                    next(new Error("cannot determine app stage"));
             }
         } else {
-            next(new Error('crsf token mismatch'));
+            next(new Error("crsf token mismatch"));
         }
     });
 
-    return app.listen(serverPort, () => console.log(`Msal Node Auth Code Sample app listening on port ${serverPort}!`));
+    return app.listen(serverPort, () =>
+        console.log(
+            `Msal Node Auth Code Sample app listening on port ${serverPort}!`
+        )
+    );
 }
 
 /**
@@ -410,11 +487,11 @@ if (argv.$0 === "index.js") {
         auth: {
             clientId: config.authOptions.clientId,
             authority: config.policies.authorities.signUpSignIn.authority,
-            clientSecret: process.env.AZURE_CLIENT_SECRET,
+            clientSecret: process.env.CLIENT_SECRET,
             knownAuthorities: [config.policies.authorityDomain],
         },
         cache: {
-            cachePlugin
+            cachePlugin,
         },
         system: {
             loggerOptions: {
@@ -423,14 +500,16 @@ if (argv.$0 === "index.js") {
                 },
                 piiLoggingEnabled: false,
                 logLevel: msal.LogLevel.Verbose,
-            }
-        }
+            },
+        },
     };
 
-    // Create an MSAL PublicClientApplication object
-    const confidentialClientApp = new msal.ConfidentialClientApplication(confidentialClientConfig);
+    // Create an MSAL ConfidentialClientApplication object
+    const confidentialClientApp = new msal.ConfidentialClientApplication(
+        confidentialClientConfig
+    );
 
-    // Execute sample application with the configured MSAL PublicClientApplication
+    // Execute sample application with the configured MSAL ConfidentialClientApplication
     return main(config, confidentialClientApp, null, redirectUri);
 }
 

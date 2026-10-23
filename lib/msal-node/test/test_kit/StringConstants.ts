@@ -484,45 +484,6 @@ export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     },
 };
 
-export const DEVICE_CODE_RESPONSE = {
-    userCode: "FRWQDE7YL",
-    deviceCode:
-        "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
-    verificationUri: "https://microsoft.com/devicelogin",
-    expiresIn: 900,
-    interval: 5,
-    message:
-        "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FRWQDE7YL to authenticate.",
-};
-
-export const DEVICE_CODE_EXPIRED_RESPONSE = {
-    userCode: "FRWQDE7YL",
-    deviceCode:
-        "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
-    verificationUri: "https://microsoft.com/devicelogin",
-    expiresIn: 0,
-    interval: 5,
-    message:
-        "To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code FRWQDE7YL to authenticate.",
-    client_info: `${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`,
-};
-
-export const AUTHORIZATION_PENDING_RESPONSE = {
-    body: {
-        error: "authorization_pending",
-        error_description:
-            "AADSTS70016: OAuth 2.0 device flow error. Authorization is pending. Continue polling." +
-            "Trace ID: 01707a0c-640b-4049-8cbb-ee2304dc0700" +
-            "Correlation ID: 78b0fdfc-dd0e-4dfb-b13a-d316333783f6" +
-            "Timestamp: 2020-03-26 22:54:14Z",
-        error_codes: [70016],
-        timestamp: "2020-03-26 22:54:14Z",
-        trace_id: "01707a0c-640b-4049-8cbb-ee2304dc0700",
-        correlation_id: "78b0fdfc-dd0e-4dfb-b13a-d316333783f6",
-        error_uri: "https://login.microsoftonline.com/error?code=70016",
-    },
-};
-
 export const SERVER_UNEXPECTED_ERROR = {
     status: 503,
     body: {
