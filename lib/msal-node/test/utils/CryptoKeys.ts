@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "@azure/msal-common";
+import * as Constants from "../../src/common/utils/Constants.js";
 import crypto from "crypto";
 
 export class CryptoKeys {

@@ -3,13 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AADServerParamKeys,
-    AuthenticationResult,
-    CommonSilentFlowRequest,
-    Logger,
-    getRequestThumbprint,
-} from "@azure/msal-common/node";
+import * as AADServerParamKeys from "../common/constants/AADServerParamKeys.js";
+import { Logger } from "../common/logger/Logger.js";
+import { getRequestThumbprint } from "../common/network/RequestThumbprint.js";
+import { CommonSilentFlowRequest } from "../common/request/CommonSilentFlowRequest.js";
+import { AuthenticationResult } from "../common/response/AuthenticationResult.js";
 
 /**
  * Prepared silent requests and the acquisition path whose parameters determine their key.

@@ -12,7 +12,8 @@ import { CryptoProvider } from "../../src/crypto/CryptoProvider.js";
 import { EncodingUtils } from "../../src/utils/EncodingUtils.js";
 import { JwtConstants } from "../../src/utils/Constants.js";
 import { getClientAssertionCallback } from "./ClientTestUtils.js";
-import { Constants, getClientAssertion } from "@azure/msal-common";
+import * as Constants from "../../src/common/utils/Constants.js";
+import { getClientAssertion } from "../../src/common/utils/ClientAssertionUtils.js";
 import jwt from "jsonwebtoken";
 
 jest.mock("jsonwebtoken");

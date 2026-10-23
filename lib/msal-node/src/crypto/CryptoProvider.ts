@@ -5,10 +5,10 @@
 
 import {
     ClientAuthErrorCodes,
-    Constants,
     createClientAuthError,
-} from "@azure/msal-common/node";
-import type { ICrypto, PkceCodes } from "@azure/msal-common/node";
+} from "../common/error/ClientAuthError.js";
+import * as Constants from "../common/utils/Constants.js";
+import type { ICrypto, PkceCodes } from "../common/crypto/ICrypto.js";
 import { GuidGenerator } from "./GuidGenerator.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { PkceGenerator } from "./PkceGenerator.js";

@@ -7,21 +7,23 @@ import {
     ClientConfiguration,
     buildClientConfiguration,
     CommonClientConfiguration,
+} from "../common/config/ClientConfiguration.js";
+import {
     INetworkModule,
     NetworkRequestOptions,
-    Logger,
-    ICrypto,
-    CacheManager,
-    ServerTelemetryManager,
-    Authority,
-    CcsCredential,
-    TokenProtocol,
-    RequestThumbprint,
-    ServerAuthorizationTokenResponse,
-    NetworkResponse,
-    BaseAuthRequest,
-    StubPerformanceClient,
-} from "@azure/msal-common/node";
+} from "../common/network/INetworkModule.js";
+import { Logger } from "../common/logger/Logger.js";
+import { ICrypto } from "../common/crypto/ICrypto.js";
+import { CacheManager } from "../common/cache/CacheManager.js";
+import { ServerTelemetryManager } from "../common/telemetry/server/ServerTelemetryManager.js";
+import { Authority } from "../common/authority/Authority.js";
+import { CcsCredential } from "../common/account/CcsCredential.js";
+import * as TokenProtocol from "../common/protocol/Token.js";
+import { RequestThumbprint } from "../common/network/RequestThumbprint.js";
+import { ServerAuthorizationTokenResponse } from "../common/response/ServerAuthorizationTokenResponse.js";
+import { NetworkResponse } from "../common/network/NetworkResponse.js";
+import { BaseAuthRequest } from "../common/request/BaseAuthRequest.js";
+import { StubPerformanceClient } from "../common/telemetry/performance/StubPerformanceClient.js";
 import { version, name } from "../packageMetadata.js";
 
 /**

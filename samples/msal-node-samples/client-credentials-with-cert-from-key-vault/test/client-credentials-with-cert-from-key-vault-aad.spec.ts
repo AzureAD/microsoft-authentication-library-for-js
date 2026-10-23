@@ -6,7 +6,7 @@ import {
     ENV_VARIABLES,
     LAB_CERT_NAME,
     LAB_KEY_VAULT_URL,
-} from "../../../e2eTestUtils/src";
+} from "e2e-test-utils/node";
 import {
     AuthenticationResult,
     ConfidentialClientApplication,

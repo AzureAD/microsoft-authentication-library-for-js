@@ -3,23 +3,25 @@
  * Licensed under the MIT License.
  */
 
+import { AuthError } from "../../common/error/AuthError.js";
+import { Authority } from "../../common/authority/Authority.js";
 import {
-    AuthError,
-    Authority,
     ClientAuthErrorCodes,
-    INetworkModule,
-    Logger,
-    NetworkRequestOptions,
-    NetworkResponse,
-    ResponseHandler,
-    ServerAuthorizationTokenResponse,
-    TimeUtils,
     createClientAuthError,
-    AuthenticationResult,
-    UrlString,
-    Constants,
-    StubPerformanceClient,
-} from "@azure/msal-common/node";
+} from "../../common/error/ClientAuthError.js";
+import {
+    INetworkModule,
+    NetworkRequestOptions,
+} from "../../common/network/INetworkModule.js";
+import { Logger } from "../../common/logger/Logger.js";
+import { NetworkResponse } from "../../common/network/NetworkResponse.js";
+import { ResponseHandler } from "../../common/response/ResponseHandler.js";
+import { ServerAuthorizationTokenResponse } from "../../common/response/ServerAuthorizationTokenResponse.js";
+import * as TimeUtils from "../../common/utils/TimeUtils.js";
+import { AuthenticationResult } from "../../common/response/AuthenticationResult.js";
+import { UrlString } from "../../common/url/UrlString.js";
+import * as Constants from "../../common/utils/Constants.js";
+import { StubPerformanceClient } from "../../common/telemetry/performance/StubPerformanceClient.js";
 import { ManagedIdentityId } from "../../config/ManagedIdentityId.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
 import { CryptoProvider } from "../../crypto/CryptoProvider.js";

@@ -3,21 +3,23 @@
  * Licensed under the MIT License.
  */
 
+import { AccessTokenEntity } from "../../src/common/cache/entities/AccessTokenEntity.js";
 import {
-    AccessTokenEntity,
     AppTokenProviderResult,
-    AuthenticationResult,
-    Authority,
-    CacheManager,
-    ClientConfiguration,
     IAppTokenProvider,
-    InteractionRequiredAuthError,
-    TimeUtils,
+} from "../../src/common/config/AppTokenProvider.js";
+import { AuthenticationResult } from "../../src/common/response/AuthenticationResult.js";
+import { Authority } from "../../src/common/authority/Authority.js";
+import { CacheManager } from "../../src/common/cache/CacheManager.js";
+import { ClientConfiguration } from "../../src/common/config/ClientConfiguration.js";
+import { InteractionRequiredAuthError } from "../../src/common/error/InteractionRequiredAuthError.js";
+import * as TimeUtils from "../../src/common/utils/TimeUtils.js";
+import {
     createClientAuthError,
     ClientAuthErrorCodes,
-    CacheHelpers,
-    Constants,
-} from "@azure/msal-common";
+} from "../../src/common/error/ClientAuthError.js";
+import * as CacheHelpers from "../../src/common/cache/utils/CacheHelpers.js";
+import * as Constants from "../../src/common/utils/Constants.js";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
     CAE_CONSTANTS,

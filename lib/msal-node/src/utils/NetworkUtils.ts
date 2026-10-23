@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { NetworkResponse } from "@azure/msal-common/node";
+import { NetworkResponse } from "../common/network/NetworkResponse.js";
 
 export type UrlToHttpRequestOptions = {
     protocol: string;

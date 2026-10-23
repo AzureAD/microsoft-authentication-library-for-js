@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { createClientAuthError, INetworkModule } from "@azure/msal-common";
+import { createClientAuthError } from "../../src/common/error/ClientAuthError.js";
+import { INetworkModule } from "../../src/common/network/INetworkModule.js";
 import { DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/TestConstants.js";
 import {
     ConfidentialClientApplication,

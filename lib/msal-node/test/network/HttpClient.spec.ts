@@ -4,13 +4,11 @@
  */
 
 import { HttpClient } from "../../src/network/HttpClient.js";
-import {
-    AuthError,
-    ClientAuthErrorCodes,
-    NetworkError,
-    NetworkRequestOptions,
-    NetworkResponse,
-} from "@azure/msal-common";
+import { AuthError } from "../../src/common/error/AuthError.js";
+import { ClientAuthErrorCodes } from "../../src/common/error/ClientAuthError.js";
+import { NetworkError } from "../../src/common/error/NetworkError.js";
+import { NetworkRequestOptions } from "../../src/common/network/INetworkModule.js";
+import { NetworkResponse } from "../../src/common/network/NetworkResponse.js";
 
 // Mock fetch globally
 global.fetch = jest.fn();

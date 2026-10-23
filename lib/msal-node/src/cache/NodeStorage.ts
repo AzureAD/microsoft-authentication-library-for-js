@@ -5,27 +5,27 @@
 
 import {
     TokenKeys,
-    AccountEntity,
-    IdTokenEntity,
-    AccessTokenEntity,
-    RefreshTokenEntity,
-    AppMetadataEntity,
-    ServerTelemetryEntity,
-    ThrottlingEntity,
-    CacheManager,
-    Logger,
     ValidCacheType,
-    ICrypto,
-    AuthorityMetadataEntity,
     ValidCredentialType,
-    StaticAuthorityOptions,
-    CacheHelpers,
-    AccountEntityUtils,
-    CredentialEntity,
-    AccountInfo,
-    StubPerformanceClient,
-    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
-} from "@azure/msal-common/node";
+} from "../common/cache/utils/CacheTypes.js";
+import { AccountEntity } from "../common/cache/entities/AccountEntity.js";
+import { IdTokenEntity } from "../common/cache/entities/IdTokenEntity.js";
+import { AccessTokenEntity } from "../common/cache/entities/AccessTokenEntity.js";
+import { RefreshTokenEntity } from "../common/cache/entities/RefreshTokenEntity.js";
+import { AppMetadataEntity } from "../common/cache/entities/AppMetadataEntity.js";
+import { ServerTelemetryEntity } from "../common/cache/entities/ServerTelemetryEntity.js";
+import { ThrottlingEntity } from "../common/cache/entities/ThrottlingEntity.js";
+import { CacheManager } from "../common/cache/CacheManager.js";
+import { Logger } from "../common/logger/Logger.js";
+import { ICrypto } from "../common/crypto/ICrypto.js";
+import { AuthorityMetadataEntity } from "../common/cache/entities/AuthorityMetadataEntity.js";
+import { StaticAuthorityOptions } from "../common/authority/AuthorityOptions.js";
+import * as CacheHelpers from "../common/cache/utils/CacheHelpers.js";
+import * as AccountEntityUtils from "../common/cache/utils/AccountEntityUtils.js";
+import { CredentialEntity } from "../common/cache/entities/CredentialEntity.js";
+import { AccountInfo } from "../common/account/AccountInfo.js";
+import { StubPerformanceClient } from "../common/telemetry/performance/StubPerformanceClient.js";
+import { DEFAULT_TOKEN_BINDING_KEY_MANAGER } from "../common/crypto/ITokenBindingKeyManager.js";
 
 import { Deserializer } from "./serializer/Deserializer.js";
 import { Serializer } from "./serializer/Serializer.js";

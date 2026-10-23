@@ -41,16 +41,16 @@ import {
     ManagedIdentitySourceNames,
     Constants as NodeConstants,
 } from "../../../src/utils/Constants.js";
+import { AccessTokenEntity } from "../../../src/common/cache/entities/AccessTokenEntity.js";
+import { AuthenticationResult } from "../../../src/common/response/AuthenticationResult.js";
+import * as CacheHelpers from "../../../src/common/cache/utils/CacheHelpers.js";
 import {
-    AccessTokenEntity,
-    AuthenticationResult,
-    CacheHelpers,
     ClientConfigurationErrorCodes,
     createClientConfigurationError,
-    Constants,
-    ServerError,
-    TimeUtils,
-} from "@azure/msal-common";
+} from "../../../src/common/error/ClientConfigurationError.js";
+import * as Constants from "../../../src/common/utils/Constants.js";
+import { ServerError } from "../../../src/common/error/ServerError.js";
+import * as TimeUtils from "../../../src/common/utils/TimeUtils.js";
 import { ManagedIdentityClient } from "../../../src/client/ManagedIdentityClient.js";
 import {
     ManagedIdentityErrorCodes,

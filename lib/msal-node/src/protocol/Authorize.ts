@@ -3,15 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import {
-    Authority,
-    AuthorizeProtocol,
-    CommonAuthorizationUrlRequest,
-    Logger,
-    Constants,
-    ProtocolMode,
-    RequestParameterBuilder,
-} from "@azure/msal-common/node";
+import { Authority } from "../common/authority/Authority.js";
+import * as AuthorizeProtocol from "../common/protocol/Authorize.js";
+import { CommonAuthorizationUrlRequest } from "../common/request/CommonAuthorizationUrlRequest.js";
+import { Logger } from "../common/logger/Logger.js";
+import * as Constants from "../common/utils/Constants.js";
+import { ProtocolMode } from "../common/authority/ProtocolMode.js";
+import * as RequestParameterBuilder from "../common/request/RequestParameterBuilder.js";
 import { NodeConfiguration } from "../config/Configuration.js";
 import { Constants as NodeConstants } from "../utils/Constants.js";
 import { version } from "../packageMetadata.js";

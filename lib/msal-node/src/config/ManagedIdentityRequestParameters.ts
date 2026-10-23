@@ -3,11 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import {
-    RequestParameterBuilder,
-    UrlString,
-    UrlUtils,
-} from "@azure/msal-common/node";
+import * as RequestParameterBuilder from "../common/request/RequestParameterBuilder.js";
+import { UrlString } from "../common/url/UrlString.js";
+import * as UrlUtils from "../common/utils/UrlUtils.js";
 import { DefaultManagedIdentityRetryPolicy } from "../retry/DefaultManagedIdentityRetryPolicy.js";
 import { HttpMethod, RetryPolicies } from "../utils/Constants.js";
 

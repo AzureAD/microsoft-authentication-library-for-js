@@ -3,17 +3,19 @@
  * Licensed under the MIT License.
  */
 
+import { AuthError } from "../../common/error/AuthError.js";
 import {
-    AuthError,
     ClientAuthErrorCodes,
     createClientAuthError,
+} from "../../common/error/ClientAuthError.js";
+import {
     INetworkModule,
-    NetworkResponse,
     NetworkRequestOptions,
-    Logger,
-    ServerAuthorizationTokenResponse,
-    Constants,
-} from "@azure/msal-common/node";
+} from "../../common/network/INetworkModule.js";
+import { NetworkResponse } from "../../common/network/NetworkResponse.js";
+import { Logger } from "../../common/logger/Logger.js";
+import { ServerAuthorizationTokenResponse } from "../../common/response/ServerAuthorizationTokenResponse.js";
+import * as Constants from "../../common/utils/Constants.js";
 import { ManagedIdentityRequestParameters } from "../../config/ManagedIdentityRequestParameters.js";
 import {
     BaseManagedIdentitySource,

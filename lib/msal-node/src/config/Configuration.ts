@@ -5,16 +5,16 @@
 
 import {
     LoggerOptions,
-    INetworkModule,
-    LogLevel,
-    ProtocolMode,
-    ICachePlugin,
-    AzureCloudInstance,
     AzureCloudOptions,
     ApplicationTelemetry,
-    ClientAssertionCallback,
-    Constants,
-} from "@azure/msal-common/node";
+} from "../common/config/ClientConfiguration.js";
+import { INetworkModule } from "../common/network/INetworkModule.js";
+import { LogLevel } from "../common/logger/Logger.js";
+import { ProtocolMode } from "../common/authority/ProtocolMode.js";
+import { ICachePlugin } from "../common/cache/interface/ICachePlugin.js";
+import { AzureCloudInstance } from "../common/authority/AuthorityOptions.js";
+import { ClientAssertionCallback } from "../common/account/ClientCredentials.js";
+import * as Constants from "../common/utils/Constants.js";
 import { HttpClient } from "../network/HttpClient.js";
 import { ManagedIdentityId } from "./ManagedIdentityId.js";
 import { NodeAuthError } from "../error/NodeAuthError.js";

@@ -29,3 +29,11 @@ Applications importing these APIs must remove those imports and configuration be
 -   token cache and distributed cache APIs
 
 `ManagedIdentityApplication` and all supported Managed Identity sources remain available. This release does not change cache keys, serialized cache values, or persistence behavior.
+
+## `msal-common` package independence
+
+`@azure/msal-node` no longer depends on or re-exports runtime objects from `@azure/msal-common`. Applications that import `@azure/msal-common` directly must declare it as their own dependency.
+
+Use error classes and `Logger` exported by `@azure/msal-node` with MSAL Node APIs. Runtime constructor identity is package-specific, so an error thrown by MSAL Node is not an `instanceof` an error class imported from `@azure/msal-common`; compare stable error codes when handling errors across package boundaries. Similarly, pass the `Logger` exported by `@azure/msal-node` to `setLogger`.
+
+Cache serialization remains compatible with previous MSAL Node versions and `@azure/msal-node-extensions`.

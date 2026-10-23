@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest } from "@azure/msal-common/node";
+import { BaseAuthRequest } from "../common/request/BaseAuthRequest.js";
 
 /**
  * CommonOnBehalfOfRequest

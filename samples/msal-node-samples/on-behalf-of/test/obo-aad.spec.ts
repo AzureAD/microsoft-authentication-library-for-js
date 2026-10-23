@@ -8,7 +8,7 @@ import {
     Screenshot,
     createFolder,
     setupCredentials,
-    enterCredentials
+    enterCredentials,
     validateCacheLocation,
     SAMPLE_HOME_URL,
     NodeCacheTestUtils,
@@ -16,7 +16,7 @@ import {
     LabApiQueryParams,
     AppTypes,
     AzureEnvironments,
-} from "e2e-test-utils";
+} from "e2e-test-utils/node";
 import { ConfidentialClientApplication, LogLevel } from "@azure/msal-node";
 import path from "path";
 import * as dotenv from "dotenv";
@@ -59,7 +59,7 @@ describe("OBO AAD Tests", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/on-behalf-of")
+    const screenshotFolder = path.join(__dirname, "screenshots/on-behalf-of");
 
     beforeAll(async () => {
         await validateCacheLocation(WEB_APP_TEST_CACHE_LOCATION);
@@ -187,4 +187,3 @@ describe("OBO AAD Tests", () => {
         });
     });
 });
-
