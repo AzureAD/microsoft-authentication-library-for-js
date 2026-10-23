@@ -16,7 +16,6 @@ import type {
 } from "@azure/msal-common/browser";
 import type { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
-import type { PlatformAuthExtraParametersNoCache } from "../broker/nativeBroker/PlatformAuthRequest.js";
 import type { BrowserConfiguration } from "../config/Configuration.js";
 import { CacheLookupPolicy } from "../utils/BrowserConstants.js";
 import type { SilentRequest } from "./SilentRequest.js";
@@ -44,7 +43,6 @@ export type PreparedSilentRequest = {
 type PlatformSilentRequest = SilentRequest &
     Pick<SsoSilentRequest, "nonce" | "loginHint"> & {
         account: AccountInfo;
-        extraParametersNoCache?: PlatformAuthExtraParametersNoCache;
         dpopNonce?: string;
     };
 
@@ -175,9 +173,6 @@ function getPlatformSilentRequestKey(
         extraQueryParameters: canonicalizeStringDict(
             request.extraQueryParameters
         ),
-        extraParametersNoCache: canonicalizeStringDict(
-            request.extraParametersNoCache
-        ),
         forceRefresh: !!request.forceRefresh,
         cacheLookupPolicy:
             request.cacheLookupPolicy ?? CacheLookupPolicy.Default,
@@ -190,8 +185,15 @@ function getPlatformSilentRequestKey(
 function snapshotPlatformSilentRequest(
     request: PlatformSilentRequest
 ): PlatformSilentRequest {
-    return {
+    const snapshot = {
         ...request,
+    } as PlatformSilentRequest & {
+        extraParametersNoCache?: unknown;
+    };
+    delete snapshot.extraParametersNoCache;
+
+    return {
+        ...snapshot,
         scopes: [...(request.scopes || [])],
         account: { ...request.account },
         azureCloudOptions: request.azureCloudOptions
@@ -202,9 +204,6 @@ function snapshotPlatformSilentRequest(
             : undefined,
         extraQueryParameters: request.extraQueryParameters
             ? { ...request.extraQueryParameters }
-            : undefined,
-        extraParametersNoCache: request.extraParametersNoCache
-            ? { ...request.extraParametersNoCache }
             : undefined,
         attributeTokens: request.attributeTokens
             ? [...request.attributeTokens]

@@ -221,6 +221,35 @@ describe("PlatformAuthDOMHandler tests", () => {
     });
 
     describe("sendMessage and validatePlatformBrokerResponse tests", () => {
+        it("rejects DPoP requests without calling the DOM API", async () => {
+            getSupportedContractsMock.mockResolvedValue([
+                PlatformAuthConstants.PLATFORM_DOM_APIS,
+            ]);
+            const testRequest: PlatformAuthRequest = {
+                accountId: "test-id",
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scope: "read openid",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                windowTitleSubstring: "",
+                tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
+            };
+            const platformAuthDOMHandler =
+                await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    "test-correlation-id"
+                );
+
+            await expect(
+                platformAuthDOMHandler?.sendMessage(testRequest)
+            ).rejects.toMatchObject({
+                errorCode: "platform_auth_dom_dpop_not_supported",
+            });
+            expect(executeGetTokenMock).not.toHaveBeenCalled();
+        });
+
         it("returns PlatformBrokerResponse success response for valid request to DOM API", async () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
@@ -572,6 +601,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 claims: "test-claims",
                 extendedExpiryToken: true,
                 isSts: false,
+                bindingPreferenceSent: true,
             };
             const platformDOMRequest =
                 //@ts-ignore

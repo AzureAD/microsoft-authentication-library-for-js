@@ -879,6 +879,14 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 
 -   Invalid PoP token request. The request should not have both a popKid value and signPopToken set to true.
 
+### `dpop_pop_kid_not_supported`
+
+-   For DPoP requests routed through the platform broker, application-supplied `popKid` values are not supported. MSAL provisions and manages the DPoP key for these requests.
+
+### `platform_auth_dom_dpop_not_supported`
+
+-   An internal DPoP request reached the Platform Authentication DOM API, which does not support DPoP. MSAL normally routes these requests through the browser-managed DPoP flow instead.
+
 ### `unsupported_token_binding_algorithm`
 
 -   The token-binding key algorithm is not supported by the browser crypto implementation.
