@@ -37,13 +37,13 @@ Prior to using managed identities from MSALJS, developers must enable them for t
 
 ## Examples
 
-For both user-assigned and system-assigned identities, developers can use the [ManagedIdentityApplication](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msi_feature_branch/lib/msal-node/src/client/ManagedIdentityApplication.ts) class.
+For both user-assigned and system-assigned identities, developers can use the [ManagedIdentityApplication](../src/client/ManagedIdentityApplication.ts) class.
 
 ### System-assigned managed identities
 
 For system-assigned managed identities, the developer does not need to pass any additional information when creating an instance of ManagedIdentityApplication, as it will automatically infer the relevant metadata about the assigned identity.
 
-[acquireToken](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msi_feature_branch/lib/msal-node/src/client/ManagedIdentityApplication.ts#L122) is called with the resource to acquire a token for, such as `https://management.azure.com`.
+`acquireToken` is called with the resource to acquire a token for, such as `https://management.azure.com`.
 
 ```typescript
 // optional
@@ -106,7 +106,7 @@ console.log(response);
 
 ## Caching
 
-MSALJS caches tokens from managed identity in memory. There is no eviction, but memory is not a concern because a limited number of managed identities can be defined. Cache extensibility is not supported in this scenario because tokens should not be shared between machines.
+MSALJS caches tokens from managed identity in a process-wide in-memory cache. Access token credentials are subject to the same default entry-count and logical-weight limits as confidential clients, with least-recently-used eviction. The first `ManagedIdentityApplication` instance owns the immutable process-wide limits; later instances must omit limits or use matching values. Cache extensibility is not supported in this scenario because tokens should not be shared between machines. See [bounded credential cache](./caching.md#bounded-credential-cache) for details.
 
 ## Troubleshooting
 

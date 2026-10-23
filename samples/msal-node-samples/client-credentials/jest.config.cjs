@@ -5,5 +5,7 @@
 
 module.exports = {
     displayName: "Client Credentials",
+    globalSetup:
+        "<rootDir>/../../../.pipelines/scripts/install-local-msal-node-package.cjs",
     preset: "../../e2eTestUtils/jest-puppeteer-utils/jest-preset-no-setup.js",
 };

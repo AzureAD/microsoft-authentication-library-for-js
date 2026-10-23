@@ -33,14 +33,13 @@ jobs:
             displayName: "Build Libraries"
             inputs:
                 command: "custom"
-                customCommand: "run build --workspace=lib/** --workspace=extensions/msal-node-extensions"
+                customCommand: "run build --workspace=lib/msal-common --workspace=lib/msal-node --workspace=extensions/msal-node-extensions"
 
           - task: Npm@1
             displayName: "Run tests"
-            continueOnError: true
             inputs:
                 command: "custom"
-                customCommand: "run test --workspace=lib/** --workspace=extensions/msal-node-extensions"
+                customCommand: "run test --workspace=lib/msal-common --workspace=lib/msal-node --workspace=extensions/msal-node-extensions"
 
           - task: CodeQL3000Finalize@0
 

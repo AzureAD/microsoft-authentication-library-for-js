@@ -30,7 +30,8 @@ jobs:
                   # Will return true if any file is not markdown and any file is in /lib
                   filters: |
                       lib:
-                        - 'lib/**/**.!(md)'
+                        - 'lib/msal-common/**/**.!(md)'
+                        - 'lib/msal-node/**/**.!(md)'
                         - 'extensions/msal-node-extensions/**/**.!(md)'
 
             - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
