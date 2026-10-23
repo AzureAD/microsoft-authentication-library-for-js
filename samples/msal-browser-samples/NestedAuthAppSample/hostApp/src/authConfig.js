@@ -54,29 +54,9 @@ export const msalConfig = {
     },
 };
 
-// ESTS test slice used for manual validation. Passed on BOTH the authorize
-// request (extraQueryParameters) and the token request (extraParameters) so
-// every ESTS call — authorize and token — is routed to the same slice.
-const TEST_SLICE_1 = { dc: "ESTS-PUB-EUS-FD000-TEST1-100" };
-
 export const loginRequest = {
     scopes: ["User.Read"],
-    ...(kmsiEnabled
-        ? {}
-        : {
-              extraQueryParameters: { ...TEST_SLICE_1 },
-              extraParameters: { ...TEST_SLICE_1 },
-          }),
 };
-
-// Applied by the host when it brokers a nested-app token, so the brokered
-// authorize AND token requests hit the same test slice as the host's own login.
-export const brokerExtraParams = kmsiEnabled
-    ? {}
-    : {
-          extraQueryParameters: { ...TEST_SLICE_1 },
-          extraParameters: { ...TEST_SLICE_1 },
-      };
 
 // Port the nested app is served on; injected by server.js.
 export const nestedAppPort = import.meta.env.VITE_NESTED_APP_PORT;

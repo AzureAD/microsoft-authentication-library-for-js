@@ -35,8 +35,8 @@ in this sample the host app supplies its own implementation
 (`hostApp/src/nestedAppAuthBridge.js`).
 
 -   **Injection** — the host installs the bridge on `window` by calling
-    `installHostNestedAppAuthBridge(hostPca, nestedOrigin, brokerExtraParams)`
-    from `hostApp/src/index.jsx` after MSAL initializes. The bridge only accepts
+    `installHostNestedAppAuthBridge(hostPca, nestedOrigin)` from
+    `hostApp/src/index.jsx` after MSAL initializes. The bridge only accepts
     `postMessage` requests from the nested app's origin.
 -   **Usage** — the nested app creates its client with
     `createNestablePublicClientApplication()`, which detects the bridge and
@@ -97,13 +97,12 @@ For manual runs with `npm start` or `npm run start:https`, create a local
 | `VITE_AUTHORITY`        | Authority URL, e.g. `https://login.microsoftonline.com/<tenant>`. |
 
 The checked-in `.env.e2e` contains the concrete public test registrations used
-by the automated suites. Those registrations are linked for NAA and allow-listed
-for EAR in the `ESTS-PUB-EUS-FD000-TEST1-100` test slice. The sample adds that
-slice as the `dc` parameter to both authorize and token requests.
+by the automated suites. Those registrations are linked for NAA and configured
+for EAR.
 
 Do not replace or commit changes to `.env.e2e` for a manual run. If you need to
 run the e2e suites with different registrations, use registrations that are
-linked for NAA and independently allow-listed for EAR.
+linked for NAA and configured for EAR.
 
 ## Running the sample
 
@@ -144,8 +143,8 @@ The nested app receives tokens through `window.nestedAppAuthBridge`, stores
 account artifacts and returned tokens according to its MSAL cache configuration,
 and does not receive a refresh token.
 
-EAR is enabled with `?ear=true` and `ProtocolMode.EAR`. The EAR suites use the
-allow-listed test slice and verify decryption with a `crypto.subtle.decrypt` spy.
+EAR is enabled with `?ear=true` and `ProtocolMode.EAR`. The EAR suites verify
+decryption with a `crypto.subtle.decrypt` spy.
 
 The platform-broker suites are **self-hosted only**: they require branded
 Chrome, the Microsoft SSO extension, WAM, and a brokerable signed-in Windows
@@ -185,9 +184,7 @@ use `sessionStorage`. The restarted host therefore retains the broker-linked
 account and its `nativeAccountId`; host `ssoSilent` must refresh that account
 through WAM, after which both silent nested APIs must recover the same KMSI
 account without opening a popup. The temporary profile is removed when the
-suite finishes. KMSI mode also omits the EAR test-slice `dc` parameter so the
-WAM account uses its normal production routing; the EAR suites continue to use
-the allow-listed test slice.
+suite finishes.
 
 The host UI exposes `ssoSilent` for manual recovery checks and a token-free
 authentication summary (broker provenance, correlation ID, account IDs, and
