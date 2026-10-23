@@ -307,6 +307,66 @@ describe("Configuration.ts Class Unit Tests", () => {
             authority: TEST_CONFIG.validAuthority,
         };
 
+        it.each([true, false])(
+            "reuses the logger for overlapping configuration warnings with originCheck=%s",
+            (originCheck) => {
+                window.opener = CROSS_ORIGIN_OPENER;
+                const loggerSpy = jest
+                    .spyOn(Logger.prototype, "warning")
+                    .mockImplementation()
+                    .mockClear();
+
+                build({
+                    auth: {
+                        ...baseAuth,
+                        originCheck,
+                        OIDCOptions: {
+                            responseMode: Constants.ResponseMode.QUERY,
+                        },
+                    },
+                    system: {
+                        protocolMode: ProtocolMode.AAD,
+                        enableLegacyPolling: true,
+                    },
+                });
+
+                expect(loggerSpy).toHaveBeenCalledTimes(2);
+                expect(loggerSpy.mock.contexts[0]).toBeInstanceOf(Logger);
+                expect(loggerSpy.mock.contexts[1]).toBe(
+                    loggerSpy.mock.contexts[0]
+                );
+                expect(loggerSpy).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        originCheck
+                            ? "auth.originCheck is explicitly true"
+                            : "auth.originCheck is disabled"
+                    ),
+                    ""
+                );
+            }
+        );
+
+        it("uses each configuration build's own logger options", () => {
+            window.opener = CROSS_ORIGIN_OPENER;
+            const firstCallback = jest.fn();
+            const secondCallback = jest.fn();
+
+            for (const loggerCallback of [firstCallback, secondCallback]) {
+                build({
+                    auth: { ...baseAuth, originCheck: false },
+                    system: {
+                        loggerOptions: {
+                            loggerCallback,
+                            logLevel: LogLevel.Warning,
+                        },
+                    },
+                });
+            }
+
+            expect(firstCallback).toHaveBeenCalledTimes(1);
+            expect(secondCallback).toHaveBeenCalledTimes(1);
+        });
+
         it("warns when the origin check is explicitly disabled and the top-level opener is cross-origin", () => {
             window.opener = CROSS_ORIGIN_OPENER;
             const loggerSpy = jest

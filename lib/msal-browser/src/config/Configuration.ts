@@ -117,16 +117,9 @@ export type BrowserAuthOptions = {
      */
     verifySSO?: boolean;
     /**
-     * Whether MSAL computes the origin check behind the `pocd` authorize
-     * parameter, which tells Entra it may omit the
-     * `Cross-Origin-Opener-Policy` response header. Applies to every authorize
-     * and end-session request — popup, redirect and silent alike.
-     *
-     * `true` (default) sends `pocd=1` only when the popup is unreachable by an
-     * untrusted window. `false` skips the check and always sends it, moving
-     * responsibility for the framing threat model to the application.
-     *
-     * `system.enableLegacyPolling: true` implies `false` unless set explicitly.
+     * Compute whether to send `pocd=1` on authorize and logout requests.
+     * Set to `false` to always assert it and accept responsibility for the framing threat model.
+     * Defaults to `true`; legacy polling defaults it to `false` unless explicitly set.
      *
      * See [Cross-Origin-Opener-Policy and popup responses](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#cross-origin-opener-policy-and-popup-responses).
      */
@@ -178,22 +171,9 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     iframeBridgeTimeout?: number;
     /**
-     * Opt in to the legacy (non-COOP) hash-polling flow for `acquireTokenPopup`,
-     * `logoutPopup` and `ssoSilent`. When `true`, MSAL polls the popup/iframe
-     * `location` for the auth response instead of using the `BroadcastChannel`
-     * redirect bridge — the v4-style behavior.
-     *
-     * Intended for apps in third-party frames, where storage partitioning stops
-     * the bridge from delivering the response.
-     *
-     * Polling requires a passive same-origin callback (no redirect bridge) and
-     * a COOP-compatible popup round-trip. Strict `same-origin` on the app is
-     * incompatible; `same-origin-allow-popups` can retain popups when
-     * cross-origin responses omit enforcing COOP. This option implies
-     * {@link BrowserAuthOptions.originCheck} `= false`.
-     * Prefer {@link BrowserAuthOptions.popupRelayUri} where a top-level
-     * same-origin page can be hosted. Its grandchild-popup topology permits
-     * asserting `pocd=1`; Entra may therefore omit enforcing COOP.
+     * Use same-origin URL polling instead of the redirect bridge for popup and silent iframe responses.
+     * Requires a passive same-origin callback and a COOP-compatible popup round-trip.
+     * Defaults to `false`. When enabled, {@link BrowserAuthOptions.originCheck} defaults to `false`.
      *
      * See [Cross-Origin-Opener-Policy and popup responses](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#cross-origin-opener-policy-and-popup-responses).
      */
@@ -405,17 +385,24 @@ export function buildConfiguration(
         allowPlatformBrokerWithDOM: false,
     };
 
+    let logger: Logger | undefined;
+    const getLogger = (): Logger => {
+        if (!logger) {
+            logger = new Logger(
+                providedSystemOptions.loggerOptions,
+                name,
+                version
+            );
+        }
+        return logger;
+    };
+
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
     if (
         userInputSystem?.protocolMode !== ProtocolMode.OIDC &&
         userInputAuth?.OIDCOptions
     ) {
-        const logger = new Logger(
-            providedSystemOptions.loggerOptions,
-            name,
-            version
-        );
-        logger.warning(
+        getLogger().warning(
             JSON.stringify(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.cannotSetOIDCOptions,
@@ -446,12 +433,7 @@ export function buildConfiguration(
         userInputSystem?.enableLegacyPolling &&
         userInputAuth?.originCheck === true
     ) {
-        const logger = new Logger(
-            providedSystemOptions.loggerOptions,
-            name,
-            version
-        );
-        logger.warning(
+        getLogger().warning(
             "buildConfiguration: system.enableLegacyPolling is true and auth.originCheck is explicitly true. Legacy polling requires pocd=1, which the origin check will not produce in an embedded context. Unset auth.originCheck to let legacy polling assert it.",
             ""
         );
@@ -467,12 +449,7 @@ export function buildConfiguration(
         typeof window !== "undefined" &&
         !topOpenerIsSameOriginOrAbsent(window)
     ) {
-        const logger = new Logger(
-            providedSystemOptions.loggerOptions,
-            name,
-            version
-        );
-        logger.warning(
+        getLogger().warning(
             "buildConfiguration: auth.originCheck is disabled and the top-level window has a cross-origin opener. MSAL will assert pocd=1, so the STS omits Cross-Origin-Opener-Policy and that opener can reach the auth popup. The application is responsible for this risk.",
             ""
         );

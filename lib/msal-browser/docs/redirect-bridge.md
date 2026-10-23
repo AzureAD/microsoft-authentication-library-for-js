@@ -110,6 +110,11 @@ This causes **popup-based flows** to fail when your application runs inside a **
 
 Although both the iframe and the popup share the same **origin** (`yourapp.com`), the popup is in a **different storage partition**. The redirect bridge sends the response on a `BroadcastChannel` in the popup's partition, but the iframe is listening on a channel in the host platform's partition — the message never arrives, and the authentication flow times out.
 
+Token acquisition failures surface as `timed_out` with the
+`redirect_bridge_timeout` suberror. See the
+[timeout troubleshooting guidance](../../../docs/errors.md#redirect_bridge_timeout-suberror)
+for this and other possible causes.
+
 > [!IMPORTANT]
 > This is a browser-level constraint — not a bug in MSAL. There is no secure
 > client-side workaround that avoids this partitioning while preserving the
