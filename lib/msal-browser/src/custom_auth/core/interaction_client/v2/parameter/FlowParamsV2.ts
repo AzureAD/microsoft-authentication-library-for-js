@@ -5,6 +5,8 @@
 
 import { FlowContinuationStateV2 } from "../FlowContinuationStateV2.js";
 import { UserAccountAttributes } from "../../../../UserAccountAttributes.js";
+import type { EnrollmentMethodV2 } from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
+import type { AuthenticationMethodRegistrationV2 } from "../../../auth_flow/v2/AuthenticationMethodRegistrationV2.js";
 
 /*
  * Input parameters for V2 interaction-client actions. Continuing actions carry
@@ -61,4 +63,22 @@ export interface FlowSubmitSignUpAttributesParamsV2 extends FlowParamsBaseV2 {
 // Sign the account in by redeeming a completed flow's continuation for tokens.
 export interface FlowSignInWithContinuationParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
+}
+
+export interface FlowAuthMethodRegistrationRequiredParamsV2
+    extends FlowParamsBaseV2 {
+    continuationState: FlowContinuationStateV2;
+    methods: EnrollmentMethodV2[];
+}
+
+export interface FlowRegisterAuthMethodParamsV2 extends FlowParamsBaseV2 {
+    continuationState: FlowContinuationStateV2;
+    method: AuthenticationMethodRegistrationV2;
+    verificationContact: string;
+}
+
+export interface FlowVerifyAuthMethodRegistrationParamsV2
+    extends FlowParamsBaseV2 {
+    continuationState: FlowContinuationStateV2;
+    code: string;
 }

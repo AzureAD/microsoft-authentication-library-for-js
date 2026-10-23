@@ -5,9 +5,11 @@
 
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
+import { AuthMethodRegistrationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import { CodeRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
+    FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
@@ -126,6 +128,41 @@ describe("SignUpPasswordRequiredStateV2", () => {
 
         expect(result.isState("codeRequired")).toBe(true);
         expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
+    });
+
+    it("returns registration when deferred password submission requires enrollment", async () => {
+        flowClient.submitSignUpAttributes.mockResolvedValue({
+            type: FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                ...continuationState,
+                continuationToken: "ct-enroll",
+                links: {},
+            },
+            methods: [
+                {
+                    type: "email",
+                    channels: [],
+                    enrollHref: "/signup/methods/email",
+                },
+            ],
+        });
+
+        const result = await buildState().submitPassword("valid-password");
+
+        expect(result.isState("authMethodRegistrationRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(
+            AuthMethodRegistrationRequiredStateV2
+        );
+        expect(result.state).toMatchObject({
+            methods: [
+                {
+                    type: "email",
+                    channels: [],
+                    enrollHref: "/signup/methods/email",
+                },
+            ],
+        });
     });
 
     it("returns a failed result for an unsupported transition", async () => {

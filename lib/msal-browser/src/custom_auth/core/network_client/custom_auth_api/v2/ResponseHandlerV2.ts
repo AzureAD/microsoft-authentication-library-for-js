@@ -7,7 +7,7 @@ import { Logger } from "@azure/msal-common/browser";
 import { HttpHeaderKeys } from "../../../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../../error/CustomAuthApiError.js";
 import { normalizeServerErrorV2 } from "./response/ErrorNormalizerV2.js";
-import { EmbeddedMethodV2, ParsedResponseV2 } from "./response/ResponsesV2.js";
+import { ParsedResponseV2 } from "./response/ResponsesV2.js";
 import {
     CONTINUATION_TOKEN_MISSING,
     INVALID_HAL_RESPONSE,
@@ -64,12 +64,12 @@ export class ResponseHandlerV2 {
 
     // Required href; throws when it is absent.
     requireHref(
-        href: string | undefined,
+        href: unknown,
         relation: string,
         correlationId: string,
         missingHrefError?: { code: string; message: string }
     ): string {
-        if (!href) {
+        if (typeof href !== "string" || !href.trim()) {
             const errorCode = missingHrefError?.code ?? INVALID_HAL_RESPONSE;
             const errorMessage =
                 missingHrefError?.message ??
@@ -85,6 +85,29 @@ export class ResponseHandlerV2 {
         }
 
         return href;
+    }
+
+    requirePositiveInteger(
+        value: unknown,
+        fieldName: string,
+        correlationId: string
+    ): number {
+        if (
+            typeof value !== "number" ||
+            !Number.isInteger(value) ||
+            value <= 0
+        ) {
+            const errorMessage = `Invalid HAL response: ${fieldName} is missing or malformed`;
+            this.logger?.error(errorMessage, correlationId);
+
+            throw new CustomAuthApiError(
+                INVALID_HAL_RESPONSE,
+                errorMessage,
+                correlationId
+            );
+        }
+
+        return value;
     }
 
     // Required continuation token to advance the flow; throws when absent.
@@ -109,10 +132,7 @@ export class ResponseHandlerV2 {
     }
 
     // Required embedded auth methods; throws when `_embedded.methods` is absent or empty.
-    requireMethods(
-        methods: EmbeddedMethodV2[] | undefined,
-        correlationId: string
-    ): EmbeddedMethodV2[] {
+    requireMethods<T>(methods: T[] | undefined, correlationId: string): T[] {
         if (!methods?.length) {
             this.logger?.error(
                 "V2 HAL response is missing the required embedded authentication methods",
