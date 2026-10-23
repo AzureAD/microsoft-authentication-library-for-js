@@ -5,12 +5,14 @@
 
 import {
     AccountInfo,
-    ICrypto,
-    AuthenticationResult,
+    TenantProfile,
+} from "../../src/common/account/AccountInfo.js";
+import { ICrypto } from "../../src/common/crypto/ICrypto.js";
+import { AuthenticationResult } from "../../src/common/response/AuthenticationResult.js";
+import {
     createClientAuthError,
     ClientAuthErrorCodes,
-    TenantProfile,
-} from "@azure/msal-common";
+} from "../../src/common/error/ClientAuthError.js";
 
 export const TEST_CONSTANTS = {
     APP_NAME: "MSAL Node.js Unit Test",

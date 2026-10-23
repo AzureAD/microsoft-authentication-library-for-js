@@ -1,8 +1,8 @@
 # Configuration Options
 
-Before you start here, make sure you understand how to [initialize an app object](./initialize-public-client-application.md).
+Before you start here, make sure you understand how to [initialize a confidential client application](./initialize-confidential-client-application.md).
 
-The MSAL library has a set of configuration options that can be used to customize the behavior of your authentication flows. These options can be set either in the constructor of the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) object or as part of the [request APIs](request.md). Here we describe the configuration object that can be passed into the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) constructor.
+The MSAL library has a set of configuration options that can be used to customize the behavior of your authentication flows. These options can be set either in the constructor of the [ConfidentialClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.confidentialclientapplication.html) object or as part of the [request APIs](request.md).
 
 In this document:
 
@@ -11,7 +11,7 @@ In this document:
 
 ## Usage
 
-The configuration object can be passed into the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) constructor. The only required config parameter is the `client_id` of the application. Everything else is optional, but may be required depending on your authentication flow, tenant and application model.
+The configuration object can be passed into the [ConfidentialClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.confidentialclientapplication.html) constructor. A client ID and one client credential are required.
 
 [Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) object with all supported parameters is as below:
 
@@ -37,6 +37,7 @@ const cachePlugin = {
 const msalConfig = {
     auth: {
         clientId: "enter_client_id_here",
+        clientSecret: process.env.CLIENT_SECRET,
         authority: "https://login.microsoftonline.com/common",
         knownAuthorities: [],
         cloudDiscoveryMetadata: "",
@@ -46,7 +47,9 @@ const msalConfig = {
         }
     },
     cache: {
-        cachePlugin // your implementation of cache plugin
+        cachePlugin, // your implementation of cache plugin
+        maxTokenCacheEntries: 10_000,
+        maxTokenCacheSizeInBytes: 20 * 1024 * 1024
     },
     system: {
         loggerOptions: {
@@ -59,35 +62,34 @@ const msalConfig = {
     }
 }
 
-const msalInstance = new PublicClientApplication(msalConfig);
+const msalInstance = new ConfidentialClientApplication(msalConfig);
 ```
 
 ## Options
 
 ### Auth Config Options
 
-| Option                   | Description                                                                                                                                                                                                    | Format                                                                                                                                       | Default Value                                                              |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `clientId`               | App ID of your application. Can be found in your [portal registration](../README.md#prerequisites).                                                                                                            | UUID/GUID                                                                                                                                    | None. This parameter is required in order for MSAL to perform any actions. |
-| `authority`              | URI of the tenant to authenticate and authorize with. Usually takes the form of `https://{uri}/{tenantid}` (see [Authority](../../msal-common/docs/authority.md))                                              | String in URI format with tenant - `https://{uri}/{tenantid}`                                                                                | `https://login.microsoftonline.com/common`                                 |
-| `knownAuthorities`       | An array of URIs that are known to be valid. Used in B2C scenarios.                                                                                                                                            | Array of strings in URI format                                                                                                               | Empty array `[]`                                                           |
-| `cloudDiscoveryMetadata` | A string containing the cloud discovery response. Used in AAD scenarios. See [Performance](../../msal-common/docs/performance.md) for more info                                                                | string                                                                                                                                       | Empty string `""`                                                          |
-| `authorityMetadata`      | A string containing the .well-known/openid-configuration endpoint response. See [Performance](../../msal-common/docs/performance.md) for more info                                                             | string                                                                                                                                       | Empty string `""`                                                          |
-| `clientCapabilities`     | Array of capabilities to be added to all network requests as part of the `xms_cc` claims request (see: [Client capability in MSAL](../../msal-common/docs/client-capability.md))                               | Array of strings                                                                                                                             | []                                                                         |
-| `azureCloudOptions`      | A defined set of azure cloud options for developers to default to their specific cloud authorities, for specific clouds supported please refer to the [AzureCloudInstance](aka.ms/msaljs/azure_cloud_instance) | [AzureCloudOptions](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#azurecloudoptions) | [AzureCloudInstance.None](msaljs/azure_cloud_instance)                     |
-| `isMcp`                  | If true, a `resource` parameter is required on all token requests. Used for MCP flows. See [MCP documentation](mcp.md) for more details.                                                                                               | boolean                                                                                                                                      | `false`                                                                    |
+| Option                   | Description                                                                                                                                                                                                            | Format                                                                                                                                       | Default Value                                                              |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `clientId`               | App ID of your application. Can be found in your [portal registration](../README.md#prerequisites).                                                                                                                    | UUID/GUID                                                                                                                                    | None. This parameter is required in order for MSAL to perform any actions. |
+| `authority`              | URI of the tenant to authenticate and authorize with. Usually takes the form of `https://{uri}/{tenantid}` (see [Authority](../../msal-common/docs/authority.md))                                                      | String in URI format with tenant - `https://{uri}/{tenantid}`                                                                                | `https://login.microsoftonline.com/common`                                 |
+| `knownAuthorities`       | An array of URIs that are known to be valid. Used in B2C scenarios.                                                                                                                                                    | Array of strings in URI format                                                                                                               | Empty array `[]`                                                           |
+| `cloudDiscoveryMetadata` | A string containing the cloud discovery response. Used in AAD scenarios. See [Performance](../../msal-common/docs/performance.md) for more info                                                                        | string                                                                                                                                       | Empty string `""`                                                          |
+| `authorityMetadata`      | A string containing the .well-known/openid-configuration endpoint response. See [Performance](../../msal-common/docs/performance.md) for more info                                                                     | string                                                                                                                                       | Empty string `""`                                                          |
+| `clientCapabilities`     | Array of capabilities to be added to all network requests as part of the `xms_cc` claims request (see: [Client capability in MSAL](../../msal-common/docs/client-capability.md))                                       | Array of strings                                                                                                                             | []                                                                         |
+| `azureCloudOptions`      | A defined set of azure cloud options for developers to default to their specific cloud authorities, for specific clouds supported please refer to the [AzureCloudInstance](https://aka.ms/msaljs/azure_cloud_instance) | [AzureCloudOptions](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#azurecloudoptions) | [AzureCloudInstance.None](https://aka.ms/msaljs/azure_cloud_instance)      |
 
 ### Cache Config Options
 
-| Option        | Description                                                                                                      | Format                                                                                                                           | Default Value |
-| ------------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| `cachePlugin` | Cache plugin with call backs to reading and writing into the cache persistence (see also: [caching](caching.md)) | [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#icacheplugin) | null          |
+| Option                     | Description                                                                                                                                                                                       | Format                                                                                                                           | Default Value               |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| `cachePlugin`              | Cache plugin with call backs to reading and writing into the cache persistence (see also: [caching](caching.md))                                                                                  | [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#icacheplugin) | null                        |
+| `maxTokenCacheEntries`     | Maximum combined number of access token, refresh token, and ID token credentials retained in memory. Must be a positive integer no greater than `1_000_000`.                                      | number                                                                                                                           | `10_000`                    |
+| `maxTokenCacheSizeInBytes` | Maximum combined logical weight of access token, refresh token, and ID token credentials retained in memory. Must be a positive safe integer. See [caching](caching.md#bounded-credential-cache). | number                                                                                                                           | `20 * 1024 * 1024` (20 MiB) |
 
-### Broker Config Options
+Both limits apply simultaneously, and neither can be disabled. The logical-weight limit constrains typical token data and generated indexes, while the entry limit separately guards against many small credential objects. Logical weight is deterministic cache accounting rather than a guarantee of process heap or RSS; see [caching](caching.md#bounded-credential-cache).
 
-| Option               | Description                                                                                        | Format              | Default Value |
-| -------------------- | -------------------------------------------------------------------------------------------------- | ------------------- | ------------- |
-| `nativeBrokerPlugin` | Broker plugin for acquiring tokens via a native token broker (see also: [brokering](brokering.md)) | INativeBrokerPlugin | null          |
+`ManagedIdentityApplication` accepts the same two properties in its `cache` configuration. Managed Identity applications share a process-wide cache. The first instance owns the process-wide limits; later instances may omit them or specify matching values. A later instance that explicitly specifies a different value throws `managed_identity_cache_configuration_mismatch` without changing the existing cache.
 
 ### System Config Options
 

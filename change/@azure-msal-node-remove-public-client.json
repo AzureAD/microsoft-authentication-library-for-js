@@ -1,0 +1,7 @@
+{
+    "type": "major",
+    "comment": "Remove public client support from MSAL Node [#8836](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8836)",
+    "packageName": "@azure/msal-node",
+    "email": "nugetaad@microsoft.com",
+    "dependentChangeType": "major"
+}

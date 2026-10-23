@@ -13,12 +13,10 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
 -   [Microsoft Authentication Library for Node.js](lib/msal-node/): A [Node.js](https://nodejs.org/en/) library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the following OAuth 2.0 protocols and is [OpenID-compliant](https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc):
 
     -   [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) with [PKCE](https://oauth.net/2/pkce/)
-    -   [Device Code Grant](https://oauth.net/2/grant-types/device-code/)
     -   [Refresh Token Grant](https://oauth.net/2/grant-types/refresh-token/)
     -   [Client Credential Grant](https://oauth.net/2/grant-types/client-credentials/)
     -   [Silent Flow](https://docs.microsoft.com/azure/active-directory/develop/msal-acquire-cache-tokens#acquiring-tokens-silently-from-the-cache)
     -   [On-behalf-of Flow](https://learn.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow)
-
 
 -   [Native Authentication Support for JavaScript](lib/msal-browser/src/custom_auth/): MSAL also provides native authentication APIs that allow applications to implement a native experience with end-to-end customizable flows in their applications. With native authentication, users are guided through a rich, native, sign-up and sign-in journey without leaving the app. The native authentication feature is available for SPAs on [External ID for customers](https://learn.microsoft.com/en-us/entra/identity-platform/concept-native-authentication). It is recommended to always use the most up-to-date version of the SDK.
 
@@ -30,26 +28,25 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
 
 ### Library Version Support Status
 
-
-| Package Name | Current Version | LTS Version | 
-|--------------|-----------------|-------------|
-| @azure/msal-browser |v5 | v4 |
-| @azure/msal-node | v5 | v3 | 
-| @azure/msal-react | v5 | v3 | 
-| @azure/msal-angular | v5 | v4 |
-| @azure/msal-node-extensions | v5 | v1 |
-| ~~@azure/msal (msal-core)~~|  | Fully Deprecated  |
-| ~~@azure/msal-angularjs~~ |  | Fully Deprecated  |
+| Package Name                | Current Version | LTS Version      |
+| --------------------------- | --------------- | ---------------- |
+| @azure/msal-browser         | v5              | v4               |
+| @azure/msal-node            | v6              | v3               |
+| @azure/msal-react           | v5              | v3               |
+| @azure/msal-angular         | v5              | v4               |
+| @azure/msal-node-extensions | v5              | v1               |
+| ~~@azure/msal (msal-core)~~ |                 | Fully Deprecated |
+| ~~@azure/msal-angularjs~~   |                 | Fully Deprecated |
 
 **Disambiguation:**
-- The MSAL team provides full support to the current version for each package in the table below.
-- LTS (long-term support) versions will still receive some support and critical bug-fixes but will not ship new features. Our recommendation if you encounter any issues will always be to upgrade to the latest version of the library.
-- All supported packages were brought up to version parity as of `v5`. Packages with versions lower than `v4` in the LTS column skipped as many versions as required to jump directly to `v5`.
+
+-   The MSAL team provides full support to the current version for each package in the table below.
+-   LTS (long-term support) versions will still receive some support and critical bug-fixes but will not ship new features. Our recommendation if you encounter any issues will always be to upgrade to the latest version of the library.
+-   All supported packages were brought up to version parity as of `v5`. Packages with versions lower than `v4` in the LTS column skipped as many versions as required to jump directly to `v5`.
 
 #### MSAL Browser CDN Deprecation
 
 > :warning: The `@azure/msal-browser` CDN has been fully deprecated as of `@azure/msal-browser@3.0.0` and is no longer supported. App developers using the MSAL CDN must upgrade to the latest possible version and consume MSAL through a package manager or bundling tool of their choice. For more information on version support, consult the table above.
-
 
 ### Package Structure
 
@@ -67,7 +64,7 @@ All of our libraries follow [semantic versioning](https://semver.org). We recomm
 
 ## Community Help and Support
 
--   [GitHub Issues](../../issues) is the best place to ask questions, report bugs, and new request features.
+-   [GitHub Issues](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues) is the best place to ask questions, report bugs, and new request features.
 
 -   [FAQs](https://aka.ms/msaljs-faq) for access to our frequently asked questions.
 

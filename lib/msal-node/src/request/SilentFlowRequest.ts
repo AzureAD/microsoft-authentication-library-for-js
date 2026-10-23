@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, CommonSilentFlowRequest } from "@azure/msal-common/node";
+import { AccountInfo } from "../common/account/AccountInfo.js";
+import { CommonSilentFlowRequest } from "../common/request/CommonSilentFlowRequest.js";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CommonAuthorizationCodeRequest } from "@azure/msal-common/node";
+import { CommonAuthorizationCodeRequest } from "../common/request/CommonAuthorizationCodeRequest.js";
 
 /**
  * Request object passed by user to acquire a token from the server exchanging a valid authorization code (second leg of OAuth2.0 Authorization Code flow)

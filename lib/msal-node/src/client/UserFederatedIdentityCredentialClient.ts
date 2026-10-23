@@ -3,23 +3,21 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AADServerParamKeys,
-    AuthenticationResult,
-    Authority,
-    ClientConfiguration,
-    Constants,
-    RequestParameterBuilder,
-    RequestThumbprint,
-    ResponseHandler,
-    ScopeSet,
-    StringUtils,
-    TimeUtils,
-    UrlString,
-    ClientAssertion,
-    getClientAssertion,
-    UrlUtils,
-} from "@azure/msal-common/node";
+import * as AADServerParamKeys from "../common/constants/AADServerParamKeys.js";
+import { AuthenticationResult } from "../common/response/AuthenticationResult.js";
+import { Authority } from "../common/authority/Authority.js";
+import { ClientConfiguration } from "../common/config/ClientConfiguration.js";
+import * as Constants from "../common/utils/Constants.js";
+import * as RequestParameterBuilder from "../common/request/RequestParameterBuilder.js";
+import { RequestThumbprint } from "../common/network/RequestThumbprint.js";
+import { ResponseHandler } from "../common/response/ResponseHandler.js";
+import { ScopeSet } from "../common/request/ScopeSet.js";
+import { StringUtils } from "../common/utils/StringUtils.js";
+import * as TimeUtils from "../common/utils/TimeUtils.js";
+import { UrlString } from "../common/url/UrlString.js";
+import { ClientAssertion } from "../common/account/ClientCredentials.js";
+import { getClientAssertion } from "../common/utils/ClientAssertionUtils.js";
+import * as UrlUtils from "../common/utils/UrlUtils.js";
 import { ApiId } from "../utils/Constants.js";
 import { BaseClient } from "./BaseClient.js";
 import { CommonUserFederatedIdentityCredentialRequest } from "../request/CommonUserFederatedIdentityCredentialRequest.js";

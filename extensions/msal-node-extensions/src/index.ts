@@ -14,4 +14,3 @@ export { CrossPlatformLockOptions } from "./lock/CrossPlatformLockOptions.js";
 export { PersistenceCreator } from "./persistence/PersistenceCreator.js";
 export { IPersistenceConfiguration } from "./persistence/IPersistenceConfiguration.js";
 export { Environment } from "./utils/Environment.js";
-export { NativeBrokerPlugin } from "./broker/NativeBrokerPlugin.js";

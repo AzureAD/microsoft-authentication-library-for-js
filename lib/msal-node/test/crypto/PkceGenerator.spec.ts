@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { PkceCodes } from "@azure/msal-common";
+import { PkceCodes } from "../../src/common/crypto/ICrypto.js";
 import { PkceGenerator } from "./../../src/crypto/PkceGenerator.js";
 
 describe("PkceGenerator", () => {

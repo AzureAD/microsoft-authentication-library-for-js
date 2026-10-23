@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { IGuidGenerator } from "@azure/msal-common/node";
+import { IGuidGenerator } from "../common/crypto/IGuidGenerator.js";
 import { randomUUID } from "node:crypto";
 
 export class GuidGenerator implements IGuidGenerator {

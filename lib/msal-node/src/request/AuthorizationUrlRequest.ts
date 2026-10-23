@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CommonAuthorizationUrlRequest } from "@azure/msal-common/node";
+import { CommonAuthorizationUrlRequest } from "../common/request/CommonAuthorizationUrlRequest.js";
 
 /**
  * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)

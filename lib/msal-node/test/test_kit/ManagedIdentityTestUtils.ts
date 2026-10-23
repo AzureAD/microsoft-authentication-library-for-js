@@ -3,12 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import {
-    Constants,
-    INetworkModule,
-    NetworkResponse,
-    TimeUtils,
-} from "@azure/msal-common";
+import * as Constants from "../../src/common/utils/Constants.js";
+import { INetworkModule } from "../../src/common/network/INetworkModule.js";
+import { NetworkResponse } from "../../src/common/network/NetworkResponse.js";
+import * as TimeUtils from "../../src/common/utils/TimeUtils.js";
 import {
     MANAGED_IDENTITY_NETWORK_REQUEST_500_ERROR,
     MANAGED_IDENTITY_RESOURCE,

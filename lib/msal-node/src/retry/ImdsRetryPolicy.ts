@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, Logger } from "@azure/msal-common/node";
+import * as Constants from "../common/utils/Constants.js";
+import { Logger } from "../common/logger/Logger.js";
 import { ExponentialRetryStrategy } from "./ExponentialRetryStrategy.js";
 import { IHttpRetryPolicy } from "./IHttpRetryPolicy.js";
 

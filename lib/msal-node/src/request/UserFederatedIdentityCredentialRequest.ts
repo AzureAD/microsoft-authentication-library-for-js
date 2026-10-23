@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ClientAssertionCallback } from "@azure/msal-common/node";
+import { ClientAssertionCallback } from "../common/account/ClientCredentials.js";
 import { CommonUserFederatedIdentityCredentialRequest } from "./CommonUserFederatedIdentityCredentialRequest.js";
 
 /**

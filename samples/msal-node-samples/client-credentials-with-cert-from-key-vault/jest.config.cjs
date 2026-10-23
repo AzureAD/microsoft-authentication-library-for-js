@@ -5,6 +5,8 @@
 
 module.exports = {
     displayName: "Client Credentials with Certificate from Key Vault",
+    globalSetup:
+        "<rootDir>/../../../.pipelines/scripts/install-local-msal-node-package.cjs",
     preset: "../../e2eTestUtils/jest-puppeteer-utils/jest-preset-no-setup.js",
     extensionsToTreatAsEsm: [".ts", ".tsx"],
 };

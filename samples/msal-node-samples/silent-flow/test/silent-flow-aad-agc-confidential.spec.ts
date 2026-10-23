@@ -17,9 +17,13 @@ import {
     validateCacheLocation,
     SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID,
     NodeCacheTestUtils,
-    getKeyVaultSecretClient,
-    getCredentials,
-} from "e2e-test-utils";
+    AppTypes,
+    LabApiQueryParams,
+    LabClient,
+    UserTypes,
+    retrieveAppConfiguration,
+    setupCredentials,
+} from "e2e-test-utils/node";
 import { ConfidentialClientApplication, TokenCache } from "@azure/msal-node";
 import path from "path";
 
@@ -34,17 +38,8 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
 // Load scenario configuration
 const config = require("../config/AAD-AGC-Confidential.json");
-config.authOptions = {
-    ...config.authOptions,
-    clientId: process.env.AZURE_CLIENT_ID,
-    clientSecret: process.env.AZURE_CLIENT_SECRET,
-    authority: `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
-    knownAuthorities: [
-        `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
-    ],
-};
 config.resourceApi = {
-    endpoint: `${process.env.GRAPH_URL}/v1.0/me`,
+    endpoint: "https://graph.microsoft.com/v1.0/me",
 };
 
 describe("Silent Flow AAD AGC Confidential Tests", () => {
@@ -63,7 +58,10 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
     let username: string;
     let password: string;
 
-    const screenshotFolder = path.join(__dirname, "screenshots/silent-flow/aad-agc-confidential");
+    const screenshotFolder = path.join(
+        __dirname,
+        "screenshots/silent-flow/aad-agc-confidential"
+    );
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -74,8 +72,35 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
 
         createFolder(screenshotFolder);
 
-        const keyVaultSecretClient = await getKeyVaultSecretClient();
-        [username, password] = await getCredentials(keyVaultSecretClient);
+        const labClient = new LabClient();
+        const userParams: LabApiQueryParams = {
+            userType: UserTypes.GUEST,
+        };
+        const appParams: LabApiQueryParams = {
+            appType: AppTypes.CLOUD,
+            publicClient: "no",
+            signInAudience: "azureadmyorg",
+        };
+        const [userConfig] = await labClient.getVarsByCloudEnvironment(
+            userParams
+        );
+        const [appConfig] = await labClient.getVarsByCloudEnvironment(
+            appParams
+        );
+
+        expect(appConfig.lab.tenantId).toBe(userConfig.lab.tenantId);
+        [username, password] = await setupCredentials(userConfig, labClient);
+        const [clientId, clientSecret, authority] =
+            await retrieveAppConfiguration(appConfig, labClient, true);
+
+        config.authOptions = {
+            clientId,
+            clientSecret,
+            authority,
+            redirectUri: homeRoute,
+        };
+        config.request.authCodeUrlParameters.redirectUri = homeRoute;
+        config.request.tokenRequest.redirectUri = homeRoute;
 
         confidentialClientApplication = new ConfidentialClientApplication({
             auth: config.authOptions,
@@ -106,8 +131,12 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
         });
 
         afterEach(async () => {
-            await page.close();
-            await context.close();
+            if (page) {
+                await page.close();
+            }
+            if (context) {
+                await context.close();
+            }
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
@@ -126,6 +155,15 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
+        });
+
+        it("Rejects an authorization response with mismatched state", async () => {
+            await page.goto(`${homeRoute}/login`);
+            const response = await page.goto(
+                `${homeRoute}/redirect?code=fake-code&state=invalid-state`
+            );
+
+            expect(response?.status()).toBe(400);
         });
 
         it("Performs acquire token silent", async () => {
@@ -208,8 +246,12 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
             });
 
             afterEach(async () => {
-                await page.close();
-                await context.close();
+                if (page) {
+                    await page.close();
+                }
+                if (context) {
+                    await context.close();
+                }
                 await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
             });
 
@@ -243,6 +285,27 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
                 );
                 expect(accounts.length).toBe(1);
             });
+
+            it("Does not allow another session to use the cached account", async () => {
+                const screenshot = new Screenshot(
+                    `${screenshotFolder}/SessionIsolation`
+                );
+                await clickSignIn(page, screenshot);
+                await enterCredentials(page, screenshot, username, password);
+                await page.waitForSelector("#acquireTokenSilent");
+
+                const otherContext = await browser.createBrowserContext();
+                const otherPage = await otherContext.newPage();
+                try {
+                    const response = await otherPage.goto(
+                        `${homeRoute}/graphCall`
+                    );
+                    expect(response?.status()).toBe(401);
+                } finally {
+                    await otherPage.close();
+                    await otherContext.close();
+                }
+            });
         });
 
         describe("Unauthenticated", () => {
@@ -253,35 +316,24 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
             });
 
             afterEach(async () => {
-                await page.close();
-                await context.close();
+                if (page) {
+                    await page.close();
+                }
+                if (context) {
+                    await context.close();
+                }
                 await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
             });
 
-            it("Returns empty account array", async () => {
+            it("Rejects account access without an authenticated session", async () => {
                 const screenshot = new Screenshot(
                     `${screenshotFolder}/NoCachedAccounts`
                 );
-                await page.goto(`${homeRoute}/allAccounts`, {
+                const response = await page.goto(`${homeRoute}/allAccounts`, {
                     waitUntil: "networkidle0",
                 });
-                await page.waitForSelector("#getAllAccounts");
-                await page.click("#getAllAccounts");
                 await screenshot.takeScreenshot(page, "gotAllAccounts");
-                const accounts = await page.evaluate(() =>
-                    JSON.parse(
-                        document.getElementById("nav-tabContent").children[0]
-                            .innerHTML
-                    )
-                );
-                const htmlBody = await page.evaluate(
-                    () => document.body.innerHTML
-                );
-                expect(htmlBody).toContain("No accounts found in the cache.");
-                expect(htmlBody).not.toContain(
-                    "Failed to get accounts from cache."
-                );
-                expect(accounts.length).toBe(0);
+                expect(response?.status()).toBe(401);
             });
         });
     });

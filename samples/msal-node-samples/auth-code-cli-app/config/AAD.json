@@ -1,9 +1,0 @@
-{
-    "authOptions": {
-        "clientId": "c6bb302a-1e38-408e-9754-87c18fe81c80",
-        "authority": "https://login.microsoftonline.com/common/"
-    },
-    "request": {
-        "scopes": ["user.read"]
-    }
-}

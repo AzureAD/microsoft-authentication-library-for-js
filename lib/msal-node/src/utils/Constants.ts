@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AADServerParamKeys } from "@azure/msal-common/node";
+import * as AADServerParamKeys from "../common/constants/AADServerParamKeys.js";
 import { DefaultManagedIdentityRetryPolicy } from "../retry/DefaultManagedIdentityRetryPolicy.js";
 import { ImdsRetryPolicy } from "../retry/ImdsRetryPolicy.js";
 
@@ -138,22 +138,17 @@ export const Constants = {
     MSAL_SKU: "msal.js.node",
     JWT_BEARER_ASSERTION_TYPE:
         "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-    AUTHORIZATION_PENDING: "authorization_pending",
-    HTTP_PROTOCOL: "http://",
-    LOCALHOST: "localhost",
 };
 
 /**
  * API Codes for Telemetry purposes.
  * Before adding a new code you must claim it in the MSAL Telemetry tracker as these number spaces are shared across all MSALs
  * 0-99 Silent Flow
- * 600-699 Device Code Flow
  * 800-899 Auth Code Flow
  */
 export const ApiId = {
     acquireTokenSilent: 62,
     acquireTokenByUsernamePassword: 371,
-    acquireTokenByDeviceCode: 671,
     acquireTokenByClientCredential: 771,
     acquireTokenByOBO: 772,
     acquireTokenWithManagedIdentity: 773,
@@ -179,11 +174,6 @@ export const JwtConstants = {
     SUBJECT: "sub",
     NOT_BEFORE: "nbf",
     JWT_ID: "jti",
-};
-
-export const LOOPBACK_SERVER_CONSTANTS = {
-    INTERVAL_MS: 100,
-    TIMEOUT_MS: 5000,
 };
 
 export const AZURE_ARC_SECRET_FILE_MAX_SIZE_BYTES: number = 4096; // 4 KB

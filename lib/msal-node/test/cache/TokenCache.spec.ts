@@ -3,15 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import {
-    LogLevel,
-    Logger,
-    TokenCacheContext,
-    ICachePlugin,
-    buildStaticAuthorityOptions,
-    Constants,
-    AuthorityMetadataEntity,
-} from "@azure/msal-common";
+import { LogLevel, Logger } from "../../src/common/logger/Logger.js";
+import { TokenCacheContext } from "../../src/common/cache/persistence/TokenCacheContext.js";
+import * as tokenCacheContextModule from "../../src/common/cache/persistence/TokenCacheContext.js";
+import * as CacheHelpers from "../../src/common/cache/utils/CacheHelpers.js";
+import { ICachePlugin } from "../../src/common/cache/interface/ICachePlugin.js";
+import { buildStaticAuthorityOptions } from "../../src/common/authority/Authority.js";
+import * as Constants from "../../src/common/utils/Constants.js";
+import { AuthorityMetadataEntity } from "../../src/common/cache/entities/AuthorityMetadataEntity.js";
 import { NodeStorage } from "../../src/cache/NodeStorage.js";
 import { TokenCache } from "../../src/cache/TokenCache.js";
 import { existsSync, watch, promises, FSWatcher } from "fs";
@@ -22,11 +21,6 @@ import {
 } from "../utils/TestConstants.js";
 import { Deserializer } from "../../src/cache/serializer/Deserializer.js";
 import { JsonCache } from "../../src/index.js";
-import { MSALCommonModule } from "../utils/MockUtils.js";
-
-const msalCommon: MSALCommonModule = jest.requireActual(
-    "@azure/msal-common/node"
-);
 
 describe("TokenCache tests", () => {
     let logger: Logger;
@@ -71,7 +65,7 @@ describe("TokenCache tests", () => {
         expect(await tokenCache.getAllAccounts()).toEqual([]);
     });
 
-    it("TokenCache serialize/deserialize", () => {
+    it("round-trips a pre-v7 persisted cache without schema changes", () => {
         const cache = require("./cache-test-files/default-cache.json");
         const tokenCache = new TokenCache(storage, logger);
 
@@ -154,12 +148,15 @@ describe("TokenCache tests", () => {
             tokenCache,
         };
 
-        jest.spyOn(msalCommon, "TokenCacheContext").mockImplementation(
+        jest.spyOn(
+            tokenCacheContextModule,
+            "TokenCacheContext"
+        ).mockImplementation(
             () => mockTokenCacheContextInstance as unknown as TokenCacheContext
         );
 
         const accounts = await tokenCache.getAllAccounts();
-        expect(msalCommon.TokenCacheContext).toHaveBeenCalled();
+        expect(tokenCacheContextModule.TokenCacheContext).toHaveBeenCalled();
         expect(accounts.length).toBe(1);
         expect(require("./cache-test-files/temp-cache.json")).toEqual(
             require("./cache-test-files/cache-unrecognized-entities.json")
@@ -296,7 +293,7 @@ describe("TokenCache tests", () => {
         await tokenCache.overwriteCache();
         expect(clearSpy).toHaveBeenCalled();
         expect(deserializedCacheSpy).toHaveBeenCalledTimes(2); // first call returns serialized cache, second call returns deserialized cache
-        expect(deserializedCacheSpy.mock.results[1].value).toBe(
+        expect(deserializedCacheSpy.mock.results[1].value).toEqual(
             tokenCache.getKVStore()
         );
     });
@@ -342,8 +339,7 @@ describe("TokenCache tests", () => {
                 "https://login.microsoftonline.com/common/discovery/v2.0/keys",
             aliasesFromNetwork: true,
             endpointsFromNetwork: true,
-            expiresAt:
-                msalCommon.CacheHelpers.generateAuthorityMetadataExpiresAt(),
+            expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
         };
         storage.setAuthorityMetadata(
             authorityMetadataKey,

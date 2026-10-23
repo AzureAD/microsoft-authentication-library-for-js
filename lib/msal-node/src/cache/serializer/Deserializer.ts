@@ -9,13 +9,13 @@ import {
     AccessTokenCache,
     RefreshTokenCache,
     AppMetadataCache,
-    AccountEntity,
-    IdTokenEntity,
-    AccessTokenEntity,
-    RefreshTokenEntity,
-    CacheManager,
-    Constants,
-} from "@azure/msal-common/node";
+} from "../../common/cache/utils/CacheTypes.js";
+import { AccountEntity } from "../../common/cache/entities/AccountEntity.js";
+import { IdTokenEntity } from "../../common/cache/entities/IdTokenEntity.js";
+import { AccessTokenEntity } from "../../common/cache/entities/AccessTokenEntity.js";
+import { RefreshTokenEntity } from "../../common/cache/entities/RefreshTokenEntity.js";
+import { CacheManager } from "../../common/cache/CacheManager.js";
+import * as Constants from "../../common/utils/Constants.js";
 import {
     JsonCache,
     InMemoryCache,

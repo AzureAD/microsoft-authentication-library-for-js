@@ -4,11 +4,9 @@
  */
 
 import jwt from "jsonwebtoken";
-import {
-    TimeUtils,
-    createClientAuthError,
-    Constants,
-} from "@azure/msal-common/node";
+import * as TimeUtils from "../common/utils/TimeUtils.js";
+import { createClientAuthError } from "../common/error/ClientAuthError.js";
+import * as Constants from "../common/utils/Constants.js";
 import { CryptoProvider } from "../crypto/CryptoProvider.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { JwtConstants } from "../utils/Constants.js";
