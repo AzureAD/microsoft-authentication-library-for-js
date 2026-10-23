@@ -2970,7 +2970,7 @@ describe("FlowInteractionClientV2", () => {
                 resendHref: "/resend/sms",
             });
 
-            const result = await client.registerAuthMethod({
+            await client.registerAuthMethod({
                 correlationId,
                 continuationState: required.continuationState,
                 method: required.methods[1],
