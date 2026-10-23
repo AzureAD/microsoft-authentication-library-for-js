@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add portable Nested App Authentication bridge for WKWebView and WebView2 [#8928](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8928)",
+  "packageName": "@azure/msal-nested-app-auth-bridge",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

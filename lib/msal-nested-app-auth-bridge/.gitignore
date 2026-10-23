@@ -1,0 +1,6 @@
+coverage/
+dist/
+lib/
+node_modules/
+temp/
+types/
