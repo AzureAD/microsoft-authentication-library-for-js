@@ -4,11 +4,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="**/bin/**/*.cs;**/obj/**/*.cs" />
-    <Compile Remove="WamChecks/**/*.cs" />
-    <Compile Include="../native/BrokerSettings.cs" Link="BrokerSettings.cs" />
-    <ProjectReference Include="../bridge/src/Identity.NativeBridge/Identity.NativeBridge.csproj" />
+    <Compile Include="Program.cs" />
+    <Compile Include="../native/bridge/BridgeScript.cs;../native/bridge/IBridgeTokenExecutor.cs;../native/bridge/NativeExecutorBoundary.cs" Link="bridge/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../../../lib/msal-bridge/dist/msal-bridge.js" LogicalName="Identity.NativeBridge.msal-bridge.js" />
   </ItemGroup>
 </Project>

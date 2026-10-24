@@ -8,8 +8,10 @@
     <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
   </PropertyGroup>
   <ItemGroup>
+    <Using Include="System.IO" />
     <Compile Include="../bridge/adapters/oneauth-webview2-poc/NativeOneAuth.cs" Link="NativeOneAuth.cs" />
-    <ProjectReference Include="../bridge/src/Identity.NativeBridge.WebView2/Identity.NativeBridge.WebView2.csproj" />
+    <EmbeddedResource Include="../../../../lib/msal-bridge/dist/msal-bridge.js" LogicalName="Identity.NativeBridge.msal-bridge.js" />
+    <BridgeJavaScriptBuildInput Include="../../../../lib/msal-bridge/src/**/*.ts;../../../../lib/msal-bridge/package.json;../../../../lib/msal-bridge/rollup.config.mjs;../../../../lib/msal-bridge/tsconfig*.json;../../../../lib/msal-bridge/scripts/declarations.cjs" />
     <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.90.1" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
     <Content Include="../web/**" Link="web/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
@@ -20,4 +22,10 @@
   <ItemGroup Condition="'$(OneAuthAdapterRuntimeDirectory)' != ''">
     <Content Include="$(OneAuthAdapterRuntimeDirectory)/*.dll" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
+  <Target Name="BuildBrowserBridge" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'"
+          Inputs="@(BridgeJavaScriptBuildInput)" Outputs="$(MSBuildProjectDirectory)/../../../../lib/msal-bridge/dist/msal-bridge.js">
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)/../../../../lib/msal-bridge" Command="npm run build" />
+    <Error Condition="!Exists('$(MSBuildProjectDirectory)/../../../../lib/msal-bridge/dist/msal-bridge.js')"
+           Text="The JavaScript build must produce dist/msal-bridge.js (auto-installing NestedAppAuthBridge IIFE)." />
+  </Target>
 </Project>

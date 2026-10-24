@@ -44,16 +44,13 @@ Select **Initialize native OneAuth** before requesting a token. Each child is bo
 ## Local Regression Checks
 
 ```powershell
-dotnet run --project bridge/test/NativeBridgeTests/NativeBridgeTests.csproj -c Release
-dotnet run --project bridge/test/WebView2Checks/WebView2Checks.csproj -c Release
 dotnet run --project test/NativeBridgeTests.csproj -c Release
-dotnet run --project test/WamChecks/WamChecks.csproj -c Release
-dotnet run --project bridge/adapters/oneauth-webview2-poc/test/AdapterChecks.csproj -c Release
-./test/RunChecks.ps1
-node --test test/bridge.spec.cjs test/browser.spec.cjs test/request-inspection.spec.cjs test/oneauth-config.spec.cjs
+node --test test/bridge.spec.cjs test/browser.spec.cjs
 ```
 
-Browser tests require Playwright and Edge; set `BRIDGE_PLAYWRIGHT` to an installed Playwright package if necessary. Fixtures use synthetic accounts and tokens, not live authentication. SDK-free native fixture checks are described in the adapter guide. [Native integration](bridge/README.md) describes the local projects and optional local packaging.
+Browser tests require Playwright and Edge; set `BRIDGE_PLAYWRIGHT` to an installed Playwright package if necessary. Checks use synthetic accounts and tokens, not live authentication. The managed suite covers NAA validation, executor result mapping, cancellation, replay and deadline handling.
+
+The four files in `native/bridge` compile directly into the sample executable. Its project builds and embeds the portable JavaScript transport from `lib/msal-bridge`; there are no separate native library projects or NuGet packaging steps. The single managed test project compiles the same boundary source without WPF or the optional SDK.
 
 ## Debugging And Limits
 

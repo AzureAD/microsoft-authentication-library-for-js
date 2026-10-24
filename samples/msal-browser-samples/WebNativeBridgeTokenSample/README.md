@@ -53,4 +53,4 @@ npm test
 npm run test:browser
 ```
 
-Tests use synthetic accounts, mocked Graph/authentication and temporary listeners, not live sign-in. Browser checks require Playwright and Edge; `BRIDGE_PLAYWRIGHT` can select another installed package. Generated files stay in ignored artifacts. See [VALIDATION.md](VALIDATION.md) for the validation scope.
+Tests use synthetic accounts, mocked Graph/authentication and temporary listeners, not live sign-in. The retained suites cover NAA policy, executor mapping, frame/session transport and browser integration. Browser checks require Playwright and Edge; `BRIDGE_PLAYWRIGHT` can select another installed package. Generated files stay in ignored artifacts. These checks do not establish live authentication, Graph access, service authorization or native SDK interoperability.
