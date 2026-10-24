@@ -4,6 +4,7 @@
     "license": "MIT",
     "private": true,
     "scripts": {
+        "test:unit": "jest --config jest.unit.config.cjs",
         "start": "node server.js",
         "start:https": "node server.js --https",
         "start:e2e": "env-cmd -f .env.e2e npm run start:https",

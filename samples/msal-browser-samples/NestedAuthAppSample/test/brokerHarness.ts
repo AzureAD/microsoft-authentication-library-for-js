@@ -7,7 +7,7 @@
 // via Playwright so the force-installed Microsoft SSO extension loads, and reads
 // the MSAL cache to assert broker outcomes.
 
-import { chromium, BrowserContext } from "playwright-core";
+import { chromium, Browser, BrowserContext } from "playwright-core";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -27,6 +27,7 @@ const IGNORED_DEFAULT_ARGS = [
 ];
 
 const EXTENSION_INSTALL_TIMEOUT_MS = 20000;
+const BROWSER_CLOSE_TIMEOUT_MS = 10000;
 
 export interface BrokerContext {
     context: BrowserContext;
@@ -82,17 +83,69 @@ export async function launchBrokerContext(): Promise<BrokerContext> {
     return { context, userDataDir, extensionPresent };
 }
 
-// Closes the context and removes the throwaway profile directory.
+async function closeWithTimeout(close: () => Promise<void>): Promise<void> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+        await Promise.race([
+            Promise.resolve().then(close),
+            new Promise<never>((_, reject) => {
+                timer = setTimeout(
+                    () =>
+                        reject(
+                            new Error(
+                                `Broker browser cleanup timed out after ${BROWSER_CLOSE_TIMEOUT_MS}ms`
+                            )
+                        ),
+                    BROWSER_CLOSE_TIMEOUT_MS
+                );
+            }),
+        ]);
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
+// Keep cleanup failures visible even when closing the owned browser recovers.
 export async function closeBrokerContext(
-    broker: BrokerContext | undefined
+    broker:
+        | {
+              context: Pick<BrowserContext, "close"> & {
+                  browser(): Pick<Browser, "close"> | null;
+              };
+              userDataDir: string;
+          }
+        | undefined
 ): Promise<void> {
     if (!broker) {
         return;
     }
+    const errors: unknown[] = [];
+    let closed = false;
     try {
-        await broker.context.close();
-    } finally {
-        fs.rmSync(broker.userDataDir, { recursive: true, force: true });
+        await closeWithTimeout(() => broker.context.close());
+        closed = true;
+    } catch (error) {
+        errors.push(error);
+        try {
+            const browser = broker.context.browser();
+            if (!browser) {
+                throw new Error("Broker context has no owned browser to close");
+            }
+            await closeWithTimeout(() => browser.close());
+            closed = true;
+        } catch (browserError) {
+            errors.push(browserError);
+        }
+    }
+    if (closed) {
+        try {
+            fs.rmSync(broker.userDataDir, { recursive: true, force: true });
+        } catch (error) {
+            errors.push(error);
+        }
+    }
+    if (errors.length) {
+        throw new AggregateError(errors, "Broker browser cleanup failed");
     }
 }
 

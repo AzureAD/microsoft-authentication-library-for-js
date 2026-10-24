@@ -194,12 +194,22 @@ describe("NAA token APIs + EAR brokered through the platform broker", () => {
     });
 
     afterAll(async () => {
-        await closeBrokerContext(broker);
+        const results = await Promise.allSettled([closeBrokerContext(broker)]);
         if (serverProcess && serverProcess.exitCode === null) {
             serverProcess.kill();
         }
-        await serverUtils.killServer(HOST_APP_PORT);
-        await serverUtils.killServer(NESTED_APP_PORT);
+        results.push(
+            ...(await Promise.allSettled([
+                serverUtils.killServer(HOST_APP_PORT),
+                serverUtils.killServer(NESTED_APP_PORT),
+            ]))
+        );
+        const errors = results.flatMap((result) =>
+            result.status === "rejected" ? [result.reason] : []
+        );
+        if (errors.length) {
+            throw new AggregateError(errors, "NAA broker test cleanup failed");
+        }
     });
 
     beforeEach(async () => {
