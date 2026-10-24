@@ -25,6 +25,7 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
     > **Terminology:** In the codebase, the term "Custom Auth" is used instead of "Native Auth". You will find classes, interfaces, and configuration options prefixed with `CustomAuth` (e.g., `CustomAuthPublicClientApplication`, `CustomAuthConfiguration`). Please refer to these when implementing or exploring the native authentication feature in the code.
 
 -   [Microsoft Authentication Library for React](lib/msal-react/): A wrapper of the msal-browser library for apps using React.
+-   [MSAL Bridge](lib/msal-bridge/): An unpublished portable Nested App Authentication bridge release candidate for WKWebView and WebView2 hosts.
 -   [Microsoft Authentication Library for Angular](lib/msal-angular/): A wrapper of the msal-browser library for apps using Angular framework.
 -   [Microsoft Authentication Extensions for Node](extensions/msal-node-extensions/): The Microsoft Authentication Extensions for Node offers secure mechanisms for client applications to perform cross-platform token cache serialization and persistence. It gives additional support to the Microsoft Authentication Library for Node (MSAL).
 
@@ -60,6 +61,9 @@ We ship a number of different packages which are meant for different platforms. 
 ### Samples
 
 The [`samples`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples) folder contains sample applications for our libraries. A complete list of samples can be found in the respective package folders.
+
+- [Windows Native Bridge Token Sample](samples/msal-browser-samples/NativeBridgeTokenSample/): A WPF/WebView2 host with native NAA dispatch, MSAL.NET/WAM comparison and optional externally supplied native SDK adapter.
+- [Web Native Bridge Token Sample](samples/msal-browser-samples/WebNativeBridgeTokenSample/): A browser host reusing the embedded child UI with host-owned NAA dispatch and a web MSAL executor.
 
 ## Package versioning
 
