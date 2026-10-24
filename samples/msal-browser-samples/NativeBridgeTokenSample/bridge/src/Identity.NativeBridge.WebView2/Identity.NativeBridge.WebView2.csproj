@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Identity.NativeBridge.WebView2.Prototype</PackageId>
+    <Version>0.1.0</Version>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Prototype WebView2 host binding for the native NAA bridge.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../PACKAGE.md" Pack="true" PackagePath="README.md" />
+    <ProjectReference Include="../Identity.NativeBridge/Identity.NativeBridge.csproj" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" GeneratePathProperty="true" ExcludeAssets="build;buildTransitive" />
+    <Reference Include="Microsoft.Web.WebView2.Core">
+      <HintPath>$(PkgMicrosoft_Web_WebView2)/lib_manual/netcoreapp3.0/Microsoft.Web.WebView2.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

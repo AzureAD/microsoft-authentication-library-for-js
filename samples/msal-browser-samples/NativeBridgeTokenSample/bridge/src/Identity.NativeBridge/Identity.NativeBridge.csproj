@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <PackageId>Identity.NativeBridge.Prototype</PackageId>
+    <Version>0.1.0</Version>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Description>Native NAA executor boundary with a single embedded portable browser transport.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NativeBridgeTests" />
+    <None Include="../../PACKAGE.md" Pack="true" PackagePath="README.md" />
+    <EmbeddedResource Include="../../../../../../lib/msal-bridge/dist/msal-bridge.js" LogicalName="Identity.NativeBridge.msal-bridge.js" />
+    <None Include="../../../../../../lib/msal-bridge/dist/msal-bridge.js" Pack="true" PackagePath="bridge/" />
+    <BridgeJavaScriptBuildInput Include="../../../../../../lib/msal-bridge/src/**/*.ts;../../../../../../lib/msal-bridge/package.json;../../../../../../lib/msal-bridge/rollup.config.mjs;../../../../../../lib/msal-bridge/tsconfig*.json;../../../../../../lib/msal-bridge/scripts/declarations.cjs" />
+  </ItemGroup>
+  <Target Name="BuildBrowserBridge" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'"
+              Inputs="@(BridgeJavaScriptBuildInput)" Outputs="$(MSBuildProjectDirectory)/../../../../../../lib/msal-bridge/dist/msal-bridge.js">
+            <Exec WorkingDirectory="$(MSBuildProjectDirectory)/../../../../../../lib/msal-bridge" Command="npm run build" />
+            <Error Condition="!Exists('$(MSBuildProjectDirectory)/../../../../../../lib/msal-bridge/dist/msal-bridge.js')"
+           Text="The JavaScript build must produce dist/msal-bridge.js (auto-installing NestedAppAuthBridge IIFE)." />
+  </Target>
+</Project>

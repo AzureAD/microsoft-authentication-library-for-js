@@ -1,0 +1,8 @@
+appsettings.json
+oneauthsettings.json
+brokersettings.json
+**/bin/
+**/obj/
+web/msal-browser.js
+node_modules/
+artifacts/

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../bridge/adapters/oneauth-webview2-poc/NativeOneAuth.cs" Link="NativeOneAuth.cs" />
+    <ProjectReference Include="../bridge/src/Identity.NativeBridge.WebView2/Identity.NativeBridge.WebView2.csproj" />
+    <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.90.1" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
+    <Content Include="../web/**" Link="web/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../appsettings.json" Link="appsettings.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../appsettings.json')" />
+    <Content Include="../oneauthsettings.json" Link="oneauthsettings.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../oneauthsettings.json')" />
+    <Content Include="../brokersettings.json" Link="brokersettings.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../brokersettings.json')" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(OneAuthAdapterRuntimeDirectory)' != ''">
+    <Content Include="$(OneAuthAdapterRuntimeDirectory)/*.dll" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

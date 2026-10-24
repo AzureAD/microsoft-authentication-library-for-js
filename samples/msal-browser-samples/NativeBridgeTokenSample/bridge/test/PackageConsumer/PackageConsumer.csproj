@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <RestoreAdditionalProjectSources>$(MSBuildThisFileDirectory)../../artifacts</RestoreAdditionalProjectSources>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <PackageReference Include="Identity.NativeBridge.Prototype" Version="0.1.0" />
+    <PackageReference Include="Identity.NativeBridge.WebView2.Prototype" Version="0.1.0" />
+  </ItemGroup>
+</Project>
