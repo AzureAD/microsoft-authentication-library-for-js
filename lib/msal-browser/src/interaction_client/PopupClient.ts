@@ -95,6 +95,7 @@ export class PopupClient extends StandardInteractionClient {
         | WaitForPopupResponseFn
         | undefined;
     private readonly preserveInteractionInProgress: boolean;
+    private readonly onMainWindowNavigate?: () => void;
 
     constructor(
         config: BrowserConfiguration,
@@ -109,7 +110,8 @@ export class PopupClient extends StandardInteractionClient {
         platformAuthHandler?: IPlatformAuthHandler,
         waitForPopupResponseHook?: WaitForPopupResponseFn,
         tokenBindingKeyManager?: ITokenBindingKeyManager,
-        preserveInteractionInProgress: boolean = false
+        preserveInteractionInProgress: boolean = false,
+        onMainWindowNavigate?: () => void
     ) {
         super(
             config,
@@ -127,6 +129,7 @@ export class PopupClient extends StandardInteractionClient {
         this.eventHandler = eventHandler;
         this.waitForPopupResponseHook = waitForPopupResponseHook;
         this.preserveInteractionInProgress = preserveInteractionInProgress;
+        this.onMainWindowNavigate = onMainWindowNavigate;
     }
 
     /**
@@ -843,6 +846,7 @@ export class PopupClient extends StandardInteractionClient {
                             BrowserUtils.getCurrentUri(),
                             this.correlationId
                         );
+                        this.onMainWindowNavigate?.();
                         await this.navigationClient.navigateInternal(
                             absoluteUrl,
                             navigationOptions
@@ -942,6 +946,7 @@ export class PopupClient extends StandardInteractionClient {
                     `Redirecting main window to: '${absoluteUrl}'`,
                     this.correlationId
                 );
+                this.onMainWindowNavigate?.();
                 await this.navigationClient.navigateInternal(
                     absoluteUrl,
                     navigationOptions

@@ -98,7 +98,8 @@ back by cancellation. Cancellation does not stop asynchronous setup before the
 response monitor starts.
 
 When signing out all accounts, the popup interaction lock remains set until
-`logoutPopup` settles. Wait for logout to finish before starting another
+`logoutPopup` settles or the main window starts navigating to
+`mainWindowRedirectUri`. Wait for logout to finish before starting another
 interactive request, or explicitly override an active popup response monitor.
 
 [Configuration options](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionpopuprequest) can be provided to customize the behavior.

@@ -450,6 +450,102 @@ describe("Popup interaction lifecycle", () => {
     });
 
     it.each([
+        ["server logout", false, false],
+        ["server logout", false, true],
+        ["OIDC without an end-session endpoint", true, false],
+        ["OIDC without an end-session endpoint", true, true],
+    ] as const)(
+        "releases only the owned marker before pending navigation after %s (OIDC: %s, replacement before navigation: %s)",
+        async (_label, oidc, replaceBeforeNavigation) => {
+            const app = await createApp({
+                protocolMode: oidc ? ProtocolMode.OIDC : ProtocolMode.AAD,
+            });
+            const popup = createPopup();
+            jest.spyOn(window, "open").mockReturnValue(
+                popup as unknown as Window
+            );
+            if (oidc) {
+                jest.spyOn(
+                    Authority.prototype,
+                    "endSessionEndpoint",
+                    "get"
+                ).mockImplementation(() => {
+                    throw new Error("No end-session endpoint");
+                });
+            }
+            const discoveryStarted = deferred<void>();
+            const discovery = deferred<void>();
+            jest.spyOn(
+                AuthorityFactory,
+                "createDiscoveredInstance"
+            ).mockImplementationOnce(async (...args) => {
+                discoveryStarted.resolve();
+                await discovery.promise;
+                return new Authority(...args);
+            });
+            const navigationStarted = deferred<void>();
+            const navigation = deferred<boolean>();
+            jest.mocked(
+                NavigationClient.prototype.navigateInternal
+            ).mockImplementation(() => {
+                navigationStarted.resolve();
+                return navigation.promise;
+            });
+            const signIn = deferred<AuthenticationResult>();
+            jest.spyOn(PopupClient.prototype, "acquireToken").mockReturnValue(
+                signIn.promise
+            );
+            const logout = app.logoutPopup({
+                mainWindowRedirectUri: "/home",
+                ...(oidc && {
+                    account: getTestAuthenticationResult().account,
+                    postLogoutRedirectUri: "/signed-out",
+                }),
+            });
+            let replacement: Promise<AuthenticationResult> | undefined;
+            try {
+                await discoveryStarted.promise;
+                expect(sessionStorage.getItem(interactionKey)).not.toBeNull();
+                if (replaceBeforeNavigation) {
+                    replacement = app.acquireTokenPopup({
+                        scopes: ["User.Read"],
+                        overrideInteractionInProgress: true,
+                    });
+                }
+                discovery.resolve();
+                await navigationStarted.promise;
+                expect(sessionStorage.getItem(interactionKey)).toBe(
+                    replaceBeforeNavigation
+                        ? JSON.stringify({
+                              clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                              type: INTERACTION_TYPE.SIGNIN,
+                          })
+                        : null
+                );
+                if (!replaceBeforeNavigation) {
+                    replacement = app.acquireTokenPopup({
+                        scopes: ["User.Read"],
+                    });
+                }
+                navigation.resolve(false);
+                await logout;
+                expect(sessionStorage.getItem(interactionKey)).toBe(
+                    JSON.stringify({
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        type: INTERACTION_TYPE.SIGNIN,
+                    })
+                );
+            } finally {
+                discovery.resolve();
+                navigation.resolve(false);
+                signIn.resolve(getTestAuthenticationResult());
+                await Promise.all([logout, replacement]);
+            }
+            expect(sessionStorage.getItem(interactionKey)).toBeNull();
+        }
+    );
+
+    it.each([
         [BrowserAuthErrorCodes.userCancelled, false],
         [BrowserAuthErrorCodes.timedOut, false],
         [BrowserAuthErrorCodes.interactionInProgressCancelled, true],

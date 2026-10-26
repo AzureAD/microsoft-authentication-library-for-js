@@ -1681,13 +1681,20 @@ export class StandardController implements IController {
             );
             popupInteractionOwners.set(popupScope, popupOwner);
 
-            const popupClient = this.createPopupClient(correlationId, true);
-            return popupClient.logout(logoutRequest).finally(() => {
+            const releaseInteraction = () => {
                 if (popupInteractionOwners.get(popupScope) === popupOwner) {
                     popupInteractionOwners.delete(popupScope);
                     this.browserStorage.setInteractionInProgress(false);
                 }
-            });
+            };
+            const popupClient = this.createPopupClient(
+                correlationId,
+                true,
+                releaseInteraction
+            );
+            return popupClient
+                .logout(logoutRequest)
+                .finally(releaseInteraction);
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -2008,10 +2015,12 @@ export class StandardController implements IController {
      * Returns new instance of the Popup Interaction Client
      * @param correlationId
      * @param preserveInteractionInProgress Keep the interaction marker while popup logout is pending.
+     * @param onMainWindowNavigate Release the owned interaction before main-window navigation.
      */
     public createPopupClient(
         correlationId: string,
-        preserveInteractionInProgress: boolean = false
+        preserveInteractionInProgress: boolean = false,
+        onMainWindowNavigate?: () => void
     ): PopupClient {
         return new PopupClient(
             this.config,
@@ -2026,7 +2035,8 @@ export class StandardController implements IController {
             this.platformAuthProvider,
             this.operatingContext.getResponseHandlers()?.waitForPopupResponse,
             this.tokenBindingKeyManager,
-            preserveInteractionInProgress
+            preserveInteractionInProgress,
+            onMainWindowNavigate
         );
     }
 
