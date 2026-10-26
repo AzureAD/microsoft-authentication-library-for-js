@@ -159,6 +159,80 @@ describe("Popup interaction lifecycle", () => {
         }
     );
 
+    it.each([false, true])(
+        "does not close a replacement popup when earlier setup fails with the same request values (separate instance: %s)",
+        async (separateInstance) => {
+            const app = await createApp({ navigatePopups: true });
+            const replacementApp = separateInstance
+                ? await createApp({ navigatePopups: true })
+                : app;
+            const windows = new Map<string, ReturnType<typeof createPopup>>();
+            const open = jest
+                .spyOn(window, "open")
+                .mockImplementation((_url, name) => {
+                    let popup = windows.get(name!);
+                    if (!popup || popup.closed) {
+                        popup = createPopup();
+                        windows.set(name!, popup);
+                    }
+                    return popup as unknown as Window;
+                });
+            const first = deferred<Authority>();
+            const second = deferred<Authority>();
+            const firstReady = deferred<void>();
+            const secondReady = deferred<void>();
+            jest.spyOn(AuthorityFactory, "createDiscoveredInstance")
+                .mockImplementationOnce(() => {
+                    firstReady.resolve();
+                    return first.promise;
+                })
+                .mockImplementationOnce(() => {
+                    secondReady.resolve();
+                    return second.promise;
+                });
+            const request = {
+                scopes: ["User.Read"],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            };
+            const error = new Error("Popup setup failed");
+            const previous = app.acquireTokenPopup(request);
+            const rejection = expect(previous).rejects.toBe(error);
+            await firstReady.promise;
+            const replacement = replacementApp.acquireTokenPopup({
+                ...request,
+                overrideInteractionInProgress: true,
+            });
+            const replacementRejection =
+                expect(replacement).rejects.toBe(error);
+            try {
+                await secondReady.promise;
+                expect(open).toHaveBeenCalledTimes(2);
+                expect(open.mock.calls[0][0]).toBe("about:blank");
+                expect(open.mock.calls[1][0]).toBe("about:blank");
+                first.reject(error);
+                await rejection;
+                const previousPopup = open.mock.results[0].value;
+                const replacementPopup = open.mock.results[1].value;
+                expect(previousPopup).not.toBe(replacementPopup);
+                expect(previousPopup.close).toHaveBeenCalledTimes(1);
+                expect(replacementPopup.closed).toBe(false);
+                expect(replacementPopup.close).not.toHaveBeenCalled();
+                expect(sessionStorage.getItem(interactionKey)).not.toBeNull();
+                await expect(
+                    replacementApp.acquireTokenPopup({ scopes: ["User.Read"] })
+                ).rejects.toMatchObject({
+                    errorCode: BrowserAuthErrorCodes.interactionInProgress,
+                });
+            } finally {
+                first.reject(error);
+                second.reject(error);
+                await Promise.all([rejection, replacementRejection]);
+            }
+            expect(sessionStorage.getItem(interactionKey)).toBeNull();
+        }
+    );
+
     it("keeps independent in-memory cache scopes isolated when session storage is unavailable", async () => {
         jest.spyOn(window, "sessionStorage", "get").mockImplementation(() => {
             throw new DOMException("Storage blocked", "SecurityError");
