@@ -14,6 +14,9 @@ import {
     RefreshTokenEntity,
     CacheHelpers,
     AccountEntityUtils,
+    Authority,
+    ProtocolMode,
+    StubPerformanceClient,
 } from "@azure/msal-common";
 import {
     JsonCache,
@@ -76,6 +79,69 @@ describe("Storage tests for msal-node: ", () => {
 
         const inMemoryCache = nodeStorage.getInMemoryCache();
         expect(Object.keys(inMemoryCache.accessTokens).length).toBe(0);
+    });
+
+    it("keeps Entra endpoints isolated from legacy B2C metadata on the same host", async () => {
+        const storage = new NodeStorage(
+            logger,
+            clientId,
+            DEFAULT_CRYPTO_IMPLEMENTATION
+        );
+        const network = {
+            sendGetRequestAsync: jest.fn(),
+            sendPostRequestAsync: jest.fn(),
+        };
+        const options = {
+            protocolMode: ProtocolMode.AAD,
+            knownAuthorities: [],
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: "",
+        };
+        const host = "https://login.microsoftonline.com";
+        const entra = new Authority(
+            `${host}/common/`,
+            network,
+            storage,
+            options,
+            logger,
+            "entra-storage-isolation",
+            new StubPerformanceClient()
+        );
+        await entra.resolveEndpointsAsync();
+
+        const policy = `${host}/tfp/contoso.onmicrosoft.com/b2c_1_susi`;
+        const b2c = new Authority(
+            policy,
+            network,
+            storage,
+            {
+                ...options,
+                authorityMetadata: JSON.stringify({
+                    authorization_endpoint: `${policy}/oauth2/v2.0/authorize`,
+                    token_endpoint: `${policy}/oauth2/v2.0/token`,
+                    end_session_endpoint: `${policy}/oauth2/v2.0/logout`,
+                    issuer: `${host}/3338040d-6c67-4c5b-b112-36a304b66dad/v2.0/`,
+                    jwks_uri: `${policy}/discovery/v2.0/keys`,
+                }),
+            },
+            logger,
+            "b2c-storage-isolation",
+            new StubPerformanceClient()
+        );
+        await b2c.resolveEndpointsAsync();
+
+        expect(entra.authorizationEndpoint).toBe(
+            `${host}/common/oauth21/2026-08/authorize`
+        );
+        expect(entra.tokenEndpoint).toBe(
+            `${host}/common/oauth21/2026-08/token`
+        );
+        expect(entra.selfSignedJwtAudience).toBe(
+            `${host}/common/oauth21/2026-08`
+        );
+        expect(b2c.tokenEndpoint).toBe(`${policy}/oauth2/v2.0/token`);
+        expect(network.sendGetRequestAsync).not.toHaveBeenCalled();
+        expect(network.sendPostRequestAsync).not.toHaveBeenCalled();
     });
 
     it("emits a change event when changeEmitter is registered", () => {

@@ -287,19 +287,19 @@ export class MockCache {
             ],
             aliasesFromNetwork: false,
             authorization_endpoint:
-                "https://login.microsoftonline.com/common/oauth21/2026-08/authorize",
+                "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
             canonical_authority: "https://login.microsoftonline.com/common",
             end_session_endpoint:
-                "https://login.microsoftonline.com/common/oauth21/2026-08/logout",
+                "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
             endpointsFromNetwork: false,
             expiresAt: 1607952000,
-            issuer: "https://login.microsoftonline.com/{tenantId}/oauth21/2026-08",
+            issuer: "https://login.microsoftonline.com/{tenantId}/v2.0",
             jwks_uri:
-                "https://login.microsoftonline.com/common/oauth21/2026-08/keys",
+                "https://login.microsoftonline.com/common/discovery/v2.0/keys",
             preferred_cache: "login.windows.net",
             preferred_network: "login.microsoftonline.com",
             token_endpoint:
-                "https://login.microsoftonline.com/common/oauth21/2026-08/token",
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token",
         };
 
         const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(

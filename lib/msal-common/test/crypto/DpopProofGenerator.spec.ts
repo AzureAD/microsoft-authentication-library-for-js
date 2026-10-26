@@ -112,7 +112,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             jest.spyOn(TimeUtils, "nowSeconds").mockReturnValue(currTime);
 
             const tokenEndpoint =
-                "https://login.microsoftonline.com/common/oauth21/2026-08/token?client_id=abc&scope=openid";
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token?client_id=abc&scope=openid";
             const claims = generator.buildTokenProofClaims(
                 { tokenEndpoint },
                 TEST_CONFIG.CORRELATION_ID
@@ -123,7 +123,7 @@ describe("DpopProofGenerator Unit Tests", () => {
 
             // htu must strip query string and fragment (normalized URI)
             expect(claims.htu).toBe(
-                "https://login.microsoftonline.com/common/oauth21/2026-08/token"
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token"
             );
 
             // iat must be current epoch time in seconds
@@ -136,7 +136,7 @@ describe("DpopProofGenerator Unit Tests", () => {
 
         it("includes optional nonce in token proof when provided", () => {
             const tokenEndpoint =
-                "https://login.microsoftonline.com/tenant/oauth21/2026-08/token";
+                "https://login.microsoftonline.com/tenant/oauth2/v2.0/token";
             const nonce = "server-nonce-abc123";
             const claims = generator.buildTokenProofClaims(
                 { tokenEndpoint, nonce },
@@ -148,7 +148,7 @@ describe("DpopProofGenerator Unit Tests", () => {
 
         it("omits nonce from token proof when not provided", () => {
             const tokenEndpoint =
-                "https://login.microsoftonline.com/tenant/oauth21/2026-08/token";
+                "https://login.microsoftonline.com/tenant/oauth2/v2.0/token";
             const claims = generator.buildTokenProofClaims(
                 { tokenEndpoint },
                 ""
@@ -159,7 +159,7 @@ describe("DpopProofGenerator Unit Tests", () => {
 
         it("DPoP token proof must not contain SHR fields (at, ts, m, u, p, q)", () => {
             const tokenEndpoint =
-                "https://login.microsoftonline.com/tenant/oauth21/2026-08/token";
+                "https://login.microsoftonline.com/tenant/oauth2/v2.0/token";
             const claims = generator.buildTokenProofClaims(
                 { tokenEndpoint },
                 ""
@@ -175,14 +175,14 @@ describe("DpopProofGenerator Unit Tests", () => {
 
         it("normalizes token endpoint htu by removing trailing query string", () => {
             const tokenEndpoint =
-                "https://login.microsoftonline.com/mytenant/oauth21/2026-08/token?foo=bar&baz=qux";
+                "https://login.microsoftonline.com/mytenant/oauth2/v2.0/token?foo=bar&baz=qux";
             const claims = generator.buildTokenProofClaims(
                 { tokenEndpoint },
                 ""
             );
 
             expect(claims.htu).toBe(
-                "https://login.microsoftonline.com/mytenant/oauth21/2026-08/token"
+                "https://login.microsoftonline.com/mytenant/oauth2/v2.0/token"
             );
             expect(claims.htu).not.toContain("?");
         });
@@ -205,35 +205,35 @@ describe("DpopProofGenerator Unit Tests", () => {
             const claims = generator.buildTokenProofClaims(
                 {
                     tokenEndpoint:
-                        "https://login.microsoftonline.com/common/oauth21/2026-08/token",
+                        "https://login.microsoftonline.com/common/oauth2/v2.0/token",
                 },
                 ""
             );
 
             expect(claims.htu).toBe(
-                "https://login.microsoftonline.com/common/oauth21/2026-08/token"
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token"
             );
         });
 
         it("elides explicit default ports in token endpoint htu", () => {
             const claims = generator.buildTokenProofClaims({
                 tokenEndpoint:
-                    "https://login.microsoftonline.com:443/common/oauth21/2026-08/token?client_id=abc",
+                    "https://login.microsoftonline.com:443/common/oauth2/v2.0/token?client_id=abc",
             });
 
             expect(claims.htu).toBe(
-                "https://login.microsoftonline.com/common/oauth21/2026-08/token"
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token"
             );
         });
 
         it("normalizes scheme and host casing in token endpoint htu", () => {
             const claims = generator.buildTokenProofClaims({
                 tokenEndpoint:
-                    "HTTPS://LOGIN.microsoftonline.com/common/oauth21/2026-08/token?client_id=abc",
+                    "HTTPS://LOGIN.microsoftonline.com/common/oauth2/v2.0/token?client_id=abc",
             });
 
             expect(claims.htu).toBe(
-                "https://login.microsoftonline.com/common/oauth21/2026-08/token"
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token"
             );
         });
 
@@ -268,11 +268,11 @@ describe("DpopProofGenerator Unit Tests", () => {
         it("serializes token endpoint htu values repaired by URL parsing", () => {
             const claims = generator.buildTokenProofClaims({
                 tokenEndpoint:
-                    "https://login.microsoftonline.com/common/oauth21/2026-08/token with space?client_id=abc",
+                    "https://login.microsoftonline.com/common/oauth2/v2.0/token with space?client_id=abc",
             });
 
             expect(claims.htu).toBe(
-                "https://login.microsoftonline.com/common/oauth21/2026-08/token%20with%20space"
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token%20with%20space"
             );
         });
     });
@@ -573,7 +573,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             const proof = await generator.generateTokenProof(
                 {
                     tokenEndpoint:
-                        "https://login.microsoftonline.com/tenant/oauth21/2026-08/token?client_id=abc",
+                        "https://login.microsoftonline.com/tenant/oauth2/v2.0/token?client_id=abc",
                     nonce: "server-nonce",
                 },
                 dpopKeyId,
@@ -589,7 +589,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             expect(decodedProof.claims).toEqual({
                 jti: RANDOM_TEST_GUID,
                 htm: "POST",
-                htu: "https://login.microsoftonline.com/tenant/oauth21/2026-08/token",
+                htu: "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
                 iat: currTime,
                 nonce: "server-nonce",
             });
@@ -609,7 +609,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             const proof = await generator.generateTokenProof(
                 {
                     tokenEndpoint:
-                        "https://login.microsoftonline.com/tenant/oauth21/2026-08/token",
+                        "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
                 },
                 dpopKeyId
             );
@@ -622,7 +622,7 @@ describe("DpopProofGenerator Unit Tests", () => {
             const proof = await generator.generateTokenProof(
                 {
                     tokenEndpoint:
-                        "https://login.microsoftonline.com/tenant/oauth21/2026-08/token",
+                        "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
                 },
                 dpopKeyId
             );
@@ -723,7 +723,7 @@ describe("DpopProofGenerator Unit Tests", () => {
                 tokenBindingKeyManager
             );
             const endpoint =
-                "https://login.microsoftonline.com/common/oauth21/2026-08/token";
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token";
 
             const proof1 = uniqueGenerator.buildTokenProofClaims(
                 { tokenEndpoint: endpoint },
@@ -744,7 +744,7 @@ describe("DpopProofGenerator Unit Tests", () => {
                 .mockReturnValueOnce("csprng-guid-2");
 
             const endpoint =
-                "https://login.microsoftonline.com/tenant/oauth21/2026-08/token";
+                "https://login.microsoftonline.com/tenant/oauth2/v2.0/token";
             const proof1 = generator.buildTokenProofClaims(
                 { tokenEndpoint: endpoint },
                 ""

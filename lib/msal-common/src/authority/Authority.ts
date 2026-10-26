@@ -127,6 +127,8 @@ export class Authority {
         this.isMicrosoftEntraAuthority =
             !this.managedIdentity &&
             this.authorityType === AuthorityType.Default &&
+            // Legacy B2C authorities can use a known Microsoft host.
+            this.canonicalAuthorityUrlComponents.PathSegments[0] !== "tfp" &&
             this.isAliasOfKnownMicrosoftAuthority(this.hostnameAndPort);
         this.regionDiscovery = new RegionDiscovery(
             networkInterface,
@@ -454,9 +456,11 @@ export class Authority {
         if (this.isMicrosoftEntraAuthority) {
             metadataEntity.canonical_authority = this.canonicalAuthority;
         }
-        this.updateCachedMetadata(metadataEntity, cloudDiscoverySource, {
-            source: endpointSource,
-        });
+        this.updateCachedMetadata(
+            metadataEntity,
+            cloudDiscoverySource,
+            endpointSource
+        );
         if (
             this.isMicrosoftEntraAuthority &&
             endpointSource !== Constants.AuthorityMetadataSource.CONFIG &&
@@ -516,24 +520,19 @@ export class Authority {
     }
 
     /**
-     * Updates cached metadata based on metadata source and sets the instance's metadata
-     * property to the same value
+     * Updates cached metadata based on its source and retains the instance's endpoints.
      * @param metadataEntity
      * @param cloudDiscoverySource
-     * @param endpointMetadataResult
+     * @param endpointMetadataSource
      */
     private updateCachedMetadata(
         metadataEntity: AuthorityMetadataEntity,
         cloudDiscoverySource: Constants.AuthorityMetadataSource | null,
-        endpointMetadataResult: {
-            source: Constants.AuthorityMetadataSource;
-            metadata?: OpenIdConfigResponse;
-        } | null
+        endpointMetadataSource: Constants.AuthorityMetadataSource
     ): void {
         if (
             cloudDiscoverySource !== Constants.AuthorityMetadataSource.CACHE &&
-            endpointMetadataResult?.source !==
-                Constants.AuthorityMetadataSource.CACHE
+            endpointMetadataSource !== Constants.AuthorityMetadataSource.CACHE
         ) {
             // Reset the expiration time unless both values came from a successful cache lookup
             metadataEntity.expiresAt =
@@ -550,7 +549,9 @@ export class Authority {
             metadataEntity,
             this.correlationId
         );
-        this.metadata = metadataEntity;
+        this.metadata = this.isMicrosoftEntraAuthority
+            ? { ...metadataEntity }
+            : metadataEntity;
     }
 
     /**
@@ -560,44 +561,14 @@ export class Authority {
     private async updateEndpointMetadata(
         metadataEntity: AuthorityMetadataEntity
     ): Promise<Constants.AuthorityMetadataSource> {
-        const localMetadata =
+        const localMetadataSource =
             this.updateEndpointMetadataFromLocalSources(metadataEntity);
 
-        // Further update may be required for hardcoded metadata if regional metadata is preferred
-        if (localMetadata) {
+        if (localMetadataSource !== null) {
             if (this.isMicrosoftEntraAuthority) {
                 this.validateEntraMetadata(metadataEntity);
             }
-            if (
-                !this.isMicrosoftEntraAuthority &&
-                localMetadata.source ===
-                    Constants.AuthorityMetadataSource.HARDCODED_VALUES
-            ) {
-                // If the user prefers to use an azure region replace the global endpoints with regional information.
-                if (
-                    this.authorityOptions.azureRegionConfiguration?.azureRegion
-                ) {
-                    if (localMetadata.metadata) {
-                        const hardcodedMetadata = await invokeAsync(
-                            this.updateMetadataWithRegionalInformation.bind(
-                                this
-                            ),
-                            PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation,
-                            this.logger,
-                            this.performanceClient,
-                            this.correlationId
-                        )(localMetadata.metadata);
-                        CacheHelpers.updateAuthorityEndpointMetadata(
-                            metadataEntity,
-                            hardcodedMetadata,
-                            false
-                        );
-                        metadataEntity.canonical_authority =
-                            this.canonicalAuthority;
-                    }
-                }
-            }
-            return localMetadata.source;
+            return localMetadataSource;
         }
 
         // Get metadata from network if local sources aren't available
@@ -647,17 +618,13 @@ export class Authority {
     }
 
     /**
-     * Updates endpoint metadata from local sources and returns where the information was retrieved from and the metadata config
-     * response if the source is hardcoded metadata
+     * Updates endpoint metadata from local sources and returns its source, or null if unavailable.
      * @param metadataEntity
      * @returns
      */
     private updateEndpointMetadataFromLocalSources(
         metadataEntity: AuthorityMetadataEntity
-    ): {
-        source: Constants.AuthorityMetadataSource;
-        metadata?: OpenIdConfigResponse;
-    } | null {
+    ): Constants.AuthorityMetadataSource | null {
         this.logger.verbose(
             "Attempting to get endpoint metadata from authority configuration",
             this.correlationId
@@ -673,9 +640,7 @@ export class Authority {
                 configMetadata,
                 false
             );
-            return {
-                source: Constants.AuthorityMetadataSource.CONFIG,
-            };
+            return Constants.AuthorityMetadataSource.CONFIG;
         }
 
         this.logger.verbose(
@@ -690,10 +655,7 @@ export class Authority {
                 hardcodedMetadata,
                 false
             );
-            return {
-                source: Constants.AuthorityMetadataSource.HARDCODED_VALUES,
-                metadata: hardcodedMetadata,
-            };
+            return Constants.AuthorityMetadataSource.HARDCODED_VALUES;
         } else {
             this.logger.verbose(
                 "Did not find endpoint metadata in hardcoded values... Attempting to get endpoint metadata from the network metadata cache.",
@@ -711,7 +673,7 @@ export class Authority {
         ) {
             // No need to update
             this.logger.verbose("Found endpoint metadata in the cache.", "");
-            return { source: Constants.AuthorityMetadataSource.CACHE };
+            return Constants.AuthorityMetadataSource.CACHE;
         } else if (metadataEntityExpired) {
             this.logger.verbose("The metadata entity is expired.", "");
         }
@@ -841,23 +803,26 @@ export class Authority {
             tenantGuidPattern.test(this.tenant)
                 ? issuerTenant === this.tenant
                 : tenantGuidPattern.test(issuerTenant));
-        const endpointsMatch = [this.tenant, issuerTenant].some((tenant) => {
-            const base = `${prefix}${tenant}${suffix}`;
+        const endpointsMatch = (
+            [
+                ["authorization_endpoint", "authorize"],
+                ["token_endpoint", "token"],
+                ["end_session_endpoint", "logout"],
+                ["jwks_uri", "keys"],
+            ] as const
+        ).every(([field, endpoint]) => {
+            const value = metadata[field];
+            if (field === "end_session_endpoint" && value === undefined) {
+                return true;
+            }
             return (
-                [
-                    ["authorization_endpoint", "authorize"],
-                    ["token_endpoint", "token"],
-                    ["end_session_endpoint", "logout"],
-                    ["jwks_uri", "keys"],
-                ] as const
-            ).every(([field, endpoint]) => {
-                const value = metadata[field];
-                return (
-                    typeof value === "string" &&
-                    this.replaceTenant(value).split("?")[0] ===
-                        `${base}/${endpoint}`
-                );
-            });
+                typeof value === "string" &&
+                [this.tenant, issuerTenant].some(
+                    (tenant) =>
+                        this.replaceTenant(value).split("?")[0] ===
+                        `${prefix}${tenant}${suffix}/${endpoint}`
+                )
+            );
         });
         if (!issuerMatches || !endpointsMatch) {
             throw createClientConfigurationError(

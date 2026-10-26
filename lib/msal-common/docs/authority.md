@@ -14,7 +14,7 @@ The default authority for MSAL is `https://login.microsoftonline.com/common`. Th
 
 > :warning: The canonical authority URL differs in the case of B2C and ADFS. See [Choosing an authority](#choosing-an-authority) below for more.
 
-For supported Microsoft Entra authorities, this MSAL release uses the `oauth21/2026-08` client profile. Applications keep their ordinary host-and-tenant authority; there is no profile option or OAuth 2.0 fallback. A later dated profile requires a later MSAL release. Non-Entra authority handling is unchanged.
+For supported Microsoft Entra authorities, this MSAL release uses the `oauth21/2026-08` client profile. Applications keep their ordinary host-and-tenant authority; there is no profile option or OAuth 2.0 fallback. A later dated profile requires a later MSAL release. Non-Entra authority handling is unchanged, including legacy B2C authorities with a `/tfp/` path on a Microsoft host.
 
 The authority URL guides MSAL where to look for the 3 endpoints that are required for successfully acquiring a token:
 
@@ -30,7 +30,9 @@ The authority URL guides MSAL where to look for the 3 endpoints that are require
 
 For supported Entra authorities, MSAL validates configured, hardcoded, cached, and network metadata against the canonical cloud host and the release-owned endpoint family. The issuer and consumed authorize/token/logout/keys endpoints must be coherent with `oauth21/2026-08`; incompatible metadata fails with `invalid_authority_metadata` rather than a request to an older endpoint. The `common`, `organizations`, and `client` issuers retain the requested literal tenant. Named tenants, including `consumers`, require discovery to resolve the issuer's tenant GUID.
 
-Entra metadata is cached before regional host transformation. Each regional authority uses its own endpoint copy so repeated discovery reuses canonical metadata and cannot change another authority's endpoints. Credential keys and records remain unchanged; valid cached tokens may still be reused, while network redemption uses the new endpoint family.
+Each endpoint may identify the requested tenant or the resolved issuer tenant GUID; they need not all use the same representation. Endpoint query parameters are preserved. Logout metadata remains optional, but when supplied it must use the same canonical host and profile. Attempting logout without it fails with `end_session_endpoint_not_supported`.
+
+Entra metadata is cached before regional host transformation. Each Entra authority retains its own endpoint copy so subsequent discovery, including legacy B2C discovery on the same host, cannot change its endpoints. Regional authorities transform their own copies while keeping canonical cached metadata reusable. Credential keys and records remain unchanged; valid cached tokens may still be reused, while network redemption uses the new endpoint family.
 
 For other providers, when MSAL retrieves the OpenID configuration document from the network, it validates the `issuer` field returned by the IdP against the configured authority, per the [OpenID Connect Discovery 1.0 spec](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfigurationValidation). The existing issuer-origin, known-Microsoft-host, regional-host, and CIAM rules continue to apply. A failure produces `ClientConfigurationError` with error code `issuer_validation_failed`. For these providers, this validation applies only to network metadata, not cached, hardcoded, or config-supplied metadata.
 

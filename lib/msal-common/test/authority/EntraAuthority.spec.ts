@@ -260,6 +260,131 @@ describe("Entra authority contract", () => {
         expect(post).not.toHaveBeenCalled();
     });
 
+    it.each(["config", "network"])(
+        "accepts requested-name and resolved-GUID endpoints from %s",
+        async (source) => {
+            const document = {
+                ...metadata("contoso.com", tenantId),
+                token_endpoint: metadata(tenantId).token_endpoint,
+                jwks_uri: metadata(tenantId).jwks_uri,
+            };
+            get.mockResolvedValue({ body: document });
+            const instance = authority("contoso.com", host, {
+                authorityMetadata:
+                    source === "config" ? JSON.stringify(document) : "",
+            });
+            await instance.resolveEndpointsAsync();
+            expect(instance.authorizationEndpoint).toBe(
+                document.authorization_endpoint
+            );
+            expect(instance.tokenEndpoint).toBe(document.token_endpoint);
+            expect(instance.jwksUri).toBe(document.jwks_uri);
+            expect(instance.selfSignedJwtAudience).toBe(document.issuer);
+            expect(get).toHaveBeenCalledTimes(source === "config" ? 0 : 1);
+        }
+    );
+
+    it.each(["config", "network"])(
+        "allows missing logout metadata from %s but fails an attempted logout",
+        async (source) => {
+            const document = {
+                ...metadata(tenantId),
+                end_session_endpoint: undefined,
+            };
+            get.mockResolvedValue({ body: document });
+            const options = {
+                authorityMetadata:
+                    source === "config" ? JSON.stringify(document) : "",
+            };
+            for (let count = 0; count < 2; count++) {
+                const instance = authority("contoso.com", host, options);
+                await instance.resolveEndpointsAsync();
+                expect(instance.tokenEndpoint).toBe(document.token_endpoint);
+                expect(() => instance.endSessionEndpoint).toThrow(
+                    "end_session_endpoint_not_supported"
+                );
+            }
+            expect(get).toHaveBeenCalledTimes(source === "config" ? 0 : 1);
+        }
+    );
+
+    it.each([
+        `https://login.windows.net/${tenantId}/oauth21/2026-08/token`,
+        `https://${host}/unrelated.com/oauth21/2026-08/token`,
+        `https://${host}/11111111-1111-1111-1111-111111111111/oauth21/2026-08/token`,
+        `https://${host}/${tenantId}/oauth21/2026-09/token`,
+        `http://${host}/${tenantId}/oauth21/2026-08/token`,
+        `https://${host}/${tenantId}/oauth21/2026-08/authorize`,
+    ])("rejects an incoherent named-tenant token endpoint %s", async (url) => {
+        get.mockResolvedValue({
+            body: { ...metadata("contoso.com", tenantId), token_endpoint: url },
+        });
+        await expect(
+            authority("contoso.com").resolveEndpointsAsync()
+        ).rejects.toMatchObject({
+            errorCode: "invalid_authority_metadata",
+            correlationId,
+        });
+        expect(get).toHaveBeenCalledTimes(1);
+        expect(storage.getAuthorityMetadataKeys()).toHaveLength(0);
+        expect(post).not.toHaveBeenCalled();
+    });
+
+    it("preserves query parameters on coherent endpoints", async () => {
+        const document = metadata();
+        document.end_session_endpoint += "?existing=value";
+        const instance = authority("common", host, {
+            authorityMetadata: JSON.stringify(document),
+        });
+        await instance.resolveEndpointsAsync();
+        expect(instance.endSessionEndpoint).toBe(document.end_session_endpoint);
+    });
+
+    it.each(["config", "network"])(
+        "preserves legacy Microsoft-host B2C discovery from %s",
+        async (source) => {
+            // NodeStorage retains metadata references rather than serializing them.
+            jest.spyOn(storage, "setAuthorityMetadata").mockImplementation(
+                (key, value) => {
+                    Object.assign(storage.store, { [key]: value });
+                }
+            );
+            const entra = authority();
+            await entra.resolveEndpointsAsync();
+            const url = `https://${host}/tfp/contoso.onmicrosoft.com/b2c_1_susi/`;
+            const document = {
+                authorization_endpoint: `${url}oauth2/v2.0/authorize`,
+                token_endpoint: `${url}oauth2/v2.0/token`,
+                end_session_endpoint: `${url}oauth2/v2.0/logout`,
+                issuer: `https://${host}/${tenantId}/v2.0/`,
+                jwks_uri: `${url}discovery/v2.0/keys`,
+            };
+            get.mockResolvedValue({ body: document });
+            const instance = authority(
+                "tfp/contoso.onmicrosoft.com/b2c_1_susi",
+                host,
+                {
+                    authorityMetadata:
+                        source === "config" ? JSON.stringify(document) : "",
+                }
+            );
+            await instance.resolveEndpointsAsync();
+            expect(instance.tokenEndpoint).toBe(document.token_endpoint);
+            expect(instance.authorizationEndpoint).toBe(
+                document.authorization_endpoint
+            );
+            expect(entra.tokenEndpoint).toBe(metadata().token_endpoint);
+            expect(entra.selfSignedJwtAudience).toBe(metadata().issuer);
+            expect(get).toHaveBeenCalledTimes(source === "config" ? 0 : 1);
+            if (source === "network") {
+                expect(get).toHaveBeenCalledWith(
+                    `${url}v2.0/.well-known/openid-configuration`,
+                    {}
+                );
+            }
+        }
+    );
+
     it.each(["westus", "TryAutoDetect"])(
         "reuses canonical discovery metadata with region %s",
         async (region) => {
@@ -308,6 +433,67 @@ describe("Entra authority contract", () => {
             `https://${host}/second.com/oauth21/2026-08/token`
         );
     });
+
+    it.each([
+        ["global", "westus", "eastus"],
+        ["global", "eastus", "westus"],
+        ["westus", "global", "eastus"],
+        ["westus", "eastus", "global"],
+        ["eastus", "global", "westus"],
+        ["eastus", "westus", "global"],
+    ])(
+        "isolates shared-cache endpoints in discovery order %s, %s, %s",
+        async (...order) => {
+            jest.spyOn(storage, "setAuthorityMetadata").mockImplementation(
+                (key, value) => {
+                    Object.assign(storage.store, { [key]: value });
+                }
+            );
+            get.mockResolvedValue({ body: metadata(tenantId) });
+            const instances: { instance: Authority; endpointBase: string }[] =
+                [];
+            for (const region of order) {
+                const instance = authority(
+                    "contoso.com",
+                    host,
+                    region === "global"
+                        ? {}
+                        : {
+                              azureRegionConfiguration: {
+                                  azureRegion: region,
+                                  environmentRegion: undefined,
+                              },
+                          }
+                );
+                await instance.resolveEndpointsAsync();
+                instances.push({
+                    instance,
+                    endpointBase:
+                        region === "global"
+                            ? `https://${host}/${tenantId}/oauth21/2026-08`
+                            : `https://${region}.login.microsoft.com/${tenantId}/oauth21/2026-08`,
+                });
+                for (const resolved of instances) {
+                    const trailingSlash = resolved.endpointBase.includes(
+                        ".login.microsoft.com/"
+                    )
+                        ? "/"
+                        : "";
+                    expect(resolved.instance.tokenEndpoint).toBe(
+                        `${resolved.endpointBase}/token${trailingSlash}`
+                    );
+                    expect(resolved.instance.authorizationEndpoint).toBe(
+                        `${resolved.endpointBase}/authorize${trailingSlash}`
+                    );
+                }
+                expect(
+                    storage.getAuthorityMetadataByAlias(host, correlationId)
+                        ?.token_endpoint
+                ).toBe(metadata(tenantId).token_endpoint);
+            }
+            expect(get).toHaveBeenCalledTimes(1);
+        }
+    );
 
     it("preserves refresh-token keys and records during discovery", async () => {
         const credential: RefreshTokenEntity = {

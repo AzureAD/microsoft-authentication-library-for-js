@@ -19,9 +19,9 @@ const perfClient = new StubPerformanceClient();
 const REQUEST_STATE = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
 const CHANNEL_ID = RANDOM_TEST_GUID;
 const AUTH_URL =
-    "https://login.microsoftonline.com/common/oauth21/2026-08/authorize?client_id=abc&state=wrapped";
+    "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=abc&state=wrapped";
 const ACTION_URL =
-    "https://login.microsoftonline.com/common/oauth21/2026-08/authorize";
+    "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
 
 describe("buildPopupRelayUrl", () => {
     it("encodes a GET action with the channel id into the relay page hash", () => {
@@ -491,11 +491,11 @@ describe("runPopupRelay request validation", () => {
             ],
             [
                 "sovereign",
-                "https://login.chinacloudapi.cn/common/oauth21/2026-08/authorize",
+                "https://login.chinacloudapi.cn/common/oauth2/v2.0/authorize",
             ],
             [
                 "US Gov",
-                "https://login.microsoftonline.us/common/oauth21/2026-08/authorize",
+                "https://login.microsoftonline.us/common/oauth2/v2.0/authorize",
             ],
             [
                 "non-standard port",

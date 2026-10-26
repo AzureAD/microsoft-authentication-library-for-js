@@ -125,15 +125,15 @@ export const TEST_URIS = {
     TEST_REDIR_URI: "https://localhost:8081/index.html",
     TEST_LOGOUT_URI: "https://localhost:8081/logout.html",
     TEST_AUTH_ENDPT:
-        "https://login.microsoftonline.com/common/oauth21/2026-08/authorize",
+        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
     TEST_AUTH_ENDPT_ORGS:
-        "https://login.microsoftonline.com/organizations/oauth21/2026-08/authorize",
+        "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
     TEST_AUTH_ENDPT_TENANT_ID:
-        "https://login.microsoftonline.com/sample-tenantID/oauth21/2026-08/authorize",
+        "https://login.microsoftonline.com/sample-tenantID/oauth2/v2.0/authorize",
     TEST_AUTH_ENDPT_WITH_PARAMS1:
-        "https://login.microsoftonline.com/common/oauth21/2026-08/authorize?param1=value1",
+        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1",
     TEST_AUTH_ENDPT_WITH_PARAMS2:
-        "https://login.microsoftonline.com/common/oauth21/2026-08/authorize?param1=value1&param2=value2",
+        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2",
     TEST_RESOURCE_ENDPT_WITH_PARAMS:
         "https://localhost:8081/endpoint?param1=value1&param2=value2",
     TEST_REDIRECT_URI_LOCALHOST: "https://localhost:3000",
@@ -254,7 +254,7 @@ export const TEST_STATE_VALUES = {
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
     body: {
         tenant_discovery_endpoint:
-            "https://login.microsoftonline.com/common/oauth21/2026-08/.well-known/openid-configuration",
+            "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
         "api-version": "1.1",
         metadata: [
             {
@@ -285,19 +285,15 @@ export const DEFAULT_OPENID_CONFIG_RESPONSE = {
         response_modes_supported: ["query", "fragment", "form_post"],
         subject_types_supported: ["pairwise"],
         id_token_signing_alg_values_supported: ["RS256"],
-        response_types_supported: [
-            "code",
-            "id_token",
-            "code id_token",
-            "id_token token",
-        ],
+        response_types_supported: ["code", "id_token", "code id_token"],
+        code_challenge_methods_supported: ["S256"],
+        authorization_response_iss_parameter_supported: true,
         scopes_supported: ["openid", "profile", "email", "offline_access"],
         issuer: "https://login.microsoftonline.com/{tenant}/oauth21/2026-08",
         request_uri_parameter_supported: false,
         userinfo_endpoint: "https://graph.microsoft.com/oidc/userinfo",
         authorization_endpoint:
             "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/authorize",
-        http_logout_supported: true,
         frontchannel_logout_supported: true,
         end_session_endpoint:
             "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/logout",

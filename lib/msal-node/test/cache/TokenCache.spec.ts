@@ -332,14 +332,14 @@ describe("TokenCache tests", () => {
             preferred_network: "login.microsoftonline.com",
             canonical_authority: "https://login.microsoftonline.com/common",
             authorization_endpoint:
-                "https://login.microsoftonline.com/common/oauth21/2026-08/authorize",
+                "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
             token_endpoint:
-                "https://login.microsoftonline.com/common/oauth21/2026-08/token",
+                "https://login.microsoftonline.com/common/oauth2/v2.0/token",
             end_session_endpoint:
-                "https://login.microsoftonline.com/common/oauth21/2026-08/logout",
-            issuer: "https://login.microsoftonline.com/{tenantid}/oauth21/2026-08",
+                "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
+            issuer: "https://login.microsoftonline.com/{tenantid}/v2.0",
             jwks_uri:
-                "https://login.microsoftonline.com/common/oauth21/2026-08/keys",
+                "https://login.microsoftonline.com/common/discovery/v2.0/keys",
             aliasesFromNetwork: true,
             endpointsFromNetwork: true,
             expiresAt:

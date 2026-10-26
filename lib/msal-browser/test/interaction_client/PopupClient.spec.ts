@@ -2700,7 +2700,7 @@ describe("PopupClient", () => {
             const mockPopupWindow = {
                 ...window,
                 document: {
-                    title: "https://login.microsoftonline.com/common/oauth21/2026-08/authorize?client_id=test",
+                    title: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=test",
                 },
                 focus: jest.fn(),
             };
