@@ -247,6 +247,7 @@ export async function getDiscoveredAuthority(
  * @param logger - Logger instance for logging operations.
  * @param correlationId - Correlation ID for the logout operation.
  * @param account - (Optional) The account to clear from cache. If not provided, all accounts are cleared.
+ * @param preserveInteractionInProgress - Keep the interaction marker while popup logout is pending.
  * @returns A promise that resolves when the cache has been cleared.
  */
 export async function clearCacheOnLogout(
@@ -254,7 +255,8 @@ export async function clearCacheOnLogout(
     browserCrypto: ICrypto,
     logger: Logger,
     correlationId: string,
-    account?: AccountInfo | null
+    account?: AccountInfo | null,
+    preserveInteractionInProgress: boolean = false
 ): Promise<void> {
     if (account) {
         // Clear given account.
@@ -277,7 +279,7 @@ export async function clearCacheOnLogout(
                 correlationId
             );
             // Clear all accounts and tokens
-            browserStorage.clear(correlationId);
+            browserStorage.clear(correlationId, preserveInteractionInProgress);
             // Clear any stray keys from IndexedDB
             await browserCrypto.clearKeystore(correlationId);
         } catch (e) {

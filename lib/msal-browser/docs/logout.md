@@ -89,6 +89,18 @@ The `logoutPopup` API will open the server signout page in a popup, allowing you
 - `postLogoutRedirectUri` is **required** in order for MSAL to be able to close the popup when signout is complete
 - `postLogoutRedirectUri` will be opened in the popup window, not the main frame. If you need your top level app to be redirected after logout you can use the `mainWindowRedirectUri` parameter on the logout request.
 
+If a new popup sign-in cancels a pending logout's active redirect-bridge listener
+or legacy popup poller using `overrideInteractionInProgress`, the logout rejects with
+`interaction_in_progress_cancelled` and does not navigate to
+`mainWindowRedirectUri`. This is distinct from ordinary best-effort server
+signout failures. Local cache changes already made by logout are not rolled
+back by cancellation. Cancellation does not stop asynchronous setup before the
+response monitor starts.
+
+When signing out all accounts, the popup interaction lock remains set until
+`logoutPopup` settles. Wait for logout to finish before starting another
+interactive request, or explicitly override an active popup response monitor.
+
 [Configuration options](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionpopuprequest) can be provided to customize the behavior.
 
 ```javascript
@@ -189,7 +201,7 @@ Events will be emitted when logout succeeds or fails and when the popup is opene
 
 - If no account is passed to the logout API, or no EndSessionRequest object, all accounts will be removed from the cache and the server will prompt the user to select the account they wish to sign out of.
 - If an account is passed to the logout API, MSAL will only clear tokens related to that account.
-- Server signout is a convenience feature and, as such, is done with best effort. Logout APIs will resolve successfully as long as the local application cache has been successfully cleared, regardless of whether or not server signout is successful.
+- Server signout is a convenience feature and, as such, is done with best effort. Logout APIs will resolve successfully as long as the local application cache has been successfully cleared, regardless of whether or not server signout is successful. A popup logout whose active response monitor is explicitly cancelled is the exception and rejects with `interaction_in_progress_cancelled`.
 
 ## Next Steps
 

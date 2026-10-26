@@ -102,6 +102,8 @@ import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOp
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 import { resolveSilentRequestPreparation } from "../request/SilentRequestHelpers.js";
 
+const popupInteractionOwners = new WeakMap<object, object>();
+
 function preflightCheck(
     initialized: boolean,
     performanceEvent: InProgressPerformanceEvent,
@@ -725,10 +727,12 @@ export class StandardController implements IController {
         this.logger.verbose("acquireTokenRedirect called", correlationId);
 
         BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
+        const popupScope = this.browserStorage.getInteractionInProgressScope();
         this.browserStorage.setInteractionInProgress(
             true,
             INTERACTION_TYPE.SIGNIN
         );
+        popupInteractionOwners.delete(popupScope);
 
         const atrMeasurement = this.performanceClient.startMeasurement(
             BrowserRootPerformanceEvents.AcquireTokenPreRedirect,
@@ -857,6 +861,8 @@ export class StandardController implements IController {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
+        let popupOwner: object;
+        let popupScope: object;
         const atPopupMeasurement = this.performanceClient.startMeasurement(
             BrowserRootPerformanceEvents.AcquireTokenPopup,
             correlationId
@@ -874,12 +880,15 @@ export class StandardController implements IController {
                 this.config,
                 request
             );
+            popupScope = this.browserStorage.getInteractionInProgressScope();
+            popupOwner = {};
             this.browserStorage.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNIN,
                 request.overrideInteractionInProgress,
                 correlationId
             );
+            popupInteractionOwners.set(popupScope, popupOwner);
             if (request.overrideInteractionInProgress) {
                 cancelPendingPopupPollingResponse(this.logger);
             }
@@ -1007,7 +1016,10 @@ export class StandardController implements IController {
                 return Promise.reject(e);
             })
             .finally(async () => {
-                this.browserStorage.setInteractionInProgress(false);
+                if (popupInteractionOwners.get(popupScope) === popupOwner) {
+                    popupInteractionOwners.delete(popupScope);
+                    this.browserStorage.setInteractionInProgress(false);
+                }
                 if (!this.config.system.navigatePopups) {
                     await this.preGeneratePkceCodes(correlationId);
                 }
@@ -1641,10 +1653,12 @@ export class StandardController implements IController {
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
         const correlationId = this.getRequestCorrelationId(logoutRequest);
         BrowserUtils.redirectPreflightCheck(this.initialized, this.config);
+        const popupScope = this.browserStorage.getInteractionInProgressScope();
         this.browserStorage.setInteractionInProgress(
             true,
             INTERACTION_TYPE.SIGNOUT
         );
+        popupInteractionOwners.delete(popupScope);
 
         const redirectClient = this.createRedirectClient(correlationId);
         return redirectClient.logout(logoutRequest);
@@ -1658,14 +1672,21 @@ export class StandardController implements IController {
         try {
             const correlationId = this.getRequestCorrelationId(logoutRequest);
             BrowserUtils.preflightCheck(this.initialized);
+            const popupScope =
+                this.browserStorage.getInteractionInProgressScope();
+            const popupOwner = {};
             this.browserStorage.setInteractionInProgress(
                 true,
                 INTERACTION_TYPE.SIGNOUT
             );
+            popupInteractionOwners.set(popupScope, popupOwner);
 
-            const popupClient = this.createPopupClient(correlationId);
+            const popupClient = this.createPopupClient(correlationId, true);
             return popupClient.logout(logoutRequest).finally(() => {
-                this.browserStorage.setInteractionInProgress(false);
+                if (popupInteractionOwners.get(popupScope) === popupOwner) {
+                    popupInteractionOwners.delete(popupScope);
+                    this.browserStorage.setInteractionInProgress(false);
+                }
             });
         } catch (e) {
             // Since this function is syncronous we need to reject
@@ -1986,8 +2007,12 @@ export class StandardController implements IController {
     /**
      * Returns new instance of the Popup Interaction Client
      * @param correlationId
+     * @param preserveInteractionInProgress Keep the interaction marker while popup logout is pending.
      */
-    public createPopupClient(correlationId: string): PopupClient {
+    public createPopupClient(
+        correlationId: string,
+        preserveInteractionInProgress: boolean = false
+    ): PopupClient {
         return new PopupClient(
             this.config,
             this.browserStorage,
@@ -2000,7 +2025,8 @@ export class StandardController implements IController {
             correlationId,
             this.platformAuthProvider,
             this.operatingContext.getResponseHandlers()?.waitForPopupResponse,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            preserveInteractionInProgress
         );
     }
 

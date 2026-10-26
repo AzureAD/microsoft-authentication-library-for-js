@@ -94,6 +94,7 @@ export class PopupClient extends StandardInteractionClient {
     private readonly waitForPopupResponseHook:
         | WaitForPopupResponseFn
         | undefined;
+    private readonly preserveInteractionInProgress: boolean;
 
     constructor(
         config: BrowserConfiguration,
@@ -107,7 +108,8 @@ export class PopupClient extends StandardInteractionClient {
         correlationId: string,
         platformAuthHandler?: IPlatformAuthHandler,
         waitForPopupResponseHook?: WaitForPopupResponseFn,
-        tokenBindingKeyManager?: ITokenBindingKeyManager
+        tokenBindingKeyManager?: ITokenBindingKeyManager,
+        preserveInteractionInProgress: boolean = false
     ) {
         super(
             config,
@@ -124,6 +126,7 @@ export class PopupClient extends StandardInteractionClient {
         this.nativeStorage = nativeStorageImpl;
         this.eventHandler = eventHandler;
         this.waitForPopupResponseHook = waitForPopupResponseHook;
+        this.preserveInteractionInProgress = preserveInteractionInProgress;
     }
 
     /**
@@ -136,6 +139,7 @@ export class PopupClient extends StandardInteractionClient {
         pkceCodes?: PkceCodes
     ): Promise<AuthenticationResult> {
         let popupParams: PopupParams | undefined = undefined;
+        let result: Promise<AuthenticationResult>;
         try {
             const popupName = this.generatePopupName(
                 request.scopes || Constants.OIDC_DEFAULT_SCOPES,
@@ -159,7 +163,7 @@ export class PopupClient extends StandardInteractionClient {
                     this.correlationId
                 );
                 // Passes on popup position and dimensions if in request
-                return this.acquireTokenPopupAsync(
+                result = this.acquireTokenPopupAsync(
                     request,
                     popupParams,
                     pkceCodes
@@ -184,15 +188,17 @@ export class PopupClient extends StandardInteractionClient {
                     "about:blank",
                     popupParams
                 );
-                return this.acquireTokenPopupAsync(
+                this.currentWindow = popupParams.popup || undefined;
+                result = this.acquireTokenPopupAsync(
                     validatedRequest,
                     popupParams,
                     pkceCodes
                 );
             }
         } catch (e) {
-            return Promise.reject(e);
+            result = Promise.reject(e);
         }
+        return this.completePopupRequest(result);
     }
 
     /**
@@ -200,6 +206,7 @@ export class PopupClient extends StandardInteractionClient {
      * @param logoutRequest
      */
     logout(logoutRequest?: EndSessionPopupRequest): Promise<void> {
+        let result: Promise<void>;
         try {
             this.logger.verbose("logoutPopup called", this.correlationId);
             const validLogoutRequest =
@@ -224,7 +231,7 @@ export class PopupClient extends StandardInteractionClient {
                     this.correlationId
                 );
                 // Passes on popup position and dimensions if in request
-                return this.logoutPopupAsync(
+                result = this.logoutPopupAsync(
                     validLogoutRequest,
                     popupParams,
                     authority,
@@ -240,7 +247,8 @@ export class PopupClient extends StandardInteractionClient {
                     "about:blank",
                     popupParams
                 );
-                return this.logoutPopupAsync(
+                this.currentWindow = popupParams.popup || undefined;
+                result = this.logoutPopupAsync(
                     validLogoutRequest,
                     popupParams,
                     authority,
@@ -249,7 +257,32 @@ export class PopupClient extends StandardInteractionClient {
             }
         } catch (e) {
             // Since this function is synchronous we need to reject
-            return Promise.reject(e);
+            result = Promise.reject(e);
+        }
+        return this.completePopupRequest(result);
+    }
+
+    /**
+     * Closes the owned popup when setup or response handling fails.
+     * @param operation
+     */
+    private async completePopupRequest<T>(operation: Promise<T>): Promise<T> {
+        try {
+            return await operation;
+        } catch (error) {
+            this.closePopup();
+            throw error;
+        }
+    }
+
+    /**
+     * Closes only this request's tracked window.
+     */
+    private closePopup(): void {
+        const popup = this.currentWindow;
+        this.currentWindow = undefined;
+        if (popup && !popup.closed) {
+            popup.close();
         }
     }
 
@@ -479,7 +512,7 @@ export class PopupClient extends StandardInteractionClient {
             }
         } catch (e) {
             // Close the synchronous popup if an error is thrown before the window unload event is registered
-            popupParams.popup?.close();
+            this.closePopup();
 
             if (e instanceof AuthError) {
                 (e as AuthError).correlationId = this.correlationId;
@@ -766,7 +799,8 @@ export class PopupClient extends StandardInteractionClient {
                 this.browserCrypto,
                 this.logger,
                 this.correlationId,
-                validRequest.account
+                validRequest.account,
+                this.preserveInteractionInProgress
             );
 
             // Initialize the client
@@ -815,7 +849,7 @@ export class PopupClient extends StandardInteractionClient {
                         );
                     }
 
-                    popupParams.popup?.close();
+                    this.closePopup();
 
                     return;
                 }
@@ -877,8 +911,15 @@ export class PopupClient extends StandardInteractionClient {
                 validRequest,
                 popupWindow,
                 popupParams.popupWindowParent
-            ).catch(() => {
-                // Swallow any errors related to monitoring the window. Server logout is best effort
+            ).catch((error: unknown) => {
+                if (
+                    error instanceof AuthError &&
+                    error.errorCode ===
+                        BrowserAuthErrorCodes.interactionInProgressCancelled
+                ) {
+                    throw error;
+                }
+                // Server logout is best effort except when the interaction is superseded.
             });
 
             if (mainWindowRedirectUri) {
@@ -913,7 +954,7 @@ export class PopupClient extends StandardInteractionClient {
             }
         } catch (e) {
             // Close the synchronous popup if an error is thrown before the window unload event is registered
-            popupParams.popup?.close();
+            this.closePopup();
 
             if (e instanceof AuthError) {
                 (e as AuthError).correlationId = this.correlationId;
@@ -1004,6 +1045,7 @@ export class PopupClient extends StandardInteractionClient {
                     this.correlationId
                 );
             }
+            this.currentWindow = popupWindow;
             try {
                 popupWindow.document.title = "Microsoft Authentication";
             } catch (e) {
@@ -1023,7 +1065,6 @@ export class PopupClient extends StandardInteractionClient {
             if (popupWindow.focus) {
                 popupWindow.focus();
             }
-            this.currentWindow = popupWindow;
 
             return popupWindow;
         } catch (e) {

@@ -1210,6 +1210,26 @@ describe("PopupClient", () => {
             window.sessionStorage.clear();
         });
 
+        it("retains default cache clearing when no controller owns the interaction", async () => {
+            browserCacheManager.setInteractionInProgress(true);
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "getLogoutUri"
+            ).mockReturnValue(TEST_URIS.TEST_END_SESSION_ENDPOINT);
+            jest.spyOn(PopupClient.prototype, "openSizedPopup").mockReturnValue(
+                {
+                    location: { assign: jest.fn() },
+                    document: {},
+                    close: jest.fn(),
+                    focus: jest.fn(),
+                } as unknown as Window
+            );
+
+            await popupClient.logout();
+
+            expect(browserCacheManager.getInteractionInProgress()).toBeNull();
+        });
+
         it("does not assert POCD for a delegated parent with an untrusted opener", async () => {
             const parent = {
                 origin: window.origin,
