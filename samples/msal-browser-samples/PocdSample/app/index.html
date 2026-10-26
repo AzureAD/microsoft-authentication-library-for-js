@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Popup origin check (POCD)</title>
+    </head>
+    <body>
+        <h1>Popup origin check (POCD)</h1>
+        <p>
+            MSAL automatically sends <code>pocd=1</code> when its origin check
+            passes. Otherwise it omits the parameter so Entra keeps COOP
+            enforcement. This app uses the default redirect bridge in both
+            cases.
+        </p>
+        <p>
+            Open this page directly for the trusted top-level case, or use the
+            <a href="https://localhost:3000">cross-origin launcher</a> to give
+            this app an untrusted opener.
+        </p>
+        <label for="http-method">Authorize request method</label>
+        <select id="http-method">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+        </select>
+        <p>
+            <button id="sign-in" type="button" disabled>Sign in</button>
+            <button id="prompt-none" type="button" disabled>
+                Try prompt=none
+            </button>
+            <button id="sign-out" type="button" disabled>Sign out</button>
+        </p>
+        <p>
+            In a fresh browser session, <code>prompt=none</code> should return
+            <code>login_required</code> without caching tokens.
+        </p>
+        <pre id="output" role="status">Initializing MSAL...</pre>
+        <script type="module" src="./auth.js"></script>
+    </body>
+</html>

@@ -75,7 +75,7 @@ export function resolveSilentRequestPreparation(
 }
 
 /**
- * Preserves the standard web thumbprint and caller-owned request references.
+ * Extends the web thumbprint with silent-flow options while preserving caller-owned references.
  */
 export function prepareWebSilentRequest({
     request,
@@ -94,7 +94,16 @@ export function prepareWebSilentRequest({
     );
 
     return {
-        key: JSON.stringify(thumbprint),
+        key: JSON.stringify({
+            ...thumbprint,
+            forceRefresh: !!request.forceRefresh,
+            cacheLookupPolicy:
+                request.cacheLookupPolicy ?? CacheLookupPolicy.Default,
+            extraParameters: canonicalizeStringDict(request.extraParameters),
+            extraQueryParameters: canonicalizeStringDict(
+                request.extraQueryParameters
+            ),
+        }),
         request,
         account,
     };
