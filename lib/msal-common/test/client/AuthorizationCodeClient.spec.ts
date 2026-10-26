@@ -2339,78 +2339,90 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
         });
 
-        it("successfully uses a new authority if cloud_instance_host_name is different", async () => {
-            const client = new AuthorizationCodeClient(
-                config,
-                stubPerformanceClient
-            );
-            jest.spyOn(
-                Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
-            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            jest.spyOn(
-                // @ts-ignore
-                client.networkClient,
-                "sendPostRequestAsync"
-            ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
+        it.each(["", "oauth21/2026-08/"])(
+            "preserves authority path %s when cloud_instance_host_name changes",
+            async (suffix) => {
+                if (!config.authOptions?.authority) {
+                    throw TestError.createTestSetupError(
+                        "authority not initialized"
+                    );
+                }
+                config.authOptions.authority.canonicalAuthority = `${Constants.DEFAULT_AUTHORITY}${suffix}`;
+                const client = new AuthorizationCodeClient(
+                    config,
+                    stubPerformanceClient
+                );
+                jest.spyOn(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+                jest.spyOn(
+                    // @ts-ignore
+                    client.networkClient,
+                    "sendPostRequestAsync"
+                ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
 
-            if (!config.cryptoInterface) {
-                throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                if (!config.cryptoInterface) {
+                    throw TestError.createTestSetupError(
+                        "configuration cryptoInterface not initialized correctly."
+                    );
+                }
+                // Set up stubs
+                const idTokenClaims = {
+                    ver: "2.0",
+                    iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                    sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                    exp: 1536361411,
+                    name: "Abe Lincoln",
+                    preferred_username: "AbeLi@microsoft.com",
+                    oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                    tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    nonce: "123523",
+                };
+                jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                    idTokenClaims
+                );
+
+                const authoritySpy = jest.spyOn(
+                    AuthorityFactory,
+                    "createDiscoveredInstance"
+                );
+
+                const authCodeRequest: CommonAuthorizationCodeRequest = {
+                    authority: Constants.DEFAULT_AUTHORITY,
+                    scopes: [
+                        ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                        ...TEST_CONFIG.DEFAULT_SCOPES,
+                    ],
+                    redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                    code: TEST_TOKENS.AUTHORIZATION_CODE,
+                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                    claims: TEST_CONFIG.CLAIMS,
+                    correlationId: RANDOM_TEST_GUID,
+                    authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                };
+                await client.acquireToken(authCodeRequest, 0, {
+                    code: authCodeRequest.code,
+                    nonce: idTokenClaims.nonce,
+                    cloud_instance_host_name: "login.windows.net",
+                });
+                expect(authoritySpy).toHaveBeenCalledWith(
+                    `https://login.windows.net/common/${suffix}`,
+                    // @ts-ignore
+                    client.networkClient,
+                    // @ts-ignore
+                    client.cacheManager,
+                    client.authority.options,
+                    client.logger,
+                    RANDOM_TEST_GUID,
+                    // @ts-ignore
+                    client.performanceClient
+                );
+                expect(client.authority.tokenEndpoint).toBe(
+                    "https://login.microsoftonline.com/common/oauth21/2026-08/token"
                 );
             }
-            // Set up stubs
-            const idTokenClaims = {
-                ver: "2.0",
-                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                exp: 1536361411,
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
-            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims
-            );
-
-            const authoritySpy = jest.spyOn(
-                AuthorityFactory,
-                "createDiscoveredInstance"
-            );
-
-            const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
-                scopes: [
-                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                    ...TEST_CONFIG.DEFAULT_SCOPES,
-                ],
-                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                code: TEST_TOKENS.AUTHORIZATION_CODE,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                claims: TEST_CONFIG.CLAIMS,
-                correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: Constants.AuthenticationScheme.BEARER,
-            };
-            await client.acquireToken(authCodeRequest, 0, {
-                code: authCodeRequest.code,
-                nonce: idTokenClaims.nonce,
-                cloud_instance_host_name: "login.windows.net",
-            });
-            expect(authoritySpy).toHaveBeenCalledWith(
-                "https://login.windows.net/common/",
-                // @ts-ignore
-                client.networkClient,
-                // @ts-ignore
-                client.cacheManager,
-                client.authority.options,
-                client.logger,
-                RANDOM_TEST_GUID,
-                // @ts-ignore
-                client.performanceClient
-            );
-        });
+        );
     });
 
     describe("Telemetry protocol mode tests", () => {
@@ -2739,13 +2751,15 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromHardcodedValues"
             ).mockReturnValue({
                 token_endpoint:
-                    "https://login.windows.net/common/oauth2/v2.0/token?param1=value1",
-                issuer: "https://login.windows.net/{tenantid}/v2.0",
+                    "https://login.microsoftonline.com/common/oauth21/2026-08/token?param1=value1",
+                issuer: "https://login.microsoftonline.com/common/oauth21/2026-08",
+                jwks_uri:
+                    "https://login.microsoftonline.com/common/oauth21/2026-08/keys",
                 userinfo_endpoint: "https://graph.microsoft.com/oidc/userinfo",
                 authorization_endpoint:
-                    "https://login.windows.net/common/oauth2/v2.0/authorize?param1=value1",
+                    "https://login.microsoftonline.com/common/oauth21/2026-08/authorize?param1=value1",
                 end_session_endpoint:
-                    "https://login.windows.net/common/oauth2/v2.0/logout?param1=value1",
+                    "https://login.microsoftonline.com/common/oauth21/2026-08/logout?param1=value1",
             });
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -2764,7 +2778,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 },
             });
 
-            const testLogoutUriWithParams = `https://login.windows.net/common/oauth2/v2.0/logout?param1=value1&${
+            const testLogoutUriWithParams = `https://login.microsoftonline.com/common/oauth21/2026-08/logout?param1=value1&${
                 AADServerParamKeys.POST_LOGOUT_URI
             }=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${
                 AADServerParamKeys.CLIENT_REQUEST_ID

@@ -274,33 +274,29 @@ export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
 export const DEFAULT_OPENID_CONFIG_RESPONSE = {
     body: {
         token_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/token",
         token_endpoint_auth_methods_supported: [
             "client_secret_post",
             "private_key_jwt",
             "client_secret_basic",
         ],
         jwks_uri:
-            "https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/keys",
         response_modes_supported: ["query", "fragment", "form_post"],
         subject_types_supported: ["pairwise"],
         id_token_signing_alg_values_supported: ["RS256"],
-        response_types_supported: [
-            "code",
-            "id_token",
-            "code id_token",
-            "id_token token",
-        ],
+        response_types_supported: ["code", "id_token", "code id_token"],
+        code_challenge_methods_supported: ["S256"],
+        authorization_response_iss_parameter_supported: true,
         scopes_supported: ["openid", "profile", "email", "offline_access"],
-        issuer: "https://login.microsoftonline.com/{tenant}/v2.0",
+        issuer: "https://login.microsoftonline.com/{tenant}/oauth21/2026-08",
         request_uri_parameter_supported: false,
         userinfo_endpoint: "https://graph.microsoft.com/oidc/userinfo",
         authorization_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize",
-        http_logout_supported: true,
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/authorize",
         frontchannel_logout_supported: true,
         end_session_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/logout",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/logout",
         claims_supported: [
             "sub",
             "iss",

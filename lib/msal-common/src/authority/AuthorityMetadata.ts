@@ -11,6 +11,9 @@ import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata.js";
 import { CloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse.js";
 import { OpenIdConfigResponse } from "./OpenIdConfigResponse.js";
 
+/** The Entra endpoint revision owned by this library release. @internal */
+export const ENTRA_CLIENT_PROFILE = "oauth21/2026-08";
+
 type RawMetadata = {
     endpointMetadata: { [key: string]: OpenIdConfigResponse };
     instanceDiscoveryMetadata: CloudInstanceDiscoveryResponse;
@@ -30,12 +33,13 @@ function buildOpenIdConfig(
     host: string,
     issuerHost: string
 ): OpenIdConfigResponse {
+    const endpointBase = `https://${host}/{tenantid}/${ENTRA_CLIENT_PROFILE}`;
     return {
-        token_endpoint: `https://${host}/{tenantid}/oauth2/v2.0/token`,
-        jwks_uri: `https://${host}/{tenantid}/discovery/v2.0/keys`,
-        issuer: `https://${issuerHost}/{tenantid}/v2.0`,
-        authorization_endpoint: `https://${host}/{tenantid}/oauth2/v2.0/authorize`,
-        end_session_endpoint: `https://${host}/{tenantid}/oauth2/v2.0/logout`,
+        token_endpoint: `${endpointBase}/token`,
+        jwks_uri: `${endpointBase}/keys`,
+        issuer: `https://${issuerHost}/{tenantid}/${ENTRA_CLIENT_PROFILE}`,
+        authorization_endpoint: `${endpointBase}/authorize`,
+        end_session_endpoint: `${endpointBase}/logout`,
     };
 }
 
@@ -48,8 +52,7 @@ const dynamicEndpointMetadata: RawMetadata["endpointMetadata"] =
 export const rawMetdataJSON: RawMetadata = {
     endpointMetadata: dynamicEndpointMetadata,
     instanceDiscoveryMetadata: {
-        tenant_discovery_endpoint:
-            "https://{canonicalAuthority}/v2.0/.well-known/openid-configuration",
+        tenant_discovery_endpoint: `https://{canonicalAuthority}/${ENTRA_CLIENT_PROFILE}/.well-known/openid-configuration`,
         metadata: [
             {
                 preferred_network: "login.microsoftonline.com",

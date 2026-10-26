@@ -197,6 +197,17 @@ describe("StandardInteractionClient", () => {
         const requestAzureCloudOptions: AzureCloudOptions = {
             azureCloudInstance: AzureCloudInstance.AzureGermany,
         };
+        const base = "https://login.microsoftonline.de/common/oauth21/2026-08";
+        jest.spyOn(
+            Authority.prototype,
+            <any>"getEndpointMetadataFromNetwork"
+        ).mockResolvedValue({
+            authorization_endpoint: `${base}/authorize`,
+            token_endpoint: `${base}/token`,
+            end_session_endpoint: `${base}/logout`,
+            issuer: base,
+            jwks_uri: `${base}/keys`,
+        });
 
         const authority = await testClient.getDiscoveredAuthority({
             requestAzureCloudOptions,

@@ -558,7 +558,7 @@ describe("PublicClientApplication", () => {
                 "authority",
                 {
                     authority:
-                        "https://login.microsoftonline.com/different-tenant",
+                        "https://login.microsoftonline.com/11111111-1111-1111-1111-111111111111",
                 },
             ],
             [

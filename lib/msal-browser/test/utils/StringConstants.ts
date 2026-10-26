@@ -37,11 +37,11 @@ export const TEST_URIS = {
     TEST_ALTERNATE_REDIR_URI: "https://localhost:8081/index2.html",
     TEST_LOGOUT_URI: "https://localhost:8081/logout.html",
     TEST_AUTH_ENDPT:
-        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+        "https://login.microsoftonline.com/common/oauth21/2026-08/authorize",
     TEST_END_SESSION_ENDPOINT:
-        "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
+        "https://login.microsoftonline.com/common/oauth21/2026-08/logout",
     TEST_AUTH_ENDPT_WITH_PARAMS:
-        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2",
+        "https://login.microsoftonline.com/common/oauth21/2026-08/authorize?param1=value1&param2=value2",
     TEST_AZURE_CHINA_INSTANCE: "https://login.chinacloudapi.cn/",
     TEST_AZURE_GERMANY_INSTANCE: "https://login.microsoftonline.de/",
     TEST_AZURE_USGOV_INSTANCE: "https://login.microsoftonline.us/",
@@ -242,7 +242,7 @@ export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
     status: 200,
     body: {
         tenant_discovery_endpoint:
-            "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
+            "https://login.microsoftonline.com/common/oauth21/2026-08/.well-known/openid-configuration",
         "api-version": "1.1",
         metadata: [
             {
@@ -290,33 +290,29 @@ export const DEFAULT_OPENID_CONFIG_RESPONSE: NetworkResponse<unknown> = {
     status: 200,
     body: {
         token_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/token",
         token_endpoint_auth_methods_supported: [
             "client_secret_post",
             "private_key_jwt",
             "client_secret_basic",
         ],
         jwks_uri:
-            "https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/keys",
         response_modes_supported: ["query", "fragment", "form_post"],
         subject_types_supported: ["pairwise"],
         id_token_signing_alg_values_supported: ["RS256"],
-        response_types_supported: [
-            "code",
-            "id_token",
-            "code id_token",
-            "id_token token",
-        ],
+        response_types_supported: ["code", "id_token", "code id_token"],
+        code_challenge_methods_supported: ["S256"],
+        authorization_response_iss_parameter_supported: true,
         scopes_supported: ["openid", "profile", "email", "offline_access"],
-        issuer: "https://login.microsoftonline.com/{tenant}/v2.0",
+        issuer: "https://login.microsoftonline.com/{tenant}/oauth21/2026-08",
         request_uri_parameter_supported: false,
         userinfo_endpoint: "https://graph.microsoft.com/oidc/userinfo",
         authorization_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize",
-        http_logout_supported: true,
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/authorize",
         frontchannel_logout_supported: true,
         end_session_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/logout",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/logout",
         claims_supported: [
             "sub",
             "iss",
@@ -350,32 +346,29 @@ export const ALTERNATE_OPENID_CONFIG_RESPONSE = {
     headers: null,
     status: 200,
     body: {
-        token_endpoint: "https://login.windows.net/common/oauth2/v2.0/token",
+        token_endpoint:
+            "https://login.windows.net/common/oauth21/2026-08/token",
         token_endpoint_auth_methods_supported: [
             "client_secret_post",
             "private_key_jwt",
             "client_secret_basic",
         ],
-        jwks_uri: "https://login.windows.net/common/discovery/v2.0/keys",
+        jwks_uri: "https://login.windows.net/common/oauth21/2026-08/keys",
         response_modes_supported: ["query", "fragment", "form_post"],
         subject_types_supported: ["pairwise"],
         id_token_signing_alg_values_supported: ["RS256"],
-        response_types_supported: [
-            "code",
-            "id_token",
-            "code id_token",
-            "id_token token",
-        ],
+        response_types_supported: ["code", "id_token", "code id_token"],
+        code_challenge_methods_supported: ["S256"],
+        authorization_response_iss_parameter_supported: true,
         scopes_supported: ["openid", "profile", "email", "offline_access"],
-        issuer: "https://login.windows.net/{tenantid}/v2.0",
+        issuer: "https://login.windows.net/{tenantid}/oauth21/2026-08",
         request_uri_parameter_supported: false,
         userinfo_endpoint: "https://graph.microsoft.com/oidc/userinfo",
         authorization_endpoint:
-            "https://login.windows.net/common/oauth2/v2.0/authorize",
-        http_logout_supported: true,
+            "https://login.windows.net/common/oauth21/2026-08/authorize",
         frontchannel_logout_supported: true,
         end_session_endpoint:
-            "https://login.windows.net/common/oauth2/v2.0/logout",
+            "https://login.windows.net/common/oauth21/2026-08/logout",
         claims_supported: [
             "sub",
             "iss",
@@ -420,7 +413,7 @@ export const TEST_TOKEN_RESPONSE: NetworkResponse<ServerAuthorizationTokenRespon
         status: 200,
     };
 
-export const testNavUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${encodeURIComponent(
+export const testNavUrl = `https://login.microsoftonline.com/common/oauth21/2026-08/authorize?client_id=${encodeURIComponent(
     `${TEST_CONFIG.MSAL_CLIENT_ID}`
 )}&scope=user.read%20openid%20profile%20offline_access&redirect_uri=https%3A%2F%2Flocalhost%3A8081%2Findex.html&client-request-id=${encodeURIComponent(
     `${RANDOM_TEST_GUID}`
@@ -440,7 +433,7 @@ export function verifyUrl(
     scopes.push("openid", "profile", "offline_access"); // Add default scopes
     expect(
         url.startsWith(
-            "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?"
+            "https://login.microsoftonline.com/common/oauth21/2026-08/authorize?"
         )
     ).toBe(true);
     expect(
@@ -481,7 +474,7 @@ export function verifyUrl(
     ).toBe(true);
 }
 
-export const testLogoutUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(
+export const testLogoutUrl = `https://login.microsoftonline.com/common/oauth21/2026-08/logout?post_logout_redirect_uri=${encodeURIComponent(
     `${TEST_URIS.TEST_REDIR_URI}`
 )}`;
 

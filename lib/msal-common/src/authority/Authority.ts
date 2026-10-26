@@ -18,8 +18,10 @@ import { INetworkModule } from "../network/INetworkModule.js";
 import * as Constants from "../utils/Constants.js";
 import {
     EndpointMetadata,
+    ENTRA_CLIENT_PROFILE,
     getCloudDiscoveryMetadataFromHardcodedValues,
     getCloudDiscoveryMetadataFromNetworkResponse,
+    InstanceDiscoveryMetadata,
     InstanceDiscoveryMetadataAliases,
 } from "./AuthorityMetadata.js";
 import {
@@ -54,6 +56,10 @@ import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.j
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import * as CacheHelpers from "../cache/utils/CacheHelpers.js";
 
+const tenantGuidPattern =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const autodiscoverTenants = new Set(["common", "organizations", "client"]);
+
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
  * endpoint. It will store the pertinent config data in this object for use during token calls.
@@ -84,6 +90,7 @@ export class Authority {
     protected correlationId: string;
     // Indicates if the authority is fake, for the purpose of a Managed Identity Application
     private managedIdentity: boolean;
+    private readonly isMicrosoftEntraAuthority: boolean;
     // Reserved tenant domain names that will not be replaced with tenant id
     private static reservedTenantDomains: Set<string> = new Set([
         "{tenant}",
@@ -117,6 +124,12 @@ export class Authority {
         this.performanceClient = performanceClient;
         this.correlationId = correlationId;
         this.managedIdentity = managedIdentity || false;
+        this.isMicrosoftEntraAuthority =
+            !this.managedIdentity &&
+            this.authorityType === AuthorityType.Default &&
+            // Legacy B2C authorities can use a known Microsoft host.
+            this.canonicalAuthorityUrlComponents.PathSegments[0] !== "tfp" &&
+            this.isAliasOfKnownMicrosoftAuthority(this.hostnameAndPort);
         this.regionDiscovery = new RegionDiscovery(
             networkInterface,
             this.logger,
@@ -328,6 +341,9 @@ export class Authority {
      * @param urlString
      */
     private replacePath(urlString: string): string {
+        if (this.isMicrosoftEntraAuthority) {
+            return this.replaceTenant(urlString);
+        }
         let endpoint = urlString;
         const cachedAuthorityUrl = new UrlString(
             this.metadata.canonical_authority,
@@ -377,6 +393,9 @@ export class Authority {
      * The default open id configuration endpoint for any canonical authority.
      */
     protected get defaultOpenIdConfigurationEndpoint(): string {
+        if (this.isMicrosoftEntraAuthority) {
+            return `https://${this.hostnameAndPort}/${this.tenant}/${ENTRA_CLIENT_PROFILE}/.well-known/openid-configuration`;
+        }
         const canonicalAuthorityHost = this.hostnameAndPort;
         if (
             this.canonicalAuthority.endsWith("v2.0/") ||
@@ -410,6 +429,19 @@ export class Authority {
             this.performanceClient,
             this.correlationId
         )(metadataEntity);
+        if (this.isMicrosoftEntraAuthority) {
+            const cloudMetadata = getCloudDiscoveryMetadataFromNetworkResponse(
+                InstanceDiscoveryMetadata.metadata,
+                this.hostnameAndPort
+            );
+            if (!cloudMetadata) {
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.untrustedAuthority,
+                    this.correlationId
+                );
+            }
+            metadataEntity.preferred_network = cloudMetadata.preferred_network;
+        }
         this.canonicalAuthority = this.canonicalAuthority.replace(
             this.hostnameAndPort,
             metadataEntity.preferred_network
@@ -421,9 +453,30 @@ export class Authority {
             this.performanceClient,
             this.correlationId
         )(metadataEntity);
-        this.updateCachedMetadata(metadataEntity, cloudDiscoverySource, {
-            source: endpointSource,
-        });
+        if (this.isMicrosoftEntraAuthority) {
+            metadataEntity.canonical_authority = this.canonicalAuthority;
+        }
+        this.updateCachedMetadata(
+            metadataEntity,
+            cloudDiscoverySource,
+            endpointSource
+        );
+        if (
+            this.isMicrosoftEntraAuthority &&
+            endpointSource !== Constants.AuthorityMetadataSource.CONFIG &&
+            this.authorityOptions.azureRegionConfiguration?.azureRegion
+        ) {
+            this.metadata = {
+                ...metadataEntity,
+                ...(await invokeAsync(
+                    this.updateMetadataWithRegionalInformation.bind(this),
+                    PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation,
+                    this.logger,
+                    this.performanceClient,
+                    this.correlationId
+                )(metadataEntity)),
+            };
+        }
         this.performanceClient?.addFields(
             {
                 cloudDiscoverySource: cloudDiscoverySource,
@@ -461,28 +514,25 @@ export class Authority {
                 jwks_uri: "",
             };
         }
-        return metadataEntity;
+        return this.isMicrosoftEntraAuthority
+            ? { ...metadataEntity }
+            : metadataEntity;
     }
 
     /**
-     * Updates cached metadata based on metadata source and sets the instance's metadata
-     * property to the same value
+     * Updates cached metadata based on its source and retains the instance's endpoints.
      * @param metadataEntity
      * @param cloudDiscoverySource
-     * @param endpointMetadataResult
+     * @param endpointMetadataSource
      */
     private updateCachedMetadata(
         metadataEntity: AuthorityMetadataEntity,
         cloudDiscoverySource: Constants.AuthorityMetadataSource | null,
-        endpointMetadataResult: {
-            source: Constants.AuthorityMetadataSource;
-            metadata?: OpenIdConfigResponse;
-        } | null
+        endpointMetadataSource: Constants.AuthorityMetadataSource
     ): void {
         if (
             cloudDiscoverySource !== Constants.AuthorityMetadataSource.CACHE &&
-            endpointMetadataResult?.source !==
-                Constants.AuthorityMetadataSource.CACHE
+            endpointMetadataSource !== Constants.AuthorityMetadataSource.CACHE
         ) {
             // Reset the expiration time unless both values came from a successful cache lookup
             metadataEntity.expiresAt =
@@ -499,7 +549,9 @@ export class Authority {
             metadataEntity,
             this.correlationId
         );
-        this.metadata = metadataEntity;
+        this.metadata = this.isMicrosoftEntraAuthority
+            ? { ...metadataEntity }
+            : metadataEntity;
     }
 
     /**
@@ -509,40 +561,14 @@ export class Authority {
     private async updateEndpointMetadata(
         metadataEntity: AuthorityMetadataEntity
     ): Promise<Constants.AuthorityMetadataSource> {
-        const localMetadata =
+        const localMetadataSource =
             this.updateEndpointMetadataFromLocalSources(metadataEntity);
 
-        // Further update may be required for hardcoded metadata if regional metadata is preferred
-        if (localMetadata) {
-            if (
-                localMetadata.source ===
-                Constants.AuthorityMetadataSource.HARDCODED_VALUES
-            ) {
-                // If the user prefers to use an azure region replace the global endpoints with regional information.
-                if (
-                    this.authorityOptions.azureRegionConfiguration?.azureRegion
-                ) {
-                    if (localMetadata.metadata) {
-                        const hardcodedMetadata = await invokeAsync(
-                            this.updateMetadataWithRegionalInformation.bind(
-                                this
-                            ),
-                            PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation,
-                            this.logger,
-                            this.performanceClient,
-                            this.correlationId
-                        )(localMetadata.metadata);
-                        CacheHelpers.updateAuthorityEndpointMetadata(
-                            metadataEntity,
-                            hardcodedMetadata,
-                            false
-                        );
-                        metadataEntity.canonical_authority =
-                            this.canonicalAuthority;
-                    }
-                }
+        if (localMetadataSource !== null) {
+            if (this.isMicrosoftEntraAuthority) {
+                this.validateEntraMetadata(metadataEntity);
             }
-            return localMetadata.source;
+            return localMetadataSource;
         }
 
         // Get metadata from network if local sources aren't available
@@ -555,10 +581,17 @@ export class Authority {
         )();
         if (metadata) {
             // Validate the issuer returned by the OIDC discovery document.
-            this.validateIssuer(metadata.issuer);
+            if (this.isMicrosoftEntraAuthority) {
+                this.validateEntraMetadata(metadata);
+            } else {
+                this.validateIssuer(metadata.issuer);
+            }
 
             // If the user prefers to use an azure region replace the global endpoints with regional information.
-            if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
+            if (
+                !this.isMicrosoftEntraAuthority &&
+                this.authorityOptions.azureRegionConfiguration?.azureRegion
+            ) {
                 metadata = await invokeAsync(
                     this.updateMetadataWithRegionalInformation.bind(this),
                     PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation,
@@ -585,17 +618,13 @@ export class Authority {
     }
 
     /**
-     * Updates endpoint metadata from local sources and returns where the information was retrieved from and the metadata config
-     * response if the source is hardcoded metadata
+     * Updates endpoint metadata from local sources and returns its source, or null if unavailable.
      * @param metadataEntity
      * @returns
      */
     private updateEndpointMetadataFromLocalSources(
         metadataEntity: AuthorityMetadataEntity
-    ): {
-        source: Constants.AuthorityMetadataSource;
-        metadata?: OpenIdConfigResponse;
-    } | null {
+    ): Constants.AuthorityMetadataSource | null {
         this.logger.verbose(
             "Attempting to get endpoint metadata from authority configuration",
             this.correlationId
@@ -611,9 +640,7 @@ export class Authority {
                 configMetadata,
                 false
             );
-            return {
-                source: Constants.AuthorityMetadataSource.CONFIG,
-            };
+            return Constants.AuthorityMetadataSource.CONFIG;
         }
 
         this.logger.verbose(
@@ -628,10 +655,7 @@ export class Authority {
                 hardcodedMetadata,
                 false
             );
-            return {
-                source: Constants.AuthorityMetadataSource.HARDCODED_VALUES,
-                metadata: hardcodedMetadata,
-            };
+            return Constants.AuthorityMetadataSource.HARDCODED_VALUES;
         } else {
             this.logger.verbose(
                 "Did not find endpoint metadata in hardcoded values... Attempting to get endpoint metadata from the network metadata cache.",
@@ -649,7 +673,7 @@ export class Authority {
         ) {
             // No need to update
             this.logger.verbose("Found endpoint metadata in the cache.", "");
-            return { source: Constants.AuthorityMetadataSource.CACHE };
+            return Constants.AuthorityMetadataSource.CACHE;
         } else if (metadataEntityExpired) {
             this.logger.verbose("The metadata entity is expired.", "");
         }
@@ -673,8 +697,10 @@ export class Authority {
         const cachedParts = cachedAuthorityUrl.getUrlComponents().PathSegments;
 
         return (
+            (!this.isMicrosoftEntraAuthority ||
+                cachedParts[0] === this.tenant) &&
             cachedParts.length ===
-            this.canonicalAuthorityUrlComponents.PathSegments.length
+                this.canonicalAuthorityUrlComponents.PathSegments.length
         );
     }
 
@@ -747,11 +773,63 @@ export class Authority {
      * Get OAuth endpoints for common authorities.
      */
     private getEndpointMetadataFromHardcodedValues(): OpenIdConfigResponse | null {
-        if (this.hostnameAndPort in EndpointMetadata) {
+        if (
+            this.isMicrosoftEntraAuthority &&
+            (autodiscoverTenants.has(this.tenant) ||
+                tenantGuidPattern.test(this.tenant)) &&
+            this.hostnameAndPort in EndpointMetadata
+        ) {
             return EndpointMetadata[this.hostnameAndPort];
         }
 
         return null;
+    }
+
+    /**
+     * Checks metadata coherence before consuming or regionalizing Entra endpoints.
+     */
+    private validateEntraMetadata(metadata: OpenIdConfigResponse): void {
+        const issuer =
+            typeof metadata.issuer === "string"
+                ? this.replaceTenant(metadata.issuer)
+                : "";
+        const prefix = `https://${this.hostnameAndPort}/`;
+        const suffix = `/${ENTRA_CLIENT_PROFILE}`;
+        const issuerTenant = issuer.slice(prefix.length, -suffix.length);
+        const issuerMatches =
+            issuer.startsWith(prefix) &&
+            issuer.endsWith(suffix) &&
+            (autodiscoverTenants.has(this.tenant) ||
+            tenantGuidPattern.test(this.tenant)
+                ? issuerTenant === this.tenant
+                : tenantGuidPattern.test(issuerTenant));
+        const endpointsMatch = (
+            [
+                ["authorization_endpoint", "authorize"],
+                ["token_endpoint", "token"],
+                ["end_session_endpoint", "logout"],
+                ["jwks_uri", "keys"],
+            ] as const
+        ).every(([field, endpoint]) => {
+            const value = metadata[field];
+            if (field === "end_session_endpoint" && value === undefined) {
+                return true;
+            }
+            return (
+                typeof value === "string" &&
+                [this.tenant, issuerTenant].some(
+                    (tenant) =>
+                        this.replaceTenant(value).split("?")[0] ===
+                        `${prefix}${tenant}${suffix}/${endpoint}`
+                )
+            );
+        });
+        if (!issuerMatches || !endpointsMatch) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidAuthorityMetadata,
+                this.correlationId
+            );
+        }
     }
 
     /**
@@ -1554,8 +1632,20 @@ export function getTenantFromAuthorityString(
      *
      * Note that we may not have any path segments in certain OIDC scenarios.
      */
-    const tenantId =
-        authorityUrlComponents.PathSegments.slice(-1)[0]?.toLowerCase();
+    const pathSegments = authorityUrlComponents.PathSegments;
+    const isEntraAuthority = InstanceDiscoveryMetadataAliases.has(
+        authorityUrlComponents.HostNameAndPort.toLowerCase()
+    );
+    const tenantId = (
+        isEntraAuthority &&
+        pathSegments.slice(-2).join("/") === ENTRA_CLIENT_PROFILE
+            ? pathSegments[0]
+            : pathSegments.slice(-1)[0]
+    )?.toLowerCase();
+
+    if (isEntraAuthority && tenantId === "client") {
+        return undefined;
+    }
 
     switch (tenantId) {
         case Constants.AADAuthority.COMMON:

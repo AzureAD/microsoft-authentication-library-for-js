@@ -176,8 +176,8 @@ describe("UrlString.ts Class Unit Tests", () => {
         expect(urlObj.getUrlComponents()).toEqual({
             Protocol: "https:",
             HostNameAndPort: "login.microsoftonline.com",
-            AbsolutePath: "/common/oauth2/v2.0/authorize",
-            PathSegments: ["common", "oauth2", "v2.0", "authorize"],
+            AbsolutePath: "/common/oauth21/2026-08/authorize",
+            PathSegments: ["common", "oauth21", "2026-08", "authorize"],
             QueryString: "param1=value1&param2=value2",
         } as IUri);
     });
@@ -186,8 +186,8 @@ describe("UrlString.ts Class Unit Tests", () => {
         const urlComponents = {
             Protocol: "https:",
             HostNameAndPort: "login.microsoftonline.com",
-            AbsolutePath: "/common/oauth2/v2.0/authorize",
-            PathSegments: ["common", "oauth2", "v2.0", "authorize"],
+            AbsolutePath: "/common/oauth21/2026-08/authorize",
+            PathSegments: ["common", "oauth21", "2026-08", "authorize"],
         } as IUri;
         const urlObj = UrlString.constructAuthorityUriFromObject(
             urlComponents,

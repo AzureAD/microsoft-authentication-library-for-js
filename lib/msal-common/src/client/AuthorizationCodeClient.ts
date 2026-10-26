@@ -624,7 +624,11 @@ export class AuthorizationCodeClient {
         cloudInstanceHostName: string,
         correlationId: string
     ): Promise<void> {
-        const cloudInstanceAuthorityUri = `https://${cloudInstanceHostName}/${this.authority.tenant}/`;
+        const cloudInstanceAuthorityUri =
+            this.authority.canonicalAuthority.replace(
+                this.authority.hostnameAndPort,
+                cloudInstanceHostName
+            );
         const cloudInstanceAuthority = await createDiscoveredInstance(
             cloudInstanceAuthorityUri,
             this.networkClient,
