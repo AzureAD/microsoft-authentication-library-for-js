@@ -19,6 +19,7 @@ import {
     TEST_URIS,
     testLogoutUrl,
     verifyUrl,
+    getTestAuthenticationResult,
 } from "../utils/StringConstants.js";
 import {
     AccountEntity,
@@ -118,6 +119,7 @@ import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAu
 import * as BrowserRootPerformanceEvents from "../../src/telemetry/BrowserRootPerformanceEvents.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
 import { getAccountKeysCacheKey } from "../../src/cache/CacheKeys.js";
+import { monitorPopupForHash } from "../../src/utils/PopupMonitor.js";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -3527,6 +3529,59 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         afterEach(() => {
             window.localStorage.clear();
             window.sessionStorage.clear();
+        });
+
+        it("cancels active legacy polling when a popup interaction is overridden", async () => {
+            const legacy = new PublicClientApplication({
+                auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                system: {
+                    enableLegacyPolling: true,
+                    allowPlatformBroker: false,
+                },
+            });
+            await legacy.initialize();
+            const result = getTestAuthenticationResult();
+            const popup = {
+                closed: false,
+                location: { href: "about:blank" },
+                close: jest.fn(),
+            } as unknown as Window;
+            jest.spyOn(PopupClient.prototype, "acquireToken")
+                .mockImplementationOnce(() =>
+                    monitorPopupForHash(
+                        popup,
+                        window,
+                        Constants.ResponseMode.FRAGMENT,
+                        legacy.getLogger(),
+                        () => {},
+                        "old-request"
+                    ).then(() => result)
+                )
+                .mockResolvedValueOnce(result);
+            jest.useFakeTimers();
+            try {
+                const previous = legacy.acquireTokenPopup({
+                    scopes: ["User.Read"],
+                    correlationId: "old-request",
+                });
+                const previousRejection = expect(
+                    previous
+                ).rejects.toMatchObject({
+                    errorCode:
+                        BrowserAuthErrorCodes.interactionInProgressCancelled,
+                });
+                const replacement = legacy.acquireTokenPopup({
+                    scopes: ["User.Read"],
+                    correlationId: "new-request",
+                    overrideInteractionInProgress: true,
+                });
+                await previousRejection;
+                expect(popup.close).toHaveBeenCalledTimes(1);
+                await expect(replacement).resolves.toBe(result);
+                expect(jest.getTimerCount()).toBe(0);
+            } finally {
+                jest.useRealTimers();
+            }
         });
 
         it("throws an error if initialize was not called prior", async () => {
