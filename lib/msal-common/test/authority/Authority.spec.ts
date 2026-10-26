@@ -495,7 +495,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 ).mockReturnValue(response);
 
                 const authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    `https://login.microsoftonline.com/${tenant}/`,
                     networkInterface,
                     mockStorage,
                     authorityOptions,
@@ -602,10 +602,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 await customAuthority.resolveEndpointsAsync();
 
                 expect(customAuthority.authorizationEndpoint).toBe(
-                    response.authorization_endpoint.replace(
-                        tenant,
-                        tenantDomain
-                    )
+                    response.authorization_endpoint
                 );
 
                 const newAuthorityEndpoint =
@@ -1332,13 +1329,13 @@ describe("Authority.ts Class Unit Tests", () => {
                 };
 
                 const options = {
-                    protocolMode: ProtocolMode.AAD,
-                    knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+                    protocolMode: ProtocolMode.OIDC,
+                    knownAuthorities: ["example.com"],
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: JSON.stringify(authorityJson),
                 };
                 authority = new Authority(
-                    Constants.DEFAULT_AUTHORITY,
+                    "https://example.com/common/",
                     networkInterface,
                     mockStorage,
                     options,
@@ -1464,13 +1461,13 @@ describe("Authority.ts Class Unit Tests", () => {
                         "login.partner.microsoftonline.cn"
                     );
                     expect(authority.authorizationEndpoint).toBe(
-                        "https://login.partner.microsoftonline.cn/common/oauth2/v2.0/authorize"
+                        "https://login.partner.microsoftonline.cn/common/oauth21/2026-08/authorize"
                     );
                     expect(authority.tokenEndpoint).toBe(
-                        "https://login.partner.microsoftonline.cn/common/oauth2/v2.0/token"
+                        "https://login.partner.microsoftonline.cn/common/oauth21/2026-08/token"
                     );
                     expect(authority.selfSignedJwtAudience).toBe(
-                        "https://login.partner.microsoftonline.cn/common/v2.0"
+                        "https://login.partner.microsoftonline.cn/common/oauth21/2026-08"
                     );
                     expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
                     expect(
@@ -1490,7 +1487,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     authorityMetadata: "",
                 };
 
-                const tenantId = "fake-tenant-id";
+                const tenantId = TEST_CONFIG.MSAL_TENANT_ID;
                 authority = new Authority(
                     `https://login.microsoftonline.com/${tenantId}`,
                     networkInterface,
@@ -1555,17 +1552,17 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 const expectedHardcodedRegionalValues = {
                     authorization_endpoint:
-                        "https://westus2.login.microsoft.com/common/oauth2/v2.0/authorize/",
+                        "https://westus2.login.microsoft.com/common/oauth21/2026-08/authorize/",
                     canonical_authority:
                         "https://login.microsoftonline.com/common/",
                     end_session_endpoint:
-                        "https://westus2.login.microsoft.com/common/oauth2/v2.0/logout/",
+                        "https://westus2.login.microsoft.com/common/oauth21/2026-08/logout/",
                     endpointsFromNetwork: false,
-                    issuer: "https://login.microsoftonline.com/{tenantid}/v2.0",
+                    issuer: "https://login.microsoftonline.com/{tenantid}/oauth21/2026-08",
                     jwks_uri:
-                        "https://login.microsoftonline.com/common/discovery/v2.0/keys",
+                        "https://login.microsoftonline.com/common/oauth21/2026-08/keys",
                     token_endpoint:
-                        "https://westus2.login.microsoft.com/common/oauth2/v2.0/token/",
+                        "https://westus2.login.microsoft.com/common/oauth21/2026-08/token/",
                 };
 
                 networkInterface.sendGetRequestAsync = (
@@ -1953,14 +1950,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     );
                 });
 
-                it("skips issuer validation when endpoint metadata is supplied via authorityMetadata config", async () => {
-                    /*
-                     * Issuer validation only runs on the network path. When the
-                     * developer supplies authorityMetadata config, that path is
-                     * skipped entirely — even an issuer that would otherwise
-                     * fail Rules 1–4 must be accepted.
-                     */
-                    // Force hardcoded values to return null so config is the only local source
+                it("rejects incoherent Entra issuer metadata supplied through configuration", async () => {
                     getEndpointMetadataFromHarcodedValuesSpy.mockReturnValue(
                         null
                     );
@@ -1985,8 +1975,10 @@ describe("Authority.ts Class Unit Tests", () => {
 
                     await expect(
                         configAuthority.resolveEndpointsAsync()
-                    ).resolves.not.toThrow();
-                    expect(configAuthority.discoveryComplete()).toBe(true);
+                    ).rejects.toMatchObject({
+                        errorCode: "invalid_authority_metadata",
+                    });
+                    expect(configAuthority.discoveryComplete()).toBe(false);
                     expect(
                         getEndpointMetadataFromNetworkSpy
                     ).not.toHaveBeenCalled();
@@ -2072,7 +2064,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         expect(() =>
                             callValidateIssuer(
                                 testAuthority,
-                                "https://login.partner.microsoftonline.cn/tenantid/v2.0"
+                                "https://login.partner.microsoftonline.cn/tenantid/oauth21/2026-08"
                             )
                         ).not.toThrow();
                     });
@@ -2085,7 +2077,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         expect(() =>
                             callValidateIssuer(
                                 testAuthority,
-                                "https://login.partner.microsoftonline.cn/tenantid/v2.0"
+                                "https://login.partner.microsoftonline.cn/tenantid/oauth21/2026-08"
                             )
                         ).not.toThrow();
                     });
@@ -2123,7 +2115,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         expect(() =>
                             callValidateIssuer(
                                 testAuthority,
-                                "https://westus2.login.microsoftonline.com/tenantid/v2.0"
+                                "https://westus2.login.microsoftonline.com/tenantid/oauth21/2026-08"
                             )
                         ).not.toThrow();
                     });
@@ -2863,7 +2855,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     );
                     expect(
                         authority.canonicalAuthority.includes(
-                            "login.windows.net"
+                            "login.microsoftonline.com"
                         )
                     ).toBe(true);
 
@@ -2888,7 +2880,7 @@ describe("Authority.ts Class Unit Tests", () => {
                             "sts.windows.net"
                         );
                         expect(cachedAuthorityMetadata.preferred_network).toBe(
-                            "login.windows.net"
+                            "login.microsoftonline.com"
                         );
                         expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(
                             true
@@ -3155,7 +3147,6 @@ describe("Authority.ts Class Unit Tests", () => {
                 new StubPerformanceClient()
             );
 
-            await authority.resolveEndpointsAsync();
             // @ts-ignore
             expect(authority.defaultOpenIdConfigurationEndpoint).toBe(
                 `${authorityUrl}.well-known/openid-configuration`
@@ -3197,9 +3188,9 @@ describe("Authority.ts Class Unit Tests", () => {
             );
         });
 
-        it("v2 is not added to authority if already provided", async () => {
+        it("does not duplicate the release-owned profile in discovery", async () => {
             const authorityUrl =
-                "https://login.microsoftonline.com/test-tenant-id/v2.0";
+                "https://login.microsoftonline.com/common/oauth21/2026-08";
             authority = new Authority(
                 authorityUrl,
                 networkInterface,
@@ -3210,7 +3201,6 @@ describe("Authority.ts Class Unit Tests", () => {
                 new StubPerformanceClient()
             );
 
-            await authority.resolveEndpointsAsync();
             // @ts-ignore
             expect(authority.defaultOpenIdConfigurationEndpoint).toBe(
                 `${authorityUrl}/.well-known/openid-configuration`
@@ -3258,8 +3248,8 @@ describe("Authority.ts Class Unit Tests", () => {
             );
         });
 
-        it("Does append v2 to endpoint when using a known Microsoft authority", async () => {
-            const authorityUrl = "https://login.microsoftonline.com/";
+        it("uses the release-owned profile for a known Microsoft authority", async () => {
+            const authorityUrl = "https://login.microsoftonline.com/common/";
             const options = {
                 protocolMode: ProtocolMode.OIDC,
                 knownAuthorities: [Constants.DEFAULT_AUTHORITY],
@@ -3276,10 +3266,9 @@ describe("Authority.ts Class Unit Tests", () => {
                 new StubPerformanceClient()
             );
 
-            await authority.resolveEndpointsAsync();
             // @ts-ignore
             expect(authority.defaultOpenIdConfigurationEndpoint).toBe(
-                `${authorityUrl}v2.0/.well-known/openid-configuration`
+                `${authorityUrl}oauth21/2026-08/.well-known/openid-configuration`
             );
         });
     });
@@ -3297,7 +3286,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 ""
             );
             expect(regionalResponse.authorization_endpoint).toBe(
-                "https://westus2.login.microsoft.com/{tenant}/oauth2/v2.0/authorize/"
+                "https://westus2.login.microsoft.com/{tenant}/oauth21/2026-08/authorize/"
             );
         });
 

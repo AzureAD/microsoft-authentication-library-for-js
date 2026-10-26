@@ -221,7 +221,7 @@ describe("ClientConfiguration tests", () => {
         ).toHaveBeenCalledWith(
             DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
                 "{tenant}",
-                "tenantid"
+                "3338040d-6c67-4c5b-b112-36a304b66dad"
             ) + `?client-request-id=${RANDOM_TEST_GUID}`,
             expect.objectContaining({
                 body: expect.stringContaining("TEST-CAPABILITY"),
@@ -265,7 +265,7 @@ describe("ClientConfiguration tests", () => {
         ).toHaveBeenCalledWith(
             DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
                 "{tenant}",
-                "tenantid"
+                "3338040d-6c67-4c5b-b112-36a304b66dad"
             ) + `?client-request-id=${RANDOM_TEST_GUID}`,
             expect.objectContaining({
                 body: expect.stringContaining("TEST-CAPABILITY"),

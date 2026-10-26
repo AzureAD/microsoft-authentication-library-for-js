@@ -162,15 +162,15 @@ export const TEST_URIS = {
     TEST_REDIR_URI: "https://localhost:8081/index.html",
     TEST_LOGOUT_URI: "https://localhost:8081/logout.html",
     TEST_AUTH_ENDPT:
-        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+        "https://login.microsoftonline.com/common/oauth21/2026-08/authorize",
     TEST_AUTH_ENDPT_ORGS:
-        "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
+        "https://login.microsoftonline.com/organizations/oauth21/2026-08/authorize",
     TEST_AUTH_ENDPT_TENANT_ID:
-        "https://login.microsoftonline.com/sample-tenantID/oauth2/v2.0/authorize",
+        "https://login.microsoftonline.com/sample-tenantID/oauth21/2026-08/authorize",
     TEST_AUTH_ENDPT_WITH_PARAMS1:
-        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1",
+        "https://login.microsoftonline.com/common/oauth21/2026-08/authorize?param1=value1",
     TEST_AUTH_ENDPT_WITH_PARAMS2:
-        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2",
+        "https://login.microsoftonline.com/common/oauth21/2026-08/authorize?param1=value1&param2=value2",
     TEST_RESOURCE_ENDPT_WITH_PARAMS:
         "https://localhost:8081/endpoint?param1=value1&param2=value2",
     TEST_REDIRECT_URI_LOCALHOST: "https://localhost:3000",
@@ -240,7 +240,7 @@ export const TEST_CONFIG = {
     TEST_CONFIG_ASSERTION: "DefaultAssertion",
     TEST_REQUEST_ASSERTION: "RequestAssertion",
     CLOUD_DISCOVERY_METADATA:
-        '{"tenant_discovery_endpoint":"https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration","api-version":"1.1","metadata":[{"preferred_network":"login.microsoftonline.com","preferred_cache":"login.windows.net","aliases":["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]},{"preferred_network":"login.partner.microsoftonline.cn","preferred_cache":"login.partner.microsoftonline.cn","aliases":["login.partner.microsoftonline.cn","login.chinacloudapi.cn"]},{"preferred_network":"login.microsoftonline.de","preferred_cache":"login.microsoftonline.de","aliases":["login.microsoftonline.de"]},{"preferred_network":"login.microsoftonline.us","preferred_cache":"login.microsoftonline.us","aliases":["login.microsoftonline.us","login.usgovcloudapi.net"]},{"preferred_network":"login-us.microsoftonline.com","preferred_cache":"login-us.microsoftonline.com","aliases":["login-us.microsoftonline.com"]}]}',
+        '{"tenant_discovery_endpoint":"https://login.microsoftonline.com/common/oauth21/2026-08/.well-known/openid-configuration","api-version":"1.1","metadata":[{"preferred_network":"login.microsoftonline.com","preferred_cache":"login.windows.net","aliases":["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]},{"preferred_network":"login.partner.microsoftonline.cn","preferred_cache":"login.partner.microsoftonline.cn","aliases":["login.partner.microsoftonline.cn","login.chinacloudapi.cn"]},{"preferred_network":"login.microsoftonline.de","preferred_cache":"login.microsoftonline.de","aliases":["login.microsoftonline.de"]},{"preferred_network":"login.microsoftonline.us","preferred_cache":"login.microsoftonline.us","aliases":["login.microsoftonline.us","login.usgovcloudapi.net"]},{"preferred_network":"login-us.microsoftonline.com","preferred_cache":"login-us.microsoftonline.com","aliases":["login-us.microsoftonline.com"]}]}',
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
@@ -334,11 +334,11 @@ export const ADFS_AUTHORITY = "myadfs.com/adfs";
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
     body: {
         tenant_discovery_endpoint:
-            "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
+            "https://login.microsoftonline.com/common/oauth21/2026-08/.well-known/openid-configuration",
         "api-version": "1.1",
         metadata: [
             {
-                preferred_network: "login.windows.net",
+                preferred_network: "login.microsoftonline.com",
                 preferred_cache: "sts.windows.net",
                 aliases: [
                     "login.microsoftonline.com",
@@ -361,14 +361,14 @@ export const TEST_TENANT_DISCOVERY_RESPONSE = {
 export const DEFAULT_OPENID_CONFIG_RESPONSE = {
     body: {
         token_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/token",
         token_endpoint_auth_methods_supported: [
             "client_secret_post",
             "private_key_jwt",
             "client_secret_basic",
         ],
         jwks_uri:
-            "https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/keys",
         response_modes_supported: ["query", "fragment", "form_post"],
         subject_types_supported: ["pairwise"],
         id_token_signing_alg_values_supported: ["RS256"],
@@ -379,15 +379,15 @@ export const DEFAULT_OPENID_CONFIG_RESPONSE = {
             "id_token token",
         ],
         scopes_supported: ["openid", "profile", "email", "offline_access"],
-        issuer: "https://login.microsoftonline.com/{tenant}/v2.0",
+        issuer: "https://login.microsoftonline.com/{tenant}/oauth21/2026-08",
         request_uri_parameter_supported: false,
         userinfo_endpoint: "https://graph.microsoft.com/oidc/userinfo",
         authorization_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/authorize",
         http_logout_supported: true,
         frontchannel_logout_supported: true,
         end_session_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/logout",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/logout",
         claims_supported: [
             "sub",
             "iss",
@@ -419,13 +419,14 @@ export const DEFAULT_OPENID_CONFIG_RESPONSE = {
 
 export const ALTERNATE_OPENID_CONFIG_RESPONSE = {
     body: {
-        token_endpoint: "https://login.windows.net/common/oauth2/v2.0/token",
+        token_endpoint:
+            "https://login.windows.net/common/oauth21/2026-08/token",
         token_endpoint_auth_methods_supported: [
             "client_secret_post",
             "private_key_jwt",
             "client_secret_basic",
         ],
-        jwks_uri: "https://login.windows.net/common/discovery/v2.0/keys",
+        jwks_uri: "https://login.windows.net/common/oauth21/2026-08/keys",
         response_modes_supported: ["query", "fragment", "form_post"],
         subject_types_supported: ["pairwise"],
         id_token_signing_alg_values_supported: ["RS256"],
@@ -436,15 +437,15 @@ export const ALTERNATE_OPENID_CONFIG_RESPONSE = {
             "id_token token",
         ],
         scopes_supported: ["openid", "profile", "email", "offline_access"],
-        issuer: "https://login.windows.net/{tenantid}/v2.0",
+        issuer: "https://login.windows.net/{tenantid}/oauth21/2026-08",
         request_uri_parameter_supported: false,
         userinfo_endpoint: "https://graph.microsoft.com/oidc/userinfo",
         authorization_endpoint:
-            "https://login.windows.net/common/oauth2/v2.0/authorize",
+            "https://login.windows.net/common/oauth21/2026-08/authorize",
         http_logout_supported: true,
         frontchannel_logout_supported: true,
         end_session_endpoint:
-            "https://login.windows.net/common/oauth2/v2.0/logout",
+            "https://login.windows.net/common/oauth21/2026-08/logout",
         claims_supported: [
             "sub",
             "iss",
