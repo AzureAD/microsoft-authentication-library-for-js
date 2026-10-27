@@ -259,6 +259,7 @@ describe("CodeRequiredStateV2", () => {
         const result = await buildSignUpState().resendCode();
 
         expect(result.isState("codeRequired")).toBe(true);
+        expect(result.isState("mfaVerificationRequired")).toBe(false);
         expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
         expect(result.state).toMatchObject({
             sentTo: "user@contoso.com",

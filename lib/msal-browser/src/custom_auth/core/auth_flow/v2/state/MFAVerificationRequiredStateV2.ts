@@ -6,7 +6,7 @@
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import type { MFAVerificationRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { MFASubmitChallengeResultV2 } from "../result/MFASubmitChallengeResultV2.js";
-import type { MFAResendChallengeResultV2 } from "../result/MFAResendChallengeResultV2.js";
+import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
 import { CompletedStateV2 } from "./CompletedStateV2.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import { FLOW_COMPLETED_V2 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
@@ -76,7 +76,7 @@ export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBa
      * returned state contains the refreshed email or SMS challenge metadata.
      * @returns The result of requesting a replacement MFA challenge.
      */
-    async resendChallenge(): Promise<MFAResendChallengeResultV2> {
+    async resendChallenge(): Promise<RequestChallengeResultV2> {
         const { correlationId, logger, continuationState } =
             this.stateParameters;
 
