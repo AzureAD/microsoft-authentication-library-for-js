@@ -20,7 +20,10 @@ import { FlowInteractionClientV2 } from "../../../../../src/custom_auth/core/int
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { AuthenticationFactorV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";
-import { SubmitPasswordResultV2 } from "../../../../../src/custom_auth/sign_in/auth_flow/v2/result/SubmitPasswordResultV2.js";
+import { SubmitPasswordResultV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/result/SubmitPasswordResultV2.js";
+import { PasswordRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import type { SignInStartResultV2 } from "../../../../../src/custom_auth/sign_in/auth_flow/v2/result/SignInStartResultV2.js";
+import type { VerifyChallengeResultV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/result/VerifyChallengeResultV2.js";
 import { SubmitAttributesResultV2 } from "../../../../../src/custom_auth/sign_up/auth_flow/v2/result/SubmitAttributesResultV2.js";
 
 describe("CustomAuthResultV2", () => {
@@ -145,6 +148,46 @@ describe("CustomAuthResultV2", () => {
             );
 
             expect(result.isFailed()).toBe(true);
+        });
+    });
+
+    describe("isPasswordRequired narrowing", () => {
+        it.each([
+            CustomAuthFlowScenarioV2.SignIn,
+            CustomAuthFlowScenarioV2.SignUp,
+        ])("narrows the shared password state for %s", (scenario) => {
+            const result: SignInStartResultV2 | VerifyChallengeResultV2 =
+                new CustomAuthResultV2(
+                    new PasswordRequiredStateV2({
+                        correlationId,
+                        logger: getDefaultLogger(),
+                        config: mockConfig,
+                        flowClient: {} as FlowInteractionClientV2,
+                        cacheClient: {} as CustomAuthSilentCacheClient,
+                        continuationState: {
+                            continuationToken: "ct-password",
+                            scenario,
+                            scopes,
+                            links: {},
+                        },
+                    }),
+                    undefined,
+                    scenario
+                );
+
+            expect(result.isPasswordRequired()).toBe(true);
+            if (result.isPasswordRequired()) {
+                const state: PasswordRequiredStateV2 = result.state;
+                expect(typeof state.submitPassword).toBe("function");
+            }
+        });
+
+        it("does not match another state or a failed result", () => {
+            const result = new CustomAuthResultV2(buildSelectionState());
+            const failedResult = new CustomAuthResultV2(new FailedStateV2());
+
+            expect(result.isPasswordRequired()).toBe(false);
+            expect(failedResult.isPasswordRequired()).toBe(false);
         });
     });
 

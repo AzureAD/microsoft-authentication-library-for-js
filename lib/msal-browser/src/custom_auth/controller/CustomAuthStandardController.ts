@@ -47,7 +47,7 @@ import { CodeRequiredStateV2 } from "../core/auth_flow/v2/state/CodeRequiredStat
 import { AuthMethodSelectionRequiredStateV2 } from "../core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { CompletedStateV2 } from "../core/auth_flow/v2/state/CompletedStateV2.js";
 import { SignInStateTransitionHandlerV2 } from "../sign_in/auth_flow/v2/state/SignInStateTransitionHandlerV2.js";
-import { PasswordRequiredStateV2 } from "../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { SignUpStateTransitionHandlerV2 } from "../sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
 import { AuthMethodRegistrationRequiredStateV2 } from "../core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";

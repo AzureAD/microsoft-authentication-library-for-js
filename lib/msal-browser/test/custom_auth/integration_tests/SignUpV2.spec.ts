@@ -9,7 +9,7 @@ import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { FailedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/FailedStateV2.js";
 import { AttributesRequiredStateV2 } from "../../../src/custom_auth/sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
-import { SignUpPasswordRequiredStateV2 } from "../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import * as customAuth from "../../../src/custom_auth/index.js";
 import { SignInContinuationStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import type {
@@ -729,7 +729,9 @@ describe("Sign-up V2 entry", () => {
             }
 
             const verifyResult = await startResult.state.submitCode("12345678");
-            const registrationResult =
+            const registrationResult:
+                | customAuth.SubmitPasswordResultV2
+                | undefined =
                 submission === "attributes" &&
                 verifyResult.isState("attributesRequired")
                     ? await verifyResult.state.submitAttributes({
@@ -983,9 +985,7 @@ describe("Sign-up V2 entry", () => {
         expect(verifyResult.isState("passwordRequired")).toBe(true);
         expect(verifyResult.isFailed()).toBe(false);
         expect(verifyResult.error).toBeUndefined();
-        expect(verifyResult.state).toBeInstanceOf(
-            SignUpPasswordRequiredStateV2
-        );
+        expect(verifyResult.state).toBeInstanceOf(PasswordRequiredStateV2);
         if (verifyResult.isState("passwordRequired")) {
             expect(verifyResult.state.requiredPasswordAttribute).toEqual({
                 attributeId: "password",
