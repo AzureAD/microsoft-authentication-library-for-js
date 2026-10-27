@@ -10,7 +10,7 @@ import { execFileSync } from "child_process";
 import * as puppeteer from "puppeteer";
 import { BrowserCacheUtils } from "./BrowserCacheTestUtils";
 
-const SSO_EXTENSION_PATH = process.env.SSO_EXTENSION_PATH || "";
+const SSO_EXTENSION_PATH = process.env["SSO_EXTENSION_PATH"] || "";
 const SSO_EXTENSION_ID = "ppnbnpeolgkicgegkbkbjmhlideopiji";
 const SSO_EXTENSION_TIMEOUT = 20000;
 const BROWSERCORE_POLICY_KEY =
