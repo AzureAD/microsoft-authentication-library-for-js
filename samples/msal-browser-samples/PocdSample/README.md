@@ -110,3 +110,33 @@ builds and runs this standalone sample. It uses the existing `e2e-test-utils`
 lab credentials and CI Key Vault setup; local authenticated tests need the same
 lab access as the other browser E2E samples. The `prompt=none` cases do not fetch
 lab credentials.
+
+### Deterministic popup lifecycle tests
+
+[test/popup-lifecycle.spec.ts](test/popup-lifecycle.spec.ts) reuses this sample's
+server and real redirect bridge to exercise popup replacement, cancellation,
+failure cleanup, and logout navigation. It installs an isolated instance of the
+locally built SDK in the browser; it does not change the sample UI's Entra
+configuration.
+
+The identity fixture runs on loopback, returns controlled responses, and enforces
+COOP. Discovery failures are gated at the browser's `fetch` boundary. The tests
+use actual named windows, observe real monitor registration, and record each
+operation separately. They do not fetch lab credentials, sleep to hit races, or
+retry failed cases.
+
+Coverage includes replacement-lock ownership, cancelled all-account logout,
+same-correlation-ID window isolation, marker release before real main-window
+navigation, and recovery after pre-opened EAR popup failure. The navigation
+destination deliberately does not initialize MSAL, so startup cleanup cannot
+hide a stale interaction marker. Setup-wide cancellation remains out of scope.
+
+The existing Jest harness expects the localhost certificate and a `.env` file;
+the file may be empty for this suite. Run only these cases with:
+
+```bash
+npm run test:e2e -- --runInBand --testPathPattern=popup-lifecycle
+```
+
+The existing sample CI job discovers this suite automatically alongside the
+production ESTS cases; no additional pipeline job or app registration is needed.
