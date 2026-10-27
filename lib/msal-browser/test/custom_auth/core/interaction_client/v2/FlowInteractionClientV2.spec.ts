@@ -2813,7 +2813,40 @@ describe("FlowInteractionClientV2", () => {
             expect(first.continuationState).toBe(continuationState);
         });
 
-        it("fails when a method type is unsupported", () => {
+        it("filters unsupported options while preserving supported methods in server order", () => {
+            const result = createRegistrationRequiredResult({
+                correlationId,
+                continuationState,
+                methods: [
+                    rawMethods[1],
+                    {
+                        type: "phone",
+                        channels: ["voice"],
+                        enrollHref: "/enroll/voice",
+                    },
+                    {
+                        type: "unknown",
+                        enrollHref: "/enroll/unknown",
+                    },
+                    rawMethods[0],
+                ],
+            });
+
+            expect(result.methods).toEqual([
+                {
+                    type: "phone",
+                    channels: ["sms"],
+                    enrollHref: "/enroll/sms",
+                },
+                {
+                    type: "email",
+                    enrollHref: "/enroll/email",
+                },
+            ]);
+            expect(result.continuationState).toBe(continuationState);
+        });
+
+        it("fails when the only method type is unsupported", () => {
             expect(() =>
                 createRegistrationRequiredResult({
                     correlationId,
@@ -2841,9 +2874,35 @@ describe("FlowInteractionClientV2", () => {
                                 channels,
                                 enrollHref: "/enroll/phone",
                             },
+                        ],
+                    })
+                ).toThrow();
+            }
+        );
+
+        it("fails when no enrollment methods are provided", () => {
+            expect(() =>
+                createRegistrationRequiredResult({
+                    correlationId,
+                    continuationState,
+                    methods: [],
+                })
+            ).toThrow();
+        });
+
+        it.each(["email", "phone"])(
+            "rejects a malformed supported %s method alongside a valid method",
+            (type) => {
+                expect(() =>
+                    createRegistrationRequiredResult({
+                        correlationId,
+                        continuationState,
+                        methods: [
+                            rawMethods[0],
                             {
-                                type: "email",
-                                enrollHref: "/enroll/email",
+                                type,
+                                channels: ["sms"],
+                                enrollHref: "",
                             },
                         ],
                     })
@@ -2988,79 +3047,100 @@ describe("FlowInteractionClientV2", () => {
             );
         });
 
-        it("activates the method and completes through the token path", async () => {
-            const required = createRegistrationRequired();
-            const contextSpy = jest.spyOn(
-                client as unknown as {
-                    createRequestContext: (
-                        apiId: number,
-                        correlationId: string
-                    ) => unknown;
-                },
-                "createRequestContext"
-            );
-            apiClient.enrollAuthMethod.mockResolvedValue({
-                nextAction: "activate",
-                continuationToken: "ct-activate",
-                codeLength: 6,
-                activateHref: "/activate/email",
-                resendHref: "/resend/email",
-            });
-            const verification = await client.registerAuthMethod({
-                correlationId,
-                continuationState: required.continuationState,
-                method: required.methods[0],
-                verificationContact: "user@contoso.com",
-            });
-            apiClient.activateAuthMethod.mockResolvedValue({
-                nextAction: "continue",
-                continuationToken: "ct-complete",
-            });
-            apiClient.completeWithTokens.mockResolvedValue({
-                token_type: "Bearer",
-                expires_in: 3600,
-                access_token: "at",
-                refresh_token: "rt",
-                scope: "openid profile offline_access",
-                id_token: "id",
-                client_info: "ci",
-            });
-            jest.spyOn(
-                client as unknown as {
-                    handleTokenResponse: (
-                        ...args: unknown[]
-                    ) => Promise<unknown>;
-                },
-                "handleTokenResponse"
-            ).mockResolvedValue({
-                account: { homeAccountId: "uid.utid" },
-            });
-
-            const result = await client.verifyAuthMethodRegistration({
-                correlationId,
-                continuationState: verification.continuationState,
-                code: "123456",
-            });
-
-            expect(apiClient.activateAuthMethod).toHaveBeenCalledWith(
-                "/activate/email",
-                {
+        it.each([undefined, "/resend/email"])(
+            "activates and completes through the token path with resend href %s",
+            async (resendHref) => {
+                const required = createRegistrationRequired();
+                const contextSpy = jest.spyOn(
+                    client as unknown as {
+                        createRequestContext: (
+                            apiId: number,
+                            correlationId: string
+                        ) => unknown;
+                    },
+                    "createRequestContext"
+                );
+                apiClient.enrollAuthMethod.mockResolvedValue({
+                    nextAction: "activate",
                     continuationToken: "ct-activate",
-                    otp: "123456",
-                },
-                expect.objectContaining({ correlationId })
-            );
-            expect(contextSpy).toHaveBeenCalledWith(
-                JIT_V2_SUBMIT_CHALLENGE,
-                correlationId
-            );
-            expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
-                {
+                    codeLength: 6,
+                    activateHref: "/activate/email",
+                    resendHref,
+                });
+                const verification = await client.registerAuthMethod({
+                    correlationId,
+                    continuationState: required.continuationState,
+                    method: required.methods[0],
+                    verificationContact: "user@contoso.com",
+                });
+                apiClient.activateAuthMethod.mockResolvedValue({
+                    nextAction: "continue",
                     continuationToken: "ct-complete",
-                },
-                expect.objectContaining({ correlationId })
-            );
-            expect(result.type).toBe(FLOW_COMPLETED_V2);
+                });
+                apiClient.completeWithTokens.mockResolvedValue({
+                    token_type: "Bearer",
+                    expires_in: 3600,
+                    access_token: "at",
+                    refresh_token: "rt",
+                    scope: "openid profile offline_access",
+                    id_token: "id",
+                    client_info: "ci",
+                });
+                jest.spyOn(
+                    client as unknown as {
+                        handleTokenResponse: (
+                            ...args: unknown[]
+                        ) => Promise<unknown>;
+                    },
+                    "handleTokenResponse"
+                ).mockResolvedValue({
+                    account: { homeAccountId: "uid.utid" },
+                });
+
+                const result = await client.verifyAuthMethodRegistration({
+                    correlationId,
+                    continuationState: verification.continuationState,
+                    code: "123456",
+                });
+
+                expect(apiClient.activateAuthMethod).toHaveBeenCalledWith(
+                    "/activate/email",
+                    {
+                        continuationToken: "ct-activate",
+                        otp: "123456",
+                    },
+                    expect.objectContaining({ correlationId })
+                );
+                expect(contextSpy).toHaveBeenCalledWith(
+                    JIT_V2_SUBMIT_CHALLENGE,
+                    correlationId
+                );
+                expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
+                    {
+                        continuationToken: "ct-complete",
+                    },
+                    expect.objectContaining({ correlationId })
+                );
+                expect(result.type).toBe(FLOW_COMPLETED_V2);
+            }
+        );
+
+        it("rejects resend without a link before sending a request", async () => {
+            await expect(
+                client.resendAuthMethodRegistrationChallenge({
+                    correlationId,
+                    continuationState: {
+                        ...continuationState,
+                        links: { activate: "/activate/email" },
+                    },
+                })
+            ).rejects.toMatchObject({
+                error: CONTINUATION_LINK_MISSING,
+            });
+
+            expect(
+                apiClient.resendAuthMethodRegistrationChallenge
+            ).not.toHaveBeenCalled();
         });
 
         it("resends through the retained server href with only the continuation token", async () => {

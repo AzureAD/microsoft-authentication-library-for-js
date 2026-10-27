@@ -835,6 +835,59 @@ describe("CustomAuthApiClientV2", () => {
     });
 
     describe("requestChallenge", () => {
+        it.each(["email", "sms"])(
+            "allows %s verification without a resend link",
+            async (type) => {
+                mockHttpClient.sendAsync
+                    .mockResolvedValueOnce(
+                        buildResponse({
+                            continuationToken: "ct-challenge",
+                            action: "verify",
+                            type,
+                            codeLength: 6,
+                            _links: {
+                                verify: { href: "/tenant/api/v0.1/verify" },
+                            },
+                        })
+                    )
+                    .mockResolvedValueOnce(
+                        buildResponse({
+                            continuationToken: "ct-continue",
+                            state: "continue",
+                        })
+                    );
+
+                const challenge = await apiClient.requestChallenge(
+                    "/tenant/api/v0.1/challenge",
+                    { continuationToken: "ct-start" },
+                    context
+                );
+
+                expect(challenge).toEqual({
+                    nextAction: "verify",
+                    continuationToken: "ct-challenge",
+                    type,
+                    verifyHref: "/tenant/api/v0.1/verify",
+                    resendHref: undefined,
+                    codeLength: 6,
+                    hint: undefined,
+                });
+                await expect(
+                    apiClient.verifyChallenge(
+                        "/tenant/api/v0.1/verify",
+                        {
+                            continuationToken: challenge.continuationToken,
+                            otp: "123456",
+                        },
+                        context
+                    )
+                ).resolves.toEqual({
+                    nextAction: "continue",
+                    continuationToken: "ct-continue",
+                });
+            }
+        );
+
         it("returns the verify href and challenge metadata", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
@@ -1781,6 +1834,59 @@ describe("CustomAuthApiClientV2", () => {
                 phoneNumber: "+15555550123",
                 channel: "sms",
                 continuationToken: "ct-enroll",
+            });
+        });
+
+        it("allows activation without a resend link", async () => {
+            mockHttpClient.sendAsync
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-activate",
+                        action: "activate",
+                        codeLength: 6,
+                        _links: {
+                            activate: {
+                                href: "/tenant/api/v0.1/activate/email",
+                            },
+                        },
+                    })
+                )
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-continue",
+                        state: "continue",
+                    })
+                );
+
+            const enrollment = await apiClient.enrollAuthMethod(
+                "/tenant/api/v0.1/enroll/email",
+                {
+                    email: "user@test.com",
+                    continuationToken: "ct-enroll",
+                },
+                context
+            );
+
+            expect(enrollment).toEqual({
+                nextAction: "activate",
+                continuationToken: "ct-activate",
+                hint: undefined,
+                codeLength: 6,
+                activateHref: "/tenant/api/v0.1/activate/email",
+                resendHref: undefined,
+            });
+            await expect(
+                apiClient.activateAuthMethod(
+                    enrollment.activateHref,
+                    {
+                        continuationToken: enrollment.continuationToken,
+                        otp: "123456",
+                    },
+                    context
+                )
+            ).resolves.toEqual({
+                nextAction: "continue",
+                continuationToken: "ct-continue",
             });
         });
 

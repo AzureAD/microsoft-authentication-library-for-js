@@ -1135,7 +1135,27 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         parameters: FlowAuthMethodRegistrationRequiredParamsV2
     ): FlowAuthMethodRegistrationRequiredResultV2 {
         const { correlationId, continuationState } = parameters;
-        const methods = parameters.methods.map((method) => {
+        const supportedMethods = parameters.methods.filter((method) => {
+            const methodType = method.type.trim().toLowerCase();
+            return (
+                methodType === AuthenticationMethodTypeV2.EMAIL ||
+                (methodType === AuthenticationMethodTypeV2.PHONE &&
+                    method.channels?.includes(PhoneRegistrationChannelV2.SMS))
+            );
+        });
+
+        if (supportedMethods.length === 0) {
+            const message =
+                "The enrollment response did not include a supported registration method.";
+            this.logger.error(message, correlationId);
+            throw new CustomAuthError(
+                UNSUPPORTED_FLOW_TRANSITION,
+                message,
+                correlationId
+            );
+        }
+
+        const methods = supportedMethods.map((method) => {
             const methodType = method.type.trim().toLowerCase();
             const channel = method.channels?.find(
                 (candidate) => candidate === PhoneRegistrationChannelV2.SMS
@@ -1197,7 +1217,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                         correlationId,
                         result.activateHref
                     ),
-                    resend: this.requireLink(correlationId, result.resendHref),
+                    resend: result.resendHref,
                 },
             },
             sentTo: result.hint,

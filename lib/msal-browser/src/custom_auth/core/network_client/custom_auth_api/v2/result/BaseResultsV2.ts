@@ -57,7 +57,7 @@ export interface EnrollmentResultV2 {
     hint?: string;
     codeLength: number;
     activateHref: string;
-    resendHref: string;
+    resendHref?: string;
 }
 
 export interface ActivationResultV2 {

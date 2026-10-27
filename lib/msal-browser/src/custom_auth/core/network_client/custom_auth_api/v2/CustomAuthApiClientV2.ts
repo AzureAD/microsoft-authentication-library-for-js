@@ -346,11 +346,14 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 ACTIVATE_RELATION,
                 parsedResponse.correlationId
             ),
-            resendHref: this.handler.requireHref(
-                links?.resend?.href,
-                RESEND_RELATION,
-                parsedResponse.correlationId
-            ),
+            resendHref:
+                links && "resend" in links
+                    ? this.handler.requireHref(
+                          links.resend?.href,
+                          RESEND_RELATION,
+                          parsedResponse.correlationId
+                      )
+                    : undefined,
         };
     }
 
@@ -706,13 +709,14 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             VERIFY_RELATION,
             parsedResponse.correlationId
         );
-        const resendHref = isPasswordChallenge
-            ? undefined
-            : this.handler.requireHref(
-                  links && "resend" in links ? links.resend?.href : undefined,
-                  RESEND_RELATION,
-                  parsedResponse.correlationId
-              );
+        const resendHref =
+            !isPasswordChallenge && links && "resend" in links
+                ? this.handler.requireHref(
+                      links.resend?.href,
+                      RESEND_RELATION,
+                      parsedResponse.correlationId
+                  )
+                : undefined;
         const codeLength = isPasswordChallenge
             ? undefined
             : this.handler.requirePositiveInteger(
