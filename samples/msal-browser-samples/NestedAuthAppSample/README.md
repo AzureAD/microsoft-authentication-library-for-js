@@ -51,13 +51,13 @@ expected.
 
 ## Run the end-to-end tests
 
-| Spec                               | Command                                       |
-| ---------------------------------- | --------------------------------------------- |
-| `naa-basic.spec.ts`                | `npm run test:e2e:naa-basic -- --runInBand`   |
-| `naa-ear.spec.ts`                  | `npm run test:e2e:ear -- --runInBand`         |
-| `naa-platform-broker.spec.ts`      | `npm run test:e2e:broker -- --runInBand`      |
-| `naa-ear-platform-broker.spec.ts`  | `npm run test:e2e:ear-broker -- --runInBand`  |
-| `naa-kmsi-platform-broker.spec.ts` | `npm run test:e2e:kmsi-broker -- --runInBand` |
+| Spec                               | Command                        |
+| ---------------------------------- | ------------------------------ |
+| `naa-basic.spec.ts`                | `npm run test:e2e:naa-basic`   |
+| `naa-ear.spec.ts`                  | `npm run test:e2e:ear`         |
+| `naa-platform-broker.spec.ts`      | `npm run test:e2e:broker`      |
+| `naa-ear-platform-broker.spec.ts`  | `npm run test:e2e:ear-broker`  |
+| `naa-kmsi-platform-broker.spec.ts` | `npm run test:e2e:kmsi-broker` |
 
 Run the suites individually because each suite manages the same HTTPS server
 ports.
