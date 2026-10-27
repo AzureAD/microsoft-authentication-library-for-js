@@ -32,6 +32,12 @@ If the issuer does not satisfy these conditions, MSAL throws a `ClientConfigurat
 
 > Warning: An IdP whose `issuer` does not satisfy the conditions above will fail discovery. If you are using a non-Microsoft OIDC provider whose issuer does not exactly match the authority host you configured, ensure the authority you pass to MSAL has the same scheme and host as the value the IdP returns in its discovery document.
 
+### Discovery trust model
+
+For network discovery, MSAL derives the discovery URL from the configured or per-request authority after authority and alias resolution. The returned `issuer` identifies the authorization server; it does not select a new discovery location. MSAL uses protocol endpoints such as `authorization_endpoint` and `token_endpoint` advertised in the discovery document.
+
+Issuer validation checks whether the returned issuer satisfies MSAL's acceptance rules. It complements, rather than replaces, trust in the metadata source: accepting an issuer does not by itself establish trust in an independently supplied discovery document. Applications must use trusted authority and metadata configuration, including `knownAuthorities`, `cloudDiscoveryMetadata`, and `authorityMetadata`, and preserve HTTPS server certificate validation when using a custom network client.
+
 ## Authority configuration
 
 In MSAL, authority can be set in 2 locations:
