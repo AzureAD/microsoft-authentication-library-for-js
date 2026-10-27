@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1792782549206,
+  "lastUpdate": 1793143336292,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24797,6 +24797,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.99%",
             "unit": "ops/sec",
             "extra": "217 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "152663010+msal-js-release-automation[bot]@users.noreply.github.com",
+            "name": "msal-js-release-automation[bot]",
+            "username": "msal-js-release-automation[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a71bb3b646a60c5e50e5aa3350ef3ad45e4cdf3a",
+          "message": "Post-release PR (#8939)\n\nThis PR contains the changelogs and version bumps for the MSAL.js 3P\nreleases.\n\nCo-authored-by: MSAL.js Release Automation <msaljsbuilds@microsoft.com>",
+          "timestamp": "2026-10-27T23:13:52Z",
+          "tree_id": "fa591328656dbb81819ab1ed814c77d8e6c525f6",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/a71bb3b646a60c5e50e5aa3350ef3ad45e4cdf3a"
+        },
+        "date": 1793143332531,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 391049,
+            "range": "±0.58%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 383636,
+            "range": "±1.03%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
           }
         ]
       }
