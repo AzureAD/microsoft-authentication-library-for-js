@@ -131,7 +131,8 @@ export class CustomAuthPublicClientApplication
     }
 
     /**
-     * Starts native auth V2 sign-up.
+     * Starts native auth V2 sign-up with email verification.
+     * If the service requests a password, submit it through the returned password-required state.
      * @param inputs - Inputs for the sign-up V2 flow.
      * @returns A promise that resolves to the sign-up start result.
      */

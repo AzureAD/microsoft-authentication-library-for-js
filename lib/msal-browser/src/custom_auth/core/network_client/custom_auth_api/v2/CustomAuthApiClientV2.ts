@@ -127,23 +127,23 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 context
             );
 
-        return {
-            continuationToken: this.handler.requireContinuationToken(
-                parsedResponse.continuationToken,
-                parsedResponse.correlationId
-            ),
-            submitAttributesHref: this.handler.requireHref(
-                parsedResponse.body._links?.submitAttributes?.href,
-                "submitAttributes",
-                parsedResponse.correlationId
-            ),
-            attributes: parsedResponse.body.attributes,
-        };
+        if (parsedResponse.body.action === VERIFY_RELATION) {
+            return this.toChallengeVerificationResult(parsedResponse);
+        }
+
+        const message =
+            "Invalid HAL response: sign-up start did not return a verification challenge";
+        this.logger?.error(message, parsedResponse.correlationId);
+        throw new CustomAuthApiError(
+            INVALID_HAL_RESPONSE,
+            message,
+            parsedResponse.correlationId
+        );
     }
 
     /*
-     * Submits the initial sign-up attributes. A successful response has already
-     * sent the email code and supplies the links needed to verify or resend it.
+     * Submits collected sign-up attributes and returns collection, enrollment,
+     * or sign-in continuation.
      */
     async submitSignUpAttributes(
         submitAttributesHref: string,
@@ -176,19 +176,15 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 nextAction:
                     SignUpSubmitAttributesNextActionV2.COLLECT_ATTRIBUTES,
                 continuationToken,
-                attributes: parsedResponse.body.attributes ?? [],
+                attributes: this.handler.resolveSignUpAttributes(
+                    parsedResponse.body.attributes,
+                    correlationId
+                ),
                 submitAttributesHref: this.handler.requireHref(
                     parsedResponse.body._links?.submitAttributes?.href,
                     "submitAttributes",
                     correlationId
                 ),
-            };
-        }
-
-        if (parsedResponse.body.action === VERIFY_RELATION) {
-            return {
-                ...this.toChallengeVerificationResult(parsedResponse),
-                attributes: parsedResponse.body.attributes,
             };
         }
 
@@ -470,7 +466,10 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             };
         }
 
-        const message = `Password reset poll next action '${nextAction}' is not supported.`;
+        const message =
+            nextAction === undefined || nextAction === null
+                ? "Invalid HAL response: password reset poll response is missing both 'action' and 'state'."
+                : `Password reset poll next action '${nextAction}' is not supported.`;
         this.logger?.error(message, correlationId);
         throw new CustomAuthApiError(
             INVALID_HAL_RESPONSE,
@@ -530,7 +529,10 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             return {
                 nextAction: COLLECT_ATTRIBUTES_RELATION,
                 continuationToken,
-                attributes: parsedResponse.body.attributes ?? [],
+                attributes: this.handler.resolveSignUpAttributes(
+                    parsedResponse.body.attributes,
+                    correlationId
+                ),
                 submitAttributesHref: this.handler.requireHref(
                     parsedResponse.body._links?.submitAttributes?.href,
                     "submitAttributes",
@@ -698,8 +700,21 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             "payload" in parsedResponse.body
                 ? parsedResponse.body
                 : undefined;
+        const challengeType = parsedResponse.body.type;
+
+        if (challengeType !== undefined && typeof challengeType !== "string") {
+            const message = "Invalid HAL response: challenge type is malformed";
+            this.logger?.error(message, parsedResponse.correlationId);
+
+            throw new CustomAuthApiError(
+                INVALID_HAL_RESPONSE,
+                message,
+                parsedResponse.correlationId
+            );
+        }
+
         const isPasswordChallenge =
-            parsedResponse.body.type?.toLowerCase() ===
+            challengeType?.toLowerCase() ===
             AuthenticationMethodTypeV2.PASSWORD;
         const verifyHref = this.handler.requireHref(
             links?.verify?.href,
@@ -728,7 +743,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             resendHref,
             codeLength,
             hint: codeMetadata?.hint,
-            type: parsedResponse.body.type,
+            type: challengeType,
         };
     }
 

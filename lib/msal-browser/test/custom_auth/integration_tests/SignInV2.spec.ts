@@ -5,7 +5,7 @@
 
 import { CustomAuthPublicClientApplication } from "../../../src/custom_auth/CustomAuthPublicClientApplication.js";
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
-import { PasswordRequiredStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { AuthMethodSelectionRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
@@ -98,14 +98,17 @@ describe("Sign-in V2", () => {
                     scopes: ["User.Read"],
                 });
 
-                expect(startResult.isState("passwordRequired")).toBe(true);
+                expect(startResult.isPasswordRequired()).toBe(true);
                 expect(startResult.state).toBeInstanceOf(
                     PasswordRequiredStateV2
                 );
 
-                const result = await (
-                    startResult.state as PasswordRequiredStateV2
-                ).submitPassword("valid-password");
+                if (!startResult.isPasswordRequired()) {
+                    throw new Error("Expected password required state.");
+                }
+                const result = await startResult.state.submitPassword(
+                    "valid-password"
+                );
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -199,11 +202,15 @@ describe("Sign-in V2", () => {
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
                 });
-                const result = await (
-                    startResult.state as PasswordRequiredStateV2
-                ).submitPassword("incorrect");
+                if (!startResult.isPasswordRequired()) {
+                    throw new Error("Expected password required state.");
+                }
+                const result = await startResult.state.submitPassword(
+                    "incorrect"
+                );
 
                 expect(result.isFailed()).toBe(true);
+                expect(result.isPasswordRequired()).toBe(false);
                 expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
                 expect(result.error?.isInvalidCredentials()).toBe(true);
                 expect(result.error?.isInvalidPassword()).toBe(false);

@@ -6,10 +6,12 @@
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
+import { UnexpectedError } from "../../../../../../src/custom_auth/core/error/UnexpectedError.js";
 import { CodeRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
+import type { CodeRequiredStateParametersV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CustomAuthStateParametersV2.js";
 import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { AttributesRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
-import { SignUpPasswordRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { SignInContinuationStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import { SignUpStateTransitionHandlerV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
 import { AuthMethodSelectionRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
@@ -39,7 +41,9 @@ describe("CodeRequiredStateV2", () => {
     const signInStateTransitionHandler = new SignInStateTransitionHandlerV2();
     const signUpStateTransitionHandler = new SignUpStateTransitionHandlerV2();
 
-    const buildState = (): CodeRequiredStateV2 =>
+    const buildState = (
+        overrides: Partial<CodeRequiredStateParametersV2> = {}
+    ): CodeRequiredStateV2 =>
         new CodeRequiredStateV2({
             correlationId,
             logger: getDefaultLogger(),
@@ -67,9 +71,12 @@ describe("CodeRequiredStateV2", () => {
             sentTo: "u***@contoso.com",
             channel: "email",
             codeLength: 6,
+            ...overrides,
         });
 
-    const buildSignUpState = (): CodeRequiredStateV2 =>
+    const buildSignUpState = (
+        overrides: Partial<CodeRequiredStateParametersV2> = {}
+    ): CodeRequiredStateV2 =>
         new CodeRequiredStateV2({
             correlationId,
             logger: getDefaultLogger(),
@@ -91,10 +98,65 @@ describe("CodeRequiredStateV2", () => {
             sentTo: "user@contoso.com",
             channel: "email",
             codeLength: 8,
+            ...overrides,
         });
 
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it("returns an unexpected error when the sign-in handler is missing", async () => {
+        flowClient.submitCode.mockResolvedValue({
+            type: FLOW_MFA_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-mfa",
+                scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
+                links: {},
+            },
+            methods: [],
+        });
+
+        const result = await buildState({
+            signInStateTransitionHandler: undefined,
+        }).submitCode("123456");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignIn);
+        expect(result.error?.errorData).toBeInstanceOf(UnexpectedError);
+        expect(result.error?.errorData).toMatchObject({
+            error: "unexpected_error",
+            errorDescription: "Sign-in state transition handler is missing.",
+            correlationId,
+        });
+    });
+
+    it("returns an unexpected error when the sign-up handler is missing", async () => {
+        flowClient.submitCode.mockResolvedValue({
+            type: FLOW_ATTRIBUTES_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-attributes",
+                scenario: CustomAuthFlowScenarioV2.SignUp,
+                scopes,
+                links: { submitAttributes: "/signup/submitattributes" },
+            },
+            attributes: [],
+        });
+
+        const result = await buildSignUpState({
+            signUpStateTransitionHandler: undefined,
+        }).submitCode("12345678");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);
+        expect(result.error?.errorData).toBeInstanceOf(UnexpectedError);
+        expect(result.error?.errorData).toMatchObject({
+            error: "unexpected_error",
+            errorDescription: "Sign-up state transition handler is missing.",
+            correlationId,
+        });
     });
 
     it("returns completed sign-in after submitting a first-factor code", async () => {
@@ -247,9 +309,6 @@ describe("CodeRequiredStateV2", () => {
                     verify: "/signup/verify-new",
                     resend: "/signup/resend-new",
                 },
-                signUp: {
-                    passwordWasSupplied: false,
-                },
             },
             sentTo: "user@contoso.com",
             channel: "email",
@@ -341,9 +400,6 @@ describe("CodeRequiredStateV2", () => {
                 links: {
                     submitAttributes: "/signup/submitattributes",
                 },
-                signUp: {
-                    passwordWasSupplied: false,
-                },
             },
             attributes: [],
             requiredPasswordAttribute,
@@ -352,12 +408,30 @@ describe("CodeRequiredStateV2", () => {
         const result = await buildSignUpState().submitCode("12345678");
 
         expect(result.isState("passwordRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(SignUpPasswordRequiredStateV2);
+        expect(result.state).toBeInstanceOf(PasswordRequiredStateV2);
         if (result.isState("passwordRequired")) {
             expect(result.state.requiredPasswordAttribute).toEqual(
                 requiredPasswordAttribute
             );
         }
+    });
+
+    it("rejects an unsupported code submission result at the public mapping boundary", async () => {
+        flowClient.submitCode.mockResolvedValue({
+            // @ts-expect-error Exercise a runtime result outside the flow contract.
+            type: "unsupported",
+            correlationId,
+        });
+
+        const result = await buildSignUpState().submitCode("12345678");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.errorData).toMatchObject({
+            error: "unsupported_flow_transition",
+            errorDescription:
+                "Code submission result type 'unsupported' is not supported.",
+            correlationId,
+        });
     });
 
     it("returns sign-in continuation after completed sign-up verification", async () => {

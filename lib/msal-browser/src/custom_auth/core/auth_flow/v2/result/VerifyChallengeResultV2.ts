@@ -10,7 +10,7 @@ import type { CompletedStateV2 } from "../state/CompletedStateV2.js";
 import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import type { AttributesRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
-import type { SignUpPasswordRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
+import type { PasswordRequiredStateV2 } from "../state/PasswordRequiredStateV2.js";
 import type { AuthMethodSelectionRequiredStateV2 } from "../state/AuthMethodSelectionRequiredStateV2.js";
 import type { AuthMethodRegistrationRequiredStateV2 } from "../state/AuthMethodRegistrationRequiredStateV2.js";
 
@@ -21,7 +21,7 @@ import type { AuthMethodRegistrationRequiredStateV2 } from "../state/AuthMethodR
  */
 export type VerifyChallengeResultStateV2 =
     | NewPasswordRequiredStateV2
-    | SignUpPasswordRequiredStateV2
+    | PasswordRequiredStateV2
     | AttributesRequiredStateV2
     | SignInContinuationStateV2
     | AuthMethodSelectionRequiredStateV2

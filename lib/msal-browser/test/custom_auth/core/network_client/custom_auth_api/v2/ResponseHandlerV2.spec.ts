@@ -297,6 +297,60 @@ describe("ResponseHandlerV2", () => {
         });
     });
 
+    describe("requireObjectArray", () => {
+        const message = "Invalid HAL response: malformed collection";
+
+        it.each([
+            { label: "empty", values: [] },
+            { label: "object", values: [{ id: "email" }] },
+        ])("preserves $label arrays", ({ values }) => {
+            expect(
+                handler.requireObjectArray(
+                    values,
+                    message,
+                    REQUEST_CORRELATION_ID
+                )
+            ).toBe(values);
+        });
+    });
+
+    describe("resolveSignUpAttributes", () => {
+        const message =
+            "Invalid HAL response: sign-up attributes must be an array of objects with nonempty string attributeId values";
+
+        it("preserves valid attribute metadata", () => {
+            const values = [{ attributeId: "username" }];
+
+            expect(
+                handler.resolveSignUpAttributes(values, REQUEST_CORRELATION_ID)
+            ).toBe(values);
+        });
+
+        it("rejects blank attribute identifiers with the field-specific error", () => {
+            expect(() =>
+                handler.resolveSignUpAttributes(
+                    [{ attributeId: "" }],
+                    REQUEST_CORRELATION_ID
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    error: INVALID_HAL_RESPONSE,
+                    errorDescription: message,
+                    correlationId: REQUEST_CORRELATION_ID,
+                })
+            );
+        });
+
+        it("defaults absent attributes to an empty collection", () => {
+            expect(
+                handler.resolveSignUpAttributes(
+                    undefined,
+                    REQUEST_CORRELATION_ID
+                )
+            ).toEqual([]);
+        });
+    });
+
     describe("requireMethods", () => {
         it("returns embedded methods when present", () => {
             const methods = [
@@ -308,14 +362,57 @@ describe("ResponseHandlerV2", () => {
             ).toBe(methods);
         });
 
-        it("throws when embedded methods are absent", () => {
-            expect(() =>
-                handler.requireMethods(undefined, REQUEST_CORRELATION_ID)
-            ).toThrow(
-                expect.objectContaining({
-                    error: "no_authentication_methods",
-                })
-            );
-        });
+        it.each<{ label: string; methods: unknown }>([
+            { label: "absent", methods: undefined },
+            { label: "null", methods: null },
+            { label: "empty", methods: [] },
+        ])(
+            "rejects $label embedded methods with the dedicated error",
+            ({ methods }) => {
+                expect(() =>
+                    handler.requireMethods(
+                        methods as unknown[] | undefined,
+                        REQUEST_CORRELATION_ID
+                    )
+                ).toThrow(
+                    expect.objectContaining({
+                        error: "no_authentication_methods",
+                        errorDescription:
+                            "Invalid HAL response: no embedded authentication methods",
+                        correlationId: REQUEST_CORRELATION_ID,
+                    })
+                );
+            }
+        );
+
+        it.each<{ label: string; methods: unknown }>([
+            { label: "a string", methods: "email" },
+            { label: "an empty string", methods: "" },
+            { label: "a number", methods: 42 },
+            { label: "a boolean", methods: false },
+            { label: "an object with length", methods: { length: 1 } },
+            { label: "a null entry", methods: [null] },
+            { label: "an undefined entry", methods: [undefined] },
+            { label: "a numeric entry", methods: [42] },
+            { label: "a string entry", methods: ["email"] },
+            { label: "an array entry", methods: [[]] },
+        ])(
+            "rejects malformed embedded methods containing $label",
+            ({ methods }) => {
+                expect(() =>
+                    handler.requireMethods(
+                        methods as unknown[],
+                        REQUEST_CORRELATION_ID
+                    )
+                ).toThrow(
+                    expect.objectContaining({
+                        error: INVALID_HAL_RESPONSE,
+                        errorDescription:
+                            "Invalid HAL response: embedded authentication methods are malformed",
+                        correlationId: REQUEST_CORRELATION_ID,
+                    })
+                );
+            }
+        );
     });
 });

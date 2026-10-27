@@ -20,6 +20,7 @@ import {
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
+import { UnexpectedError } from "../../../error/UnexpectedError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import { ChallengeVerificationStateBaseV2 } from "./ChallengeVerificationStateBaseV2.js";
@@ -69,17 +70,20 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
                 const signUpStateTransitionHandler =
                     this.stateParameters.signUpStateTransitionHandler;
                 if (!signUpStateTransitionHandler) {
-                    throw new CustomAuthError(
-                        UNSUPPORTED_FLOW_TRANSITION,
+                    throw new UnexpectedError(
                         "Sign-up state transition handler is missing.",
                         correlationId
                     );
                 }
 
-                return signUpStateTransitionHandler.handleVerification(result, {
-                    ...this.stateParameters,
-                    signUpStateTransitionHandler,
-                });
+                return signUpStateTransitionHandler.handleAttributeSubmission(
+                    result,
+                    {
+                        ...this.stateParameters,
+                        signUpStateTransitionHandler,
+                    },
+                    "attribute"
+                );
             }
 
             if (result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2) {
@@ -117,8 +121,7 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
                 const signInStateTransitionHandler =
                     this.stateParameters.signInStateTransitionHandler;
                 if (!signInStateTransitionHandler) {
-                    throw new CustomAuthError(
-                        UNSUPPORTED_FLOW_TRANSITION,
+                    throw new UnexpectedError(
                         "Sign-in state transition handler is missing.",
                         correlationId
                     );

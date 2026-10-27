@@ -1,0 +1,6 @@
+{
+    "type": "minor",
+    "comment": "Return the email verification challenge directly from Native Auth V2 signup/start using username, without submitting or retaining upfront password or profile attributes. Remove the upfront password from public and internal V2 sign-up inputs; extra passwords supplied by runtime callers remain ignored. Submit passwords only through the server-requested PasswordRequiredStateV2, without tracking prior password submissions.",
+    "packageName": "@azure/msal-browser",
+    "dependentChangeType": "patch"
+}

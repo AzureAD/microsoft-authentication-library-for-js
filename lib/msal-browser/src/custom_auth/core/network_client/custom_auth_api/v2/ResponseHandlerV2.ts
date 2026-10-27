@@ -7,7 +7,10 @@ import { Logger } from "@azure/msal-common/browser";
 import { HttpHeaderKeys } from "../../../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../../error/CustomAuthApiError.js";
 import { normalizeServerErrorV2 } from "./response/ErrorNormalizerV2.js";
-import { ParsedResponseV2 } from "./response/ResponsesV2.js";
+import {
+    ParsedResponseV2,
+    SignUpAttributeResponseV2,
+} from "./response/ResponsesV2.js";
 import {
     CONTINUATION_TOKEN_MISSING,
     INVALID_HAL_RESPONSE,
@@ -131,8 +134,72 @@ export class ResponseHandlerV2 {
         return continuationToken;
     }
 
-    // Required embedded auth methods; throws when `_embedded.methods` is absent or empty.
+    requireObjectArray<T>(
+        values: T[],
+        message: string,
+        correlationId: string
+    ): T[] {
+        if (
+            !Array.isArray(values) ||
+            values.some(
+                (entry) =>
+                    typeof entry !== "object" ||
+                    entry === null ||
+                    Array.isArray(entry)
+            )
+        ) {
+            this.logger?.error(message, correlationId);
+
+            throw new CustomAuthApiError(
+                INVALID_HAL_RESPONSE,
+                message,
+                correlationId
+            );
+        }
+
+        return values;
+    }
+
+    resolveSignUpAttributes(
+        attributes: SignUpAttributeResponseV2[] | undefined,
+        correlationId: string
+    ): SignUpAttributeResponseV2[] {
+        const message =
+            "Invalid HAL response: sign-up attributes must be an array of objects with nonempty string attributeId values";
+        const resolved = this.requireObjectArray(
+            attributes ?? [],
+            message,
+            correlationId
+        );
+
+        if (
+            resolved.some(
+                (attribute) =>
+                    typeof attribute.attributeId !== "string" ||
+                    !attribute.attributeId.trim()
+            )
+        ) {
+            this.logger?.error(message, correlationId);
+
+            throw new CustomAuthApiError(
+                INVALID_HAL_RESPONSE,
+                message,
+                correlationId
+            );
+        }
+
+        return resolved;
+    }
+
     requireMethods<T>(methods: T[] | undefined, correlationId: string): T[] {
+        if (methods !== undefined && methods !== null) {
+            this.requireObjectArray(
+                methods,
+                "Invalid HAL response: embedded authentication methods are malformed",
+                correlationId
+            );
+        }
+
         if (!methods?.length) {
             this.logger?.error(
                 "V2 HAL response is missing the required embedded authentication methods",

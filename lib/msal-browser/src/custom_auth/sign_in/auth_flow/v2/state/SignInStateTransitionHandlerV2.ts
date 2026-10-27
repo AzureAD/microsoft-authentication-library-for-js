@@ -15,7 +15,7 @@ import type {
     FlowPasswordRequiredResultV2,
 } from "../../../../core/interaction_client/v2/result/FlowActionResultV2.js";
 import { AuthenticationFactorV2 } from "../../../../core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
-import { PasswordRequiredStateV2 } from "./PasswordRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../../../../core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import type { RequestChallengeResultV2 } from "../../../../core/auth_flow/v2/result/RequestChallengeResultV2.js";
 
 export class SignInStateTransitionHandlerV2 {

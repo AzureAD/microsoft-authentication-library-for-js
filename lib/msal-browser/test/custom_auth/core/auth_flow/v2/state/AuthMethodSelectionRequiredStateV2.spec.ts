@@ -10,7 +10,7 @@ import { AuthMethodSelectionRequiredStateV2 } from "../../../../../../src/custom
 import { CodeRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { AuthMethodSelectionRequiredStateParametersV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CustomAuthStateParametersV2.js";
 import { MFAVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
-import { PasswordRequiredStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { SignInStateTransitionHandlerV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInStateTransitionHandlerV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
@@ -21,6 +21,7 @@ import { AuthenticationFactorV2 } from "../../../../../../src/custom_auth/core/n
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
+import { UnexpectedError } from "../../../../../../src/custom_auth/core/error/UnexpectedError.js";
 
 describe("AuthMethodSelectionRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
@@ -32,7 +33,8 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
     const buildState = (
         methods: readonly AuthenticationMethodV2[],
         authenticationFactor: AuthenticationFactorV2,
-        scenario: CustomAuthFlowScenarioV2 = CustomAuthFlowScenarioV2.SignIn
+        scenario: CustomAuthFlowScenarioV2 = CustomAuthFlowScenarioV2.SignIn,
+        overrides: Partial<AuthMethodSelectionRequiredStateParametersV2> = {}
     ): AuthMethodSelectionRequiredStateV2 => {
         const stateParameters: AuthMethodSelectionRequiredStateParametersV2 = {
             correlationId,
@@ -55,6 +57,7 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
                 scenario === CustomAuthFlowScenarioV2.SignIn
                     ? new SignInStateTransitionHandlerV2()
                     : undefined,
+            ...overrides,
         };
 
         return new AuthMethodSelectionRequiredStateV2(stateParameters);
@@ -131,6 +134,41 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
 
         expect(result.state).toBeInstanceOf(PasswordRequiredStateV2);
         expect(result.state.stateType).toBe("passwordRequired");
+    });
+
+    it("returns an unexpected error for a password challenge without the sign-in handler", async () => {
+        const method: AuthenticationMethodV2 = {
+            id: "password-primary",
+            type: "password",
+            challengeHref: "/methods/password-primary/challenge",
+        };
+        flowClient.requestChallenge.mockResolvedValue({
+            type: FLOW_PASSWORD_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-password",
+                scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
+                links: { verify: "/password/verify" },
+            },
+        });
+
+        const result = await buildState(
+            [method],
+            AuthenticationFactorV2.SINGLE_FACTOR,
+            CustomAuthFlowScenarioV2.SignIn,
+            { signInStateTransitionHandler: undefined }
+        ).selectAuthMethod(method);
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignIn);
+        expect(result.error?.errorData).toBeInstanceOf(UnexpectedError);
+        expect(result.error?.errorData).toMatchObject({
+            error: "unexpected_error",
+            errorDescription:
+                "Sign-in method selection cannot map a password challenge without a sign-in transition handler.",
+            correlationId,
+        });
     });
 
     it("routes one multi-factor method to MFA verification", async () => {

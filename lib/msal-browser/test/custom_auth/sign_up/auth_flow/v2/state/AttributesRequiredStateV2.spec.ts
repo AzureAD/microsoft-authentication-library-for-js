@@ -7,11 +7,15 @@ import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_aut
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { AuthMethodRegistrationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
-import { CodeRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
     FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+    FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
+    FLOW_COMPLETED_V2,
+    FLOW_MFA_REQUIRED_V2,
+    FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
@@ -23,8 +27,9 @@ import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 describe("AttributesRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
     const scopes = ["openid", "profile", "offline_access"];
+    const submitSignUpAttributes = jest.fn();
     const flowClient = {
-        submitSignUpAttributes: jest.fn(),
+        submitSignUpAttributes,
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
     const continuationState = {
         continuationToken: "ct-attributes",
@@ -72,7 +77,8 @@ describe("AttributesRequiredStateV2", () => {
             },
         });
 
-        const result = await buildState().submitAttributes({
+        const state = buildState();
+        const result = await state.submitAttributes({
             givenName: "Test",
             username: "test-user",
         });
@@ -87,33 +93,96 @@ describe("AttributesRequiredStateV2", () => {
         });
         expect(result.isState("signInContinuation")).toBe(true);
         expect(result.state).toBeInstanceOf(SignInContinuationStateV2);
+        expect(state.attributes).toEqual([
+            {
+                attributeId: "givenName",
+                inputType: "text",
+                required: true,
+            },
+        ]);
+        expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);
     });
 
-    it("returns another code-verification state when requested", async () => {
+    it("forwards an empty attributes object without adding or retaining values", async () => {
         flowClient.submitSignUpAttributes.mockResolvedValue({
-            type: FLOW_CODE_REQUIRED_V2,
+            type: FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
             correlationId,
             continuationState: {
-                continuationToken: "ct-challenge",
-                scenario: CustomAuthFlowScenarioV2.SignUp,
-                scopes,
-                links: {
-                    verify: "/signup/verify",
-                    resend: "/signup/resend",
-                },
+                ...continuationState,
+                continuationToken: "ct-complete",
+                links: {},
             },
-            sentTo: "u***@contoso.com",
-            channel: "email",
-            codeLength: 8,
         });
+        const attributes = {};
 
-        const result = await buildState().submitAttributes({
-            givenName: "Test",
+        const result = await buildState().submitAttributes(attributes);
+
+        expect(flowClient.submitSignUpAttributes).toHaveBeenCalledWith({
+            correlationId,
+            continuationState,
+            attributes: {},
         });
-
-        expect(result.isState("codeRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
+        expect(attributes).toEqual({});
+        expect(result.isState("signInContinuation")).toBe(true);
     });
+
+    it.each(["attributesRequired", "passwordRequired"] as const)(
+        "returns fresh %s metadata after a successful submission",
+        async (type) => {
+            const attributes = [
+                { attributeId: "surname", inputType: "text", required: true },
+            ];
+            const requiredPasswordAttribute = {
+                attributeId: "PaSsWoRd",
+                inputType: "password",
+                required: true,
+            };
+            const nextContinuationState = {
+                ...continuationState,
+                continuationToken: "ct-next",
+                links: { submitAttributes: "/signup/next" },
+            };
+            flowClient.submitSignUpAttributes.mockResolvedValue({
+                correlationId,
+                continuationState: nextContinuationState,
+                attributes,
+                ...(type === "attributesRequired"
+                    ? { type: FLOW_ATTRIBUTES_REQUIRED_V2 }
+                    : {
+                          type: FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
+                          requiredPasswordAttribute,
+                      }),
+            });
+
+            const result = await buildState().submitAttributes({
+                givenName: "Test",
+            });
+
+            if (!result.isState(type)) {
+                throw new Error(`Expected ${type}.`);
+            }
+            expect(result.state).toBeInstanceOf(
+                type === "attributesRequired"
+                    ? AttributesRequiredStateV2
+                    : PasswordRequiredStateV2
+            );
+            expect(result.state.attributes).toEqual(attributes);
+            expect(result.state["stateParameters"].continuationState).toEqual(
+                nextContinuationState
+            );
+            expect(
+                result.state["stateParameters"].signUpStateTransitionHandler
+            ).toBeInstanceOf(SignUpStateTransitionHandlerV2);
+            if (result.isPasswordRequired()) {
+                expect(result.state.requiredPasswordAttribute).toEqual(
+                    requiredPasswordAttribute
+                );
+            }
+            expect(result.error).toBeUndefined();
+            expect(result.data).toBeUndefined();
+            expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);
+        }
+    );
 
     it("returns registration when later attribute submission requires enrollment", async () => {
         flowClient.submitSignUpAttributes.mockResolvedValue({
@@ -181,22 +250,38 @@ describe("AttributesRequiredStateV2", () => {
 
         expect(result.isFailed()).toBe(true);
         expect(result.error?.isUserAlreadyExists()).toBe(true);
+        expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);
+        expect(result.error?.correlationId).toBe(correlationId);
     });
 
-    it("returns a failed result for an unsupported transition", async () => {
-        flowClient.submitSignUpAttributes.mockResolvedValue({
-            type: "unsupported" as typeof FLOW_CODE_REQUIRED_V2,
-            correlationId,
-            continuationState,
-            sentTo: "",
-            channel: "",
-            codeLength: 0,
-        });
+    it.each([
+        FLOW_CODE_REQUIRED_V2,
+        FLOW_MFA_REQUIRED_V2,
+        FLOW_COMPLETED_V2,
+        "unsupported",
+    ])(
+        "rejects a result outside the sign-up submission contract: %s",
+        async (type) => {
+            submitSignUpAttributes.mockResolvedValueOnce({
+                type,
+                correlationId,
+                continuationState,
+                sentTo: "",
+                channel: "",
+                codeLength: 0,
+            });
 
-        const result = await buildState().submitAttributes({
-            givenName: "Test",
-        });
+            const result = await buildState().submitAttributes({
+                givenName: "Test",
+            });
 
-        expect(result.isFailed()).toBe(true);
-    });
+            expect(result.isFailed()).toBe(true);
+            expect(result.error?.errorData.error).toBe(
+                "unsupported_flow_transition"
+            );
+            expect(result.error?.correlationId).toBe(correlationId);
+            expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);
+            expect(result.data).toBeUndefined();
+        }
+    );
 });

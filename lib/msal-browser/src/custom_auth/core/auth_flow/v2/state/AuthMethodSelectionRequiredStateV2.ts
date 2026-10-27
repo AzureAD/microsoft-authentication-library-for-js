@@ -18,6 +18,7 @@ import {
 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
 import { AuthenticationMethodTypeV2 } from "../../../network_client/custom_auth_api/v2/ApiClientConstantsV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
+import { UnexpectedError } from "../../../error/UnexpectedError.js";
 import { InvalidArgumentError } from "../../../error/InvalidArgumentError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
@@ -103,8 +104,7 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthFlowActionRequiredSt
                 result.type === FLOW_PASSWORD_REQUIRED_V2
             ) {
                 if (!signInStateTransitionHandler) {
-                    throw new CustomAuthError(
-                        UNSUPPORTED_FLOW_TRANSITION,
+                    throw new UnexpectedError(
                         "Sign-in method selection cannot map a password challenge without a sign-in transition handler.",
                         correlationId
                     );

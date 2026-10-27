@@ -15,19 +15,25 @@ import {
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthAccountData } from "../../../../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
-import { PasswordRequiredStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import type { PasswordRequiredStateParametersV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CustomAuthStateParametersV2.js";
 import type { AuthenticationResult } from "../../../../../../src/response/AuthenticationResult.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 import { AuthMethodRegistrationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
+import { CustomAuthError } from "../../../../../../src/custom_auth/core/error/CustomAuthError.js";
 
-describe("PasswordRequiredStateV2", () => {
+describe("PasswordRequiredStateV2 sign-in", () => {
     const correlationId = "test-correlation-id";
     const scopes = ["openid", "profile", "offline_access"];
+    const submitSignInPassword = jest.fn();
     const flowClient = {
-        submitSignInPassword: jest.fn(),
+        submitSignInPassword,
+        submitSignUpAttributes: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
 
-    const buildState = (): PasswordRequiredStateV2 =>
+    const buildState = (
+        overrides: Partial<PasswordRequiredStateParametersV2> = {}
+    ): PasswordRequiredStateV2 =>
         new PasswordRequiredStateV2({
             correlationId,
             logger: getDefaultLogger(),
@@ -45,6 +51,7 @@ describe("PasswordRequiredStateV2", () => {
                     verify: "/password/verify",
                 },
             },
+            ...overrides,
         });
 
     beforeEach(() => {
@@ -151,5 +158,86 @@ describe("PasswordRequiredStateV2", () => {
         expect(result.isFailed()).toBe(true);
         expect(result.error?.isInvalidInput()).toBe(true);
         expect(flowClient.submitSignInPassword).not.toHaveBeenCalled();
+    });
+
+    it("rejects an unsupported sign-in password result", async () => {
+        submitSignInPassword.mockResolvedValueOnce({
+            type: "unsupported",
+            correlationId,
+        });
+
+        const result = await buildState().submitPassword("valid-password");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignIn);
+        expect(result.error?.errorData.error).toBe(
+            "unsupported_flow_transition"
+        );
+        expect(result.error?.correlationId).toBe(correlationId);
+        expect(flowClient.submitSignUpAttributes).not.toHaveBeenCalled();
+    });
+
+    it("wraps asynchronous sign-in submission failures in the public result", async () => {
+        const error = new CustomAuthError(
+            "submission_failed",
+            "Sign-in password submission failed.",
+            correlationId
+        );
+        flowClient.submitSignInPassword.mockRejectedValueOnce(error);
+
+        const result = await buildState().submitPassword("valid-password");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignIn);
+        expect(result.error?.errorData).toBe(error);
+        expect(result.error?.correlationId).toBe(correlationId);
+    });
+
+    it("does not expose sign-up metadata or submit profile attributes during sign-in", async () => {
+        flowClient.submitSignInPassword.mockResolvedValue({
+            type: FLOW_COMPLETED_V2,
+            correlationId,
+            authenticationResult: {
+                account: { homeAccountId: "uid.utid" },
+            } as AuthenticationResult,
+        });
+        const state = buildState();
+
+        const result = await state.submitPassword("valid-password", {
+            givenName: "Ignored",
+        });
+
+        expect(result.isState("completed")).toBe(true);
+        expect(state.attributes).toEqual([]);
+        expect(state.requiredPasswordAttribute).toBeUndefined();
+        expect(flowClient.submitSignInPassword).toHaveBeenCalledWith({
+            correlationId,
+            continuationState: state["stateParameters"].continuationState,
+            password: "valid-password",
+        });
+        expect(flowClient.submitSignUpAttributes).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        CustomAuthFlowScenarioV2.Unknown,
+        CustomAuthFlowScenarioV2.PasswordReset,
+    ])("rejects password submission for the %s scenario", async (scenario) => {
+        const result = await buildState({
+            continuationState: {
+                continuationToken: "ct-unsupported",
+                scenario,
+                scopes,
+                links: {},
+            },
+        }).submitPassword("valid-password");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.scenario).toBe(scenario);
+        expect(result.error?.errorData.error).toBe(
+            "unsupported_flow_transition"
+        );
+        expect(result.error?.correlationId).toBe(correlationId);
+        expect(flowClient.submitSignInPassword).not.toHaveBeenCalled();
+        expect(flowClient.submitSignUpAttributes).not.toHaveBeenCalled();
     });
 });

@@ -20,8 +20,16 @@ import { FlowInteractionClientV2 } from "../../../../../src/custom_auth/core/int
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { AuthenticationFactorV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";
-import { SubmitPasswordResultV2 } from "../../../../../src/custom_auth/sign_in/auth_flow/v2/result/SubmitPasswordResultV2.js";
+import { SubmitPasswordResultV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/result/SubmitPasswordResultV2.js";
 import { SubmitAttributesResultV2 } from "../../../../../src/custom_auth/sign_up/auth_flow/v2/result/SubmitAttributesResultV2.js";
+import { PasswordRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import type { SignInStartResultV2 } from "../../../../../src/custom_auth/sign_in/auth_flow/v2/result/SignInStartResultV2.js";
+import type { VerifyChallengeResultV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/result/VerifyChallengeResultV2.js";
+import type { SignInContinuationResultV2 } from "../../../../../src/custom_auth/sign_in/auth_flow/v2/result/SignInContinuationResultV2.js";
+import type { MFASubmitChallengeResultV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/result/MFASubmitChallengeResultV2.js";
+import type { AuthMethodVerificationSubmitChallengeResultV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/result/AuthMethodVerificationSubmitChallengeResultV2.js";
+import { CompletedStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
+import { CustomAuthAccountData } from "../../../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 
 describe("CustomAuthResultV2", () => {
     const correlationId = "test-correlation-id";
@@ -127,6 +135,133 @@ describe("CustomAuthResultV2", () => {
             if (result.isState("codeRequired")) {
                 expect(result.state.method).toBe(method);
             }
+        });
+    });
+
+    describe("agreed password-required result contract", () => {
+        it("UT-SU-01: isPasswordRequired narrows sign-in and sign-up results to the shared state", () => {
+            const buildPasswordState = (scenario: CustomAuthFlowScenarioV2) =>
+                new PasswordRequiredStateV2({
+                    correlationId,
+                    logger: getDefaultLogger(),
+                    config: mockConfig,
+                    flowClient: {} as FlowInteractionClientV2,
+                    cacheClient: {} as CustomAuthSilentCacheClient,
+                    continuationState: {
+                        continuationToken: "ct-password",
+                        scenario,
+                        scopes,
+                        links: {},
+                    },
+                });
+            const signInResult: SignInStartResultV2 = new CustomAuthResultV2(
+                buildPasswordState(CustomAuthFlowScenarioV2.SignIn)
+            );
+            const signUpResult: VerifyChallengeResultV2 =
+                new CustomAuthResultV2(
+                    buildPasswordState(CustomAuthFlowScenarioV2.SignUp)
+                );
+
+            for (const result of [signInResult, signUpResult]) {
+                expect(result.isPasswordRequired()).toBe(true);
+                expect(result.isFailed()).toBe(false);
+                expect(result.error).toBeUndefined();
+                if (result.isPasswordRequired()) {
+                    const state: PasswordRequiredStateV2 = result.state;
+                    expect(typeof state.submitPassword).toBe("function");
+                    expect(state.attributes).toEqual([]);
+                }
+            }
+        });
+
+        it("UT-SU-02: isPasswordRequired is false for other states and invalid-password failures", () => {
+            const otherResult: ResetPasswordStartResultV2 =
+                new CustomAuthResultV2(buildSelectionState());
+            const error = new CustomAuthApiError(
+                "invalidRequest",
+                "Password does not meet requirements.",
+                correlationId
+            );
+            error.innerErrorCode = "passwordTooWeak";
+            const failedResult = CustomAuthResultV2.createWithError<
+                VerifyChallengeResultV2["state"]
+            >(error, {
+                scenario: CustomAuthFlowScenarioV2.SignUp,
+                correlationId,
+            });
+
+            expect(otherResult.isPasswordRequired()).toBe(false);
+            expect(failedResult.isPasswordRequired()).toBe(false);
+            expect(failedResult.isFailed()).toBe(true);
+            expect(failedResult.error?.isInvalidPassword()).toBe(true);
+        });
+    });
+
+    describe("result data typing", () => {
+        it("accepts data-free results in the mixed account-data result aliases", () => {
+            const result = new CustomAuthResultV2(
+                new FailedStateV2(),
+                undefined,
+                CustomAuthFlowScenarioV2.SignIn
+            );
+            const results: [
+                SignInStartResultV2,
+                VerifyChallengeResultV2,
+                SubmitPasswordResultV2
+            ] = [result, result, result];
+
+            for (const accountResult of results) {
+                expect(accountResult.data).toBeUndefined();
+            }
+        });
+
+        it("accepts completed account data in every account-bearing result alias", () => {
+            const account = new CustomAuthAccountData(
+                {
+                    homeAccountId: "uid.utid",
+                    localAccountId: "uid",
+                    tenantId: "utid",
+                    environment: "login.example.com",
+                    username: "test-user",
+                },
+                mockConfig,
+                {} as CustomAuthSilentCacheClient,
+                getDefaultLogger(),
+                correlationId
+            );
+            const result = new CustomAuthResultV2(
+                new CompletedStateV2(),
+                account,
+                CustomAuthFlowScenarioV2.SignIn
+            );
+            const results: [
+                SignInStartResultV2,
+                VerifyChallengeResultV2,
+                SubmitPasswordResultV2,
+                SignInContinuationResultV2,
+                MFASubmitChallengeResultV2,
+                AuthMethodVerificationSubmitChallengeResultV2
+            ] = [result, result, result, result, result, result];
+
+            for (const accountResult of results) {
+                expect(accountResult.data).toBe(account);
+            }
+        });
+
+        it("allows a no-data attribute result to be returned as a password result", () => {
+            const attributeResult: SubmitAttributesResultV2 =
+                new CustomAuthResultV2(
+                    new FailedStateV2(),
+                    undefined,
+                    CustomAuthFlowScenarioV2.SignUp
+                );
+            const passwordResult: SubmitPasswordResultV2 = attributeResult;
+
+            expect(passwordResult).toBe(attributeResult);
+            expect(passwordResult.data).toBeUndefined();
+            expect(passwordResult.scenario).toBe(
+                CustomAuthFlowScenarioV2.SignUp
+            );
         });
     });
 

@@ -128,7 +128,6 @@ export type FlowSubmitCodeResultV2 =
     | FlowCompletedResultV2;
 
 export type FlowSignUpActionResultV2 =
-    | FlowCodeRequiredResultV2
     | FlowSignUpPasswordRequiredResultV2
     | FlowAttributesRequiredResultV2
     | FlowAuthMethodRegistrationRequiredResultV2
