@@ -105,6 +105,9 @@ extends:
                                   - name: "NestedAuthAppSample-EAR"
                                     dir: "NestedAuthAppSample"
                                     testFilter: "naa-ear\\.spec"
+                                  - name: "LegacyPollingSample"
+                                  - name: "UntrustedTopFrameSample"
+                                  - name: "PocdSample"
                                   # Platform-broker specs require a self-hosted WAM-enabled
                                   # machine which will be available in the future.
                                   # Until then, tests can be run locally with WAM enabled.

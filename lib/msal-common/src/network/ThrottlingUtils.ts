@@ -14,6 +14,7 @@ import {
 } from "./RequestThumbprint.js";
 import { ThrottlingEntity } from "../cache/entities/ThrottlingEntity.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
+import { getResponseHeader } from "./ResponseHeaders.js";
 
 /** @internal */
 export class ThrottlingUtils {
@@ -56,7 +57,7 @@ export class ThrottlingUtils {
      * Performs necessary throttling checks after a network request.
      * @param cacheManager
      * @param thumbprint
-     * @param response
+     * @param response - Token response with case-insensitive header names.
      */
     static postProcess(
         cacheManager: CacheManager,
@@ -64,15 +65,14 @@ export class ThrottlingUtils {
         response: NetworkResponse<ServerAuthorizationTokenResponse>,
         correlationId: string
     ): void {
+        const retryAfter = getRetryAfterHeader(response);
         if (
             ThrottlingUtils.checkResponseStatus(response) ||
-            ThrottlingUtils.checkResponseForRetryAfter(response)
+            retryAfter !== undefined
         ) {
             const thumbprintValue: ThrottlingEntity = {
                 throttleTime: ThrottlingUtils.calculateThrottleTime(
-                    parseInt(
-                        response.headers[Constants.HeaderNames.RETRY_AFTER]
-                    )
+                    parseInt(retryAfter || "")
                 ),
                 error: response.body.error,
                 errorCodes: response.body.error_codes,
@@ -102,20 +102,12 @@ export class ThrottlingUtils {
 
     /**
      * Checks a NetworkResponse object's RetryAfter header
-     * @param response
+     * @param response - Token response with case-insensitive header names.
      */
     static checkResponseForRetryAfter(
         response: NetworkResponse<ServerAuthorizationTokenResponse>
     ): boolean {
-        if (response.headers) {
-            return (
-                response.headers.hasOwnProperty(
-                    Constants.HeaderNames.RETRY_AFTER
-                ) &&
-                (response.status < 200 || response.status >= 300)
-            );
-        }
-        return false;
+        return getRetryAfterHeader(response) !== undefined;
     }
 
     /**
@@ -149,4 +141,17 @@ export class ThrottlingUtils {
         const key = this.generateThrottlingStorageKey(thumbprint);
         cacheManager.removeItem(key, request.correlationId);
     }
+}
+
+/** Reads Retry-After only for non-success responses. */
+function getRetryAfterHeader(
+    response: NetworkResponse<ServerAuthorizationTokenResponse>
+): string | undefined {
+    if ((response.status < 200 || response.status >= 300) && response.headers) {
+        return getResponseHeader(
+            response.headers,
+            Constants.HeaderNames.RETRY_AFTER
+        );
+    }
+    return undefined;
 }

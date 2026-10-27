@@ -144,9 +144,16 @@ export function parseAuthResponseFromUrl(): {
 }
 
 /**
- * Clears hash from window url.
+ * Clears a recognized authentication response fragment, preserving the query string.
+ * Assigns an empty hash, then removes the trailing # when history updates are available.
  */
 export function clearHash(contentWindow: Window): void {
+    const serverParams = UrlUtils.getDeserializedResponse(
+        contentWindow.location.hash
+    );
+    if (!serverParams) {
+        return;
+    }
     // Office.js sets history.replaceState to null
     contentWindow.location.hash = "";
     if (typeof contentWindow.history.replaceState === "function") {
