@@ -711,14 +711,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         return this.toSignUpActionResult(
             submitResult,
-            {
-                ...continuationState,
-                signUp: {
-                    passwordWasSupplied:
-                        continuationState.signUp?.passwordWasSupplied ===
-                            true || attributes.password !== undefined,
-                },
-            },
+            continuationState,
             correlationId
         );
     }
@@ -973,8 +966,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         if (verifyResult.nextAction === COLLECT_ATTRIBUTES_RELATION) {
             const requiredPasswordAttribute = verifyResult.attributes.find(
                 (attribute) =>
-                    attribute.attributeId.toLowerCase() === "password" &&
-                    attribute.required === true
+                    attribute.attributeId.toLowerCase() === "password"
             );
             const nextContinuationState: FlowContinuationStateV2 = {
                 continuationToken: verifyResult.continuationToken,
@@ -983,17 +975,13 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 links: {
                     submitAttributes: verifyResult.submitAttributesHref,
                 },
-                signUp: continuationState.signUp,
             };
             const attributes = verifyResult.attributes.filter(
                 (attribute) =>
                     attribute.attributeId.toLowerCase() !== "password"
             );
 
-            if (
-                requiredPasswordAttribute &&
-                continuationState.signUp?.passwordWasSupplied !== true
-            ) {
+            if (requiredPasswordAttribute) {
                 return createFlowSignUpPasswordRequiredResultV2({
                     correlationId,
                     continuationState: nextContinuationState,
@@ -1202,25 +1190,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     ): FlowSignUpActionResultV2 {
         const nextAction: string = result.nextAction;
 
-        if (result.nextAction === SignUpSubmitAttributesNextActionV2.VERIFY) {
-            return createFlowCodeRequiredResultV2({
-                correlationId,
-                continuationState: {
-                    continuationToken: result.continuationToken,
-                    scenario: continuationState.scenario,
-                    scopes: continuationState.scopes,
-                    links: {
-                        verify: result.verifyHref,
-                        resend: result.resendHref,
-                    },
-                    signUp: continuationState.signUp,
-                },
-                channel: result.type,
-                sentTo: result.hint,
-                codeLength: result.codeLength,
-            });
-        }
-
         if (result.nextAction === SignUpSubmitAttributesNextActionV2.ENROLL) {
             return this.createAuthMethodRegistrationRequiredResult({
                 correlationId,
@@ -1239,8 +1208,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         ) {
             const requiredPasswordAttribute = result.attributes.find(
                 (attribute) =>
-                    attribute.attributeId.toLowerCase() === "password" &&
-                    attribute.required === true
+                    attribute.attributeId.toLowerCase() === "password"
             );
             const nextContinuationState: FlowContinuationStateV2 = {
                 continuationToken: result.continuationToken,
@@ -1249,17 +1217,13 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 links: {
                     submitAttributes: result.submitAttributesHref,
                 },
-                signUp: continuationState.signUp,
             };
             const attributes = result.attributes.filter(
                 (attribute) =>
                     attribute.attributeId.toLowerCase() !== "password"
             );
 
-            if (
-                requiredPasswordAttribute &&
-                continuationState.signUp?.passwordWasSupplied !== true
-            ) {
+            if (requiredPasswordAttribute) {
                 return createFlowSignUpPasswordRequiredResultV2({
                     correlationId,
                     continuationState: nextContinuationState,
@@ -1425,9 +1389,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     challengeResult.resendHref ??
                     continuationState.links.resend,
             },
-            ...(continuationState.signUp && {
-                signUp: continuationState.signUp,
-            }),
         };
     }
 

@@ -76,10 +76,14 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
                     );
                 }
 
-                return signUpStateTransitionHandler.handleVerification(result, {
-                    ...this.stateParameters,
-                    signUpStateTransitionHandler,
-                });
+                return signUpStateTransitionHandler.handleAttributeSubmission(
+                    result,
+                    {
+                        ...this.stateParameters,
+                        signUpStateTransitionHandler,
+                    },
+                    "attribute"
+                );
             }
 
             if (result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2) {

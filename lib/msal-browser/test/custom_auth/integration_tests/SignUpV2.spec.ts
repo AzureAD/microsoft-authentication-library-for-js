@@ -1037,6 +1037,169 @@ describe("Sign-up V2 entry", () => {
         });
     });
 
+    it.each([
+        [false, false, false],
+        [false, true, false],
+        [true, false, false],
+        [true, true, false],
+        [true, false, true],
+    ])(
+        "follows repeated server collection (password %s -> %s, empty %s) before explicit sign-in",
+        async (initialPassword, nextPassword, empty) => {
+            const claims = JSON.stringify({
+                id_token: { auth_time: { essential: true } },
+            });
+            const initialResponse = initialPassword
+                ? PASSWORD_AND_PROFILE_REQUIRED_RESPONSE
+                : FLAT_USERNAME_REQUIRED_RESPONSE;
+            const requiredPasswordAttribute = {
+                attributeId: "PaSsWoRd",
+                inputType: "password",
+                required: true,
+                confirmationInput: "retype",
+            };
+            const attributes = empty
+                ? []
+                : [{ attributeId: "surname", required: true }];
+            const nextResponse = {
+                ...FLAT_USERNAME_REQUIRED_RESPONSE,
+                continuationToken: "ct-next",
+                attributes: [
+                    ...(nextPassword ? [requiredPasswordAttribute] : []),
+                    ...attributes,
+                ],
+                _links: {
+                    submitAttributes: {
+                        href: "/tenant/api/v0.1/signup/next",
+                    },
+                },
+            };
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(initialResponse))
+                .mockResolvedValueOnce(buildResponse(nextResponse))
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-final",
+                        state: "continue",
+                    })
+                )
+                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+            const startResult = await app.signUpV2({
+                username: "user@contoso.com",
+                scopes: ["User.Read"],
+                claims,
+                correlationId: "corr-1",
+            });
+            if (!startResult.isState("codeRequired")) {
+                throw new Error("Expected email verification first.");
+            }
+            const verifyResult = await startResult.state.submitCode("12345678");
+            const profile = { username: "test-user", givenName: "Test" };
+            const collectionResult:
+                | customAuth.SubmitPasswordResultV2
+                | undefined = verifyResult.isPasswordRequired()
+                ? await verifyResult.state.submitPassword(
+                      "initial-password",
+                      profile
+                  )
+                : verifyResult.isState("attributesRequired")
+                ? await verifyResult.state.submitAttributes(profile)
+                : undefined;
+            if (
+                !collectionResult ||
+                (!collectionResult.isState("attributesRequired") &&
+                    !collectionResult.isPasswordRequired())
+            ) {
+                throw new Error("Expected another successful collection.");
+            }
+            expect(collectionResult.isPasswordRequired()).toBe(nextPassword);
+            expect(collectionResult.state.attributes).toEqual(attributes);
+            expect(collectionResult.error).toBeUndefined();
+            expect(collectionResult.data).toBeUndefined();
+            expect(collectionResult.scenario).toBe("signUp");
+            expect(
+                collectionResult.state["stateParameters"].continuationState
+            ).toEqual({
+                continuationToken: "ct-next",
+                scenario: "signUp",
+                scopes: ["User.Read", "openid", "profile", "offline_access"],
+                links: {
+                    submitAttributes: nextResponse._links.submitAttributes.href,
+                },
+            });
+            expect(
+                collectionResult.state["stateParameters"]
+            ).not.toHaveProperty("password");
+            expect(profile).toEqual({
+                username: "test-user",
+                givenName: "Test",
+            });
+            if (collectionResult.isPasswordRequired()) {
+                expect(
+                    collectionResult.state.requiredPasswordAttribute
+                ).toEqual(requiredPasswordAttribute);
+            }
+            const nextAttributes: customAuth.UserAccountAttributes = empty
+                ? {}
+                : { surname: "User" };
+            const continuationResult = collectionResult.isPasswordRequired()
+                ? await collectionResult.state.submitPassword(
+                      "new-password",
+                      nextAttributes
+                  )
+                : await collectionResult.state.submitAttributes(nextAttributes);
+            if (!continuationResult.isState("signInContinuation")) {
+                throw new Error("Expected explicit sign-in continuation.");
+            }
+            expect(continuationResult.data).toBeUndefined();
+            expect(fetch).toHaveBeenCalledTimes(5);
+            expect(app.getAllAccounts()).toHaveLength(0);
+
+            const requests = (fetch as jest.Mock).mock.calls;
+            expect((requests[0][1].body as URLSearchParams).get("claims")).toBe(
+                claims
+            );
+            expect(
+                (requests[0][1].body as URLSearchParams)
+                    .get("scope")
+                    ?.split(" ")
+            ).toEqual(["User.Read", "openid", "profile", "offline_access"]);
+            expect(JSON.parse(requests[3][1].body)).toEqual({
+                continuationToken: initialResponse.continuationToken,
+                attributes: {
+                    ...profile,
+                    ...(initialPassword
+                        ? { password: "initial-password" }
+                        : {}),
+                },
+            });
+            expect(String(requests[4][0])).toContain("/signup/next");
+            expect(JSON.parse(requests[4][1].body)).toEqual({
+                continuationToken: "ct-next",
+                attributes: {
+                    ...nextAttributes,
+                    ...(nextPassword ? { password: "new-password" } : {}),
+                },
+            });
+            expect(requests[3][1].headers["client-request-id"]).toBe("corr-1");
+            expect(requests[4][1].headers["client-request-id"]).toBe("corr-1");
+
+            const completedResult = await continuationResult.state.signIn();
+            expect(completedResult.isState("completed")).toBe(true);
+            expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);
+            expect(fetch).toHaveBeenCalledTimes(7);
+            expect(
+                (requests[5][1].body as URLSearchParams).get(
+                    "continuation_token"
+                )
+            ).toBe("ct-final");
+        }
+    );
+
     it("IT-SU-13: preserves required and invalid attribute details after partial submission", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
