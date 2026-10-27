@@ -297,6 +297,52 @@ describe("ResponseHandlerV2", () => {
         });
     });
 
+    describe("resolveSignUpAttributes", () => {
+        it.each<{ attributes: unknown }>([
+            { attributes: {} },
+            { attributes: [null] },
+            { attributes: [[]] },
+            { attributes: [{ attributeId: 42 }] },
+            { attributes: [{ attributeId: " " }] },
+        ])(
+            "rejects malformed attribute metadata $attributes",
+            ({ attributes }) => {
+                expect(() =>
+                    handler.resolveSignUpAttributes(
+                        // @ts-expect-error Exercise malformed wire metadata.
+                        attributes,
+                        REQUEST_CORRELATION_ID
+                    )
+                ).toThrow(
+                    expect.objectContaining({
+                        error: INVALID_HAL_RESPONSE,
+                        correlationId: REQUEST_CORRELATION_ID,
+                    })
+                );
+            }
+        );
+
+        it("preserves custom username metadata and repeated collection", () => {
+            const attributes = [
+                { attributeId: "username", required: true },
+                { attributeId: "alternateEmail", required: false },
+            ];
+
+            expect(
+                handler.resolveSignUpAttributes(
+                    attributes,
+                    REQUEST_CORRELATION_ID
+                )
+            ).toBe(attributes);
+            expect(
+                handler.resolveSignUpAttributes(
+                    attributes,
+                    REQUEST_CORRELATION_ID
+                )
+            ).toBe(attributes);
+        });
+    });
+
     describe("requireMethods", () => {
         it("returns embedded methods when present", () => {
             const methods = [

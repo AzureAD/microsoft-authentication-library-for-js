@@ -37,12 +37,10 @@ import { SignUpStartResultV2 } from "../sign_up/auth_flow/v2/result/SignUpStartR
 import {
     FLOW_COMPLETED_V2,
     FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
-    FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_METHOD_SELECTION_REQUIRED_V2,
     FLOW_MFA_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
-    FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
 } from "../core/interaction_client/v2/result/FlowActionResultV2.js";
 import { AuthenticationFactorV2 } from "../core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import { CodeRequiredStateV2 } from "../core/auth_flow/v2/state/CodeRequiredStateV2.js";
@@ -51,8 +49,6 @@ import { CompletedStateV2 } from "../core/auth_flow/v2/state/CompletedStateV2.js
 import { SignInStateTransitionHandlerV2 } from "../sign_in/auth_flow/v2/state/SignInStateTransitionHandlerV2.js";
 import { PasswordRequiredStateV2 } from "../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { SignUpStateTransitionHandlerV2 } from "../sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
-import { SignUpPasswordRequiredStateV2 } from "../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
-import { AttributesRequiredStateV2 } from "../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { AuthMethodRegistrationRequiredStateV2 } from "../core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
@@ -912,18 +908,6 @@ export class CustomAuthStandardController
                 inputs.username,
                 correlationId
             );
-            if (Object.prototype.hasOwnProperty.call(inputs, "password")) {
-                ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
-                    "inputs.password",
-                    inputs.password,
-                    correlationId
-                );
-                ArgumentValidator.ensureArgumentIsNotEmptyString(
-                    "inputs.password",
-                    inputs.password,
-                    correlationId
-                );
-            }
             if (inputs.scopes !== undefined && inputs.scopes !== null) {
                 ArgumentValidator.ensureArgumentIsStringArray(
                     "inputs.scopes",
@@ -948,54 +932,24 @@ export class CustomAuthStandardController
             const result = await this.flowClientV2.signUp({
                 correlationId,
                 username: inputs.username,
-                password: inputs.password,
-                attributes: inputs.attributes,
                 scopes: inputs.scopes,
                 claims: inputs.claims,
             });
 
-            const commonStateParameters = {
-                correlationId: result.correlationId,
-                logger: this.logger,
-                config: this.customAuthConfig,
-                flowClient: this.flowClientV2,
-                continuationState: result.continuationState,
-                cacheClient: this.cacheClient,
-                signUpStateTransitionHandler:
-                    this.signUpStateTransitionHandlerV2,
-            };
-
             if (result.type === FLOW_CODE_REQUIRED_V2) {
                 return new CustomAuthResultV2(
                     new CodeRequiredStateV2({
-                        ...commonStateParameters,
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                        signUpStateTransitionHandler:
+                            this.signUpStateTransitionHandlerV2,
                         sentTo: result.sentTo,
                         channel: result.channel,
                         codeLength: result.codeLength,
-                    }),
-                    undefined,
-                    result.continuationState.scenario
-                );
-            }
-
-            if (result.type === FLOW_SIGN_UP_PASSWORD_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new SignUpPasswordRequiredStateV2({
-                        ...commonStateParameters,
-                        attributes: result.attributes,
-                        requiredPasswordAttribute:
-                            result.requiredPasswordAttribute,
-                    }),
-                    undefined,
-                    result.continuationState.scenario
-                );
-            }
-
-            if (result.type === FLOW_ATTRIBUTES_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new AttributesRequiredStateV2({
-                        ...commonStateParameters,
-                        attributes: result.attributes,
                     }),
                     undefined,
                     result.continuationState.scenario

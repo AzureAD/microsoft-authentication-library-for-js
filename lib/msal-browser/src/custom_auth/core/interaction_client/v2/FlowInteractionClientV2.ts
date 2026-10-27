@@ -36,8 +36,6 @@ import {
     createFlowAuthMethodRegistrationRequiredResultV2,
     createFlowAuthMethodVerificationRequiredResultV2,
     FLOW_CODE_REQUIRED_V2,
-    FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
-    FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
 } from "./result/FlowActionResultV2.js";
 import type {
     FlowMethodSelectionRequiredResultV2,
@@ -248,16 +246,9 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         return challengeResult;
     }
 
-    /*
-     * Starts sign-up and resolves the server-provided attribute-submission transition.
-     */
     async signUp(
         parameters: FlowSignUpStartParamsV2
-    ): Promise<
-        | FlowCodeRequiredResultV2
-        | FlowSignUpPasswordRequiredResultV2
-        | FlowAttributesRequiredResultV2
-    > {
+    ): Promise<FlowCodeRequiredResultV2> {
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             PublicApiId.SIGN_UP_V2_START,
@@ -280,58 +271,25 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             }),
             {
                 continuationToken: entryResult.continuationToken,
+                username: parameters.username,
             },
             context
         );
-        const attributes = Object.fromEntries(
-            Object.entries(parameters.attributes ?? {}).filter(
-                ([name]) =>
-                    name.toLowerCase() !== "email" &&
-                    name.toLowerCase() !== "password"
-            )
-        );
-        attributes.email = parameters.username;
-        if (parameters.password !== undefined) {
-            attributes.password = parameters.password;
-        }
-        const submitResult = await this.apiClient.submitSignUpAttributes(
-            startResult.submitAttributesHref,
-            {
+        return createFlowCodeRequiredResultV2({
+            correlationId,
+            continuationState: {
                 continuationToken: startResult.continuationToken,
-                attributes,
+                scenario: CustomAuthFlowScenarioV2.SignUp,
+                scopes,
+                links: {
+                    verify: startResult.verifyHref,
+                    resend: startResult.resendHref,
+                },
             },
-            context
-        );
-        const continuationState: FlowContinuationStateV2 = {
-            continuationToken: startResult.continuationToken,
-            scenario: CustomAuthFlowScenarioV2.SignUp,
-            scopes,
-            links: {},
-            signUp: {
-                passwordWasSupplied: attributes.password !== undefined,
-            },
-        };
-
-        const result = this.toSignUpActionResult(
-            submitResult,
-            continuationState,
-            correlationId
-        );
-
-        if (
-            result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2 ||
-            result.type === FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2
-        ) {
-            const message = `Initial sign-up attribute submission returned unsupported next action '${submitResult.nextAction}'.`;
-            this.logger.error(message, correlationId);
-            throw new CustomAuthError(
-                UNSUPPORTED_FLOW_TRANSITION,
-                message,
-                correlationId
-            );
-        }
-
-        return result;
+            channel: startResult.type,
+            sentTo: startResult.hint,
+            codeLength: startResult.codeLength,
+        });
     }
 
     /*
@@ -713,6 +671,18 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         parameters: FlowSubmitSignUpAttributesParamsV2
     ): Promise<FlowSignUpActionResultV2> {
         const { continuationState, correlationId, attributes } = parameters;
+        if (
+            Object.keys(attributes).some(
+                (attributeId) => attributeId.toLowerCase() === "email"
+            )
+        ) {
+            this.logger.error(
+                "Email cannot be submitted as a V2 sign-up attribute.",
+                correlationId
+            );
+            throw new InvalidArgumentError("attributes.email", correlationId);
+        }
+
         const context = this.createRequestContext(
             this.resolveStepApiId(
                 continuationState.scenario,

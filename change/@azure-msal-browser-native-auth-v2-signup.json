@@ -1,0 +1,6 @@
+{
+    "type": "minor",
+    "comment": "Update Native Auth V2 sign-up to send username on start, remove upfront password input, require email verification before subsequent steps, and reject email as a profile attribute.",
+    "packageName": "@azure/msal-browser",
+    "dependentChangeType": "patch"
+}

@@ -127,18 +127,18 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 context
             );
 
-        return {
-            continuationToken: this.handler.requireContinuationToken(
-                parsedResponse.continuationToken,
-                parsedResponse.correlationId
-            ),
-            submitAttributesHref: this.handler.requireHref(
-                parsedResponse.body._links?.submitAttributes?.href,
-                "submitAttributes",
-                parsedResponse.correlationId
-            ),
-            attributes: parsedResponse.body.attributes,
-        };
+        if (parsedResponse.body.action === VERIFY_RELATION) {
+            return this.toChallengeVerificationResult(parsedResponse);
+        }
+
+        const message =
+            "Invalid HAL response: sign-up start did not return a verification challenge";
+        this.logger?.error(message, parsedResponse.correlationId);
+        throw new CustomAuthApiError(
+            INVALID_HAL_RESPONSE,
+            message,
+            parsedResponse.correlationId
+        );
     }
 
     /*
@@ -176,7 +176,10 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 nextAction:
                     SignUpSubmitAttributesNextActionV2.COLLECT_ATTRIBUTES,
                 continuationToken,
-                attributes: parsedResponse.body.attributes ?? [],
+                attributes: this.handler.resolveSignUpAttributes(
+                    parsedResponse.body.attributes,
+                    correlationId
+                ),
                 submitAttributesHref: this.handler.requireHref(
                     parsedResponse.body._links?.submitAttributes?.href,
                     "submitAttributes",
@@ -533,7 +536,10 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             return {
                 nextAction: COLLECT_ATTRIBUTES_RELATION,
                 continuationToken,
-                attributes: parsedResponse.body.attributes ?? [],
+                attributes: this.handler.resolveSignUpAttributes(
+                    parsedResponse.body.attributes,
+                    correlationId
+                ),
                 submitAttributesHref: this.handler.requireHref(
                     parsedResponse.body._links?.submitAttributes?.href,
                     "submitAttributes",
