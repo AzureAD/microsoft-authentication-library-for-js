@@ -1,6 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Support Native Auth V2 JIT email and SMS enrollment during sign-in, sign-up, and password reset. [#8927](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8927)",
-  "packageName": "@azure/msal-browser",
-  "dependentChangeType": "patch"
-}
