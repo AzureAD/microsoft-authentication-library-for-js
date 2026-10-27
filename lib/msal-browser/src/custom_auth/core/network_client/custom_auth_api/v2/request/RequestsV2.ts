@@ -81,7 +81,7 @@ export type PasswordResetStartRequestV2 = StartRequestV2;
 
 export type SignInStartRequestV2 = StartRequestV2;
 
-export type SignUpStartRequestV2 = ActionRequestBaseV2;
+export type SignUpStartRequestV2 = StartRequestV2;
 
 export interface SignUpSubmitAttributesRequestV2 extends ActionRequestBaseV2 {
     attributes: UserAccountAttributes & {

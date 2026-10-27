@@ -34,10 +34,13 @@ import { FlowAuthMethodRegistrationRequiredParamsV2 } from "../../../../../src/c
 import { CustomAuthAuthority } from "../../../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { CustomAuthApiClientV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { AuthenticationFactorV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
+import { CustomAuthApiError } from "../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import type { ResetPasswordPollResultV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/ResetPasswordResultsV2.js";
 import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import {
     CONTINUATION_LINK_MISSING,
+    INVALID_HAL_RESPONSE,
+    NO_AUTHENTICATION_METHODS,
     RESET_PASSWORD_UNSUPPORTED,
     SIGN_IN_UNSUPPORTED,
     UNSUPPORTED_FLOW_TRANSITION,
@@ -177,44 +180,56 @@ describe("FlowInteractionClientV2", () => {
     });
 
     describe("signUp", () => {
-        it("rejects registration from initial attribute submission", async () => {
+        it("returns the email challenge from start without submitting attributes", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
                 signUpHref: "https://endpoint/signup/start",
             });
             apiClient.signUpStart.mockResolvedValue({
+                nextAction: "verify",
                 continuationToken: "ct-start",
-                submitAttributesHref: "https://endpoint/signup/attributes",
+                verifyHref: "https://endpoint/signup/verify",
+                resendHref: "https://endpoint/signup/resend",
+                type: "email",
+                hint: "u***@contoso.com",
+                codeLength: 8,
             });
-            apiClient.submitSignUpAttributes.mockResolvedValue({
-                nextAction: "enroll",
-                continuationToken: "ct-enroll",
-                methods: [
-                    {
-                        type: "phone",
-                        channels: ["sms"],
-                        enrollHref: "https://endpoint/enroll/phone",
-                    },
-                    {
-                        type: "email",
-                        enrollHref: "https://endpoint/enroll/email",
-                    },
-                ],
+
+            const result = await client.signUp({
+                correlationId,
+                username: "user@contoso.com",
             });
+            expect(result).toMatchObject({
+                type: FLOW_CODE_REQUIRED_V2,
+                channel: "email",
+                sentTo: "u***@contoso.com",
+                codeLength: 8,
+            });
+            expect(apiClient.submitSignUpAttributes).not.toHaveBeenCalled();
+        });
+
+        it("propagates sign-up start validation errors unchanged", async () => {
+            apiClient.authorizeChallengeStart.mockResolvedValue({
+                continuationToken: "ct-entry",
+                signUpHref: "https://endpoint/signup/start",
+            });
+            const error = new CustomAuthApiError(
+                INVALID_HAL_RESPONSE,
+                "Invalid HAL response: sign-up start did not return a verification challenge",
+                correlationId
+            );
+            apiClient.signUpStart.mockRejectedValue(error);
 
             await expect(
                 client.signUp({
                     correlationId,
                     username: "user@contoso.com",
-                    password: "valid-password",
-                    scopes: ["User.Read"],
                 })
-            ).rejects.toMatchObject({
-                error: UNSUPPORTED_FLOW_TRANSITION,
-            });
+            ).rejects.toBe(error);
+            expect(apiClient.submitSignUpAttributes).not.toHaveBeenCalled();
         });
 
-        it("submits all initial attributes once without retaining their values", async () => {
+        it("ignores an extra runtime password and upfront attributes without retaining their values", async () => {
             const contextSpy = jest.spyOn(
                 client as unknown as {
                     createRequestContext: (
@@ -229,13 +244,8 @@ describe("FlowInteractionClientV2", () => {
                 signUpHref: "https://endpoint/signup/start",
             });
             apiClient.signUpStart.mockResolvedValue({
-                continuationToken: "ct-start",
-                submitAttributesHref:
-                    "https://endpoint/signup/submitattributes",
-            });
-            apiClient.submitSignUpAttributes.mockResolvedValue({
                 nextAction: "verify",
-                continuationToken: "ct-challenge",
+                continuationToken: "ct-start",
                 verifyHref: "https://endpoint/signup/verify",
                 resendHref: "https://endpoint/signup/resend",
                 type: "email",
@@ -243,7 +253,7 @@ describe("FlowInteractionClientV2", () => {
                 codeLength: 8,
             });
 
-            const result = await client.signUp({
+            const runtimeInputs = {
                 correlationId,
                 username: "user@contoso.com",
                 password: "valid-password",
@@ -255,173 +265,55 @@ describe("FlowInteractionClientV2", () => {
                 },
                 scopes: ["User.Read"],
                 claims: '{"id_token":{"auth_time":{"essential":true}}}',
-            });
+            };
+            const result = await client.signUp(runtimeInputs);
 
             expect(apiClient.authorizeChallengeStart).toHaveBeenCalledWith(
                 expect.objectContaining({ correlationId }),
                 ["User.Read", "openid", "profile", "offline_access"],
                 '{"id_token":{"auth_time":{"essential":true}}}'
             );
-            expect(apiClient.submitSignUpAttributes).toHaveBeenCalledWith(
-                "https://endpoint/signup/submitattributes",
+            expect(apiClient.submitSignUpAttributes).not.toHaveBeenCalled();
+            expect(result.type).toBe(FLOW_CODE_REQUIRED_V2);
+            expect(apiClient.signUpStart).toHaveBeenCalledWith(
+                "https://endpoint/signup/start",
                 {
-                    continuationToken: "ct-start",
-                    attributes: {
-                        email: "user@contoso.com",
-                        password: "valid-password",
-                        displayName: "Test User",
-                        username: "test-user",
-                    },
+                    continuationToken: "ct-entry",
+                    username: "user@contoso.com",
                 },
                 expect.objectContaining({ correlationId })
             );
-            expect(result.type).toBe(FLOW_CODE_REQUIRED_V2);
             expect(contextSpy).toHaveBeenCalledWith(
                 SIGN_UP_V2_START,
                 correlationId
             );
-            expect(
-                (result as FlowCodeRequiredResultV2).continuationState
-            ).toEqual({
-                continuationToken: "ct-challenge",
+            expect(result.continuationState).toEqual({
+                continuationToken: "ct-start",
                 scenario: "signUp",
                 scopes: ["User.Read", "openid", "profile", "offline_access"],
                 links: {
                     verify: "https://endpoint/signup/verify",
                     resend: "https://endpoint/signup/resend",
                 },
-                signUp: {
-                    passwordWasSupplied: true,
-                },
             });
         });
 
-        it("ignores a reserved password attribute when no top-level password is supplied", async () => {
+        it("propagates start errors without submitting upfront values", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
                 signUpHref: "https://endpoint/signup/start",
             });
-            apiClient.signUpStart.mockResolvedValue({
-                continuationToken: "ct-start",
-                submitAttributesHref:
-                    "https://endpoint/signup/submitattributes",
-            });
-            apiClient.submitSignUpAttributes.mockResolvedValue({
-                nextAction: "verify",
-                continuationToken: "ct-challenge",
-                verifyHref: "https://endpoint/signup/verify",
-                resendHref: "https://endpoint/signup/resend",
-                type: "email",
-                hint: "u***@contoso.com",
-                codeLength: 8,
-            });
-
-            await client.signUp({
-                correlationId,
-                username: "user@contoso.com",
-                attributes: {
-                    Password: "attribute-password",
-                    displayName: "Test User",
-                },
-            });
-
-            expect(apiClient.submitSignUpAttributes).toHaveBeenCalledWith(
-                "https://endpoint/signup/submitattributes",
-                {
-                    continuationToken: "ct-start",
-                    attributes: {
-                        displayName: "Test User",
-                        email: "user@contoso.com",
-                    },
-                },
-                expect.objectContaining({ correlationId })
-            );
-        });
-
-        it("returns password required when initial submission requests a missing password", async () => {
-            apiClient.authorizeChallengeStart.mockResolvedValue({
-                continuationToken: "ct-entry",
-                signUpHref: "https://endpoint/signup/start",
-            });
-            apiClient.signUpStart.mockResolvedValue({
-                continuationToken: "ct-start",
-                submitAttributesHref:
-                    "https://endpoint/signup/submitattributes",
-            });
-            const requiredPasswordAttribute = {
-                attributeId: "password",
-                inputType: "password",
-                required: true,
-            };
-            apiClient.submitSignUpAttributes.mockResolvedValue({
-                nextAction: "collectAttributes",
-                continuationToken: "ct-attributes",
-                attributes: [
-                    requiredPasswordAttribute,
-                    {
-                        attributeId: "jobTitle",
-                        inputType: "text",
-                        required: true,
-                    },
-                    {
-                        attributeId: "city",
-                        inputType: "text",
-                        required: false,
-                    },
-                ],
-                submitAttributesHref:
-                    "https://endpoint/signup/submitattributes-2",
-            });
-
-            const result = await client.signUp({
-                correlationId,
-                username: "user@contoso.com",
-            });
-
-            expect(result.type).toBe(FLOW_SIGN_UP_PASSWORD_REQUIRED_V2);
-            expect(
-                (result as FlowSignUpPasswordRequiredResultV2)
-                    .requiredPasswordAttribute
-            ).toEqual(requiredPasswordAttribute);
-            expect(
-                (result as FlowSignUpPasswordRequiredResultV2).attributes
-            ).toEqual([
-                {
-                    attributeId: "jobTitle",
-                    inputType: "text",
-                    required: true,
-                },
-                {
-                    attributeId: "city",
-                    inputType: "text",
-                    required: false,
-                },
-            ]);
-        });
-
-        it("rejects initial sign-up completion before code or attribute collection", async () => {
-            apiClient.authorizeChallengeStart.mockResolvedValue({
-                continuationToken: "ct-entry",
-                signUpHref: "https://endpoint/signup/start",
-            });
-            apiClient.signUpStart.mockResolvedValue({
-                continuationToken: "ct-start",
-                submitAttributesHref:
-                    "https://endpoint/signup/submitattributes",
-            });
-            apiClient.submitSignUpAttributes.mockResolvedValue({
-                nextAction: "continue",
-                continuationToken: "ct-complete",
-            });
+            const error = new Error("Start failed.");
+            apiClient.signUpStart.mockRejectedValue(error);
 
             await expect(
                 client.signUp({
                     correlationId,
                     username: "user@contoso.com",
+                    attributes: { displayName: "Test User" },
                 })
-            ).rejects.toMatchObject({
-                error: UNSUPPORTED_FLOW_TRANSITION,
-            });
+            ).rejects.toBe(error);
+            expect(apiClient.submitSignUpAttributes).not.toHaveBeenCalled();
         });
     });
 
@@ -1869,6 +1761,51 @@ describe("FlowInteractionClientV2", () => {
                 passwordWasSupplied: false,
             },
         };
+
+        it.each(["email", "EMAIL", "eMaIl"])(
+            "rejects a submitted %s attribute before sending a request",
+            async (attributeId) => {
+                await expect(
+                    client.submitSignUpAttributes({
+                        correlationId,
+                        continuationState,
+                        attributes: { [attributeId]: "" },
+                    })
+                ).rejects.toMatchObject({
+                    error: "invalid_argument",
+                    correlationId,
+                    errorDescription:
+                        "The argument 'attributes.email' is invalid.",
+                });
+                expect(apiClient.submitSignUpAttributes).not.toHaveBeenCalled();
+            }
+        );
+
+        it("allows custom username attributes without treating them as email", async () => {
+            apiClient.submitSignUpAttributes.mockResolvedValue({
+                nextAction: "continue",
+                continuationToken: "ct-complete",
+            });
+            const attributes = {
+                username: "test-user",
+                alternateEmail: "alternate@example.com",
+            };
+
+            await client.submitSignUpAttributes({
+                correlationId,
+                continuationState,
+                attributes,
+            });
+
+            expect(apiClient.submitSignUpAttributes).toHaveBeenCalledWith(
+                "https://endpoint/signup/submitattributes",
+                {
+                    continuationToken: "ct-attributes",
+                    attributes,
+                },
+                expect.objectContaining({ correlationId })
+            );
+        });
 
         it("preserves sign-up context when later attributes return enrollment", async () => {
             apiClient.submitSignUpAttributes.mockResolvedValue({

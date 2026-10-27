@@ -18,11 +18,7 @@ export interface SignUpAttributeV2 {
     confirmationInput?: string;
 }
 
-export interface SignUpStartApiResultV2 {
-    continuationToken: string;
-    submitAttributesHref: string;
-    attributes?: SignUpAttributeV2[];
-}
+export type SignUpStartApiResultV2 = ChallengeVerificationResultV2;
 
 export const SignUpSubmitAttributesNextActionV2 = {
     VERIFY: "verify",

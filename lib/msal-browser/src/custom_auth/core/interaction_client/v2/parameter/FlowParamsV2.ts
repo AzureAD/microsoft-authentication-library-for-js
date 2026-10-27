@@ -32,7 +32,6 @@ export interface FlowSignInStartParamsV2 extends FlowStartParamsV2 {
 }
 
 export interface FlowSignUpStartParamsV2 extends FlowStartParamsV2 {
-    password?: string;
     attributes?: UserAccountAttributes;
 }
 
