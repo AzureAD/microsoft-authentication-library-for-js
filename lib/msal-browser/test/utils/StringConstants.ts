@@ -37,7 +37,7 @@ export const TEST_URIS = {
     TEST_ALTERNATE_REDIR_URI: "https://localhost:8081/index2.html",
     TEST_LOGOUT_URI: "https://localhost:8081/logout.html",
     TEST_AUTH_ENDPT:
-        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+        "https://login.microsoftonline.com/common/oauth21/2026-08/authorize",
     TEST_END_SESSION_ENDPOINT:
         "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
     TEST_AUTH_ENDPT_WITH_PARAMS:
@@ -440,7 +440,7 @@ export function verifyUrl(
     scopes.push("openid", "profile", "offline_access"); // Add default scopes
     expect(
         url.startsWith(
-            "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?"
+            "https://login.microsoftonline.com/common/oauth21/2026-08/authorize?"
         )
     ).toBe(true);
     expect(

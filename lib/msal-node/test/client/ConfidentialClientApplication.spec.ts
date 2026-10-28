@@ -594,7 +594,7 @@ describe("ConfidentialClientApplication", () => {
             ) => {
                 const endpoint: string = endpointFromSpy;
                 const regionMatch: Array<string> | null = endpoint.match(
-                    "https://(.*).login.microsoft.com/tenantid/oauth2/v2.0/token/"
+                    "https://(.*).login.microsoft.com/tenantid/oauth21/2026-08/token/"
                 );
                 expect(regionMatch && regionMatch.length).toEqual(2);
                 expect(regionMatch && regionMatch[1]).toEqual(expectedRegion);

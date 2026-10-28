@@ -31,11 +31,11 @@ function buildOpenIdConfig(
     issuerHost: string
 ): OpenIdConfigResponse {
     return {
-        token_endpoint: `https://${host}/{tenantid}/oauth2/v2.0/token`,
-        jwks_uri: `https://${host}/{tenantid}/discovery/v2.0/keys`,
-        issuer: `https://${issuerHost}/{tenantid}/v2.0`,
-        authorization_endpoint: `https://${host}/{tenantid}/oauth2/v2.0/authorize`,
-        end_session_endpoint: `https://${host}/{tenantid}/oauth2/v2.0/logout`,
+        token_endpoint: `https://${host}/{tenantid}/oauth21/2026-08/token`,
+        jwks_uri: `https://${host}/{tenantid}/oauth21/2026-08/keys`,
+        issuer: `https://${issuerHost}/{tenantid}/oauth21/2026-08`,
+        authorization_endpoint: `https://${host}/{tenantid}/oauth21/2026-08/authorize`,
+        end_session_endpoint: `https://${host}/{tenantid}/oauth21/2026-08/logout`,
     };
 }
 
