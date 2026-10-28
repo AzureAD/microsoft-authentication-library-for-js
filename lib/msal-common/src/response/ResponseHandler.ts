@@ -70,7 +70,7 @@ type DpopNonceCache = {
     getDpopNonce(
         resourceRequestUri: string,
         correlationId?: string
-    ): { nonce: string; version: number } | undefined;
+    ): { nonce: string } | undefined;
 };
 
 /**

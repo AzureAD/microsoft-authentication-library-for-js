@@ -51,7 +51,7 @@ describe("BrowserCacheManager DPoP nonce state", () => {
 
         expect(
             cacheManager.getDpopNonce("https://API.CONTOSO.COM/other")
-        ).toEqual({ nonce: "nonce-1", version: 1 });
+        ).toEqual({ nonce: "nonce-1", generation: 1 });
         expect(
             cacheManager.getDpopNonce("https://api.fabrikam.com/path")
         ).toBeUndefined();
@@ -67,10 +67,10 @@ describe("BrowserCacheManager DPoP nonce state", () => {
 
         expect(
             cacheManager.getDpopNonce("https://api.contoso.com/resource")
-        ).toEqual({ nonce: "nonce-3", version: 3 });
+        ).toEqual({ nonce: "nonce-3", generation: 3 });
         expect(
             cacheManager.getDpopNonce("https://api.fabrikam.com/resource")
-        ).toEqual({ nonce: "nonce-2", version: 2 });
+        ).toEqual({ nonce: "nonce-2", generation: 2 });
     });
 
     it("does not mutate existing state when validation fails", () => {
@@ -93,7 +93,15 @@ describe("BrowserCacheManager DPoP nonce state", () => {
 
         expect(
             cacheManager.getDpopNonce("https://api.contoso.com/resource")
-        ).toEqual({ nonce: "nonce-1", version: 1 });
+        ).toEqual({ nonce: "nonce-1", generation: 1 });
+
+        cacheManager.setDpopNonce(
+            "https://api.contoso.com/resource",
+            "nonce-2"
+        );
+        expect(
+            cacheManager.getDpopNonce("https://api.contoso.com/resource")
+        ).toEqual({ nonce: "nonce-2", generation: 2 });
     });
 
     it("evicts the oldest write after reaching 50 origins", () => {
@@ -128,17 +136,17 @@ describe("BrowserCacheManager DPoP nonce state", () => {
         ).toBeUndefined();
         expect(
             cacheManager.getDpopNonce("https://api-0.contoso.com/resource")
-        ).toEqual({ nonce: "replacement", version: 3 });
+        ).toEqual({ nonce: "replacement", generation: 3 });
         expect(
             cacheManager.getDpopNonce("https://api-50.contoso.com/resource")
-        ).toEqual({ nonce: "nonce-50", version: 52 });
+        ).toEqual({ nonce: "nonce-50", generation: 52 });
         expect(incrementFieldsSpy).toHaveBeenCalledWith(
             { "ext.dpopNonceCacheEvictionCount": 1 },
             ""
         );
     });
 
-    it("does not reuse nonce versions after clear or eviction", () => {
+    it("does not reuse nonce generations after clear or eviction", () => {
         const cacheManager = createCacheManager();
         cacheManager.setDpopNonce(
             "https://api.contoso.com/resource",
@@ -153,7 +161,7 @@ describe("BrowserCacheManager DPoP nonce state", () => {
 
         expect(
             cacheManager.getDpopNonce("https://api.contoso.com/resource")
-        ).toEqual({ nonce: "nonce-2", version: 2 });
+        ).toEqual({ nonce: "nonce-2", generation: 2 });
     });
 
     it("restores a matching redirect handoff once and removes it immediately", () => {
@@ -187,7 +195,7 @@ describe("BrowserCacheManager DPoP nonce state", () => {
         expect(window.sessionStorage.length).toBe(0);
         expect(
             restoredCache.getDpopNonce("https://api.contoso.com/resource")
-        ).toEqual({ nonce: "redirect-nonce", version: 1 });
+        ).toEqual({ nonce: "redirect-nonce", generation: 1 });
         expect(incrementFieldsSpy).toHaveBeenNthCalledWith(
             1,
             { "ext.dpopNonceRedirectHandoffSaveCount": 1 },
@@ -275,6 +283,15 @@ describe("BrowserCacheManager DPoP nonce state", () => {
 
     it.each([
         [{ nonce: "nonce" }],
+        [
+            {
+                nonce: "nonce",
+                resourceServer: "https://api.contoso.com",
+                state: "request-state",
+                correlationId: "correlation-id",
+                expiresAt: Infinity,
+            },
+        ],
         [
             {
                 nonce: "\u0000invalid",

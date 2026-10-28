@@ -22,13 +22,13 @@ import type { SilentRequest } from "./SilentRequest.js";
 import type { SsoSilentRequest } from "./SsoSilentRequest.js";
 
 /**
- * Structural cache capability used to version resource-server DPoP nonces.
+ * Structural cache capability used to track resource-server DPoP nonce generations.
  */
 type DpopNonceCache = {
     getDpopNonce(
         resourceRequestUri: string,
         correlationId?: string
-    ): { nonce: string; version: number } | undefined;
+    ): { nonce: string; generation: number } | undefined;
 };
 
 /**
@@ -102,13 +102,13 @@ export function prepareWebSilentRequest(
         account.homeAccountId
     );
 
-    const dpopNonceVersion =
+    const dpopNonceGeneration =
         request.authenticationScheme === Constants.AuthenticationScheme.DPOP &&
         request.resourceRequestUri
             ? cacheManager?.getDpopNonce(
                   request.resourceRequestUri,
                   correlationId
-              )?.version
+              )?.generation
             : undefined;
 
     return {
@@ -121,7 +121,7 @@ export function prepareWebSilentRequest(
             extraQueryParameters: canonicalizeStringDict(
                 request.extraQueryParameters
             ),
-            dpopNonceVersion,
+            dpopNonceGeneration,
         }),
         request,
         account,
