@@ -22,6 +22,8 @@ import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth
 import { AuthFlowErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
 import { UnexpectedError } from "../../../src/custom_auth/core/error/UnexpectedError.js";
 import { CustomAuthApiError } from "../../../src/custom_auth/core/error/CustomAuthApiError.js";
+import { CustomAuthError } from "../../../src/custom_auth/core/error/CustomAuthError.js";
+import { UNSUPPORTED_FLOW_TRANSITION } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 import {
@@ -519,7 +521,7 @@ describe("Sign-up V2 entry", () => {
                 "Expected the password requested after verification."
             );
         }
-        expect(result.state.requiredPasswordAttribute).toEqual(
+        expect(result.state.requestedPasswordAttribute).toEqual(
             PASSWORD_AND_PROFILE_REQUIRED_RESPONSE.attributes[0]
         );
         expect(result.state.attributes).toEqual(
@@ -987,7 +989,7 @@ describe("Sign-up V2 entry", () => {
         expect(verifyResult.error).toBeUndefined();
         expect(verifyResult.state).toBeInstanceOf(PasswordRequiredStateV2);
         if (verifyResult.isState("passwordRequired")) {
-            expect(verifyResult.state.requiredPasswordAttribute).toEqual({
+            expect(verifyResult.state.requestedPasswordAttribute).toEqual({
                 attributeId: "password",
                 inputType: "password",
                 required: true,
@@ -1037,37 +1039,70 @@ describe("Sign-up V2 entry", () => {
         });
     });
 
+    it("rejects a first password request after profile submission", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse(FLAT_USERNAME_REQUIRED_RESPONSE)
+            )
+            .mockResolvedValueOnce(
+                buildResponse({
+                    ...PASSWORD_AND_PROFILE_REQUIRED_RESPONSE,
+                    attributes: [
+                        { attributeId: "PaSsWoRd", required: true },
+                        { attributeId: "surname", required: true },
+                    ],
+                })
+            );
+
+        const startResult = await app.signUpV2({
+            username: "user@contoso.com",
+            correlationId: "corr-1",
+        });
+        if (!startResult.isState("codeRequired")) {
+            throw new Error("Expected email verification first.");
+        }
+        const verifyResult = await startResult.state.submitCode("12345678");
+        if (!verifyResult.isState("attributesRequired")) {
+            throw new Error("Expected profile collection.");
+        }
+        const result = await verifyResult.state.submitAttributes({
+            username: "test-user",
+            givenName: "Test",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.isPasswordRequired()).toBe(false);
+        expect(result.error?.errorData).toBeInstanceOf(CustomAuthError);
+        expect(result.error?.errorData).not.toBeInstanceOf(CustomAuthApiError);
+        expect(result.error?.errorData).toMatchObject({
+            error: UNSUPPORTED_FLOW_TRANSITION,
+            correlationId: "corr-1",
+        });
+        expect(fetch).toHaveBeenCalledTimes(4);
+    });
+
     it.each([
-        [false, false, false],
-        [false, true, false],
-        [true, false, false],
-        [true, true, false],
-        [true, false, true],
+        [false, false],
+        [true, false],
+        [true, true],
     ])(
-        "follows repeated server collection (password %s -> %s, empty %s) before explicit sign-in",
-        async (initialPassword, nextPassword, empty) => {
+        "follows repeated profile collection (initial password %s, empty %s) before explicit sign-in",
+        async (initialPassword, empty) => {
             const claims = JSON.stringify({
                 id_token: { auth_time: { essential: true } },
             });
             const initialResponse = initialPassword
                 ? PASSWORD_AND_PROFILE_REQUIRED_RESPONSE
                 : FLAT_USERNAME_REQUIRED_RESPONSE;
-            const requiredPasswordAttribute = {
-                attributeId: "PaSsWoRd",
-                inputType: "password",
-                required: true,
-                confirmationInput: "retype",
-            };
             const attributes = empty
                 ? []
                 : [{ attributeId: "surname", required: true }];
             const nextResponse = {
                 ...FLAT_USERNAME_REQUIRED_RESPONSE,
                 continuationToken: "ct-next",
-                attributes: [
-                    ...(nextPassword ? [requiredPasswordAttribute] : []),
-                    ...attributes,
-                ],
+                attributes,
                 _links: {
                     submitAttributes: {
                         href: "/tenant/api/v0.1/signup/next",
@@ -1111,12 +1146,11 @@ describe("Sign-up V2 entry", () => {
                 : undefined;
             if (
                 !collectionResult ||
-                (!collectionResult.isState("attributesRequired") &&
-                    !collectionResult.isPasswordRequired())
+                !collectionResult.isState("attributesRequired")
             ) {
                 throw new Error("Expected another successful collection.");
             }
-            expect(collectionResult.isPasswordRequired()).toBe(nextPassword);
+            expect(collectionResult.isPasswordRequired()).toBe(false);
             expect(collectionResult.state.attributes).toEqual(attributes);
             expect(collectionResult.error).toBeUndefined();
             expect(collectionResult.data).toBeUndefined();
@@ -1130,6 +1164,12 @@ describe("Sign-up V2 entry", () => {
                 links: {
                     submitAttributes: nextResponse._links.submitAttributes.href,
                 },
+                signUp: {
+                    submittedAttributeIds: [
+                        ...Object.keys(profile),
+                        ...(initialPassword ? ["password"] : []),
+                    ],
+                },
             });
             expect(
                 collectionResult.state["stateParameters"]
@@ -1138,20 +1178,11 @@ describe("Sign-up V2 entry", () => {
                 username: "test-user",
                 givenName: "Test",
             });
-            if (collectionResult.isPasswordRequired()) {
-                expect(
-                    collectionResult.state.requiredPasswordAttribute
-                ).toEqual(requiredPasswordAttribute);
-            }
             const nextAttributes: customAuth.UserAccountAttributes = empty
                 ? {}
                 : { surname: "User" };
-            const continuationResult = collectionResult.isPasswordRequired()
-                ? await collectionResult.state.submitPassword(
-                      "new-password",
-                      nextAttributes
-                  )
-                : await collectionResult.state.submitAttributes(nextAttributes);
+            const continuationResult =
+                await collectionResult.state.submitAttributes(nextAttributes);
             if (!continuationResult.isState("signInContinuation")) {
                 throw new Error("Expected explicit sign-in continuation.");
             }
@@ -1180,10 +1211,7 @@ describe("Sign-up V2 entry", () => {
             expect(String(requests[4][0])).toContain("/signup/next");
             expect(JSON.parse(requests[4][1].body)).toEqual({
                 continuationToken: "ct-next",
-                attributes: {
-                    ...nextAttributes,
-                    ...(nextPassword ? { password: "new-password" } : {}),
-                },
+                attributes: nextAttributes,
             });
             expect(requests[3][1].headers["client-request-id"]).toBe("corr-1");
             expect(requests[4][1].headers["client-request-id"]).toBe("corr-1");
@@ -1197,6 +1225,75 @@ describe("Sign-up V2 entry", () => {
                     "continuation_token"
                 )
             ).toBe("ct-final");
+        }
+    );
+
+    it.each(["PaSsWoRd", "givenName", "surname"])(
+        "fails instead of prompting for %s again after password and profile collection",
+        async (attributeId) => {
+            const nextAttributesResponse = {
+                ...FLAT_USERNAME_REQUIRED_RESPONSE,
+                continuationToken: "ct-profile",
+                attributes: [{ attributeId: "surname", required: true }],
+                _links: {
+                    submitAttributes: { href: "/signup/profile" },
+                },
+            };
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(PASSWORD_AND_PROFILE_REQUIRED_RESPONSE)
+                )
+                .mockResolvedValueOnce(buildResponse(nextAttributesResponse))
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        ...nextAttributesResponse,
+                        continuationToken: "ct-repeat",
+                        attributes: [
+                            { attributeId },
+                            { attributeId: "city", required: true },
+                        ],
+                    })
+                );
+
+            const startResult = await app.signUpV2({
+                username: "user@contoso.com",
+                correlationId: "corr-1",
+            });
+            if (!startResult.isState("codeRequired")) {
+                throw new Error("Expected email verification first.");
+            }
+            const verifyResult = await startResult.state.submitCode("12345678");
+            if (!verifyResult.isPasswordRequired()) {
+                throw new Error("Expected password collection.");
+            }
+            const profileResult = await verifyResult.state.submitPassword(
+                "valid-password",
+                { givenName: "Test" }
+            );
+            if (!profileResult.isState("attributesRequired")) {
+                throw new Error("Expected new profile attributes.");
+            }
+            const result = await profileResult.state.submitAttributes({
+                surname: "User",
+            });
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.state).toBeInstanceOf(FailedStateV2);
+            expect(result.isPasswordRequired()).toBe(false);
+            expect(result.error?.errorData).toBeInstanceOf(CustomAuthError);
+            expect(result.error?.errorData).not.toBeInstanceOf(
+                CustomAuthApiError
+            );
+            expect(result.error?.errorData).toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+                correlationId: "corr-1",
+            });
+            expect(result.error?.isInvalidInput()).toBe(false);
+            expect(result.scenario).toBe("signUp");
+            expect(fetch).toHaveBeenCalledTimes(5);
+            expect(app.getAllAccounts()).toHaveLength(0);
         }
     );
 

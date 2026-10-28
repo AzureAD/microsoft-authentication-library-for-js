@@ -29,4 +29,7 @@ export interface FlowContinuationStateV2 {
     scenario: CustomAuthFlowScenarioV2;
     scopes: string[];
     links: FlowLinksV2;
+    signUp?: {
+        submittedAttributeIds: readonly string[];
+    };
 }

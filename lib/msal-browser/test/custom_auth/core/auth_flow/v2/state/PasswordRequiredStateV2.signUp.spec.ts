@@ -13,7 +13,6 @@ import {
     FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
-    FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { PasswordRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
@@ -61,7 +60,7 @@ describe("PasswordRequiredStateV2 sign-up", () => {
                     required: true,
                 },
             ],
-            requiredPasswordAttribute: {
+            requestedPasswordAttribute: {
                 attributeId: "password",
                 inputType: "password",
                 required: true,
@@ -120,59 +119,38 @@ describe("PasswordRequiredStateV2 sign-up", () => {
         expect(flowClient.submitSignUpAttributes).not.toHaveBeenCalled();
     });
 
-    it.each(["attributesRequired", "passwordRequired"] as const)(
-        "returns fresh %s metadata and preserves the handler after password submission",
-        async (type) => {
-            const attributes = [{ attributeId: "surname", required: true }];
-            const requiredPasswordAttribute = {
-                attributeId: "password",
-                required: true,
-            };
-            const nextContinuationState = {
-                ...continuationState,
-                continuationToken: "ct-next",
-                links: { submitAttributes: "/signup/next" },
-            };
-            flowClient.submitSignUpAttributes.mockResolvedValue({
-                ...(type === "attributesRequired"
-                    ? { type: FLOW_ATTRIBUTES_REQUIRED_V2 }
-                    : {
-                          type: FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
-                          requiredPasswordAttribute,
-                      }),
-                correlationId,
-                continuationState: nextContinuationState,
-                attributes,
-            });
+    it("returns fresh profile metadata and preserves the handler after password submission", async () => {
+        const attributes = [{ attributeId: "surname", required: true }];
+        const nextContinuationState = {
+            ...continuationState,
+            continuationToken: "ct-next",
+            links: { submitAttributes: "/signup/next" },
+        };
+        flowClient.submitSignUpAttributes.mockResolvedValue({
+            type: FLOW_ATTRIBUTES_REQUIRED_V2,
+            correlationId,
+            continuationState: nextContinuationState,
+            attributes,
+        });
 
-            const state = buildState();
-            const result = await state.submitPassword("valid-password");
+        const state = buildState();
+        const result = await state.submitPassword("valid-password");
 
-            if (!result.isState(type)) {
-                throw new Error(`Expected ${type}.`);
-            }
-            expect(result.state).toBeInstanceOf(
-                type === "attributesRequired"
-                    ? AttributesRequiredStateV2
-                    : PasswordRequiredStateV2
-            );
-            expect(result.state.attributes).toEqual(attributes);
-            expect(result.state["stateParameters"].continuationState).toEqual(
-                nextContinuationState
-            );
-            expect(
-                result.state["stateParameters"].signUpStateTransitionHandler
-            ).toBe(state["stateParameters"].signUpStateTransitionHandler);
-            if (result.isPasswordRequired()) {
-                expect(result.state.requiredPasswordAttribute).toEqual(
-                    requiredPasswordAttribute
-                );
-            }
-            expect(result.error).toBeUndefined();
-            expect(result.data).toBeUndefined();
-            expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);
+        if (!result.isState("attributesRequired")) {
+            throw new Error("Expected profile collection.");
         }
-    );
+        expect(result.state).toBeInstanceOf(AttributesRequiredStateV2);
+        expect(result.state.attributes).toEqual(attributes);
+        expect(result.state["stateParameters"].continuationState).toEqual(
+            nextContinuationState
+        );
+        expect(
+            result.state["stateParameters"].signUpStateTransitionHandler
+        ).toBe(state["stateParameters"].signUpStateTransitionHandler);
+        expect(result.error).toBeUndefined();
+        expect(result.data).toBeUndefined();
+        expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);
+    });
 
     it("returns registration when deferred password submission requires enrollment", async () => {
         flowClient.submitSignUpAttributes.mockResolvedValue({

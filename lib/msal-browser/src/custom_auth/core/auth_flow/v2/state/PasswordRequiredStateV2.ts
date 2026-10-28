@@ -34,13 +34,13 @@ export class PasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<Pas
 
     readonly attributes: readonly SignUpAttributeV2[];
 
-    readonly requiredPasswordAttribute?: SignUpAttributeV2;
+    readonly requestedPasswordAttribute?: SignUpAttributeV2;
 
     constructor(stateParameters: PasswordRequiredStateParametersV2) {
         super(stateParameters);
         this.attributes = stateParameters.attributes ?? [];
-        this.requiredPasswordAttribute =
-            stateParameters.requiredPasswordAttribute;
+        this.requestedPasswordAttribute =
+            stateParameters.requestedPasswordAttribute;
     }
 
     /**

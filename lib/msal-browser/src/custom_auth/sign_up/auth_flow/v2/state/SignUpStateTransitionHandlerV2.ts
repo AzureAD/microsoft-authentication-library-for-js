@@ -37,7 +37,8 @@ export class SignUpStateTransitionHandlerV2 {
                 new PasswordRequiredStateV2({
                     ...commonStateParameters,
                     attributes: result.attributes,
-                    requiredPasswordAttribute: result.requiredPasswordAttribute,
+                    requestedPasswordAttribute:
+                        result.requestedPasswordAttribute,
                 }),
                 undefined,
                 result.continuationState.scenario

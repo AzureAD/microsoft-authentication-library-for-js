@@ -276,7 +276,7 @@ describe("CodeRequiredStateV2", () => {
                 ...(nextState === "passwordRequired"
                     ? {
                           type: FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
-                          requiredPasswordAttribute: {
+                          requestedPasswordAttribute: {
                               attributeId: "password",
                               required: true,
                           },
@@ -363,7 +363,7 @@ describe("CodeRequiredStateV2", () => {
     });
 
     it("returns password required after verifying a sign-up code", async () => {
-        const requiredPasswordAttribute = {
+        const requestedPasswordAttribute = {
             attributeId: "password",
             inputType: "password",
             required: true,
@@ -381,7 +381,7 @@ describe("CodeRequiredStateV2", () => {
                 },
             },
             attributes: [],
-            requiredPasswordAttribute,
+            requestedPasswordAttribute,
         });
 
         const result = await buildSignUpState().submitCode("12345678");
@@ -389,8 +389,8 @@ describe("CodeRequiredStateV2", () => {
         expect(result.isState("passwordRequired")).toBe(true);
         expect(result.state).toBeInstanceOf(PasswordRequiredStateV2);
         if (result.isState("passwordRequired")) {
-            expect(result.state.requiredPasswordAttribute).toEqual(
-                requiredPasswordAttribute
+            expect(result.state.requestedPasswordAttribute).toEqual(
+                requestedPasswordAttribute
             );
         }
     });
