@@ -1,8 +1,38 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 13 Oct 2026 19:04:35 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 27 Oct 2026 18:15:10 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.27.0
+
+Tue, 27 Oct 2026 18:15:10 GMT
+
+### Minor changes
+
+- Add the pocd (popup origin check done) parameter to authorize and end-session requests, preserving computed parameter precedence [#8793](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8793) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.15.0
+
+### Patches
+
+- Improve redirect response URL cleanup [#8918](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8918) (lalima.sharda@gmail.com)
+
+## 5.26.0
+
+Wed, 21 Oct 2026 18:37:16 GMT
+
+### Minor changes
+
+- Add Native Auth V2 authorization inputs and challenge validation fixes [#8898](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8898) (yongdiwang@microsoft.com)
+- Unify Native Auth V2 authentication method selection [#8899](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8899) (yongdiwang@microsoft.com)
+- Expose required and invalid Native Auth V2 attribute IDs [#8900](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8900) (yongdiwang@microsoft.com)
+- Bump @azure/msal-common to v16.14.3
+
+### Patches
+
+- Fall back from EAR to authorization code flow with PKCE in Safari [#8903](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8903) (shylasummers@microsoft.com)
+- Improve consistency of concurrent silent token requests [#8919](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8919) (sameera.gajjarapu@microsoft.com)
+- Identify Nested App Auth performance events with the NAA bridge type [#8864](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8864) (Sameera.Gajjarapu@microsoft.com)
 
 ## 5.25.1
 

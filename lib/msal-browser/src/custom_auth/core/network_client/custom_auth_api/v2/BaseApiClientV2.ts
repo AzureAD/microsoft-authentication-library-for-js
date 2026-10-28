@@ -34,7 +34,7 @@ import {
     CONTINUATION_TOKEN_MISSING,
     HTTP_REQUEST_FAILED,
     INVALID_TOKEN_RESPONSE,
-    REDIRECT_TO_WEB,
+    WEB_REDIRECT_REQUIRED,
 } from "./ErrorCodesV2.js";
 import {
     RequestContextV2,
@@ -75,7 +75,8 @@ export abstract class BaseApiClientV2 {
      */
     async authorizeChallengeStart(
         context: RequestContextV2,
-        scopes?: string[]
+        scopes?: string[],
+        claims?: string
     ): Promise<AuthorizeChallengeEntryResultV2> {
         const request: AuthorizeChallengeEntryRequestV2 = {
             client_id: this.clientId,
@@ -83,6 +84,10 @@ export abstract class BaseApiClientV2 {
 
         if (scopes?.length) {
             request.scope = scopes.join(" ");
+        }
+
+        if (claims) {
+            request.claims = claims;
         }
 
         const parsedResponse =
@@ -137,7 +142,7 @@ export abstract class BaseApiClientV2 {
             context
         );
 
-        return this.token(code, request.scopes, context);
+        return this.token(code, context);
     }
 
     /*
@@ -183,7 +188,6 @@ export abstract class BaseApiClientV2 {
      */
     protected async token(
         code: string,
-        scopes: string[],
         context: RequestContextV2
     ): Promise<TokenResponseV2> {
         const request: TokenRequestV2 = {
@@ -193,10 +197,6 @@ export abstract class BaseApiClientV2 {
             // Required so the server returns the client_info blob MSAL uses to build the home account id.
             client_info: "1",
         };
-
-        if (scopes.length > 0) {
-            request.scope = scopes.join(" ");
-        }
 
         const parsedResponse = await this.postOAuthForm<TokenResponseV2>(
             SIGNIN_TOKEN,
@@ -344,12 +344,13 @@ export abstract class BaseApiClientV2 {
             serverError.message ?? "",
             serverError.correlationId ?? correlationId,
             serverError.errorCodes,
-            serverError.innerErrorCode,
+            serverError.subError,
             undefined,
             undefined,
             serverError.traceId,
             serverError.timestamp,
-            serverError.attributeValidationDetails
+            serverError.attributeValidationDetails,
+            serverError.innerErrorCode
         );
     }
 
@@ -357,11 +358,12 @@ export abstract class BaseApiClientV2 {
         parsedResponse: ParsedResponseV2<unknown>
     ): void {
         if (parsedResponse.isWebFallbackRequired) {
-            throw new CustomAuthApiError(
-                REDIRECT_TO_WEB,
-                "The server requires the flow to continue in a web browser",
-                parsedResponse.correlationId
-            );
+            if (parsedResponse.error?.subError === WEB_REDIRECT_REQUIRED) {
+                throw this.toApiError(
+                    parsedResponse.error,
+                    parsedResponse.correlationId
+                );
+            }
         }
     }
 

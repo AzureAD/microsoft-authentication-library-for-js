@@ -6,7 +6,6 @@
 import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
 import type { FailedStateV2 } from "../../../../core/auth_flow/v2/state/FailedStateV2.js";
 import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
-import type { SubmitNewPasswordErrorV2 } from "../error_type/SubmitNewPasswordErrorV2.js";
 
 /**
  * The states a submit-new-password action can resolve to. Submitting the new
@@ -21,13 +20,10 @@ export type SubmitNewPasswordResultStateV2 =
 
 /**
  * Result of submitting a new password. It wraps one of
- * {@link SubmitNewPasswordResultStateV2} plus, on failure, a
- * {@link SubmitNewPasswordErrorV2}. Submitting completes the reset but does not
- * sign the user in, so a successful result reaches
- * `SignInContinuationStateV2` and carries no account data; the account is
- * surfaced by the subsequent sign-in.
+ * {@link SubmitNewPasswordResultStateV2} plus the unified V2 flow error on
+ * failure. Submitting completes the reset but does not sign the user in, so a
+ * successful result reaches `SignInContinuationStateV2` and carries no account
+ * data; the account is surfaced by the subsequent sign-in.
  */
-export type SubmitNewPasswordResultV2 = CustomAuthResultV2<
-    SubmitNewPasswordResultStateV2,
-    SubmitNewPasswordErrorV2
->;
+export type SubmitNewPasswordResultV2 =
+    CustomAuthResultV2<SubmitNewPasswordResultStateV2>;

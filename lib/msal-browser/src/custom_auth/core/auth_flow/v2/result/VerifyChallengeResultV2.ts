@@ -4,7 +4,6 @@
  */
 
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import type { VerifyChallengeErrorV2 } from "../error/VerifyChallengeErrorV2.js";
 import type { NewPasswordRequiredStateV2 } from "../../../../reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import type { FailedStateV2 } from "../state/FailedStateV2.js";
 import type { CompletedStateV2 } from "../state/CompletedStateV2.js";
@@ -12,7 +11,7 @@ import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/Cu
 import type { AttributesRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import type { SignUpPasswordRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
-import type { MFARequiredStateV2 } from "../state/MFARequiredStateV2.js";
+import type { AuthMethodSelectionRequiredStateV2 } from "../state/AuthMethodSelectionRequiredStateV2.js";
 
 /**
  * The states a verify-challenge action can resolve to. Verifying the one-time
@@ -24,17 +23,16 @@ export type VerifyChallengeResultStateV2 =
     | SignUpPasswordRequiredStateV2
     | AttributesRequiredStateV2
     | SignInContinuationStateV2
-    | MFARequiredStateV2
+    | AuthMethodSelectionRequiredStateV2
     | CompletedStateV2
     | FailedStateV2;
 
 /**
  * Result of verifying a challenge. It wraps one of
- * {@link VerifyChallengeResultStateV2} plus, on failure, a
- * {@link VerifyChallengeErrorV2}.
+ * {@link VerifyChallengeResultStateV2} plus, on failure, the unified V2 flow
+ * error.
  */
 export type VerifyChallengeResultV2 = CustomAuthResultV2<
     VerifyChallengeResultStateV2,
-    VerifyChallengeErrorV2,
     CustomAuthAccountData | undefined
 >;

@@ -9,14 +9,10 @@ import { CustomAuthError } from "../../error/CustomAuthError.js";
 import { MsalCustomAuthError } from "../../error/MsalCustomAuthError.js";
 import { UnexpectedError } from "../../error/UnexpectedError.js";
 import { FailedStateV2 } from "./state/FailedStateV2.js";
-import { AuthFlowErrorBaseV2 } from "./error/AuthFlowErrorBaseV2.js";
+import { AuthFlowErrorV2 } from "./error/AuthFlowErrorV2.js";
 import { CustomAuthFlowScenarioV2 } from "./CustomAuthFlowScenarioV2.js";
 
-type CreateWithErrorOptions<TError extends AuthFlowErrorBaseV2> = {
-    errorType: new (
-        errorData: CustomAuthError,
-        scenario?: CustomAuthFlowScenarioV2
-    ) => TError;
+type CreateWithErrorOptions = {
     scenario?: CustomAuthFlowScenarioV2;
     correlationId?: string;
 };
@@ -27,7 +23,6 @@ type CreateWithErrorOptions<TError extends AuthFlowErrorBaseV2> = {
  */
 export class CustomAuthResultV2<
     TState extends AuthFlowStateBase,
-    TError extends AuthFlowErrorBaseV2,
     TData = void
 > {
     constructor(
@@ -36,7 +31,7 @@ export class CustomAuthResultV2<
         public readonly scenario: CustomAuthFlowScenarioV2 = CustomAuthFlowScenarioV2.Unknown
     ) {}
 
-    error?: TError;
+    error?: AuthFlowErrorV2;
 
     /**
      * Narrows the result to a specific state by its `stateType` discriminator.
@@ -52,7 +47,7 @@ export class CustomAuthResultV2<
 
     /**
      * Checks whether the result is in the terminal failed state. A failed result
-     * contains the flow-specific error.
+     * contains the unified V2 flow error.
      * @returns True (and narrows `state`) when the operation failed.
      */
     isFailed(): this is this & {
@@ -63,35 +58,28 @@ export class CustomAuthResultV2<
 
     /**
      * Creates a failed result from the supplied error. The result uses the
-     * shared {@link FailedStateV2} terminal state.
+     * shared {@link FailedStateV2} terminal state and unified V2 flow error.
      * @param error - The error that occurred.
-     * @param options - The flow-error type and error context.
-     * @returns A failed result carrying the flow-specific error.
+     * @param options - The flow-error context.
+     * @returns A failed result carrying the unified V2 flow error.
      */
-    static createWithError<
-        TState extends AuthFlowStateBase,
-        TError extends AuthFlowErrorBaseV2,
-        TData = void
-    >(
+    static createWithError<TState extends AuthFlowStateBase, TData = void>(
         error: unknown,
-        options: CreateWithErrorOptions<TError>
-    ): CustomAuthResultV2<TState | FailedStateV2, TError, TData> {
-        const {
-            errorType: ErrorType,
-            scenario = CustomAuthFlowScenarioV2.Unknown,
-            correlationId,
-        } = options;
+        options: CreateWithErrorOptions
+    ): CustomAuthResultV2<TState | FailedStateV2, TData> {
+        const { scenario = CustomAuthFlowScenarioV2.Unknown, correlationId } =
+            options;
         const errorData = CustomAuthResultV2.createErrorData(
             error,
             correlationId
         );
-        const flowError = new ErrorType(errorData, scenario);
+        const flowError = new AuthFlowErrorV2(errorData, scenario);
 
-        const result = new CustomAuthResultV2<
-            TState | FailedStateV2,
-            TError,
-            TData
-        >(new FailedStateV2(), undefined, scenario);
+        const result = new CustomAuthResultV2<TState | FailedStateV2, TData>(
+            new FailedStateV2(),
+            undefined,
+            scenario
+        );
         result.error = flowError;
 
         return result;

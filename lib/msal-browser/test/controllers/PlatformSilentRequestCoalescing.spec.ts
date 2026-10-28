@@ -847,16 +847,6 @@ describe("platform broker silent request coalescing", () => {
     it.each([
         ["identical parameters", {}],
         ["correlation ID", { correlationId: "different" }],
-        ["forceRefresh", { forceRefresh: true }],
-        [
-            "cache lookup policy",
-            { cacheLookupPolicy: CacheLookupPolicy.AccessToken },
-        ],
-        ["extra parameters", { extraParameters: { custom: "different" } }],
-        [
-            "extra query parameters",
-            { extraQueryParameters: { custom: "different" } },
-        ],
         ["state", { state: "different" }],
         ["scope order", { scopes: ["Mail.Read", "User.Read"] }],
         ["scope casing", { scopes: ["user.read", "Mail.Read"] }],

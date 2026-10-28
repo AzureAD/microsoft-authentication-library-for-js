@@ -29,6 +29,7 @@ export interface OAuthErrorResponseV2 {
     error?: string;
     error_description?: string;
     error_codes?: number[];
+    suberror?: string;
     timestamp?: string;
     trace_id?: string;
     correlation_id?: string;
@@ -42,6 +43,7 @@ export interface ServerErrorV2 {
     code: string;
     message?: string;
     innerErrorCode?: string;
+    subError?: string;
     errorCodes?: number[];
     correlationId?: string;
     traceId?: string;
