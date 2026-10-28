@@ -193,6 +193,9 @@ DPoP resource proofs are generated from the request method, normalized resource 
 
 ### Resource-server nonce challenges
 
+> [!WARNING]
+> DPoP nonce support is under development and is not ready for production use. MSAL can manage nonce state for proof generation, but end-to-end support depends on the authorization server and resource server.
+
 A DPoP nonce is an opaque freshness value that an authorization server or resource server may require in the next proof. Enforcement is optional and can vary by resource; this example handles a resource-server challenge.
 
 For cross-origin requests, the resource server must include `DPoP-Nonce` in its `Access-Control-Expose-Headers` response header. Without this CORS response header, browser code cannot read the nonce.
@@ -245,14 +248,7 @@ async function callResource(): Promise<Response> {
 }
 ```
 
-`loadDpopNonce` is part of `IPublicClientApplication`. There is no token-cache accessor for DPoP nonce state. Support varies by operating context:
-
-| Operating context | Status | Current behavior |
-| ----------------- | ------ | ---------------- |
-| Standard browser PCA | Supported | Stores the nonce in PCA-local memory, with a temporary `sessionStorage` handoff for full-page redirects. |
-| NAA/nestable PCA | Pending support | `loadDpopNonce` currently rejects the operation. |
-| WAM/native broker | Pending support | Resource-server nonces are not currently forwarded to the broker. |
-| Pairwise Broker (PWB) | Pending support | Resource-server nonces are not currently forwarded to the broker. |
+`loadDpopNonce` is part of `IPublicClientApplication`. There is no token-cache accessor for DPoP nonce state.
 
 MSAL stores resource-server nonces only in memory, scoped to the `PublicClientApplication` instance and normalized HTTPS resource origin. The state is bounded and is cleared with the application cache; it is not shared across tabs or application instances and is not written to browser or custom cache storage.
 
