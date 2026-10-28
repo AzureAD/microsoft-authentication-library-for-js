@@ -79,7 +79,7 @@ describe("silent request preparation", () => {
         expect(input.request.correlationId).toBeUndefined();
     });
 
-    it("includes only the matching DPoP nonce version in the web request key", () => {
+    it("includes only the matching DPoP nonce generation in the web request key", () => {
         input.request = {
             scopes: ["User.Read"],
             authenticationScheme: Constants.AuthenticationScheme.DPOP,
@@ -88,7 +88,7 @@ describe("silent request preparation", () => {
         };
         const getDpopNonce = jest.fn().mockReturnValue({
             nonce: "opaque-nonce",
-            version: 7,
+            generation: 7,
         });
 
         const prepared = prepareWebSilentRequest(input, {
@@ -96,7 +96,7 @@ describe("silent request preparation", () => {
         });
 
         expect(JSON.parse(prepared.key)).toMatchObject({
-            dpopNonceVersion: 7,
+            dpopNonceGeneration: 7,
         });
         expect(getDpopNonce).toHaveBeenCalledWith(
             input.request.resourceRequestUri,
@@ -105,7 +105,7 @@ describe("silent request preparation", () => {
         expect(prepared.key).not.toContain("opaque-nonce");
     });
 
-    it("changes the web request key when the matching nonce version changes", () => {
+    it("changes the web request key when the matching nonce generation changes", () => {
         input.request = {
             scopes: ["User.Read"],
             authenticationScheme: Constants.AuthenticationScheme.DPOP,
@@ -115,8 +115,8 @@ describe("silent request preparation", () => {
         const store = {
             getDpopNonce: jest
                 .fn()
-                .mockReturnValueOnce({ nonce: "nonce-1", version: 1 })
-                .mockReturnValueOnce({ nonce: "nonce-2", version: 2 }),
+                .mockReturnValueOnce({ nonce: "nonce-1", generation: 1 })
+                .mockReturnValueOnce({ nonce: "nonce-2", generation: 2 }),
         };
 
         const first = prepareWebSilentRequest(input, store);

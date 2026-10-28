@@ -1516,7 +1516,7 @@ describe("RedirectClient", () => {
             expect(window.sessionStorage.getItem(handoffCacheKey)).toBeNull();
             expect(finalPageCache.getDpopNonce(resourceRequestUri)).toEqual({
                 nonce: "redirect-nonce",
-                version: 1,
+                generation: 1,
             });
         });
 

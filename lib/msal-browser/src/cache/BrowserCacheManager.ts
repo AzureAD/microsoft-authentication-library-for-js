@@ -40,8 +40,6 @@ import {
     AuthToken,
     getTenantIdFromIdTokenClaims,
     buildTenantProfile,
-    canonicalizeDpopResourceServer,
-    validateDpopNonce,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -79,20 +77,19 @@ import { version } from "../packageMetadata.js";
 import { removeElementFromArray } from "../utils/Helpers.js";
 import { EncryptedData, isEncrypted } from "./EncryptedData.js";
 import {
+    createDpopNonceRecord,
+    createDpopNonceRedirectHandoff,
+    DPOP_NONCE_REDIRECT_HANDOFF,
+    getDpopNonceCacheKey,
     isDpopNonceRecord,
+    isDpopNonceCacheKey,
     isDpopNonceRedirectHandoff,
+    matchesDpopNonceRedirectHandoff,
+    MAX_RESOURCE_SERVER_NONCES,
 } from "./DpopNonceCache.js";
-import type {
-    DpopNonceRecord,
-    DpopNonceRedirectHandoff,
-} from "./DpopNonceCache.js";
+import type { DpopNonceRecord } from "./DpopNonceCache.js";
 
 type KmsiMap = { [homeAccountId: string]: boolean };
-
-const DPOP_NONCE_CACHE_PREFIX = "dpop.nonce.";
-const DPOP_NONCE_REDIRECT_HANDOFF = "dpop.nonce.redirect";
-const MAX_RESOURCE_SERVER_NONCES = 50;
-const REDIRECT_HANDOFF_TTL_MS = 5 * 60 * 1000;
 
 /**
  * Reason an old-schema cache entry was removed during migration.
@@ -129,7 +126,8 @@ export class BrowserCacheManager extends CacheManager {
     protected logger: Logger;
     // Event Handler
     private eventHandler: EventHandler;
-    private dpopNonceVersion = 0;
+    // PCA-local generation used to distinguish silent requests after nonce updates.
+    private dpopNonceGeneration = 0;
 
     constructor(
         clientId: string,
@@ -1894,15 +1892,16 @@ export class BrowserCacheManager extends CacheManager {
         dpopNonce: string,
         correlationId: string = ""
     ): void {
-        const resourceServer = canonicalizeDpopResourceServer(
+        const cacheKey = getDpopNonceCacheKey(
             resourceRequestUri,
             correlationId
         );
-        const record: DpopNonceRecord = {
-            nonce: validateDpopNonce(dpopNonce, correlationId),
-            version: ++this.dpopNonceVersion,
-        };
-        const cacheKey = `${DPOP_NONCE_CACHE_PREFIX}${resourceServer}`;
+        const record = createDpopNonceRecord(
+            dpopNonce,
+            this.dpopNonceGeneration + 1,
+            correlationId
+        );
+        this.dpopNonceGeneration = record.generation;
 
         // Reinsert replacements so eviction remains oldest-write ordered.
         this.internalStorage.removeItem(cacheKey);
@@ -1910,7 +1909,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const nonceKeys = this.internalStorage
             .getKeys()
-            .filter((key) => key.startsWith(DPOP_NONCE_CACHE_PREFIX));
+            .filter(isDpopNonceCacheKey);
         if (nonceKeys.length > MAX_RESOURCE_SERVER_NONCES) {
             this.internalStorage.removeItem(nonceKeys[0]);
             this.performanceClient.incrementFields(
@@ -1930,12 +1929,8 @@ export class BrowserCacheManager extends CacheManager {
         resourceRequestUri: string,
         correlationId: string = ""
     ): DpopNonceRecord | undefined {
-        const resourceServer = canonicalizeDpopResourceServer(
-            resourceRequestUri,
-            correlationId
-        );
         const serializedRecord = this.internalStorage.getItem(
-            `${DPOP_NONCE_CACHE_PREFIX}${resourceServer}`
+            getDpopNonceCacheKey(resourceRequestUri, correlationId)
         );
         if (!serializedRecord) {
             return undefined;
@@ -1958,22 +1953,17 @@ export class BrowserCacheManager extends CacheManager {
             return;
         }
 
-        const resourceServer = canonicalizeDpopResourceServer(
-            resourceRequestUri,
-            correlationId
-        );
-        const record = this.getDpopNonce(resourceServer, correlationId);
+        const record = this.getDpopNonce(resourceRequestUri, correlationId);
         if (!record) {
             return;
         }
 
-        const handoff: DpopNonceRedirectHandoff = {
-            nonce: record.nonce,
-            resourceServer,
+        const handoff = createDpopNonceRedirectHandoff(
+            resourceRequestUri,
+            record.nonce,
             state,
-            correlationId,
-            expiresAt: Date.now() + REDIRECT_HANDOFF_TTL_MS,
-        };
+            correlationId
+        );
 
         if (this.temporaryCacheStorage instanceof MemoryStorage) {
             this.performanceClient.incrementFields(
@@ -2050,14 +2040,12 @@ export class BrowserCacheManager extends CacheManager {
 
         const handoff = parsedHandoff;
         if (
-            handoff.expiresAt < Date.now() ||
-            handoff.state !== state ||
-            handoff.correlationId !== correlationId ||
-            handoff.resourceServer !==
-                canonicalizeDpopResourceServer(
-                    resourceRequestUri,
-                    correlationId
-                )
+            !matchesDpopNonceRedirectHandoff(
+                handoff,
+                resourceRequestUri,
+                state,
+                correlationId
+            )
         ) {
             return;
         }
@@ -2097,7 +2085,7 @@ export class BrowserCacheManager extends CacheManager {
     clearDpopNonces(correlationId: string = ""): void {
         this.internalStorage
             .getKeys()
-            .filter((key) => key.startsWith(DPOP_NONCE_CACHE_PREFIX))
+            .filter(isDpopNonceCacheKey)
             .forEach((key) => this.internalStorage.removeItem(key));
         this.clearDpopNonceRedirectHandoff(correlationId);
     }
