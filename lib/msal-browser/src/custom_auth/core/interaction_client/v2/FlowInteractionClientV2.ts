@@ -622,7 +622,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             this.resolveStepApiId(
                 continuationState.scenario,
                 "submitCode",
-                correlationId
+                correlationId,
+                parameters.authenticationFactor
             ),
             correlationId
         );
@@ -1400,7 +1401,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             this.resolveStepApiId(
                 continuationState.scenario,
                 step,
-                correlationId
+                correlationId,
+                parameters.authenticationFactor
             ),
             correlationId
         );
@@ -1464,9 +1466,10 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     private resolveStepApiId(
         scenario: CustomAuthFlowScenarioV2,
         step: FlowStepV2,
-        correlationId: string
+        correlationId: string,
+        authenticationFactor?: AuthenticationFactorV2
     ): number {
-        const apiId = getPublicApiIdV2(scenario, step);
+        const apiId = getPublicApiIdV2(scenario, step, authenticationFactor);
 
         if (apiId === undefined) {
             const message = `No telemetry API id is registered for step '${step}' of the '${scenario}' flow.`;

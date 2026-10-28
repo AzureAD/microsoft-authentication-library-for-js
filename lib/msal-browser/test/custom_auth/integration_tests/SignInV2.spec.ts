@@ -19,6 +19,15 @@ import {
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 import {
+    MFA_V2_RESEND_CHALLENGE,
+    MFA_V2_SELECT_AUTH_METHOD,
+    MFA_V2_SUBMIT_CHALLENGE,
+    SIGN_IN_V2_CHALLENGE,
+    SIGN_IN_V2_COMPLETE,
+    SIGN_IN_V2_START,
+    SIGN_IN_V2_SUBMIT_PASSWORD,
+} from "../../../src/custom_auth/core/telemetry/PublicApiId.js";
+import {
     CONTINUE_RESPONSE,
     EMAIL_CHALLENGE_RESPONSE,
     EMAIL_REGISTRATION_ACTIVATION_RESPONSE,
@@ -699,6 +708,31 @@ describe("Sign-in V2", () => {
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
+
+                const expectedApiIds = [
+                    SIGN_IN_V2_START,
+                    SIGN_IN_V2_START,
+                    SIGN_IN_V2_CHALLENGE,
+                    SIGN_IN_V2_SUBMIT_PASSWORD,
+                    MFA_V2_SELECT_AUTH_METHOD,
+                    MFA_V2_RESEND_CHALLENGE,
+                    MFA_V2_SUBMIT_CHALLENGE,
+                    SIGN_IN_V2_COMPLETE,
+                    SIGN_IN_V2_COMPLETE,
+                ];
+                expect(fetch).toHaveBeenCalledTimes(expectedApiIds.length);
+                expectedApiIds.forEach((apiId, index) => {
+                    expect(fetch).toHaveBeenNthCalledWith(
+                        index + 1,
+                        expect.anything(),
+                        expect.objectContaining({
+                            headers: expect.objectContaining({
+                                "x-client-current-telemetry":
+                                    expect.stringContaining(`|${apiId},`),
+                            }),
+                        })
+                    );
+                });
             });
         });
 

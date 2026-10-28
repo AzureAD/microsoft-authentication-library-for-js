@@ -33,6 +33,7 @@ import { FlowContinuationStateV2 } from "../../../../../src/custom_auth/core/int
 import { FlowAuthMethodRegistrationRequiredParamsV2 } from "../../../../../src/custom_auth/core/interaction_client/v2/parameter/FlowParamsV2.js";
 import { CustomAuthAuthority } from "../../../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { CustomAuthApiClientV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
+import { AuthenticationFactorV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import type { ResetPasswordPollResultV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/ResetPasswordResultsV2.js";
 import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import {
@@ -55,6 +56,10 @@ import {
     JIT_V2_ENROLL_AUTH_METHOD,
     JIT_V2_RESEND_CHALLENGE,
     JIT_V2_SUBMIT_CHALLENGE,
+    MFA_V2_RESEND_CHALLENGE,
+    MFA_V2_SELECT_AUTH_METHOD,
+    MFA_V2_SUBMIT_CHALLENGE,
+    SIGN_IN_V2_CHALLENGE,
     SIGN_IN_V2_SUBMIT_CODE,
     SIGN_IN_V2_SUBMIT_PASSWORD,
     SIGN_UP_V2_COMPLETE,
@@ -1071,6 +1076,45 @@ describe("FlowInteractionClientV2", () => {
             links: { challenge: "https://endpoint/challenge" },
         };
 
+        it.each([
+            {
+                authenticationFactor: undefined,
+                expectedApiId: SIGN_IN_V2_CHALLENGE,
+            },
+            {
+                authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
+                expectedApiId: SIGN_IN_V2_CHALLENGE,
+            },
+            {
+                authenticationFactor: AuthenticationFactorV2.MULTI_FACTOR,
+                expectedApiId: MFA_V2_SELECT_AUTH_METHOD,
+            },
+        ])(
+            "uses selection API ID $expectedApiId for sign-in factor $authenticationFactor",
+            async ({ authenticationFactor, expectedApiId }) => {
+                apiClient.requestChallenge.mockResolvedValue({
+                    nextAction: "verify",
+                    continuationToken: "ct-challenge",
+                    verifyHref: "https://endpoint/verify",
+                    type: "email",
+                });
+
+                await client.requestChallenge({
+                    correlationId,
+                    continuationState: {
+                        ...continuationState,
+                        scenario: "signIn",
+                    },
+                    authenticationFactor,
+                });
+
+                const context = apiClient.requestChallenge.mock.calls[0][2];
+                expect(
+                    context.telemetryManager.generateCurrentRequestHeaderValue()
+                ).toContain(`|${expectedApiId},`);
+            }
+        );
+
         it("posts the selected method's challenge href and returns a code-required result", async () => {
             apiClient.requestChallenge.mockResolvedValue({
                 nextAction: "verify",
@@ -1263,15 +1307,6 @@ describe("FlowInteractionClientV2", () => {
         });
 
         it("verifies an MFA code and completes sign-in", async () => {
-            const contextSpy = jest.spyOn(
-                client as unknown as {
-                    createRequestContext: (
-                        apiId: number,
-                        correlationId: string
-                    ) => unknown;
-                },
-                "createRequestContext"
-            );
             const signInContinuationState: FlowContinuationStateV2 = {
                 continuationToken: "ct-mfa-challenge",
                 scenario: "signIn",
@@ -1309,13 +1344,14 @@ describe("FlowInteractionClientV2", () => {
             const result = await client.submitCode({
                 correlationId,
                 continuationState: signInContinuationState,
+                authenticationFactor: "multiFactor",
                 code: "123456",
             });
 
-            expect(contextSpy).toHaveBeenCalledWith(
-                SIGN_IN_V2_SUBMIT_CODE,
-                correlationId
-            );
+            const context = apiClient.verifyChallenge.mock.calls[0][2];
+            expect(
+                context.telemetryManager.generateCurrentRequestHeaderValue()
+            ).toContain(`|${MFA_V2_SUBMIT_CHALLENGE},`);
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
                 {
                     continuationToken: "ct-mfa-verify",
@@ -1357,6 +1393,10 @@ describe("FlowInteractionClientV2", () => {
             });
 
             expect(result.type).toBe(FLOW_MFA_REQUIRED_V2);
+            const context = apiClient.verifyChallenge.mock.calls[0][2];
+            expect(
+                context.telemetryManager.generateCurrentRequestHeaderValue()
+            ).toContain(`|${SIGN_IN_V2_SUBMIT_CODE},`);
             expect((result as FlowMFARequiredResultV2).methods).toEqual([
                 {
                     id: "email-mfa",
@@ -2007,6 +2047,45 @@ describe("FlowInteractionClientV2", () => {
                 resend: "https://endpoint/resend",
             },
         };
+
+        it.each([
+            {
+                authenticationFactor: undefined,
+                expectedApiId: SIGN_IN_V2_CHALLENGE,
+            },
+            {
+                authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
+                expectedApiId: SIGN_IN_V2_CHALLENGE,
+            },
+            {
+                authenticationFactor: AuthenticationFactorV2.MULTI_FACTOR,
+                expectedApiId: MFA_V2_RESEND_CHALLENGE,
+            },
+        ])(
+            "uses resend API ID $expectedApiId for sign-in factor $authenticationFactor",
+            async ({ authenticationFactor, expectedApiId }) => {
+                apiClient.requestChallenge.mockResolvedValue({
+                    nextAction: "verify",
+                    continuationToken: "ct-challenge-2",
+                    verifyHref: "https://endpoint/verify-2",
+                    type: "email",
+                });
+
+                await client.resendCode({
+                    correlationId,
+                    continuationState: {
+                        ...continuationState,
+                        scenario: "signIn",
+                    },
+                    authenticationFactor,
+                });
+
+                const context = apiClient.requestChallenge.mock.calls[0][2];
+                expect(
+                    context.telemetryManager.generateCurrentRequestHeaderValue()
+                ).toContain(`|${expectedApiId},`);
+            }
+        );
 
         it("re-requests the challenge and returns a code-required result", async () => {
             apiClient.requestChallenge.mockResolvedValue({

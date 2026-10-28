@@ -5,7 +5,10 @@
 
 import { FlowContinuationStateV2 } from "../FlowContinuationStateV2.js";
 import { UserAccountAttributes } from "../../../../UserAccountAttributes.js";
-import type { EnrollmentMethodV2 } from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
+import type {
+    AuthenticationFactorV2,
+    EnrollmentMethodV2,
+} from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import type { AuthenticationMethodRegistrationV2 } from "../../../auth_flow/v2/AuthenticationMethodRegistrationV2.js";
 
 /*
@@ -36,11 +39,13 @@ export interface FlowSignUpStartParamsV2 extends FlowStartParamsV2 {
 // Request the challenge for the selected method, sending the one-time code to it.
 export interface FlowChallengeParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
+    authenticationFactor?: AuthenticationFactorV2;
 }
 
 // Submit the one-time code the user received.
 export interface FlowSubmitCodeParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
+    authenticationFactor?: AuthenticationFactorV2;
     code: string;
 }
 
