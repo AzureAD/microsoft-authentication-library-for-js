@@ -2,6 +2,12 @@
 
 This guide provides framework-specific instructions for setting up the redirect bridge page introduced in MSAL Browser v5. For background on why the redirect bridge is needed, see the [v4 to v5 migration guide](./v4-migration.md#cross-origin-opener-policy-coop-support).
 
+These instructions apply to the default bridge flow and popup relay. Apps that
+explicitly enable `system.enableLegacyPolling` instead need a
+[passive callback page](./configuration.md#legacy-polling-callback-and-coop-requirements)
+that does **not** call `broadcastResponseToMainFrame()`. The bridge strips the
+response and closes popups, racing the legacy poller that needs to read the URL.
+
 > **Important:** The redirect bridge page must **NOT** be served with `Cross-Origin-Opener-Policy` headers. The bridge page is an intermediary that receives the authentication response after the IdP completes the OAuth flow. If COOP headers are set on the bridge page, the browser performs a browsing context group swap that severs the communication channel back to the main application — reintroducing the exact problem the bridge is designed to solve.
 
 > [!IMPORTANT]
@@ -12,7 +18,7 @@ This guide provides framework-specific instructions for setting up the redirect 
 > Failure to update the app registration will result in `redirect_uri_mismatch` errors.
 
 > [!WARNING]
-> If the redirect bridge is **not** set up, all authentication flows that rely
+> In the default response mode, if the redirect bridge is **not** set up, authentication flows that rely
 > on a popup or hidden iframe will stop working. `ssoSilent`,
 > `acquireTokenPopup`, and `loginPopup` depend on the redirect bridge to
 > receive the authentication response from the identity provider.
@@ -55,9 +61,12 @@ This guide provides framework-specific instructions for setting up the redirect 
 
 ## Logout and the Redirect Bridge
 
-### `logoutPopup()` — redirect bridge is **required**
+### `logoutPopup()` — redirect bridge is required by default
 
 When using `logoutPopup()`, the `postLogoutRedirectUri` **must** point to a page that implements the redirect bridge (calls `broadcastResponseToMainFrame()`). After ESTS completes the sign-out, it redirects the popup to the `postLogoutRedirectUri`. The redirect bridge on that page broadcasts the response back to the main window and closes the popup. Without the bridge, the popup will remain open after logout because COOP headers prevent the main window from closing it directly.
+
+The explicit legacy-polling opt-in is the exception: its post-logout callback
+must leave the response intact for the poller and must not run the bridge.
 
 The simplest configuration is to set `postLogoutRedirectUri` to the same value as `redirectUri`:
 
@@ -92,7 +101,7 @@ For `logoutRedirect()`, hosting the redirect bridge on the `postLogoutRedirectUr
 
 The redirect bridge relies on the [BroadcastChannel API](https://developer.mozilla.org/en-US/docs/Web/API/BroadcastChannel) to send the authentication response from the popup back to the main application window. Starting with **Chromium 115+** (Chrome, Edge, and other Chromium-based browsers), [third-party storage partitioning](https://developers.google.com/privacy-sandbox/cookies/storage-partitioning) is enforced, which means `BroadcastChannel` is **partitioned by top-level site**, not just by origin. Other browsers are expected to adopt similar partitioning in the future.
 
-This causes **popup-based flows** to fail when your application runs inside a **cross-origin iframe**:
+This causes **popup-based flows** to fail when your application runs inside a **cross-site iframe**. Cross-origin frames that are still same-site (for example, different ports on `localhost`) do not reproduce this top-level-site partition mismatch:
 
 | Context | Top-level site | BroadcastChannel partition |
 |---|---|---|
@@ -100,6 +109,11 @@ This causes **popup-based flows** to fail when your application runs inside a **
 | Popup opened by the iframe | `yourapp.com` (popup is its own top-level context) | `yourapp.com` |
 
 Although both the iframe and the popup share the same **origin** (`yourapp.com`), the popup is in a **different storage partition**. The redirect bridge sends the response on a `BroadcastChannel` in the popup's partition, but the iframe is listening on a channel in the host platform's partition — the message never arrives, and the authentication flow times out.
+
+Token acquisition failures surface as `timed_out` with the
+`redirect_bridge_timeout` suberror. See the
+[timeout troubleshooting guidance](../../../docs/errors.md#redirect_bridge_timeout-suberror)
+for this and other possible causes.
 
 > [!IMPORTANT]
 > This is a browser-level constraint — not a bug in MSAL. There is no secure
@@ -163,6 +177,27 @@ const msalConfig = {
 > primarily supported for **Azure AD B2C** with the
 > [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login),
 > or for non-interactive redirect-in-iframe scenarios where no user interaction is required. This is distinct from MSAL's silent token renewal APIs (`ssoSilent` / `acquireTokenSilent`), which use a hidden iframe with `prompt=none` and are subject to third-party cookie and tracking-prevention restrictions.
+
+#### Option 3: Relay the popup through a top-level page
+
+If NAA is unavailable and the identity provider refuses to render in an iframe,
+set [`auth.popupRelayUri`](./configuration.md#popup-relay-for-cross-origin-iframes)
+to a same-origin page that calls `runPopupRelay()`. MSAL opens that page
+top-level instead of navigating the popup straight to the IdP, so the flow runs
+outside the host's storage partition. The relay opens the IdP as a child popup,
+which the untrusted host cannot reach by name. MSAL asserts `pocd=1` for this
+grandchild-popup topology, allowing Entra to omit enforcing COOP; the relay does
+not guarantee that Entra keeps that header. `acquireTokenPopup()` and
+`logoutPopup()` both work unchanged.
+
+Where no top-level relay page can be hosted, `system.enableLegacyPolling` falls
+back to reading the popup URL directly instead of using `BroadcastChannel`. It
+requires a passive callback and an opener connection that survives the full
+popup round-trip. Strict app `COOP: same-origin` is incompatible, whereas
+`same-origin-allow-popups` can work when cross-origin responses omit enforcing
+COOP — see
+[Cross-Origin-Opener-Policy and popup responses](./configuration.md#cross-origin-opener-policy-and-popup-responses)
+for the trade-offs before enabling it.
 
 For more information on running MSAL in iframes, see
 [Using MSAL in iframed apps](./iframe-usage.md).

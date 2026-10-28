@@ -79,8 +79,8 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 | API | MSAL Usage | Fallback |
 |-----|-----------|----------|
 | `window.location.assign()` / `.replace()` | Navigate to IdP | None |
-| `window.location.hash` / `.search` | Extract auth response from redirect URL | None |
-| `window.history.replaceState()` | Clean auth params from URL | Graceful no-op (URL stays dirty) |
+| `window.location.hash` / `.search` | Extract auth response from redirect URL; optional legacy mode polls popup/iframe location after same-origin navigation | None |
+| `window.history.replaceState()` | Remove the trailing `#` after clearing a recognized response fragment by hash assignment; preserve the query string and reset history state to `null` | Hash assignment clears the response even if history updates are unavailable (may raise `hashchange`) |
 | `pageshow` event | Detect bfcache restoration to clear stale interaction state | Graceful — may cause `interaction_in_progress` error |
 | `window.open()` | Popup auth flows | None for popup |
 | Hidden iframe | Silent token renewal (`ssoSilent`, `acquireTokenSilent` fallback) | None for silent renewal |
@@ -88,7 +88,9 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 
 **MSAL-specific restrictions:**
 - `window.open()` must be in a user-gesture call stack or browsers block it
-- COOP `same-origin` on AAD severs `window.opener` in popups — redirect bridge mitigates
+- COOP `same-origin` on AAD severs `window.opener` in popups — the default redirect bridge uses `BroadcastChannel` instead. `system.enableLegacyPolling` opts into reading the popup/iframe location and requires the opener connection (and popup reference) to survive the full round-trip; strict app `COOP: same-origin` is incompatible, while `same-origin-allow-popups` can work when cross-origin responses omit enforcing COOP
+- Legacy polling requires `redirectUri` and `postLogoutRedirectUri` to be passive same-origin callback pages that leave the response query/fragment intact. Do not run the redirect bridge, `handleRedirectPromise()`, or app routing/response-processing code on the callback before the poller reads it
+- `pocd=1` lets Entra omit COOP. With `auth.originCheck` enabled, MSAL asserts it only when every ancestor is same-origin and the top-level opener is absent or same-origin; cross-origin or inaccessible window checks fail closed. `system.enableLegacyPolling` disables that check and always asserts `pocd=1`, so COOP protection may be omitted
 - Silent iframe requires IdP to allow framing and 3P cookies to be available; breaks under Safari ITP, Firefox TCP, and Chrome with 3P cookies disabled
 - Office.js sets `history.replaceState` to `null` — MSAL guards with `typeof` check
 
@@ -136,6 +138,7 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 | `localStorage` | ○ | ○ | ○ | ○ | | |
 | `IndexedDB` | ○ | ○ | ○ | ○ | | |
 | `BroadcastChannel` | ¹ | ✅ | ✅ | ✅² | | |
+| Same-origin location polling (`system.enableLegacyPolling`) | ○ | | ○ | ○ | | |
 | `window.open()` | | ✅ | | | | |
 | Hidden iframe | | | ✅ | ✅² | | |
 | `crypto.subtle` | ✅ | ✅ | ✅ | ✅ | | |
@@ -150,3 +153,4 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 - ² when refresh token expired and MSAL falls back to hidden iframe
 - ³ IdP session cookie required in iframe; MSAL's own cookie for localStorage encryption only
 - ⁴ optional DOM-based platform-broker provider; requires both configuration flags and the `get-token-and-sign-out` contract
+- Legacy polling is opt-in for popup responses, silent iframe responses, and popup logout; it requires the passive same-origin callback and a popup reference that remains connected for the full round-trip
