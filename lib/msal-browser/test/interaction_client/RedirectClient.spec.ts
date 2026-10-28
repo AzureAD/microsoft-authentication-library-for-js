@@ -314,30 +314,25 @@ describe("RedirectClient", () => {
                 });
         });
 
-        it("If response hash is not a Redirect response cleans temporary cache, return null and do not remove hash", (done) => {
+        it("cleans temporary cache, returning null for non-redirect state without modifying the URL", async () => {
             browserStorage.setInteractionInProgress(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
-            redirectClient
-                .handleRedirectPromise(
-                    testRequest,
-                    TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement,
-                    { hash: "" }
-                )
-                .then((response) => {
-                    expect(response).toBe(null);
-                    expect(window.localStorage.length).toEqual(0);
-                    expect(window.sessionStorage.length).toEqual(1);
-                    expect(
-                        window.sessionStorage.getItem(
-                            CacheKeys.VERSION_CACHE_KEY
-                        )
-                    ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
-                    expect(window.location.hash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
-                    );
-                    done();
-                });
+            const response = await redirectClient.handleRedirectPromise(
+                testRequest,
+                TEST_CONFIG.TEST_VERIFIER,
+                rootMeasurement,
+                { hash: "" }
+            );
+
+            expect(response).toBe(null);
+            expect(window.localStorage.length).toEqual(0);
+            expect(window.sessionStorage.length).toEqual(1);
+            expect(
+                window.sessionStorage.getItem(CacheKeys.VERSION_CACHE_KEY)
+            ).toEqual(version);
+            expect(window.location.hash).toBe(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+            );
         });
 
         it("return null if state cannot be decoded", (done) => {
@@ -994,7 +989,9 @@ describe("RedirectClient", () => {
                     testTokenResponse.expiresOn.getMilliseconds() >=
                         tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe("");
+            expect(window.location.hash).toBe(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
         });
 
         it("calls custom navigateInternal function then processes hash", async () => {
@@ -1152,7 +1149,9 @@ describe("RedirectClient", () => {
                 testTokenResponse.expiresOn!.getMilliseconds() >=
                     tokenResponse.expiresOn!.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe("");
+            expect(window.location.hash).toBe(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
         });
 
         it("processes hash if navigateToLoginRequestUri is false and request origin is different", async () => {
@@ -1295,7 +1294,9 @@ describe("RedirectClient", () => {
                     testTokenResponse.expiresOn.getMilliseconds() >=
                         tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe("");
+            expect(window.location.hash).toBe(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
         });
 
         it("returns null if interaction is not in progress", async () => {
@@ -1872,65 +1873,75 @@ describe("RedirectClient", () => {
                 });
         });
 
-        it("clears hash if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash", (done) => {
-            let pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
-
-            // @ts-ignore
-            redirectClient = new RedirectClient(
-                // @ts-ignore
-                pca.config,
-                // @ts-ignore
-                pca.browserStorage,
-                // @ts-ignore
-                pca.browserCrypto,
-                // @ts-ignore
-                pca.logger,
-                // @ts-ignore
-                pca.eventHandler,
-                // @ts-ignore
-                pca.navigationClient,
-                // @ts-ignore
-                pca.performanceClient,
-                // @ts-ignore
-                pca.nativeInternalStorage
-            );
-
-            browserStorage.setInteractionInProgress(true);
-            const loginRequestUrl = window.location.href + "#testHash";
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-            window.sessionStorage.setItem(
-                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                loginRequestUrl
-            );
-            jest.spyOn(
-                RedirectClient.prototype,
-                <any>"handleResponse"
-            ).mockImplementation((response) => {
-                expect(window.location.href).not.toContain("#testHash");
-                expect(response).toEqual({
-                    code: "thisIsATestCode",
-                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+        it.each(["#", "#/"])(
+            "processes a %s callback without modifying it if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash",
+            (prefix, done) => {
+                let pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
                 });
-                done();
-            });
-            redirectClient.handleRedirectPromise(
-                testRequest,
-                TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement,
-                {
-                    hash: "",
-                    navigateToLoginRequestUrl: false,
-                }
-            );
-        });
+
+                //PCA implementation moved to controller
+                pca = (pca as any).controller;
+
+                // @ts-ignore
+                redirectClient = new RedirectClient(
+                    // @ts-ignore
+                    pca.config,
+                    // @ts-ignore
+                    pca.browserStorage,
+                    // @ts-ignore
+                    pca.browserCrypto,
+                    // @ts-ignore
+                    pca.logger,
+                    // @ts-ignore
+                    pca.eventHandler,
+                    // @ts-ignore
+                    pca.navigationClient,
+                    // @ts-ignore
+                    pca.performanceClient,
+                    // @ts-ignore
+                    pca.nativeInternalStorage
+                );
+
+                browserStorage.setInteractionInProgress(true);
+                const loginRequestUrl = window.location.href + "#testHash";
+                window.location.hash = `${prefix}${TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT.substring(
+                    1
+                )}`;
+                window.sessionStorage.setItem(
+                    `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                    loginRequestUrl
+                );
+                jest.spyOn(
+                    RedirectClient.prototype,
+                    <any>"handleResponse"
+                ).mockImplementation((response) => {
+                    expect(window.location.href).not.toContain("#testHash");
+                    expect(window.location.hash).toBe(
+                        `${prefix}${TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT.substring(
+                            1
+                        )}`
+                    );
+                    expect(response).toEqual({
+                        code: "thisIsATestCode",
+                        client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    });
+                    done();
+                });
+                redirectClient.handleRedirectPromise(
+                    testRequest,
+                    TEST_CONFIG.TEST_VERIFIER,
+                    rootMeasurement,
+                    {
+                        hash: "",
+                        navigateToLoginRequestUrl: false,
+                    }
+                );
+            }
+        );
 
         it("mutes no_server_response error when back navigation is detected", async () => {
             // @ts-ignore
@@ -1982,6 +1993,36 @@ describe("RedirectClient", () => {
     });
 
     describe("acquireToken", () => {
+        it.each([undefined, `${TEST_URIS.TEST_REDIR_URI}#code=""`])(
+            "preserves the default or explicit redirect start page: %s",
+            async (redirectStartPage) => {
+                window.location.hash = '#code=""';
+                const startPage = redirectStartPage || window.location.href;
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER,
+                });
+                jest.spyOn(
+                    RedirectClient.prototype,
+                    "initiateAuthRequest"
+                ).mockResolvedValue();
+
+                await redirectClient.acquireToken({
+                    ...testRequest,
+                    redirectStartPage,
+                });
+
+                expect(
+                    window.sessionStorage.getItem(
+                        `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
+                    )
+                ).toBe(startPage);
+            }
+        );
+
         it("throws error when AuthenticationScheme is set to SSH and SSH JWK is omitted from the request", async () => {
             const loginRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,

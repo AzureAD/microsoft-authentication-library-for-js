@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Unify Native Auth V2 authentication method selection [#8899](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8899)",
-  "packageName": "@azure/msal-browser",
-  "email": "yongdiwang@microsoft.com",
-  "dependentChangeType": "patch"
-}

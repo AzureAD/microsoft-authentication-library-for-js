@@ -712,7 +712,6 @@ export class RedirectClient extends StandardInteractionClient {
                 return [null, ""];
             }
 
-            BrowserUtils.clearHash(window);
             this.logger.verbose(
                 "Hash contains known properties, returning response hash",
                 this.correlationId
