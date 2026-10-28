@@ -172,10 +172,10 @@ Unlike other cache items, `Access Tokens` are saved to the cache asynchronously.
 
 ```typescript
 const dpopRequest = {
-    scopes: ["User.Read"],
+    scopes: ["api://your-api-client-id/access_as_user"],
     authenticationScheme: msal.AuthenticationScheme.DPOP,
     resourceRequestMethod: "GET",
-    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+    resourceRequestUri: "https://api.example.com/resource",
 };
 
 const result = await myMSALObj.acquireTokenPopup(dpopRequest);
@@ -187,9 +187,7 @@ headers.append("DPoP", result.dpopProof);
 
 > Note: DPoP requests must include both `resourceRequestMethod` and `resourceRequestUri`. If either value is missing MSAL fails fast with `dpop_missing_resource_context`.
 
-For DPoP results, `accessToken` is the raw sender-constrained access token and `dpopProof` is a separate fresh proof for the requested resource. Proof JWTs are never cached. Cache hits generate a new proof, and if the local DPoP key is missing MSAL treats the cached sender-constrained access token as a cache miss.
-
-DPoP resource proofs are generated from the request method, normalized resource URI, and raw access token (`ath` is computed internally). MSAL does not accept caller-supplied `ath` hashes.
+Send `accessToken` in the `Authorization` header and `dpopProof` in the `DPoP` header. Provide the method and URI of the resource request each time you acquire a result so MSAL can generate a fresh proof for that request. Do not reuse proofs or calculate the `ath` claim yourself.
 
 ### Resource-server nonce challenges
 
@@ -204,7 +202,7 @@ Load a returned `DPoP-Nonce` before requesting a new proof. Retry a nonce challe
 
 ```typescript
 const MAX_DPOP_NONCE_RETRIES = 1;
-const resourceRequestUri = "https://graph.microsoft.com/v1.0/me";
+const resourceRequestUri = "https://api.example.com/resource";
 const resourceRequestMethod = "GET";
 
 async function callResource(): Promise<Response> {
@@ -248,12 +246,4 @@ async function callResource(): Promise<Response> {
 }
 ```
 
-`loadDpopNonce` is part of `IPublicClientApplication`. There is no token-cache accessor for DPoP nonce state.
-
-MSAL stores resource-server nonces only in memory, scoped to the `PublicClientApplication` instance and normalized HTTPS resource origin. The state is bounded and is cleared with the application cache; it is not shared across tabs or application instances and is not written to browser or custom cache storage.
-
-Full-page redirect requests use one narrow exception to the memory-only lifecycle. When an active standard web redirect request has a matching resource origin and nonce, MSAL stores one tab-scoped `sessionStorage` handoff containing only the opaque nonce, normalized origin, request state, correlation ID, and a short expiration. `handleRedirectPromise` restores the handoff only when all bindings match and deletes it immediately. MSAL never persists the general nonce map and does not use `localStorage`, custom cache storage, URL state, or cookies for nonce transport.
-
-If a handoff storage operation fails, MSAL logs a warning and continues the redirect flow. The resource server can recover through its normal nonce challenge. MSAL records only non-sensitive telemetry, including the authentication scheme, whether a nonce was applied to a proof, nonce-cache evictions, and redirect handoff save, restore, and failure counts. Nonce values and resource URIs are never emitted.
-
-`loadDpopNonce` validates and stores the nonce but does not issue resource HTTP requests. Retry a nonce challenge immediately and at most once; use a separate bounded backoff policy for transient responses such as `429` or `503`.
+`loadDpopNonce` stores the challenge for the resource origin so MSAL can include it in the next proof. It does not issue the resource request. Applications should treat nonce values as opaque, avoid persisting them, and retry a nonce challenge immediately and at most once. Use a separate bounded backoff policy for transient responses such as `429` or `503`.
