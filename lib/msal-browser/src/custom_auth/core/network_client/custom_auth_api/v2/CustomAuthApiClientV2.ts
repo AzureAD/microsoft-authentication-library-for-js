@@ -326,11 +326,6 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             );
         }
 
-        const codeLength = this.handler.requirePositiveInteger(
-            parsedResponse.body.codeLength,
-            "enrollment activation code length",
-            parsedResponse.correlationId
-        );
         const links = parsedResponse.body._links;
 
         return {
@@ -340,7 +335,9 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 parsedResponse.correlationId
             ),
             hint: parsedResponse.body.hint,
-            codeLength,
+            codeLength: this.normalizeCodeLength(
+                parsedResponse.body.codeLength
+            ),
             activateHref: this.handler.requireHref(
                 links?.activate?.href,
                 ACTIVATE_RELATION,
@@ -719,10 +716,8 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 : undefined;
         const codeLength = isPasswordChallenge
             ? undefined
-            : this.handler.requirePositiveInteger(
-                  codeMetadata?.codeLength ?? codeMetadata?.payload?.codeLength,
-                  "challenge code length",
-                  parsedResponse.correlationId
+            : this.normalizeCodeLength(
+                  codeMetadata?.codeLength ?? codeMetadata?.payload?.codeLength
               );
 
         return {
@@ -734,6 +729,10 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             hint: codeMetadata?.hint,
             type: parsedResponse.body.type,
         };
+    }
+
+    private normalizeCodeLength(value: unknown): number {
+        return typeof value === "number" && Number.isInteger(value) ? value : 0;
     }
 
     private resolveMethods(

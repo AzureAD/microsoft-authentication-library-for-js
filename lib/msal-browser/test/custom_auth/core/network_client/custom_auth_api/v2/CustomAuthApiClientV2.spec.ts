@@ -944,9 +944,16 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
-        it.each([undefined, 0])(
-            "rejects a code challenge with codeLength %s",
-            async (codeLength) => {
+        it.each([
+            [0, 0],
+            [-1, -1],
+            [undefined, 0],
+            [null, 0],
+            ["6", 0],
+            [6.5, 0],
+        ])(
+            "maps challenge codeLength %s to %s without throwing",
+            async (codeLength, expectedCodeLength) => {
                 mockHttpClient.sendAsync.mockResolvedValueOnce(
                     buildResponse({
                         continuationToken: "ct-challenge",
@@ -955,7 +962,6 @@ describe("CustomAuthApiClientV2", () => {
                         codeLength,
                         _links: {
                             verify: { href: "/tenant/api/v0.1/verify" },
-                            resend: { href: "/tenant/api/v0.1/resend" },
                         },
                     })
                 );
@@ -966,11 +972,7 @@ describe("CustomAuthApiClientV2", () => {
                         { continuationToken: "ct-start" },
                         context
                     )
-                ).rejects.toMatchObject({
-                    error: INVALID_HAL_RESPONSE,
-                    errorDescription:
-                        "Invalid HAL response: challenge code length is missing or malformed",
-                });
+                ).resolves.toMatchObject({ codeLength: expectedCodeLength });
             }
         );
 
@@ -2042,69 +2044,42 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
-        it("rejects a malformed activation code length", async () => {
-            mockHttpClient.sendAsync.mockResolvedValueOnce(
-                buildResponse({
-                    continuationToken: "ct-activate",
-                    action: "activate",
-                    type: "email",
-                    codeLength: 0,
-                    _links: {
-                        activate: {
-                            href: "/tenant/api/v0.1/activate/email",
+        it.each([
+            [0, 0],
+            [-1, -1],
+            [undefined, 0],
+            [null, 0],
+            ["6", 0],
+            [6.5, 0],
+        ])(
+            "maps activation codeLength %s to %s without throwing",
+            async (codeLength, expectedCodeLength) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-activate",
+                        action: "activate",
+                        type: "email",
+                        codeLength,
+                        _links: {
+                            activate: {
+                                href: "/tenant/api/v0.1/activate/email",
+                            },
                         },
-                    },
-                })
-            );
+                    })
+                );
 
-            await expect(
-                apiClient.enrollAuthMethod(
-                    "/tenant/api/v0.1/enroll/email",
-                    {
-                        email: "user@test.com",
-                        continuationToken: "ct-enroll",
-                    },
-                    context
-                )
-            ).rejects.toMatchObject({
-                error: INVALID_HAL_RESPONSE,
-                errorDescription:
-                    "Invalid HAL response: enrollment activation code length is missing or malformed",
-            });
-        });
-
-        it("rejects a missing activation code length", async () => {
-            mockHttpClient.sendAsync.mockResolvedValueOnce(
-                buildResponse({
-                    continuationToken: "ct-activate",
-                    action: "activate",
-                    type: "email",
-                    _links: {
-                        activate: {
-                            href: "/tenant/api/v0.1/activate/email",
+                await expect(
+                    apiClient.enrollAuthMethod(
+                        "/tenant/api/v0.1/enroll/email",
+                        {
+                            email: "user@test.com",
+                            continuationToken: "ct-enroll",
                         },
-                        resend: {
-                            href: "/tenant/api/v0.1/enroll/email",
-                        },
-                    },
-                })
-            );
-
-            await expect(
-                apiClient.enrollAuthMethod(
-                    "/tenant/api/v0.1/enroll/email",
-                    {
-                        email: "user@test.com",
-                        continuationToken: "ct-enroll",
-                    },
-                    context
-                )
-            ).rejects.toMatchObject({
-                error: INVALID_HAL_RESPONSE,
-                errorDescription:
-                    "Invalid HAL response: enrollment activation code length is missing or malformed",
-            });
-        });
+                        context
+                    )
+                ).resolves.toMatchObject({ codeLength: expectedCodeLength });
+            }
+        );
     });
 
     describe("resendAuthMethodRegistrationChallenge", () => {

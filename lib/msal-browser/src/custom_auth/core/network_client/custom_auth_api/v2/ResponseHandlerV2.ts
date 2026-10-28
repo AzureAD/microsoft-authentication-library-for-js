@@ -87,29 +87,6 @@ export class ResponseHandlerV2 {
         return href;
     }
 
-    requirePositiveInteger(
-        value: unknown,
-        fieldName: string,
-        correlationId: string
-    ): number {
-        if (
-            typeof value !== "number" ||
-            !Number.isInteger(value) ||
-            value <= 0
-        ) {
-            const errorMessage = `Invalid HAL response: ${fieldName} is missing or malformed`;
-            this.logger?.error(errorMessage, correlationId);
-
-            throw new CustomAuthApiError(
-                INVALID_HAL_RESPONSE,
-                errorMessage,
-                correlationId
-            );
-        }
-
-        return value;
-    }
-
     // Required continuation token to advance the flow; throws when absent.
     requireContinuationToken(
         continuationToken: string | undefined,
