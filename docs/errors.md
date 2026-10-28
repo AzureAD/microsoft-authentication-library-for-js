@@ -945,8 +945,22 @@ This timeout typically occurs for the following reasons:
 1. The redirect page is automatically navigating to a different page before the bridge can communicate the response
 1. Your identity provider is being slow to redirect back to your `redirectUri` (network latency)
 1. You are being throttled by your identity provider due to too many requests in a short period
+1. Your app runs in a cross-site iframe and browser storage partitioning prevents the popup's `BroadcastChannel` response from reaching the app, even though the redirect bridge loaded correctly
 
 **Resolution Steps:**
+
+**Check for cross-site iframe storage partitioning:**
+
+If your app is embedded under a different top-level site, its popup and iframe
+can have different `BroadcastChannel` storage partitions despite sharing the
+same origin. This is one possible cause of `redirect_bridge_timeout`, not a
+diagnosis for every timeout. Increasing the timeout does not repair this
+partition mismatch.
+
+Use Nested App Authentication when supported by the host, or configure a
+same-origin top-level popup relay. See the
+[cross-site iframe guidance](../lib/msal-browser/docs/redirect-bridge.md#cross-origin-iframe-limitation)
+for alternatives and their security requirements.
 
 ✔️ **Ensure the redirect bridge script is loaded:**
 

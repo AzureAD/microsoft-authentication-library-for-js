@@ -19,6 +19,7 @@ import {
     TEST_URIS,
     testLogoutUrl,
     verifyUrl,
+    getTestAuthenticationResult,
 } from "../utils/StringConstants.js";
 import {
     AccountEntity,
@@ -86,6 +87,7 @@ import {
 } from "../../src/error/BrowserAuthError.js";
 import * as BrowserUtils from "../../src/utils/BrowserUtils.js";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient.js";
+import { broadcastResponseToMainFrame } from "../../src/redirect_bridge/index.js";
 import { PopupClient } from "../../src/interaction_client/PopupClient.js";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient.js";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient.js";
@@ -121,6 +123,7 @@ import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAu
 import * as BrowserRootPerformanceEvents from "../../src/telemetry/BrowserRootPerformanceEvents.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
 import { getAccountKeysCacheKey } from "../../src/cache/CacheKeys.js";
+import { monitorPopupForHash } from "../../src/utils/PopupMonitor.js";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -693,6 +696,604 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = (pca as any).controller;
             await pca.initialize();
         });
+        it.each([
+            '#code=""',
+            TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
+            TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
+            "#ear_jwe=encrypted",
+            `#/code=old-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+        ])(
+            "cleans a redirect response without a pending interaction before returning null: %s",
+            async (hash) => {
+                window.location.hash = hash;
+                const redirect = jest.spyOn(
+                    RedirectClient.prototype,
+                    "handleRedirectPromise"
+                );
+
+                await expect(pca.handleRedirectPromise()).resolves.toBeNull();
+
+                expect(window.location.hash).toBe("");
+                expect(redirect).not.toHaveBeenCalled();
+            }
+        );
+
+        it.each([
+            Constants.ResponseMode.FRAGMENT,
+            Constants.ResponseMode.QUERY,
+        ])(
+            "clears fragment state and preserves query state without a pending interaction in %s mode",
+            async (responseMode) => {
+                const statePca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        OIDCOptions: { responseMode },
+                    },
+                    system: {
+                        protocolMode: ProtocolMode.OIDC,
+                        allowPlatformBroker: false,
+                    },
+                });
+                await statePca.initialize();
+                const warning = jest.spyOn(statePca.getLogger(), "warning");
+                const originalUrl = window.location.href;
+                try {
+                    window.history.replaceState(
+                        null,
+                        "",
+                        responseMode === Constants.ResponseMode.QUERY
+                            ? "?state=CA&tab=orders#/home"
+                            : "?q=keep#state=CA&tab=orders"
+                    );
+                    const url = window.location.href;
+
+                    await expect(
+                        statePca.handleRedirectPromise()
+                    ).resolves.toBeNull();
+
+                    expect(window.location.href).toBe(
+                        responseMode === Constants.ResponseMode.QUERY
+                            ? url
+                            : url.split("#")[0]
+                    );
+                    expect(warning).not.toHaveBeenCalled();
+                } finally {
+                    window.history.replaceState(null, "", originalUrl);
+                }
+            }
+        );
+
+        it.each([
+            "#state=CA",
+            `#state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+            TEST_HASHES.TEST_ERROR_HASH,
+            `#client_info=info&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+        ])(
+            "cleans responses recognized by the shared parser without a pending interaction: %s",
+            async (hash) => {
+                window.location.hash = hash;
+
+                await expect(pca.handleRedirectPromise()).resolves.toBeNull();
+
+                expect(window.location.hash).toBe("");
+            }
+        );
+
+        it("captures and clears a pending redirect error before processing rejects", async () => {
+            browserStorage.setInteractionInProgress(true);
+            browserStorage.cacheAuthorizeRequest(
+                testRequest,
+                RANDOM_TEST_GUID,
+                TEST_CONFIG.TEST_VERIFIER
+            );
+            const hash = TEST_HASHES.TEST_ERROR_HASH;
+            window.location.hash = hash;
+            const clearHash = jest.spyOn(BrowserUtils, "clearHash");
+            const error = new Error("Redirect error");
+            const redirect = jest
+                .spyOn(RedirectClient.prototype, "handleRedirectPromise")
+                .mockImplementation(async () => {
+                    expect(window.location.hash).toBe("");
+                    throw error;
+                });
+
+            await expect(pca.handleRedirectPromise()).rejects.toBe(error);
+
+            expect(redirect.mock.calls[0][3]).toEqual({ hash });
+            expect(window.location.hash).toBe("");
+            expect(clearHash).toHaveBeenCalledTimes(1);
+        });
+
+        it("clears the response before account setup can throw", async () => {
+            browserStorage.setInteractionInProgress(true);
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            const error = new Error("Account setup failed");
+            jest.spyOn(
+                StandardController.prototype,
+                "getAllAccounts"
+            ).mockImplementation(() => {
+                expect(window.location.hash).toBe("");
+                throw error;
+            });
+
+            await expect(pca.handleRedirectPromise()).rejects.toBe(error);
+        });
+
+        it.each([
+            [false, false],
+            [true, false],
+            [true, true],
+        ])(
+            "cleans only redirect-capable callbacks before a missing-request error, iframe: %s, redirects allowed: %s",
+            async (isInIframe, allowRedirectInIframe) => {
+                const iframePca = new PublicClientApplication({
+                    auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                    system: {
+                        allowPlatformBroker: false,
+                        allowRedirectInIframe,
+                    },
+                });
+                await iframePca.initialize();
+                jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(
+                    isInIframe
+                );
+                browserStorage.setInteractionInProgress(true);
+                const hash = `#code=new-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`;
+                window.location.hash = hash;
+                const expectedHash =
+                    isInIframe && !allowRedirectInIframe ? hash : "";
+                const error = new Error("Missing cached request");
+                jest.spyOn(
+                    BrowserCacheManager.prototype,
+                    "getCachedRequest"
+                ).mockImplementation(() => {
+                    expect(window.location.hash).toBe(expectedHash);
+                    throw error;
+                });
+
+                await expect(iframePca.handleRedirectPromise()).rejects.toBe(
+                    error
+                );
+                expect(window.location.hash).toBe(expectedHash);
+            }
+        );
+
+        it.each([false, true])(
+            "preserves query responses and routing, with a cached transaction: %s",
+            async (hasTransaction) => {
+                const queryPca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        OIDCOptions: {
+                            responseMode: Constants.ResponseMode.QUERY,
+                        },
+                    },
+                    system: {
+                        protocolMode: ProtocolMode.OIDC,
+                        allowPlatformBroker: false,
+                    },
+                });
+                await queryPca.initialize();
+                if (hasTransaction) {
+                    browserStorage.setInteractionInProgress(true);
+                    browserStorage.cacheAuthorizeRequest(
+                        testRequest,
+                        TEST_CONFIG.TEST_VERIFIER
+                    );
+                }
+                const handleRedirect =
+                    RedirectClient.prototype.handleRedirectPromise;
+                const redirect = jest
+                    .spyOn(RedirectClient.prototype, "handleRedirectPromise")
+                    .mockImplementation(function (
+                        this: RedirectClient,
+                        ...args
+                    ) {
+                        this["handleResponse"] = jest
+                            .fn()
+                            .mockResolvedValue(null);
+                        return handleRedirect.apply(this, args);
+                    });
+                const originalUrl = window.location.href;
+                try {
+                    window.history.replaceState(
+                        null,
+                        "",
+                        `?code=new-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&q=keep#/home`
+                    );
+                    const query = window.location.search;
+                    await expect(
+                        queryPca.handleRedirectPromise({
+                            navigateToLoginRequestUrl: false,
+                        })
+                    ).resolves.toBeNull();
+
+                    expect(window.location.search).toBe(query);
+                    expect(window.location.hash).toBe("#/home");
+                    if (hasTransaction) {
+                        expect(redirect.mock.calls[0][3]).toEqual({
+                            navigateToLoginRequestUrl: false,
+                            hash: query,
+                        });
+                    } else {
+                        expect(redirect).not.toHaveBeenCalled();
+                    }
+                } finally {
+                    window.history.replaceState(null, "", originalUrl);
+                }
+            }
+        );
+
+        it.each([
+            TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
+            TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
+            `#/code=old-code&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+        ])(
+            "captures and clears the response before processing rejects: %s",
+            async (hash) => {
+                browserStorage.setInteractionInProgress(true);
+                browserStorage.cacheAuthorizeRequest(
+                    testRequest,
+                    TEST_CONFIG.TEST_VERIFIER
+                );
+                window.location.hash = hash;
+                const error = new Error("Response processing failed");
+                const redirect = jest
+                    .spyOn(RedirectClient.prototype, "handleRedirectPromise")
+                    .mockImplementation(async () => {
+                        expect(window.location.hash).toBe("");
+                        throw error;
+                    });
+
+                await expect(pca.handleRedirectPromise()).rejects.toBe(error);
+                expect(redirect.mock.calls[0][3]).toEqual({ hash });
+                expect(window.location.hash).toBe("");
+            }
+        );
+
+        it("preserves an explicit response instead of replacing it with the current URL", async () => {
+            browserStorage.setInteractionInProgress(true);
+            browserStorage.cacheAuthorizeRequest(
+                testRequest,
+                TEST_CONFIG.TEST_VERIFIER
+            );
+            window.location.hash = "#code=old";
+            const hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            const handleRedirect =
+                RedirectClient.prototype.handleRedirectPromise;
+            const redirect = jest
+                .spyOn(RedirectClient.prototype, "handleRedirectPromise")
+                .mockImplementation(function (this: RedirectClient, ...args) {
+                    this["handleResponse"] = jest.fn().mockResolvedValue(null);
+                    return handleRedirect.apply(this, args);
+                });
+            const options = { hash, navigateToLoginRequestUrl: false };
+
+            await pca.handleRedirectPromise(options);
+
+            expect(redirect.mock.calls[0][3]).toBe(options);
+            expect(window.location.hash).toBe("");
+        });
+
+        it.each([
+            ["#code=", "#code="],
+            ["#code=untracked&state=invalid", ""],
+            [
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP,
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP,
+            ],
+            [TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT, ""],
+        ])(
+            "cleans an unprocessed callback unless it belongs to a popup bridge: %s",
+            async (hash, remainingHash) => {
+                browserStorage.setInteractionInProgress(true);
+                browserStorage.cacheAuthorizeRequest(
+                    testRequest,
+                    TEST_CONFIG.TEST_VERIFIER
+                );
+                window.location.hash = hash;
+
+                await expect(pca.handleRedirectPromise()).resolves.toBeNull();
+
+                expect(window.location.hash).toBe(remainingHash);
+            }
+        );
+
+        describe("multi-PCA response ownership", () => {
+            const result: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: BASIC_TEST_ACCOUNT_INFO.localAccountId,
+                tenantId: BASIC_TEST_ACCOUNT_INFO.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                account: BASIC_TEST_ACCOUNT_INFO,
+                tokenType: Constants.AuthenticationScheme.BEARER,
+            };
+            let handleResponse: jest.MockedFunction<
+                RedirectClient["handleResponse"]
+            >;
+
+            beforeEach(() => {
+                handleResponse = jest.fn().mockResolvedValue(result);
+                const handleRedirect =
+                    RedirectClient.prototype.handleRedirectPromise;
+                jest.spyOn(
+                    RedirectClient.prototype,
+                    "handleRedirectPromise"
+                ).mockImplementation(function (this: RedirectClient, ...args) {
+                    this["handleResponse"] = handleResponse;
+                    return handleRedirect.apply(this, args);
+                });
+            });
+
+            it.each([
+                [BrowserCacheLocation.SessionStorage, false, false],
+                [BrowserCacheLocation.LocalStorage, true, false],
+                [BrowserCacheLocation.SessionStorage, false, true],
+                [BrowserCacheLocation.LocalStorage, true, true],
+            ])(
+                "preserves another client's callback with owner cache %s, concurrent calls %s, and bridge response %s",
+                async (cacheLocation, concurrent, bridgeResponse) => {
+                    const clientId = "redirect-owner";
+                    const owner = new PublicClientApplication({
+                        auth: { clientId },
+                        cache: { cacheLocation },
+                        system: { allowPlatformBroker: false },
+                    });
+                    await owner.initialize();
+                    const ownerStorage = new BrowserCacheManager(
+                        clientId,
+                        { ...cacheConfig, cacheLocation },
+                        new CryptoOps(new Logger({})),
+                        new Logger({}),
+                        new StubPerformanceClient(),
+                        new EventHandler()
+                    );
+                    ownerStorage.setInteractionInProgress(true);
+                    ownerStorage.cacheAuthorizeRequest(
+                        testRequest,
+                        RANDOM_TEST_GUID,
+                        TEST_CONFIG.TEST_VERIFIER
+                    );
+                    const hash = concurrent
+                        ? TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT
+                        : TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+                    if (bridgeResponse) {
+                        ownerStorage.setTemporaryCache(
+                            TemporaryCacheKeys.URL_HASH,
+                            hash,
+                            true
+                        );
+                    } else {
+                        window.location.hash = hash;
+                    }
+
+                    expect(browserStorage.isInteractionInProgress(true)).toBe(
+                        false
+                    );
+                    expect(browserStorage.isInteractionInProgress()).toBe(true);
+                    const nonOwner = pca.handleRedirectPromise();
+                    if (!concurrent) {
+                        await expect(nonOwner).resolves.toBeNull();
+                    }
+
+                    expect(window.location.hash).toBe(
+                        bridgeResponse ? "" : hash
+                    );
+                    expect(ownerStorage.isInteractionInProgress(true)).toBe(
+                        true
+                    );
+                    expect(ownerStorage.getCachedRequest("")).toEqual([
+                        testRequest,
+                        TEST_CONFIG.TEST_VERIFIER,
+                    ]);
+                    expect(
+                        ownerStorage.getTemporaryCache(
+                            TemporaryCacheKeys.URL_HASH,
+                            "",
+                            true
+                        )
+                    ).toBe(bridgeResponse ? hash : null);
+                    expect(handleResponse).not.toHaveBeenCalled();
+
+                    const ownerResult = owner.handleRedirectPromise({
+                        navigateToLoginRequestUrl: false,
+                    });
+                    await expect(nonOwner).resolves.toBeNull();
+                    await expect(ownerResult).resolves.toEqual(result);
+                    expect(handleResponse).toHaveBeenCalledTimes(1);
+                    expect(handleResponse.mock.calls[0][0].state).toBe(
+                        testRequest.state
+                    );
+                    expect(handleResponse.mock.calls[0][1]).toEqual(
+                        testRequest
+                    );
+                    expect(handleResponse.mock.calls[0][2]).toBe(
+                        TEST_CONFIG.TEST_VERIFIER
+                    );
+                    expect(window.location.hash).toBe("");
+                }
+            );
+
+            it.each([
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT,
+                TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
+            ])(
+                "preserves a same-client callback when this call misses scoped ownership: %s",
+                async (hash) => {
+                    const owner = new PublicClientApplication({
+                        auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                        system: { allowPlatformBroker: false },
+                    });
+                    await owner.initialize();
+                    browserStorage.setInteractionInProgress(true);
+                    browserStorage.cacheAuthorizeRequest(
+                        testRequest,
+                        RANDOM_TEST_GUID,
+                        TEST_CONFIG.TEST_VERIFIER
+                    );
+                    const isInteractionInProgress =
+                        browserStorage.isInteractionInProgress.bind(
+                            browserStorage
+                        );
+                    jest.spyOn(
+                        browserStorage,
+                        "isInteractionInProgress"
+                    ).mockImplementation((matchClientId) =>
+                        matchClientId
+                            ? false
+                            : isInteractionInProgress(matchClientId)
+                    );
+                    window.location.hash = hash;
+
+                    await expect(
+                        pca.handleRedirectPromise()
+                    ).resolves.toBeNull();
+
+                    expect(window.location.hash).toBe(hash);
+                    expect(browserStorage.isInteractionInProgress()).toBe(true);
+                    expect(handleResponse).not.toHaveBeenCalled();
+                    await expect(
+                        owner.handleRedirectPromise({
+                            navigateToLoginRequestUrl: false,
+                        })
+                    ).resolves.toEqual(result);
+                    expect(handleResponse).toHaveBeenCalledTimes(1);
+                    expect(window.location.hash).toBe("");
+                }
+            );
+        });
+
+        it.each([
+            TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP,
+            TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT,
+            TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP,
+            TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT,
+        ])("preserves bridge responses inside an iframe: %s", async (hash) => {
+            jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
+            window.location.hash = hash;
+
+            await expect(pca.handleRedirectPromise()).resolves.toBeNull();
+            expect(window.location.hash).toBe(hash);
+        });
+
+        it.each([
+            [InteractionType.Popup, "none"],
+            [InteractionType.Popup, "missing"],
+            [InteractionType.Popup, "cached"],
+            [InteractionType.Silent, "none"],
+            [InteractionType.Silent, "missing"],
+            [InteractionType.Silent, "cached"],
+        ])(
+            "allows the %s bridge to broadcast after HRP with request cache %s",
+            async (interactionType, requestCache) => {
+                jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(
+                    interactionType === InteractionType.Silent
+                );
+                const hash =
+                    interactionType === InteractionType.Popup
+                        ? TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+                        : TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT;
+                window.location.hash = hash;
+                if (requestCache !== "none") {
+                    browserStorage.setInteractionInProgress(true);
+                }
+                if (requestCache === "cached") {
+                    browserStorage.cacheAuthorizeRequest(
+                        testRequest,
+                        TEST_CONFIG.TEST_VERIFIER
+                    );
+                }
+                const clearHash = jest.spyOn(BrowserUtils, "clearHash");
+
+                const response = pca.handleRedirectPromise({ hash });
+                if (requestCache === "missing") {
+                    await expect(response).rejects.toMatchObject({
+                        errorCode:
+                            BrowserAuthErrorCodes.noTokenRequestCacheError,
+                    });
+                } else {
+                    await expect(response).resolves.toBeNull();
+                }
+
+                expect(clearHash).not.toHaveBeenCalled();
+                expect(window.location.hash).toBe(hash);
+                const broadcast = jest.spyOn(
+                    BroadcastChannel.prototype,
+                    "postMessage"
+                );
+                jest.spyOn(window, "close").mockReturnValue(undefined);
+
+                await broadcastResponseToMainFrame();
+
+                expect(broadcast).toHaveBeenCalledWith({
+                    v: 1,
+                    payload: hash.substring(1),
+                });
+                expect(window.location.hash).toBe("");
+            }
+        );
+
+        it("cleans an iframe redirect callback when iframe redirects are enabled", async () => {
+            const iframePca = new PublicClientApplication({
+                auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                system: {
+                    allowPlatformBroker: false,
+                    allowRedirectInIframe: true,
+                },
+            });
+            await iframePca.initialize();
+            jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+
+            await expect(iframePca.handleRedirectPromise()).resolves.toBeNull();
+
+            expect(window.location.hash).toBe("");
+        });
+
+        it("preserves an application route inside an iframe", async () => {
+            jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
+            const hash = "#/dashboard?code=application-code";
+            window.location.hash = hash;
+
+            await expect(pca.handleRedirectPromise()).resolves.toBeNull();
+            expect(window.location.hash).toBe(hash);
+        });
+
+        it.each([
+            TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT,
+            '#code=""',
+        ])(
+            "preserves a response without a pending interaction inside an iframe: %s",
+            async (hash) => {
+                jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
+                window.location.hash = hash;
+                const callbackHash = window.location.hash;
+
+                await expect(pca.handleRedirectPromise()).resolves.toBeNull();
+                expect(window.location.hash).toBe(callbackHash);
+            }
+        );
+
+        it("preserves another client's callback inside an iframe", async () => {
+            jest.spyOn(BrowserUtils, "isInIframe").mockReturnValue(true);
+            const hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            window.location.hash = hash;
+            window.sessionStorage.setItem(
+                "msal.interaction.status",
+                JSON.stringify({ clientId: "other-client", type: "signin" })
+            );
+
+            await expect(pca.handleRedirectPromise()).resolves.toBeNull();
+
+            expect(window.location.hash).toBe(hash);
+        });
+
         it("Calls RedirectClient.handleRedirectPromise and returns its response", async () => {
             const testAccount = BASIC_TEST_ACCOUNT_INFO;
             const testTokenResponse: AuthenticationResult = {
@@ -1436,28 +2037,52 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(emitSpy).toHaveBeenCalledTimes(0);
         });
 
-        it("removes interaction_in_progress and returns null after sign-out", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-            await pca.initialize();
+        it.each([
+            ["", ""],
+            [
+                `?dashboard=new#state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+                "?dashboard=new",
+            ],
+            [
+                `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}#/home`,
+                `?state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}#/home`,
+            ],
+            ["#/home", "#/home"],
+        ])(
+            "removes the sign-out interaction flag and only recognized response fragments: %s",
+            async (url, expectedUrl) => {
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                });
+                await pca.initialize();
 
-            window.sessionStorage.setItem(
-                `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
-                JSON.stringify({
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    type: INTERACTION_TYPE.SIGNOUT,
-                })
-            );
-            const res = await pca.handleRedirectPromise();
-            expect(res).toBeNull();
-            expect(
-                // @ts-ignore
-                pca.controller.browserStorage.getInteractionInProgress()
-            ).toBeFalsy();
-        });
+                window.sessionStorage.setItem(
+                    `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`,
+                    JSON.stringify({
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        type: INTERACTION_TYPE.SIGNOUT,
+                    })
+                );
+                const originalUrl = window.location.href;
+                const base = window.location.origin + window.location.pathname;
+                try {
+                    window.history.replaceState(null, "", base + url);
+
+                    const res = await pca.handleRedirectPromise();
+
+                    expect(res).toBeNull();
+                    expect(window.location.href).toBe(base + expectedUrl);
+                    expect(
+                        // @ts-ignore
+                        pca.controller.browserStorage.getInteractionInProgress()
+                    ).toBeFalsy();
+                } finally {
+                    window.history.replaceState(null, "", originalUrl);
+                }
+            }
+        );
 
         it("removes interaction_in_progress and throws after sign-in when there are no tokens in cache", async () => {
             pca = new PublicClientApplication({
@@ -1650,6 +2275,38 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         beforeEach(async () => {
             pca = (pca as any).controller;
             await pca.initialize();
+        });
+
+        it.each(['#code=""', "#accountId=old", "#nativeAccountId=old"])(
+            "preserves the current URL when starting a new redirect request: %s",
+            async (hash) => {
+                window.location.hash = hash;
+                const startPage = window.location.href;
+                const redirect = jest
+                    .spyOn(RedirectClient.prototype, "acquireToken")
+                    .mockImplementation(async () => {
+                        expect(window.location.href).toBe(startPage);
+                    });
+
+                await pca.acquireTokenRedirect({ scopes: ["User.Read"] });
+
+                expect(redirect).toHaveBeenCalledTimes(1);
+            }
+        );
+
+        it("leaves the URL and pending transaction intact when a new redirect is blocked", async () => {
+            browserStorage.setInteractionInProgress(true);
+            const hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            window.location.hash = hash;
+
+            await expect(
+                pca.acquireTokenRedirect({ scopes: ["User.Read"] })
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.interactionInProgress,
+            });
+
+            expect(window.location.hash).toBe(hash);
+            expect(browserStorage.isInteractionInProgress(true)).toBe(true);
         });
 
         it("throws an error if initialize was not called prior", (done) => {
@@ -2896,6 +3553,59 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         afterEach(() => {
             window.localStorage.clear();
             window.sessionStorage.clear();
+        });
+
+        it("cancels active legacy polling when a popup interaction is overridden", async () => {
+            const legacy = new PublicClientApplication({
+                auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                system: {
+                    enableLegacyPolling: true,
+                    allowPlatformBroker: false,
+                },
+            });
+            await legacy.initialize();
+            const result = getTestAuthenticationResult();
+            const popup = {
+                closed: false,
+                location: { href: "about:blank" },
+                close: jest.fn(),
+            } as unknown as Window;
+            jest.spyOn(PopupClient.prototype, "acquireToken")
+                .mockImplementationOnce(() =>
+                    monitorPopupForHash(
+                        popup,
+                        window,
+                        Constants.ResponseMode.FRAGMENT,
+                        legacy.getLogger(),
+                        () => {},
+                        "old-request"
+                    ).then(() => result)
+                )
+                .mockResolvedValueOnce(result);
+            jest.useFakeTimers();
+            try {
+                const previous = legacy.acquireTokenPopup({
+                    scopes: ["User.Read"],
+                    correlationId: "old-request",
+                });
+                const previousRejection = expect(
+                    previous
+                ).rejects.toMatchObject({
+                    errorCode:
+                        BrowserAuthErrorCodes.interactionInProgressCancelled,
+                });
+                const replacement = legacy.acquireTokenPopup({
+                    scopes: ["User.Read"],
+                    correlationId: "new-request",
+                    overrideInteractionInProgress: true,
+                });
+                await previousRejection;
+                expect(popup.close).toHaveBeenCalledTimes(1);
+                await expect(replacement).resolves.toBe(result);
+                expect(jest.getTimerCount()).toBe(0);
+            } finally {
+                jest.useRealTimers();
+            }
         });
 
         it("throws an error if initialize was not called prior", async () => {

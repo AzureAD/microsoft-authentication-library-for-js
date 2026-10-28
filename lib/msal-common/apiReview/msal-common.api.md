@@ -89,7 +89,8 @@ declare namespace AADServerParamKeys {
         USERNAME,
         USER_ID,
         FMI_PATH,
-        ATTRIBUTE_TOKENS
+        ATTRIBUTE_TOKENS,
+        POPUP_ORIGIN_CHECK_DONE
     }
 }
 export { AADServerParamKeys }
@@ -281,6 +282,9 @@ function addPassword(parameters: Map<string, string>, password: string): void;
 
 // @public
 function addPopToken(parameters: Map<string, string>, cnfString: string): void;
+
+// @public
+function addPopupOriginCheckDone(parameters: Map<string, string>): void;
 
 // @public
 function addPostLogoutRedirectUri(parameters: Map<string, string>, redirectUri: string): void;
@@ -1190,6 +1194,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     state: string;
     platformBroker?: boolean;
     reqCnf?: string;
+    popupOriginCheckDone?: boolean;
 };
 
 // @internal (undocumented)
@@ -1218,6 +1223,7 @@ export type CommonEndSessionRequest = {
     state?: string;
     logoutHint?: string;
     extraQueryParameters?: StringDict;
+    popupOriginCheckDone?: boolean;
 };
 
 // @public
@@ -2531,6 +2537,8 @@ export type PerformanceEvent = {
     embeddedClientId?: string;
     embeddedRedirectUri?: string;
     isAsyncPopup?: boolean;
+    usesLegacyPolling?: boolean;
+    iframePollTimeout?: number;
     cacheRtExpiresOnSeconds?: number;
     ntwkRtExpiresOnSeconds?: number;
     extRtExpiresOnSeconds?: number;
@@ -2681,6 +2689,9 @@ export class PopTokenGenerator {
     signPayload(payload: string, keyId: string, request: SignedHttpRequestParameters, claims?: object): Promise<string>;
     signPopToken(accessToken: string, keyId: string, request: SignedHttpRequestParameters): Promise<string>;
 }
+
+// @public
+const POPUP_ORIGIN_CHECK_DONE = "pocd";
 
 // @public (undocumented)
 const POST_LOGOUT_URI = "post_logout_redirect_uri";
@@ -2880,6 +2891,7 @@ declare namespace RequestParameterBuilder {
         addClientInfo,
         addCliData,
         addInstanceAware,
+        addPopupOriginCheckDone,
         addExtraParameters,
         buildMergedClaims,
         addUsername,
@@ -3515,7 +3527,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.14.3";
+export const version = "16.15.0";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;
