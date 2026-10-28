@@ -482,9 +482,7 @@ export async function authenticateKmsiHost(
         const loginSelector = fromPlatformBroker
             ? "input[type='email'], #i0116"
             : "input[type='email'], #i0116, #otherTile";
-        const loginInput = popup
-            .locator(loginSelector)
-            .first();
+        const loginInput = popup.locator(loginSelector).first();
         const hasLogin = await loginInput
             .waitFor({ state: "visible", timeout: 10000 })
             .then(() => true)
