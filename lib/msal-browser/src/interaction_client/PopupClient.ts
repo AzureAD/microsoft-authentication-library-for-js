@@ -40,6 +40,7 @@ import {
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
 import { NavigationOptions } from "../navigation/NavigationOptions.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { computePocd } from "../utils/PopupOriginCheck.js";
 import { shouldUseEar } from "../utils/BrowserDetection.js";
 import * as PopupRelay from "../popup_relay/relayClient.js";
 import { base64Decode } from "../encode/Base64Decode.js";
@@ -209,6 +210,9 @@ export class PopupClient extends StandardInteractionClient {
                     logoutRequest?.popupWindowAttributes || {},
                 popupWindowParent: logoutRequest?.popupWindowParent ?? window,
             };
+            validLogoutRequest.popupOriginCheckDone =
+                this.getPopupOriginCheckDone(popupParams.popupWindowParent) ??
+                validLogoutRequest.popupOriginCheckDone;
             const authority = logoutRequest && logoutRequest.authority;
             const mainWindowRedirectUri =
                 logoutRequest && logoutRequest.mainWindowRedirectUri;
@@ -358,6 +362,9 @@ export class PopupClient extends StandardInteractionClient {
             ...request,
             codeChallenge: pkce.challenge,
             ...tokenBindingParams,
+            popupOriginCheckDone: this.getPopupOriginCheckDone(
+                popupParams.popupWindowParent
+            ),
         };
 
         try {
@@ -544,6 +551,9 @@ export class PopupClient extends StandardInteractionClient {
             earJwk: earJwk,
             codeChallenge: pkce.challenge,
             ...tokenBindingParams,
+            popupOriginCheckDone: this.getPopupOriginCheckDone(
+                popupParams.popupWindowParent
+            ),
         };
         const popupWindow = await this.openPostFormPopup(
             popupRequest,
@@ -1142,6 +1152,32 @@ export class PopupClient extends StandardInteractionClient {
             state,
             correlationId
         ).libraryState.id;
+    }
+
+    /**
+     * Asserts `pocd=1` for the relay flow. Direct popups also require the
+     * environment of a delegated opening window to pass the origin check.
+     *
+     * With a relay the IdP window is a grandchild popup, which an untrusted
+     * ancestor cannot reach by name — so the topology satisfies the check by
+     * construction. The current window is framed and would otherwise compute
+     * `0`. Without a delegated parent, the standard app check remains unchanged.
+     *
+     * @param popupWindowParent Window that opens the popup.
+     */
+    private getPopupOriginCheckDone(
+        popupWindowParent: Window
+    ): boolean | undefined {
+        if (this.config.auth.popupRelayUri) {
+            return true;
+        }
+        if (popupWindowParent !== window) {
+            return (
+                computePocd(this.config) === 1 &&
+                computePocd(this.config, popupWindowParent) === 1
+            );
+        }
+        return undefined;
     }
 
     /**

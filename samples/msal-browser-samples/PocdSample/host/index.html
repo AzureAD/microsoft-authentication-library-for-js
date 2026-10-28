@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>POCD cross-origin launcher</title>
+    </head>
+    <body>
+        <h1>POCD cross-origin launcher</h1>
+        <p>
+            This page runs on <code>https://localhost:3000</code>. The MSAL app
+            runs on <code>https://localhost:3001</code>, a different origin.
+            This page does not use MSAL or receive tokens.
+        </p>
+        <p>
+            <a href="https://localhost:3001" target="_blank" rel="noopener">
+                Open the app without an opener (pocd=1)
+            </a>
+        </p>
+        <button id="open-with-opener" type="button">
+            Open the app with a cross-origin opener (pocd omitted)
+        </button>
+        <p>
+            Retaining an untrusted opener is intentional in this demonstration.
+            Production links should normally use <code>rel="noopener"</code>.
+        </p>
+        <script>
+            document
+                .getElementById("open-with-opener")
+                .addEventListener("click", () => {
+                    window.open("https://localhost:3001", "_blank");
+                });
+        </script>
+    </body>
+</html>
