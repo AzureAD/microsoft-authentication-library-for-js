@@ -12,8 +12,9 @@ export function isEarEnabled() {
 }
 
 const earEnabled = isEarEnabled();
-const kmsiEnabled =
-    new URLSearchParams(window.location.search).get("kmsi") === "true";
+const queryParams = new URLSearchParams(window.location.search);
+const kmsiEnabled = queryParams.get("kmsi") === "true";
+const platformBrokerEnabled = queryParams.get("platformBroker") !== "false";
 
 export const msalConfig = {
     auth: {
@@ -21,16 +22,14 @@ export const msalConfig = {
         authority: import.meta.env.VITE_AUTHORITY,
         // Derive the redirect URI from the running origin so it stays accurate
         // whether the host is served over http (`npm start`) or https
-        // (`npm run start:https`). The host is always served on port 30663, so
-        // this resolves to `http(s)://localhost:30663`; register both schemes
-        // (or just the one you run) as SPA redirect URIs on the host app.
+        // (`npm run start:https`).
         redirectUri: window.location.origin,
     },
     cache: {
         cacheLocation: kmsiEnabled ? "localStorage" : "sessionStorage",
     },
     system: {
-        allowPlatformBroker: true,
+        allowPlatformBroker: platformBrokerEnabled,
         ...(earEnabled ? { protocolMode: ProtocolMode.EAR } : {}),
         loggerOptions: {
             loggerCallback: (level, message, containsPii) => {
