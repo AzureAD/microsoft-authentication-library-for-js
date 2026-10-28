@@ -3525,10 +3525,9 @@ describe("RedirectClient", () => {
             );
         });
 
-        it("doesnt navigate if onRedirectNavigate returns false", (done) => {
+        it("doesnt navigate and clears the DPoP nonce handoff if onRedirectNavigate returns false", async () => {
             const onRedirectNavigate = (url: string) => {
                 expect(url).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-                done();
                 return false;
             };
 
@@ -3545,42 +3544,49 @@ describe("RedirectClient", () => {
                 },
             });
 
-            pca.initialize().then(() => {
-                pca = (pca as any).controller;
+            await pca.initialize();
+            pca = (pca as any).controller;
+            const clearHandoffSpy = jest.spyOn(
                 // @ts-ignore
-                redirectClient = new RedirectClient(
-                    //@ts-ignore
-                    pca.config,
-                    //@ts-ignore
-                    pca.browserStorage,
-                    //@ts-ignore
-                    pca.browserCrypto,
-                    //@ts-ignore
-                    pca.logger,
-                    //@ts-ignore
-                    pca.eventHandler,
-                    //@ts-ignore
-                    pca.navigationClient,
-                    //@ts-ignore
-                    pca.performanceClient,
-                    //@ts-ignore
-                    pca.nativeInternalStorage
-                );
-                const navigationClient = new NavigationClient();
-                navigationClient.navigateExternal = (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    done(
-                        "Navigatation should not happen if onRedirectNavigate returns false"
-                    );
-                    return Promise.reject();
-                };
+                pca.browserStorage,
+                "clearDpopNonceRedirectHandoff"
+            );
+            // @ts-ignore
+            redirectClient = new RedirectClient(
+                //@ts-ignore
+                pca.config,
+                //@ts-ignore
+                pca.browserStorage,
+                //@ts-ignore
+                pca.browserCrypto,
+                //@ts-ignore
+                pca.logger,
+                //@ts-ignore
+                pca.eventHandler,
+                //@ts-ignore
+                pca.navigationClient,
+                //@ts-ignore
+                pca.performanceClient,
+                //@ts-ignore
+                pca.nativeInternalStorage,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            const navigationClient = new NavigationClient();
+            const navigateExternalSpy = jest
+                .spyOn(navigationClient, "navigateExternal")
+                .mockResolvedValue(true);
 
-                redirectClient.initiateAuthRequest(
-                    TEST_URIS.TEST_ALTERNATE_REDIR_URI
-                );
-            });
+            // @ts-ignore
+            redirectClient.navigationClient = navigationClient;
+
+            await redirectClient.initiateAuthRequest(
+                TEST_URIS.TEST_ALTERNATE_REDIR_URI
+            );
+
+            expect(navigateExternalSpy).not.toHaveBeenCalled();
+            expect(clearHandoffSpy).toHaveBeenCalledWith(
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("navigates if onRedirectNavigate doesnt return false", (done) => {
