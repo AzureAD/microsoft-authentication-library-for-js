@@ -167,8 +167,9 @@ describe("Keep Me Signed In + NAA through the platform broker", () => {
     async function openHost(): Promise<void> {
         if (!broker?.extensionPresent) {
             throw new Error(
-                "KMSI + NAA requires the Microsoft SSO extension, BrowserCore, " +
-                    "and a KMSI-enabled WAM account on a self-hosted Windows agent. " +
+                "The platform-broker variant of this KMSI + NAA test requires " +
+                    "the Microsoft SSO extension and BrowserCore on a self-hosted " +
+                    "Windows agent, plus a WAM account with persistent sign-in. " +
                     "See the NestedAuthAppSample README."
             );
         }
