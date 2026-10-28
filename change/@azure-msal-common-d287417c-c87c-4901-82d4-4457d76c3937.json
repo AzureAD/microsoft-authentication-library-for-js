@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Replace built-in Entra endpoint URLs with oauth21/2026-08 [#8947](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8947)",
+  "packageName": "@azure/msal-common",
+  "email": "spingale@microsoft.com",
+  "dependentChangeType": "patch"
+}
