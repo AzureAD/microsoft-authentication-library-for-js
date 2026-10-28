@@ -263,6 +263,47 @@ describe("platform broker silent request coalescing", () => {
         ]);
     });
 
+    it("does not share DPoP proofs across concurrent silent requests", async () => {
+        const started = deferred<void>();
+        const response = deferred<void>();
+        const acquire = jest
+            .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
+            .mockImplementation((request) => {
+                started.resolve();
+                const correlationId = request.correlationId || "operation";
+                return response.promise.then(() => ({
+                    ...result,
+                    correlationId,
+                    tokenType: Constants.AuthenticationScheme.DPOP,
+                    dpopProof: `proof-${correlationId}`,
+                }));
+            });
+        const request: BrokerRequest = {
+            scopes: ["User.Read"],
+            authenticationScheme: Constants.AuthenticationScheme.DPOP,
+            resourceRequestMethod: "GET",
+            resourceRequestUri: "https://resource.example.com",
+        };
+        const first = acquireSilent({
+            ...request,
+            correlationId: "first",
+        });
+        await started.promise;
+        const second = acquireSilent({
+            ...request,
+            correlationId: "second",
+        });
+        response.resolve();
+
+        const results = await Promise.all([first, second]);
+
+        expect(acquire).toHaveBeenCalledTimes(2);
+        expect(results.map((value) => value.dpopProof)).toEqual([
+            "proof-first",
+            "proof-second",
+        ]);
+    });
+
     it.each([
         [
             "native account",

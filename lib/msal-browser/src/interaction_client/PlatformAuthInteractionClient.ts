@@ -359,6 +359,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         request: PlatformAuthRequest,
         cachedAccount: AccountInfo
     ): CommonSilentFlowRequest {
+        const isDpopRequest = this.isDpopBrokerRequest(request);
+        const isPopRequest =
+            request.tokenType === Constants.AuthenticationScheme.POP;
+        const isApplicationManagedPopRequest =
+            isPopRequest && request.signPopToken === false;
+
         const silentRequest: CommonSilentFlowRequest = {
             authority: request.authority,
             correlationId: this.correlationId,
@@ -368,12 +374,16 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             ).asArray(),
             account: cachedAccount,
             forceRefresh: false,
-            authenticationScheme: this.isDpopBrokerRequest(request)
+            authenticationScheme: isDpopRequest
                 ? Constants.AuthenticationScheme.DPOP
                 : (request.tokenType as Constants.AuthenticationScheme),
-            popKid: request.keyId,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
+            ...(isApplicationManagedPopRequest &&
+                request.keyId && { popKid: request.keyId }),
+            ...(isDpopRequest && request.keyId && { dpopJkt: request.keyId }),
+            ...((isPopRequest || isDpopRequest) && {
+                resourceRequestMethod: request.resourceRequestMethod,
+                resourceRequestUri: request.resourceRequestUri,
+            }),
             resource: request.extraParameters?.resource,
         };
 
@@ -507,6 +517,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
              * web fallback, while translated cancellation, network, and
              * interaction-required errors are surfaced without being swallowed.
              */
+            await this.resetGeneratedDpopRequestKeyBestEffort(nativeRequest);
             if (e instanceof NativeAuthError) {
                 const serverTelemetryManager = initializeServerTelemetryManager(
                     this.apiId,
@@ -526,18 +537,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                      * in handleRedirectPromise (phase 2).
                      */
                     this.setBrokerErrorTelemetry(e);
-                    await this.resetGeneratedDpopRequestKeyBestEffort(
-                        nativeRequest
-                    );
                     throw e;
                 }
-                await this.resetGeneratedDpopRequestKeyBestEffort(
-                    nativeRequest
-                );
             } else if (this.isDpopBrokerRequest(nativeRequest)) {
-                await this.resetGeneratedDpopRequestKeyBestEffort(
-                    nativeRequest
-                );
                 throw e;
             }
         }

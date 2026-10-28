@@ -581,9 +581,11 @@ describe("PlatformAuthExtensionHandler Tests", () => {
                 },
                 scope: "read openid",
                 expires_in: "3600",
-                token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
-                binding_attested: true,
-                DPoP: "test-dpop-proof",
+                properties: {
+                    token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
+                    binding_attested: "true",
+                    DPoP: "test-dpop-proof",
+                },
             };
             const testResponse = {
                 status: "Success",
@@ -637,9 +639,11 @@ describe("PlatformAuthExtensionHandler Tests", () => {
 
             expect(response).toEqual(
                 expect.objectContaining({
-                    token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
-                    binding_attested: true,
-                    DPoP: "test-dpop-proof",
+                    properties: {
+                        token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
+                        binding_attested: "true",
+                        DPoP: "test-dpop-proof",
+                    },
                 })
             );
             window.removeEventListener("message", eventHandler, true);

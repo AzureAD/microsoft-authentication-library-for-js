@@ -2397,13 +2397,18 @@ export class StandardController implements IController {
             this.performanceClient
         );
 
-        const inProgressRequest = this.activeSilentTokenRequests.get(
-            preparedRequest.key
-        );
+        const shouldDeduplicate =
+            preparedRequest.request.authenticationScheme !==
+            Constants.AuthenticationScheme.DPOP;
+        const inProgressRequest = shouldDeduplicate
+            ? this.activeSilentTokenRequests.get(preparedRequest.key)
+            : undefined;
 
         if (typeof inProgressRequest === "undefined") {
             this.logger.verbose(
-                "acquireTokenSilent called for the first time, storing active request",
+                shouldDeduplicate
+                    ? "acquireTokenSilent called for the first time, storing active request"
+                    : "acquireTokenSilent called for DPoP request, starting an independent operation",
                 correlationId
             );
             this.performanceClient.addFields({ deduped: false }, correlationId);
@@ -2421,6 +2426,10 @@ export class StandardController implements IController {
                 },
                 preparedRequest.account
             );
+            if (!shouldDeduplicate) {
+                return activeRequest;
+            }
+
             this.activeSilentTokenRequests.set(
                 preparedRequest.key,
                 activeRequest

@@ -17,6 +17,7 @@ import {
     Constants,
     AuthError,
     AuthErrorCodes,
+    DpopProofGenerator,
     PerformanceEvent,
     PopTokenGenerator,
 } from "@azure/msal-common";
@@ -1678,7 +1679,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 name: "L3 outcome with an empty proof",
                 response: {
                     properties: {
-                        token_type: "DPoP",
+                        token_type: "dpop+proof",
                         DPoP: " ",
                         binding_attested: "true",
                     },
@@ -1688,7 +1689,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 name: "L3 outcome without affirmative attestation",
                 response: {
                     properties: {
-                        token_type: "DPoP",
+                        token_type: "dpop+proof",
                         DPoP: "test-dpop-proof",
                     },
                 },
@@ -1697,7 +1698,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 name: "L3 outcome with rejected attestation",
                 response: {
                     properties: {
-                        token_type: "DPoP",
+                        token_type: "dpop+proof",
                         DPoP: "unexpected-proof",
                         binding_attested: "False",
                     },
@@ -2115,43 +2116,112 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
         });
 
-        it("Extension: does not copy broker-only DPoP parameters into cache requests", () => {
-            const createSilentCacheRequest = (
+        const createSilentCacheRequest = (
+            request: PlatformAuthRequest
+        ): {
+            popKid?: string;
+            dpopJkt?: string;
+            resourceRequestMethod?: string;
+            resourceRequestUri?: string;
+        } =>
+            (
                 platformAuthInteractionClient as unknown as {
                     createSilentCacheRequest(
                         request: PlatformAuthRequest,
                         account: AccountInfo
                     ): {
                         popKid?: string;
+                        dpopJkt?: string;
                         resourceRequestMethod?: string;
                         resourceRequestUri?: string;
                     };
                 }
-            ).createSilentCacheRequest.bind(platformAuthInteractionClient);
+            ).createSilentCacheRequest(request, TEST_ACCOUNT_INFO);
 
-            const cacheRequest = createSilentCacheRequest(
-                {
-                    authority: TEST_CONFIG.validAuthority,
-                    correlationId: RANDOM_TEST_GUID,
-                    scope: "User.Read",
-                    tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
-                    keyId: "generated-dpop-key",
-                    resourceRequestMethod: "POST",
-                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                    extraParametersNoCache: {
-                        pop_nonce: "resource-nonce",
-                    },
-                } as PlatformAuthRequest,
-                TEST_ACCOUNT_INFO
-            );
+        it("Extension: preserves MSAL-managed PoP ownership in cache requests", () => {
+            const cacheRequest = createSilentCacheRequest({
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                scope: "User.Read",
+                tokenType: Constants.AuthenticationScheme.POP,
+                keyId: "generated-pop-key",
+                signPopToken: true,
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            } as PlatformAuthRequest);
 
             expect(cacheRequest).toEqual(
                 expect.objectContaining({
-                    popKid: "generated-dpop-key",
                     resourceRequestMethod: "POST",
                     resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 })
             );
+            expect(cacheRequest).not.toHaveProperty("popKid");
+            expect(cacheRequest).not.toHaveProperty("dpopJkt");
+        });
+
+        it("Extension: preserves application-managed PoP ownership in cache requests", () => {
+            const cacheRequest = createSilentCacheRequest({
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                scope: "User.Read",
+                tokenType: Constants.AuthenticationScheme.POP,
+                keyId: "application-pop-key",
+                signPopToken: false,
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            } as PlatformAuthRequest);
+
+            expect(cacheRequest).toEqual(
+                expect.objectContaining({
+                    popKid: "application-pop-key",
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                })
+            );
+            expect(cacheRequest).not.toHaveProperty("dpopJkt");
+        });
+
+        it("Extension: maps broker DPoP keys to dpopJkt in cache requests", () => {
+            const cacheRequest = createSilentCacheRequest({
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                scope: "User.Read",
+                tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
+                keyId: "generated-dpop-key",
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                extraParametersNoCache: {
+                    pop_nonce: "resource-nonce",
+                },
+            } as PlatformAuthRequest);
+
+            expect(cacheRequest).toEqual(
+                expect.objectContaining({
+                    dpopJkt: "generated-dpop-key",
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                })
+            );
+            expect(cacheRequest).not.toHaveProperty("popKid");
+            expect(cacheRequest).not.toHaveProperty("extraParameters");
+        });
+
+        it("Extension: omits proof parameters from bearer cache requests", () => {
+            const cacheRequest = createSilentCacheRequest({
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: RANDOM_TEST_GUID,
+                scope: "User.Read",
+                tokenType: Constants.AuthenticationScheme.BEARER,
+                keyId: "irrelevant-key",
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            } as PlatformAuthRequest);
+
+            expect(cacheRequest).not.toHaveProperty("popKid");
+            expect(cacheRequest).not.toHaveProperty("dpopJkt");
+            expect(cacheRequest).not.toHaveProperty("resourceRequestMethod");
+            expect(cacheRequest).not.toHaveProperty("resourceRequestUri");
             expect(cacheRequest).not.toHaveProperty("extraParameters");
         });
 
@@ -3455,29 +3525,39 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         provisionTokenBindingKey(): Promise<string>;
                         removeTokenBindingKey(): Promise<void>;
                         isTokenBindingKeyPersisted(): Promise<boolean>;
+                        hasTokenBindingKey(): Promise<boolean>;
                     };
                 }
             ).tokenBindingKeyManager;
-            jest.spyOn(
-                keyManager,
-                "provisionTokenBindingKey"
-            ).mockResolvedValue("phase-one-l1-dpop-key");
+            const provisionKeySpy = jest
+                .spyOn(keyManager, "provisionTokenBindingKey")
+                .mockResolvedValue("phase-one-l1-dpop-key");
             jest.spyOn(
                 keyManager,
                 "isTokenBindingKeyPersisted"
             ).mockResolvedValue(true);
+            const hasKeySpy = jest
+                .spyOn(keyManager, "hasTokenBindingKey")
+                .mockResolvedValue(true);
             const removeKeySpy = jest
                 .spyOn(keyManager, "removeTokenBindingKey")
                 .mockResolvedValue();
+            const generateProofSpy = jest
+                .spyOn(DpopProofGenerator.prototype, "generateResourceProof")
+                .mockResolvedValue("local-redirect-dpop-proof");
+            const brokerRequests: PlatformAuthRequest[] = [];
             jest.spyOn(
                 PlatformAuthExtensionHandler.prototype,
                 "sendMessage"
-            ).mockResolvedValue({
-                ...MOCK_WAM_RESPONSE,
-                properties: {
-                    token_type: "DPoP",
-                    binding_attested: "false",
-                },
+            ).mockImplementation((request) => {
+                brokerRequests.push({ ...request });
+                return Promise.resolve({
+                    ...MOCK_WAM_RESPONSE,
+                    properties: {
+                        token_type: "DPoP",
+                        binding_attested: "false",
+                    },
+                });
             });
 
             await platformAuthInteractionClient.acquireTokenRedirect(
@@ -3497,6 +3577,32 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 kid: "phase-one-l1-dpop-key",
                 xms_ksl: "sw",
             });
+
+            // @ts-ignore
+            pca.browserStorage.setInteractionInProgress(true);
+            const response =
+                await platformAuthInteractionClient.handleRedirectPromise();
+
+            expect(response?.dpopProof).toBe("local-redirect-dpop-proof");
+            expect(provisionKeySpy).toHaveBeenCalledTimes(1);
+            expect(hasKeySpy).toHaveBeenCalledWith(
+                "phase-one-l1-dpop-key",
+                RANDOM_TEST_GUID
+            );
+            expect(brokerRequests).toHaveLength(2);
+            expect(brokerRequests[0].keyId).toBe("phase-one-l1-dpop-key");
+            expect(brokerRequests[1].keyId).toBe("phase-one-l1-dpop-key");
+            expect(brokerRequests[1].reqCnf).toBe(cachedRequest?.reqCnf);
+            expect(generateProofSpy).toHaveBeenCalledWith(
+                {
+                    htu: "https://graph.microsoft.com/v1.0/me",
+                    htm: "POST",
+                    accessToken: MOCK_WAM_RESPONSE.access_token,
+                    nonce: undefined,
+                },
+                "phase-one-l1-dpop-key",
+                RANDOM_TEST_GUID
+            );
             expect(removeKeySpy).not.toHaveBeenCalled();
         });
 
