@@ -934,6 +934,9 @@ export class RedirectClient extends StandardInteractionClient {
                         "RedirectHandler.initiateAuthRequest: onRedirectNavigate returned false, stopping navigation",
                         this.correlationId
                     );
+                    this.browserStorage.clearDpopNonceRedirectHandoff(
+                        this.correlationId
+                    );
                     return;
                 }
             } else {
