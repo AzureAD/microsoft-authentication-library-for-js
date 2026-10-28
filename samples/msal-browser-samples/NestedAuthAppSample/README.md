@@ -1,5 +1,49 @@
 # Nested Auth App Sample
 
+This sample demonstrates a third-party **Nested Authentication App (NAA)**
+brokered through a first-party **host** app. The host may use the platform
+broker when available.
+
+## Architecture
+
+```text
+ hostApp (top frame, port 30663)              nestedApp (iframe, port 30667)
+ ┌──────────────────────────────────┐         ┌──────────────────────────────┐
+ │ @azure/msal-browser              │         │ @azure/msal-browser          │
+ │ PublicClientApplication          │  NAA    │ createNestablePublicClient   │
+ │  system.allowPlatformBroker:true │◀────────│  Application()               │
+ │                                  │ bridge  │                              │
+ │ relays to the platform broker    │         │                              │
+ └────────────────┬─────────────────┘         └──────────────────────────────┘
+                  │
+                  ▼
+                 WAM
+```
+
+-   **hostApp** — the top-level host. It initializes MSAL with the platform
+    broker enabled by default and embeds the nested app in an iframe. It also
+    supplies the `nestedAppAuthBridge` used by the nested app.
+-   **nestedApp** — the embedded child. It creates its client with
+    `createNestablePublicClientApplication()` and acquires tokens through the
+    host bridge. The host bridge does not return a refresh token to the nested
+    app.
+
+## The NAA bridge
+
+The nested app talks to the host through `window.nestedAppAuthBridge`. In a
+production NAA host such as Teams or Outlook, the platform injects that bridge.
+In this sample, the host supplies its own implementation in
+`hostApp/src/nestedAppAuthBridge.js`.
+
+-   **Injection** — after MSAL initializes, the host calls
+    `installHostNestedAppAuthBridge(hostPca, nestedOrigin)` from
+    `hostApp/src/index.jsx`. The bridge only accepts `postMessage` requests from
+    the nested app's origin.
+-   **Usage** — `createNestablePublicClientApplication()` detects the bridge
+    and routes nested token requests through it. The host brokers those requests
+    through its own MSAL instance using the nested application's client ID as
+    `embeddedClientId`.
+
 ## Configure the app registrations
 
 Create linked host and nested app registrations for Nested App Authentication.
@@ -54,6 +98,7 @@ expected.
 | Spec                               | Command                        |
 | ---------------------------------- | ------------------------------ |
 | `naa-basic.spec.ts`                | `npm run test:e2e:naa-basic`   |
+| `naa-kmsi.spec.ts`                 | `npm run test:e2e:kmsi`        |
 | `naa-ear.spec.ts`                  | `npm run test:e2e:ear`         |
 | `naa-platform-broker.spec.ts`      | `npm run test:e2e:broker`      |
 | `naa-ear-platform-broker.spec.ts`  | `npm run test:e2e:ear-broker`  |
