@@ -117,20 +117,20 @@ describe("AuthorityMetadata.ts Unit Tests", () => {
 
                         // Shared patterns
                         expect(cfg.token_endpoint).toBe(
-                            `https://${host}/{tenantid}/oauth2/v2.0/token`
+                            `https://${host}/{tenantid}/oauth21/2026-08/token`
                         );
                         expect(cfg.jwks_uri).toBe(
-                            `https://${host}/{tenantid}/discovery/v2.0/keys`
+                            `https://${host}/{tenantid}/oauth21/2026-08/keys`
                         );
                         expect(cfg.authorization_endpoint).toBe(
-                            `https://${host}/{tenantid}/oauth2/v2.0/authorize`
+                            `https://${host}/{tenantid}/oauth21/2026-08/authorize`
                         );
                         expect(cfg.end_session_endpoint).toBe(
-                            `https://${host}/{tenantid}/oauth2/v2.0/logout`
+                            `https://${host}/{tenantid}/oauth21/2026-08/logout`
                         );
 
                         expect(cfg.issuer).toBe(
-                            `https://${host}/{tenantid}/v2.0`
+                            `https://${host}/{tenantid}/oauth21/2026-08`
                         );
                     }
                 );
@@ -141,7 +141,7 @@ describe("AuthorityMetadata.ts Unit Tests", () => {
                     EndpointMetadata["login.partner.microsoftonline.cn"];
                 expect(preferredChinaConfig).toBeDefined();
                 expect(preferredChinaConfig.issuer).toBe(
-                    "https://login.partner.microsoftonline.cn/{tenantid}/v2.0"
+                    "https://login.partner.microsoftonline.cn/{tenantid}/oauth21/2026-08"
                 );
                 expect(preferredChinaConfig.token_endpoint).toContain(
                     "login.partner.microsoftonline.cn"
@@ -153,7 +153,7 @@ describe("AuthorityMetadata.ts Unit Tests", () => {
                 Object.entries(EndpointMetadata).forEach(
                     ([host, cfg]: [string, any]) => {
                         expect(cfg.issuer).toBe(
-                            `https://${host}/{tenantid}/v2.0`
+                            `https://${host}/{tenantid}/oauth21/2026-08`
                         );
                         if (host !== "login.partner.microsoftonline.cn") {
                             expect(
@@ -166,9 +166,11 @@ describe("AuthorityMetadata.ts Unit Tests", () => {
                 );
             });
 
-            it("all issuer values end with /{tenantid}/v2.0", () => {
+            it("all issuer values end with /{tenantid}/oauth21/2026-08", () => {
                 Object.values(EndpointMetadata).forEach((cfg: any) => {
-                    expect(cfg.issuer.endsWith("/{tenantid}/v2.0")).toBe(true);
+                    expect(
+                        cfg.issuer.endsWith("/{tenantid}/oauth21/2026-08")
+                    ).toBe(true);
                 });
             });
         });

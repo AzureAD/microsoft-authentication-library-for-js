@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update static authorization URL test expectations [#8947](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8947)",
+  "packageName": "@azure/msal-browser",
+  "email": "spingale@microsoft.com",
+  "dependentChangeType": "none"
+}

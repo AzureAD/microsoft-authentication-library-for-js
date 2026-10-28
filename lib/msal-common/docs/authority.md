@@ -14,13 +14,15 @@ The default authority for MSAL is `https://login.microsoftonline.com/common`. Th
 
 > :warning: The canonical authority URL differs in the case of B2C and ADFS. See [Choosing an authority](#choosing-an-authority) below for more.
 
+> Integration-stage migration: built-in Entra endpoint metadata now uses `oauth21/2026-08` for authorize, token, logout, keys, and issuer URLs. This step changes only those static URLs. Network discovery URLs, metadata selection and validation, tenant substitution, caching, and regional transformation are unchanged. This is not yet a complete or production-ready OAuth 2.1 migration.
+
 The authority URL guides MSAL where to look for the 3 endpoints that are required for successfully acquiring a token:
 
 | Endpoint                | Example     | Description |
 |-------------------------|-------------|-------------|
 | `/openid-configuration` | `https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration` | Contains the metadata required for making a token request e.g. supported scopes, claims, request methods, signing keys etc. |
-| `/authorize`            | `https://login.microsoftonline.com/common/oauth2/v2.0/authorize` | Returns an authorization code in the query parameters via the client app's registered redirect URI. Navigation to this endpoint usually prompts the user with a dialog screen by the IdP. Appropriate query parameters can be used to customize this screen. |
-| `/token`                | `https://login.microsoftonline.com/common/oauth2/v2.0/token` | The client app sends the authorizaiton code to this endpoint via a POST request and receives an access and an ID token in return. |
+| `/authorize`            | `https://login.microsoftonline.com/common/oauth21/2026-08/authorize` | Returns an authorization code in the query parameters via the client app's registered redirect URI. Navigation to this endpoint usually prompts the user with a dialog screen by the IdP. Appropriate query parameters can be used to customize this screen. |
+| `/token`                | `https://login.microsoftonline.com/common/oauth21/2026-08/token` | The client app sends the authorizaiton code to this endpoint via a POST request and receives an access and an ID token in return. |
 
 > :bulb: Certain OAuth 2.0 grants may skip the authorize endpoint and go directly for the token endpoint, e.g. [OAuth 2.0 Client Credentials Grant](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow)
 

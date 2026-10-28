@@ -1464,13 +1464,13 @@ describe("Authority.ts Class Unit Tests", () => {
                         "login.partner.microsoftonline.cn"
                     );
                     expect(authority.authorizationEndpoint).toBe(
-                        "https://login.partner.microsoftonline.cn/common/oauth2/v2.0/authorize"
+                        "https://login.partner.microsoftonline.cn/common/oauth21/2026-08/authorize"
                     );
                     expect(authority.tokenEndpoint).toBe(
-                        "https://login.partner.microsoftonline.cn/common/oauth2/v2.0/token"
+                        "https://login.partner.microsoftonline.cn/common/oauth21/2026-08/token"
                     );
                     expect(authority.selfSignedJwtAudience).toBe(
-                        "https://login.partner.microsoftonline.cn/common/v2.0"
+                        "https://login.partner.microsoftonline.cn/common/oauth21/2026-08"
                     );
                     expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
                     expect(
@@ -1555,17 +1555,17 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 const expectedHardcodedRegionalValues = {
                     authorization_endpoint:
-                        "https://westus2.login.microsoft.com/common/oauth2/v2.0/authorize/",
+                        "https://westus2.login.microsoft.com/common/oauth21/2026-08/authorize/",
                     canonical_authority:
                         "https://login.microsoftonline.com/common/",
                     end_session_endpoint:
-                        "https://westus2.login.microsoft.com/common/oauth2/v2.0/logout/",
+                        "https://westus2.login.microsoft.com/common/oauth21/2026-08/logout/",
                     endpointsFromNetwork: false,
-                    issuer: "https://login.microsoftonline.com/{tenantid}/v2.0",
+                    issuer: "https://login.microsoftonline.com/{tenantid}/oauth21/2026-08",
                     jwks_uri:
-                        "https://login.microsoftonline.com/common/discovery/v2.0/keys",
+                        "https://login.microsoftonline.com/common/oauth21/2026-08/keys",
                     token_endpoint:
-                        "https://westus2.login.microsoft.com/common/oauth2/v2.0/token/",
+                        "https://westus2.login.microsoft.com/common/oauth21/2026-08/token/",
                 };
 
                 networkInterface.sendGetRequestAsync = (
@@ -3297,7 +3297,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 ""
             );
             expect(regionalResponse.authorization_endpoint).toBe(
-                "https://westus2.login.microsoft.com/{tenant}/oauth2/v2.0/authorize/"
+                "https://westus2.login.microsoft.com/{tenant}/oauth21/2026-08/authorize/"
             );
         });
 
