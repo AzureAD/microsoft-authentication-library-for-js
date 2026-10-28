@@ -4,7 +4,10 @@
  */
 
 import { IdTokenClaims } from "@azure/msal-common";
+import { parse } from "dotenv";
 import { assertKmsiSigninState } from "e2e-test-utils";
+import { readFileSync } from "fs";
+import * as path from "path";
 import { Frame, Page } from "playwright-core";
 import {
     BrokerContext,
@@ -28,6 +31,9 @@ const { HOST_APP_PORT, NESTED_APP_PORT } = require("../sampleConfig.cjs") as {
 
 const HOST_URL = `https://localhost:${HOST_APP_PORT}?kmsi=true`;
 const NESTED_URL = `https://localhost:${NESTED_APP_PORT}`;
+const NESTED_APP_CLIENT_ID = parse(
+    readFileSync(path.join(__dirname, "../.env.e2e"))
+)["VITE_NESTED_CLIENT_ID"];
 const ACTION_TIMEOUT = 60000;
 const SCOPES = ["User.Read"];
 const TOKEN_APIS = [
@@ -36,6 +42,10 @@ const TOKEN_APIS = [
     { name: "acquireTokenPopup", bridge: "GetTokenPopup", silent: false },
     { name: "loginPopup", bridge: "GetTokenPopup", silent: false },
 ] as const;
+
+if (!NESTED_APP_CLIENT_ID) {
+    throw new Error("VITE_NESTED_CLIENT_ID is missing from .env.e2e");
+}
 
 interface HostAuthResult {
     fromPlatformBroker: boolean;
@@ -167,10 +177,10 @@ describe("Keep Me Signed In + NAA through the platform broker", () => {
     async function openHost(): Promise<void> {
         if (!broker?.extensionPresent) {
             throw new Error(
-                "The platform-broker variant of this KMSI + NAA test requires " +
-                    "the Microsoft SSO extension and BrowserCore on a self-hosted " +
-                    "Windows agent, plus a WAM account with persistent sign-in. " +
-                    "See the NestedAuthAppSample README."
+                "To test NAA + KMSI with platform brokering enabled, install " +
+                    "the Microsoft SSO extension and enable BrowserCore on a " +
+                    "self-hosted Windows agent. The WAM account must also have " +
+                    "persistent sign-in enabled. See the NestedAuthAppSample README."
             );
         }
         hostPage = await broker.context.newPage();
@@ -258,7 +268,7 @@ describe("Keep Me Signed In + NAA through the platform broker", () => {
         if (!tokenParams) {
             throw new Error("NAA token request did not contain tokenParams");
         }
-        expect(tokenParams.clientId).toBeTruthy();
+        expect(tokenParams.clientId).toBe(NESTED_APP_CLIENT_ID);
         expect(tokenParams.scope.toLowerCase().split(" ")).toEqual(
             expect.arrayContaining(SCOPES.map((scope) => scope.toLowerCase()))
         );
@@ -329,7 +339,7 @@ describe("Keep Me Signed In + NAA through the platform broker", () => {
             Buffer.from(payload, "base64url").toString("utf8")
         );
         assertKmsiSigninState(claims);
-        expect(claims.aud).toBe(tokenParams.clientId);
+        expect(claims.aud).toBe(NESTED_APP_CLIENT_ID);
         expect(
             await frame
                 .locator("[data-testid='lastApi'] tbody td")
