@@ -315,7 +315,7 @@ describe("Sign-up V2 entry", () => {
         }
 
         const activationResult =
-            await registrationResult.state.enrollAuthMethod(
+            await registrationResult.state.selectAuthMethod(
                 registrationResult.state.methods[1],
                 "user@contoso.com"
             );
@@ -373,7 +373,7 @@ describe("Sign-up V2 entry", () => {
             throw new Error("Expected registration after code verification.");
         }
         const activationResult =
-            await registrationResult.state.enrollAuthMethod(
+            await registrationResult.state.selectAuthMethod(
                 registrationResult.state.methods[1],
                 "user@contoso.com"
             );
@@ -474,7 +474,7 @@ describe("Sign-up V2 entry", () => {
             }
 
             const activationResult =
-                await registrationResult.state.enrollAuthMethod(
+                await registrationResult.state.selectAuthMethod(
                     registrationResult.state.methods[1],
                     "user@contoso.com"
                 );

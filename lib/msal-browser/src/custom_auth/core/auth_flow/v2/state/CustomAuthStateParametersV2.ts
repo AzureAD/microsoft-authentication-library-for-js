@@ -51,7 +51,7 @@ export interface AuthMethodRegistrationRequiredStateParametersV2
 
 export interface AuthMethodVerificationRequiredStateParametersV2
     extends CustomAuthActionRequiredStateParametersV2 {
-    method: AuthenticationMethodRegistrationV2;
+    type: string;
     sentTo?: string;
     codeLength: number;
 }

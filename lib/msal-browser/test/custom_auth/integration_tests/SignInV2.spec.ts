@@ -430,7 +430,7 @@ describe("Sign-in V2", () => {
             ]);
 
             const activationResult =
-                await registrationResult.state.enrollAuthMethod(
+                await registrationResult.state.selectAuthMethod(
                     registrationResult.state.methods[0],
                     "user@contoso.com"
                 );
@@ -505,7 +505,7 @@ describe("Sign-in V2", () => {
                 throw new Error("Expected authentication-method registration.");
             }
 
-            const activationResult = await startResult.state.enrollAuthMethod(
+            const activationResult = await startResult.state.selectAuthMethod(
                 startResult.state.methods[0],
                 "user@contoso.com"
             );
@@ -562,7 +562,7 @@ describe("Sign-in V2", () => {
             ]);
 
             const activationResult =
-                await registrationResult.state.enrollAuthMethod(
+                await registrationResult.state.selectAuthMethod(
                     registrationResult.state.methods[0],
                     "+15555551234"
                 );
@@ -572,7 +572,7 @@ describe("Sign-in V2", () => {
             if (!activationResult.isState("authMethodVerificationRequired")) {
                 throw new Error("Expected an activation challenge.");
             }
-            expect(activationResult.state.method.type).toBe("phone");
+            expect(activationResult.state.type).toBe("phone");
             expect(activationResult.state.codeLength).toBe(6);
 
             const result = await activationResult.state.submitChallenge(
