@@ -1084,6 +1084,7 @@ export type ClientConfiguration = {
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
+    dpopNonceProvider?: IDpopNonceProvider;
     clientCredentials?: ClientCredentials;
     libraryInfo?: LibraryInfo;
     telemetry?: TelemetryOptions;
@@ -1206,6 +1207,7 @@ export type CommonClientConfiguration = {
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
     tokenBindingKeyManager: ITokenBindingKeyManager;
+    dpopNonceProvider?: IDpopNonceProvider;
     libraryInfo: LibraryInfo;
     telemetry: Required<TelemetryOptions>;
     serverTelemetryManager: ServerTelemetryManager | null;
@@ -1647,7 +1649,7 @@ export type GenerateAuthenticationResultOptions = {
     serverTokenResponse?: ServerAuthorizationTokenResponse;
     requestId?: string;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
-    cacheManager?: CacheManager;
+    dpopNonceProvider?: IDpopNonceProvider;
 };
 
 // @public
@@ -1831,6 +1833,11 @@ const ID_TOKEN = "id_token";
 
 // @public (undocumented)
 const ID_TOKEN_HINT = "id_token_hint";
+
+// @internal
+export interface IDpopNonceProvider {
+    getDpopNonce(resourceRequestUri: string, correlationId?: string): string | undefined;
+}
 
 // @internal (undocumented)
 export type IdTokenCache = Record<string, IdTokenEntity>;
@@ -2952,9 +2959,9 @@ const RESPONSE_TYPE = "response_type";
 
 // @internal
 export class ResponseHandler {
-    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, tokenBindingKeyManager?: ITokenBindingKeyManager);
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, tokenBindingKeyManager?: ITokenBindingKeyManager, dpopNonceProvider?: IDpopNonceProvider);
     static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, options?: GenerateAuthenticationResultOptions): Promise<AuthenticationResult>;
-    static generateDpopResourceProof(cryptoObj: ICrypto, authenticationResult: AuthenticationResult, request: BaseAuthRequest, performanceClient: IPerformanceClient, options?: Pick<GenerateAuthenticationResultOptions, "tokenBindingKeyManager" | "cacheManager">): Promise<string>;
+    static generateDpopResourceProof(cryptoObj: ICrypto, authenticationResult: AuthenticationResult, request: BaseAuthRequest, performanceClient: IPerformanceClient, options?: Pick<GenerateAuthenticationResultOptions, "tokenBindingKeyManager" | "dpopNonceProvider">): Promise<string>;
     handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
     validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse, correlationId: string, refreshAccessToken?: boolean): void;
 }

@@ -53,6 +53,7 @@ import * as TimeUtils from "../utils/TimeUtils.js";
 import { AuthenticationResult } from "./AuthenticationResult.js";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
+import { IDpopNonceProvider } from "../crypto/IDpopNonceProvider.js";
 /** @internal */
 export type GenerateAuthenticationResultOptions = {
     idTokenClaims?: TokenClaims;
@@ -60,46 +61,20 @@ export type GenerateAuthenticationResultOptions = {
     serverTokenResponse?: ServerAuthorizationTokenResponse;
     requestId?: string;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
-    cacheManager?: CacheManager;
-};
-
-/**
- * Structural cache capability used to load a resource-server DPoP nonce.
- */
-type DpopNonceCache = {
-    getDpopNonce(
-        resourceRequestUri: string,
-        correlationId?: string
-    ): string | undefined;
+    dpopNonceProvider?: IDpopNonceProvider;
 };
 
 const dpopKeyIds = new WeakMap<AuthenticationResult, string>();
 
-/**
- * Returns whether a cache manager supports resource-server DPoP nonces.
- */
-function hasDpopNonceCache(
-    cacheManager: CacheManager
-): cacheManager is CacheManager & DpopNonceCache {
-    return (
-        "getDpopNonce" in cacheManager &&
-        typeof cacheManager.getDpopNonce === "function"
-    );
-}
-
 function getDpopNonceForRequest(
-    cacheManager: CacheManager | undefined,
+    dpopNonceProvider: IDpopNonceProvider | undefined,
     request: BaseAuthRequest
 ): string | undefined {
-    if (
-        !request.resourceRequestUri ||
-        !cacheManager ||
-        !hasDpopNonceCache(cacheManager)
-    ) {
+    if (!request.resourceRequestUri || !dpopNonceProvider) {
         return undefined;
     }
 
-    return cacheManager.getDpopNonce(
+    return dpopNonceProvider.getDpopNonce(
         request.resourceRequestUri,
         request.correlationId
     );
@@ -119,6 +94,7 @@ export class ResponseHandler {
     private performanceClient: IPerformanceClient;
     private serializableCache: ISerializableTokenCache | null;
     private persistencePlugin: ICachePlugin | null;
+    private dpopNonceProvider?: IDpopNonceProvider;
 
     constructor(
         clientId: string,
@@ -128,7 +104,8 @@ export class ResponseHandler {
         performanceClient: IPerformanceClient,
         serializableCache: ISerializableTokenCache | null,
         persistencePlugin: ICachePlugin | null,
-        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER
+        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+        dpopNonceProvider?: IDpopNonceProvider
     ) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
@@ -138,6 +115,7 @@ export class ResponseHandler {
         this.performanceClient = performanceClient;
         this.serializableCache = serializableCache;
         this.persistencePlugin = persistencePlugin;
+        this.dpopNonceProvider = dpopNonceProvider;
     }
 
     /**
@@ -426,7 +404,7 @@ export class ResponseHandler {
                             requestState: requestStateObj,
                             requestId: serverRequestId,
                             tokenBindingKeyManager: this.tokenBindingKeyManager,
-                            cacheManager: this.cacheStorage,
+                            dpopNonceProvider: this.dpopNonceProvider,
                         }
                     );
                 }
@@ -465,7 +443,7 @@ export class ResponseHandler {
                 serverTokenResponse,
                 requestId: serverRequestId,
                 tokenBindingKeyManager: this.tokenBindingKeyManager,
-                cacheManager: this.cacheStorage,
+                dpopNonceProvider: this.dpopNonceProvider,
             }
         );
     }
@@ -660,7 +638,7 @@ export class ResponseHandler {
             serverTokenResponse,
             requestId,
             tokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER,
-            cacheManager,
+            dpopNonceProvider,
         } = options;
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
@@ -721,7 +699,10 @@ export class ResponseHandler {
                     cryptoObj,
                     tokenBindingKeyManager
                 );
-                const dpopNonce = getDpopNonceForRequest(cacheManager, request);
+                const dpopNonce = getDpopNonceForRequest(
+                    dpopNonceProvider,
+                    request
+                );
                 performanceClient?.addFields(
                     { dpopNonceAppliedToProof: Boolean(dpopNonce) },
                     request.correlationId
@@ -847,7 +828,7 @@ export class ResponseHandler {
         performanceClient: IPerformanceClient,
         options: Pick<
             GenerateAuthenticationResultOptions,
-            "tokenBindingKeyManager" | "cacheManager"
+            "tokenBindingKeyManager" | "dpopNonceProvider"
         > = {}
     ): Promise<string> {
         const keyId = dpopKeyIds.get(authenticationResult);
@@ -858,7 +839,10 @@ export class ResponseHandler {
             );
         }
 
-        const dpopNonce = getDpopNonceForRequest(options.cacheManager, request);
+        const dpopNonce = getDpopNonceForRequest(
+            options.dpopNonceProvider,
+            request
+        );
         performanceClient.addFields(
             { dpopNonceAppliedToProof: Boolean(dpopNonce) },
             request.correlationId

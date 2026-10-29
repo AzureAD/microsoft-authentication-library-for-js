@@ -111,6 +111,7 @@ export {
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     TokenBindingKeyProvisioningParameters,
 } from "./crypto/ITokenBindingKeyManager.js";
+export { IDpopNonceProvider } from "./crypto/IDpopNonceProvider.js";
 export { PublicJsonWebKey } from "./crypto/PublicJsonWebKey.js";
 
 export * as AuthorizeProtocol from "./protocol/Authorize.js";

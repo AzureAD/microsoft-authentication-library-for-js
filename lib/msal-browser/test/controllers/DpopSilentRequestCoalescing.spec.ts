@@ -135,7 +135,7 @@ describe("DPoP silent request coalescing", () => {
             }
         ).browserStorage;
         expect(generateProof.mock.calls[0][4]).toEqual(
-            expect.objectContaining({ cacheManager: browserStorage })
+            expect.objectContaining({ dpopNonceProvider: browserStorage })
         );
         expect(browserStorage.getDpopNonce(resourceRequestUri)).toBe(
             "latest-nonce"
