@@ -709,7 +709,7 @@ describe("Sign-up V2 entry", () => {
             if (!verified?.isState("authMethodRegistrationRequired")) {
                 throw new Error("Expected JIT method registration.");
             }
-            const activation = await verified.state.enrollAuthMethod(
+            const activation = await verified.state.selectAuthMethod(
                 verified.state.methods[1],
                 "existing@contoso.com"
             );
@@ -1234,7 +1234,7 @@ describe("Sign-up V2 entry", () => {
         }
 
         const activationResult =
-            await registrationResult.state.enrollAuthMethod(
+            await registrationResult.state.selectAuthMethod(
                 registrationResult.state.methods[1],
                 "user@contoso.com"
             );
@@ -1287,7 +1287,7 @@ describe("Sign-up V2 entry", () => {
             throw new Error("Expected registration after code verification.");
         }
         const activationResult =
-            await registrationResult.state.enrollAuthMethod(
+            await registrationResult.state.selectAuthMethod(
                 registrationResult.state.methods[1],
                 "user@contoso.com"
             );
@@ -1385,7 +1385,7 @@ describe("Sign-up V2 entry", () => {
             }
 
             const activationResult =
-                await registrationResult.state.enrollAuthMethod(
+                await registrationResult.state.selectAuthMethod(
                     registrationResult.state.methods[1],
                     "user@contoso.com"
                 );
