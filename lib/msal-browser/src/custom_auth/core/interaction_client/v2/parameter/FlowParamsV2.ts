@@ -23,7 +23,7 @@ interface FlowParamsBaseV2 {
 // Begin a reset for the given account.
 export interface FlowStartParamsV2 extends FlowParamsBaseV2 {
     username: string;
-    scopes?: string[] | null;
+    scopes?: string[];
     claims?: string;
 }
 

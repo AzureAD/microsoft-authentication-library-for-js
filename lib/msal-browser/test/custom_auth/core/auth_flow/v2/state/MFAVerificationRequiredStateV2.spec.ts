@@ -155,6 +155,7 @@ describe("MFAVerificationRequiredStateV2", () => {
             })
         );
         expect(result.isState("mfaVerificationRequired")).toBe(true);
+        expect(result.isState("codeRequired")).toBe(false);
         expect(result.state).toBeInstanceOf(MFAVerificationRequiredStateV2);
         if (result.isState("mfaVerificationRequired")) {
             expect(result.state.method?.type).toBe("sms");

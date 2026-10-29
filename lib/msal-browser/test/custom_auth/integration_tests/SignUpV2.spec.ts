@@ -10,7 +10,11 @@ import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/sta
 import { AttributesRequiredStateV2 } from "../../../src/custom_auth/sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { SignUpPasswordRequiredStateV2 } from "../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
 import { SignInContinuationStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
-import type { SignUpInputsV2 } from "../../../src/custom_auth/CustomAuthActionInputs.js";
+import type {
+    ResetPasswordInputsV2,
+    SignInInputsV2,
+    SignUpInputsV2,
+} from "../../../src/custom_auth/index.js";
 import type { FlowSignUpStartParamsV2 } from "../../../src/custom_auth/core/interaction_client/v2/parameter/FlowParamsV2.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import { AuthFlowErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
@@ -46,6 +50,17 @@ const buildResponse = (
     } as unknown as Response);
 
 describe("Sign-up V2 agreed contract", () => {
+    it("does not accept null scopes on any public V2 entry input", () => {
+        const nullableScopesAllowed: [
+            null extends SignInInputsV2["scopes"] ? true : false,
+            null extends ResetPasswordInputsV2["scopes"] ? true : false,
+            null extends SignUpInputsV2["scopes"] ? true : false,
+            null extends FlowSignUpStartParamsV2["scopes"] ? true : false
+        ] = [false, false, false, false];
+
+        expect(nullableScopesAllowed).toEqual([false, false, false, false]);
+    });
+
     it("does not expose an upfront password on public or internal start inputs", () => {
         const publicInputHasPassword: "password" extends keyof SignUpInputsV2
             ? true

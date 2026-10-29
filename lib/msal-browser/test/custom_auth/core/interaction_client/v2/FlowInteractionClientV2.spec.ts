@@ -386,42 +386,46 @@ describe("FlowInteractionClientV2", () => {
             });
         });
 
-        it("uses only basic scopes when scopes is null", async () => {
-            apiClient.authorizeChallengeStart.mockResolvedValue({
-                continuationToken: "ct-entry",
-                signInHref: "https://endpoint/sign-in",
-            });
-            apiClient.signInStart.mockResolvedValue({
-                continuationToken: "ct-sign-in",
-                authenticationFactor: "singleFactor",
-                methods: [
-                    {
-                        id: "password-1",
-                        type: "password",
-                        challengeHref: "https://endpoint/password/challenge",
-                    },
-                ],
-            });
-            apiClient.requestChallenge.mockResolvedValue({
-                nextAction: "verify",
-                continuationToken: "ct-challenge",
-                verifyHref: "https://endpoint/password/verify",
-                type: "password",
-            });
+        it.each([{ scopes: undefined }, { scopes: [] }])(
+            "uses only basic scopes when scopes is $scopes",
+            async ({ scopes }) => {
+                apiClient.authorizeChallengeStart.mockResolvedValue({
+                    continuationToken: "ct-entry",
+                    signInHref: "https://endpoint/sign-in",
+                });
+                apiClient.signInStart.mockResolvedValue({
+                    continuationToken: "ct-sign-in",
+                    authenticationFactor: "singleFactor",
+                    methods: [
+                        {
+                            id: "password-1",
+                            type: "password",
+                            challengeHref:
+                                "https://endpoint/password/challenge",
+                        },
+                    ],
+                });
+                apiClient.requestChallenge.mockResolvedValue({
+                    nextAction: "verify",
+                    continuationToken: "ct-challenge",
+                    verifyHref: "https://endpoint/password/verify",
+                    type: "password",
+                });
 
-            const result = await client.signIn({
-                correlationId,
-                username: "user@contoso.com",
-                scopes: null,
-            });
+                const result = await client.signIn({
+                    correlationId,
+                    username: "user@contoso.com",
+                    scopes,
+                });
 
-            expect(apiClient.authorizeChallengeStart).toHaveBeenCalledWith(
-                expect.objectContaining({ correlationId }),
-                ["openid", "profile", "offline_access"],
-                undefined
-            );
-            expect(result.type).toBe(FLOW_PASSWORD_REQUIRED_V2);
-        });
+                expect(apiClient.authorizeChallengeStart).toHaveBeenCalledWith(
+                    expect.objectContaining({ correlationId }),
+                    ["openid", "profile", "offline_access"],
+                    undefined
+                );
+                expect(result.type).toBe(FLOW_PASSWORD_REQUIRED_V2);
+            }
+        );
 
         it("returns method selection when multiple supported methods are available", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
