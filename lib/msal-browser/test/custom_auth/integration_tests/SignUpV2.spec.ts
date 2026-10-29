@@ -7,7 +7,6 @@ import { CustomAuthPublicClientApplication } from "../../../src/custom_auth/Cust
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
 import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
-import { FailedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/FailedStateV2.js";
 import { AttributesRequiredStateV2 } from "../../../src/custom_auth/sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { PasswordRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import * as customAuth from "../../../src/custom_auth/index.js";
@@ -37,11 +36,6 @@ import {
     USERNAME_START_REQUEST,
     WEAK_PASSWORD_ERROR_RESPONSE,
 } from "./SignUpV2Constants.js";
-import {
-    ENTRY_RESPONSE as SIGN_IN_ENTRY_RESPONSE,
-    START_RESPONSE as SIGN_IN_START_RESPONSE,
-    PASSWORD_CHALLENGE_RESPONSE,
-} from "./SignInV2Constants.js";
 
 const buildResponse = (
     body: unknown,
@@ -602,7 +596,7 @@ describe("Sign-up V2 entry", () => {
         }
 
         const activationResult =
-            await registrationResult.state.enrollAuthMethod(
+            await registrationResult.state.selectAuthMethod(
                 registrationResult.state.methods[1],
                 "user@contoso.com"
             );
@@ -655,7 +649,7 @@ describe("Sign-up V2 entry", () => {
             throw new Error("Expected registration after code verification.");
         }
         const activationResult =
-            await registrationResult.state.enrollAuthMethod(
+            await registrationResult.state.selectAuthMethod(
                 registrationResult.state.methods[1],
                 "user@contoso.com"
             );
@@ -753,7 +747,7 @@ describe("Sign-up V2 entry", () => {
             }
 
             const activationResult =
-                await registrationResult.state.enrollAuthMethod(
+                await registrationResult.state.selectAuthMethod(
                     registrationResult.state.methods[1],
                     "user@contoso.com"
                 );

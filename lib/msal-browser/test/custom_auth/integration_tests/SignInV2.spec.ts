@@ -19,6 +19,15 @@ import {
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 import {
+    MFA_V2_RESEND_CHALLENGE,
+    MFA_V2_SELECT_AUTH_METHOD,
+    MFA_V2_SUBMIT_CHALLENGE,
+    SIGN_IN_V2_CHALLENGE,
+    SIGN_IN_V2_COMPLETE,
+    SIGN_IN_V2_START,
+    SIGN_IN_V2_SUBMIT_PASSWORD,
+} from "../../../src/custom_auth/core/telemetry/PublicApiId.js";
+import {
     CONTINUE_RESPONSE,
     EMAIL_CHALLENGE_RESPONSE,
     EMAIL_REGISTRATION_ACTIVATION_RESPONSE,
@@ -430,7 +439,7 @@ describe("Sign-in V2", () => {
             ]);
 
             const activationResult =
-                await registrationResult.state.enrollAuthMethod(
+                await registrationResult.state.selectAuthMethod(
                     registrationResult.state.methods[0],
                     "user@contoso.com"
                 );
@@ -505,7 +514,7 @@ describe("Sign-in V2", () => {
                 throw new Error("Expected authentication-method registration.");
             }
 
-            const activationResult = await startResult.state.enrollAuthMethod(
+            const activationResult = await startResult.state.selectAuthMethod(
                 startResult.state.methods[0],
                 "user@contoso.com"
             );
@@ -562,7 +571,7 @@ describe("Sign-in V2", () => {
             ]);
 
             const activationResult =
-                await registrationResult.state.enrollAuthMethod(
+                await registrationResult.state.selectAuthMethod(
                     registrationResult.state.methods[0],
                     "+15555551234"
                 );
@@ -572,7 +581,7 @@ describe("Sign-in V2", () => {
             if (!activationResult.isState("authMethodVerificationRequired")) {
                 throw new Error("Expected an activation challenge.");
             }
-            expect(activationResult.state.method.type).toBe("phone");
+            expect(activationResult.state.type).toBe("phone");
             expect(activationResult.state.codeLength).toBe(6);
 
             const result = await activationResult.state.submitChallenge(
@@ -699,6 +708,31 @@ describe("Sign-in V2", () => {
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
+
+                const expectedApiIds = [
+                    SIGN_IN_V2_START,
+                    SIGN_IN_V2_START,
+                    SIGN_IN_V2_CHALLENGE,
+                    SIGN_IN_V2_SUBMIT_PASSWORD,
+                    MFA_V2_SELECT_AUTH_METHOD,
+                    MFA_V2_RESEND_CHALLENGE,
+                    MFA_V2_SUBMIT_CHALLENGE,
+                    SIGN_IN_V2_COMPLETE,
+                    SIGN_IN_V2_COMPLETE,
+                ];
+                expect(fetch).toHaveBeenCalledTimes(expectedApiIds.length);
+                expectedApiIds.forEach((apiId, index) => {
+                    expect(fetch).toHaveBeenNthCalledWith(
+                        index + 1,
+                        expect.anything(),
+                        expect.objectContaining({
+                            headers: expect.objectContaining({
+                                "x-client-current-telemetry":
+                                    expect.stringContaining(`|${apiId},`),
+                            }),
+                        })
+                    );
+                });
             });
         });
 
