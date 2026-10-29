@@ -24,6 +24,7 @@ import {
     enforceResourceParameter,
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
+    ProtocolUtils,
 } from "@azure/msal-common/node";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
@@ -220,11 +221,17 @@ export class PublicClientApplication
             );
         }
 
+        const state = ProtocolUtils.setRequestState(
+            this.cryptoProvider,
+            remainingProperties.state,
+            undefined,
+            correlationId
+        );
         let authCodeResponse: AuthorizeResponse = {};
         let authCodeListenerError: AuthError | null = null;
         try {
             const authCodeListener = loopbackClient
-                .listenForAuthCode(successTemplate, errorTemplate)
+                .listenForAuthCode(state, successTemplate, errorTemplate)
                 .then((response) => {
                     authCodeResponse = response;
                 })
@@ -248,6 +255,7 @@ export class PublicClientApplication
                 codeChallenge: challenge,
                 codeChallengeMethod:
                     CommonConstants.CodeChallengeMethodValues.S256,
+                state,
             };
 
             const authCodeUrl = await this.getAuthCodeUrl(validRequest);
@@ -256,6 +264,12 @@ export class PublicClientApplication
             if (authCodeListenerError) {
                 throw authCodeListenerError;
             }
+
+            this.validateState(
+                state,
+                authCodeResponse.state || "",
+                correlationId
+            );
 
             if (authCodeResponse.error) {
                 throw new ServerError(
@@ -276,6 +290,7 @@ export class PublicClientApplication
                 codeVerifier: verifier,
                 clientInfo: clientInfo || "",
                 ...validRequest,
+                state: remainingProperties.state,
             };
             return await this.acquireTokenByCode(tokenRequest); // Await this so the server doesn't close prematurely
         } finally {
