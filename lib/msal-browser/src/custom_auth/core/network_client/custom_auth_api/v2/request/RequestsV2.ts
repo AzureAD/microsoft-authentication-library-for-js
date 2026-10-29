@@ -5,6 +5,7 @@
 
 import { ApiRequestBase } from "../../types/ApiTypesBase.js";
 import { UserAccountAttributes } from "../../../../../UserAccountAttributes.js";
+import { PhoneRegistrationChannelV2 } from "../ApiClientConstantsV2.js";
 
 /*
  * Per-request context threaded through every V2 network-layer call. These shared fields drive
@@ -91,6 +92,26 @@ export interface SignUpSubmitAttributesRequestV2 extends ActionRequestBaseV2 {
 
 // Request or resend a challenge.
 export type ChallengeRequestV2 = ActionRequestBaseV2;
+
+export interface EmailAuthMethodRegistrationRequestV2
+    extends ActionRequestBaseV2 {
+    email: string;
+}
+
+export interface PhoneAuthMethodRegistrationRequestV2
+    extends ActionRequestBaseV2 {
+    phoneNumber: string;
+    channel: typeof PhoneRegistrationChannelV2.SMS;
+}
+
+export type AuthMethodRegistrationRequestV2 =
+    | EmailAuthMethodRegistrationRequestV2
+    | PhoneAuthMethodRegistrationRequestV2;
+
+export interface AuthMethodRegistrationVerificationRequestV2
+    extends ActionRequestBaseV2 {
+    otp: string;
+}
 
 // Submit a single credential to `/methods/{type}/{id}/verify`.
 /*

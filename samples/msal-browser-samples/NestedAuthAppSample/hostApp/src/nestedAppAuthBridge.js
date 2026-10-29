@@ -20,17 +20,20 @@ function buildInitContext(hostPca) {
         capabilities: { queryAccount: false },
         accountContext: account
             ? {
-                homeAccountId: account.homeAccountId,
-                environment: account.environment,
-                tenantId: account.tenantId,
-            }
+                  homeAccountId: account.homeAccountId,
+                  environment: account.environment,
+                  tenantId: account.tenantId,
+              }
             : undefined,
     };
 }
 
 function toNaaAuthResult(result) {
     const expiresIn = result.expiresOn
-        ? Math.max(0, Math.round((result.expiresOn.getTime() - Date.now()) / 1000))
+        ? Math.max(
+              0,
+              Math.round((result.expiresOn.getTime() - Date.now()) / 1000)
+          )
         : 0;
     return {
         token: {
@@ -50,6 +53,7 @@ function toNaaAuthResult(result) {
             name: result.account.name,
             idToken: result.idToken,
             idTokenClaims: result.account.idTokenClaims,
+            platformBrokerId: result.account.nativeAccountId,
         },
     };
 }
@@ -66,7 +70,9 @@ function toBridgeError(error) {
     let status;
     if (
         error?.name === "InteractionRequiredAuthError" ||
-        /interaction_required|login_required|consent_required/i.test(String(code))
+        /interaction_required|login_required|consent_required/i.test(
+            String(code)
+        )
     ) {
         status = "USER_INTERACTION_REQUIRED";
     } else if (/user_cancel/i.test(String(code))) {
@@ -106,8 +112,7 @@ async function brokerToken(
     tokenParams,
     interactive,
     defaultAuthority,
-    childRedirectUri,
-    extraParams
+    childRedirectUri
 ) {
     const authority = tokenParams.authority || defaultAuthority;
     const scopes = (tokenParams.scope || "")
@@ -121,9 +126,7 @@ async function brokerToken(
     // via `embeddedClientId`. `redirectUri` is the *nested* app's registered
     // reply URI: MSAL emits it as the child `redirect_uri` (web flow) or
     // `child_redirect_uri` (platform-broker flow), while `brk_redirect_uri`
-    // stays the host's configured redirect. `extraQueryParameters` /
-    // `extraParameters` carry host-level params (e.g. an ESTS test slice) onto
-    // both the authorize and token requests.
+    // stays the host's configured redirect.
     const baseRequest = {
         scopes,
         authority,
@@ -133,8 +136,6 @@ async function brokerToken(
         state: tokenParams.state || undefined,
         authenticationScheme: tokenParams.authenticationScheme || undefined,
         embeddedClientId: tokenParams.clientId,
-        extraQueryParameters: extraParams?.extraQueryParameters,
-        extraParameters: extraParams?.extraParameters,
     };
 
     if (interactive) {
@@ -164,13 +165,8 @@ async function brokerToken(
  *
  * @param {import("@azure/msal-browser").IPublicClientApplication} hostPca The host MSAL instance (its signed-in user brokers the nested tokens).
  * @param {string} nestedOrigin The exact origin of the embedded nested app (messages from any other origin are ignored).
- * @param {{ extraQueryParameters?: Record<string,string>, extraParameters?: Record<string,string> }} [extraParams] Host-level params applied to every brokered authorize/token request (e.g. an ESTS test slice).
  */
-export function installHostNestedAppAuthBridge(
-    hostPca,
-    nestedOrigin,
-    extraParams = {}
-) {
+export function installHostNestedAppAuthBridge(hostPca, nestedOrigin) {
     // Authority used to broker tokens when a nested-app request omits one; the
     // host and nested apps share the same tenant, so reuse the host's authority.
     const defaultAuthority = hostPca.getConfiguration().auth.authority;
@@ -223,8 +219,7 @@ export function installHostNestedAppAuthBridge(
                         request.tokenParams || {},
                         request.method === "GetTokenPopup",
                         defaultAuthority,
-                        childRedirectUri,
-                        extraParams
+                        childRedirectUri
                     );
                     post(toNaaAuthResult(result));
                     break;

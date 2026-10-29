@@ -171,8 +171,12 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthFlowActionRequiredSt
         result: FlowCodeRequiredResultV2 | FlowPasswordRequiredResultV2;
         selectedMethod: AuthenticationMethodV2;
     }> {
-        const { correlationId, continuationState, flowClient } =
-            this.stateParameters;
+        const {
+            correlationId,
+            continuationState,
+            flowClient,
+            authenticationFactor,
+        } = this.stateParameters;
         const selectedMethod = this.methods.find(
             (candidate) => candidate.id === method.id
         );
@@ -183,6 +187,7 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthFlowActionRequiredSt
 
         const result = await flowClient.requestChallenge({
             correlationId,
+            authenticationFactor,
             continuationState: {
                 ...continuationState,
                 links: {

@@ -9,6 +9,7 @@ import { AuthMethodSelectionRequiredStateV2 } from "../../../../../../src/custom
 import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
+    FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
     FLOW_COMPLETED_V2,
     FLOW_MFA_REQUIRED_V2,
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
@@ -17,6 +18,7 @@ import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/g
 import { PasswordRequiredStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import type { AuthenticationResult } from "../../../../../../src/response/AuthenticationResult.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
+import { AuthMethodRegistrationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 
 describe("PasswordRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
@@ -114,6 +116,33 @@ describe("PasswordRequiredStateV2", () => {
                 },
             ]);
         }
+    });
+
+    it("returns registration-required after password verification", async () => {
+        flowClient.submitSignInPassword.mockResolvedValue({
+            type: FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-enroll",
+                scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
+                links: {},
+            },
+            methods: [
+                {
+                    type: "phone",
+                    channels: ["sms"],
+                    enrollHref: "/enroll/phone",
+                },
+            ],
+        });
+
+        const result = await buildState().submitPassword("valid-password");
+
+        expect(result.isState("authMethodRegistrationRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(
+            AuthMethodRegistrationRequiredStateV2
+        );
     });
 
     it("rejects an empty password without submitting it", async () => {
