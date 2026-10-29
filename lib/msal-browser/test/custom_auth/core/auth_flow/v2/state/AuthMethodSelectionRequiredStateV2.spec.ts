@@ -150,6 +150,11 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
 
         expect(result.state).toBeInstanceOf(MFAVerificationRequiredStateV2);
         expect(result.state.stateType).toBe("mfaVerificationRequired");
+        expect(flowClient.requestChallenge).toHaveBeenCalledWith(
+            expect.objectContaining({
+                authenticationFactor: AuthenticationFactorV2.MULTI_FACTOR,
+            })
+        );
     });
 
     it("rejects a method that was not returned by the server", async () => {
@@ -190,6 +195,7 @@ describe("AuthMethodSelectionRequiredStateV2", () => {
 
         expect(flowClient.requestChallenge).toHaveBeenCalledWith({
             correlationId,
+            authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
             continuationState: {
                 continuationToken: "ct-selection",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
