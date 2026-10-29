@@ -25,6 +25,8 @@ import { ResetPasswordCodeRequiredState } from "../../../src/custom_auth/reset_p
 import { ResetPasswordStartResult } from "../../../src/custom_auth/reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 import { CustomAuthApiClientV2 } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
+import { FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2 } from "../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
+import { CustomAuthFlowScenarioV2 } from "../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 
 jest.mock(
     "../../../src/custom_auth/core/network_client/custom_auth_api/CustomAuthApiClient.js",
@@ -150,6 +152,43 @@ describe("CustomAuthStandardController", () => {
             expect(result.isFailed()).toBe(true);
             expect(result.error?.isInvalidInput()).toBe(true);
             expect(signInSpy).not.toHaveBeenCalled();
+        });
+
+        it("returns registration-required when inline password verification requires enrollment", async () => {
+            jest.spyOn(controller["flowClientV2"], "signIn").mockResolvedValue({
+                type: FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+                correlationId: "correlation-id",
+                continuationState: {
+                    continuationToken: "ct-enroll",
+                    scenario: CustomAuthFlowScenarioV2.SignIn,
+                    scopes: ["openid", "profile", "offline_access"],
+                    links: {},
+                },
+                methods: [
+                    {
+                        type: "phone",
+                        channels: ["sms"],
+                        enrollHref: "/enroll/phone",
+                    },
+                ],
+            });
+
+            const result = await controller.signInV2({
+                correlationId: "correlation-id",
+                username: "user@contoso.com",
+                password: "valid-password",
+            });
+
+            expect(result.isState("authMethodRegistrationRequired")).toBe(true);
+            if (result.isState("authMethodRegistrationRequired")) {
+                expect(result.state.methods).toEqual([
+                    {
+                        type: "phone",
+                        channels: ["sms"],
+                        enrollHref: "/enroll/phone",
+                    },
+                ]);
+            }
         });
     });
 
