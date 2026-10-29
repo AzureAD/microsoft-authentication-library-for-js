@@ -7,11 +7,13 @@ import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResu
 import type { CompletedStateV2 } from "../../../../core/auth_flow/v2/state/CompletedStateV2.js";
 import type { FailedStateV2 } from "../../../../core/auth_flow/v2/state/FailedStateV2.js";
 import type { AuthMethodSelectionRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
+import type { AuthMethodRegistrationRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 
 export type SubmitPasswordResultStateV2 =
     | CompletedStateV2
     | AuthMethodSelectionRequiredStateV2
+    | AuthMethodRegistrationRequiredStateV2
     | FailedStateV2;
 
 export type SubmitPasswordResultV2 = CustomAuthResultV2<
