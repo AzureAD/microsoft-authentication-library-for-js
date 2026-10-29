@@ -13,6 +13,7 @@ import { FLOW_COMPLETED_V2 } from "../../../interaction_client/v2/result/FlowAct
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { ChallengeVerificationStateBaseV2 } from "./ChallengeVerificationStateBaseV2.js";
+import { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 
 /**
  * State returned when sign-in requires verification of an email or SMS MFA
@@ -35,7 +36,10 @@ export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBa
 
         try {
             logger.verbose("Submitting V2 MFA challenge.", correlationId);
-            const result = await this.submitCodeCore(challenge);
+            const result = await this.submitCodeCore(
+                challenge,
+                AuthenticationFactorV2.MULTI_FACTOR
+            );
 
             if (result.type !== FLOW_COMPLETED_V2) {
                 throw new CustomAuthError(
@@ -82,7 +86,9 @@ export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBa
 
         try {
             logger.verbose("Resending V2 MFA challenge.", correlationId);
-            const result = await this.resendCodeCore();
+            const result = await this.resendCodeCore(
+                AuthenticationFactorV2.MULTI_FACTOR
+            );
 
             return new CustomAuthResultV2(
                 new MFAVerificationRequiredStateV2({

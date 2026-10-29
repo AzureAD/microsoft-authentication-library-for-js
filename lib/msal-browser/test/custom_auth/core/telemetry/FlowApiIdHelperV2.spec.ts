@@ -5,8 +5,14 @@
 
 import { CustomAuthFlowScenarioV2 } from "../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { getPublicApiIdV2 } from "../../../../src/custom_auth/core/telemetry/FlowApiIdHelperV2.js";
+import { AuthenticationFactorV2 } from "../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import {
+    MFA_V2_RESEND_CHALLENGE,
+    MFA_V2_SELECT_AUTH_METHOD,
+    MFA_V2_SUBMIT_CHALLENGE,
     RESET_PASSWORD_V2_SUBMIT_CODE,
+    SIGN_IN_V2_CHALLENGE,
+    SIGN_IN_V2_COMPLETE,
     SIGN_IN_V2_SUBMIT_CODE,
     SIGN_IN_V2_SUBMIT_PASSWORD,
     SIGN_UP_V2_CHALLENGE,
@@ -70,6 +76,55 @@ describe("getPublicApiIdV2", () => {
             expect(getPublicApiIdV2(scenario, step)).toBe(expectedApiId);
         }
     );
+
+    it.each([
+        {
+            step: "requestChallenge" as const,
+            expectedApiId: MFA_V2_SELECT_AUTH_METHOD,
+            primaryApiId: SIGN_IN_V2_CHALLENGE,
+        },
+        {
+            step: "submitCode" as const,
+            expectedApiId: MFA_V2_SUBMIT_CHALLENGE,
+            primaryApiId: SIGN_IN_V2_SUBMIT_CODE,
+        },
+        {
+            step: "resendCode" as const,
+            expectedApiId: MFA_V2_RESEND_CHALLENGE,
+            primaryApiId: SIGN_IN_V2_CHALLENGE,
+        },
+    ])(
+        "distinguishes MFA $step from first-factor sign-in",
+        ({ step, expectedApiId, primaryApiId }) => {
+            expect(
+                getPublicApiIdV2(
+                    CustomAuthFlowScenarioV2.SignIn,
+                    step,
+                    AuthenticationFactorV2.MULTI_FACTOR
+                )
+            ).toBe(expectedApiId);
+            expect(
+                getPublicApiIdV2(
+                    CustomAuthFlowScenarioV2.SignIn,
+                    step,
+                    AuthenticationFactorV2.SINGLE_FACTOR
+                )
+            ).toBe(primaryApiId);
+            expect(
+                getPublicApiIdV2(CustomAuthFlowScenarioV2.SignIn, step)
+            ).toBe(primaryApiId);
+        }
+    );
+
+    it("preserves the sign-in completion API ID after MFA", () => {
+        expect(
+            getPublicApiIdV2(
+                CustomAuthFlowScenarioV2.SignIn,
+                "signInWithContinuation",
+                AuthenticationFactorV2.MULTI_FACTOR
+            )
+        ).toBe(SIGN_IN_V2_COMPLETE);
+    });
 
     it("uses distinct API IDs for sign-in code and password submission", () => {
         expect(SIGN_IN_V2_SUBMIT_CODE).not.toBe(SIGN_IN_V2_SUBMIT_PASSWORD);

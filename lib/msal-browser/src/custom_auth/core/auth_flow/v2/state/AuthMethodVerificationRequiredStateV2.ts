@@ -4,7 +4,6 @@
  */
 
 import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
-import type { AuthenticationMethodRegistrationV2 } from "../AuthenticationMethodRegistrationV2.js";
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import type { AuthMethodRegistrationChallengeResultV2 } from "../result/AuthMethodRegistrationChallengeResultV2.js";
 import type { AuthMethodVerificationSubmitChallengeResultV2 } from "../result/AuthMethodVerificationSubmitChallengeResultV2.js";
@@ -19,7 +18,7 @@ import { ensureArgumentIsNotNullOrUndefined } from "../../../utils/ArgumentValid
  */
 export class AuthMethodVerificationRequiredStateV2 extends AuthFlowActionRequiredStateBase<AuthMethodVerificationRequiredStateParametersV2> {
     readonly stateType = "authMethodVerificationRequired";
-    readonly method: AuthenticationMethodRegistrationV2;
+    readonly type: string;
     readonly sentTo?: string;
     readonly codeLength: number;
 
@@ -27,7 +26,7 @@ export class AuthMethodVerificationRequiredStateV2 extends AuthFlowActionRequire
         stateParameters: AuthMethodVerificationRequiredStateParametersV2
     ) {
         super(stateParameters);
-        this.method = stateParameters.method;
+        this.type = stateParameters.type;
         this.sentTo = stateParameters.sentTo;
         this.codeLength = stateParameters.codeLength;
     }
@@ -112,7 +111,7 @@ export class AuthMethodVerificationRequiredStateV2 extends AuthFlowActionRequire
                     flowClient,
                     cacheClient: this.stateParameters.cacheClient,
                     continuationState: result.continuationState,
-                    method: this.method,
+                    type: this.type,
                     sentTo: result.sentTo ?? this.sentTo,
                     codeLength: result.codeLength,
                 }),

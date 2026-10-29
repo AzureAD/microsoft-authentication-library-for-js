@@ -21,6 +21,9 @@ import { PasswordRequiredStateV2 } from "../../../../core/auth_flow/v2/state/Pas
 import type { SignUpActionRequiredStateParametersV2 } from "./SignUpStateParametersV2.js";
 
 export class SignUpStateTransitionHandlerV2 {
+    /**
+     * Maps new-account verification and attribute-submission outcomes to public states.
+     */
     handleAttributeSubmission(
         result: FlowSignUpActionResultV2,
         stateParameters: SignUpActionRequiredStateParametersV2,

@@ -208,7 +208,7 @@ describe("Reset password V2 (SSPR)", () => {
                     continuationToken: "ct-poll-in-progress",
                 });
             }
-            const activation = await registration.state.enrollAuthMethod(
+            const activation = await registration.state.selectAuthMethod(
                 registration.state.methods[0],
                 "user@contoso.com"
             );

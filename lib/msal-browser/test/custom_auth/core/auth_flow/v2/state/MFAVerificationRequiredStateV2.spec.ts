@@ -16,6 +16,7 @@ import { CustomAuthAccountData } from "../../../../../../src/custom_auth/get_acc
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import type { AuthenticationResult } from "../../../../../../src/response/AuthenticationResult.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
+import { AuthenticationFactorV2 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 
 describe("MFAVerificationRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
@@ -74,6 +75,7 @@ describe("MFAVerificationRequiredStateV2", () => {
 
         expect(flowClient.submitCode).toHaveBeenCalledWith({
             correlationId,
+            authenticationFactor: AuthenticationFactorV2.MULTI_FACTOR,
             continuationState: {
                 continuationToken: "ct-mfa-challenge",
                 scenario: CustomAuthFlowScenarioV2.SignIn,
@@ -147,6 +149,11 @@ describe("MFAVerificationRequiredStateV2", () => {
 
         const result = await buildState().resendChallenge();
 
+        expect(flowClient.resendCode).toHaveBeenCalledWith(
+            expect.objectContaining({
+                authenticationFactor: AuthenticationFactorV2.MULTI_FACTOR,
+            })
+        );
         expect(result.isState("mfaVerificationRequired")).toBe(true);
         expect(result.isState("codeRequired")).toBe(false);
         expect(result.state).toBeInstanceOf(MFAVerificationRequiredStateV2);

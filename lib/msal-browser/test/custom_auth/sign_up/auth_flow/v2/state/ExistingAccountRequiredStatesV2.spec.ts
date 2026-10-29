@@ -102,6 +102,7 @@ describe("existing-account sign-up states", () => {
             ).toBe(true);
             expect(flowClient.requestChallenge).toHaveBeenCalledWith({
                 correlationId,
+                authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
                 continuationState: {
                     ...continuationState,
                     links: {

@@ -28,12 +28,13 @@ export class AuthMethodRegistrationRequiredStateV2 extends AuthFlowActionRequire
     }
 
     /**
-     * Registers the selected method and requests its activation challenge.
+     * Selects an authentication method for strong-auth registration and requests
+     * its activation challenge.
      * @param method - A method from {@link methods}.
      * @param verificationContact - The email address or phone number to register.
      * @returns The registration activation result.
      */
-    async enrollAuthMethod(
+    async selectAuthMethod(
         method: AuthenticationMethodRegistrationV2,
         verificationContact: string
     ): Promise<AuthMethodRegistrationChallengeResultV2> {
@@ -72,7 +73,7 @@ export class AuthMethodRegistrationRequiredStateV2 extends AuthFlowActionRequire
                     flowClient,
                     cacheClient: this.stateParameters.cacheClient,
                     continuationState: result.continuationState,
-                    method: selectedMethod,
+                    type: selectedMethod.type,
                     sentTo: result.sentTo,
                     codeLength: result.codeLength,
                 }),

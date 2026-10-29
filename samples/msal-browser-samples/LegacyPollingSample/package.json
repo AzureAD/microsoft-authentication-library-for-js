@@ -13,7 +13,7 @@
     "dependencies": {
         "@azure/msal-browser": "^5.6.0",
         "express": "^4.12.3",
-        "morgan": "^1.10.0",
+        "morgan": "^1.12.1",
         "yargs": "^17.7.2"
     },
     "devDependencies": {

@@ -938,6 +938,7 @@ export class CustomAuthStandardController
                 username: inputs.username,
                 scopes: inputs.scopes,
                 claims: inputs.claims,
+                attributes: inputs.attributes,
             });
 
             if (result.type === FLOW_CODE_REQUIRED_V2) {
