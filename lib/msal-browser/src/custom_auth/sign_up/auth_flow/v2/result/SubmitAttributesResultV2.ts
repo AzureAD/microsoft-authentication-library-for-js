@@ -4,6 +4,7 @@
  */
 
 import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
+import type { AuthMethodRegistrationRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import type { CodeRequiredStateV2 } from "../../../../core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import type { FailedStateV2 } from "../../../../core/auth_flow/v2/state/FailedStateV2.js";
 import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
@@ -11,6 +12,7 @@ import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2
 export type SubmitAttributesResultStateV2 =
     | CodeRequiredStateV2
     | SignInContinuationStateV2
+    | AuthMethodRegistrationRequiredStateV2
     | FailedStateV2;
 
 export type SubmitAttributesResultV2 =
