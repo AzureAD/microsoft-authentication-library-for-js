@@ -42,7 +42,7 @@ The built-in loopback server rejects OAuth responses containing `code` or `error
 
 ### Response state
 
-MSAL generates a new library state for every browser-based interactive request, including requests that supply their own `state`. Caller-provided state is appended to the library state for the authorization request and is preserved separately for the token exchange.
+MSAL generates a new library state for every browser-based interactive request, including requests that supply their own `state`. Non-empty caller-provided state is Base64-encoded and appended to the library state after a `|` separator for the authorization request; the original caller-provided value is preserved separately for the token exchange.
 
 Both successful and error callbacks must include exactly one state matching the pending request. Missing, empty, mismatched, or duplicate state values receive HTTP 400 without completing or cancelling sign-in, so the listener can still accept the legitimate response. GET callbacks with matching state still fail with `loopback_server_query_response_not_supported`; they are not accepted as a fallback to `form_post`.
 
