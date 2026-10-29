@@ -1678,7 +1678,6 @@ export class StandardController implements IController {
      * @param logoutRequest
      */
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
-        this.browserStorage.clearDpopNonces();
         if (!this.isBrowserEnvironment) {
             return;
         }
