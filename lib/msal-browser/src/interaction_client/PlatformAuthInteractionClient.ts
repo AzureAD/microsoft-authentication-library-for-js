@@ -359,12 +359,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         request: PlatformAuthRequest,
         cachedAccount: AccountInfo
     ): CommonSilentFlowRequest {
-        const isDpopRequest = this.isDpopBrokerRequest(request);
-        const isPopRequest =
-            request.tokenType === Constants.AuthenticationScheme.POP;
-        const isApplicationManagedPopRequest =
-            isPopRequest && request.signPopToken === false;
-
         const silentRequest: CommonSilentFlowRequest = {
             authority: request.authority,
             correlationId: this.correlationId,
@@ -374,16 +368,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             ).asArray(),
             account: cachedAccount,
             forceRefresh: false,
-            authenticationScheme: isDpopRequest
-                ? Constants.AuthenticationScheme.DPOP
-                : (request.tokenType as Constants.AuthenticationScheme),
-            ...(isApplicationManagedPopRequest &&
-                request.keyId && { popKid: request.keyId }),
-            ...(isDpopRequest && request.keyId && { dpopJkt: request.keyId }),
-            ...((isPopRequest || isDpopRequest) && {
-                resourceRequestMethod: request.resourceRequestMethod,
-                resourceRequestUri: request.resourceRequestUri,
-            }),
+            ...this.createSilentCacheTokenBindingParameters(request),
             resource: request.extraParameters?.resource,
         };
 
@@ -393,6 +378,43 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         }
 
         return silentRequest;
+    }
+
+    /**
+     * Maps platform-broker token-binding state to silent-cache request fields.
+     * @param request
+     */
+    private createSilentCacheTokenBindingParameters(
+        request: PlatformAuthRequest
+    ): Pick<
+        CommonSilentFlowRequest,
+        | "authenticationScheme"
+        | "popKid"
+        | "dpopJkt"
+        | "resourceRequestMethod"
+        | "resourceRequestUri"
+    > {
+        const authenticationScheme = this.isDpopBrokerRequest(request)
+            ? Constants.AuthenticationScheme.DPOP
+            : (request.tokenType as Constants.AuthenticationScheme);
+
+        if (
+            authenticationScheme !== Constants.AuthenticationScheme.DPOP &&
+            authenticationScheme !== Constants.AuthenticationScheme.POP
+        ) {
+            return { authenticationScheme };
+        }
+
+        return {
+            authenticationScheme,
+            ...(authenticationScheme === Constants.AuthenticationScheme.DPOP &&
+                request.keyId && { dpopJkt: request.keyId }),
+            ...(authenticationScheme === Constants.AuthenticationScheme.POP &&
+                request.signPopToken === false &&
+                request.keyId && { popKid: request.keyId }),
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+        };
     }
 
     /**
