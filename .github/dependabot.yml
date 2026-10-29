@@ -9,6 +9,8 @@ updates:
     directory: "/lib/msal-angular" # Location of package manifests
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     allow:
       - dependency-name: "caniuse-lite"
 
@@ -16,6 +18,8 @@ updates:
     directory: "/lib/msal-browser" # Location of package manifests
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     allow:
       - dependency-name: "caniuse-lite"
 
@@ -23,6 +27,8 @@ updates:
     directory: "/lib/msal-common" # Location of package manifests
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     allow:
       - dependency-name: "caniuse-lite"
 
@@ -30,6 +36,8 @@ updates:
     directory: "/lib/msal-node" # Location of package manifests
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     allow:
       - dependency-name: "caniuse-lite"
       
@@ -37,6 +45,8 @@ updates:
     directory: "/lib/msal-react" # Location of package manifests
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     allow:
       - dependency-name: "caniuse-lite"
 
@@ -44,6 +54,8 @@ updates:
     directory: "/extensions/msal-node-extensions" # Location of package manifests
     schedule:
       interval: "monthly"
+    cooldown:
+      default-days: 7
     allow:
       - dependency-name: "caniuse-lite"
 
@@ -51,6 +63,8 @@ updates:
     directory: "/samples" # Location of package manifests
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
     allow:
       - dependency-name: "puppeteer"
     ignore:
