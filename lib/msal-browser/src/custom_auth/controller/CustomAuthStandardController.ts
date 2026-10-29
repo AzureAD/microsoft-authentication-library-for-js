@@ -38,6 +38,8 @@ import {
     FLOW_COMPLETED_V2,
     FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
+    FLOW_EXISTING_ACCOUNT_CODE_REQUIRED_V2,
+    FLOW_EXISTING_ACCOUNT_PASSWORD_REQUIRED_V2,
     FLOW_METHOD_SELECTION_REQUIRED_V2,
     FLOW_MFA_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
@@ -50,6 +52,8 @@ import { SignInStateTransitionHandlerV2 } from "../sign_in/auth_flow/v2/state/Si
 import { PasswordRequiredStateV2 } from "../core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { SignUpStateTransitionHandlerV2 } from "../sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
 import { AuthMethodRegistrationRequiredStateV2 } from "../core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
+import { ExistingAccountCodeRequiredStateV2 } from "../sign_up/auth_flow/v2/state/ExistingAccountCodeRequiredStateV2.js";
+import { ExistingAccountPasswordRequiredStateV2 } from "../sign_up/auth_flow/v2/state/ExistingAccountPasswordRequiredStateV2.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
 import { DefaultPackageInfo } from "../CustomAuthConstants.js";
 import {
@@ -950,6 +954,64 @@ export class CustomAuthStandardController
                         sentTo: result.sentTo,
                         channel: result.channel,
                         codeLength: result.codeLength,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_EXISTING_ACCOUNT_CODE_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new ExistingAccountCodeRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                        signInStateTransitionHandler:
+                            this.signInStateTransitionHandlerV2,
+                        method: result.method,
+                        sentTo: result.sentTo,
+                        channel: result.channel,
+                        codeLength: result.codeLength,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_EXISTING_ACCOUNT_PASSWORD_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new ExistingAccountPasswordRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                        signInStateTransitionHandler:
+                            this.signInStateTransitionHandlerV2,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_METHOD_SELECTION_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new AuthMethodSelectionRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger: this.logger,
+                        config: this.customAuthConfig,
+                        flowClient: this.flowClientV2,
+                        continuationState: result.continuationState,
+                        cacheClient: this.cacheClient,
+                        methods: result.methods,
+                        authenticationFactor:
+                            AuthenticationFactorV2.SINGLE_FACTOR,
+                        signInStateTransitionHandler:
+                            this.signInStateTransitionHandlerV2,
                     }),
                     undefined,
                     result.continuationState.scenario

@@ -31,6 +31,77 @@ export const START_RESPONSE = {
     },
 } satisfies SignUpStartResponseV2;
 
+export const SYNTHETIC_EXISTING_ACCOUNT_EMAIL_START_RESPONSE = {
+    continuationToken: "ct-existing-start",
+    state: "interactionRequired",
+    action: "challenge",
+    challengeContext: {
+        authenticationFactor: "singleFactor",
+    },
+    _embedded: {
+        methods: [
+            {
+                id: "email-existing",
+                type: "email",
+                hint: "e***@contoso.com",
+                _links: {
+                    challenge: {
+                        href: "/tenant/api/v0.1/existing/email/challenge",
+                    },
+                },
+            },
+        ],
+    },
+} satisfies SignUpStartResponseV2;
+
+export const SYNTHETIC_EXISTING_ACCOUNT_PASSWORD_START_RESPONSE = {
+    continuationToken: "ct-existing-start",
+    state: "interactionRequired",
+    action: "challenge",
+    challengeContext: {
+        authenticationFactor: "singleFactor",
+    },
+    _embedded: {
+        methods: [
+            {
+                id: "password-existing",
+                type: "password",
+                _links: {
+                    challenge: {
+                        href: "/tenant/api/v0.1/existing/password/challenge",
+                    },
+                },
+            },
+        ],
+    },
+} satisfies SignUpStartResponseV2;
+
+export const SYNTHETIC_EXISTING_ACCOUNT_MULTIPLE_METHODS_RESPONSE = {
+    ...SYNTHETIC_EXISTING_ACCOUNT_EMAIL_START_RESPONSE,
+    _embedded: {
+        methods: [
+            ...SYNTHETIC_EXISTING_ACCOUNT_EMAIL_START_RESPONSE._embedded
+                .methods,
+            ...SYNTHETIC_EXISTING_ACCOUNT_PASSWORD_START_RESPONSE._embedded
+                .methods,
+        ],
+    },
+} satisfies SignUpStartResponseV2;
+
+export const SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE = {
+    continuationToken: "ct-existing-email",
+    state: "interactionRequired",
+    action: "verify",
+    id: "email-existing",
+    type: "email",
+    hint: "e***@contoso.com",
+    codeLength: 6,
+    _links: {
+        verify: { href: "/tenant/api/v0.1/existing/email/verify" },
+        resend: { href: "/tenant/api/v0.1/existing/email/resend" },
+    },
+};
+
 export const CONTINUE_RESPONSE = { code: "auth-code-1" };
 
 export const ENROLL_REQUIRED_RESPONSE = {

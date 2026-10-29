@@ -127,7 +127,10 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 context
             );
 
-        const challengeType = parsedResponse.body.type;
+        const challengeType =
+            parsedResponse.body.action === VERIFY_RELATION
+                ? parsedResponse.body.type
+                : undefined;
         const isEmailChallenge =
             typeof challengeType === "string" &&
             challengeType.toLowerCase() === AuthenticationMethodTypeV2.EMAIL;
@@ -139,8 +142,30 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             return this.toChallengeVerificationResult(parsedResponse);
         }
 
+        if (parsedResponse.body.action === CHALLENGE_RELATION) {
+            return {
+                nextAction: CHALLENGE_RELATION,
+                continuationToken: this.handler.requireContinuationToken(
+                    parsedResponse.continuationToken,
+                    parsedResponse.correlationId
+                ),
+                methods: this.resolveMethods(
+                    this.handler.requireMethods(
+                        parsedResponse.body._embedded.methods,
+                        parsedResponse.correlationId
+                    ),
+                    parsedResponse.correlationId
+                ),
+                authenticationFactor: this.resolveAuthenticationFactor(
+                    parsedResponse.body.challengeContext?.authenticationFactor,
+                    parsedResponse.correlationId
+                ),
+                scenario: parsedResponse.body.scenario,
+            };
+        }
+
         const message =
-            "Invalid HAL response: sign-up start did not return an email verification challenge";
+            "Invalid HAL response: sign-up start did not return an email verification or authentication challenge";
         this.logger?.error(message, parsedResponse.correlationId);
         throw new CustomAuthApiError(
             INVALID_HAL_RESPONSE,

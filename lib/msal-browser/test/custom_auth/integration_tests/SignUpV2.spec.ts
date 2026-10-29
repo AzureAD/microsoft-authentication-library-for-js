@@ -36,9 +36,21 @@ import {
     PASSWORD_AND_PROFILE_REQUIRED_RESPONSE,
     PASSWORD_POLICY_ERROR_RESPONSE,
     START_RESPONSE,
+    SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE,
+    SYNTHETIC_EXISTING_ACCOUNT_EMAIL_START_RESPONSE,
+    SYNTHETIC_EXISTING_ACCOUNT_MULTIPLE_METHODS_RESPONSE,
+    SYNTHETIC_EXISTING_ACCOUNT_PASSWORD_START_RESPONSE,
     USERNAME_START_REQUEST,
     WEAK_PASSWORD_ERROR_RESPONSE,
 } from "./SignUpV2Constants.js";
+import {
+    ENTRY_RESPONSE as SIGN_IN_ENTRY_RESPONSE,
+    START_RESPONSE as SIGN_IN_START_RESPONSE,
+    PASSWORD_CHALLENGE_RESPONSE,
+    SMS_MFA_REQUIRED_RESPONSE,
+    SMS_MFA_CHALLENGE_RESPONSE,
+    SMS_MFA_RESEND_RESPONSE,
+} from "./SignInV2Constants.js";
 
 const buildResponse = (
     body: unknown,
@@ -107,6 +119,621 @@ describe("Sign-up V2 entry", () => {
         controller["eventHandler"]["broadcastChannel"]?.close();
         jest.clearAllMocks();
     });
+
+    it("authenticates an existing account with an email code from signup/start", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+            .mockResolvedValueOnce(
+                buildResponse(SYNTHETIC_EXISTING_ACCOUNT_EMAIL_START_RESPONSE)
+            )
+            .mockResolvedValueOnce(
+                buildResponse(
+                    SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE
+                )
+            )
+            .mockResolvedValueOnce(buildResponse(ACTIVATED_CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+        const startResult = await app.signUpV2({
+            username: "existing@contoso.com",
+            scopes: ["User.Read"],
+        });
+
+        expect(startResult.isState("existingAccountCodeRequired")).toBe(true);
+        if (!startResult.isState("existingAccountCodeRequired")) {
+            throw new Error("Expected existing-account email verification.");
+        }
+        expect(startResult.state).toBeInstanceOf(
+            customAuth.ExistingAccountCodeRequiredStateV2
+        );
+        expect(startResult.state).toMatchObject({
+            channel: "email",
+            sentTo: "e***@contoso.com",
+            codeLength: 6,
+        });
+
+        const result = await startResult.state.submitCode("123456");
+
+        expect(result.isState("completed")).toBe(true);
+        expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+        expect(JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)).toEqual({
+            continuationToken: "ct-existing-email",
+            otp: "123456",
+        });
+    });
+
+    it("verifies an existing password without submitting signup attributes", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+            .mockResolvedValueOnce(
+                buildResponse(
+                    SYNTHETIC_EXISTING_ACCOUNT_PASSWORD_START_RESPONSE
+                )
+            )
+            .mockResolvedValueOnce(buildResponse(PASSWORD_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(ACTIVATED_CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+        const startResult = await app.signUpV2({
+            username: "existing@contoso.com",
+        });
+
+        expect(startResult.isState("existingAccountPasswordRequired")).toBe(
+            true
+        );
+        if (!startResult.isState("existingAccountPasswordRequired")) {
+            throw new Error("Expected existing-account password verification.");
+        }
+        expect(startResult.state).toBeInstanceOf(
+            customAuth.ExistingAccountPasswordRequiredStateV2
+        );
+
+        const result = await startResult.state.submitPassword("valid-password");
+
+        expect(result.isState("completed")).toBe(true);
+        expect(JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)).toEqual({
+            continuationToken: PASSWORD_CHALLENGE_RESPONSE.continuationToken,
+            password: "valid-password",
+        });
+        expect(
+            (fetch as jest.Mock).mock.calls.some(([url]) =>
+                String(url).includes("submitattributes")
+            )
+        ).toBe(false);
+    });
+
+    it.each(["email", "password"] as const)(
+        "waits for selection before challenging an existing-account %s method",
+        async (methodType) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        SYNTHETIC_EXISTING_ACCOUNT_MULTIPLE_METHODS_RESPONSE
+                    )
+                );
+
+            const startResult = await app.signUpV2({
+                username: "existing@contoso.com",
+            });
+
+            expect(startResult.isState("authMethodSelectionRequired")).toBe(
+                true
+            );
+            expect(fetch).toHaveBeenCalledTimes(2);
+            if (!startResult.isState("authMethodSelectionRequired")) {
+                throw new Error("Expected existing-account method selection.");
+            }
+            expect(startResult.state).toBeInstanceOf(
+                customAuth.AuthMethodSelectionRequiredStateV2
+            );
+            const method = startResult.state.methods.find(
+                (candidate) => candidate.type === methodType
+            );
+            if (!method) {
+                throw new Error("Expected an offered authentication method.");
+            }
+            (fetch as jest.Mock).mockResolvedValueOnce(
+                buildResponse(
+                    methodType === "email"
+                        ? SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE
+                        : PASSWORD_CHALLENGE_RESPONSE
+                )
+            );
+
+            const result = await startResult.state.selectAuthMethod(method);
+
+            expect(
+                result.isState(
+                    methodType === "email"
+                        ? "existingAccountCodeRequired"
+                        : "existingAccountPasswordRequired"
+                )
+            ).toBe(true);
+            expect(fetch).toHaveBeenCalledTimes(3);
+            expect(String((fetch as jest.Mock).mock.calls[2][0])).toContain(
+                `/existing/${methodType}/challenge`
+            );
+            expect(
+                JSON.parse((fetch as jest.Mock).mock.calls[2][1].body)
+            ).toMatchObject({
+                continuationToken: "ct-existing-start",
+            });
+
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(
+                    buildResponse(ACTIVATED_CONTINUE_RESPONSE)
+                )
+                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+            const completed = result.isState("existingAccountCodeRequired")
+                ? await result.state.submitCode("123456")
+                : result.isState("existingAccountPasswordRequired")
+                ? await result.state.submitPassword("valid-password")
+                : undefined;
+
+            expect(completed?.isState("completed")).toBe(true);
+            expect(completed?.scenario).toBe("signUp");
+            expect(completed?.data).toBeInstanceOf(CustomAuthAccountData);
+        }
+    );
+
+    it.each(["automatic", "selected"] as const)(
+        "rejects an SMS first-factor challenge for an %s existing-account method",
+        async (selection) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        selection === "automatic"
+                            ? SYNTHETIC_EXISTING_ACCOUNT_EMAIL_START_RESPONSE
+                            : SYNTHETIC_EXISTING_ACCOUNT_MULTIPLE_METHODS_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(SMS_MFA_CHALLENGE_RESPONSE)
+                );
+
+            const start = await app.signUpV2({
+                username: "existing@contoso.com",
+            });
+            expect(start.isState("authMethodSelectionRequired")).toBe(
+                selection === "selected"
+            );
+            const result = start.isState("authMethodSelectionRequired")
+                ? await start.state.selectAuthMethod(start.state.methods[0])
+                : start;
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.scenario).toBe("signUp");
+            expect(result.error?.errorData.error).toBe(
+                UNSUPPORTED_FLOW_TRANSITION
+            );
+            expect(fetch).toHaveBeenCalledTimes(3);
+        }
+    );
+
+    it("resends an existing-account code and verifies with the refreshed token and link", async () => {
+        const resendResponse = {
+            ...SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE,
+            continuationToken: "ct-existing-resend",
+            hint: "r***@contoso.com",
+            codeLength: 8,
+            _links: {
+                verify: { href: "/tenant/api/v0.1/existing/email/verify-new" },
+                resend: { href: "/tenant/api/v0.1/existing/email/resend-new" },
+            },
+        };
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+            .mockResolvedValueOnce(
+                buildResponse(SYNTHETIC_EXISTING_ACCOUNT_EMAIL_START_RESPONSE)
+            )
+            .mockResolvedValueOnce(
+                buildResponse(
+                    SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE
+                )
+            )
+            .mockResolvedValueOnce(buildResponse(resendResponse))
+            .mockResolvedValueOnce(buildResponse(ACTIVATED_CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+        const start = await app.signUpV2({ username: "existing@contoso.com" });
+        if (!start.isState("existingAccountCodeRequired")) {
+            throw new Error("Expected existing-account email verification.");
+        }
+        const resent = await start.state.resendCode();
+        if (!resent.isState("existingAccountCodeRequired")) {
+            throw new Error("Expected existing-account replacement code.");
+        }
+        expect(resent.scenario).toBe("signUp");
+        expect(resent.state).toMatchObject({
+            sentTo: resendResponse.hint,
+            codeLength: 8,
+            method: start.state.method,
+        });
+        expect(
+            resent.state["stateParameters"].continuationState.signUp
+        ).toEqual({
+            purpose: "existingAccount",
+        });
+
+        const completed = await resent.state.submitCode("12345678");
+
+        expect(completed.isState("completed")).toBe(true);
+        expect(completed.scenario).toBe("signUp");
+        const requests = (fetch as jest.Mock).mock.calls;
+        expect(String(requests[3][0])).toContain("/existing/email/resend");
+        expect(JSON.parse(requests[3][1].body)).toEqual({
+            continuationToken: "ct-existing-email",
+        });
+        expect(String(requests[4][0])).toContain("/existing/email/verify-new");
+        expect(JSON.parse(requests[4][1].body)).toEqual({
+            continuationToken: "ct-existing-resend",
+            otp: "12345678",
+        });
+    });
+
+    it.each(["password", "push", undefined])(
+        "fails an existing-account resend that returns challenge type %s",
+        async (type) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        SYNTHETIC_EXISTING_ACCOUNT_EMAIL_START_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        ...SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE,
+                        type,
+                    })
+                );
+
+            const start = await app.signUpV2({
+                username: "existing@contoso.com",
+            });
+            if (!start.isState("existingAccountCodeRequired")) {
+                throw new Error(
+                    "Expected existing-account email verification."
+                );
+            }
+            const result = await start.state.resendCode();
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.scenario).toBe("signUp");
+            expect(result.error?.errorData.error).toBe(
+                UNSUPPORTED_FLOW_TRANSITION
+            );
+            expect(fetch).toHaveBeenCalledTimes(4);
+        }
+    );
+
+    it.each(["email", "password"] as const)(
+        "keeps existing-account %s failures retryable with signup error attribution",
+        async (methodType) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        methodType === "email"
+                            ? SYNTHETIC_EXISTING_ACCOUNT_EMAIL_START_RESPONSE
+                            : SYNTHETIC_EXISTING_ACCOUNT_PASSWORD_START_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        methodType === "email"
+                            ? SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE
+                            : PASSWORD_CHALLENGE_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        {
+                            error: {
+                                code: "invalidGrant",
+                                message:
+                                    "The supplied credential is incorrect.",
+                                innerError: {
+                                    code:
+                                        methodType === "email"
+                                            ? "invalidOneTimeCode"
+                                            : "invalidUserNameOrPassword",
+                                },
+                            },
+                        },
+                        400
+                    )
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(ACTIVATED_CONTINUE_RESPONSE)
+                )
+                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+            const start = await app.signUpV2({
+                username: "existing@contoso.com",
+            });
+            const failed = start.isState("existingAccountCodeRequired")
+                ? await start.state.submitCode("000000")
+                : start.isState("existingAccountPasswordRequired")
+                ? await start.state.submitPassword("wrong-password")
+                : undefined;
+            if (!failed) {
+                throw new Error(
+                    "Expected existing-account credential verification."
+                );
+            }
+
+            expect(failed.isFailed()).toBe(true);
+            expect(failed.scenario).toBe("signUp");
+            expect(failed.error?.scenario).toBe("signUp");
+            expect(failed.error?.isInvalidCode()).toBe(methodType === "email");
+            expect(failed.error?.isInvalidCredentials()).toBe(
+                methodType === "password"
+            );
+
+            const completed = start.isState("existingAccountCodeRequired")
+                ? await start.state.submitCode("123456")
+                : start.isState("existingAccountPasswordRequired")
+                ? await start.state.submitPassword("valid-password")
+                : undefined;
+
+            expect(completed?.isState("completed")).toBe(true);
+            expect(completed?.scenario).toBe("signUp");
+            expect(String((fetch as jest.Mock).mock.calls[4][0])).toBe(
+                String((fetch as jest.Mock).mock.calls[3][0])
+            );
+        }
+    );
+
+    it.each(["email", "password"] as const)(
+        "rejects signup attribute collection after existing-account %s verification",
+        async (methodType) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        methodType === "email"
+                            ? SYNTHETIC_EXISTING_ACCOUNT_EMAIL_START_RESPONSE
+                            : SYNTHETIC_EXISTING_ACCOUNT_PASSWORD_START_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        methodType === "email"
+                            ? SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE
+                            : PASSWORD_CHALLENGE_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(FLAT_USERNAME_REQUIRED_RESPONSE)
+                );
+
+            const start = await app.signUpV2({
+                username: "existing@contoso.com",
+            });
+            const result = start.isState("existingAccountCodeRequired")
+                ? await start.state.submitCode("123456")
+                : start.isState("existingAccountPasswordRequired")
+                ? await start.state.submitPassword("valid-password")
+                : undefined;
+            if (!result) {
+                throw new Error(
+                    "Expected existing-account credential verification."
+                );
+            }
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.scenario).toBe("signUp");
+            expect(result.error?.errorData.error).toBe(
+                UNSUPPORTED_FLOW_TRANSITION
+            );
+            expect(fetch).toHaveBeenCalledTimes(4);
+        }
+    );
+
+    it.each(["email", "password"] as const)(
+        "rejects a password MFA challenge after existing-account %s verification",
+        async (methodType) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        methodType === "email"
+                            ? SYNTHETIC_EXISTING_ACCOUNT_EMAIL_START_RESPONSE
+                            : SYNTHETIC_EXISTING_ACCOUNT_PASSWORD_START_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        methodType === "email"
+                            ? SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE
+                            : PASSWORD_CHALLENGE_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(buildResponse(SMS_MFA_REQUIRED_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(PASSWORD_CHALLENGE_RESPONSE)
+                );
+
+            const start = await app.signUpV2({
+                username: "existing@contoso.com",
+            });
+            const verified = start.isState("existingAccountCodeRequired")
+                ? await start.state.submitCode("123456")
+                : start.isState("existingAccountPasswordRequired")
+                ? await start.state.submitPassword("valid-password")
+                : undefined;
+            if (!verified?.isState("authMethodSelectionRequired")) {
+                throw new Error("Expected shared MFA selection.");
+            }
+
+            const result = await verified.state.selectAuthMethod(
+                verified.state.methods[0]
+            );
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.scenario).toBe("signUp");
+            expect(result.error?.errorData.error).toBe(
+                UNSUPPORTED_FLOW_TRANSITION
+            );
+            expect(fetch).toHaveBeenCalledTimes(5);
+        }
+    );
+
+    it.each(["email", "password"] as const)(
+        "continues existing-account %s verification through SMS MFA and resend",
+        async (methodType) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        methodType === "email"
+                            ? SYNTHETIC_EXISTING_ACCOUNT_EMAIL_START_RESPONSE
+                            : SYNTHETIC_EXISTING_ACCOUNT_PASSWORD_START_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        methodType === "email"
+                            ? SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE
+                            : PASSWORD_CHALLENGE_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(buildResponse(SMS_MFA_REQUIRED_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(SMS_MFA_CHALLENGE_RESPONSE)
+                )
+                .mockResolvedValueOnce(buildResponse(SMS_MFA_RESEND_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(ACTIVATED_CONTINUE_RESPONSE)
+                )
+                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+            const start = await app.signUpV2({
+                username: "existing@contoso.com",
+            });
+            const verified = start.isState("existingAccountCodeRequired")
+                ? await start.state.submitCode("123456")
+                : start.isState("existingAccountPasswordRequired")
+                ? await start.state.submitPassword("valid-password")
+                : undefined;
+            if (!verified?.isState("authMethodSelectionRequired")) {
+                throw new Error("Expected shared MFA selection.");
+            }
+            expect(verified.scenario).toBe("signUp");
+            expect(verified.state).toBeInstanceOf(
+                customAuth.AuthMethodSelectionRequiredStateV2
+            );
+            const challenged = await verified.state.selectAuthMethod(
+                verified.state.methods[0]
+            );
+            if (!challenged.isState("mfaVerificationRequired")) {
+                throw new Error("Expected SMS MFA verification.");
+            }
+            expect(challenged.state.channel).toBe("sms");
+            const resent = await challenged.state.resendChallenge();
+            if (!resent.isState("mfaVerificationRequired")) {
+                throw new Error("Expected refreshed SMS MFA verification.");
+            }
+            expect(resent.scenario).toBe("signUp");
+            expect(
+                resent.state["stateParameters"].continuationState.signUp
+            ).toEqual({
+                purpose: "existingAccount",
+            });
+
+            const completed = await resent.state.submitChallenge("123456");
+
+            expect(completed.isState("completed")).toBe(true);
+            expect(completed.scenario).toBe("signUp");
+            expect(completed.data).toBeInstanceOf(CustomAuthAccountData);
+            expect(
+                JSON.parse((fetch as jest.Mock).mock.calls[6][1].body)
+            ).toEqual({
+                continuationToken: SMS_MFA_RESEND_RESPONSE.continuationToken,
+                otp: "123456",
+            });
+        }
+    );
+
+    it.each(["email", "password"] as const)(
+        "continues existing-account %s verification through JIT enrollment",
+        async (methodType) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        methodType === "email"
+                            ? SYNTHETIC_EXISTING_ACCOUNT_EMAIL_START_RESPONSE
+                            : SYNTHETIC_EXISTING_ACCOUNT_PASSWORD_START_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        methodType === "email"
+                            ? SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE
+                            : PASSWORD_CHALLENGE_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(buildResponse(ENROLL_REQUIRED_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(ENROLL_ACTIVATION_RESPONSE)
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(ACTIVATED_CONTINUE_RESPONSE)
+                )
+                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+            const start = await app.signUpV2({
+                username: "existing@contoso.com",
+            });
+            const verified = start.isState("existingAccountCodeRequired")
+                ? await start.state.submitCode("123456")
+                : start.isState("existingAccountPasswordRequired")
+                ? await start.state.submitPassword("valid-password")
+                : undefined;
+            if (!verified?.isState("authMethodRegistrationRequired")) {
+                throw new Error("Expected JIT method registration.");
+            }
+            const activation = await verified.state.selectAuthMethod(
+                verified.state.methods[1],
+                "existing@contoso.com"
+            );
+            if (!activation.isState("authMethodVerificationRequired")) {
+                throw new Error("Expected JIT activation.");
+            }
+            expect(activation.scenario).toBe("signUp");
+            expect(
+                activation.state["stateParameters"].continuationState.signUp
+            ).toEqual({
+                purpose: "existingAccount",
+            });
+            const completed = await activation.state.submitChallenge("123456");
+
+            expect(completed.isState("completed")).toBe(true);
+            expect(completed.scenario).toBe("signUp");
+            expect(completed.data).toBeInstanceOf(CustomAuthAccountData);
+            expect(
+                (fetch as jest.Mock).mock.calls.some(([url]) =>
+                    String(url).includes("submitattributes")
+                )
+            ).toBe(false);
+        }
+    );
 
     it.each<{ label: string; password: unknown }>([
         { label: "undefined", password: undefined },
@@ -353,6 +980,10 @@ describe("Sign-up V2 entry", () => {
                     verify: "/tenant/api/v0.1/email/verify",
                     resend: "/tenant/api/v0.1/email/resend",
                 },
+                signUp: {
+                    purpose: "newAccount",
+                    submittedAttributeIds: [],
+                },
             });
         }
 
@@ -463,6 +1094,10 @@ describe("Sign-up V2 entry", () => {
                 links: {
                     verify: START_RESPONSE._links.verify.href,
                     resend: START_RESPONSE._links.resend.href,
+                },
+                signUp: {
+                    purpose: "newAccount",
+                    submittedAttributeIds: [],
                 },
             });
         }
@@ -1160,6 +1795,7 @@ describe("Sign-up V2 entry", () => {
                     submitAttributes: nextResponse._links.submitAttributes.href,
                 },
                 signUp: {
+                    purpose: "newAccount",
                     submittedAttributeIds: [
                         ...Object.keys(profile),
                         ...(initialPassword ? ["password"] : []),
@@ -1430,6 +2066,10 @@ describe("Sign-up V2 entry", () => {
                 scenario: "signUp",
                 scopes: ["openid", "profile", "offline_access"],
                 links: {},
+                signUp: {
+                    purpose: "newAccount",
+                    submittedAttributeIds: [],
+                },
             });
         }
     });

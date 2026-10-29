@@ -6,7 +6,9 @@
 import type {
     ChallengeVerificationResultV2,
     EnrollmentRequiredResultV2,
+    StartResultV2,
 } from "./BaseResultsV2.js";
+import { CHALLENGE_RELATION } from "../ApiClientConstantsV2.js";
 
 export interface SignUpAttributeV2 {
     attributeId: string;
@@ -18,7 +20,13 @@ export interface SignUpAttributeV2 {
     confirmationInput?: string;
 }
 
-export type SignUpStartApiResultV2 = ChallengeVerificationResultV2;
+export interface SignUpStartExistingAccountApiResultV2 extends StartResultV2 {
+    nextAction: typeof CHALLENGE_RELATION;
+}
+
+export type SignUpStartApiResultV2 =
+    | ChallengeVerificationResultV2
+    | SignUpStartExistingAccountApiResultV2;
 
 export const SignUpSubmitAttributesNextActionV2 = {
     COLLECT_ATTRIBUTES: "collectAttributes",

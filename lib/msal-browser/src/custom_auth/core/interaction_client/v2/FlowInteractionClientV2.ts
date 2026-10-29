@@ -26,6 +26,8 @@ import {
 import {
     createFlowMethodSelectionRequiredResultV2,
     createFlowCodeRequiredResultV2,
+    createFlowExistingAccountCodeRequiredResultV2,
+    createFlowExistingAccountPasswordRequiredResultV2,
     createFlowPasswordRequiredResultV2,
     createFlowSignUpPasswordRequiredResultV2,
     createFlowMFARequiredResultV2,
@@ -36,10 +38,13 @@ import {
     createFlowAuthMethodRegistrationRequiredResultV2,
     createFlowAuthMethodVerificationRequiredResultV2,
     FLOW_CODE_REQUIRED_V2,
+    FLOW_PASSWORD_REQUIRED_V2,
 } from "./result/FlowActionResultV2.js";
 import type {
     FlowMethodSelectionRequiredResultV2,
     FlowCodeRequiredResultV2,
+    FlowExistingAccountCodeRequiredResultV2,
+    FlowExistingAccountPasswordRequiredResultV2,
     FlowSignInCodeRequiredResultV2,
     FlowResetPasswordCodeRequiredResultV2,
     FlowPasswordRequiredResultV2,
@@ -249,7 +254,12 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
     async signUp(
         parameters: FlowSignUpStartParamsV2
-    ): Promise<FlowCodeRequiredResultV2> {
+    ): Promise<
+        | FlowCodeRequiredResultV2
+        | FlowExistingAccountCodeRequiredResultV2
+        | FlowExistingAccountPasswordRequiredResultV2
+        | FlowMethodSelectionRequiredResultV2
+    > {
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             PublicApiId.SIGN_UP_V2_START,
@@ -276,21 +286,104 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             },
             context
         );
-        return createFlowCodeRequiredResultV2({
+        if (startResult.nextAction === VERIFY_RELATION) {
+            if (
+                startResult.type?.toLowerCase() !==
+                AuthenticationMethodTypeV2.EMAIL
+            ) {
+                const message =
+                    "New-account sign-up requires an email code challenge.";
+                this.logger.error(message, correlationId);
+                throw new CustomAuthError(
+                    UNSUPPORTED_FLOW_TRANSITION,
+                    message,
+                    correlationId
+                );
+            }
+
+            return createFlowCodeRequiredResultV2({
+                correlationId,
+                continuationState: {
+                    continuationToken: startResult.continuationToken,
+                    scenario: CustomAuthFlowScenarioV2.SignUp,
+                    scopes,
+                    links: {
+                        verify: startResult.verifyHref,
+                        resend: startResult.resendHref,
+                    },
+                    signUp: {
+                        purpose: "newAccount",
+                        submittedAttributeIds: [],
+                    },
+                },
+                channel: startResult.type,
+                sentTo: startResult.hint,
+                codeLength: startResult.codeLength,
+            });
+        }
+
+        const continuationState: FlowContinuationStateV2 = {
+            continuationToken: startResult.continuationToken,
+            scenario: CustomAuthFlowScenarioV2.SignUp,
+            scopes,
+            links: {},
+            signUp: {
+                purpose: "existingAccount",
+            },
+        };
+        this.ensureAuthenticationFactor(
+            startResult.authenticationFactor,
+            AuthenticationFactorV2.SINGLE_FACTOR,
+            "existing-account sign-up",
+            correlationId
+        );
+        const supportedMethods = startResult.methods
+            .map((method) => ({
+                id: method.id,
+                type: method.type ?? "",
+                hint: method.hint,
+                challengeHref: method.challengeHref,
+            }))
+            .filter((method) => {
+                const methodType = method.type.toLowerCase();
+                return (
+                    methodType === AuthenticationMethodTypeV2.EMAIL ||
+                    methodType === AuthenticationMethodTypeV2.PASSWORD
+                );
+            });
+
+        if (supportedMethods.length === 0) {
+            throw new CustomAuthError(
+                UNSUPPORTED_FLOW_TRANSITION,
+                "The existing-account sign-up response must include an email or password method.",
+                correlationId
+            );
+        }
+
+        if (supportedMethods.length > 1) {
+            return createFlowMethodSelectionRequiredResultV2({
+                correlationId,
+                continuationState,
+                methods: supportedMethods,
+            });
+        }
+
+        const selectedMethod = supportedMethods[0];
+        const challengeResult = await this.requestChallenge({
             correlationId,
             continuationState: {
-                continuationToken: startResult.continuationToken,
-                scenario: CustomAuthFlowScenarioV2.SignUp,
-                scopes,
+                ...continuationState,
                 links: {
-                    verify: startResult.verifyHref,
-                    resend: startResult.resendHref,
+                    challenge: selectedMethod.challengeHref,
                 },
             },
-            channel: startResult.type,
-            sentTo: startResult.hint,
-            codeLength: startResult.codeLength,
         });
+
+        return this.toExistingAccountChallengeResult(
+            challengeResult,
+            selectedMethod,
+            correlationId
+        );
     }
 
     /*
@@ -627,6 +720,17 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             );
         }
 
+        if (
+            continuationState.scenario === CustomAuthFlowScenarioV2.SignUp &&
+            continuationState.signUp?.purpose === "existingAccount"
+        ) {
+            return this.handleSignInVerification(
+                continuationState,
+                verifyResult,
+                correlationId
+            );
+        }
+
         if (continuationState.scenario === CustomAuthFlowScenarioV2.SignUp) {
             return this.handleSignUpVerification(
                 continuationState,
@@ -656,6 +760,20 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             parameters,
             "resendCode"
         );
+        const challengeType = challengeResult.type?.toLowerCase();
+        if (
+            challengeType !== AuthenticationMethodTypeV2.EMAIL &&
+            challengeType !== AuthenticationMethodTypeV2.SMS
+        ) {
+            const message =
+                "A replacement code requires an email or SMS code challenge.";
+            this.logger.error(message, parameters.correlationId);
+            throw new CustomAuthError(
+                UNSUPPORTED_FLOW_TRANSITION,
+                message,
+                parameters.correlationId
+            );
+        }
 
         return createFlowCodeRequiredResultV2({
             correlationId: parameters.correlationId,
@@ -723,6 +841,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             {
                 ...continuationState,
                 signUp: {
+                    purpose: "newAccount",
                     submittedAttributeIds: [
                         ...new Set([
                             ...(continuationState.signUp
@@ -847,7 +966,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Verifies a sign-in password and returns the next sign-in action.
+     * Verifies an existing password and returns the next authentication action.
      */
     async submitSignInPassword(
         parameters: FlowSubmitSignInPasswordParamsV2
@@ -936,16 +1055,15 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             this.ensureAuthenticationFactor(
                 verifyResult.authenticationFactor,
                 AuthenticationFactorV2.MULTI_FACTOR,
-                "after sign-in verification",
+                "after authentication verification",
                 correlationId
             );
 
             return createFlowMFARequiredResultV2({
                 correlationId,
                 continuationState: {
+                    ...continuationState,
                     continuationToken: verifyResult.continuationToken,
-                    scenario: continuationState.scenario,
-                    scopes: continuationState.scopes,
                     links: {},
                 },
                 methods: verifyResult.methods.map((method) => ({
@@ -965,7 +1083,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             );
         }
 
-        const message = `Verification next action '${verifyResult.nextAction}' is not supported for sign-in.`;
+        const message = `Verification next action '${verifyResult.nextAction}' is not supported for authentication.`;
         this.logger.error(message, correlationId);
         throw new CustomAuthError(
             UNSUPPORTED_FLOW_TRANSITION,
@@ -1331,6 +1449,47 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         );
     }
 
+    private toExistingAccountChallengeResult(
+        challengeResult:
+            | FlowCodeRequiredResultV2
+            | FlowPasswordRequiredResultV2,
+        method: AuthenticationMethodV2,
+        correlationId: string
+    ):
+        | FlowExistingAccountCodeRequiredResultV2
+        | FlowExistingAccountPasswordRequiredResultV2 {
+        if (
+            challengeResult.type === FLOW_CODE_REQUIRED_V2 &&
+            challengeResult.channel?.toLowerCase() ===
+                AuthenticationMethodTypeV2.EMAIL
+        ) {
+            return createFlowExistingAccountCodeRequiredResultV2({
+                correlationId,
+                continuationState: challengeResult.continuationState,
+                method,
+                channel: challengeResult.channel,
+                sentTo: challengeResult.sentTo,
+                codeLength: challengeResult.codeLength,
+            });
+        }
+
+        if (challengeResult.type === FLOW_PASSWORD_REQUIRED_V2) {
+            return createFlowExistingAccountPasswordRequiredResultV2({
+                correlationId,
+                continuationState: challengeResult.continuationState,
+            });
+        }
+
+        const message =
+            "Existing-account sign-up requires an email code challenge or a password challenge.";
+        this.logger.error(message, correlationId);
+        throw new CustomAuthError(
+            UNSUPPORTED_FLOW_TRANSITION,
+            message,
+            correlationId
+        );
+    }
+
     private async verifySignInPassword(
         parameters: FlowSubmitSignInPasswordParamsV2
     ): Promise<VerifyResultV2> {
@@ -1344,7 +1503,10 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             correlationId
         );
 
-        this.logger.verbose("Submitting V2 sign-in password.", correlationId);
+        this.logger.verbose(
+            "Submitting V2 authentication password.",
+            correlationId
+        );
 
         return this.apiClient.verifyChallenge(
             this.requireLink(correlationId, continuationState.links.verify),
@@ -1364,9 +1526,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         return this.signInWithContinuation({
             correlationId,
             continuationState: {
+                ...continuationState,
                 continuationToken,
-                scenario: continuationState.scenario,
-                scopes: continuationState.scopes,
                 links: {},
             },
         });
