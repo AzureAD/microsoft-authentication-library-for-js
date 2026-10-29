@@ -474,6 +474,29 @@ describe("CustomAuthApiClientV2", () => {
             expect(JSON.parse(options.body)).toEqual(request);
         });
 
+        it.each(["EMAIL", "eMaIl"])(
+            "accepts a case-insensitive %s challenge type",
+            async (type) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({ ...startResponse, type })
+                );
+
+                await expect(
+                    apiClient.signUpStart(
+                        "/tenant/api/v0.1/signup/start",
+                        {
+                            continuationToken: "ct-entry",
+                            username: "user@contoso.com",
+                        },
+                        context
+                    )
+                ).resolves.toMatchObject({
+                    nextAction: "verify",
+                    type,
+                });
+            }
+        );
+
         it("allows sign-up verification without a resend link", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
@@ -527,6 +550,13 @@ describe("CustomAuthApiClientV2", () => {
             ["enroll", { ...startResponse, action: "enroll" }],
             ["unknown action", { ...startResponse, action: "unsupported" }],
             ["missing action", { ...startResponse, action: undefined }],
+            ["password challenge", { ...startResponse, type: "password" }],
+            ["phone challenge", { ...startResponse, type: "phone" }],
+            ["SMS challenge", { ...startResponse, type: "sms" }],
+            ["missing challenge type", { ...startResponse, type: undefined }],
+            ["null challenge type", { ...startResponse, type: null }],
+            ["numeric challenge type", { ...startResponse, type: 42 }],
+            ["empty challenge type", { ...startResponse, type: "" }],
             [
                 "missing verify link",
                 {
@@ -584,6 +614,45 @@ describe("CustomAuthApiClientV2", () => {
     describe.each(["verification", "attribute submission"])(
         "sign-up collection after %s",
         (operation) => {
+            it("rejects null collection metadata with an API error", async () => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-collection",
+                        action: "collectAttributes",
+                        attributes: null,
+                        _links: {
+                            submitAttributes: {
+                                href: "/signup/submitattributes",
+                            },
+                        },
+                    })
+                );
+
+                const result =
+                    operation === "verification"
+                        ? apiClient.verifyChallenge(
+                              "/signup/verify",
+                              {
+                                  continuationToken: "ct-start",
+                                  otp: "12345678",
+                              },
+                              context
+                          )
+                        : apiClient.submitSignUpAttributes(
+                              "/signup/submitattributes",
+                              {
+                                  continuationToken: "ct-attributes",
+                                  attributes: { city: "Redmond" },
+                              },
+                              context
+                          );
+
+                await expect(result).rejects.toMatchObject({
+                    error: INVALID_HAL_RESPONSE,
+                    correlationId: "corr-1",
+                });
+            });
+
             it.each(["email", "EMAIL", "eMaIl"])(
                 "rejects a requested %s attribute with an API error",
                 async (attributeId) => {
