@@ -32,6 +32,7 @@ import {
     TimeUtils,
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     ITokenBindingKeyManager,
+    ResponseHandler,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -2374,8 +2375,7 @@ export class StandardController implements IController {
             },
             this.platformAuthProvider,
             this.logger,
-            this.performanceClient,
-            this.browserStorage
+            this.performanceClient
         );
 
         const inProgressRequest = this.activeSilentTokenRequests.get(
@@ -2416,7 +2416,33 @@ export class StandardController implements IController {
                 correlationId
             );
             this.performanceClient.addFields({ deduped: true }, correlationId);
-            return inProgressRequest;
+            const result = await inProgressRequest;
+            if (
+                request.authenticationScheme !==
+                Constants.AuthenticationScheme.DPOP
+            ) {
+                return result;
+            }
+
+            const dpopProof = await ResponseHandler.generateDpopResourceProof(
+                this.browserCrypto,
+                result,
+                {
+                    ...request,
+                    authority: request.authority || this.config.auth.authority,
+                    correlationId,
+                },
+                this.performanceClient,
+                {
+                    tokenBindingKeyManager: this.tokenBindingKeyManager,
+                    cacheManager: this.browserStorage,
+                }
+            );
+
+            return {
+                ...result,
+                dpopProof,
+            };
         }
     }
 

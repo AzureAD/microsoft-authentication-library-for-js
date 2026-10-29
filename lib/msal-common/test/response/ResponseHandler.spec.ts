@@ -1168,7 +1168,8 @@ describe("ResponseHandler.ts", () => {
                 .mockResolvedValue(TEST_DPOP_VALUES.ACCESS_TOKEN_ATH);
             const signSpy = jest
                 .spyOn(cryptoInterface, "signTokenBindingJwt")
-                .mockResolvedValue("cached-dpop-proof");
+                .mockResolvedValueOnce("cached-dpop-proof")
+                .mockResolvedValueOnce("regenerated-dpop-proof");
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
                 correlationId: "CORRELATION_ID",
@@ -1228,6 +1229,34 @@ describe("ResponseHandler.ts", () => {
                 expect.anything(),
                 TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
                 "CORRELATION_ID"
+            );
+
+            Object.assign(testCacheManager, {
+                getDpopNonce: () => ({ nonce: "rotated-resource-nonce" }),
+            });
+            const regeneratedProof =
+                await ResponseHandler.generateDpopResourceProof(
+                    cryptoInterface,
+                    result,
+                    {
+                        ...testRequest,
+                        correlationId: "RETRY_CORRELATION_ID",
+                    },
+                    stubPerformanceClient,
+                    {
+                        tokenBindingKeyManager: mockTokenBindingKeyManager,
+                        cacheManager: testCacheManager,
+                    }
+                );
+
+            expect(regeneratedProof).toBe("regenerated-dpop-proof");
+            expect(signSpy.mock.calls[1][1]).toMatchObject({
+                nonce: "rotated-resource-nonce",
+            });
+            expect(signSpy.mock.calls[1][3]).toBe("RETRY_CORRELATION_ID");
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                { dpopNonceAppliedToProof: true },
+                "RETRY_CORRELATION_ID"
             );
         });
 

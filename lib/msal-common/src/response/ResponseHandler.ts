@@ -73,6 +73,8 @@ type DpopNonceCache = {
     ): { nonce: string } | undefined;
 };
 
+const dpopKeyIds = new WeakMap<AuthenticationResult, string>();
+
 /**
  * Returns whether a cache manager supports resource-server DPoP nonces.
  */
@@ -789,7 +791,7 @@ export class ResponseHandler {
               )
             : null;
 
-        return {
+        const authenticationResult: AuthenticationResult = {
             authority: authority.canonicalAuthority,
             uniqueId: uid,
             tenantId: tid,
@@ -817,6 +819,66 @@ export class ResponseHandler {
             code: serverTokenResponse?.spa_code,
             fromPlatformBroker: false,
         };
+
+        if (
+            cacheRecord.accessToken?.tokenType?.toLowerCase() ===
+                Constants.AuthenticationScheme.DPOP.toLowerCase() &&
+            cacheRecord.accessToken.keyId
+        ) {
+            dpopKeyIds.set(authenticationResult, cacheRecord.accessToken.keyId);
+        }
+
+        return authenticationResult;
+    }
+
+    /**
+     * Generates a fresh resource proof for a previously constructed DPoP result.
+     * @internal
+     */
+    static async generateDpopResourceProof(
+        cryptoObj: ICrypto,
+        authenticationResult: AuthenticationResult,
+        request: BaseAuthRequest,
+        performanceClient: IPerformanceClient,
+        options: Pick<
+            GenerateAuthenticationResultOptions,
+            "tokenBindingKeyManager" | "cacheManager"
+        > = {}
+    ): Promise<string> {
+        const keyId = dpopKeyIds.get(authenticationResult);
+        if (!keyId) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.keyIdMissing,
+                request.correlationId
+            );
+        }
+
+        const dpopNonce = request.resourceRequestUri
+            ? options.cacheManager && hasDpopNonceCache(options.cacheManager)
+                ? options.cacheManager.getDpopNonce(
+                      request.resourceRequestUri,
+                      request.correlationId
+                  )?.nonce
+                : undefined
+            : undefined;
+        performanceClient.addFields(
+            { dpopNonceAppliedToProof: Boolean(dpopNonce) },
+            request.correlationId
+        );
+
+        return new DpopProofGenerator(
+            cryptoObj,
+            options.tokenBindingKeyManager ?? DEFAULT_TOKEN_BINDING_KEY_MANAGER
+        ).generateResourceProof(
+            {
+                htu: request.resourceRequestUri,
+                htm: request.resourceRequestMethod,
+                nonce: dpopNonce,
+                accessToken: authenticationResult.accessToken,
+            },
+            keyId,
+            request.correlationId
+        );
     }
 }
 

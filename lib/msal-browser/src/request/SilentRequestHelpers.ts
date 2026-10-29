@@ -23,16 +23,6 @@ import type { SilentRequest } from "./SilentRequest.js";
 import type { SsoSilentRequest } from "./SsoSilentRequest.js";
 
 /**
- * Structural cache capability used to track resource-server DPoP nonce generations.
- */
-type DpopNonceCache = {
-    getDpopNonce(
-        resourceRequestUri: string,
-        correlationId?: string
-    ): { nonce: string; generation: number } | undefined;
-};
-
-/**
  * Request context used by flow-specific silent request preparers.
  */
 export type SilentRequestPreparationInput = {
@@ -65,8 +55,7 @@ export function resolveSilentRequestPreparation(
     input: SilentRequestPreparationInput,
     platformAuthProvider: IPlatformAuthHandler | undefined,
     logger: Logger,
-    performanceClient: IPerformanceClient,
-    cacheManager?: DpopNonceCache
+    performanceClient: IPerformanceClient
 ): PreparedSilentRequest {
     const { request, account, correlationId, config } = input;
     const prepareRequest =
@@ -82,18 +71,18 @@ export function resolveSilentRequestPreparation(
             ? preparePlatformSilentRequest
             : prepareWebSilentRequest;
 
-    return prepareRequest === prepareWebSilentRequest
-        ? prepareWebSilentRequest(input, cacheManager)
-        : preparePlatformSilentRequest(input);
+    return prepareRequest(input);
 }
 
 /**
  * Extends the web thumbprint with silent-flow options while preserving caller-owned references.
  */
-export function prepareWebSilentRequest(
-    { request, account, correlationId, config }: SilentRequestPreparationInput,
-    cacheManager?: DpopNonceCache
-): PreparedSilentRequest {
+export function prepareWebSilentRequest({
+    request,
+    account,
+    correlationId,
+    config,
+}: SilentRequestPreparationInput): PreparedSilentRequest {
     const thumbprint = getRequestThumbprint(
         config.auth.clientId,
         {
@@ -104,19 +93,9 @@ export function prepareWebSilentRequest(
         account.homeAccountId
     );
 
-    const dpopNonceGeneration =
-        request.authenticationScheme === Constants.AuthenticationScheme.DPOP &&
-        request.resourceRequestUri
-            ? cacheManager?.getDpopNonce(
-                  request.resourceRequestUri,
-                  correlationId
-              )?.generation
-            : undefined;
-
     return {
         key: JSON.stringify({
             ...thumbprint,
-            dpopNonceGeneration,
             forceRefresh: !!request.forceRefresh,
             cacheLookupPolicy:
                 request.cacheLookupPolicy ?? CacheLookupPolicy.Default,

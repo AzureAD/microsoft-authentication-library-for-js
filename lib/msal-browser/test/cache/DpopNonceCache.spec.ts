@@ -4,31 +4,20 @@
  */
 
 import {
-    createDpopNonceRecord,
     createDpopNonceRedirectHandoff,
-    getDpopNonceCacheKey,
-    isDpopNonceCacheKey,
+    getDpopNonceResourceServer,
     isDpopNonceRedirectHandoff,
     matchesDpopNonceRedirectHandoff,
     REDIRECT_HANDOFF_TTL_MS,
 } from "../../src/cache/DpopNonceCache.js";
 
 describe("DPoP nonce cache helpers", () => {
-    it("normalizes resource-server cache keys", () => {
-        const key = getDpopNonceCacheKey(
+    it("normalizes resource-server origins", () => {
+        const resourceServer = getDpopNonceResourceServer(
             "https://API.CONTOSO.COM:443/resource"
         );
 
-        expect(key).toBe("dpop.nonce.https://api.contoso.com");
-        expect(isDpopNonceCacheKey(key)).toBe(true);
-        expect(isDpopNonceCacheKey("unrelated")).toBe(false);
-    });
-
-    it("creates validated records with the supplied generation", () => {
-        expect(createDpopNonceRecord("opaque-nonce", 7)).toEqual({
-            nonce: "opaque-nonce",
-            generation: 7,
-        });
+        expect(resourceServer).toBe("https://api.contoso.com");
     });
 
     it("creates and matches request-bound redirect handoffs", () => {

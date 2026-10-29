@@ -145,7 +145,6 @@ describe("PublicClientApplication.loadDpopNonce", () => {
             )
         ).toEqual({
             nonce: "resource-nonce",
-            generation: 1,
         });
         expect(events).toContain(
             BrowserPerformanceEvents.StandardControllerLoadDpopNonce
