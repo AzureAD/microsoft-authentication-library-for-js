@@ -40,6 +40,7 @@ import {
     AuthToken,
     getTenantIdFromIdTokenClaims,
     buildTenantProfile,
+    validateDpopNonce,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -77,17 +78,13 @@ import { version } from "../packageMetadata.js";
 import { removeElementFromArray } from "../utils/Helpers.js";
 import { EncryptedData, isEncrypted } from "./EncryptedData.js";
 import {
-    createDpopNonceRecord,
     createDpopNonceRedirectHandoff,
     DPOP_NONCE_REDIRECT_HANDOFF,
-    getDpopNonceCacheKey,
-    isDpopNonceRecord,
-    isDpopNonceCacheKey,
+    getDpopNonceResourceServer,
     isDpopNonceRedirectHandoff,
     matchesDpopNonceRedirectHandoff,
     MAX_RESOURCE_SERVER_NONCES,
 } from "./DpopNonceCache.js";
-import type { DpopNonceRecord } from "./DpopNonceCache.js";
 
 type KmsiMap = { [homeAccountId: string]: boolean };
 
@@ -126,8 +123,7 @@ export class BrowserCacheManager extends CacheManager {
     protected logger: Logger;
     // Event Handler
     private eventHandler: EventHandler;
-    // PCA-local generation used to distinguish silent requests after nonce updates.
-    private dpopNonceGeneration = 0;
+    private dpopNonces = new Map<string, string>();
 
     constructor(
         clientId: string,
@@ -1910,26 +1906,21 @@ export class BrowserCacheManager extends CacheManager {
         dpopNonce: string,
         correlationId: string = ""
     ): void {
-        const cacheKey = getDpopNonceCacheKey(
+        const resourceServer = getDpopNonceResourceServer(
             resourceRequestUri,
             correlationId
         );
-        const record = createDpopNonceRecord(
-            dpopNonce,
-            this.dpopNonceGeneration + 1,
-            correlationId
-        );
-        this.dpopNonceGeneration = record.generation;
+        const validatedNonce = validateDpopNonce(dpopNonce, correlationId);
 
         // Reinsert replacements so eviction remains oldest-write ordered.
-        this.internalStorage.removeItem(cacheKey);
-        this.internalStorage.setItem(cacheKey, JSON.stringify(record));
+        this.dpopNonces.delete(resourceServer);
+        this.dpopNonces.set(resourceServer, validatedNonce);
 
-        const nonceKeys = this.internalStorage
-            .getKeys()
-            .filter(isDpopNonceCacheKey);
-        if (nonceKeys.length > MAX_RESOURCE_SERVER_NONCES) {
-            this.internalStorage.removeItem(nonceKeys[0]);
+        if (this.dpopNonces.size > MAX_RESOURCE_SERVER_NONCES) {
+            const oldestResourceServer = this.dpopNonces.keys().next().value;
+            if (oldestResourceServer) {
+                this.dpopNonces.delete(oldestResourceServer);
+            }
             this.performanceClient.incrementFields(
                 { "ext.dpopNonceCacheEvictionCount": 1 },
                 correlationId
@@ -1946,16 +1937,11 @@ export class BrowserCacheManager extends CacheManager {
     getDpopNonce(
         resourceRequestUri: string,
         correlationId: string = ""
-    ): DpopNonceRecord | undefined {
-        const serializedRecord = this.internalStorage.getItem(
-            getDpopNonceCacheKey(resourceRequestUri, correlationId)
+    ): { nonce: string } | undefined {
+        const nonce = this.dpopNonces.get(
+            getDpopNonceResourceServer(resourceRequestUri, correlationId)
         );
-        if (!serializedRecord) {
-            return undefined;
-        }
-
-        const record = this.validateAndParseJson(serializedRecord);
-        return record && isDpopNonceRecord(record) ? record : undefined;
+        return nonce === undefined ? undefined : { nonce };
     }
 
     /**
@@ -2101,10 +2087,7 @@ export class BrowserCacheManager extends CacheManager {
      * @internal
      */
     clearDpopNonces(correlationId: string = ""): void {
-        this.internalStorage
-            .getKeys()
-            .filter(isDpopNonceCacheKey)
-            .forEach((key) => this.internalStorage.removeItem(key));
+        this.dpopNonces.clear();
         this.clearDpopNonceRedirectHandoff(correlationId);
     }
 
@@ -2349,6 +2332,7 @@ export class BrowserCacheManager extends CacheManager {
         });
 
         this.internalStorage.clear();
+        this.dpopNonces.clear();
     }
 
     /**
