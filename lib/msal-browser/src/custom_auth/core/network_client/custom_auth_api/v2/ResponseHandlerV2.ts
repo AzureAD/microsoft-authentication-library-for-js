@@ -115,7 +115,7 @@ export class ResponseHandlerV2 {
         attributes: SignUpAttributeResponseV2[] | undefined,
         correlationId: string
     ): SignUpAttributeResponseV2[] {
-        const resolved = attributes ?? [];
+        const resolved = attributes === undefined ? [] : attributes;
         if (
             !Array.isArray(resolved) ||
             resolved.some(

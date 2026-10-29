@@ -299,6 +299,7 @@ describe("ResponseHandlerV2", () => {
 
     describe("resolveSignUpAttributes", () => {
         it.each<{ attributes: unknown }>([
+            { attributes: null },
             { attributes: {} },
             { attributes: [null] },
             { attributes: [[]] },
