@@ -2434,7 +2434,7 @@ export class StandardController implements IController {
                 this.performanceClient,
                 {
                     tokenBindingKeyManager: this.tokenBindingKeyManager,
-                    cacheManager: this.browserStorage,
+                    dpopNonceProvider: this.browserStorage,
                 }
             );
 

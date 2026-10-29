@@ -168,11 +168,6 @@ describe("ResponseHandler.ts", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
-        delete (
-            testCacheManager as CacheManager & {
-                getDpopNonce?: unknown;
-            }
-        ).getDpopNonce;
     });
 
     describe("nonce validation", () => {
@@ -1034,7 +1029,6 @@ describe("ResponseHandler.ts", () => {
                 }
             );
             const getDpopNonce = jest.fn().mockReturnValue("resource-nonce");
-            Object.assign(testCacheManager, { getDpopNonce });
 
             const responseHandler = new ResponseHandler(
                 "this-is-a-client-id",
@@ -1044,7 +1038,8 @@ describe("ResponseHandler.ts", () => {
                 stubPerformanceClient,
                 null,
                 null,
-                mockTokenBindingKeyManager
+                mockTokenBindingKeyManager,
+                { getDpopNonce }
             );
             const result = await responseHandler.handleServerTokenResponse(
                 testResponse,
@@ -1105,7 +1100,6 @@ describe("ResponseHandler.ts", () => {
 
             let currentNonce = "older-nonce";
             const getDpopNonce = jest.fn(() => currentNonce);
-            Object.assign(testCacheManager, { getDpopNonce });
 
             let releaseSave!: () => void;
             let notifySaveStarted!: () => void;
@@ -1130,7 +1124,8 @@ describe("ResponseHandler.ts", () => {
                 stubPerformanceClient,
                 null,
                 null,
-                mockTokenBindingKeyManager
+                mockTokenBindingKeyManager,
+                { getDpopNonce }
             );
             const resultPromise = responseHandler.handleServerTokenResponse(
                 testResponse,
@@ -1191,9 +1186,10 @@ describe("ResponseHandler.ts", () => {
             const cacheRecord: CacheRecord = {
                 accessToken: dpopAccessToken,
             };
-            Object.assign(testCacheManager, {
-                getDpopNonce: () => undefined,
-            });
+            let currentNonce: string | undefined;
+            const dpopNonceProvider = {
+                getDpopNonce: (): string | undefined => currentNonce,
+            };
 
             const result = await ResponseHandler.generateAuthenticationResult(
                 cryptoInterface,
@@ -1205,7 +1201,7 @@ describe("ResponseHandler.ts", () => {
                 {
                     idTokenClaims: ID_TOKEN_CLAIMS as TokenClaims,
                     tokenBindingKeyManager: mockTokenBindingKeyManager,
-                    cacheManager: testCacheManager,
+                    dpopNonceProvider,
                 }
             );
 
@@ -1225,9 +1221,7 @@ describe("ResponseHandler.ts", () => {
                 "CORRELATION_ID"
             );
 
-            Object.assign(testCacheManager, {
-                getDpopNonce: () => "rotated-resource-nonce",
-            });
+            currentNonce = "rotated-resource-nonce";
             const regeneratedProof =
                 await ResponseHandler.generateDpopResourceProof(
                     cryptoInterface,
@@ -1239,7 +1233,7 @@ describe("ResponseHandler.ts", () => {
                     stubPerformanceClient,
                     {
                         tokenBindingKeyManager: mockTokenBindingKeyManager,
-                        cacheManager: testCacheManager,
+                        dpopNonceProvider,
                     }
                 );
 

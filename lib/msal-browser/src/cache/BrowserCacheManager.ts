@@ -21,6 +21,7 @@ import {
     createCacheError,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     ICrypto,
+    IDpopNonceProvider,
     IdTokenEntity,
     invokeAsync,
     IPerformanceClient,
@@ -136,7 +137,10 @@ type UpdateOldEntryResult =
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
  */
-export class BrowserCacheManager extends CacheManager {
+export class BrowserCacheManager
+    extends CacheManager
+    implements IDpopNonceProvider
+{
     // Cache configuration, either set by user or default values.
     protected cacheConfig: Required<CacheOptions>;
     // Window storage object (either local or sessionStorage)

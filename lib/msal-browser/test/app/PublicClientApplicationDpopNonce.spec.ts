@@ -15,9 +15,9 @@ import {
     Authority,
     BaseAuthRequest,
     CacheRecord,
-    CacheManager,
     Constants,
     ICrypto,
+    IDpopNonceProvider,
     ITokenBindingKeyManager,
     ResponseHandler,
     StubPerformanceClient,
@@ -35,7 +35,7 @@ function getBrowserCacheManager(pca: unknown): BrowserCacheManager {
 }
 
 async function generateResourceProof(
-    cacheManager: CacheManager,
+    dpopNonceProvider: IDpopNonceProvider,
     resourceRequestUri: string
 ): Promise<{
     proof: string | undefined;
@@ -92,7 +92,7 @@ async function generateResourceProof(
         new StubPerformanceClient(),
         {
             tokenBindingKeyManager,
-            cacheManager,
+            dpopNonceProvider,
         }
     );
 
