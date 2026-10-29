@@ -1033,10 +1033,7 @@ describe("ResponseHandler.ts", () => {
                     }
                 }
             );
-            const getDpopNonce = jest.fn().mockReturnValue({
-                nonce: "resource-nonce",
-                version: 1,
-            });
+            const getDpopNonce = jest.fn().mockReturnValue("resource-nonce");
             Object.assign(testCacheManager, { getDpopNonce });
 
             const responseHandler = new ResponseHandler(
@@ -1107,10 +1104,7 @@ describe("ResponseHandler.ts", () => {
             );
 
             let currentNonce = "older-nonce";
-            const getDpopNonce = jest.fn(() => ({
-                nonce: currentNonce,
-                version: currentNonce === "older-nonce" ? 1 : 2,
-            }));
+            const getDpopNonce = jest.fn(() => currentNonce);
             Object.assign(testCacheManager, { getDpopNonce });
 
             let releaseSave!: () => void;
@@ -1232,7 +1226,7 @@ describe("ResponseHandler.ts", () => {
             );
 
             Object.assign(testCacheManager, {
-                getDpopNonce: () => ({ nonce: "rotated-resource-nonce" }),
+                getDpopNonce: () => "rotated-resource-nonce",
             });
             const regeneratedProof =
                 await ResponseHandler.generateDpopResourceProof(

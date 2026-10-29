@@ -1547,9 +1547,6 @@ const DOMAIN_HINT = "domain_hint";
 // @public (undocumented)
 const DPOP_JKT = "dpop_jkt";
 
-// @internal
-export const DPOP_NONCE_MAX_SIZE_BYTES = 1024;
-
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";
 

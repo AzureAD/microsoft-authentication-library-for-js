@@ -40,6 +40,7 @@ import {
     AuthToken,
     getTenantIdFromIdTokenClaims,
     buildTenantProfile,
+    canonicalizeDpopResourceServer,
     validateDpopNonce,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
@@ -77,16 +78,43 @@ import { clearHash } from "../utils/BrowserUtils.js";
 import { version } from "../packageMetadata.js";
 import { removeElementFromArray } from "../utils/Helpers.js";
 import { EncryptedData, isEncrypted } from "./EncryptedData.js";
-import {
-    createDpopNonceRedirectHandoff,
-    DPOP_NONCE_REDIRECT_HANDOFF,
-    getDpopNonceResourceServer,
-    isDpopNonceRedirectHandoff,
-    matchesDpopNonceRedirectHandoff,
-    MAX_RESOURCE_SERVER_NONCES,
-} from "./DpopNonceCache.js";
 
 type KmsiMap = { [homeAccountId: string]: boolean };
+
+const DPOP_NONCE_REDIRECT_HANDOFF = "dpop.nonce.redirect";
+const MAX_RESOURCE_SERVER_NONCES = 50;
+const REDIRECT_HANDOFF_TTL_MS = 5 * 60 * 1000;
+
+type DpopNonceRedirectHandoff = {
+    nonce: string;
+    resourceServer: string;
+    state: string;
+    correlationId: string;
+    expiresAt: number;
+};
+
+function isDpopNonceRedirectHandoff(
+    value: object
+): value is DpopNonceRedirectHandoff {
+    const handoff = value as Partial<DpopNonceRedirectHandoff>;
+    if (
+        typeof handoff.nonce !== "string" ||
+        typeof handoff.resourceServer !== "string" ||
+        typeof handoff.state !== "string" ||
+        typeof handoff.correlationId !== "string" ||
+        typeof handoff.expiresAt !== "number" ||
+        !Number.isFinite(handoff.expiresAt)
+    ) {
+        return false;
+    }
+
+    try {
+        validateDpopNonce(handoff.nonce);
+        return true;
+    } catch {
+        return false;
+    }
+}
 
 /**
  * Reason an old-schema cache entry was removed during migration.
@@ -1888,7 +1916,7 @@ export class BrowserCacheManager extends CacheManager {
         dpopNonce: string,
         correlationId: string = ""
     ): void {
-        const resourceServer = getDpopNonceResourceServer(
+        const resourceServer = canonicalizeDpopResourceServer(
             resourceRequestUri,
             correlationId
         );
@@ -1919,11 +1947,10 @@ export class BrowserCacheManager extends CacheManager {
     getDpopNonce(
         resourceRequestUri: string,
         correlationId: string = ""
-    ): { nonce: string } | undefined {
-        const nonce = this.dpopNonces.get(
-            getDpopNonceResourceServer(resourceRequestUri, correlationId)
+    ): string | undefined {
+        return this.dpopNonces.get(
+            canonicalizeDpopResourceServer(resourceRequestUri, correlationId)
         );
-        return nonce === undefined ? undefined : { nonce };
     }
 
     /**
@@ -1939,17 +1966,21 @@ export class BrowserCacheManager extends CacheManager {
             return;
         }
 
-        const record = this.getDpopNonce(resourceRequestUri, correlationId);
-        if (!record) {
+        const nonce = this.getDpopNonce(resourceRequestUri, correlationId);
+        if (!nonce) {
             return;
         }
 
-        const handoff = createDpopNonceRedirectHandoff(
-            resourceRequestUri,
-            record.nonce,
+        const handoff: DpopNonceRedirectHandoff = {
+            nonce,
+            resourceServer: canonicalizeDpopResourceServer(
+                resourceRequestUri,
+                correlationId
+            ),
             state,
-            correlationId
-        );
+            correlationId,
+            expiresAt: Date.now() + REDIRECT_HANDOFF_TTL_MS,
+        };
 
         if (this.temporaryCacheStorage instanceof MemoryStorage) {
             this.performanceClient.incrementFields(
@@ -2024,19 +2055,24 @@ export class BrowserCacheManager extends CacheManager {
             return;
         }
 
-        const handoff = parsedHandoff;
         if (
-            !matchesDpopNonceRedirectHandoff(
-                handoff,
-                resourceRequestUri,
-                state,
-                correlationId
-            )
+            parsedHandoff.expiresAt < Date.now() ||
+            parsedHandoff.state !== state ||
+            parsedHandoff.correlationId !== correlationId ||
+            parsedHandoff.resourceServer !==
+                canonicalizeDpopResourceServer(
+                    resourceRequestUri,
+                    correlationId
+                )
         ) {
             return;
         }
 
-        this.setDpopNonce(handoff.resourceServer, handoff.nonce, correlationId);
+        this.setDpopNonce(
+            parsedHandoff.resourceServer,
+            parsedHandoff.nonce,
+            correlationId
+        );
         this.performanceClient.incrementFields(
             { "ext.dpopNonceRedirectHandoffRestoreCount": 1 },
             correlationId

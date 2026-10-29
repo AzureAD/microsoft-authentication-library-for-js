@@ -1515,9 +1515,9 @@ describe("RedirectClient", () => {
             );
 
             expect(window.sessionStorage.getItem(handoffCacheKey)).toBeNull();
-            expect(finalPageCache.getDpopNonce(resourceRequestUri)).toEqual({
-                nonce: "redirect-nonce",
-            });
+            expect(finalPageCache.getDpopNonce(resourceRequestUri)).toBe(
+                "redirect-nonce"
+            );
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true, the application is loaded in an iframe and allowRedirectInIframe is true", async () => {
