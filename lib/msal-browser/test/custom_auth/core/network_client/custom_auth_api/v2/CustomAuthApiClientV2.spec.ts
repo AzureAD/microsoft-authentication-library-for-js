@@ -498,6 +498,26 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
+        it("allows zero code-length metadata in the start response", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({ ...startResponse, codeLength: 0 })
+            );
+
+            await expect(
+                apiClient.signUpStart(
+                    "/tenant/api/v0.1/signup/start",
+                    {
+                        continuationToken: "ct-entry",
+                        username: "user@contoso.com",
+                    },
+                    context
+                )
+            ).resolves.toMatchObject({
+                nextAction: "verify",
+                codeLength: 0,
+            });
+        });
+
         it.each([
             [
                 "collectAttributes",
@@ -524,7 +544,6 @@ describe("CustomAuthApiClientV2", () => {
                     },
                 },
             ],
-            ["invalid code length", { ...startResponse, codeLength: 0 }],
         ])("rejects %s in the start response", async (_, response) => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse(response)
