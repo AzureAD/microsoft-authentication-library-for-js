@@ -8,7 +8,7 @@ updates:
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/lib/msal-angular" # Location of package manifests
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     cooldown:
       default-days: 7
     allow:
@@ -17,7 +17,7 @@ updates:
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/lib/msal-browser" # Location of package manifests
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     cooldown:
       default-days: 7
     allow:
@@ -26,7 +26,7 @@ updates:
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/lib/msal-common" # Location of package manifests
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     cooldown:
       default-days: 7
     allow:
@@ -35,7 +35,7 @@ updates:
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/lib/msal-node" # Location of package manifests
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     cooldown:
       default-days: 7
     allow:
@@ -44,7 +44,7 @@ updates:
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/lib/msal-react" # Location of package manifests
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     cooldown:
       default-days: 7
     allow:
@@ -53,7 +53,7 @@ updates:
   - package-ecosystem: "npm" # See documentation for possible values
     directory: "/extensions/msal-node-extensions" # Location of package manifests
     schedule:
-      interval: "monthly"
+      interval: "weekly"
     cooldown:
       default-days: 7
     allow:
