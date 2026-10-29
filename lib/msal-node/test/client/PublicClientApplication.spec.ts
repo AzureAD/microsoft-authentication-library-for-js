@@ -1484,7 +1484,14 @@ describe("PublicClientApplication", () => {
             });
         }
 
-        test.each([undefined, "", "caller-state|with spaces+%&=/#"])(
+        test.each([
+            undefined,
+            "",
+            "a",
+            "ab",
+            "caller-state|with spaces+%&=/#",
+            "caller-state-\u00e9\u4f60\u597d",
+        ])(
             "binds browser callbacks to fresh state and preserves caller state %p",
             async (userState) => {
                 const authApp = new PublicClientApplication(appConfig);
@@ -1504,7 +1511,9 @@ describe("PublicClientApplication", () => {
                         request.state || "",
                         request.correlationId || ""
                     );
-                    expect(parsed.userRequestState).toBe(userState || "");
+                    expect(parsed.userRequestState).toBe(
+                        Buffer.from(userState || "", "utf8").toString("base64")
+                    );
                     expect(parsed.libraryState.id).toMatch(
                         /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
                     );
