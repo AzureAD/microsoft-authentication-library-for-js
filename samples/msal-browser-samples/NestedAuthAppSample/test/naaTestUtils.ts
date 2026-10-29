@@ -15,6 +15,7 @@ import {
     Frame,
     Page,
 } from "playwright-core";
+import * as puppeteer from "puppeteer";
 
 const EAR_DECRYPT_COUNT_KEY = "__earDecryptCount";
 
@@ -42,6 +43,16 @@ export function launchBrowser(): Promise<Browser> {
     return chromium.launch({
         channel: "chrome",
         headless: process.env.HEADLESS !== "false",
+    });
+}
+
+export function launchKmsiBrowserContext(
+    userDataDir: string
+): Promise<BrowserContext> {
+    return chromium.launchPersistentContext(userDataDir, {
+        executablePath: puppeteer.executablePath(),
+        headless: process.env["HEADLESS"] !== "false",
+        ignoreHTTPSErrors: true,
     });
 }
 
@@ -547,7 +558,7 @@ export async function verifyHostTokenStore(
 export async function acquireNestedKmsiToken(
     context: NestedTokenTestContext,
     api: (typeof NAA_KMSI_TOKEN_APIS)[number]
-): Promise<void> {
+): Promise<Frame> {
     const {
         hostPage,
         initialHostResult,
@@ -664,4 +675,5 @@ export async function acquireNestedKmsiToken(
             .first()
             .innerText()
     ).toBe(initialHostResult.account.homeAccountId);
+    return frame;
 }
