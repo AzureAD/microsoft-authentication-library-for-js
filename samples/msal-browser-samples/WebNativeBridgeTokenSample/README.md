@@ -8,13 +8,15 @@ A browser host runs the [Windows sample's child UI](../NativeBridgeTokenSample/R
 
 ## Configuration
 
-[settings.example.json](settings.example.json) contains placeholder tenant/client GUIDs and keeps `registrationConfirmed: false`. Startup is allowed, but authentication is blocked with `registration_not_confirmed` until you configure and verify your own registrations. No client secret is needed or permitted in browser settings.
+[settings.json](settings.json) preserves the tested POC tenant/client IDs, host and child origins, exact redirects, scopes, inactive first slot, `registrationConfirmed: true` and `testSlice` routing. These are real lab identifiers and routing settings, not credentials. Keep this file when reproducing that environment; inclusion does not grant account access, consent or service authorization, or guarantee that another account can authenticate. No client secret is needed or permitted in browser settings.
+
+[settings.example.json](settings.example.json) remains a template with placeholder tenant/client GUIDs and `registrationConfirmed: false` for other environments. With that template, startup is allowed but authentication is blocked with `registration_not_confirmed` until you configure and verify your own registrations.
 
 The example host is `https://localhost:30663` with the root callback. App 2 is `https://localhost:7445` with redirect `brk-multihub://localhost:7445`. The first slot is inactive and creates no iframe or authentication session. Configure a distinct client ID, origin, redirect and scopes before activating it; inactive fields must remain empty.
 
 Use your own tenant, distinct host/child public-client registrations, exact redirect URIs and applicable broker/service associations. `brk-multihub` requires service support; this sample does not install a handler or authorize a broker. A local allowlist cannot enable unsupported registrations. Omit optional test routing unless authorized.
 
-Settings precedence: explicit `--settings PATH`, ignored sample-root `settings.json`, then the example. Missing explicit files fail. Set `registrationConfirmed` only after independently verifying configuration. Never commit populated settings or private keys.
+Settings precedence: explicit `--settings PATH`, included sample-root `settings.json`, then the example. Missing explicit files fail. For a different environment, use a separate settings file and set `registrationConfirmed` only after independently verifying configuration. Do not overwrite the included lab settings with the example. Never commit credentials or TLS private keys.
 
 ## Run
 
@@ -26,11 +28,10 @@ npm run build --workspace=@azure/msal-common
 npm run build:debug --workspace=@azure/msal-browser
 npm run build --workspace=@azure/msal-bridge
 cd samples/msal-browser-samples/WebNativeBridgeTokenSample
-if (!(Test-Path settings.json)) { Copy-Item settings.example.json settings.json }
 npm start -- --settings settings.json --cert C:\certs\localhost-cert.pem --key C:\certs\localhost-key.pem --open
 ```
 
-Configure your local settings before signing in. Staging copies built assets and the sibling Windows sample's child UI, without installing dependencies or building native code. `THREE_P_REPO` optionally selects another already-built MSAL.js checkout; this checkout is the default.
+Use the included lab settings only with the applicable account and service authorization, or pass your own verified settings file before signing in. Staging copies built assets and the sibling Windows sample's child UI, without installing dependencies or building native code. `THREE_P_REPO` optionally selects another already-built MSAL.js checkout; this checkout is the default.
 
 Supply both PEM files. Establish browser trust deliberately through your approved development process; do not bypass certificate validation or automatically install trust. Missing TLS inputs and occupied ports fail without HTTP fallback or port substitution. Listeners bind only to loopback and validate the configured Host header.
 

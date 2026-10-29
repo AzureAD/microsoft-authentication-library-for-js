@@ -27,7 +27,7 @@ Copy the real adapter and only its required runtime dependencies to a separate d
 ./Run.ps1 -Broker -Runtime win-x64 -OneAuthAdapterRuntimeDirectory C:\sdk\adapter-runtime
 ```
 
-Configure your own ignored settings first, then select **Initialize native OneAuth**. The private sample ABI is `poc_start_v2`; deploy the native adapter and managed binding together. Do not mix ABI versions. See [Windows setup](../../../README.md#steps-to-run).
+Use the included tested lab settings with the applicable account and service authorization, or configure settings for your own environment first, then select **Initialize native OneAuth**. The private sample ABI is `poc_start_v2`; deploy the native adapter and managed binding together. Do not mix ABI versions. See [Windows setup](../../../README.md#steps-to-run).
 
 ## Ownership And Lifecycle
 
@@ -35,7 +35,7 @@ The sample owns fixed host/child identities, authority, scopes, redirects, accou
 
 Startup uses the AAD configuration for this scenario. Child calls retain explicit scope semantics and nested client/redirect parameters. `NativeOneAuth.cs` exposes initialization and acquisition observations without changing calls. Inspection can contain raw access/ID tokens and must remain local and ephemeral. SDK messages, account data and tokens must never enter diagnostics.
 
-Optional `testSlice` is host-owned, empty by default, and only for explicitly authorized test environments. It forwards `dc` and enables SDK test mode. Forwarding a parameter does not establish the actual silent/token endpoint destination. Children cannot override it.
+Optional `testSlice` is host-owned and only for explicitly authorized test environments. The included lab settings retain the tested routing value; the generic example leaves it empty. It forwards `dc` and enables SDK test mode. Forwarding a parameter does not establish the actual silent/token endpoint destination. Children cannot override it.
 
 ## Validation Limits
 

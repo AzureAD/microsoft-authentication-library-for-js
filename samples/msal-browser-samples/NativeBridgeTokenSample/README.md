@@ -16,10 +16,11 @@ From this sample directory:
 
 ```powershell
 ./Prepare.ps1 -Runtime win-x64
-if (!(Test-Path appsettings.json)) { Copy-Item appsettings.example.json appsettings.json }
 ```
 
-`Prepare.ps1` defaults to this repository, installs workspace dependencies, builds msal-common before msal-browser, builds msal-bridge, stages browser assets, runs native checks, and builds the host. Use `-SkipInstall` only with existing dependencies. Replace the placeholder client ID in ignored `appsettings.json` with your own public-client registration, tenant and delegated scopes. Register the WAM redirect required by your registration and MSAL.NET configuration; do not add a client secret.
+`Prepare.ps1` defaults to this repository, installs workspace dependencies, builds msal-common before msal-browser, builds msal-bridge, stages browser assets, runs native checks, and builds the host. Use `-SkipInstall` only with existing dependencies.
+
+[appsettings.json](appsettings.json) includes the tested POC public-client registration, tenant and delegated scopes. These are real lab identifiers, not credentials; their inclusion does not grant account access, consent or service authorization. Keep the included settings when reproducing that environment. For a different environment, use [appsettings.example.json](appsettings.example.json) as a template and configure its registration, tenant and scopes in `appsettings.json`. Register the WAM redirect required by your registration and MSAL.NET configuration; do not add a client secret.
 
 ```powershell
 ./Run.ps1 -Runtime win-x64
@@ -29,7 +30,9 @@ The host opens one embedded tab and can open two more. Each has its own WebView2
 
 ## Optional Broker Mode
 
-Start from [brokersettings.example.json](brokersettings.example.json) and [oneauthsettings.example.json](oneauthsettings.example.json). All GUIDs are placeholders, not usable registrations. Copy them to ignored local files only when absent, then configure your own host, tenant, two distinct child registrations, exact redirects, allowed scopes and host associations. The host IDs in both files must match. Keep test routing empty unless explicitly authorized for your environment.
+[brokersettings.json](brokersettings.json) and [oneauthsettings.json](oneauthsettings.json) preserve the tested POC host, tenant, two distinct child registrations, exact redirects, allowed scopes, host associations and `testSlice` routing. Do not overwrite them with the examples when reproducing the lab configuration. The host IDs in both files must match.
+
+For another environment, start from [brokersettings.example.json](brokersettings.example.json) and [oneauthsettings.example.json](oneauthsettings.example.json), which retain placeholder IDs and empty test routing. Configure your own registrations and associations, and use test routing only when authorized for that environment. The included real lab configuration does not guarantee that another account can authenticate.
 
 The example child virtual origins are `https://bridge-poc.local` and `https://app2.bridge-poc.local`, with corresponding `brk-multihub` redirects. Those redirects require applicable broker/service support and authorization; a local allowlist does not grant service-side permission. This sample neither creates registrations nor enables a service feature.
 

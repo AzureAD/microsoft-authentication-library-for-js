@@ -1,6 +1,3 @@
-appsettings.json
-oneauthsettings.json
-brokersettings.json
 **/bin/
 **/obj/
 web/msal-browser.js

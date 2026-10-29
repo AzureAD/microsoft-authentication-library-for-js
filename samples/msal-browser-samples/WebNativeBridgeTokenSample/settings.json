@@ -1,0 +1,29 @@
+{
+  "registrationConfirmed": true,
+  "tenantId": "c7cef333-42af-492c-afb0-21f74a661133",
+  "host": {
+    "clientId": "1170d177-31a3-43a2-834d-702308e83f6d",
+    "origin": "https://localhost:30663",
+    "redirectUri": "https://localhost:30663/"
+  },
+  "children": [
+    {
+      "active": false,
+      "name": "moved this one temporarily to parent app",
+      "clientId": "",
+      "origin": "",
+      "redirectUri": "",
+      "scopes": []
+    },
+    {
+      "name": "App 2",
+      "clientId": "dd138a81-f5f8-4d9c-8d24-d7bdd6ecc58f",
+      "origin": "https://localhost:7445",
+      "redirectUri": "brk-multihub://localhost:7445",
+      "scopes": [
+        "User.Read"
+      ]
+    }
+  ],
+  "testSlice": "ESTS-PUB-EUS-FD000-TEST1-100"
+}

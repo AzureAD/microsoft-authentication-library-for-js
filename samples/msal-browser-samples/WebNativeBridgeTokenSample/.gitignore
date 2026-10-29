@@ -1,4 +1,3 @@
 artifacts/
-settings.json
 *.pem
 *.key
