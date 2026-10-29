@@ -2,6 +2,35 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 27 Oct 2026 18:15:10 GMT",
+      "version": "5.27.0",
+      "tag": "@azure/msal-browser_v5.27.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalima.sharda@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "96488ec6e583adbfd2940374c62d9c70e4327165",
+            "comment": "Improve redirect response URL cleanup [#8918](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8918)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "96488ec6e583adbfd2940374c62d9c70e4327165",
+            "comment": "Add the pocd (popup origin check done) parameter to authorize and end-session requests, preserving computed parameter precedence [#8793](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8793)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.15.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 21 Oct 2026 18:37:16 GMT",
       "version": "5.26.0",
       "tag": "@azure/msal-browser_v5.26.0",

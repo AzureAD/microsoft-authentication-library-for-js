@@ -4,7 +4,6 @@
  */
 
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
-import { AuthenticationMethodRegistrationV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/AuthenticationMethodRegistrationV2.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { AuthMethodVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodVerificationRequiredStateV2.js";
@@ -20,10 +19,6 @@ import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
 describe("AuthMethodVerificationRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
-    const method: AuthenticationMethodRegistrationV2 = {
-        type: "email",
-        enrollHref: "/enroll/email",
-    };
     const flowClient = {
         verifyAuthMethodRegistration: jest.fn(),
         resendAuthMethodRegistrationChallenge: jest.fn(),
@@ -49,7 +44,7 @@ describe("AuthMethodVerificationRequiredStateV2", () => {
             flowClient,
             cacheClient: {} as CustomAuthSilentCacheClient,
             continuationState,
-            method,
+            type: "email",
             sentTo: "u***@contoso.com",
             codeLength: 6,
         });
@@ -71,8 +66,12 @@ describe("AuthMethodVerificationRequiredStateV2", () => {
             continuationState: {
                 ...continuationState,
                 continuationToken: "ct-resend",
+                links: {
+                    activate: "/activate/email-refreshed",
+                    resend: "/resend/email-refreshed",
+                },
             },
-            sentTo: "u***@contoso.com",
+            sentTo: "us***@contoso.com",
             codeLength: 8,
         });
     });
@@ -111,7 +110,7 @@ describe("AuthMethodVerificationRequiredStateV2", () => {
         expect(result.isState("completed")).toBe(true);
     });
 
-    it("resends and remains in registration verification", async () => {
+    it("resends with only verification metadata and submits using the refreshed continuation", async () => {
         const result = await buildState().resendChallenge();
 
         expect(
@@ -124,12 +123,48 @@ describe("AuthMethodVerificationRequiredStateV2", () => {
         expect(result.state).toBeInstanceOf(
             AuthMethodVerificationRequiredStateV2
         );
-        expect(
-            (result.state as AuthMethodVerificationRequiredStateV2).method
-        ).toBe(method);
-        expect(
-            (result.state as AuthMethodVerificationRequiredStateV2).codeLength
-        ).toBe(8);
+        if (!result.isState("authMethodVerificationRequired")) {
+            throw new Error("Expected a replacement activation challenge.");
+        }
+        expect(result.state.type).toBe("email");
+        expect(result.state.sentTo).toBe("us***@contoso.com");
+        expect(result.state.codeLength).toBe(8);
+        expect(result.state).not.toHaveProperty("method");
+
+        const completed = await result.state.submitChallenge("12345678");
+
+        expect(flowClient.verifyAuthMethodRegistration).toHaveBeenCalledWith({
+            correlationId,
+            continuationState: {
+                ...continuationState,
+                continuationToken: "ct-resend",
+                links: {
+                    activate: "/activate/email-refreshed",
+                    resend: "/resend/email-refreshed",
+                },
+            },
+            code: "12345678",
+        });
+        expect(completed.isState("completed")).toBe(true);
+    });
+
+    it("retains the masked destination when resend omits it", async () => {
+        flowClient.resendAuthMethodRegistrationChallenge.mockResolvedValueOnce({
+            type: FLOW_AUTH_METHOD_VERIFICATION_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                ...continuationState,
+                continuationToken: "ct-resend",
+            },
+            codeLength: 8,
+        });
+
+        const result = await buildState().resendChallenge();
+
+        if (!result.isState("authMethodVerificationRequired")) {
+            throw new Error("Expected a replacement activation challenge.");
+        }
+        expect(result.state.sentTo).toBe("u***@contoso.com");
     });
 
     it("wraps activation failures", async () => {

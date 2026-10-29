@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Avoid interpreting application routes as authorization responses [#8918](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8918)",
-  "packageName": "@azure/msal-common",
-  "email": "223556219+Copilot@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}
