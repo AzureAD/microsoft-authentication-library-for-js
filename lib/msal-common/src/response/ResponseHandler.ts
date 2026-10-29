@@ -70,7 +70,7 @@ type DpopNonceCache = {
     getDpopNonce(
         resourceRequestUri: string,
         correlationId?: string
-    ): { nonce: string } | undefined;
+    ): string | undefined;
 };
 
 const dpopKeyIds = new WeakMap<AuthenticationResult, string>();
@@ -84,6 +84,24 @@ function hasDpopNonceCache(
     return (
         "getDpopNonce" in cacheManager &&
         typeof cacheManager.getDpopNonce === "function"
+    );
+}
+
+function getDpopNonceForRequest(
+    cacheManager: CacheManager | undefined,
+    request: BaseAuthRequest
+): string | undefined {
+    if (
+        !request.resourceRequestUri ||
+        !cacheManager ||
+        !hasDpopNonceCache(cacheManager)
+    ) {
+        return undefined;
+    }
+
+    return cacheManager.getDpopNonce(
+        request.resourceRequestUri,
+        request.correlationId
     );
 }
 
@@ -651,10 +669,12 @@ export class ResponseHandler {
         let refreshOn: Date | undefined;
         let familyId: string = "";
         let dpopProof: string | undefined;
+        const cachedAccessTokenType = cacheRecord.accessToken?.tokenType;
+        const isDpopAccessToken =
+            cachedAccessTokenType?.toLowerCase() ===
+            Constants.AuthenticationScheme.DPOP.toLowerCase();
 
         if (cacheRecord.accessToken) {
-            const accessTokenType =
-                cacheRecord.accessToken.tokenType?.toLowerCase();
             /*
              * if the request object has `popKid` property, `signPopToken` will be set to false and
              * the token will be returned unsigned
@@ -687,10 +707,7 @@ export class ResponseHandler {
             } else {
                 accessToken = cacheRecord.accessToken.secret;
             }
-            if (
-                accessTokenType ===
-                Constants.AuthenticationScheme.DPOP.toLowerCase()
-            ) {
+            if (isDpopAccessToken) {
                 if (!cacheRecord.accessToken.keyId) {
                     throw createClientAuthError(
                         ClientAuthErrorCodes.keyIdMissing,
@@ -701,14 +718,7 @@ export class ResponseHandler {
                     cryptoObj,
                     tokenBindingKeyManager
                 );
-                const dpopNonce = request.resourceRequestUri
-                    ? cacheManager && hasDpopNonceCache(cacheManager)
-                        ? cacheManager.getDpopNonce(
-                              request.resourceRequestUri,
-                              request.correlationId
-                          )?.nonce
-                        : undefined
-                    : undefined;
+                const dpopNonce = getDpopNonceForRequest(cacheManager, request);
                 performanceClient?.addFields(
                     { dpopNonceAppliedToProof: Boolean(dpopNonce) },
                     request.correlationId
@@ -808,11 +818,9 @@ export class ResponseHandler {
             correlationId: request.correlationId,
             requestId: requestId || "",
             familyId: familyId,
-            tokenType:
-                cacheRecord.accessToken?.tokenType?.toLowerCase() ===
-                Constants.AuthenticationScheme.DPOP.toLowerCase()
-                    ? Constants.AuthenticationScheme.DPOP
-                    : cacheRecord.accessToken?.tokenType || "",
+            tokenType: isDpopAccessToken
+                ? Constants.AuthenticationScheme.DPOP
+                : cachedAccessTokenType || "",
             state: requestState ? requestState.userRequestState : "",
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || "",
             msGraphHost: cacheRecord.account?.msGraphHost || "",
@@ -820,11 +828,7 @@ export class ResponseHandler {
             fromPlatformBroker: false,
         };
 
-        if (
-            cacheRecord.accessToken?.tokenType?.toLowerCase() ===
-                Constants.AuthenticationScheme.DPOP.toLowerCase() &&
-            cacheRecord.accessToken.keyId
-        ) {
+        if (isDpopAccessToken && cacheRecord.accessToken?.keyId) {
             dpopKeyIds.set(authenticationResult, cacheRecord.accessToken.keyId);
         }
 
@@ -853,14 +857,7 @@ export class ResponseHandler {
             );
         }
 
-        const dpopNonce = request.resourceRequestUri
-            ? options.cacheManager && hasDpopNonceCache(options.cacheManager)
-                ? options.cacheManager.getDpopNonce(
-                      request.resourceRequestUri,
-                      request.correlationId
-                  )?.nonce
-                : undefined
-            : undefined;
+        const dpopNonce = getDpopNonceForRequest(options.cacheManager, request);
         performanceClient.addFields(
             { dpopNonceAppliedToProof: Boolean(dpopNonce) },
             request.correlationId

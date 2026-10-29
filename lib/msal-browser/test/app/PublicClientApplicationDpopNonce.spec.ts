@@ -143,9 +143,7 @@ describe("PublicClientApplication.loadDpopNonce", () => {
             cacheManager.getDpopNonce(
                 "https://api.contoso.com/another-resource"
             )
-        ).toEqual({
-            nonce: "resource-nonce",
-        });
+        ).toBe("resource-nonce");
         expect(events).toContain(
             BrowserPerformanceEvents.StandardControllerLoadDpopNonce
         );
