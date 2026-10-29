@@ -4,10 +4,12 @@
  */
 
 import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
+import { AuthMethodRegistrationRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import { CodeRequiredStateV2 } from "../../../../core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { CustomAuthError } from "../../../../core/error/CustomAuthError.js";
 import {
     FLOW_ATTRIBUTES_REQUIRED_V2,
+    FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
     type FlowAttributesRequiredResultV2,
@@ -49,6 +51,17 @@ export class SignUpStateTransitionHandlerV2 {
         if (result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2) {
             return new CustomAuthResultV2(
                 new SignInContinuationStateV2(commonStateParameters),
+                undefined,
+                result.continuationState.scenario
+            );
+        }
+
+        if (result.type === FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2) {
+            return new CustomAuthResultV2(
+                new AuthMethodRegistrationRequiredStateV2({
+                    ...commonStateParameters,
+                    methods: result.methods,
+                }),
                 undefined,
                 result.continuationState.scenario
             );

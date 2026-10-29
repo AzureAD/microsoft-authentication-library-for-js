@@ -17,6 +17,7 @@ import { SignInStateTransitionHandlerV2 } from "../../../../../../src/custom_aut
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
     FLOW_ATTRIBUTES_REQUIRED_V2,
+    FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
     FLOW_COMPLETED_V2,
     FLOW_MFA_REQUIRED_V2,
     FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
@@ -26,12 +27,14 @@ import { CustomAuthAccountData } from "../../../../../../src/custom_auth/get_acc
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import type { AuthenticationResult } from "../../../../../../src/response/AuthenticationResult.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
+import { AuthMethodRegistrationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 
 describe("CodeRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
     const scopes = ["openid", "profile", "offline_access"];
     const flowClient = {
         submitCode: jest.fn(),
+        resendCode: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
     const signInStateTransitionHandler = new SignInStateTransitionHandlerV2();
     const signUpStateTransitionHandler = new SignUpStateTransitionHandlerV2();
@@ -203,6 +206,65 @@ describe("CodeRequiredStateV2", () => {
 
         expect(result.isState("authMethodSelectionRequired")).toBe(true);
         expect(result.state).toBeInstanceOf(AuthMethodSelectionRequiredStateV2);
+    });
+
+    it("returns registration-required after submitting a sign-in code", async () => {
+        flowClient.submitCode.mockResolvedValue({
+            type: FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-enroll",
+                scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
+                links: {},
+            },
+            methods: [
+                {
+                    type: "phone",
+                    channels: ["sms"],
+                    enrollHref: "/enroll/phone",
+                },
+            ],
+        });
+
+        const result = await buildState().submitCode("123456");
+
+        expect(result.isState("authMethodRegistrationRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(
+            AuthMethodRegistrationRequiredStateV2
+        );
+    });
+
+    it("returns code-required when resending a sign-up code", async () => {
+        flowClient.resendCode.mockResolvedValue({
+            type: "FlowCodeRequiredResultV2",
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-sign-up-resend",
+                scenario: CustomAuthFlowScenarioV2.SignUp,
+                scopes,
+                links: {
+                    verify: "/signup/verify-new",
+                    resend: "/signup/resend-new",
+                },
+                signUp: {
+                    passwordWasSupplied: false,
+                },
+            },
+            sentTo: "user@contoso.com",
+            channel: "email",
+            codeLength: 8,
+        });
+
+        const result = await buildSignUpState().resendCode();
+
+        expect(result.isState("codeRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
+        expect(result.state).toMatchObject({
+            sentTo: "user@contoso.com",
+            channel: "email",
+            codeLength: 8,
+        });
     });
 
     it("returns attributes required after verifying a sign-up code", async () => {
