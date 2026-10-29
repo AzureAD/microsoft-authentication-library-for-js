@@ -669,10 +669,13 @@ export class ResponseHandler {
         let refreshOn: Date | undefined;
         let familyId: string = "";
         let dpopProof: string | undefined;
-        const cachedAccessTokenType = cacheRecord.accessToken?.tokenType;
+        const cachedAccessTokenType = cacheRecord.accessToken?.tokenType || "";
         const isDpopAccessToken =
-            cachedAccessTokenType?.toLowerCase() ===
+            cachedAccessTokenType.toLowerCase() ===
             Constants.AuthenticationScheme.DPOP.toLowerCase();
+        const resultTokenType = isDpopAccessToken
+            ? Constants.AuthenticationScheme.DPOP
+            : cachedAccessTokenType;
 
         if (cacheRecord.accessToken) {
             /*
@@ -818,9 +821,7 @@ export class ResponseHandler {
             correlationId: request.correlationId,
             requestId: requestId || "",
             familyId: familyId,
-            tokenType: isDpopAccessToken
-                ? Constants.AuthenticationScheme.DPOP
-                : cachedAccessTokenType || "",
+            tokenType: resultTokenType,
             state: requestState ? requestState.userRequestState : "",
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || "",
             msGraphHost: cacheRecord.account?.msGraphHost || "",
