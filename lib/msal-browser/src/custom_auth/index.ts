@@ -272,10 +272,9 @@ export { MFAVerificationRequiredStateV2 } from "./core/auth_flow/v2/state/MFAVer
 export { AuthMethodSelectionRequiredStateV2 } from "./core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 export { AuthMethodRegistrationRequiredStateV2 } from "./core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 export { AuthMethodVerificationRequiredStateV2 } from "./core/auth_flow/v2/state/AuthMethodVerificationRequiredStateV2.js";
-export { PasswordRequiredStateV2 } from "./sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
+export { PasswordRequiredStateV2 } from "./core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 export { SignInContinuationStateV2 } from "./sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 export { AttributesRequiredStateV2 } from "./sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
-export { SignUpPasswordRequiredStateV2 } from "./sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
 
 // Native Auth V2 Results
 export {
@@ -321,7 +320,7 @@ export {
 export {
     SubmitPasswordResultV2,
     SubmitPasswordResultStateV2,
-} from "./sign_in/auth_flow/v2/result/SubmitPasswordResultV2.js";
+} from "./core/auth_flow/v2/result/SubmitPasswordResultV2.js";
 export {
     SubmitAttributesResultV2,
     SubmitAttributesResultStateV2,

@@ -21,7 +21,7 @@ import { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/stat
 import type { VerifyChallengeResultV2 } from "../../../../core/auth_flow/v2/result/VerifyChallengeResultV2.js";
 import type { SubmitAttributesResultV2 } from "../result/SubmitAttributesResultV2.js";
 import { AttributesRequiredStateV2 } from "./AttributesRequiredStateV2.js";
-import { SignUpPasswordRequiredStateV2 } from "./SignUpPasswordRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../../../../core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import type { SignUpActionRequiredStateParametersV2 } from "./SignUpStateParametersV2.js";
 
 export class SignUpStateTransitionHandlerV2 {
@@ -97,7 +97,7 @@ export class SignUpStateTransitionHandlerV2 {
         }
 
         return new CustomAuthResultV2(
-            new SignUpPasswordRequiredStateV2({
+            new PasswordRequiredStateV2({
                 ...commonStateParameters,
                 attributes: result.attributes,
                 requiredPasswordAttribute: result.requiredPasswordAttribute,

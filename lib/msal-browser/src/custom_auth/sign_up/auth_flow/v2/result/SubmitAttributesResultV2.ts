@@ -15,5 +15,7 @@ export type SubmitAttributesResultStateV2 =
     | AuthMethodRegistrationRequiredStateV2
     | FailedStateV2;
 
-export type SubmitAttributesResultV2 =
-    CustomAuthResultV2<SubmitAttributesResultStateV2>;
+export type SubmitAttributesResultV2 = CustomAuthResultV2<
+    SubmitAttributesResultStateV2,
+    undefined
+>;

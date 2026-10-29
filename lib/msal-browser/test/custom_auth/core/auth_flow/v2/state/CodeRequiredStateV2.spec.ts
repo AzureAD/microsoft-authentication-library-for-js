@@ -9,7 +9,7 @@ import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error
 import { CodeRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { AttributesRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
-import { SignUpPasswordRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { SignInContinuationStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import { SignUpStateTransitionHandlerV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
 import { AuthMethodSelectionRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
@@ -353,7 +353,7 @@ describe("CodeRequiredStateV2", () => {
         const result = await buildSignUpState().submitCode("12345678");
 
         expect(result.isState("passwordRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(SignUpPasswordRequiredStateV2);
+        expect(result.state).toBeInstanceOf(PasswordRequiredStateV2);
         if (result.isState("passwordRequired")) {
             expect(result.state.requiredPasswordAttribute).toEqual(
                 requiredPasswordAttribute
