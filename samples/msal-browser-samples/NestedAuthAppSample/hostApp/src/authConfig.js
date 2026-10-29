@@ -12,6 +12,9 @@ export function isEarEnabled() {
 }
 
 const earEnabled = isEarEnabled();
+const queryParams = new URLSearchParams(window.location.search);
+const kmsiEnabled = queryParams.get("kmsi") === "true";
+const platformBrokerEnabled = queryParams.get("platformBroker") !== "false";
 
 export const msalConfig = {
     auth: {
@@ -19,16 +22,14 @@ export const msalConfig = {
         authority: import.meta.env.VITE_AUTHORITY,
         // Derive the redirect URI from the running origin so it stays accurate
         // whether the host is served over http (`npm start`) or https
-        // (`npm run start:https`). The host is always served on port 30663, so
-        // this resolves to `http(s)://localhost:30663`; register both schemes
-        // (or just the one you run) as SPA redirect URIs on the host app.
+        // (`npm run start:https`).
         redirectUri: window.location.origin,
     },
     cache: {
-        cacheLocation: "sessionStorage",
+        cacheLocation: kmsiEnabled ? "localStorage" : "sessionStorage",
     },
     system: {
-        allowPlatformBroker: true,
+        allowPlatformBroker: platformBrokerEnabled,
         ...(earEnabled ? { protocolMode: ProtocolMode.EAR } : {}),
         loggerOptions: {
             loggerCallback: (level, message, containsPii) => {
@@ -52,22 +53,8 @@ export const msalConfig = {
     },
 };
 
-// ESTS test slice used for manual validation. Passed on BOTH the authorize
-// request (extraQueryParameters) and the token request (extraParameters) so
-// every ESTS call — authorize and token — is routed to the same slice.
-const TEST_SLICE_1 = { dc: "ESTS-PUB-EUS-FD000-TEST1-100" };
-
 export const loginRequest = {
     scopes: ["User.Read"],
-    extraQueryParameters: { ...TEST_SLICE_1 },
-    extraParameters: { ...TEST_SLICE_1 },
-};
-
-// Applied by the host when it brokers a nested-app token, so the brokered
-// authorize AND token requests hit the same test slice as the host's own login.
-export const brokerExtraParams = {
-    extraQueryParameters: { ...TEST_SLICE_1 },
-    extraParameters: { ...TEST_SLICE_1 },
 };
 
 // Port the nested app is served on; injected by server.js.
