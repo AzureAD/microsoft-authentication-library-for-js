@@ -39,11 +39,6 @@ import {
     USERNAME_START_REQUEST,
     WEAK_PASSWORD_ERROR_RESPONSE,
 } from "./SignUpV2Constants.js";
-import {
-    ENTRY_RESPONSE as SIGN_IN_ENTRY_RESPONSE,
-    START_RESPONSE as SIGN_IN_START_RESPONSE,
-    PASSWORD_CHALLENGE_RESPONSE,
-} from "./SignInV2Constants.js";
 
 const buildResponse = (
     body: unknown,
@@ -604,7 +599,7 @@ describe("Sign-up V2 entry", () => {
         }
 
         const activationResult =
-            await registrationResult.state.enrollAuthMethod(
+            await registrationResult.state.selectAuthMethod(
                 registrationResult.state.methods[1],
                 "user@contoso.com"
             );
@@ -657,7 +652,7 @@ describe("Sign-up V2 entry", () => {
             throw new Error("Expected registration after code verification.");
         }
         const activationResult =
-            await registrationResult.state.enrollAuthMethod(
+            await registrationResult.state.selectAuthMethod(
                 registrationResult.state.methods[1],
                 "user@contoso.com"
             );
@@ -755,7 +750,7 @@ describe("Sign-up V2 entry", () => {
             }
 
             const activationResult =
-                await registrationResult.state.enrollAuthMethod(
+                await registrationResult.state.selectAuthMethod(
                     registrationResult.state.methods[1],
                     "user@contoso.com"
                 );

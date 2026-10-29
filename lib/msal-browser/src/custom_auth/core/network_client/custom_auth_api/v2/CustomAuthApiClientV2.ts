@@ -127,12 +127,20 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 context
             );
 
-        if (parsedResponse.body.action === VERIFY_RELATION) {
+        const challengeType = parsedResponse.body.type;
+        const isEmailChallenge =
+            typeof challengeType === "string" &&
+            challengeType.toLowerCase() === AuthenticationMethodTypeV2.EMAIL;
+
+        if (
+            parsedResponse.body.action === VERIFY_RELATION &&
+            isEmailChallenge
+        ) {
             return this.toChallengeVerificationResult(parsedResponse);
         }
 
         const message =
-            "Invalid HAL response: sign-up start did not return a verification challenge";
+            "Invalid HAL response: sign-up start did not return an email verification challenge";
         this.logger?.error(message, parsedResponse.correlationId);
         throw new CustomAuthApiError(
             INVALID_HAL_RESPONSE,
@@ -322,11 +330,6 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             );
         }
 
-        const codeLength = this.handler.requirePositiveInteger(
-            parsedResponse.body.codeLength,
-            "enrollment activation code length",
-            parsedResponse.correlationId
-        );
         const links = parsedResponse.body._links;
 
         return {
@@ -336,7 +339,9 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 parsedResponse.correlationId
             ),
             hint: parsedResponse.body.hint,
-            codeLength,
+            codeLength: this.normalizeCodeLength(
+                parsedResponse.body.codeLength
+            ),
             activateHref: this.handler.requireHref(
                 links?.activate?.href,
                 ACTIVATE_RELATION,
@@ -718,10 +723,8 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 : undefined;
         const codeLength = isPasswordChallenge
             ? undefined
-            : this.handler.requirePositiveInteger(
-                  codeMetadata?.codeLength ?? codeMetadata?.payload?.codeLength,
-                  "challenge code length",
-                  parsedResponse.correlationId
+            : this.normalizeCodeLength(
+                  codeMetadata?.codeLength ?? codeMetadata?.payload?.codeLength
               );
 
         return {
@@ -733,6 +736,10 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             hint: codeMetadata?.hint,
             type: parsedResponse.body.type,
         };
+    }
+
+    private normalizeCodeLength(value: unknown): number {
+        return typeof value === "number" && Number.isInteger(value) ? value : 0;
     }
 
     private resolveMethods(

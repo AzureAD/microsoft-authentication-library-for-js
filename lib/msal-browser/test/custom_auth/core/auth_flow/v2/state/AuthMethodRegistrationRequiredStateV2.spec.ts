@@ -64,8 +64,8 @@ describe("AuthMethodRegistrationRequiredStateV2", () => {
         });
     });
 
-    it("enrolls an offered method with its contact value", async () => {
-        const result = await buildState().enrollAuthMethod(
+    it("selects an offered method and requests activation with its contact value", async () => {
+        const result = await buildState().selectAuthMethod(
             methods[0],
             "user@contoso.com"
         );
@@ -82,13 +82,12 @@ describe("AuthMethodRegistrationRequiredStateV2", () => {
         );
         const verificationState =
             result.state as AuthMethodVerificationRequiredStateV2;
-        expect(verificationState.method).toBe(methods[0]);
-        expect(verificationState.method.type).toBe("email");
-        expect(verificationState).not.toHaveProperty("type");
+        expect(verificationState.type).toBe("email");
+        expect(verificationState).not.toHaveProperty("method");
     });
 
     it("uses the canonical offered method selected by type", async () => {
-        const result = await buildState().enrollAuthMethod(
+        const result = await buildState().selectAuthMethod(
             {
                 type: methods[0].type,
                 enrollHref: "/enroll/attacker",
@@ -106,7 +105,7 @@ describe("AuthMethodRegistrationRequiredStateV2", () => {
     });
 
     it("rejects a method type that was not offered", async () => {
-        const result = await buildState().enrollAuthMethod(
+        const result = await buildState().selectAuthMethod(
             {
                 type: "push",
                 enrollHref: "/enroll/attacker",
@@ -120,7 +119,7 @@ describe("AuthMethodRegistrationRequiredStateV2", () => {
     });
 
     it.each(["", "   "])("rejects blank contact '%s'", async (contact) => {
-        const result = await buildState().enrollAuthMethod(methods[0], contact);
+        const result = await buildState().selectAuthMethod(methods[0], contact);
 
         expect(result.isFailed()).toBe(true);
         expect(result.error?.isInvalidInput()).toBe(true);
@@ -130,7 +129,7 @@ describe("AuthMethodRegistrationRequiredStateV2", () => {
     it("wraps interaction-client failures", async () => {
         flowClient.registerAuthMethod.mockRejectedValue(new Error("failed"));
 
-        const result = await buildState().enrollAuthMethod(
+        const result = await buildState().selectAuthMethod(
             methods[0],
             "user@contoso.com"
         );
