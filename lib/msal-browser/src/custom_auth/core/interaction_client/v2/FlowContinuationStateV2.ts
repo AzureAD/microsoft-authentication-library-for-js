@@ -30,6 +30,6 @@ export interface FlowContinuationStateV2 {
     scopes: string[];
     links: FlowLinksV2;
     signUp?: {
-        passwordWasSupplied: boolean;
+        submittedAttributeIds: readonly string[];
     };
 }

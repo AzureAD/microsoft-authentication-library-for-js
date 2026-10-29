@@ -6,7 +6,8 @@
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import type { CompletedStateV2 } from "../state/CompletedStateV2.js";
 import type { FailedStateV2 } from "../state/FailedStateV2.js";
-import type { CodeRequiredStateV2 } from "../state/CodeRequiredStateV2.js";
+import type { PasswordRequiredStateV2 } from "../state/PasswordRequiredStateV2.js";
+import type { AttributesRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import type { AuthMethodSelectionRequiredStateV2 } from "../state/AuthMethodSelectionRequiredStateV2.js";
 import type { AuthMethodRegistrationRequiredStateV2 } from "../state/AuthMethodRegistrationRequiredStateV2.js";
 import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
@@ -18,7 +19,8 @@ import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2
  */
 export type SubmitPasswordResultStateV2 =
     | CompletedStateV2
-    | CodeRequiredStateV2
+    | PasswordRequiredStateV2
+    | AttributesRequiredStateV2
     | SignInContinuationStateV2
     | AuthMethodSelectionRequiredStateV2
     | AuthMethodRegistrationRequiredStateV2

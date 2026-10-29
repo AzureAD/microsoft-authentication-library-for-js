@@ -150,8 +150,8 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
     }
 
     /*
-     * Submits the initial sign-up attributes. A successful response has already
-     * sent the email code and supplies the links needed to verify or resend it.
+     * Submits collected sign-up attributes and returns collection, enrollment,
+     * or sign-in continuation.
      */
     async submitSignUpAttributes(
         submitAttributesHref: string,
@@ -193,13 +193,6 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                     "submitAttributes",
                     correlationId
                 ),
-            };
-        }
-
-        if (parsedResponse.body.action === VERIFY_RELATION) {
-            return {
-                ...this.toChallengeVerificationResult(parsedResponse),
-                attributes: parsedResponse.body.attributes,
             };
         }
 

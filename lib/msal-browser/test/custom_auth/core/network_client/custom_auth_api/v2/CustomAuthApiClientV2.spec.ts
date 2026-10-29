@@ -700,11 +700,10 @@ describe("CustomAuthApiClientV2", () => {
     );
 
     describe("submitSignUpAttributes", () => {
-        it("submits attributes and returns the issued email challenge", async () => {
+        it("rejects post-attribute email verification even with valid challenge links", async () => {
             const request = {
                 continuationToken: "ct-start",
                 attributes: {
-                    email: "user@test.com",
                     password: "valid-password",
                     displayName: "Test User",
                 },
@@ -736,27 +735,15 @@ describe("CustomAuthApiClientV2", () => {
                 })
             );
 
-            const result = await apiClient.submitSignUpAttributes(
-                "/tenant/api/v0.1/signup/submitattributes",
-                request,
-                context
-            );
-
-            expect(result).toEqual({
-                nextAction: "verify",
-                continuationToken: "ct-submit",
-                type: "email",
-                hint: "u***@test.com",
-                codeLength: 8,
-                verifyHref: "/tenant/api/v0.1/signup/verify",
-                resendHref: "/tenant/api/v0.1/signup/resend",
-                attributes: [
-                    {
-                        attributeId: "password",
-                        inputType: "password",
-                        required: true,
-                    },
-                ],
+            await expect(
+                apiClient.submitSignUpAttributes(
+                    "/tenant/api/v0.1/signup/submitattributes",
+                    request,
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                correlationId: context.correlationId,
             });
 
             const [url, options] = mockHttpClient.sendAsync.mock.calls[0];

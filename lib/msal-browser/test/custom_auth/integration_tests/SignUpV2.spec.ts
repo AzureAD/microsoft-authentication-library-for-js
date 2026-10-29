@@ -7,6 +7,7 @@ import { CustomAuthPublicClientApplication } from "../../../src/custom_auth/Cust
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
 import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
+import { FailedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/FailedStateV2.js";
 import { AttributesRequiredStateV2 } from "../../../src/custom_auth/sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { PasswordRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import * as customAuth from "../../../src/custom_auth/index.js";
@@ -21,6 +22,8 @@ import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth
 import { AuthFlowErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
 import { UnexpectedError } from "../../../src/custom_auth/core/error/UnexpectedError.js";
 import { CustomAuthApiError } from "../../../src/custom_auth/core/error/CustomAuthApiError.js";
+import { CustomAuthError } from "../../../src/custom_auth/core/error/CustomAuthError.js";
+import { UNSUPPORTED_FLOW_TRANSITION } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 import {
@@ -513,7 +516,7 @@ describe("Sign-up V2 entry", () => {
                 "Expected the password requested after verification."
             );
         }
-        expect(result.state.requiredPasswordAttribute).toEqual(
+        expect(result.state.requestedPasswordAttribute).toEqual(
             PASSWORD_AND_PROFILE_REQUIRED_RESPONSE.attributes[0]
         );
         expect(result.state.attributes).toEqual(
@@ -981,7 +984,7 @@ describe("Sign-up V2 entry", () => {
         expect(verifyResult.error).toBeUndefined();
         expect(verifyResult.state).toBeInstanceOf(PasswordRequiredStateV2);
         if (verifyResult.isState("passwordRequired")) {
-            expect(verifyResult.state.requiredPasswordAttribute).toEqual({
+            expect(verifyResult.state.requestedPasswordAttribute).toEqual({
                 attributeId: "password",
                 inputType: "password",
                 required: true,
@@ -1030,6 +1033,264 @@ describe("Sign-up V2 entry", () => {
             },
         });
     });
+
+    it("rejects a first password request after profile submission", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse(FLAT_USERNAME_REQUIRED_RESPONSE)
+            )
+            .mockResolvedValueOnce(
+                buildResponse({
+                    ...PASSWORD_AND_PROFILE_REQUIRED_RESPONSE,
+                    attributes: [
+                        { attributeId: "PaSsWoRd", required: true },
+                        { attributeId: "surname", required: true },
+                    ],
+                })
+            );
+
+        const startResult = await app.signUpV2({
+            username: "user@contoso.com",
+            correlationId: "corr-1",
+        });
+        if (!startResult.isState("codeRequired")) {
+            throw new Error("Expected email verification first.");
+        }
+        const verifyResult = await startResult.state.submitCode("12345678");
+        if (!verifyResult.isState("attributesRequired")) {
+            throw new Error("Expected profile collection.");
+        }
+        const result = await verifyResult.state.submitAttributes({
+            username: "test-user",
+            givenName: "Test",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.isPasswordRequired()).toBe(false);
+        expect(result.error?.errorData).toBeInstanceOf(CustomAuthError);
+        expect(result.error?.errorData).not.toBeInstanceOf(CustomAuthApiError);
+        expect(result.error?.errorData).toMatchObject({
+            error: UNSUPPORTED_FLOW_TRANSITION,
+            correlationId: "corr-1",
+        });
+        expect(fetch).toHaveBeenCalledTimes(4);
+    });
+
+    it.each([
+        [false, false],
+        [true, false],
+        [true, true],
+    ])(
+        "follows repeated profile collection (initial password %s, empty %s) before explicit sign-in",
+        async (initialPassword, empty) => {
+            const claims = JSON.stringify({
+                id_token: { auth_time: { essential: true } },
+            });
+            const initialResponse = initialPassword
+                ? PASSWORD_AND_PROFILE_REQUIRED_RESPONSE
+                : FLAT_USERNAME_REQUIRED_RESPONSE;
+            const attributes = empty
+                ? []
+                : [{ attributeId: "surname", required: true }];
+            const nextResponse = {
+                ...FLAT_USERNAME_REQUIRED_RESPONSE,
+                continuationToken: "ct-next",
+                attributes,
+                _links: {
+                    submitAttributes: {
+                        href: "/tenant/api/v0.1/signup/next",
+                    },
+                },
+            };
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(initialResponse))
+                .mockResolvedValueOnce(buildResponse(nextResponse))
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-final",
+                        state: "continue",
+                    })
+                )
+                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+            const startResult = await app.signUpV2({
+                username: "user@contoso.com",
+                scopes: ["User.Read"],
+                claims,
+                correlationId: "corr-1",
+            });
+            if (!startResult.isState("codeRequired")) {
+                throw new Error("Expected email verification first.");
+            }
+            const verifyResult = await startResult.state.submitCode("12345678");
+            const profile = { username: "test-user", givenName: "Test" };
+            const collectionResult:
+                | customAuth.SubmitPasswordResultV2
+                | undefined = verifyResult.isPasswordRequired()
+                ? await verifyResult.state.submitPassword(
+                      "initial-password",
+                      profile
+                  )
+                : verifyResult.isState("attributesRequired")
+                ? await verifyResult.state.submitAttributes(profile)
+                : undefined;
+            if (
+                !collectionResult ||
+                !collectionResult.isState("attributesRequired")
+            ) {
+                throw new Error("Expected another successful collection.");
+            }
+            expect(collectionResult.isPasswordRequired()).toBe(false);
+            expect(collectionResult.state.attributes).toEqual(attributes);
+            expect(collectionResult.error).toBeUndefined();
+            expect(collectionResult.data).toBeUndefined();
+            expect(collectionResult.scenario).toBe("signUp");
+            expect(
+                collectionResult.state["stateParameters"].continuationState
+            ).toEqual({
+                continuationToken: "ct-next",
+                scenario: "signUp",
+                scopes: ["User.Read", "openid", "profile", "offline_access"],
+                links: {
+                    submitAttributes: nextResponse._links.submitAttributes.href,
+                },
+                signUp: {
+                    submittedAttributeIds: [
+                        ...Object.keys(profile),
+                        ...(initialPassword ? ["password"] : []),
+                    ],
+                },
+            });
+            expect(
+                collectionResult.state["stateParameters"]
+            ).not.toHaveProperty("password");
+            expect(profile).toEqual({
+                username: "test-user",
+                givenName: "Test",
+            });
+            const nextAttributes: customAuth.UserAccountAttributes = empty
+                ? {}
+                : { surname: "User" };
+            const continuationResult =
+                await collectionResult.state.submitAttributes(nextAttributes);
+            if (!continuationResult.isState("signInContinuation")) {
+                throw new Error("Expected explicit sign-in continuation.");
+            }
+            expect(continuationResult.data).toBeUndefined();
+            expect(fetch).toHaveBeenCalledTimes(5);
+            expect(app.getAllAccounts()).toHaveLength(0);
+
+            const requests = (fetch as jest.Mock).mock.calls;
+            expect((requests[0][1].body as URLSearchParams).get("claims")).toBe(
+                claims
+            );
+            expect(
+                (requests[0][1].body as URLSearchParams)
+                    .get("scope")
+                    ?.split(" ")
+            ).toEqual(["User.Read", "openid", "profile", "offline_access"]);
+            expect(JSON.parse(requests[3][1].body)).toEqual({
+                continuationToken: initialResponse.continuationToken,
+                attributes: {
+                    ...profile,
+                    ...(initialPassword
+                        ? { password: "initial-password" }
+                        : {}),
+                },
+            });
+            expect(String(requests[4][0])).toContain("/signup/next");
+            expect(JSON.parse(requests[4][1].body)).toEqual({
+                continuationToken: "ct-next",
+                attributes: nextAttributes,
+            });
+            expect(requests[3][1].headers["client-request-id"]).toBe("corr-1");
+            expect(requests[4][1].headers["client-request-id"]).toBe("corr-1");
+
+            const completedResult = await continuationResult.state.signIn();
+            expect(completedResult.isState("completed")).toBe(true);
+            expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);
+            expect(fetch).toHaveBeenCalledTimes(7);
+            expect(
+                (requests[5][1].body as URLSearchParams).get(
+                    "continuation_token"
+                )
+            ).toBe("ct-final");
+        }
+    );
+
+    it.each(["PaSsWoRd", "givenName", "surname"])(
+        "fails instead of prompting for %s again after password and profile collection",
+        async (attributeId) => {
+            const nextAttributesResponse = {
+                ...FLAT_USERNAME_REQUIRED_RESPONSE,
+                continuationToken: "ct-profile",
+                attributes: [{ attributeId: "surname", required: true }],
+                _links: {
+                    submitAttributes: { href: "/signup/profile" },
+                },
+            };
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(PASSWORD_AND_PROFILE_REQUIRED_RESPONSE)
+                )
+                .mockResolvedValueOnce(buildResponse(nextAttributesResponse))
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        ...nextAttributesResponse,
+                        continuationToken: "ct-repeat",
+                        attributes: [
+                            { attributeId },
+                            { attributeId: "city", required: true },
+                        ],
+                    })
+                );
+
+            const startResult = await app.signUpV2({
+                username: "user@contoso.com",
+                correlationId: "corr-1",
+            });
+            if (!startResult.isState("codeRequired")) {
+                throw new Error("Expected email verification first.");
+            }
+            const verifyResult = await startResult.state.submitCode("12345678");
+            if (!verifyResult.isPasswordRequired()) {
+                throw new Error("Expected password collection.");
+            }
+            const profileResult = await verifyResult.state.submitPassword(
+                "valid-password",
+                { givenName: "Test" }
+            );
+            if (!profileResult.isState("attributesRequired")) {
+                throw new Error("Expected new profile attributes.");
+            }
+            const result = await profileResult.state.submitAttributes({
+                surname: "User",
+            });
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.state).toBeInstanceOf(FailedStateV2);
+            expect(result.isPasswordRequired()).toBe(false);
+            expect(result.error?.errorData).toBeInstanceOf(CustomAuthError);
+            expect(result.error?.errorData).not.toBeInstanceOf(
+                CustomAuthApiError
+            );
+            expect(result.error?.errorData).toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+                correlationId: "corr-1",
+            });
+            expect(result.error?.isInvalidInput()).toBe(false);
+            expect(result.scenario).toBe("signUp");
+            expect(fetch).toHaveBeenCalledTimes(5);
+            expect(app.getAllAccounts()).toHaveLength(0);
+        }
+    );
 
     it("IT-SU-13: preserves required and invalid attribute details after partial submission", async () => {
         (fetch as jest.Mock)

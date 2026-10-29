@@ -98,6 +98,7 @@ import type { AuthenticationMethodV2 } from "../../auth_flow/v2/AuthenticationMe
 import type { AuthenticationMethodRegistrationV2 } from "../../auth_flow/v2/AuthenticationMethodRegistrationV2.js";
 import {
     SignUpSubmitAttributesNextActionV2,
+    type SignUpAttributeV2,
     type SignUpSubmitAttributesApiResultV2,
 } from "../../network_client/custom_auth_api/v2/result/SignUpResultsV2.js";
 import type { AuthMethodRegistrationRequestV2 } from "../../network_client/custom_auth_api/v2/request/RequestsV2.js";
@@ -671,9 +672,13 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     async submitSignUpAttributes(
         parameters: FlowSubmitSignUpAttributesParamsV2
     ): Promise<FlowSignUpActionResultV2> {
-        const { continuationState, correlationId, attributes } = parameters;
+        const {
+            continuationState,
+            correlationId,
+            attributes: submittedAttributes,
+        } = parameters;
         if (
-            Object.keys(attributes).some(
+            Object.keys(submittedAttributes).some(
                 (attributeId) => attributeId.toLowerCase() === "email"
             )
         ) {
@@ -698,6 +703,9 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             correlationId
         );
 
+        const submittedAttributeIds = Object.keys(submittedAttributes).filter(
+            (attributeId) => submittedAttributes[attributeId] !== undefined
+        );
         const submitResult = await this.apiClient.submitSignUpAttributes(
             this.requireLink(
                 correlationId,
@@ -705,7 +713,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             ),
             {
                 continuationToken: continuationState.continuationToken,
-                attributes,
+                attributes: submittedAttributes,
             },
             context
         );
@@ -715,9 +723,13 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             {
                 ...continuationState,
                 signUp: {
-                    passwordWasSupplied:
-                        continuationState.signUp?.passwordWasSupplied ===
-                            true || attributes.password !== undefined,
+                    submittedAttributeIds: [
+                        ...new Set([
+                            ...(continuationState.signUp
+                                ?.submittedAttributeIds ?? []),
+                            ...submittedAttributeIds,
+                        ]),
+                    ],
                 },
             },
             correlationId
@@ -972,41 +984,36 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         | FlowAttributesRequiredResultV2
         | FlowSignInContinuationRequiredResultV2 {
         if (verifyResult.nextAction === COLLECT_ATTRIBUTES_RELATION) {
-            const requiredPasswordAttribute = verifyResult.attributes.find(
+            const requestedAttributes = verifyResult.attributes;
+            const requestedPasswordAttribute = requestedAttributes.find(
                 (attribute) =>
-                    attribute.attributeId.toLowerCase() === "password" &&
-                    attribute.required === true
+                    attribute.attributeId.toLowerCase() === "password"
             );
             const nextContinuationState: FlowContinuationStateV2 = {
+                ...continuationState,
                 continuationToken: verifyResult.continuationToken,
-                scenario: continuationState.scenario,
-                scopes: continuationState.scopes,
                 links: {
                     submitAttributes: verifyResult.submitAttributesHref,
                 },
-                signUp: continuationState.signUp,
             };
-            const attributes = verifyResult.attributes.filter(
+            const requestedProfileAttributes = requestedAttributes.filter(
                 (attribute) =>
                     attribute.attributeId.toLowerCase() !== "password"
             );
 
-            if (
-                requiredPasswordAttribute &&
-                continuationState.signUp?.passwordWasSupplied !== true
-            ) {
+            if (requestedPasswordAttribute) {
                 return createFlowSignUpPasswordRequiredResultV2({
                     correlationId,
                     continuationState: nextContinuationState,
-                    attributes,
-                    requiredPasswordAttribute,
+                    attributes: requestedProfileAttributes,
+                    requestedPasswordAttribute,
                 });
             }
 
             return createFlowAttributesRequiredResultV2({
                 correlationId,
                 continuationState: nextContinuationState,
-                attributes,
+                attributes: requestedProfileAttributes,
             });
         }
 
@@ -1026,9 +1033,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             return createFlowSignInContinuationRequiredResultV2({
                 correlationId,
                 continuationState: {
+                    ...continuationState,
                     continuationToken: verifyResult.continuationToken,
-                    scenario: continuationState.scenario,
-                    scopes: continuationState.scopes,
                     links: {},
                 },
             });
@@ -1203,25 +1209,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     ): FlowSignUpActionResultV2 {
         const nextAction: string = result.nextAction;
 
-        if (result.nextAction === SignUpSubmitAttributesNextActionV2.VERIFY) {
-            return createFlowCodeRequiredResultV2({
-                correlationId,
-                continuationState: {
-                    continuationToken: result.continuationToken,
-                    scenario: continuationState.scenario,
-                    scopes: continuationState.scopes,
-                    links: {
-                        verify: result.verifyHref,
-                        resend: result.resendHref,
-                    },
-                    signUp: continuationState.signUp,
-                },
-                channel: result.type,
-                sentTo: result.hint,
-                codeLength: result.codeLength,
-            });
-        }
-
         if (result.nextAction === SignUpSubmitAttributesNextActionV2.ENROLL) {
             return this.createAuthMethodRegistrationRequiredResult({
                 correlationId,
@@ -1238,41 +1225,38 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             result.nextAction ===
             SignUpSubmitAttributesNextActionV2.COLLECT_ATTRIBUTES
         ) {
-            const requiredPasswordAttribute = result.attributes.find(
-                (attribute) =>
-                    attribute.attributeId.toLowerCase() === "password" &&
-                    attribute.required === true
+            const requestedAttributes = result.attributes;
+            this.ensureNoRepeatedSignUpAttributeCollection(
+                requestedAttributes,
+                continuationState,
+                correlationId
             );
+            if (
+                requestedAttributes.some(
+                    (attribute) =>
+                        attribute.attributeId.toLowerCase() === "password"
+                )
+            ) {
+                const message =
+                    "The sign-up API requested a password after profile submission, but password collection is only supported immediately after email verification.";
+                this.logger.error(message, correlationId);
+                throw new CustomAuthError(
+                    UNSUPPORTED_FLOW_TRANSITION,
+                    message,
+                    correlationId
+                );
+            }
             const nextContinuationState: FlowContinuationStateV2 = {
+                ...continuationState,
                 continuationToken: result.continuationToken,
-                scenario: continuationState.scenario,
-                scopes: continuationState.scopes,
                 links: {
                     submitAttributes: result.submitAttributesHref,
                 },
-                signUp: continuationState.signUp,
             };
-            const attributes = result.attributes.filter(
-                (attribute) =>
-                    attribute.attributeId.toLowerCase() !== "password"
-            );
-
-            if (
-                requiredPasswordAttribute &&
-                continuationState.signUp?.passwordWasSupplied !== true
-            ) {
-                return createFlowSignUpPasswordRequiredResultV2({
-                    correlationId,
-                    continuationState: nextContinuationState,
-                    attributes,
-                    requiredPasswordAttribute,
-                });
-            }
-
             return createFlowAttributesRequiredResultV2({
                 correlationId,
                 continuationState: nextContinuationState,
-                attributes,
+                attributes: requestedAttributes,
             });
         }
 
@@ -1280,9 +1264,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             return createFlowSignInContinuationRequiredResultV2({
                 correlationId,
                 continuationState: {
+                    ...continuationState,
                     continuationToken: result.continuationToken,
-                    scenario: continuationState.scenario,
-                    scopes: continuationState.scopes,
                     links: {},
                 },
             });
@@ -1295,6 +1278,38 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             message,
             correlationId
         );
+    }
+
+    private ensureNoRepeatedSignUpAttributeCollection(
+        requestedAttributes: SignUpAttributeV2[],
+        continuationState: FlowContinuationStateV2,
+        correlationId: string
+    ): void {
+        const submittedAttributeIds =
+            continuationState.signUp?.submittedAttributeIds ?? [];
+        const repeatedAttribute = requestedAttributes.find(
+            (requestedAttribute) =>
+                submittedAttributeIds.some(
+                    (submittedAttributeId) =>
+                        submittedAttributeId ===
+                            requestedAttribute.attributeId ||
+                        (submittedAttributeId.toLowerCase() === "password" &&
+                            requestedAttribute.attributeId.toLowerCase() ===
+                                "password")
+                )
+        );
+        if (repeatedAttribute) {
+            const message =
+                repeatedAttribute.attributeId.toLowerCase() === "password"
+                    ? "The sign-up API requested the password again after it was successfully submitted."
+                    : "The server requested a sign-up attribute after it was successfully submitted.";
+            this.logger.error(message, correlationId);
+            throw new CustomAuthError(
+                UNSUPPORTED_FLOW_TRANSITION,
+                message,
+                correlationId
+            );
+        }
     }
 
     private ensureAuthenticationFactor(
@@ -1417,9 +1432,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         challengeResult: ChallengeVerificationResultV2
     ): FlowContinuationStateV2 {
         return {
+            ...continuationState,
             continuationToken: challengeResult.continuationToken,
-            scenario: continuationState.scenario,
-            scopes: continuationState.scopes,
             links: {
                 challenge: continuationState.links.challenge,
                 verify: challengeResult.verifyHref,
@@ -1427,9 +1441,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     challengeResult.resendHref ??
                     continuationState.links.resend,
             },
-            ...(continuationState.signUp && {
-                signUp: continuationState.signUp,
-            }),
         };
     }
 

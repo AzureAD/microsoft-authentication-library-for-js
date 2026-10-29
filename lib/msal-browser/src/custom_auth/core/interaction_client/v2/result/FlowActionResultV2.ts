@@ -58,13 +58,13 @@ export interface FlowPasswordRequiredResultV2 extends FlowActionResultBaseV2 {
     continuationState: FlowContinuationStateV2;
 }
 
-// Derived from a sign-up `collectAttributes` response containing a required password.
+// Derived from a sign-up `collectAttributes` response containing a password field.
 export interface FlowSignUpPasswordRequiredResultV2
     extends FlowActionResultBaseV2 {
     type: typeof FLOW_SIGN_UP_PASSWORD_REQUIRED_V2;
     continuationState: FlowContinuationStateV2;
     attributes: SignUpAttributeV2[];
-    requiredPasswordAttribute: SignUpAttributeV2;
+    requestedPasswordAttribute: SignUpAttributeV2;
 }
 
 // A registered MFA method must be selected to continue sign-in.
@@ -128,7 +128,6 @@ export type FlowSubmitCodeResultV2 =
     | FlowCompletedResultV2;
 
 export type FlowSignUpActionResultV2 =
-    | FlowCodeRequiredResultV2
     | FlowSignUpPasswordRequiredResultV2
     | FlowAttributesRequiredResultV2
     | FlowAuthMethodRegistrationRequiredResultV2

@@ -21,17 +21,12 @@ export interface SignUpAttributeV2 {
 export type SignUpStartApiResultV2 = ChallengeVerificationResultV2;
 
 export const SignUpSubmitAttributesNextActionV2 = {
-    VERIFY: "verify",
     COLLECT_ATTRIBUTES: "collectAttributes",
     CONTINUE: "continue",
     ENROLL: "enroll",
 } as const;
 
 export type SignUpSubmitAttributesApiResultV2 =
-    | (ChallengeVerificationResultV2 & {
-          nextAction: typeof SignUpSubmitAttributesNextActionV2.VERIFY;
-          attributes?: SignUpAttributeV2[];
-      })
     | {
           nextAction: typeof SignUpSubmitAttributesNextActionV2.COLLECT_ATTRIBUTES;
           continuationToken: string;

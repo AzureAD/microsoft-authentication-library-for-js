@@ -1,6 +1,6 @@
 {
     "type": "minor",
-    "comment": "Align Native Auth V2 sign-up start with the API. [#8940](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8940) Simplify V2 inputs and resend results. [#8941](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8941) Share V2 password state and results between sign-in and sign-up. [#8942](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8942)",
+    "comment": "Align Native Auth V2 sign-up start with the API. [#8940](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8940) Simplify V2 inputs and resend results. [#8941](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8941) Share V2 password state and results between sign-in and sign-up. [#8942](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8942) Support server-directed, multi-step V2 sign-up attribute and password collection. [#8943](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8943)",
     "packageName": "@azure/msal-browser",
     "dependentChangeType": "patch"
 }

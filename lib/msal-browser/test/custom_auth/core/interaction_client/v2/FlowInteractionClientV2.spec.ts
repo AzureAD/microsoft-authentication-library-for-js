@@ -35,6 +35,7 @@ import { CustomAuthAuthority } from "../../../../../src/custom_auth/core/CustomA
 import { CustomAuthApiClientV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { AuthenticationFactorV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import { CustomAuthApiError } from "../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
+import type { UserAccountAttributes } from "../../../../../src/custom_auth/UserAccountAttributes.js";
 import type { ResetPasswordPollResultV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/ResetPasswordResultsV2.js";
 import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import {
@@ -1367,7 +1368,6 @@ describe("FlowInteractionClientV2", () => {
                     scenario: "signUp",
                     scopes: ["openid", "profile", "offline_access"],
                     links: { verify: "https://endpoint/signup/verify" },
-                    signUp: { passwordWasSupplied: true },
                 },
                 code: "12345678",
             });
@@ -1379,7 +1379,6 @@ describe("FlowInteractionClientV2", () => {
                     scenario: "signUp",
                     scopes: ["openid", "profile", "offline_access"],
                     links: {},
-                    signUp: { passwordWasSupplied: true },
                 },
                 methods: [{ type: "email" }],
             });
@@ -1431,7 +1430,7 @@ describe("FlowInteractionClientV2", () => {
             });
         });
 
-        it("does not request a password again after it was previously submitted", async () => {
+        it("returns password and profile metadata after sign-up email verification", async () => {
             const signUpContinuationState: FlowContinuationStateV2 = {
                 continuationToken: "ct-sign-up-challenge",
                 scenario: "signUp",
@@ -1439,9 +1438,6 @@ describe("FlowInteractionClientV2", () => {
                 links: {
                     verify: "https://endpoint/signup/verify",
                     resend: "https://endpoint/signup/resend",
-                },
-                signUp: {
-                    passwordWasSupplied: true,
                 },
             };
             apiClient.verifyChallenge.mockResolvedValue({
@@ -1469,10 +1465,10 @@ describe("FlowInteractionClientV2", () => {
                 code: "12345678",
             });
 
-            expect(result.type).toBe(FLOW_ATTRIBUTES_REQUIRED_V2);
-            expect(
-                (result as FlowAttributesRequiredResultV2).continuationState
-            ).toEqual({
+            if (result.type !== FLOW_SIGN_UP_PASSWORD_REQUIRED_V2) {
+                throw new Error("Expected password collection.");
+            }
+            expect(result.continuationState).toEqual({
                 continuationToken: "ct-sign-up-verify",
                 scenario: "signUp",
                 scopes: ["openid", "profile", "offline_access"],
@@ -1480,77 +1476,82 @@ describe("FlowInteractionClientV2", () => {
                     submitAttributes:
                         "https://endpoint/signup/submitattributes",
                 },
-                signUp: {
-                    passwordWasSupplied: true,
-                },
             });
-            expect(
-                (result as FlowAttributesRequiredResultV2).attributes
-            ).toEqual([
+            expect(result.attributes).toEqual([
                 {
                     attributeId: "jobTitle",
                     inputType: "text",
                 },
             ]);
-        });
-
-        it("returns sign-up password required when it was not initially submitted", async () => {
-            const contextSpy = jest.spyOn(
-                client as unknown as {
-                    createRequestContext: (
-                        apiId: number,
-                        correlationId: string
-                    ) => unknown;
-                },
-                "createRequestContext"
-            );
-            const signUpContinuationState: FlowContinuationStateV2 = {
-                continuationToken: "ct-sign-up-challenge",
-                scenario: "signUp",
-                scopes: ["openid", "profile", "offline_access"],
-                links: {
-                    verify: "https://endpoint/signup/verify",
-                },
-                signUp: {
-                    passwordWasSupplied: false,
-                },
-            };
-            const requiredPasswordAttribute = {
+            expect(result.requestedPasswordAttribute).toMatchObject({
                 attributeId: "password",
-                inputType: "password",
-                required: true,
                 confirmationInput: "retype",
-            };
-            apiClient.verifyChallenge.mockResolvedValue({
-                nextAction: "collectAttributes",
-                continuationToken: "ct-sign-up-verify",
-                attributes: [requiredPasswordAttribute],
-                submitAttributesHref:
-                    "https://endpoint/signup/submitattributes",
-            });
-
-            const result = await client.submitCode({
-                correlationId,
-                continuationState: signUpContinuationState,
-                code: "12345678",
-            });
-
-            expect(result.type).toBe(FLOW_SIGN_UP_PASSWORD_REQUIRED_V2);
-            expect(contextSpy).toHaveBeenCalledWith(
-                SIGN_UP_V2_SUBMIT_CODE,
-                correlationId
-            );
-            expect(
-                (result as FlowSignUpPasswordRequiredResultV2)
-                    .requiredPasswordAttribute
-            ).toEqual(requiredPasswordAttribute);
-            expect(
-                (result as FlowSignUpPasswordRequiredResultV2).continuationState
-                    .signUp
-            ).toEqual({
-                passwordWasSupplied: false,
             });
         });
+
+        it.each([true, false, undefined])(
+            "returns a password state for server-requested password metadata with required=%s",
+            async (required) => {
+                const contextSpy = jest.spyOn(
+                    client as unknown as {
+                        createRequestContext: (
+                            apiId: number,
+                            correlationId: string
+                        ) => unknown;
+                    },
+                    "createRequestContext"
+                );
+                const signUpContinuationState: FlowContinuationStateV2 = {
+                    continuationToken: "ct-sign-up-challenge",
+                    scenario: "signUp",
+                    scopes: ["openid", "profile", "offline_access"],
+                    links: {
+                        verify: "https://endpoint/signup/verify",
+                    },
+                };
+                const requestedPasswordAttribute = {
+                    attributeId: "PaSsWoRd",
+                    inputType: "password",
+                    required,
+                    confirmationInput: "retype",
+                };
+                apiClient.verifyChallenge.mockResolvedValue({
+                    nextAction: "collectAttributes",
+                    continuationToken: "ct-sign-up-verify",
+                    attributes: [requestedPasswordAttribute],
+                    submitAttributesHref:
+                        "https://endpoint/signup/submitattributes",
+                });
+
+                const result = await client.submitCode({
+                    correlationId,
+                    continuationState: signUpContinuationState,
+                    code: "12345678",
+                });
+
+                expect(result.type).toBe(FLOW_SIGN_UP_PASSWORD_REQUIRED_V2);
+                expect(contextSpy).toHaveBeenCalledWith(
+                    SIGN_UP_V2_SUBMIT_CODE,
+                    correlationId
+                );
+                expect(
+                    (result as FlowSignUpPasswordRequiredResultV2)
+                        .requestedPasswordAttribute
+                ).toEqual(requestedPasswordAttribute);
+                expect(
+                    (result as FlowSignUpPasswordRequiredResultV2)
+                        .continuationState
+                ).toEqual({
+                    continuationToken: "ct-sign-up-verify",
+                    scenario: "signUp",
+                    scopes: ["openid", "profile", "offline_access"],
+                    links: {
+                        submitAttributes:
+                            "https://endpoint/signup/submitattributes",
+                    },
+                });
+            }
+        );
 
         it("returns sign-in continuation after completed sign-up verification", async () => {
             const signUpContinuationState: FlowContinuationStateV2 = {
@@ -1761,9 +1762,6 @@ describe("FlowInteractionClientV2", () => {
             links: {
                 submitAttributes: "https://endpoint/signup/submitattributes",
             },
-            signUp: {
-                passwordWasSupplied: false,
-            },
         };
 
         it.each(["email", "EMAIL", "eMaIl"])(
@@ -1811,6 +1809,60 @@ describe("FlowInteractionClientV2", () => {
             );
         });
 
+        it("does not track omitted optional fields or case-fold custom identifiers", async () => {
+            const attributes: UserAccountAttributes = { customField: "value" };
+            attributes.givenName = undefined;
+            apiClient.submitSignUpAttributes.mockResolvedValue({
+                nextAction: "collectAttributes",
+                continuationToken: "ct-next",
+                attributes: [
+                    { attributeId: "givenName" },
+                    { attributeId: "CustomField" },
+                ],
+                submitAttributesHref: "https://endpoint/signup/next",
+            });
+
+            const result = await client.submitSignUpAttributes({
+                correlationId,
+                continuationState,
+                attributes,
+            });
+
+            expect(result).toMatchObject({
+                type: FLOW_ATTRIBUTES_REQUIRED_V2,
+                continuationState: {
+                    signUp: { submittedAttributeIds: ["customField"] },
+                },
+            });
+        });
+
+        it("snapshots submitted identifiers before awaiting the response", async () => {
+            const attributes: Record<string, string> = { givenName: "User" };
+            apiClient.submitSignUpAttributes.mockImplementationOnce(
+                async () => {
+                    delete attributes.givenName;
+                    attributes.city = "Later";
+                    return {
+                        nextAction: "continue",
+                        continuationToken: "ct-complete",
+                    };
+                }
+            );
+
+            const result = await client.submitSignUpAttributes({
+                correlationId,
+                continuationState,
+                attributes,
+            });
+
+            expect(result).toMatchObject({
+                continuationState: {
+                    signUp: { submittedAttributeIds: ["givenName"] },
+                },
+            });
+            expect(continuationState).not.toHaveProperty("signUp");
+        });
+
         it("preserves sign-up context when later attributes return enrollment", async () => {
             apiClient.submitSignUpAttributes.mockResolvedValue({
                 nextAction: "enroll",
@@ -1836,7 +1888,7 @@ describe("FlowInteractionClientV2", () => {
                     scenario: "signUp",
                     scopes: ["openid", "profile", "offline_access"],
                     links: {},
-                    signUp: { passwordWasSupplied: true },
+                    signUp: { submittedAttributeIds: ["password"] },
                 },
                 methods: [{ type: "email" }],
             });
@@ -1914,6 +1966,9 @@ describe("FlowInteractionClientV2", () => {
                 scenario: "signUp",
                 scopes: ["openid", "profile", "offline_access"],
                 links: {},
+                signUp: {
+                    submittedAttributeIds: ["password", "jobTitle"],
+                },
             });
         });
 
@@ -1951,30 +2006,180 @@ describe("FlowInteractionClientV2", () => {
                     submitAttributes:
                         "https://endpoint/signup/submitattributes-2",
                 },
-                signUp: {
-                    passwordWasSupplied: false,
-                },
+                signUp: { submittedAttributeIds: ["username"] },
             });
+            expect(continuationState).not.toHaveProperty("signUp");
         });
 
-        it("rejects an unsupported attribute-submission transition", async () => {
-            apiClient.submitSignUpAttributes.mockResolvedValue({
-                nextAction: "unsupported" as "continue",
-                continuationToken: "ct-unsupported",
-            });
+        it.each([true, false, undefined])(
+            "rejects a first password request after profile submission with required=%s",
+            async (required) => {
+                apiClient.submitSignUpAttributes.mockResolvedValue({
+                    nextAction: "collectAttributes",
+                    continuationToken: "ct-password-next",
+                    attributes: [
+                        { attributeId: "PaSsWoRd", required },
+                        { attributeId: "surname", required: true },
+                    ],
+                    submitAttributesHref:
+                        "https://endpoint/signup/password-next",
+                });
+
+                await expect(
+                    client.submitSignUpAttributes({
+                        correlationId,
+                        continuationState,
+                        attributes: { givenName: "Test" },
+                    })
+                ).rejects.toMatchObject({
+                    error: UNSUPPORTED_FLOW_TRANSITION,
+                    errorDescription:
+                        "The sign-up API requested a password after profile submission, but password collection is only supported immediately after email verification.",
+                    correlationId,
+                });
+            }
+        );
+
+        it.each([true, false, undefined])(
+            "rejects another password request after a successful submission with required=%s",
+            async (required) => {
+                const requestedPasswordAttribute = {
+                    attributeId: "PaSsWoRd",
+                    inputType: "password",
+                    required,
+                };
+                const attributes = [{ attributeId: "surname", required: true }];
+                apiClient.submitSignUpAttributes.mockResolvedValue({
+                    nextAction: "collectAttributes",
+                    continuationToken: "ct-password-next",
+                    attributes: [requestedPasswordAttribute, ...attributes],
+                    submitAttributesHref:
+                        "https://endpoint/signup/password-next",
+                });
+
+                await expect(
+                    client.submitSignUpAttributes({
+                        correlationId,
+                        continuationState,
+                        attributes: { password: "previous-password" },
+                    })
+                ).rejects.toMatchObject({
+                    error: UNSUPPORTED_FLOW_TRANSITION,
+                    errorDescription:
+                        "The sign-up API requested the password again after it was successfully submitted.",
+                    correlationId,
+                });
+            }
+        );
+
+        it.each(["password", "PaSsWoRd", "givenName", "surname"])(
+            "rejects collection of %s accepted in the current or an earlier submission",
+            async (attributeId) => {
+                const trackedContinuationState = {
+                    ...continuationState,
+                    signUp: {
+                        submittedAttributeIds: ["password", "givenName"],
+                    },
+                };
+                apiClient.submitSignUpAttributes.mockResolvedValue({
+                    nextAction: "collectAttributes",
+                    continuationToken: "ct-next",
+                    attributes: [{ attributeId }, { attributeId: "city" }],
+                    submitAttributesHref: "https://endpoint/signup/next",
+                });
+
+                await expect(
+                    client.submitSignUpAttributes({
+                        correlationId,
+                        continuationState: trackedContinuationState,
+                        attributes: { surname: "User" },
+                    })
+                ).rejects.toMatchObject({
+                    error: UNSUPPORTED_FLOW_TRANSITION,
+                    correlationId,
+                });
+                expect(trackedContinuationState.signUp).toEqual({
+                    submittedAttributeIds: ["password", "givenName"],
+                });
+            }
+        );
+
+        it("leaves rejected submissions retryable and duplicate input errors to the API", async () => {
+            const trackedContinuationState = {
+                ...continuationState,
+                signUp: { submittedAttributeIds: ["givenName"] },
+            };
+            const error = new CustomAuthApiError(
+                "invalid_attributes",
+                "The submitted attributes were rejected.",
+                correlationId
+            );
+            apiClient.submitSignUpAttributes
+                .mockRejectedValueOnce(error)
+                .mockResolvedValueOnce({
+                    nextAction: "collectAttributes",
+                    continuationToken: "ct-retry",
+                    attributes: [{ attributeId: "city" }],
+                    submitAttributesHref: "https://endpoint/signup/retry",
+                });
+            const attributes = {
+                givenName: "Repeated",
+                password: "rejected-password",
+            };
 
             await expect(
                 client.submitSignUpAttributes({
                     correlationId,
-                    continuationState,
-                    attributes: {
-                        jobTitle: "Engineer",
-                    },
+                    continuationState: trackedContinuationState,
+                    attributes,
                 })
-            ).rejects.toMatchObject({
-                error: UNSUPPORTED_FLOW_TRANSITION,
+            ).rejects.toBe(error);
+            expect(apiClient.submitSignUpAttributes).toHaveBeenCalledWith(
+                continuationState.links.submitAttributes,
+                { continuationToken: "ct-attributes", attributes },
+                expect.objectContaining({ correlationId })
+            );
+
+            const result = await client.submitSignUpAttributes({
+                correlationId,
+                continuationState: trackedContinuationState,
+                attributes: { surname: "User" },
+            });
+
+            expect(result).toMatchObject({
+                type: FLOW_ATTRIBUTES_REQUIRED_V2,
+                continuationState: {
+                    signUp: {
+                        submittedAttributeIds: ["givenName", "surname"],
+                    },
+                },
+            });
+            expect(trackedContinuationState.signUp).toEqual({
+                submittedAttributeIds: ["givenName"],
             });
         });
+
+        it.each(["verify", "unsupported"])(
+            "rejects an unsupported attribute-submission transition: %s",
+            async (nextAction) => {
+                apiClient.submitSignUpAttributes.mockResolvedValue({
+                    nextAction: nextAction as "continue",
+                    continuationToken: "ct-unsupported",
+                });
+
+                await expect(
+                    client.submitSignUpAttributes({
+                        correlationId,
+                        continuationState,
+                        attributes: {
+                            jobTitle: "Engineer",
+                        },
+                    })
+                ).rejects.toMatchObject({
+                    error: UNSUPPORTED_FLOW_TRANSITION,
+                });
+            }
+        );
     });
 
     describe("resendCode", () => {
@@ -1988,6 +2193,62 @@ describe("FlowInteractionClientV2", () => {
                 resend: "https://endpoint/resend",
             },
         };
+
+        it("preserves submitted-field history through resend and verification", async () => {
+            const trackedContinuationState = {
+                ...continuationState,
+                scenario: "signUp" as const,
+                signUp: {
+                    submittedAttributeIds: ["password", "givenName"],
+                },
+            };
+            apiClient.requestChallenge.mockResolvedValue({
+                nextAction: "verify",
+                continuationToken: "ct-resend",
+                verifyHref: "https://endpoint/signup/verify-new",
+                resendHref: "https://endpoint/signup/resend-new",
+                type: "email",
+                codeLength: 8,
+            });
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "collectAttributes",
+                continuationToken: "ct-verified",
+                attributes: [{ attributeId: "city" }],
+                submitAttributesHref: "https://endpoint/signup/attributes-new",
+            });
+
+            const resendResult = await client.resendCode({
+                correlationId,
+                continuationState: trackedContinuationState,
+            });
+            const result = await client.submitCode({
+                correlationId,
+                continuationState: resendResult.continuationState,
+                code: "12345678",
+            });
+
+            expect(resendResult.continuationState).toMatchObject({
+                continuationToken: "ct-resend",
+                signUp: trackedContinuationState.signUp,
+            });
+            expect(apiClient.verifyChallenge).toHaveBeenCalledWith(
+                "https://endpoint/signup/verify-new",
+                { continuationToken: "ct-resend", otp: "12345678" },
+                expect.objectContaining({ correlationId })
+            );
+            expect(result).toMatchObject({
+                type: FLOW_ATTRIBUTES_REQUIRED_V2,
+                continuationState: {
+                    continuationToken: "ct-verified",
+                    scopes: trackedContinuationState.scopes,
+                    links: {
+                        submitAttributes:
+                            "https://endpoint/signup/attributes-new",
+                    },
+                    signUp: trackedContinuationState.signUp,
+                },
+            });
+        });
 
         it.each([
             {

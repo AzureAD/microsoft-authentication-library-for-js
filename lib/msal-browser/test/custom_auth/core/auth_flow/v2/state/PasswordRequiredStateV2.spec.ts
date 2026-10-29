@@ -174,7 +174,7 @@ describe("PasswordRequiredStateV2 sign-in", () => {
 
         expect(result.isState("completed")).toBe(true);
         expect(state.attributes).toEqual([]);
-        expect(state.requiredPasswordAttribute).toBeUndefined();
+        expect(state.requestedPasswordAttribute).toBeUndefined();
         expect(flowClient.submitSignInPassword).toHaveBeenCalledWith({
             correlationId,
             continuationState: state["stateParameters"].continuationState,
