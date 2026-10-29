@@ -681,6 +681,25 @@ export function addPopToken(
 }
 
 /**
+ * Adds DPoP referred-binding parameters to a token request.
+ * @param parameters
+ * @param cnfString
+ * @internal
+ */
+export function addDpopReferredBinding(
+    parameters: Map<string, string>,
+    cnfString: string
+): void {
+    if (cnfString) {
+        parameters.set(
+            AADServerParamKeys.TOKEN_TYPE,
+            Constants.AuthenticationScheme.DPOP
+        );
+        parameters.set(AADServerParamKeys.REQ_CNF, cnfString);
+    }
+}
+
+/**
  * add SSH JWK and key ID to query params
  */
 export function addSshJwk(

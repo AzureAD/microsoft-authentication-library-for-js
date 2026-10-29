@@ -241,6 +241,9 @@ function addDeviceCode(parameters: Map<string, string>, code: string): void;
 function addDomainHint(parameters: Map<string, string>, domainHint: string): void;
 
 // @internal
+function addDpopReferredBinding(parameters: Map<string, string>, cnfString: string): void;
+
+// @internal
 function addDpopTokenProofHeader(headers: Record<string, string>, request: BaseAuthRequest, tokenEndpoint: string, cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager): Promise<void>;
 
 // @public
@@ -715,6 +718,7 @@ export type BaseAuthRequest = {
     scenarioId?: string;
     popKid?: string;
     dpopJkt?: string;
+    dpopReferredBinding?: boolean;
     dpopProof?: string;
     embeddedClientId?: string;
     httpMethod?: HttpMethod;
@@ -2726,7 +2730,7 @@ declare namespace ProtocolUtils {
     }
 }
 
-// @internal
+// @public
 export type PublicJsonWebKey = {
     alg?: string;
     crv?: string;
@@ -2889,6 +2893,7 @@ declare namespace RequestParameterBuilder {
         addUsername,
         addPassword,
         addPopToken,
+        addDpopReferredBinding,
         addSshJwk,
         addServerTelemetry,
         addThrottling,

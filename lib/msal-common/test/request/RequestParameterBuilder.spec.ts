@@ -288,6 +288,34 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(Object.keys(requestQueryString)).toHaveLength(0);
     });
 
+    it("Adds token type and req_cnf correctly for DPoP referred binding", () => {
+        const parameters = new Map<string, string>();
+        RequestParameterBuilder.addDpopReferredBinding(
+            parameters,
+            TEST_POP_VALUES.ENCODED_REQ_CNF
+        );
+        const requestQueryString = UrlUtils.mapToQueryString(parameters);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.TOKEN_TYPE}=${Constants.AuthenticationScheme.DPOP}`
+            )
+        ).toBe(true);
+        expect(
+            requestQueryString.includes(
+                `${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(
+                    TEST_POP_VALUES.ENCODED_REQ_CNF
+                )}`
+            )
+        ).toBe(true);
+    });
+
+    it("Does not add token type or req_cnf for DPoP referred binding without req_cnf", () => {
+        const parameters = new Map<string, string>();
+        RequestParameterBuilder.addDpopReferredBinding(parameters, "");
+        const requestQueryString = UrlUtils.mapToQueryString(parameters);
+        expect(Object.keys(requestQueryString)).toHaveLength(0);
+    });
+
     it("Adds token type and req_cnf correctly for SSH certificates", () => {
         const parameters = new Map<string, string>();
         RequestParameterBuilder.addSshJwk(parameters, TEST_SSH_VALUES.SSH_JWK);

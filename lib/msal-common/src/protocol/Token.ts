@@ -87,6 +87,16 @@ export async function addDpopTokenProofHeader(
         return;
     }
 
+    if (request.dpopReferredBinding) {
+        if (!request.dpopJkt?.trim()) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.keyIdMissing,
+                request.correlationId
+            );
+        }
+        return;
+    }
+
     const dpopProofGenerator = new DpopProofGenerator(
         cryptoUtils,
         tokenBindingKeyManager

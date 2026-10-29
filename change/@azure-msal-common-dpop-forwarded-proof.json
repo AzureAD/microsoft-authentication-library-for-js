@@ -1,7 +1,7 @@
 {
-  "type": "minor",
-  "comment": "Allow brokered DPoP requests to forward embedded-owned token and resource proof generation and export the shared DPoP token-endpoint (htu) normalizer for endpoint agreement [#8788](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8788)",
-  "packageName": "@azure/msal-common",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
+    "type": "minor",
+    "comment": "Allow brokered DPoP requests to use embedded-owned referred binding, retain embedded-owned resource proof generation, and expose the environment-neutral public JWK contract used by token-binding key managers [#8788](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8788)",
+    "packageName": "@azure/msal-common",
+    "email": "hemoral@microsoft.com",
+    "dependentChangeType": "patch"
 }
