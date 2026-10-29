@@ -196,72 +196,43 @@ Send `accessToken` in the `Authorization` header and `dpopProof` in the `DPoP` h
 
 A DPoP nonce is an opaque freshness value that an authorization server or resource server may require in the next proof. Enforcement is optional and can vary by resource; this example handles a resource-server challenge.
 
-For cross-origin requests, the resource server must include both `DPoP-Nonce` and `WWW-Authenticate` in its `Access-Control-Expose-Headers` response header. Without these CORS response headers, browser code cannot verify and process the nonce challenge.
+For cross-origin requests, the resource server must expose the `DPoP-Nonce` response header through CORS so browser code can read it.
 
-Load a returned `DPoP-Nonce` before requesting a new proof. Retry a nonce challenge at most once:
+Load a returned `DPoP-Nonce`, request a fresh proof, and retry once:
 
 ```typescript
-const MAX_DPOP_NONCE_RETRIES = 1;
 const resourceRequestUri = "https://api.example.com/resource";
-const resourceRequestMethod = "GET";
+const request = {
+    ...dpopRequest,
+    account: result.account,
+};
 
-function isUseDpopNonceChallenge(header: string | null): boolean {
-    if (!header) {
-        return false;
-    }
-
-    return header
-        .split(/,(?=\s*[A-Za-z][A-Za-z0-9_-]*\s)/)
-        .some(
-            (challenge) =>
-                /^DPoP(?:\s|$)/i.test(challenge.trim()) &&
-                /\berror\s*=\s*"?use_dpop_nonce"?/i.test(challenge)
-        );
+async function callApi(tokenResult: typeof result): Promise<Response> {
+    return fetch(resourceRequestUri, {
+        method: "GET",
+        headers: {
+            Authorization: `${tokenResult.tokenType} ${tokenResult.accessToken}`,
+            DPoP: tokenResult.dpopProof,
+        },
+    });
 }
 
-async function callResource(): Promise<Response> {
-    for (
-        let attempt = 0;
-        attempt <= MAX_DPOP_NONCE_RETRIES;
-        attempt++
-    ) {
-        const result = await myMSALObj.acquireTokenSilent({
-            ...dpopRequest,
-            resourceRequestUri,
-            resourceRequestMethod,
-        });
-        if (!result.dpopProof) {
-            throw new Error("The DPoP proof was not returned.");
-        }
+let response = await callApi(result);
+const nonce = response.headers.get("DPoP-Nonce");
 
-        const response = await fetch(resourceRequestUri, {
-            method: resourceRequestMethod,
-            headers: {
-                Authorization: `${result.tokenType} ${result.accessToken}`,
-                DPoP: result.dpopProof,
-            },
-        });
+if (nonce) {
+    await myMSALObj.loadDpopNonce(resourceRequestUri, nonce);
+}
 
-        const dpopNonce = response.headers.get("DPoP-Nonce");
-        const useDpopNonce = isUseDpopNonceChallenge(
-            response.headers.get("WWW-Authenticate")
-        );
-        if (dpopNonce) {
-            await myMSALObj.loadDpopNonce(resourceRequestUri, dpopNonce);
-        }
+if (response.status === 401 && nonce) {
+    const retryResult = await myMSALObj.acquireTokenSilent(request);
+    response = await callApi(retryResult);
 
-        if (
-            response.status !== 401 ||
-            !dpopNonce ||
-            !useDpopNonce ||
-            attempt === MAX_DPOP_NONCE_RETRIES
-        ) {
-            return response;
-        }
+    const nextNonce = response.headers.get("DPoP-Nonce");
+    if (nextNonce) {
+        await myMSALObj.loadDpopNonce(resourceRequestUri, nextNonce);
     }
-
-    throw new Error("Unexpected DPoP retry state.");
 }
 ```
 
-`loadDpopNonce` stores the challenge for the resource origin so MSAL can include it in the next proof. It does not issue the resource request. Applications should treat nonce values as opaque, avoid persisting them, and retry immediately and at most once only when the resource returns the DPoP `use_dpop_nonce` challenge. Use a separate bounded backoff policy for transient responses such as `429` or `503`.
+`loadDpopNonce` stores the value for the resource origin so MSAL can include it in the next proof. It does not issue the resource request. Treat nonce values as opaque and do not persist them. This simplified example assumes a `401` with `DPoP-Nonce` is a nonce challenge; applications that need stricter challenge handling can also verify `WWW-Authenticate` contains the DPoP `use_dpop_nonce` error before retrying.
