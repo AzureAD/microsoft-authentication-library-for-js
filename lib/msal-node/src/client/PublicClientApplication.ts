@@ -223,7 +223,9 @@ export class PublicClientApplication
 
         const state = ProtocolUtils.setRequestState(
             this.cryptoProvider,
-            remainingProperties.state,
+            remainingProperties.state
+                ? this.cryptoProvider.base64Encode(remainingProperties.state)
+                : remainingProperties.state,
             undefined,
             correlationId
         );
