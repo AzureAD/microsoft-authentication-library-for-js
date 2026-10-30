@@ -102,7 +102,6 @@ import { getDiscoveredAuthority } from "../interaction_client/BaseInteractionCli
 import {
     AuthorityEndpointPreparationRequest,
     AuthorityEndpointPreparationResult,
-    AuthorizationCodeRedemptionContinuation,
 } from "../app/IPublicClientApplication.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
@@ -2226,24 +2225,6 @@ export class StandardController implements IController {
             authorizationEndpoint: authority.authorizationEndpoint,
             tokenEndpoint: authority.tokenEndpoint,
         };
-    }
-
-    /**
-     * Prepares a single-use authorization-code redemption continuation after
-     * final instance-aware authority resolution.
-     * @internal
-     */
-    public async prepareAuthorizationCodeRedemption(
-        request: AuthorizationCodeRequest
-    ): Promise<AuthorizationCodeRedemptionContinuation> {
-        const correlationId = this.getRequestCorrelationId(request);
-        BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-        return this.createSilentAuthCodeClient(
-            correlationId
-        ).prepareAuthorizationCodeRedemption({
-            ...request,
-            correlationId,
-        });
     }
 
     /**

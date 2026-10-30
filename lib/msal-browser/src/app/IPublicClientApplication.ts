@@ -55,17 +55,6 @@ export type AuthorityEndpointPreparationResult = {
     tokenEndpoint: string;
 };
 
-/**
- * Single-use authorization-code redemption continuation. The final token
- * endpoint is exposed so the caller can request a proof bound to that exact
- * endpoint before resuming redemption.
- * @internal
- */
-export type AuthorizationCodeRedemptionContinuation = {
-    tokenEndpoint: string;
-    redeem(dpopProof: string): Promise<AuthenticationResult>;
-};
-
 export interface IPublicClientApplication {
     // TODO: Make request mandatory in the next major version?
     initialize(request?: InitializeApplicationRequest): Promise<void>;
@@ -106,10 +95,6 @@ export interface IPublicClientApplication {
     prepareAuthorityEndpoints(
         request: AuthorityEndpointPreparationRequest
     ): Promise<AuthorityEndpointPreparationResult>;
-    /** @internal */
-    prepareAuthorizationCodeRedemption(
-        request: AuthorizationCodeRequest
-    ): Promise<AuthorizationCodeRedemptionContinuation>;
     hydrateCache(
         result: AuthenticationResult,
         request:
@@ -256,14 +241,6 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         );
     },
     prepareAuthorityEndpoints: () => {
-        return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
-                ""
-            )
-        );
-    },
-    prepareAuthorizationCodeRedemption: () => {
         return Promise.reject(
             createBrowserConfigurationAuthError(
                 BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,

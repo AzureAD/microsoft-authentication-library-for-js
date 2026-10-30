@@ -61,7 +61,6 @@ import { InitializeApplicationRequest } from "../request/InitializeApplicationRe
 import {
     AuthorityEndpointPreparationRequest,
     AuthorityEndpointPreparationResult,
-    AuthorizationCodeRedemptionContinuation,
 } from "../app/IPublicClientApplication.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
@@ -675,12 +674,6 @@ export class NestedAppAuthController implements IController {
         request: AuthorityEndpointPreparationRequest
     ): Promise<AuthorityEndpointPreparationResult> {
         throw NestedAppAuthError.createUnsupportedError(request.correlationId);
-    }
-
-    prepareAuthorizationCodeRedemption(
-        request: AuthorizationCodeRequest
-    ): Promise<AuthorizationCodeRedemptionContinuation> {
-        throw NestedAppAuthError.createUnsupportedError(request?.correlationId);
     }
 
     /**

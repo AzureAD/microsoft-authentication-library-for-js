@@ -17,12 +17,10 @@ import {
 } from "../utils/StringConstants.js";
 import {
     AccountInfo,
-    AuthError,
     TokenClaims,
     AuthorizationCodeClient,
     Constants,
 } from "@azure/msal-common";
-import { ServerTelemetryManager } from "@azure/msal-common/browser";
 import {
     createBrowserAuthError,
     BrowserAuthErrorCodes,
@@ -215,78 +213,6 @@ describe("SilentAuthCodeClient", () => {
                     code: "test-code",
                 })
             );
-        });
-
-        it("caches client-configuration failures for server telemetry", async () => {
-            const testError = new AuthError(
-                "client_configuration_error",
-                "Client configuration failed"
-            );
-            (silentAuthCodeClient as any).correlationId = RANDOM_TEST_GUID;
-            (silentAuthCodeClient as any).config.system.serverTelemetryEnabled =
-                true;
-            jest.spyOn(
-                silentAuthCodeClient as any,
-                "getClientConfiguration"
-            ).mockRejectedValue(testError);
-            const telemetrySpy = jest.spyOn(
-                ServerTelemetryManager.prototype,
-                "cacheFailedRequest"
-            );
-
-            await expect(
-                silentAuthCodeClient.acquireToken({
-                    redirectUri: TEST_URIS.TEST_REDIR_URI,
-                    code: "test-code",
-                })
-            ).rejects.toBe(testError);
-
-            expect(testError.correlationId).toBe(RANDOM_TEST_GUID);
-            expect(telemetrySpy).toHaveBeenCalledWith(testError);
-        });
-
-        describe("prepareAuthorizationCodeRedemption", () => {
-            it("caches deferred redemption failures for server telemetry", async () => {
-                const testError = new AuthError(
-                    "token_endpoint_error",
-                    "original-correlation-id"
-                );
-                const cacheFailedRequest = jest.fn();
-                const redeem = jest.fn().mockRejectedValue(testError);
-                const interactionHandler = {
-                    prepareCodeRedemptionFromServer: jest
-                        .fn()
-                        .mockResolvedValue({
-                            tokenEndpoint:
-                                "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-                            redeem,
-                        }),
-                };
-                jest.spyOn(
-                    silentAuthCodeClient as any,
-                    "initializeAuthorizationCodeRedemption"
-                ).mockResolvedValue({
-                    interactionHandler,
-                    silentRequest: {},
-                    authCodeResponse: { code: "test-code" },
-                    serverTelemetryManager: { cacheFailedRequest },
-                });
-                (silentAuthCodeClient as any).correlationId = RANDOM_TEST_GUID;
-
-                const continuation =
-                    await silentAuthCodeClient.prepareAuthorizationCodeRedemption(
-                        {
-                            code: "test-code",
-                            scopes: ["User.Read"],
-                        }
-                    );
-
-                await expect(continuation.redeem("signed-proof")).rejects.toBe(
-                    testError
-                );
-                expect(testError.correlationId).toBe(RANDOM_TEST_GUID);
-                expect(cacheFailedRequest).toHaveBeenCalledWith(testError);
-            });
         });
 
         describe("storeInCache tests", () => {

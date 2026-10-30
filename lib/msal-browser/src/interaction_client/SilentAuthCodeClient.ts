@@ -35,7 +35,6 @@ import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { InteractionHandler } from "../interaction_handler/InteractionHandler.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { initializeServerTelemetryManager } from "./BaseInteractionClient.js";
-import { AuthorizationCodeRedemptionContinuation } from "../app/IPublicClientApplication.js";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;
@@ -75,98 +74,6 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
     async acquireToken(
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
-        const {
-            interactionHandler,
-            silentRequest,
-            authCodeResponse,
-            serverTelemetryManager,
-        } = await this.initializeAuthorizationCodeRedemption(request);
-
-        try {
-            return await invokeAsync(
-                interactionHandler.handleCodeResponseFromServer.bind(
-                    interactionHandler
-                ),
-                PerformanceEvents.HandleCodeResponseFromServer,
-                this.logger,
-                this.performanceClient,
-                this.correlationId
-            )(authCodeResponse, silentRequest, this.apiId, false);
-        } catch (e) {
-            if (e instanceof AuthError) {
-                (e as AuthError).correlationId = this.correlationId;
-                serverTelemetryManager.cacheFailedRequest(e);
-            }
-            throw e;
-        }
-    }
-
-    /**
-     * Prepares authorization-code redemption and pauses before the token
-     * request is sent.
-     * @internal
-     */
-    async prepareAuthorizationCodeRedemption(
-        request: AuthorizationCodeRequest
-    ): Promise<AuthorizationCodeRedemptionContinuation> {
-        const {
-            interactionHandler,
-            silentRequest,
-            authCodeResponse,
-            serverTelemetryManager,
-        } = await this.initializeAuthorizationCodeRedemption(request);
-
-        try {
-            const continuation = await invokeAsync(
-                interactionHandler.prepareCodeRedemptionFromServer.bind(
-                    interactionHandler
-                ),
-                BrowserPerformanceEvents.PrepareAuthorizationCodeRedemption,
-                this.logger,
-                this.performanceClient,
-                this.correlationId
-            )(authCodeResponse, silentRequest, this.apiId, false);
-
-            return {
-                ...continuation,
-                redeem: async (
-                    dpopProof: string
-                ): Promise<AuthenticationResult> => {
-                    try {
-                        return await continuation.redeem(dpopProof);
-                    } catch (e) {
-                        if (e instanceof AuthError) {
-                            e.correlationId = this.correlationId;
-                            serverTelemetryManager.cacheFailedRequest(e);
-                        }
-                        throw e;
-                    }
-                },
-            };
-        } catch (e) {
-            if (e instanceof AuthError) {
-                (e as AuthError).correlationId = this.correlationId;
-                serverTelemetryManager.cacheFailedRequest(e);
-            }
-            throw e;
-        }
-    }
-
-    private async initializeAuthorizationCodeRedemption(
-        request: AuthorizationCodeRequest
-    ): Promise<{
-        interactionHandler: InteractionHandler;
-        silentRequest: CommonAuthorizationUrlRequest;
-        authCodeResponse: {
-            code: string;
-            msgraph_host?: string;
-            cloud_graph_host_name?: string;
-            cloud_instance_host_name?: string;
-        };
-        serverTelemetryManager: ReturnType<
-            typeof initializeServerTelemetryManager
-        >;
-    }> {
         // Auth code payload is required
         if (!request.code) {
             throw createBrowserAuthError(
@@ -214,12 +121,14 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient
             );
+            // Create auth code request (PKCE not needed)
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 ...silentRequest,
                 code: request.code,
                 ...tokenBindingParams,
             };
 
+            // Initialize the client
             const clientConfig = await invokeAsync(
                 this.getClientConfiguration.bind(this),
                 BrowserPerformanceEvents.StandardInteractionClientGetClientConfiguration,
@@ -233,32 +142,45 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                 requestExtraQueryParameters: silentRequest.extraQueryParameters,
                 account: silentRequest.account,
             });
-            const authClient = new HybridSpaAuthorizationCodeClient(
-                clientConfig,
-                this.performanceClient
-            );
+            const authClient: HybridSpaAuthorizationCodeClient =
+                new HybridSpaAuthorizationCodeClient(
+                    clientConfig,
+                    this.performanceClient
+                );
             this.logger.verbose("Auth code client created", this.correlationId);
 
-            return {
-                interactionHandler: new InteractionHandler(
-                    authClient,
-                    this.browserStorage,
-                    authCodeRequest,
-                    this.logger,
-                    this.performanceClient
+            // Create silent handler
+            const interactionHandler = new InteractionHandler(
+                authClient,
+                this.browserStorage,
+                authCodeRequest,
+                this.logger,
+                this.performanceClient
+            );
+
+            // Handle auth code parameters from request
+            return await invokeAsync(
+                interactionHandler.handleCodeResponseFromServer.bind(
+                    interactionHandler
                 ),
-                silentRequest,
-                authCodeResponse: {
+                PerformanceEvents.HandleCodeResponseFromServer,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(
+                {
                     code: request.code,
                     msgraph_host: request.msGraphHost,
                     cloud_graph_host_name: request.cloudGraphHostName,
                     cloud_instance_host_name: request.cloudInstanceHostName,
                 },
-                serverTelemetryManager,
-            };
+                silentRequest,
+                this.apiId,
+                false
+            );
         } catch (e) {
             if (e instanceof AuthError) {
-                e.correlationId = this.correlationId;
+                (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
             }
             throw e;

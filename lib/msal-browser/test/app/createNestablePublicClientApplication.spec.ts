@@ -253,7 +253,6 @@ describe("createNestablePublicClientApplication tests", () => {
                     setNavigationClient = jest.fn();
                     getConfiguration = jest.fn();
                     prepareAuthorityEndpoints = jest.fn();
-                    prepareAuthorizationCodeRedemption = jest.fn();
                     hydrateCache = jest.fn();
                     clearCache = jest.fn();
                 }

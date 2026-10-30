@@ -12,7 +12,6 @@ import { WrapperSKU } from "../utils/BrowserConstants.js";
 import {
     AuthorityEndpointPreparationRequest,
     AuthorityEndpointPreparationResult,
-    AuthorizationCodeRedemptionContinuation,
     IPublicClientApplication,
 } from "./IPublicClientApplication.js";
 import { IController } from "../controllers/IController.js";
@@ -445,16 +444,6 @@ export class PublicClientApplication implements IPublicClientApplication {
         request: AuthorityEndpointPreparationRequest
     ): Promise<AuthorityEndpointPreparationResult> {
         return this.controller.prepareAuthorityEndpoints(request);
-    }
-
-    /**
-     * Pauses authorization-code redemption after final endpoint resolution.
-     * @internal
-     */
-    prepareAuthorizationCodeRedemption(
-        request: AuthorizationCodeRequest
-    ): Promise<AuthorizationCodeRedemptionContinuation> {
-        return this.controller.prepareAuthorizationCodeRedemption(request);
     }
 
     /**

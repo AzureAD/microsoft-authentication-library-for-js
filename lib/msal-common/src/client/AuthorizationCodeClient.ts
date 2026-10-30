@@ -135,23 +135,6 @@ export class AuthorizationCodeClient {
         apiId: number,
         authCodePayload?: AuthorizationCodePayload
     ): Promise<AuthenticationResult> {
-        await this.prepareTokenRequest(request, authCodePayload);
-        return this.acquireTokenWithPreparedAuthority(
-            request,
-            apiId,
-            authCodePayload
-        );
-    }
-
-    /**
-     * Finalizes the authority used for authorization-code redemption and
-     * returns the exact token endpoint that must be used for the DPoP proof.
-     * @internal
-     */
-    async prepareTokenRequest(
-        request: CommonAuthorizationCodeRequest,
-        authCodePayload?: AuthorizationCodePayload
-    ): Promise<string> {
         if (!request.code) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.requestCannotBeMade,
@@ -170,19 +153,6 @@ export class AuthorizationCodeClient {
             )(authCodePayload.cloud_instance_host_name, request.correlationId);
         }
 
-        return this.authority.tokenEndpoint;
-    }
-
-    /**
-     * Redeems an authorization code after the authority and token endpoint have
-     * been finalized by prepareTokenRequest.
-     * @internal
-     */
-    async acquireTokenWithPreparedAuthority(
-        request: CommonAuthorizationCodeRequest,
-        apiId: number,
-        authCodePayload?: AuthorizationCodePayload
-    ): Promise<AuthenticationResult> {
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await invokeAsync(
             this.executeTokenRequest.bind(this),

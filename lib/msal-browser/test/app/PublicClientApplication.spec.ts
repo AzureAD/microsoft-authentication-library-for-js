@@ -5547,27 +5547,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             ).resolves.toEqual(result);
             expect(prepareSpy).toHaveBeenCalledWith(request);
         });
-
-        it("forwards authorization-code redemption preparation to the controller", async () => {
-            const continuation = {
-                tokenEndpoint:
-                    "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-                redeem: jest.fn(),
-            };
-            const controller = (pca as any).controller as StandardController;
-            const prepareSpy = jest
-                .spyOn(controller, "prepareAuthorizationCodeRedemption")
-                .mockResolvedValue(continuation);
-            const request: AuthorizationCodeRequest = {
-                code: "auth-code",
-                correlationId: RANDOM_TEST_GUID,
-            };
-
-            await expect(
-                pca.prepareAuthorizationCodeRedemption(request)
-            ).resolves.toBe(continuation);
-            expect(prepareSpy).toHaveBeenCalledWith(request);
-        });
     });
 
     describe("acquireTokenByCode", () => {

@@ -68,13 +68,6 @@ export const StandardInteractionClientGetDiscoveredAuthority =
 export const PrepareAuthorityEndpoints = "prepareAuthorityEndpoints";
 
 /**
- * Internal authorization-code redemption preparation after final authority
- * resolution and before the token request is sent.
- */
-export const PrepareAuthorizationCodeRedemption =
-    "prepareAuthorizationCodeRedemption";
-
-/**
  * acquireToken APIs in msal-browser.
  * Used to make an /authorize endpoint call with native brokering enabled.
  */

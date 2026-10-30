@@ -24,7 +24,6 @@ import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js
 import {
     AuthorityEndpointPreparationRequest,
     AuthorityEndpointPreparationResult,
-    AuthorizationCodeRedemptionContinuation,
 } from "../app/IPublicClientApplication.js";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
@@ -181,14 +180,6 @@ export class UnknownOperatingContextController implements IController {
         blockAPICallsBeforeInitialize(this.initialized);
         blockNonBrowserEnvironment();
         return {} as Promise<AuthorityEndpointPreparationResult>;
-    }
-    prepareAuthorizationCodeRedemption(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        request: AuthorizationCodeRequest
-    ): Promise<AuthorizationCodeRedemptionContinuation> {
-        blockAPICallsBeforeInitialize(this.initialized);
-        blockNonBrowserEnvironment();
-        return {} as Promise<AuthorizationCodeRedemptionContinuation>;
     }
     addEventCallback(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

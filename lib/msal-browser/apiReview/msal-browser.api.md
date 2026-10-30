@@ -93,9 +93,6 @@ export type ApiId = (typeof ApiId)[keyof typeof ApiId];
 const authCodeOrNativeAccountIdRequired = "auth_code_or_nativeAccountId_required";
 
 // @public (undocumented)
-const authCodeRedemptionContinuationAlreadyUsed = "auth_code_redemption_continuation_already_used";
-
-// @public (undocumented)
 const authCodeRequired = "auth_code_required";
 
 export { AuthenticationHeaderParser }
@@ -133,12 +130,6 @@ export type AuthorityEndpointPreparationRequest = {
 export type AuthorityEndpointPreparationResult = {
     authorizationEndpoint: string;
     tokenEndpoint: string;
-};
-
-// @internal
-export type AuthorizationCodeRedemptionContinuation = {
-    tokenEndpoint: string;
-    redeem(dpopProof: string): Promise<AuthenticationResult>;
 };
 
 // @public
@@ -228,8 +219,6 @@ declare namespace BrowserAuthErrorCodes {
         cryptoKeyNotFound,
         invalidPublicJwk,
         authCodeRequired,
-        dpopProofRequired,
-        authCodeRedemptionContinuationAlreadyUsed,
         authCodeOrNativeAccountIdRequired,
         spaCodeAndNativeAccountIdPresent,
         databaseUnavailable,
@@ -479,9 +468,6 @@ const databaseUnavailable = "database_unavailable";
 
 // @public (undocumented)
 export const DEFAULT_IFRAME_TIMEOUT_MS = 10000;
-
-// @public (undocumented)
-const dpopProofRequired = "dpop_proof_required";
 
 // @public
 export class DpopProofSigner {
@@ -756,8 +742,6 @@ export interface IPublicClientApplication {
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
     // @internal (undocumented)
     prepareAuthorityEndpoints(request: AuthorityEndpointPreparationRequest): Promise<AuthorityEndpointPreparationResult>;
-    // @internal (undocumented)
-    prepareAuthorizationCodeRedemption(request: AuthorizationCodeRequest): Promise<AuthorizationCodeRedemptionContinuation>;
     // (undocumented)
     removeEventCallback(callbackId: string): void;
     // (undocumented)
@@ -1031,8 +1015,6 @@ export class PublicClientApplication implements IPublicClientApplication {
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
     // @internal
     prepareAuthorityEndpoints(request: AuthorityEndpointPreparationRequest): Promise<AuthorityEndpointPreparationResult>;
-    // @internal
-    prepareAuthorizationCodeRedemption(request: AuthorizationCodeRequest): Promise<AuthorizationCodeRedemptionContinuation>;
     removeEventCallback(callbackId: string): void;
     removePerformanceCallback(callbackId: string): boolean;
     setActiveAccount(account: AccountInfo | null): void;

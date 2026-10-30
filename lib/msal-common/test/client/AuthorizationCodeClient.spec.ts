@@ -464,7 +464,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(executePostToTokenEndpointSpy).toHaveBeenCalled();
         });
 
-        it("uses a caller-owned DPoP proof after endpoint preparation", async () => {
+        it("uses a caller-owned DPoP proof for authorization-code redemption", async () => {
             jest.spyOn(
                 Authority.prototype,
                 <any>"getEndpointMetadataFromNetwork"
@@ -519,27 +519,13 @@ describe("AuthorizationCodeClient unit tests", () => {
                 resourceRequestMethod: "GET",
                 resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
             };
-            const authCodePayload = {
+            await client.acquireToken(authCodeRequest, 0, {
                 code: authCodeRequest.code,
-            };
-
-            const tokenEndpoint = await client.prepareTokenRequest(
-                authCodeRequest,
-                authCodePayload
-            );
-            expect(tokenEndpoint).toBe(
-                config.authOptions.authority.tokenEndpoint
-            );
-            expect(executePostToTokenEndpointSpy).not.toHaveBeenCalled();
-            await client.acquireTokenWithPreparedAuthority(
-                authCodeRequest,
-                0,
-                authCodePayload
-            );
+            });
 
             expect(executePostToTokenEndpointSpy).toHaveBeenCalledTimes(1);
             expect(executePostToTokenEndpointSpy.mock.calls[0][0]).toBe(
-                `${tokenEndpoint}?client-request-id=${authCodeRequest.correlationId}`
+                `${config.authOptions.authority.tokenEndpoint}?client-request-id=${authCodeRequest.correlationId}`
             );
         });
 
@@ -2599,18 +2585,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 cloud_instance_host_name: instanceAwareHost,
             };
 
-            const tokenEndpoint = await client.prepareTokenRequest(
-                authCodeRequest,
-                authCodePayload
-            );
-
-            expect(tokenEndpoint).toBe(finalTokenEndpoint);
             expect(sendPostRequestSpy).not.toHaveBeenCalled();
-            await client.acquireTokenWithPreparedAuthority(
-                authCodeRequest,
-                0,
-                authCodePayload
-            );
+            await client.acquireToken(authCodeRequest, 0, authCodePayload);
             expect(authoritySpy).toHaveBeenCalledWith(
                 `https://${instanceAwareHost}/common/`,
                 // @ts-ignore
@@ -2624,14 +2600,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 client.performanceClient
             );
             expect(sendPostRequestSpy).toHaveBeenCalledWith(
-                `${tokenEndpoint}?client-request-id=${RANDOM_TEST_GUID}`,
+                `${finalTokenEndpoint}?client-request-id=${RANDOM_TEST_GUID}`,
                 expect.objectContaining({
                     headers: expect.objectContaining({
                         [Constants.HeaderNames.DPOP]: "instance-aware-proof",
                     }),
                 })
             );
-            expect(dpopProofProvider).toHaveBeenCalledWith(tokenEndpoint);
+            expect(dpopProofProvider).toHaveBeenCalledWith(finalTokenEndpoint);
             expect(dpopProofProvider).toHaveBeenCalledTimes(1);
         });
     });
