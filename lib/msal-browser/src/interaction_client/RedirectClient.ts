@@ -26,7 +26,11 @@ import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
-import { getTokenBindingRequestParams } from "../request/RequestHelpers.js";
+import {
+    getTokenBindingRequestParams,
+    isTokenBindingKeyPersistedForRedirect,
+    removeTokenBindingKeyOnFailure,
+} from "../request/RequestHelpers.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     ApiId,
@@ -241,13 +245,23 @@ export class RedirectClient extends StandardInteractionClient {
             ...tokenBindingParams,
         };
 
-        this.browserStorage.cacheAuthorizeRequest(
-            redirectRequest,
-            this.correlationId,
-            pkceCodes.verifier
-        );
-
         try {
+            if (
+                !(await isTokenBindingKeyPersistedForRedirect(
+                    redirectRequest,
+                    this.tokenBindingKeyManager
+                ))
+            ) {
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.cryptoKeyNotFound,
+                    this.correlationId
+                );
+            }
+            this.browserStorage.cacheAuthorizeRequest(
+                redirectRequest,
+                this.correlationId,
+                pkceCodes.verifier
+            );
             if (redirectRequest.httpMethod === Constants.HttpMethod.POST) {
                 return await this.executeCodeFlowWithPost(redirectRequest);
             } else {
@@ -285,6 +299,12 @@ export class RedirectClient extends StandardInteractionClient {
                 return await this.initiateAuthRequest(navigateUrl);
             }
         } catch (e) {
+            await removeTokenBindingKeyOnFailure(
+                redirectRequest,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
             if (e instanceof AuthError) {
                 e.correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
@@ -354,32 +374,52 @@ export class RedirectClient extends StandardInteractionClient {
             ...tokenBindingParams,
         };
 
-        this.browserStorage.cacheAuthorizeRequest(
-            redirectRequest,
-            this.correlationId,
-            pkceCodes.verifier
-        );
-
-        const form = await Authorize.getEARForm(
-            document,
-            this.config,
-            discoveredAuthority,
-            redirectRequest,
-            this.logger,
-            this.performanceClient
-        );
-        form.submit();
-        return new Promise<void>((resolve, reject) => {
-            setTimeout(() => {
-                reject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.timedOut,
-                        "",
-                        "failed_to_redirect"
-                    )
+        try {
+            if (
+                !(await isTokenBindingKeyPersistedForRedirect(
+                    redirectRequest,
+                    this.tokenBindingKeyManager
+                ))
+            ) {
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.cryptoKeyNotFound,
+                    this.correlationId
                 );
-            }, this.config.system.redirectNavigationTimeout);
-        });
+            }
+            this.browserStorage.cacheAuthorizeRequest(
+                redirectRequest,
+                this.correlationId,
+                pkceCodes.verifier
+            );
+            const form = await Authorize.getEARForm(
+                document,
+                this.config,
+                discoveredAuthority,
+                redirectRequest,
+                this.logger,
+                this.performanceClient
+            );
+            form.submit();
+            return await new Promise<void>((resolve, reject) => {
+                setTimeout(() => {
+                    reject(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.timedOut,
+                            "",
+                            "failed_to_redirect"
+                        )
+                    );
+                }, this.config.system.redirectNavigationTimeout);
+            });
+        } catch (e) {
+            await removeTokenBindingKeyOnFailure(
+                redirectRequest,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
+            throw e;
+        }
     }
 
     /**
@@ -471,6 +511,12 @@ export class RedirectClient extends StandardInteractionClient {
                 this.logger.info(
                     "handleRedirectPromise did not detect a response as a result of a redirect. Cleaning temporary cache.",
                     this.correlationId
+                );
+                await removeTokenBindingKeyOnFailure(
+                    request,
+                    this.tokenBindingKeyManager,
+                    this.logger,
+                    this.performanceClient
                 );
                 this.browserStorage.resetRequestCache(this.correlationId);
 
@@ -609,6 +655,12 @@ export class RedirectClient extends StandardInteractionClient {
 
             return null;
         } catch (e) {
+            await removeTokenBindingKeyOnFailure(
+                request,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
             if (e instanceof AuthError) {
                 (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
@@ -750,7 +802,8 @@ export class RedirectClient extends StandardInteractionClient {
                 this.eventHandler,
                 this.logger,
                 this.performanceClient,
-                this.platformAuthProvider
+                this.platformAuthProvider,
+                this.tokenBindingKeyManager
             );
         }
 
@@ -779,7 +832,8 @@ export class RedirectClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.tokenBindingKeyManager
         );
     }
 

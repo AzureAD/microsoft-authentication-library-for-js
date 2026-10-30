@@ -12,7 +12,7 @@ This document catalogs browser Web APIs that MSAL Browser depends on, their role
 |-----|-----------|----------|
 | `sessionStorage` | Interaction status, PKCE verifier, redirect origin URL, redirect bridge response cache | `MemoryStorage` (response lost on navigation) |
 | `localStorage` | Persistent token cache (when `cacheLocation: "localStorage"`) | None if configured; not used by default |
-| `IndexedDB` | PoP token RSA keypairs and DPoP token-binding keypairs | In-memory (keys lost on reload) |
+| `IndexedDB` | PoP token RSA keypairs and DPoP token-binding keypairs | In-memory for same-page flows when the storage failure is reported as unavailable; none when an MSAL-owned key must survive redirect navigation |
 | `document.cookie` | Encryption key for localStorage cache | None — cache cannot be decrypted without it |
 
 **MSAL-specific restrictions:**
@@ -136,7 +136,7 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 |-----|:-:|:-:|:-:|:-:|:-:|:-:|
 | `sessionStorage` | ✅ | | | | | |
 | `localStorage` | ○ | ○ | ○ | ○ | | |
-| `IndexedDB` | ○ | ○ | ○ | ○ | | |
+| `IndexedDB` | ○⁵ | ○ | ○ | ○ | | ○⁵ |
 | `BroadcastChannel` | ¹ | ✅ | ✅ | ✅² | | |
 | Same-origin location polling (`system.enableLegacyPolling`) | ○ | | ○ | ○ | | |
 | `window.open()` | | ✅ | | | | |
@@ -153,4 +153,5 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 - ² when refresh token expired and MSAL falls back to hidden iframe
 - ³ IdP session cookie required in iframe; MSAL's own cookie for localStorage encryption only
 - ⁴ optional DOM-based platform-broker provider; requires both configuration flags and the `get-token-and-sign-out` contract
+- ⁵ required for web DPoP redirect and platform-broker L1 redirect when an MSAL-owned key must survive navigation; broker-provided L3 proofs do not require cross-navigation key persistence
 - Legacy polling is opt-in for popup responses, silent iframe responses, and popup logout; it requires the passive same-origin callback and a popup reference that remains connected for the full round-trip

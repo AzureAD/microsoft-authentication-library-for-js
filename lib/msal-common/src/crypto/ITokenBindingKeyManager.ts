@@ -40,6 +40,17 @@ export interface ITokenBindingKeyManager {
      */
     removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
     /**
+     * Returns whether a token-binding key is available to the current context.
+     */
+    hasTokenBindingKey?(kid: string, correlationId: string): Promise<boolean>;
+    /**
+     * Returns whether a token-binding key is available in persistent storage.
+     */
+    isTokenBindingKeyPersisted?(
+        kid: string,
+        correlationId: string
+    ): Promise<boolean>;
+    /**
      * Gets a token-binding public key as a JWK by identifier.
      * @param kid - Token-binding key identifier.
      * @param correlationId - Request correlation identifier.
