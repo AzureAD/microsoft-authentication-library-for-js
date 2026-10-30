@@ -39,6 +39,7 @@ import {
     CommonSilentFlowRequest,
     AccountEntityUtils,
     ClientConfigurationErrorCodes,
+    ProtocolUtils,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -1455,6 +1456,242 @@ describe("PublicClientApplication", () => {
     });
 
     describe("acquireTokenInteractive tests", () => {
+        async function sendLoopbackResponse(
+            redirectUri: string,
+            parameters: URLSearchParams,
+            method = "POST"
+        ): Promise<number> {
+            const url = new URL(redirectUri);
+            return new Promise((resolve, reject) => {
+                const req = http.request(
+                    {
+                        hostname: "127.0.0.1",
+                        port: url.port,
+                        path: method === "GET" ? `/?${parameters}` : "/",
+                        method,
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                            Origin: "https://unrelated.example",
+                        },
+                    },
+                    (res) => {
+                        res.resume();
+                        res.on("end", () => resolve(res.statusCode || 0));
+                    }
+                );
+                req.on("error", reject);
+                req.end(method === "POST" ? parameters.toString() : undefined);
+            });
+        }
+
+        test.each([
+            undefined,
+            "",
+            "a",
+            "ab",
+            "caller-state|with spaces+%&=/#",
+            "caller-state-\u00e9\u4f60\u597d",
+        ])(
+            "binds browser callbacks to fresh state and preserves caller state %p",
+            async (userState) => {
+                const authApp = new PublicClientApplication(appConfig);
+                const states: string[] = [];
+                const exchange = jest
+                    .spyOn(authApp, "acquireTokenByCode")
+                    .mockResolvedValue(mockAuthenticationResult);
+                const getAuthCodeRequestUrl =
+                    AuthorizeProtocol.getAuthCodeRequestUrl;
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "getAuthCodeRequestUrl"
+                ).mockImplementation((config, authority, request, logger) => {
+                    expect(request.state).toBeTruthy();
+                    const parsed = ProtocolUtils.parseRequestState(
+                        (value) => Buffer.from(value, "base64").toString(),
+                        request.state || "",
+                        request.correlationId || ""
+                    );
+                    expect(parsed.userRequestState).toBe(
+                        Buffer.from(userState || "", "utf8").toString("base64")
+                    );
+                    expect(parsed.libraryState.id).toMatch(
+                        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+                    );
+                    states.push(request.state || "");
+                    return getAuthCodeRequestUrl(
+                        config,
+                        authority,
+                        request,
+                        logger
+                    );
+                });
+                const closeServer = jest.spyOn(
+                    LoopbackClient.prototype,
+                    "closeServer"
+                );
+                const request: InteractiveRequest = {
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    state: userState,
+                    extraQueryParameters: { state: "unrelated_state" },
+                    correlationId: "fixed-correlation-id",
+                    openBrowser: async (url) => {
+                        const parameters = new URL(url).searchParams;
+                        const redirectUri =
+                            parameters.get("redirect_uri") || "";
+                        const state = parameters.get("state") || "";
+                        expect(parameters.getAll("state")).toEqual([
+                            states[states.length - 1],
+                        ]);
+                        const exchangesBeforeResponse =
+                            exchange.mock.calls.length;
+                        for (const response of [
+                            "code=unrelated_code",
+                            "error=access_denied",
+                        ]) {
+                            for (const invalidState of [
+                                undefined,
+                                "",
+                                userState || "unrelated_state",
+                                states.length > 1 ? states[0] : "stale_state",
+                            ]) {
+                                const invalid = new URLSearchParams(response);
+                                if (invalidState !== undefined) {
+                                    invalid.set("state", invalidState);
+                                }
+                                for (const method of ["GET", "POST"]) {
+                                    expect(
+                                        await sendLoopbackResponse(
+                                            redirectUri,
+                                            invalid,
+                                            method
+                                        )
+                                    ).toBe(400);
+                                }
+                            }
+                        }
+                        expect(exchange).toHaveBeenCalledTimes(
+                            exchangesBeforeResponse
+                        );
+                        expect(
+                            await sendLoopbackResponse(
+                                redirectUri,
+                                new URLSearchParams({
+                                    code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                                    state,
+                                    client_info:
+                                        TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                                })
+                            )
+                        ).toBe(200);
+                    },
+                };
+
+                for (let attempt = 0; attempt < 2; attempt++) {
+                    await expect(
+                        authApp.acquireTokenInteractive(request)
+                    ).resolves.toBe(mockAuthenticationResult);
+                }
+                expect(states[0]).not.toBe(states[1]);
+                expect(exchange).toHaveBeenCalledTimes(2);
+                expect(exchange).toHaveBeenLastCalledWith(
+                    expect.objectContaining({
+                        code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                        clientInfo: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                        state: userState,
+                        codeVerifier: expect.any(String),
+                        codeChallenge: expect.any(String),
+                        codeChallengeMethod: "S256",
+                    })
+                );
+                expect(closeServer).toHaveBeenCalledTimes(2);
+                expect(request.state).toBe(userState);
+            }
+        );
+
+        test.each([
+            { code: TEST_CONSTANTS.AUTHORIZATION_CODE },
+            { code: TEST_CONSTANTS.AUTHORIZATION_CODE, state: "" },
+            { code: TEST_CONSTANTS.AUTHORIZATION_CODE, state: "wrong_state" },
+            { error: "access_denied" },
+            { error: "access_denied", state: "" },
+            { error: "access_denied", state: "wrong_state" },
+        ])(
+            "validates listener state before processing %p",
+            async (response) => {
+                const authApp = new PublicClientApplication(appConfig);
+                jest.spyOn(
+                    LoopbackClient.prototype,
+                    "listenForAuthCode"
+                ).mockResolvedValue(response);
+                jest.spyOn(
+                    LoopbackClient.prototype,
+                    "getRedirectUri"
+                ).mockReturnValue(TEST_CONSTANTS.REDIRECT_URI);
+                const closeServer = jest.spyOn(
+                    LoopbackClient.prototype,
+                    "closeServer"
+                );
+                jest.spyOn(authApp, "getAuthCodeUrl").mockResolvedValue(
+                    TEST_CONSTANTS.AUTH_CODE_URL
+                );
+                const exchange = jest.spyOn(authApp, "acquireTokenByCode");
+                await expect(
+                    authApp.acquireTokenInteractive({
+                        openBrowser: async () => {},
+                        correlationId: "test-correlation",
+                    })
+                ).rejects.toMatchObject({
+                    errorCode: ClientAuthErrorCodes.stateMismatch,
+                    correlationId: "test-correlation",
+                });
+                expect(exchange).not.toHaveBeenCalled();
+                expect(closeServer).toHaveBeenCalledTimes(1);
+            }
+        );
+
+        test("propagates a state-matched server error without redeeming a code", async () => {
+            const authApp = new PublicClientApplication(appConfig);
+            jest.spyOn(authApp, "getAuthCodeUrl").mockImplementation(
+                async (request) =>
+                    `https://login.microsoftonline.com/authorize?${new URLSearchParams(
+                        {
+                            redirect_uri: request.redirectUri,
+                            state: request.state || "",
+                        }
+                    )}`
+            );
+            const exchange = jest.spyOn(authApp, "acquireTokenByCode");
+            const closeServer = jest.spyOn(
+                LoopbackClient.prototype,
+                "closeServer"
+            );
+            await expect(
+                authApp.acquireTokenInteractive({
+                    correlationId: "test-correlation",
+                    errorTemplate: "Sign-in failed.",
+                    openBrowser: async (url) => {
+                        const parameters = new URL(url).searchParams;
+                        expect(
+                            await sendLoopbackResponse(
+                                parameters.get("redirect_uri") || "",
+                                new URLSearchParams({
+                                    error: "access_denied",
+                                    error_description: "user_cancelled",
+                                    state: parameters.get("state") || "",
+                                })
+                            )
+                        ).toBe(200);
+                    },
+                })
+            ).rejects.toMatchObject({
+                errorCode: "access_denied",
+                errorMessage: "user_cancelled",
+                correlationId: "test-correlation",
+            });
+            expect(exchange).not.toHaveBeenCalled();
+            expect(closeServer).toHaveBeenCalledTimes(1);
+        });
+
         // Causing pipeline to hang, needs to be fixed
         test.skip("acquireTokenInteractive succeeds", async () => {
             const authApp = new PublicClientApplication(appConfig);
@@ -1527,13 +1764,17 @@ describe("PublicClientApplication", () => {
                 LoopbackClient.prototype,
                 "listenForAuthCode"
             );
-            listenerSpy.mockImplementation(() => {
+            listenerSpy.mockImplementation((state) => {
                 return new Promise<void>((resolve) => {
                     setTimeout(() => {
                         resolve();
                     }, 2000);
                 }).then(
-                    () => originalListen.call(listenerSpy.mock.instances[0]) // call original function and pass in the 'this' context
+                    () =>
+                        originalListen.call(
+                            listenerSpy.mock.instances[0],
+                            state
+                        ) // call original function and pass in the 'this' context
                 );
             });
 
@@ -1610,7 +1851,10 @@ describe("PublicClientApplication", () => {
             jest.spyOn(
                 LoopbackClient.prototype,
                 "listenForAuthCode"
-            ).mockResolvedValue(testServerCodeResponse);
+            ).mockImplementation(async (state) => ({
+                ...testServerCodeResponse,
+                state,
+            }));
             jest.spyOn(
                 LoopbackClient.prototype,
                 "getRedirectUri"
@@ -1695,7 +1939,10 @@ describe("PublicClientApplication", () => {
             jest.spyOn(
                 LoopbackClient.prototype,
                 "listenForAuthCode"
-            ).mockResolvedValue(testServerCodeResponse);
+            ).mockImplementation(async (state) => ({
+                ...testServerCodeResponse,
+                state,
+            }));
             jest.spyOn(
                 LoopbackClient.prototype,
                 "getRedirectUri"
@@ -1959,13 +2206,13 @@ describe("PublicClientApplication", () => {
                 LoopbackClient.prototype,
                 "listenForAuthCode"
             );
-            listenerSpy.mockImplementation(async () => {
+            listenerSpy.mockImplementation(async (state) => {
                 return new Promise((resolve, reject) => {
                     setTimeout(() => {
                         reject("listener error");
                     }, 2000);
                     originalListen
-                        .call(listenerSpy.mock.instances[0]) // call original function and pass in the 'this' context
+                        .call(listenerSpy.mock.instances[0], state) // call original function and pass in the 'this' context
                         .then((result) => resolve(result)); // This should never be called because the server will never be hit
                 });
             });
@@ -2076,9 +2323,10 @@ describe("PublicClientApplication", () => {
             jest.spyOn(
                 LoopbackClient.prototype,
                 "listenForAuthCode"
-            ).mockResolvedValue({
+            ).mockImplementation(async (state) => ({
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
-            });
+                state,
+            }));
 
             jest.spyOn(
                 LoopbackClient.prototype,
@@ -2934,7 +3182,10 @@ describe("MCP flow tests", () => {
             jest.spyOn(
                 LoopbackClient.prototype,
                 "listenForAuthCode"
-            ).mockResolvedValue(testServerCodeResponse);
+            ).mockImplementation(async (state) => ({
+                ...testServerCodeResponse,
+                state,
+            }));
             jest.spyOn(
                 LoopbackClient.prototype,
                 "getRedirectUri"
@@ -3001,7 +3252,10 @@ describe("MCP flow tests", () => {
             jest.spyOn(
                 LoopbackClient.prototype,
                 "listenForAuthCode"
-            ).mockResolvedValue(testServerCodeResponse);
+            ).mockImplementation(async (state) => ({
+                ...testServerCodeResponse,
+                state,
+            }));
             jest.spyOn(
                 LoopbackClient.prototype,
                 "getRedirectUri"
