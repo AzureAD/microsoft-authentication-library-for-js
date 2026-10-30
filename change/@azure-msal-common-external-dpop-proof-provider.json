@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Add caller-managed DPoP token-endpoint proof callbacks, nonce retry support, and explicitly named resource proofs",
+    "packageName": "@azure/msal-common",
+    "email": "hemoral@microsoft.com",
+    "dependentChangeType": "patch"
+}
