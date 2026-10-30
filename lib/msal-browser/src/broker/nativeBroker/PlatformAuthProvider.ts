@@ -216,9 +216,9 @@ export function isPlatformAuthAllowed(
 
     if (hasExternalDpopProof) {
         /*
-         * Pairwise Broker keeps the DPoP key in the embedded app. The native
-         * broker cannot invoke its proof callback, so retain the broker PCA's
-         * web token path for this request.
+         * The platform broker cannot invoke a caller-supplied proof callback
+         * or preserve its endpoint and nonce lifecycle. Keep externally
+         * managed DPoP requests on the web token path.
          */
         logger.trace(
             "isPlatformAuthAllowed: externally managed DPoP proof is not supported by the platform broker, returning false",
