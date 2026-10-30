@@ -793,14 +793,6 @@ If you do not want to use a dedicated `redirectUri` for this purpose, you should
 
 -   An authorization code must be provided (as the `code` property on the request) to this flow.
 
-### `dpop_proof_required`
-
--   A non-empty token-endpoint DPoP proof must be supplied before a prepared broker authorization-code redemption can continue.
-
-### `auth_code_redemption_continuation_already_used`
-
--   A prepared authorization-code redemption continuation is single-use and cannot be replayed after redemption has started.
-
 ### `auth_code_or_nativeAccountId_required`
 
 -   An authorization code or nativeAccountId must be provided to this flow.
