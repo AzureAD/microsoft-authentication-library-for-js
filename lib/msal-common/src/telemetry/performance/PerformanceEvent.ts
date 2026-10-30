@@ -471,36 +471,6 @@ export type PerformanceEvent = {
     dpopNonceRetryAttempt?: number;
 
     /**
-     * Negotiated Pairwise Web Broker DPoP protocol version.
-     */
-    dpopProtocolVersion?: number;
-
-    /**
-     * Recognized Pairwise Web Broker access-token profiles offered by the client.
-     */
-    dpopOfferedAccessProfiles?: string;
-
-    /**
-     * Recognized Pairwise Web Broker refresh-token profiles offered by the client.
-     */
-    dpopOfferedRefreshProfiles?: string;
-
-    /**
-     * Selected Pairwise Web Broker access-token profile.
-     */
-    dpopSelectedAccessProfile?: string;
-
-    /**
-     * Selected Pairwise Web Broker refresh-token profile.
-     */
-    dpopSelectedRefreshProfile?: string;
-
-    /**
-     * Whether legacy broker DPoP readiness was adapted to profiled negotiation.
-     */
-    dpopCompatibilityAdapterUsed?: boolean;
-
-    /**
      * Whether the user has "Keep Me Signed In" enabled
      */
     kmsi?: boolean;

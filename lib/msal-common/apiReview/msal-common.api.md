@@ -2587,12 +2587,6 @@ export type PerformanceEvent = {
     hasAttributeTokens?: boolean;
     dpopTokenTypeMismatch?: string;
     dpopNonceRetryAttempt?: number;
-    dpopProtocolVersion?: number;
-    dpopOfferedAccessProfiles?: string;
-    dpopOfferedRefreshProfiles?: string;
-    dpopSelectedAccessProfile?: string;
-    dpopSelectedRefreshProfile?: string;
-    dpopCompatibilityAdapterUsed?: boolean;
     kmsi?: boolean;
     regionSubScope?: string;
     ssoCapable?: boolean;
