@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Add prepared redemption and raw pairwise-broker DPoP token result support [#8917](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8917)",
-    "packageName": "@azure/msal-common",
-    "email": "hemoral@microsoft.com",
-    "dependentChangeType": "patch"
-}
