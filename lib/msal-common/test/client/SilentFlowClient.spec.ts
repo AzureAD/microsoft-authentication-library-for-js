@@ -956,7 +956,7 @@ describe("SilentFlowClient unit tests", () => {
 
             expect(authResult.tokenType).toBe(AuthenticationScheme.DPOP);
             expect(authResult.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
-            expect(authResult.dpopProof).toBe("fresh-dpop-proof-1");
+            expect(authResult.resourceProof).toBe("fresh-dpop-proof-1");
             expect(getPublicJwkSpy).toHaveBeenCalledWith(
                 TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
                 TEST_CONFIG.CORRELATION_ID

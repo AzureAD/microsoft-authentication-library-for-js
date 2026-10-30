@@ -45,9 +45,13 @@ import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
 import { getRequestThumbprint } from "../network/RequestThumbprint.js";
 import {
     addDpopTokenProofHeader,
+    cacheDpopNonce,
     createTokenQueryParameters,
     createTokenRequestHeaders,
     executePostToTokenEndpoint,
+    getCachedDpopNonce,
+    getDpopNonce,
+    getDpopNonceChallenge,
 } from "../protocol/Token.js";
 import { createDiscoveredInstance } from "../authority/AuthorityFactory.js";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
@@ -278,7 +282,8 @@ export class AuthorizationCodeClient {
             request,
             endpoint,
             this.cryptoUtils,
-            this.config.tokenBindingKeyManager
+            this.config.tokenBindingKeyManager,
+            getCachedDpopNonce(request, endpoint)
         );
 
         const thumbprint = getRequestThumbprint(
@@ -286,24 +291,59 @@ export class AuthorizationCodeClient {
             request
         );
 
-        return invokeAsync(
-            executePostToTokenEndpoint,
-            PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint,
-            this.logger,
-            this.performanceClient,
-            request.correlationId
-        )(
-            endpoint,
-            requestBody,
-            headers,
-            thumbprint,
-            request.correlationId,
-            this.cacheManager,
-            this.networkClient,
-            this.logger,
-            this.performanceClient,
-            serverTelemetryManager
-        );
+        const postTokenRequest = () =>
+            invokeAsync(
+                executePostToTokenEndpoint,
+                PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint,
+                this.logger,
+                this.performanceClient,
+                request.correlationId
+            )(
+                endpoint,
+                requestBody,
+                headers,
+                thumbprint,
+                request.correlationId,
+                this.cacheManager,
+                this.networkClient,
+                this.logger,
+                this.performanceClient,
+                serverTelemetryManager
+            );
+
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            this.performanceClient.addFields(
+                { dpopNonceRetryAttempt: 0 },
+                request.correlationId
+            );
+        }
+        let response = await postTokenRequest();
+        cacheDpopNonce(request, endpoint, getDpopNonce(response));
+        const dpopNonce = getDpopNonceChallenge(response);
+        if (
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP &&
+            dpopNonce
+        ) {
+            this.performanceClient.addFields(
+                { dpopNonceRetryAttempt: 1 },
+                request.correlationId
+            );
+            await addDpopTokenProofHeader(
+                headers,
+                request,
+                endpoint,
+                this.cryptoUtils,
+                this.config.tokenBindingKeyManager,
+                dpopNonce
+            );
+            response = await postTokenRequest();
+            cacheDpopNonce(request, endpoint, getDpopNonce(response));
+        }
+
+        return response;
     }
 
     /**

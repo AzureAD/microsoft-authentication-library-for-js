@@ -49,6 +49,7 @@ describe("AuthorizationCodeClient unit tests", () => {
     });
 
     afterEach(() => {
+        TokenProtocol.clearDpopNonceCache();
         jest.restoreAllMocks();
     });
 
@@ -423,6 +424,11 @@ describe("AuthorizationCodeClient unit tests", () => {
 
                         return Promise.resolve({
                             ...AUTHENTICATION_RESULT_WITH_HEADERS,
+                            headers: {
+                                ...AUTHENTICATION_RESULT_WITH_HEADERS.headers,
+                                [Constants.HeaderNames.DPOP_NONCE]:
+                                    "next-authorization-server-nonce",
+                            },
                             body: {
                                 ...AUTHENTICATION_RESULT_WITH_HEADERS.body,
                                 token_type: Constants.AuthenticationScheme.DPOP,
@@ -456,6 +462,169 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
 
             expect(executePostToTokenEndpointSpy).toHaveBeenCalled();
+        });
+
+        it("uses a caller-owned DPoP proof for authorization-code redemption", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue({
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+            });
+            const executePostToTokenEndpointSpy = jest
+                .spyOn(TokenProtocol, "executePostToTokenEndpoint")
+                .mockImplementation(
+                    (
+                        tokenEndpoint: string,
+                        queryString: string,
+                        headers: Record<string, string>
+                    ) => {
+                        expect(headers[Constants.HeaderNames.DPOP]).toBe(
+                            "caller-owned-proof"
+                        );
+                        return Promise.resolve({
+                            ...AUTHENTICATION_RESULT_WITH_HEADERS,
+                            headers: {
+                                ...AUTHENTICATION_RESULT_WITH_HEADERS.headers,
+                                [Constants.HeaderNames.DPOP_NONCE]:
+                                    "next-authorization-server-nonce",
+                            },
+                            body: {
+                                ...AUTHENTICATION_RESULT_WITH_HEADERS.body,
+                                token_type: Constants.AuthenticationScheme.DPOP,
+                            },
+                        });
+                    }
+                );
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                dpopProof: "caller-owned-proof",
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+            await client.acquireToken(authCodeRequest, 0, {
+                code: authCodeRequest.code,
+            });
+
+            expect(executePostToTokenEndpointSpy).toHaveBeenCalledTimes(1);
+            expect(executePostToTokenEndpointSpy.mock.calls[0][0]).toBe(
+                `${config.authOptions.authority.tokenEndpoint}?client-request-id=${authCodeRequest.correlationId}`
+            );
+        });
+
+        it("retries a DPoP token request once with an authorization-server nonce", async () => {
+            jest.spyOn(
+                Authority.prototype,
+                <any>"getEndpointMetadataFromNetwork"
+            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue({
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+            });
+            const dpopProofProvider = jest
+                .fn()
+                .mockResolvedValue("nonce-bound-proof");
+            const executePostToTokenEndpointSpy = jest
+                .spyOn(TokenProtocol, "executePostToTokenEndpoint")
+                .mockImplementation(
+                    (
+                        _tokenEndpoint: string,
+                        _queryString: string,
+                        headers: Record<string, string>
+                    ) => {
+                        if (
+                            executePostToTokenEndpointSpy.mock.calls.length ===
+                            1
+                        ) {
+                            expect(headers[Constants.HeaderNames.DPOP]).toBe(
+                                "initial-proof"
+                            );
+                            return Promise.resolve({
+                                headers: {
+                                    [Constants.HeaderNames.DPOP_NONCE]:
+                                        "authorization-server-nonce",
+                                },
+                                body: {
+                                    error: "use_dpop_nonce",
+                                },
+                                status: 400,
+                            });
+                        }
+
+                        expect(headers[Constants.HeaderNames.DPOP]).toBe(
+                            "nonce-bound-proof"
+                        );
+                        return Promise.resolve({
+                            ...AUTHENTICATION_RESULT_WITH_HEADERS,
+                            headers: {
+                                ...AUTHENTICATION_RESULT_WITH_HEADERS.headers,
+                                [Constants.HeaderNames.DPOP_NONCE]:
+                                    "next-authorization-server-nonce",
+                            },
+                            body: {
+                                ...AUTHENTICATION_RESULT_WITH_HEADERS.body,
+                                token_type: Constants.AuthenticationScheme.DPOP,
+                            },
+                        });
+                    }
+                );
+            const client = new AuthorizationCodeClient(
+                config,
+                stubPerformanceClient
+            );
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                dpopProof: "initial-proof",
+                dpopProofProvider,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+
+            await client.acquireToken(authCodeRequest, 0, {
+                code: authCodeRequest.code,
+            });
+            await client.acquireToken(authCodeRequest, 0, {
+                code: authCodeRequest.code,
+            });
+
+            expect(executePostToTokenEndpointSpy).toHaveBeenCalledTimes(3);
+            expect(dpopProofProvider).toHaveBeenCalledTimes(2);
+            expect(dpopProofProvider).toHaveBeenCalledWith(
+                expect.stringContaining("/token"),
+                "authorization-server-nonce"
+            );
+            expect(dpopProofProvider).toHaveBeenLastCalledWith(
+                expect.stringContaining("/token"),
+                "next-authorization-server-nonce"
+            );
         });
 
         it("throws before token request when DPoP key id is missing", async () => {
@@ -2339,20 +2508,35 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
         });
 
-        it("successfully uses a new authority if cloud_instance_host_name is different", async () => {
+        it("requests a caller-owned proof for the instance-aware token endpoint", async () => {
             const client = new AuthorizationCodeClient(
                 config,
                 stubPerformanceClient
             );
+            const instanceAwareHost = "login.windows.net";
+            const finalTokenEndpoint = `https://${instanceAwareHost}/common/oauth2/v2.0/token`;
             jest.spyOn(
-                Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
-            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            jest.spyOn(
-                // @ts-ignore
-                client.networkClient,
-                "sendPostRequestAsync"
-            ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
+                config.authOptions.authority,
+                "tokenEndpoint",
+                "get"
+            ).mockReturnValue(finalTokenEndpoint);
+            const authoritySpy = jest
+                .spyOn(AuthorityFactory, "createDiscoveredInstance")
+                .mockResolvedValue(config.authOptions.authority);
+            const sendPostRequestSpy = jest
+                .spyOn(
+                    // @ts-ignore
+                    client.networkClient,
+                    "sendPostRequestAsync"
+                )
+                .mockResolvedValue({
+                    ...AUTHENTICATION_RESULT,
+                    body: {
+                        ...AUTHENTICATION_RESULT.body,
+                        token_type: Constants.AuthenticationScheme.DPOP,
+                    },
+                    headers: {},
+                });
 
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError(
@@ -2374,11 +2558,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
                 idTokenClaims
             );
-
-            const authoritySpy = jest.spyOn(
-                AuthorityFactory,
-                "createDiscoveredInstance"
-            );
+            const dpopProofProvider = jest
+                .fn()
+                .mockResolvedValue("instance-aware-proof");
 
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -2391,15 +2573,22 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                dpopProofProvider,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
             };
-            await client.acquireToken(authCodeRequest, 0, {
+            const authCodePayload = {
                 code: authCodeRequest.code,
                 nonce: idTokenClaims.nonce,
-                cloud_instance_host_name: "login.windows.net",
-            });
+                cloud_instance_host_name: instanceAwareHost,
+            };
+
+            expect(sendPostRequestSpy).not.toHaveBeenCalled();
+            await client.acquireToken(authCodeRequest, 0, authCodePayload);
             expect(authoritySpy).toHaveBeenCalledWith(
-                "https://login.windows.net/common/",
+                `https://${instanceAwareHost}/common/`,
                 // @ts-ignore
                 client.networkClient,
                 // @ts-ignore
@@ -2410,6 +2599,16 @@ describe("AuthorizationCodeClient unit tests", () => {
                 // @ts-ignore
                 client.performanceClient
             );
+            expect(sendPostRequestSpy).toHaveBeenCalledWith(
+                `${finalTokenEndpoint}?client-request-id=${RANDOM_TEST_GUID}`,
+                expect.objectContaining({
+                    headers: expect.objectContaining({
+                        [Constants.HeaderNames.DPOP]: "instance-aware-proof",
+                    }),
+                })
+            );
+            expect(dpopProofProvider).toHaveBeenCalledWith(finalTokenEndpoint);
+            expect(dpopProofProvider).toHaveBeenCalledTimes(1);
         });
     });
 
