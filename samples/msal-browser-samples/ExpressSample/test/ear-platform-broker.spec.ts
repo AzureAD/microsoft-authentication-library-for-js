@@ -7,18 +7,16 @@ import {
     BrowserCacheUtils,
     createPlatformBrokerProfile,
     launchPlatformBrokerBrowser,
+    observePopupEarRequests,
     PLATFORM_LOGIN_TIMEOUT,
     PlatformBrokerProfile,
     removePlatformBrokerProfile,
     verifyPlatformBrokerAccount,
+    verifyPlatformBrokerOperation,
+    verifyPlatformBrokerRedirect,
     verifyPlatformBrokerTokenStore,
 } from "e2e-test-utils";
 import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
-import {
-    observePopupEarRequests,
-    verifyPlatformBrokerOperation,
-    verifyPlatformBrokerRedirect,
-} from "./PlatformBrokerFlowTestUtils";
 
 // CommonJS helper; require by relative path.
 // eslint-disable-next-line @typescript-eslint/no-var-requires

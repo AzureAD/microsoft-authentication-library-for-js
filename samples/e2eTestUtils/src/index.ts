@@ -70,13 +70,17 @@ export {
 export {
     createPlatformBrokerProfile,
     launchPlatformBrokerBrowser,
+    observePopupEarRequests,
     PLATFORM_LOGIN_TIMEOUT,
     removePlatformBrokerProfile,
     verifyPlatformBrokerAccount,
+    verifyPlatformBrokerOperation,
+    verifyPlatformBrokerRedirect,
     verifyPlatformBrokerResponse,
     verifyPlatformBrokerTokenStore,
 } from "./PlatformBrokerTestUtils";
 export type {
+    PlatformBrokerOperationResult,
     PlatformBrokerProfile,
     PlatformBrokerResponse,
 } from "./PlatformBrokerTestUtils";

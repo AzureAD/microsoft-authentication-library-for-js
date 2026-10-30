@@ -17,12 +17,10 @@ import {
     PlatformBrokerProfile,
     removePlatformBrokerProfile,
     verifyPlatformBrokerAccount,
-    verifyPlatformBrokerTokenStore,
-} from "e2e-test-utils";
-import {
     verifyPlatformBrokerOperation,
     verifyPlatformBrokerRedirect,
-} from "./PlatformBrokerFlowTestUtils";
+    verifyPlatformBrokerTokenStore,
+} from "e2e-test-utils";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serverUtils = require("../../../e2eTestUtils/jest-puppeteer-utils/serverUtils");
