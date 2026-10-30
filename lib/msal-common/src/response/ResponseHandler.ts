@@ -623,7 +623,7 @@ export class ResponseHandler {
         let extExpiresOn: Date | undefined;
         let refreshOn: Date | undefined;
         let familyId: string = "";
-        let dpopProof: string | undefined;
+        let resourceProof: string | undefined;
 
         if (cacheRecord.accessToken) {
             const accessTokenType =
@@ -662,7 +662,11 @@ export class ResponseHandler {
             }
             if (
                 accessTokenType ===
-                Constants.AuthenticationScheme.DPOP.toLowerCase()
+                    Constants.AuthenticationScheme.DPOP.toLowerCase() &&
+                !(
+                    request.embeddedClientId &&
+                    request.storeInCache?.accessToken === false
+                )
             ) {
                 if (!cacheRecord.accessToken.keyId) {
                     throw createClientAuthError(
@@ -674,11 +678,12 @@ export class ResponseHandler {
                     cryptoObj,
                     tokenBindingKeyManager
                 );
-                dpopProof = await dpopProofGenerator.generateResourceProof(
+                resourceProof = await dpopProofGenerator.generateResourceProof(
                     {
                         htu: request.resourceRequestUri,
                         htm: request.resourceRequestMethod,
                         accessToken: cacheRecord.accessToken.secret,
+                        nonce: request.resourceRequestNonce,
                     },
                     cacheRecord.accessToken.keyId,
                     request.correlationId
@@ -760,7 +765,8 @@ export class ResponseHandler {
             idToken: cacheRecord?.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,
-            dpopProof,
+            resourceProof,
+            dpopProof: resourceProof,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
             extExpiresOn: extExpiresOn,

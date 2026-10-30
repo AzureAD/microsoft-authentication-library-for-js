@@ -109,6 +109,7 @@ const testFamilyRefreshTokenEntity: RefreshTokenEntity = {
 
 describe("RefreshTokenClient unit tests", () => {
     afterEach(() => {
+        TokenProtocol.clearDpopNonceCache();
         jest.restoreAllMocks();
     });
 
@@ -245,6 +246,131 @@ describe("RefreshTokenClient unit tests", () => {
             client.acquireToken(dpopRefreshTokenRequest, 0).catch((e) => {
                 // Catch errors thrown after the function call this test is testing
             });
+        });
+
+        it("retries a DPoP refresh token request once with an authorization-server nonce", async () => {
+            const dpopProofProvider = jest
+                .fn()
+                .mockResolvedValue("nonce-bound-proof");
+            const executePostToTokenEndpointSpy = jest
+                .spyOn(TokenProtocol, "executePostToTokenEndpoint")
+                .mockImplementation(
+                    (
+                        _url: string,
+                        _body: string,
+                        headers: Record<string, string>
+                    ) => {
+                        if (
+                            executePostToTokenEndpointSpy.mock.calls.length ===
+                            1
+                        ) {
+                            expect(headers[Constants.HeaderNames.DPOP]).toBe(
+                                "initial-proof"
+                            );
+                            return Promise.resolve({
+                                headers: {
+                                    [Constants.HeaderNames.DPOP_NONCE]:
+                                        "authorization-server-nonce",
+                                },
+                                body: { error: "use_dpop_nonce" },
+                                status: 400,
+                            });
+                        }
+
+                        expect(headers[Constants.HeaderNames.DPOP]).toBe(
+                            "nonce-bound-proof"
+                        );
+                        return Promise.resolve({
+                            ...AUTHENTICATION_RESULT_WITH_HEADERS,
+                            headers: {
+                                ...AUTHENTICATION_RESULT_WITH_HEADERS.headers,
+                                [Constants.HeaderNames.DPOP_NONCE]:
+                                    "next-authorization-server-nonce",
+                            },
+                            body: {
+                                ...AUTHENTICATION_RESULT_WITH_HEADERS.body,
+                                token_type: Constants.AuthenticationScheme.DPOP,
+                            },
+                        });
+                    }
+                );
+            jest.spyOn(
+                ResponseHandler.prototype,
+                "validateTokenResponse"
+            ).mockImplementation();
+            jest.spyOn(
+                ResponseHandler.prototype,
+                "handleServerTokenResponse"
+            ).mockResolvedValue({} as AuthenticationResult);
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const request: CommonRefreshTokenRequest = {
+                ...refreshTokenRequest,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                dpopProof: "initial-proof",
+                dpopProofProvider,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            await client.acquireToken(request, 0);
+            await client.acquireToken(request, 0);
+
+            expect(executePostToTokenEndpointSpy).toHaveBeenCalledTimes(3);
+            expect(dpopProofProvider).toHaveBeenCalledTimes(2);
+            expect(dpopProofProvider).toHaveBeenCalledWith(
+                expect.stringContaining("/token"),
+                "authorization-server-nonce"
+            );
+            expect(dpopProofProvider).toHaveBeenLastCalledWith(
+                expect.stringContaining("/token"),
+                "next-authorization-server-nonce"
+            );
+        });
+
+        it("does not loop when a DPoP refresh token retry receives a second nonce challenge", async () => {
+            const dpopProofProvider = jest
+                .fn()
+                .mockResolvedValue("nonce-bound-proof");
+            const executePostToTokenEndpointSpy = jest
+                .spyOn(TokenProtocol, "executePostToTokenEndpoint")
+                .mockResolvedValue({
+                    headers: {
+                        [Constants.HeaderNames.DPOP_NONCE]:
+                            "authorization-server-nonce",
+                    },
+                    body: { error: "use_dpop_nonce" },
+                    status: 400,
+                });
+            jest.spyOn(
+                ResponseHandler.prototype,
+                "validateTokenResponse"
+            ).mockImplementation();
+            jest.spyOn(
+                ResponseHandler.prototype,
+                "handleServerTokenResponse"
+            ).mockResolvedValue({} as AuthenticationResult);
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const request: CommonRefreshTokenRequest = {
+                ...refreshTokenRequest,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                dpopProof: "initial-proof",
+                dpopProofProvider,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            await client.acquireToken(request, 0);
+
+            expect(executePostToTokenEndpointSpy).toHaveBeenCalledTimes(2);
+            expect(dpopProofProvider).toHaveBeenCalledTimes(1);
         });
 
         it("Adds extraQueryParameters to the /token request", (done) => {

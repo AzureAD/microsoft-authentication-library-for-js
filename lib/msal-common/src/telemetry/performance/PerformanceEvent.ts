@@ -466,6 +466,11 @@ export type PerformanceEvent = {
     dpopTokenTypeMismatch?: string;
 
     /**
+     * Zero-based token-endpoint request attempt for an AS DPoP nonce challenge.
+     */
+    dpopNonceRetryAttempt?: number;
+
+    /**
      * Whether the user has "Keep Me Signed In" enabled
      */
     kmsi?: boolean;
