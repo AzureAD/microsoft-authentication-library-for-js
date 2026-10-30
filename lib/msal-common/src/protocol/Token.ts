@@ -44,6 +44,9 @@ import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManag
 import { ICrypto } from "../crypto/ICrypto.js";
 import { ITokenBindingKeyManager } from "../crypto/ITokenBindingKeyManager.js";
 
+const MAX_DPOP_NONCE_CACHE_ENTRIES = 100;
+const dpopNonceCache = new Map<string, string>();
+
 /**
  * Creates default headers for requests to token endpoint
  */
@@ -88,7 +91,8 @@ export async function addDpopTokenProofHeader(
     request: BaseAuthRequest,
     tokenEndpoint: string,
     cryptoUtils: ICrypto,
-    tokenBindingKeyManager: ITokenBindingKeyManager
+    tokenBindingKeyManager: ITokenBindingKeyManager,
+    nonce?: string
 ): Promise<void> {
     if (request.authenticationScheme !== AuthenticationScheme.DPOP) {
         return;
@@ -98,10 +102,23 @@ export async function addDpopTokenProofHeader(
         cryptoUtils,
         tokenBindingKeyManager
     );
+    if (!nonce && request.dpopProof?.trim()) {
+        headers[HeaderNames.DPOP] = request.dpopProof;
+        return;
+    }
+
     if (request.dpopProofProvider) {
-        const providedProof = await request.dpopProofProvider(
-            normalizeDpopHtu(tokenEndpoint, request.correlationId)
+        const normalizedTokenEndpoint = normalizeDpopHtu(
+            tokenEndpoint,
+            request.correlationId
         );
+        const providedProof =
+            nonce === undefined
+                ? await request.dpopProofProvider(normalizedTokenEndpoint)
+                : await request.dpopProofProvider(
+                      normalizedTokenEndpoint,
+                      nonce
+                  );
         if (!providedProof?.trim()) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.requestCannotBeMade,
@@ -109,11 +126,6 @@ export async function addDpopTokenProofHeader(
             );
         }
         headers[HeaderNames.DPOP] = providedProof;
-        return;
-    }
-
-    if (request.dpopProof?.trim()) {
-        headers[HeaderNames.DPOP] = request.dpopProof;
         return;
     }
 
@@ -128,10 +140,107 @@ export async function addDpopTokenProofHeader(
     headers[HeaderNames.DPOP] = await dpopProofGenerator.generateTokenProof(
         {
             tokenEndpoint,
+            nonce,
         },
         keyId,
         request.correlationId
     );
+}
+
+/**
+ * Returns an authorization-server DPoP nonce from any token response.
+ * Header names are matched case-insensitively because network clients normalize
+ * response headers differently.
+ * @internal
+ */
+export function getDpopNonce(
+    response: NetworkResponse<ServerAuthorizationTokenResponse>
+): string | undefined {
+    const nonceHeaderName = HeaderNames.DPOP_NONCE.toLowerCase();
+    const nonceEntry = Object.entries(response.headers || {}).find(
+        ([name]) => name.toLowerCase() === nonceHeaderName
+    );
+    const nonce = nonceEntry?.[1];
+    return typeof nonce === "string" && nonce.trim() ? nonce : undefined;
+}
+
+/**
+ * Returns the authorization-server DPoP nonce for an RFC 9449 nonce challenge.
+ * @internal
+ */
+export function getDpopNonceChallenge(
+    response: NetworkResponse<ServerAuthorizationTokenResponse>
+): string | undefined {
+    return response.body.error === "use_dpop_nonce"
+        ? getDpopNonce(response)
+        : undefined;
+}
+
+function getDpopNonceCacheKey(
+    request: BaseAuthRequest,
+    tokenEndpoint: string
+): string | undefined {
+    if (
+        request.authenticationScheme !== AuthenticationScheme.DPOP ||
+        !request.dpopJkt?.trim()
+    ) {
+        return undefined;
+    }
+
+    return `${request.dpopJkt}:${normalizeDpopHtu(
+        tokenEndpoint,
+        request.correlationId
+    )}`;
+}
+
+/**
+ * Returns a retained authorization-server nonce for this DPoP key and token
+ * endpoint.
+ * @internal
+ */
+export function getCachedDpopNonce(
+    request: BaseAuthRequest,
+    tokenEndpoint: string
+): string | undefined {
+    const key = getDpopNonceCacheKey(request, tokenEndpoint);
+    return key ? dpopNonceCache.get(key) : undefined;
+}
+
+/**
+ * Retains an authorization-server nonce for the next token request made with
+ * the same DPoP key and token endpoint.
+ * @internal
+ */
+export function cacheDpopNonce(
+    request: BaseAuthRequest,
+    tokenEndpoint: string,
+    nonce: string | undefined
+): void {
+    const key = getDpopNonceCacheKey(request, tokenEndpoint);
+    if (!key) {
+        return;
+    }
+
+    dpopNonceCache.delete(key);
+    if (!nonce) {
+        return;
+    }
+    dpopNonceCache.set(key, nonce);
+    while (dpopNonceCache.size > MAX_DPOP_NONCE_CACHE_ENTRIES) {
+        const oldestKey = dpopNonceCache.keys().next().value;
+        if (!oldestKey) {
+            break;
+        }
+        dpopNonceCache.delete(oldestKey);
+    }
+}
+
+/**
+ * Clears retained authorization-server DPoP nonces.
+ * @internal
+ */
+export function clearDpopNonceCache(): void {
+    dpopNonceCache.clear();
 }
 
 /**

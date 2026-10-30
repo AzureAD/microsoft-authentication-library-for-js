@@ -242,7 +242,7 @@ function addDeviceCode(parameters: Map<string, string>, code: string): void;
 function addDomainHint(parameters: Map<string, string>, domainHint: string): void;
 
 // @internal
-function addDpopTokenProofHeader(headers: Record<string, string>, request: BaseAuthRequest, tokenEndpoint: string, cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager): Promise<void>;
+function addDpopTokenProofHeader(headers: Record<string, string>, request: BaseAuthRequest, tokenEndpoint: string, cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager, nonce?: string): Promise<void>;
 
 // @public
 function addEARParameters(parameters: Map<string, string>, jwk: string): void;
@@ -393,6 +393,7 @@ export type AuthenticationResult = {
     idToken: string;
     idTokenClaims: object;
     accessToken: string;
+    resourceProof?: string;
     dpopProof?: string;
     fromCache: boolean;
     expiresOn: Date | null;
@@ -711,6 +712,7 @@ export type BaseAuthRequest = {
     shrOptions?: ShrOptions;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
+    resourceRequestNonce?: string;
     sshJwk?: string;
     sshKid?: string;
     azureCloudOptions?: AzureCloudOptions;
@@ -720,7 +722,7 @@ export type BaseAuthRequest = {
     popKid?: string;
     dpopJkt?: string;
     dpopProof?: string;
-    dpopProofProvider?: (tokenEndpoint: string) => Promise<string>;
+    dpopProofProvider?: (tokenEndpoint: string, nonce?: string) => Promise<string>;
     embeddedClientId?: string;
     httpMethod?: HttpMethod;
     resource?: string;
@@ -774,6 +776,9 @@ const CACHE_ACCOUNT_TYPE_MSSTS: string;
 
 // @public
 const CACHE_KEY_SEPARATOR: string;
+
+// @internal
+function cacheDpopNonce(request: BaseAuthRequest, tokenEndpoint: string, nonce: string | undefined): void;
 
 // @public
 export class CacheError extends Error {
@@ -1675,11 +1680,20 @@ function getAuthorizationCodePayload(serverParams: AuthorizeResponse, cachedStat
 // @internal
 function getAuthorizeUrl(authority: Authority, requestParameters: Map<string, string>): string;
 
+// @internal
+function getCachedDpopNonce(request: BaseAuthRequest, tokenEndpoint: string): string | undefined;
+
 // @public (undocumented)
 export function getClientAssertion(clientAssertion: string | ClientAssertionCallback, clientId: string, tokenEndpoint?: string, fmiPath?: string): Promise<string>;
 
 // @public
 function getDeserializedResponse(responseString: string): AuthorizeResponse | null;
+
+// @internal
+function getDpopNonce(response: NetworkResponse<ServerAuthorizationTokenResponse>): string | undefined;
+
+// @internal
+function getDpopNonceChallenge(response: NetworkResponse<ServerAuthorizationTokenResponse>): string | undefined;
 
 // @public
 function getJWSPayload(authToken: string, correlationId: string): string;
@@ -1725,6 +1739,7 @@ const HeaderNames: {
     readonly CONTENT_TYPE: "Content-Type";
     readonly CONTENT_LENGTH: "Content-Length";
     readonly DPOP: "DPoP";
+    readonly DPOP_NONCE: "DPoP-Nonce";
     readonly RETRY_AFTER: "Retry-After";
     readonly CCS_HEADER: "X-AnchorMailbox";
     readonly WWWAuthenticate: "WWW-Authenticate";
@@ -2570,6 +2585,13 @@ export type PerformanceEvent = {
     deduped?: boolean;
     hasAttributeTokens?: boolean;
     dpopTokenTypeMismatch?: string;
+    dpopNonceRetryAttempt?: number;
+    dpopProtocolVersion?: number;
+    dpopOfferedAccessProfiles?: string;
+    dpopOfferedRefreshProfiles?: string;
+    dpopSelectedAccessProfile?: string;
+    dpopSelectedRefreshProfile?: string;
+    dpopCompatibilityAdapterUsed?: boolean;
     kmsi?: boolean;
     regionSubScope?: string;
     ssoCapable?: boolean;
@@ -3424,6 +3446,10 @@ declare namespace TokenProtocol {
     export {
         createTokenRequestHeaders,
         addDpopTokenProofHeader,
+        getDpopNonce,
+        getDpopNonceChallenge,
+        getCachedDpopNonce,
+        cacheDpopNonce,
         createTokenQueryParameters,
         executePostToTokenEndpoint,
         sendPostRequest
