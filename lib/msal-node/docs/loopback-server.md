@@ -5,9 +5,9 @@ The loopback server is a core component of `msal-node`'s interactive authenticat
 ## How It Works
 
 1. MSAL creates a temporary HTTP server bound to `127.0.0.1` (localhost) on an available port
-2. The redirect URI (e.g., `http://localhost:52431`) is included in the authorization request
+2. The redirect URI (e.g., `http://localhost:52431`) and a fresh, cryptographically random state value are included in the authorization request
 3. After the user authenticates, the identity provider redirects the browser to the loopback server
-4. The server receives the authorization code and passes it back to MSAL for token exchange
+4. The server requires exactly one matching state value before passing the authorization response back to MSAL
 5. The server shuts down after receiving the response
 
 ## Response Mode
@@ -40,6 +40,12 @@ Only `form_post` is supported for `acquireTokenInteractive`. JavaScript or previ
 
 The built-in loopback server rejects OAuth responses containing `code` or `error` in a GET query string. Harmless GET requests, such as loading the root success page or requesting a browser resource, do not complete the authentication flow.
 
+### Response state
+
+MSAL generates a new library state for every browser-based interactive request, including requests that supply their own `state`. Non-empty caller-provided state is Base64-encoded and appended to the library state after a `|` separator for the authorization request; the original caller-provided value is preserved separately for the token exchange.
+
+Both successful and error callbacks must include exactly one state matching the pending request. Missing, empty, mismatched, or duplicate state values receive HTTP 400 without completing or cancelling sign-in, so the listener can still accept the legitimate response. GET callbacks with matching state still fail with `loopback_server_query_response_not_supported`; they are not accepted as a fallback to `form_post`.
+
 ## Preferred Port
 
 By default, the loopback server binds to a random available port. If your application requires a specific port (e.g., for a fixed redirect URI registered in your app registration), use the `preferredPort` option:
@@ -67,7 +73,8 @@ If the preferred port is unavailable, the server falls back to a random port aut
 - The server validates HTTP methods (only GET and POST are accepted)
 - The server validates `Content-Type` on POST requests (only `application/x-www-form-urlencoded` is accepted)
 - The server rejects OAuth responses delivered through GET query parameters
-- The server only resolves the authentication promise when a valid OAuth response (`code` or `error`) is received
+- The server only resolves the authentication promise when an OAuth response (`code` or `error`) carries the matching per-request state
+- State validation, not CORS or a predictable callback port, binds responses to the pending sign-in
 - Interactive authorization codes are delivered with `form_post` and are never placed in the URL
 
 ## Related Resources

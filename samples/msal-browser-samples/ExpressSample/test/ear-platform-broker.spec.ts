@@ -1,9 +1,9 @@
 import * as path from "path";
 import { spawn, ChildProcess } from "child_process";
 import * as puppeteer from "puppeteer";
-import { Screenshot, BrowserCacheUtils } from "e2e-test-utils";
-import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
 import {
+    Screenshot,
+    BrowserCacheUtils,
     createPlatformBrokerProfile,
     launchPlatformBrokerBrowser,
     PLATFORM_LOGIN_TIMEOUT,
@@ -11,7 +11,8 @@ import {
     removePlatformBrokerProfile,
     verifyPlatformBrokerResponse,
     verifyPlatformBrokerTokenStore,
-} from "./platformBrokerTestUtils";
+} from "e2e-test-utils";
+import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
 
 // CommonJS helper; require by relative path.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
