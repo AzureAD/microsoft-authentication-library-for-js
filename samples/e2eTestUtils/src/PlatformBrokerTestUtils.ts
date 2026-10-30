@@ -8,12 +8,6 @@ import * as os from "os";
 import * as path from "path";
 import { execFileSync } from "child_process";
 import * as puppeteer from "puppeteer";
-import {
-    AuthenticationResult,
-    EventType,
-    InteractionType,
-    IPublicClientApplication,
-} from "@azure/msal-browser";
 import { BrowserCacheUtils } from "./BrowserCacheTestUtils";
 
 const SSO_EXTENSION_PATH = process.env["SSO_EXTENSION_PATH"] || "";
@@ -42,7 +36,43 @@ export interface PlatformBrokerOperationResult {
     nativeAccountId: string | undefined;
 }
 
-type AuthModule = { msalInstance: IPublicClientApplication };
+export type PlatformBrokerInteractionType =
+    | "redirect"
+    | "popup"
+    | "silent"
+    | "none";
+
+interface BrowserAuthenticationResult {
+    accessToken: string;
+    fromPlatformBroker?: boolean;
+    fromCache: boolean;
+    account: {
+        homeAccountId: string;
+        nativeAccountId?: string;
+    };
+}
+
+interface PlatformBrokerEventMessage {
+    eventType: string;
+    interactionType: PlatformBrokerInteractionType | null;
+    payload: BrowserAuthenticationResult | null;
+}
+
+interface PlatformBrokerPublicClientApplication {
+    handleRedirectPromise(): Promise<BrowserAuthenticationResult | null>;
+    addEventCallback(
+        callback: (message: PlatformBrokerEventMessage) => void
+    ): string | null;
+    removeEventCallback(callbackId: string): void;
+}
+
+type AuthModule = {
+    msalInstance: PlatformBrokerPublicClientApplication;
+};
+
+const ACQUIRE_TOKEN_SUCCESS_EVENT = "msal:acquireTokenSuccess";
+const REDIRECT_INTERACTION = "redirect";
+const SILENT_INTERACTION = "silent";
 
 interface PlatformBrokerAuthData {
     account?: {
@@ -223,7 +253,7 @@ export async function verifyPlatformBrokerAccount(
 
 function verifyBrokerResult(
     result: PlatformBrokerOperationResult | null,
-    interactionType: InteractionType
+    interactionType: PlatformBrokerInteractionType
 ): PlatformBrokerOperationResult {
     expect(result).not.toBeNull();
     if (!result) {
@@ -231,7 +261,7 @@ function verifyBrokerResult(
     }
     expect(result.nativeAccountId).toBeTruthy();
     expect(result.homeAccountId).toBeTruthy();
-    if (interactionType === InteractionType.Silent) {
+    if (interactionType === SILENT_INTERACTION) {
         expect(result.fromPlatformBroker || result.fromCache).toBe(true);
     } else {
         expect(result.fromPlatformBroker).toBe(true);
@@ -259,7 +289,7 @@ export async function verifyPlatformBrokerRedirect(
                     : null
             )
         );
-        return verifyBrokerResult(result, InteractionType.Redirect);
+        return verifyBrokerResult(result, REDIRECT_INTERACTION);
     } finally {
         await auth.dispose();
     }
@@ -267,7 +297,7 @@ export async function verifyPlatformBrokerRedirect(
 
 export async function verifyPlatformBrokerOperation(
     page: puppeteer.Page,
-    interactionType: InteractionType,
+    interactionType: PlatformBrokerInteractionType,
     action: () => Promise<void>
 ): Promise<PlatformBrokerOperationResult> {
     const auth = await page.evaluateHandle<[], () => Promise<AuthModule>>(
@@ -295,8 +325,7 @@ export async function verifyPlatformBrokerOperation(
                             "accessToken" in message.payload &&
                             !state.result
                         ) {
-                            const response: AuthenticationResult =
-                                message.payload;
+                            const response = message.payload;
                             state.result = {
                                 fromPlatformBroker: response.fromPlatformBroker,
                                 fromCache: response.fromCache,
@@ -314,7 +343,7 @@ export async function verifyPlatformBrokerOperation(
                 }
                 return state;
             },
-            EventType.ACQUIRE_TOKEN_SUCCESS,
+            ACQUIRE_TOKEN_SUCCESS_EVENT,
             interactionType
         );
         await action();

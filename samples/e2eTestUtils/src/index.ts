@@ -80,6 +80,7 @@ export {
     verifyPlatformBrokerTokenStore,
 } from "./PlatformBrokerTestUtils";
 export type {
+    PlatformBrokerInteractionType,
     PlatformBrokerOperationResult,
     PlatformBrokerProfile,
     PlatformBrokerResponse,
