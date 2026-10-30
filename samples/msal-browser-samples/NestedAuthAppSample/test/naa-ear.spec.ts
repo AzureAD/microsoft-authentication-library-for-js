@@ -1,168 +1,174 @@
-// Tests the NAA and EAR end-to-end flow.
+// Tests the NAA, KMSI, and EAR end-to-end flow.
 
-import { Browser, BrowserContext, Frame, Page } from "playwright-core";
+import { parse } from "dotenv";
+import { mkdtempSync, readFileSync, rmSync } from "fs";
+import { tmpdir } from "os";
+import * as path from "path";
+import { BrowserContext, Frame, Page } from "playwright-core";
 import {
+    HostAuthResult,
+    NAA_KMSI_TOKEN_APIS,
     Screenshot,
-    accessTokenForScopesExists,
-    enterAadCredentials,
+    acquireNestedKmsiToken,
+    authenticateKmsiHost,
     getEarDecryptCount,
-    getLabCredentials,
     installEarDecryptSpy,
-    launchBrowser,
+    launchKmsiBrowserContext,
+    openKmsiHost,
     readAccountKeys,
-    readSessionTokenStore,
+    readBrowserTokenStore,
+    readCachedAccount,
+    readKmsiIdTokenClaims,
+    verifyHostTokenStore,
 } from "./naaTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/nestedAppAuth`;
-const ACTION_TIMEOUT = 15000;
-const AUTHENTICATION_TIMEOUT = 60000;
-const jestTimeout = 120000;
-const SCOPES = ["User.Read"];
+const WEB_HOST_TOKEN_STORE = {
+    idTokens: 1,
+    accessTokens: 1,
+    refreshTokens: 1,
+};
+const ACQUIRE_TOKEN_SILENT = NAA_KMSI_TOKEN_APIS[0];
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { HOST_APP_PORT } = require("../sampleConfig.cjs") as {
+const { HOST_APP_PORT, NESTED_APP_PORT } = require("../sampleConfig.cjs") as {
     HOST_APP_PORT: number;
+    NESTED_APP_PORT: number;
 };
 
-async function getNestedFrame(page: Page): Promise<Frame> {
-    const handle = await page.waitForSelector("iframe[title='nestedApp']", {
-        timeout: ACTION_TIMEOUT,
+const HOST_URL =
+    `https://localhost:${HOST_APP_PORT}/` +
+    "?ear=true&kmsi=true&platformBroker=false";
+const NESTED_URL = `https://localhost:${NESTED_APP_PORT}`;
+const NESTED_APP_CLIENT_ID = parse(
+    readFileSync(path.join(__dirname, "../.env.e2e"))
+)["VITE_NESTED_CLIENT_ID"];
+
+if (!NESTED_APP_CLIENT_ID) {
+    throw new Error("VITE_NESTED_CLIENT_ID is missing from .env.e2e");
+}
+
+async function removeHostRefreshTokens(page: Page): Promise<void> {
+    await page.evaluate(() => {
+        Object.keys(window.localStorage)
+            .filter((key) => key.includes("refreshtoken"))
+            .forEach((key) => window.localStorage.removeItem(key));
     });
-    const frame = await handle.contentFrame();
-    if (!frame) {
-        throw new Error("Nested app iframe has no content frame");
-    }
-    await frame.waitForSelector(
-        "xpath=//button[contains(., 'acquireTokenSilent')]",
-        { timeout: ACTION_TIMEOUT }
-    );
-    return frame;
 }
 
-async function waitForHostSignIn(frame: Frame): Promise<void> {
-    await frame.waitForFunction(
-        () =>
-            Array.from(document.querySelectorAll("p")).some((element) =>
-                element.textContent?.includes("Signed in")
-            ) || Boolean(document.querySelector("pre")),
-        undefined,
-        { timeout: AUTHENTICATION_TIMEOUT }
-    );
-
-    const error = await frame
-        .$eval("pre", (element) => element.textContent)
-        .catch(() => null);
-    if (error) {
-        throw new Error(`Host authentication failed: ${error}`);
-    }
-}
-
-async function verifyHostTokenStore(page: Page): Promise<void> {
-    const tokenStore = await readSessionTokenStore(page);
-    expect(tokenStore.idTokens.length).toBe(1);
-    expect(tokenStore.accessTokens.length).toBe(1);
-    expect(tokenStore.refreshTokens.length).toBe(1);
-    expect(await readAccountKeys(page)).not.toBeNull();
-    expect(accessTokenForScopesExists(tokenStore.accessTokens, SCOPES)).toBe(
-        true
+async function getTotalEarDecryptCount(
+    hostPage: Page,
+    nestedFrame: Frame
+): Promise<number> {
+    return (
+        (await getEarDecryptCount(hostPage)) +
+        (await getEarDecryptCount(nestedFrame))
     );
 }
 
-async function verifyNestedTokenStore(frame: Frame): Promise<void> {
-    const tokenStore = await readSessionTokenStore(frame);
-    expect(tokenStore.idTokens.length).toBe(1);
-    expect(tokenStore.accessTokens.length).toBe(1);
-    expect(tokenStore.refreshTokens.length).toBe(0);
-    expect(await readAccountKeys(frame)).not.toBeNull();
-    expect(accessTokenForScopesExists(tokenStore.accessTokens, SCOPES)).toBe(
-        true
-    );
-}
+describe("Nested App Authentication + KMSI + EAR", () => {
+    jest.setTimeout(300000);
 
-describe("Nested App Authentication + EAR brokered through the host app", () => {
-    jest.setTimeout(jestTimeout);
-
-    let browser: Browser;
     let context: BrowserContext;
-    let page: Page;
-    let username: string;
-    let password: string;
+    let userDataDir: string;
+    let hostPage: Page;
+    let initialHostResult: HostAuthResult;
+
+    async function launchContext(): Promise<void> {
+        context = await launchKmsiBrowserContext(userDataDir);
+        await installEarDecryptSpy(context);
+    }
+
+    async function openHost(): Promise<void> {
+        hostPage = await openKmsiHost(context, HOST_URL, NESTED_URL);
+    }
 
     beforeAll(async () => {
-        browser = await launchBrowser();
-        ({ username, password } = await getLabCredentials());
-    });
-
-    beforeEach(async () => {
-        context = await browser.newContext({ ignoreHTTPSErrors: true });
-        await installEarDecryptSpy(context);
-        page = await context.newPage();
-    });
-
-    afterEach(async () => {
-        await context.close();
+        userDataDir = mkdtempSync(
+            path.join(tmpdir(), "naa-kmsi-ear-web-profile-")
+        );
+        await launchContext();
+        await openHost();
+        initialHostResult = await authenticateKmsiHost(hostPage, false);
     });
 
     afterAll(async () => {
-        await browser.close();
+        await context?.close();
+        if (userDataDir) {
+            rmSync(userDataDir, { recursive: true, force: true });
+        }
     });
 
-    it("nested app acquires a token through the host with encrypted authorize responses", async () => {
+    it("persists an EAR-enabled NAA KMSI session across a browser restart", async () => {
         const screenshot = new Screenshot(
-            `${SCREENSHOT_BASE_FOLDER_NAME}/nestedAcquireTokenEar`
+            `${SCREENSHOT_BASE_FOLDER_NAME}/nestedAcquireTokenKmsiEar`
         );
 
-        await page.goto(`https://localhost:${HOST_APP_PORT}/?ear=true`);
+        await verifyHostTokenStore(hostPage, WEB_HOST_TOKEN_STORE);
+        expect(await getEarDecryptCount(hostPage)).toBeGreaterThan(0);
 
-        const hostFrame = page.mainFrame();
-        const popupPromise = page.waitForEvent("popup", {
-            timeout: ACTION_TIMEOUT,
-        });
-        await hostFrame
-            .getByRole("button", { name: "Login" })
-            .click({ timeout: ACTION_TIMEOUT });
-        const popupPage = await popupPromise;
-        await enterAadCredentials(popupPage, username, password, screenshot);
-        await waitForHostSignIn(hostFrame);
-        await verifyHostTokenStore(page);
-        expect(await getEarDecryptCount(page)).toBeGreaterThan(0);
-        const nestedFrame = await getNestedFrame(page);
-        await page.evaluate(() => {
-            Object.keys(window.sessionStorage)
-                .filter((key) => key.includes("refreshtoken"))
-                .forEach((key) => window.sessionStorage.removeItem(key));
-        });
-        const decryptCountBeforeNested =
-            (await getEarDecryptCount(page)) +
-            (await getEarDecryptCount(nestedFrame));
-        await nestedFrame
-            .getByRole("button", { name: "acquireTokenSilent" })
-            .click({ timeout: ACTION_TIMEOUT });
-        await nestedFrame.waitForFunction(
-            () =>
-                Boolean(
-                    document.querySelector(
-                        "table[data-testid='lastApi'][data-api='acquireTokenSilent']"
-                    )
-                ) ||
-                Boolean(document.querySelector("pre[data-testid='apiError']")),
-            undefined,
-            { timeout: ACTION_TIMEOUT }
+        await removeHostRefreshTokens(hostPage);
+        const decryptCountBeforeNested = await getEarDecryptCount(hostPage);
+        const nestedFrame = await acquireNestedKmsiToken(
+            {
+                hostPage,
+                initialHostResult,
+                fromPlatformBroker: false,
+                nestedClientId: NESTED_APP_CLIENT_ID,
+            },
+            ACQUIRE_TOKEN_SILENT
         );
-        const nestedError = await nestedFrame
-            .locator("pre[data-testid='apiError']")
-            .textContent()
-            .catch(() => null);
-        if (nestedError) {
-            throw new Error(`Nested authentication failed: ${nestedError}`);
-        }
-        await screenshot.takeScreenshot(page, "Nested app authenticated");
-        const decryptCountAfterNested =
-            (await getEarDecryptCount(page)) +
-            (await getEarDecryptCount(nestedFrame));
-        expect(decryptCountAfterNested).toBeGreaterThan(
-            decryptCountBeforeNested
+        expect(
+            await getTotalEarDecryptCount(hostPage, nestedFrame)
+        ).toBeGreaterThan(decryptCountBeforeNested);
+        await screenshot.takeScreenshot(
+            hostPage,
+            "Nested KMSI EAR session established"
         );
-        await verifyNestedTokenStore(nestedFrame);
+
+        await context.close();
+        await launchContext();
+        await openHost();
+
+        const restoredStore = await readBrowserTokenStore(
+            hostPage,
+            "localStorage"
+        );
+        expect(restoredStore.idTokens).toHaveLength(1);
+        expect(restoredStore.accessTokens).toHaveLength(1);
+        expect(restoredStore.refreshTokens).toHaveLength(1);
+        await readKmsiIdTokenClaims(
+            hostPage,
+            restoredStore.idTokens[0],
+            "localStorage"
+        );
+        const accountKeys = await readAccountKeys(hostPage, "localStorage");
+        expect(accountKeys).toHaveLength(1);
+        const restoredAccount = await readCachedAccount(
+            hostPage,
+            accountKeys?.[0],
+            "localStorage"
+        );
+        expect(restoredAccount.homeAccountId).toBe(
+            initialHostResult.account.homeAccountId
+        );
+
+        const decryptCountBeforeRestore = await getEarDecryptCount(hostPage);
+        const restoredNestedFrame = await acquireNestedKmsiToken(
+            {
+                hostPage,
+                initialHostResult,
+                fromPlatformBroker: false,
+                nestedClientId: NESTED_APP_CLIENT_ID,
+            },
+            ACQUIRE_TOKEN_SILENT
+        );
+        expect(
+            await getTotalEarDecryptCount(hostPage, restoredNestedFrame)
+        ).toBe(decryptCountBeforeRestore);
+        await screenshot.takeScreenshot(
+            hostPage,
+            "Nested KMSI EAR session restored"
+        );
     });
 });

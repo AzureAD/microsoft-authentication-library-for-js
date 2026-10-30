@@ -7,13 +7,13 @@ import { parse } from "dotenv";
 import { mkdtempSync, readFileSync, rmSync } from "fs";
 import { tmpdir } from "os";
 import * as path from "path";
-import { BrowserContext, chromium, Page } from "playwright-core";
-import * as puppeteer from "puppeteer";
+import { BrowserContext, Page } from "playwright-core";
 import {
     HostAuthResult,
     NAA_KMSI_TOKEN_APIS,
     acquireNestedKmsiToken,
     authenticateKmsiHost,
+    launchKmsiBrowserContext,
     openKmsiHost,
     readAccountKeys,
     readBrowserTokenStore,
@@ -52,21 +52,13 @@ describe("NAA + KMSI tests", () => {
     let hostPage: Page;
     let initialHostResult: HostAuthResult;
 
-    async function launchWebContext(): Promise<BrowserContext> {
-        return chromium.launchPersistentContext(userDataDir, {
-            executablePath: puppeteer.executablePath(),
-            headless: process.env["HEADLESS"] !== "false",
-            ignoreHTTPSErrors: true,
-        });
-    }
-
     async function openHost(): Promise<void> {
         hostPage = await openKmsiHost(context, HOST_URL, NESTED_URL);
     }
 
     beforeAll(async () => {
         userDataDir = mkdtempSync(path.join(tmpdir(), "naa-kmsi-web-profile-"));
-        context = await launchWebContext();
+        context = await launchKmsiBrowserContext(userDataDir);
         await openHost();
         initialHostResult = await authenticateKmsiHost(hostPage, false);
         await verifyHostTokenStore(hostPage, WEB_HOST_TOKEN_STORE);
@@ -96,7 +88,7 @@ describe("NAA + KMSI tests", () => {
 
     it("restores the same web KMSI account and both silent NAA APIs after a browser restart", async () => {
         await context.close();
-        context = await launchWebContext();
+        context = await launchKmsiBrowserContext(userDataDir);
         await openHost();
         await verifyHostTokenStore(hostPage, WEB_HOST_TOKEN_STORE);
         const hostStore = await readBrowserTokenStore(hostPage, "localStorage");
