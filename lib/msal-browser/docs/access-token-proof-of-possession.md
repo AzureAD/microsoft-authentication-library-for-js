@@ -155,7 +155,7 @@ In the event of refreshing a bound access token, MSAL will delete the cryptograp
 
 > :warning: We do not recommend using this feature unless you are familiar with the [Proof of Possession protocol](https://oauth.net/2/dpop/) and have a specific requirement to generate your own cryptographic keypair. For most cases, we recommend the PoP usage as described in the rest of this document.
 
-If you choose to generate your own cryptographic keypair, then this feature enables the application to provide the `popKid` as a request parameter. MSAL JS ensures the token issuer embeds the `cnf` in the token but returns the issued token _unsigned_. The onus of signing the access token before it is forwarded to the intended resource will be on the application. 
+If you choose to generate your own cryptographic keypair, then this feature enables the application to provide the `popKid` as a request parameter. MSAL JS ensures the token issuer embeds the `cnf` in the token but returns the issued token _unsigned_. The onus of signing the access token before it is forwarded to the intended resource will be on the application.
 
 Please also note to make sure the remaining [pop parameters](#at-pop-request-parameters) except the `AuthenticationScheme` are not set if you choose to leverage this behavior.
 
@@ -172,10 +172,10 @@ Unlike other cache items, `Access Tokens` are saved to the cache asynchronously.
 
 ```typescript
 const dpopRequest = {
-    scopes: ["User.Read"],
+    scopes: ["api://your-api-client-id/access_as_user"],
     authenticationScheme: msal.AuthenticationScheme.DPOP,
     resourceRequestMethod: "GET",
-    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+    resourceRequestUri: "https://api.example.com/resource",
 };
 
 const result = await myMSALObj.acquireTokenPopup(dpopRequest);
@@ -187,6 +187,52 @@ headers.append("DPoP", result.dpopProof);
 
 > Note: DPoP requests must include both `resourceRequestMethod` and `resourceRequestUri`. If either value is missing MSAL fails fast with `dpop_missing_resource_context`.
 
-For DPoP results, `accessToken` is the raw sender-constrained access token and `dpopProof` is a separate fresh proof for the requested resource. Proof JWTs are never cached. Cache hits generate a new proof, and if the local DPoP key is missing MSAL treats the cached sender-constrained access token as a cache miss.
+Send `accessToken` in the `Authorization` header and `dpopProof` in the `DPoP` header. Provide the method and URI of the resource request each time you acquire a result so MSAL can generate a fresh proof for that request. Do not reuse proofs or calculate the `ath` claim yourself.
 
-DPoP resource proofs are generated from the request method, normalized resource URI, and raw access token (`ath` is computed internally). MSAL does not accept caller-supplied `ath` hashes.
+### Resource-server nonce challenges
+
+> [!WARNING]
+> DPoP nonce support is under development and is not ready for production use. MSAL can manage nonce state for proof generation, but end-to-end support depends on the authorization server and resource server.
+
+A DPoP nonce is an opaque freshness value that an authorization server or resource server may require in the next proof. Enforcement is optional and can vary by resource; this example handles a resource-server challenge.
+
+For cross-origin requests, the resource server must expose the `DPoP-Nonce` response header through CORS so browser code can read it.
+
+Load a returned `DPoP-Nonce`, request a fresh proof, and retry once:
+
+```typescript
+const resourceRequestUri = "https://api.example.com/resource";
+const request = {
+    ...dpopRequest,
+    account: result.account,
+};
+
+async function callApi(tokenResult: typeof result): Promise<Response> {
+    return fetch(resourceRequestUri, {
+        method: "GET",
+        headers: {
+            Authorization: `${tokenResult.tokenType} ${tokenResult.accessToken}`,
+            DPoP: tokenResult.dpopProof,
+        },
+    });
+}
+
+let response = await callApi(result);
+const nonce = response.headers.get("DPoP-Nonce");
+
+if (nonce) {
+    await myMSALObj.loadDpopNonce(resourceRequestUri, nonce);
+}
+
+if (response.status === 401 && nonce) {
+    const retryResult = await myMSALObj.acquireTokenSilent(request);
+    response = await callApi(retryResult);
+
+    const nextNonce = response.headers.get("DPoP-Nonce");
+    if (nextNonce) {
+        await myMSALObj.loadDpopNonce(resourceRequestUri, nextNonce);
+    }
+}
+```
+
+`loadDpopNonce` stores the value for the resource origin so MSAL can include it in the next proof. It does not issue the resource request. Treat nonce values as opaque and do not persist them. This simplified example assumes a `401` with `DPoP-Nonce` is a nonce challenge; applications that need stricter challenge handling can also verify `WWW-Authenticate` contains the DPoP `use_dpop_nonce` error before retrying.

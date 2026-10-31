@@ -32,6 +32,7 @@ import {
     TimeUtils,
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     ITokenBindingKeyManager,
+    ResponseHandler,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -269,7 +270,6 @@ export class StandardController implements IController {
                   undefined,
                   this.tokenBindingKeyManager
               );
-
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
@@ -2155,6 +2155,30 @@ export class StandardController implements IController {
     }
 
     /**
+     * Stores a resource-server DPoP nonce for the matching HTTPS origin.
+     */
+    public async loadDpopNonce(
+        resourceRequestUri: string,
+        dpopNonce: string
+    ): Promise<void> {
+        BrowserUtils.blockNonBrowserEnvironment();
+        const correlationId = createNewGuid();
+        return invokeAsync(
+            async (): Promise<void> => {
+                this.browserStorage.setDpopNonce(
+                    resourceRequestUri,
+                    dpopNonce,
+                    correlationId
+                );
+            },
+            BrowserPerformanceEvents.StandardControllerLoadDpopNonce,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
+    }
+
+    /**
      * Replaces the default logger set in configurations with new Logger with new configurations
      * @param logger Logger instance
      */
@@ -2391,7 +2415,33 @@ export class StandardController implements IController {
                 correlationId
             );
             this.performanceClient.addFields({ deduped: true }, correlationId);
-            return inProgressRequest;
+            const result = await inProgressRequest;
+            if (
+                request.authenticationScheme !==
+                Constants.AuthenticationScheme.DPOP
+            ) {
+                return result;
+            }
+
+            const dpopProof = await ResponseHandler.generateDpopResourceProof(
+                this.browserCrypto,
+                result,
+                {
+                    ...request,
+                    authority: request.authority || this.config.auth.authority,
+                    correlationId,
+                },
+                this.performanceClient,
+                {
+                    tokenBindingKeyManager: this.tokenBindingKeyManager,
+                    dpopNonceProvider: this.browserStorage,
+                }
+            );
+
+            return {
+                ...result,
+                dpopProof,
+            };
         }
     }
 

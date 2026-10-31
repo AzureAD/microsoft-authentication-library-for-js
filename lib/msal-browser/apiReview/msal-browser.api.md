@@ -692,6 +692,7 @@ export interface IPublicClientApplication {
     initialize(request?: InitializeApplicationRequest): Promise<void>;
     // (undocumented)
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
+    loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
     // (undocumented)
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     // (undocumented)
@@ -965,6 +966,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     hydrateCache(result: AuthenticationResult, request: SilentRequest | SsoSilentRequest | RedirectRequest | PopupRequest): Promise<void>;
     initialize(request?: InitializeApplicationRequest): Promise<void>;
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
+    loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
     loginPopup(request?: PopupRequest | undefined): Promise<AuthenticationResult>;
     loginRedirect(request?: RedirectRequest | undefined): Promise<void>;
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;

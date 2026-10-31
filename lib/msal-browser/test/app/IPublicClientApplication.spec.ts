@@ -12,6 +12,20 @@ import { BrowserConfigurationAuthErrorCodes } from "../../src/error/BrowserConfi
 
 describe("IPublicClientApplication.ts Class Unit Tests", () => {
     describe("stubbedPublicClientApplication tests", () => {
+        it("loadDpopNonce throws", (done) => {
+            stubbedPublicClientApplication
+                .loadDpopNonce(
+                    "https://api.contoso.com/resource",
+                    "resource-nonce"
+                )
+                .catch((e) => {
+                    expect(e.errorCode).toEqual(
+                        BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled
+                    );
+                    done();
+                });
+        });
+
         it("acquireTokenPopup throws", (done) => {
             stubbedPublicClientApplication
                 .acquireTokenPopup({ scopes: ["openid"] })

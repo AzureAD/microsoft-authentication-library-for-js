@@ -29,6 +29,7 @@ import {
     createClientAuthError,
 } from "../error/ClientAuthError.js";
 import { StubPerformanceClient } from "../telemetry/performance/StubPerformanceClient.js";
+import { IDpopNonceProvider } from "../crypto/IDpopNonceProvider.js";
 
 /**
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.
@@ -37,6 +38,7 @@ import { StubPerformanceClient } from "../telemetry/performance/StubPerformanceC
  * - authOptions                - Authentication for application
  * - cryptoInterface            - Implementation of crypto functions
  * - tokenBindingKeyManager     - Implementation of token-binding key lifecycle functions
+ * - dpopNonceProvider          - Resource-server DPoP nonce provider
  * - libraryInfo                - Library metadata
  * - telemetry                  - Telemetry options and data
  * - loggerOptions              - Logging for application
@@ -54,6 +56,7 @@ export type ClientConfiguration = {
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
+    dpopNonceProvider?: IDpopNonceProvider;
     clientCredentials?: ClientCredentials;
     libraryInfo?: LibraryInfo;
     telemetry?: TelemetryOptions;
@@ -73,6 +76,7 @@ export type CommonClientConfiguration = {
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
     tokenBindingKeyManager: ITokenBindingKeyManager;
+    dpopNonceProvider?: IDpopNonceProvider;
     libraryInfo: LibraryInfo;
     telemetry: Required<TelemetryOptions>;
     serverTelemetryManager: ServerTelemetryManager | null;
@@ -234,6 +238,7 @@ export function buildClientConfiguration({
     networkInterface: networkImplementation,
     cryptoInterface: cryptoImplementation,
     tokenBindingKeyManager: tokenBindingKeyManager,
+    dpopNonceProvider: dpopNonceProvider,
     clientCredentials: clientCredentials,
     libraryInfo: libraryInfo,
     telemetry: telemetry,
@@ -266,6 +271,7 @@ export function buildClientConfiguration({
             networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         tokenBindingKeyManager: resolvedTokenBindingKeyManager,
+        dpopNonceProvider,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },

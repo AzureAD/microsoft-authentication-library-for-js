@@ -87,6 +87,22 @@ describe("silent request preparation", () => {
         expect(input.request.correlationId).toBeUndefined();
     });
 
+    it("does not include DPoP nonce state in the web request key", () => {
+        input.request = {
+            scopes: ["User.Read"],
+            authenticationScheme: Constants.AuthenticationScheme.DPOP,
+            resourceRequestMethod: "GET",
+            resourceRequestUri: "https://api.contoso.com/resource",
+        };
+
+        const prepared = prepareWebSilentRequest(input);
+
+        expect(JSON.parse(prepared.key)).not.toHaveProperty(
+            "dpopNonceGeneration"
+        );
+        expect(prepared.key).not.toContain("opaque-nonce");
+    });
+
     it.each([
         ["force refresh", { forceRefresh: true }],
         [

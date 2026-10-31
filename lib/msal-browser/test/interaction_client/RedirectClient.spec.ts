@@ -1388,6 +1388,138 @@ describe("RedirectClient", () => {
             ).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
+        it("preserves the DPoP nonce handoff until the final page processes the response", async () => {
+            const resourceRequestUri = "https://api.contoso.com/resource";
+            const dpopRequest: CommonAuthorizationUrlRequest = {
+                ...testRequest,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestUri,
+            };
+            const sourceCache = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.performanceClient,
+                // @ts-ignore
+                pca.eventHandler
+            );
+            sourceCache.setDpopNonce(resourceRequestUri, "redirect-nonce");
+            sourceCache.saveDpopNonceRedirectHandoff(
+                resourceRequestUri,
+                dpopRequest.state,
+                dpopRequest.correlationId
+            );
+            const handoffCacheKey = `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.dpop.nonce.redirect`;
+
+            const redirectPageCache = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.performanceClient,
+                // @ts-ignore
+                pca.eventHandler
+            );
+            redirectClient = new RedirectClient(
+                // @ts-ignore
+                pca.config,
+                redirectPageCache,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                // @ts-ignore
+                pca.performanceClient,
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                dpopRequest.correlationId,
+                undefined
+            );
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            redirectPageCache.setTemporaryCache(
+                TemporaryCacheKeys.ORIGIN_URI,
+                TEST_URIS.TEST_ALTERNATE_REDIR_URI,
+                true
+            );
+
+            await redirectClient.handleRedirectPromise(
+                dpopRequest,
+                TEST_CONFIG.TEST_VERIFIER,
+                rootMeasurement
+            );
+
+            expect(
+                window.sessionStorage.getItem(handoffCacheKey)
+            ).not.toBeNull();
+            expect(
+                redirectPageCache.getDpopNonce(resourceRequestUri)
+            ).toBeUndefined();
+
+            const finalPageCache = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                cacheConfig,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.performanceClient,
+                // @ts-ignore
+                pca.eventHandler
+            );
+            redirectClient = new RedirectClient(
+                // @ts-ignore
+                pca.config,
+                finalPageCache,
+                // @ts-ignore
+                pca.browserCrypto,
+                // @ts-ignore
+                pca.logger,
+                // @ts-ignore
+                pca.eventHandler,
+                // @ts-ignore
+                pca.navigationClient,
+                // @ts-ignore
+                pca.performanceClient,
+                // @ts-ignore
+                pca.nativeInternalStorage,
+                dpopRequest.correlationId,
+                undefined
+            );
+            jest.spyOn(
+                RedirectClient.prototype,
+                <any>"handleResponse"
+            ).mockResolvedValue(null);
+            window.location.hash = "";
+            finalPageCache.setTemporaryCache(
+                TemporaryCacheKeys.ORIGIN_URI,
+                window.location.href,
+                true
+            );
+
+            await redirectClient.handleRedirectPromise(
+                dpopRequest,
+                TEST_CONFIG.TEST_VERIFIER,
+                rootMeasurement
+            );
+
+            expect(window.sessionStorage.getItem(handoffCacheKey)).toBeNull();
+            expect(finalPageCache.getDpopNonce(resourceRequestUri)).toBe(
+                "redirect-nonce"
+            );
+        });
+
         it("navigates and caches hash if navigateToLoginRequestUri is true, the application is loaded in an iframe and allowRedirectInIframe is true", async () => {
             let pca = new PublicClientApplication({
                 auth: {
@@ -3392,10 +3524,9 @@ describe("RedirectClient", () => {
             );
         });
 
-        it("doesnt navigate if onRedirectNavigate returns false", (done) => {
+        it("doesnt navigate and clears the DPoP nonce handoff if onRedirectNavigate returns false", async () => {
             const onRedirectNavigate = (url: string) => {
                 expect(url).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-                done();
                 return false;
             };
 
@@ -3412,42 +3543,49 @@ describe("RedirectClient", () => {
                 },
             });
 
-            pca.initialize().then(() => {
-                pca = (pca as any).controller;
+            await pca.initialize();
+            pca = (pca as any).controller;
+            const clearHandoffSpy = jest.spyOn(
                 // @ts-ignore
-                redirectClient = new RedirectClient(
-                    //@ts-ignore
-                    pca.config,
-                    //@ts-ignore
-                    pca.browserStorage,
-                    //@ts-ignore
-                    pca.browserCrypto,
-                    //@ts-ignore
-                    pca.logger,
-                    //@ts-ignore
-                    pca.eventHandler,
-                    //@ts-ignore
-                    pca.navigationClient,
-                    //@ts-ignore
-                    pca.performanceClient,
-                    //@ts-ignore
-                    pca.nativeInternalStorage
-                );
-                const navigationClient = new NavigationClient();
-                navigationClient.navigateExternal = (
-                    urlNavigate: string,
-                    options: NavigationOptions
-                ): Promise<boolean> => {
-                    done(
-                        "Navigatation should not happen if onRedirectNavigate returns false"
-                    );
-                    return Promise.reject();
-                };
+                pca.browserStorage,
+                "clearDpopNonceRedirectHandoff"
+            );
+            // @ts-ignore
+            redirectClient = new RedirectClient(
+                //@ts-ignore
+                pca.config,
+                //@ts-ignore
+                pca.browserStorage,
+                //@ts-ignore
+                pca.browserCrypto,
+                //@ts-ignore
+                pca.logger,
+                //@ts-ignore
+                pca.eventHandler,
+                //@ts-ignore
+                pca.navigationClient,
+                //@ts-ignore
+                pca.performanceClient,
+                //@ts-ignore
+                pca.nativeInternalStorage,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            const navigationClient = new NavigationClient();
+            const navigateExternalSpy = jest
+                .spyOn(navigationClient, "navigateExternal")
+                .mockResolvedValue(true);
 
-                redirectClient.initiateAuthRequest(
-                    TEST_URIS.TEST_ALTERNATE_REDIR_URI
-                );
-            });
+            // @ts-ignore
+            redirectClient.navigationClient = navigationClient;
+
+            await redirectClient.initiateAuthRequest(
+                TEST_URIS.TEST_ALTERNATE_REDIR_URI
+            );
+
+            expect(navigateExternalSpy).not.toHaveBeenCalled();
+            expect(clearHandoffSpy).toHaveBeenCalledWith(
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("navigates if onRedirectNavigate doesnt return false", (done) => {

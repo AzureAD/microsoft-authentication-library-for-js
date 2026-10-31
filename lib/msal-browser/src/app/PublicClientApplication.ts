@@ -408,6 +408,16 @@ export class PublicClientApplication implements IPublicClientApplication {
     }
 
     /**
+     * Stores an opaque resource-server DPoP nonce for the matching HTTPS origin.
+     */
+    loadDpopNonce(
+        resourceRequestUri: string,
+        dpopNonce: string
+    ): Promise<void> {
+        return this.controller.loadDpopNonce(resourceRequestUri, dpopNonce);
+    }
+
+    /**
      * Called by wrapper libraries (Angular & React) to set SKU and Version passed down to telemetry, logger, etc.
      * @param sku
      * @param version
