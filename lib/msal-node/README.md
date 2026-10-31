@@ -9,6 +9,7 @@
 
 1. [About](#about)
 1. [FAQ](#faq)
+1. [Migration Guides](#migration-guides)
 1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/CHANGELOG.md)
 1. [Prerequisites](#prerequisites)
 1. [Installation](#installation)
@@ -64,6 +65,12 @@ More details on scenarios and the authentication flows that map to each of them 
 
 See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/faq.md).
 
+## Migration Guides
+
+-   [MSAL Node v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/v7-migration.md)
+-   [MSAL Node v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/v6-migration.md)
+-   [MSAL Node v5](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/v5-migration.md)
+
 ## Prerequisites
 
 Before using `@azure/msal-node` you will need to register your app in the azure portal:
@@ -90,12 +97,14 @@ Any major MSAL Node release:
 
 | MSAL Node version | MSAL support status | Supported Node versions |
 | ----------------- | ------------------- | ----------------------- |
-| 4.x.x             | Active development  | 20, 22, 24              |
-| 3.x.x             | Active development  | 16, 18, 20, 22, 24      |
+| 7.x.x             | Active development  | 20, 22, 24              |
+| 6.x.x             | In maintenance      | 20, 22, 24              |
+| 5.x.x             | In maintenance      | 20, 22, 24              |
+| 3.x.x             | In maintenance      | 16, 18, 20, 22, 24      |
 | 2.x.x             | In maintenance      | 16, 18, 20, 22          |
 | 1.x.x             | In maintenance      | 10, 12, 14, 16, 18      |
 
-**Note:** There have been no functional changes in the MSAL Node v2 release.
+**Note:** There was no MSAL Node v4 release. The package version was incremented from v3 directly to v5 to align with the other MSAL.js libraries. There were no functional changes in the MSAL Node v2 release.
 
 ## Usage
 
