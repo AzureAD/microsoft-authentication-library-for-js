@@ -98,13 +98,7 @@ export interface SignUpAttributeResponseV2 {
     confirmationInput?: string;
 }
 
-export interface SignUpStartResponseV2
-    extends Omit<HalResponseBaseV2, "_links"> {
-    attributes?: SignUpAttributeResponseV2[];
-    _links?: {
-        submitAttributes?: HalLink;
-    };
-}
+export type SignUpStartResponseV2 = CodeChallengeResponseV2;
 
 interface ChallengeResponseBaseV2 extends Omit<HalResponseBaseV2, "_links"> {
     id?: string;

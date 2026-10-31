@@ -54,7 +54,6 @@ export type ResetPasswordInputsV2 = CustomAuthActionInputs & {
 
 export type SignUpInputsV2 = CustomAuthActionInputs & {
     username: string;
-    password?: string;
     attributes?: UserAccountAttributes;
     scopes?: Array<string> | null;
     claims?: string;
