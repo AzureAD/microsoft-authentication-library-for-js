@@ -86,3 +86,28 @@ default redirect bridge, or the popup relay for cross-site embedded apps.
 ## Notes
 
 -   This sample uses the locally-built `msal-browser` UMD bundle served by `server.js`. Re-run the build commands above after any source changes.
+
+## Deterministic popup lifecycle tests
+
+[test/popup-lifecycle.spec.ts](test/popup-lifecycle.spec.ts) adds browser regression
+coverage for active sign-in replacement, all-account logout cancellation,
+replacement-lock ownership, same-correlation-ID window isolation, pre-opened EAR
+failure cleanup, and marker release before real main-window navigation. A
+user-closed logout popup also verifies that ordinary closure remains best-effort
+rather than becoming explicit cancellation.
+
+The suite uses a loopback identity fixture and a passive same-origin callback.
+It preserves real popup opening, polling, and storage behavior, without enforcing
+COOP on the identity page. It uses controlled discovery failures and monitor
+registration barriers instead of sleeps or retries. These tests do not fetch
+lab credentials or depend on an Entra test slice, and they do not change the
+sample UI's configuration. Setup-wide cancellation is not asserted.
+
+The existing Jest server harness expects `.env.e2e` to exist; it may be empty for
+this suite. Run:
+
+```bash
+npm run test:e2e -- --runInBand --testPathPattern=popup-lifecycle
+```
+
+The existing CI sample job runs the new suite automatically.

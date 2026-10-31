@@ -82,7 +82,7 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 | `window.location.hash` / `.search` | Extract auth response from redirect URL; optional legacy mode polls popup/iframe location after same-origin navigation | None |
 | `window.history.replaceState()` | Remove the trailing `#` after clearing a recognized response fragment by hash assignment; preserve the query string and reset history state to `null` | Hash assignment clears the response even if history updates are unavailable (may raise `hashchange`) |
 | `pageshow` event | Detect bfcache restoration to clear stale interaction state | Graceful — may cause `interaction_in_progress` error |
-| `window.open()` | Popup auth flows | None for popup |
+| `window.open()` | Popup auth flows; unique sign-in window names prevent stale request cleanup from closing a replacement popup | None for popup |
 | Hidden iframe | Silent token renewal (`ssoSilent`, `acquireTokenSilent` fallback) | None for silent renewal |
 | `window.close()` | Close popup after auth | Graceful — popup stays open |
 

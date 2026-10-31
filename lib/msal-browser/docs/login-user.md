@@ -265,12 +265,16 @@ For popup flows, you can use the `overrideInteractionInProgress` flag to cancel 
 > This feature is **only available for popup flows** and is **not supported for redirect flows**. With the COOP (Cross-Origin-Opener-Policy) header, the traditional `window.opener` connection is severed, allowing popup windows to communicate with the main frame only via BroadcastChannel.
 
 > [!CAUTION]
-> Setting this to `true` will forcefully cancel any pending popup authentication request but **will not** close any open popups.
+> Cancellation applies to an active redirect-bridge listener or legacy popup
+> poller. It does not guarantee that an existing popup is closed and cannot undo
+> requests already sent to the identity provider. A request still in asynchronous
+> setup, before response monitoring begins, is not cancelled and may continue.
 
 **When set to `true`:**
-- If another popup interaction is currently in progress, it will be forcefully cancelled but any open popups will not be closed
-- The pending interaction will reject with an `interaction_in_progress_cancelled` error
+- An active redirect-bridge listener or legacy popup poller is cancelled
+- That monitored interaction rejects with an `interaction_in_progress_cancelled` error
 - The new popup flow will proceed immediately
+- Cleanup from the earlier popup request will not release the replacement request's interaction lock
 
 **Valid use cases:**
 - Recovering from errors where the user cancelled a popup (popup was closed without completing auth)

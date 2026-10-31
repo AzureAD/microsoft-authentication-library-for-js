@@ -2083,8 +2083,21 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Clears all cache entries created by MSAL.
+     * @param correlationId
+     * @param preserveInteractionInProgress Keep the interaction marker while popup logout is pending.
      */
-    clear(correlationId: string): void {
+    clear(
+        correlationId: string,
+        preserveInteractionInProgress: boolean = false
+    ): void {
+        const interactionKey = preserveInteractionInProgress
+            ? `${CacheKeys.PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`
+            : null;
+        const browserInteractionKey =
+            this.browserStorage instanceof SessionStorage &&
+            this.temporaryCacheStorage instanceof SessionStorage
+                ? interactionKey
+                : null;
         // Removes all accounts and their credentials
         this.removeAllAccounts(correlationId);
         this.removeAppMetadata(correlationId);
@@ -2092,8 +2105,9 @@ export class BrowserCacheManager extends CacheManager {
         // Remove temp storage first to make sure any cookies are cleared
         this.temporaryCacheStorage.getKeys().forEach((cacheKey: string) => {
             if (
-                cacheKey.indexOf(CacheKeys.PREFIX) !== -1 ||
-                cacheKey.indexOf(this.clientId) !== -1
+                cacheKey !== interactionKey &&
+                (cacheKey.indexOf(CacheKeys.PREFIX) !== -1 ||
+                    cacheKey.indexOf(this.clientId) !== -1)
             ) {
                 this.removeTemporaryItem(cacheKey);
             }
@@ -2102,8 +2116,9 @@ export class BrowserCacheManager extends CacheManager {
         // Removes all remaining MSAL cache items
         this.browserStorage.getKeys().forEach((cacheKey: string) => {
             if (
-                cacheKey.indexOf(CacheKeys.PREFIX) !== -1 ||
-                cacheKey.indexOf(this.clientId) !== -1
+                cacheKey !== browserInteractionKey &&
+                (cacheKey.indexOf(CacheKeys.PREFIX) !== -1 ||
+                    cacheKey.indexOf(this.clientId) !== -1)
             ) {
                 this.browserStorage.removeItem(cacheKey);
             }
@@ -2340,6 +2355,16 @@ export class BrowserCacheManager extends CacheManager {
         } else {
             return !!clientId;
         }
+    }
+
+    /**
+     * Identifies the storage scope for in-memory interaction ownership.
+     * @internal
+     */
+    getInteractionInProgressScope(): object {
+        return this.temporaryCacheStorage instanceof SessionStorage
+            ? window.sessionStorage
+            : this.temporaryCacheStorage;
     }
 
     getInteractionInProgress(): {

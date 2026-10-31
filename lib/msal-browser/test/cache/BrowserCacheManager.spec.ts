@@ -3318,6 +3318,84 @@ describe("BrowserCacheManager tests", () => {
             expect(browserLocalStorage.getKeys()).toHaveLength(0);
         });
 
+        it.each([
+            BrowserCacheLocation.SessionStorage,
+            BrowserCacheLocation.LocalStorage,
+            BrowserCacheLocation.MemoryStorage,
+        ])(
+            "preserves the compatible interaction marker during %s logout",
+            (location) => {
+                const storage = new BrowserCacheManager(
+                    TEST_CONFIG.MSAL_CLIENT_ID,
+                    { cacheLocation: location, cacheRetentionDays: 5 },
+                    browserCrypto,
+                    logger,
+                    new StubPerformanceClient(),
+                    new EventHandler()
+                );
+                storage.setInteractionInProgress(
+                    true,
+                    INTERACTION_TYPE.SIGNOUT
+                );
+                storage.setTemporaryCache("logout-temp", "remove-me", true);
+                const key = `msal.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
+                const marker = JSON.stringify({
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    type: INTERACTION_TYPE.SIGNOUT,
+                });
+                expect(storage.getTemporaryCache(key, "", false)).toBe(marker);
+
+                storage.clear(RANDOM_TEST_GUID, true);
+
+                expect(storage.getTemporaryCache(key, "", false)).toBe(marker);
+                expect(
+                    storage.getTemporaryCache(
+                        "logout-temp",
+                        RANDOM_TEST_GUID,
+                        true
+                    )
+                ).toBeNull();
+                storage.setInteractionInProgress(
+                    false,
+                    undefined,
+                    false,
+                    "different-version-correlation-id"
+                );
+                expect(storage.getInteractionInProgress()).toBeNull();
+                storage.setInteractionInProgress(
+                    true,
+                    INTERACTION_TYPE.SIGNOUT
+                );
+                storage.clear(RANDOM_TEST_GUID);
+                expect(storage.getInteractionInProgress()).toBeNull();
+            }
+        );
+
+        it("removes a legacy local interaction marker while preserving the active temporary marker", () => {
+            const storage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                    cacheRetentionDays: 5,
+                },
+                browserCrypto,
+                logger,
+                new StubPerformanceClient(),
+                new EventHandler()
+            );
+            const key = `msal.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
+            storage.setInteractionInProgress(true, INTERACTION_TYPE.SIGNOUT);
+            const marker = window.sessionStorage.getItem(key);
+            window.localStorage.setItem(key, TEST_CONFIG.MSAL_CLIENT_ID);
+
+            storage.clear(RANDOM_TEST_GUID, true);
+
+            expect(window.sessionStorage.getItem(key)).toBe(marker);
+            expect(window.localStorage.getItem(key)).toBeNull();
+            storage.setInteractionInProgress(false);
+            expect(window.sessionStorage.getItem(key)).toBeNull();
+        });
+
         describe("Getters and Setters", () => {
             describe("Account", () => {
                 it("getAccount returns null if key not in cache", () => {
