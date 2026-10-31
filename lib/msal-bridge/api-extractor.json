@@ -1,0 +1,13 @@
+{
+    "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+    "mainEntryPointFilePath": "<projectFolder>/types/index.d.ts",
+    "compiler": { "tsconfigFilePath": "<projectFolder>/tsconfig.json" },
+    "apiReport": {
+        "enabled": true,
+        "reportFileName": "msal-bridge.api.md",
+        "reportFolder": "<projectFolder>/apiReview",
+        "reportTempFolder": "<projectFolder>/temp"
+    },
+    "docModel": { "enabled": false },
+    "dtsRollup": { "enabled": false }
+}
