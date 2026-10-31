@@ -6,6 +6,10 @@ Given that [MSAL does not cache](https://github.com/AzureAD/microsoft-authentica
 
 Once the `Signed HTTP Request` is sent to the resource server as a `PoP Token`, the resource server is responsible for validating the signed payload as well as extracting and validating the `shrNonce`.
 
+## Concurrent acquireTokenSilent calls
+
+MSAL deduplicates concurrent silent requests that share the same request parameters (see [acquire-token.md](acquire-token.md#concurrent-requests)). Because each SHR must carry the caller's own nonce, `shrNonce` is part of those parameters. Two simultaneous `acquireTokenSilent` calls that differ only by `shrNonce` will each make an independent network call and return their own SHR; they do not share one in-flight promise. An SHR signed with one nonce is not a valid answer to a challenge that required a different nonce.
+
 ## Usage
 
 Once [acquired](#acquiring-a-server-nonce), server-generated nonces for SHRs can be passed into any token request object as `shrNonce`. It is important to note that the SHR server nonce is an extension of the Access Token Proof-of-Possession scheme, so it will only be used when the token request's `authenticationScheme` is set to `POP`.
