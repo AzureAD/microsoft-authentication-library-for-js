@@ -11,9 +11,6 @@ body:
       
       You'll find our contributing doc [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md)
 
-      > [!IMPORTANT]
-      > If you are a Microsoft employee please post your question in our [Teams Channel](https://aka.ms/msaljs/teams) instead.
-      
 - type: markdown
   attributes:
     value: |
