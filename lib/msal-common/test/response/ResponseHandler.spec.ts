@@ -1054,6 +1054,120 @@ describe("ResponseHandler.ts", () => {
             expect(signSpy).toHaveBeenCalled();
         });
 
+        it("returns raw DPoP access token when the caller provided the token proof", async () => {
+            const getPublicKeySpy = jest.spyOn(
+                mockTokenBindingKeyManager,
+                "getTokenBindingPublicKeyJwk"
+            );
+            const signSpy = jest.spyOn(cryptoInterface, "signTokenBindingJwt");
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                authenticationScheme: AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                dpopProof: "forwarded-token-proof",
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                access_token: TEST_DPOP_VALUES.ACCESS_TOKEN,
+                token_type: AuthenticationScheme.DPOP,
+            };
+            claimsStub.mockImplementation(
+                (encodedToken: string): TokenClaims | null => {
+                    switch (encodedToken) {
+                        case testResponse.id_token:
+                            return ID_TOKEN_CLAIMS as TokenClaims;
+                        default:
+                            return null;
+                    }
+                }
+            );
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null,
+                mockTokenBindingKeyManager
+            );
+            const result = await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                TimeUtils.nowSeconds(),
+                testRequest,
+                0
+            );
+
+            expect(result.tokenType).toBe(AuthenticationScheme.DPOP);
+            expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
+            expect(result.dpopProof).toBeUndefined();
+            expect(getPublicKeySpy).not.toHaveBeenCalled();
+            expect(signSpy).not.toHaveBeenCalled();
+        });
+
+        it("returns raw DPoP access token for caller-owned referred binding", async () => {
+            const getPublicKeySpy = jest.spyOn(
+                mockTokenBindingKeyManager,
+                "getTokenBindingPublicKeyJwk"
+            );
+            const signSpy = jest.spyOn(cryptoInterface, "signTokenBindingJwt");
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                authenticationScheme: AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                dpopReferredBinding: true,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                access_token: TEST_DPOP_VALUES.ACCESS_TOKEN,
+                token_type: AuthenticationScheme.DPOP,
+            };
+            claimsStub.mockImplementation(
+                (encodedToken: string): TokenClaims | null => {
+                    switch (encodedToken) {
+                        case testResponse.id_token:
+                            return ID_TOKEN_CLAIMS as TokenClaims;
+                        default:
+                            return null;
+                    }
+                }
+            );
+
+            const responseHandler = new ResponseHandler(
+                "this-is-a-client-id",
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null,
+                mockTokenBindingKeyManager
+            );
+            const result = await responseHandler.handleServerTokenResponse(
+                testResponse,
+                testAuthority,
+                TimeUtils.nowSeconds(),
+                testRequest,
+                0
+            );
+
+            expect(result.tokenType).toBe(AuthenticationScheme.DPOP);
+            expect(result.accessToken).toBe(TEST_DPOP_VALUES.ACCESS_TOKEN);
+            expect(result.dpopProof).toBeUndefined();
+            expect(getPublicKeySpy).not.toHaveBeenCalled();
+            expect(signSpy).not.toHaveBeenCalled();
+        });
+
         it("returns fresh proof for lowercase cached DPoP access token", async () => {
             const hashSpy = jest
                 .spyOn(cryptoInterface, "hashString")

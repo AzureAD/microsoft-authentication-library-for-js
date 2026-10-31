@@ -7,7 +7,7 @@
  * Environment-neutral representation of the public asymmetric JWK fields
  * used by token-binding implementations.
  *
- * @internal
+ * @public
  */
 export type PublicJsonWebKey = {
     alg?: string;

@@ -242,6 +242,9 @@ function addDeviceCode(parameters: Map<string, string>, code: string): void;
 function addDomainHint(parameters: Map<string, string>, domainHint: string): void;
 
 // @internal
+function addDpopReferredBinding(parameters: Map<string, string>, cnfString: string): void;
+
+// @internal
 function addDpopTokenProofHeader(headers: Record<string, string>, request: BaseAuthRequest, tokenEndpoint: string, cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager): Promise<void>;
 
 // @public
@@ -717,6 +720,8 @@ export type BaseAuthRequest = {
     scenarioId?: string;
     popKid?: string;
     dpopJkt?: string;
+    dpopReferredBinding?: boolean;
+    dpopProof?: string;
     embeddedClientId?: string;
     httpMethod?: HttpMethod;
     resource?: string;
@@ -1547,6 +1552,18 @@ const DPOP_JKT = "dpop_jkt";
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";
 
+// @public
+export class DpopProofGenerator {
+    constructor(cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager);
+    // @internal
+    buildResourceProofClaims(params: DpopResourceProofParams, correlationId?: string): DpopProofClaims;
+    // @internal
+    buildTokenProofClaims(params: DpopTokenProofParams, correlationId?: string): DpopProofClaims;
+    generateJkt(correlationId?: string): Promise<string>;
+    generateResourceProof(params: GenerateDpopResourceProofParams, keyId: string, correlationId?: string): Promise<string>;
+    generateTokenProof(params: DpopTokenProofParams, keyId: string, correlationId?: string): Promise<string>;
+}
+
 // @public (undocumented)
 const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
 
@@ -1634,6 +1651,14 @@ export type GenerateAuthenticationResultOptions = {
 
 // @public
 function generateAuthorityMetadataExpiresAt(): number;
+
+// @public (undocumented)
+export type GenerateDpopResourceProofParams = {
+    htu?: string;
+    htm?: string;
+    nonce?: string;
+    accessToken: string;
+};
 
 // @public
 function generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, correlationId: string, idTokenClaims?: TokenClaims): string;
@@ -2068,7 +2093,7 @@ function isThrottlingEntity(key: string, entity?: object): boolean;
 // @public
 function isTokenExpired(expiresOn: string, offset: number): boolean;
 
-// @internal
+// @public
 export interface ITokenBindingKeyManager {
     getTokenBindingPublicKeyJwk(kid: string, correlationId: string): Promise<PublicJsonWebKey>;
     provisionTokenBindingKey(request: TokenBindingKeyProvisioningParameters): Promise<string>;
@@ -2301,6 +2326,9 @@ const nonceMismatch = "nonce_mismatch";
 
 // @public (undocumented)
 const noNetworkConnectivity = "no_network_connectivity";
+
+// @public
+export function normalizeDpopHtu(url: string, correlationId?: string): string;
 
 // @public
 function normalizeUrlForComparison(url: string, logger?: Logger, correlationId?: string): string;
@@ -2711,7 +2739,7 @@ declare namespace ProtocolUtils {
     }
 }
 
-// @internal
+// @public
 export type PublicJsonWebKey = {
     alg?: string;
     crv?: string;
@@ -2875,6 +2903,7 @@ declare namespace RequestParameterBuilder {
         addUsername,
         addPassword,
         addPopToken,
+        addDpopReferredBinding,
         addSshJwk,
         addServerTelemetry,
         addThrottling,

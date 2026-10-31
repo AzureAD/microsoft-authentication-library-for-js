@@ -452,6 +452,16 @@ export class AuthorizationCodeClient {
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             RequestParameterBuilder.addPopToken(parameters, reqCnfData);
         } else if (
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP &&
+            request.dpopReferredBinding &&
+            request.dpopJkt
+        ) {
+            RequestParameterBuilder.addDpopReferredBinding(
+                parameters,
+                this.cryptoUtils.encodeKid(request.dpopJkt)
+            );
+        } else if (
             request.authenticationScheme === Constants.AuthenticationScheme.SSH
         ) {
             if (request.sshJwk) {

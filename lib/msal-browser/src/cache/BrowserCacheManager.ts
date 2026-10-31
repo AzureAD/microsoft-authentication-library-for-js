@@ -2457,7 +2457,7 @@ export class BrowserCacheManager extends CacheManager {
             undefined, // refreshOn
             result.tokenType as Constants.AuthenticationScheme,
             undefined, // userAssertionHash
-            request.sshKid
+            request.dpopJkt || request.sshKid
         );
 
         if (request.resource) {

@@ -9560,6 +9560,32 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(result.fromCache).toEqual(true);
         });
 
+        it("hydrates DPoP access tokens with the request JKT", async () => {
+            const dpopJkt = "test-dpop-jkt";
+
+            await pca.initialize();
+            await pca.hydrateCache(
+                {
+                    ...testAuthenticationResult,
+                    tokenType: Constants.AuthenticationScheme.DPOP,
+                },
+                {
+                    ...request,
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    dpopJkt,
+                }
+            );
+
+            const accessTokenKeys = browserStorage.getTokenKeys().accessToken;
+            expect(accessTokenKeys).toHaveLength(1);
+            expect(
+                browserStorage.getAccessTokenCredential(
+                    accessTokenKeys[0],
+                    RANDOM_TEST_GUID
+                )?.keyId
+            ).toEqual(dpopJkt);
+        });
+
         it("hydrates internal cache if provided AuthenticationResult came from platform broker", async () => {
             let config: Configuration = {
                 auth: {

@@ -909,6 +909,7 @@ export class StandardController implements IController {
                 {
                     ...request,
                     correlationId,
+                    authority: request.authority || this.config.auth.authority,
                 },
                 ApiId.acquireTokenPopup
             )

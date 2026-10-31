@@ -247,6 +247,98 @@ describe("RefreshTokenClient unit tests", () => {
             });
         });
 
+        it("forwards caller-provided DPoP proof header for refresh token requests", (done) => {
+            jest.spyOn(
+                TokenProtocol,
+                "executePostToTokenEndpoint"
+            ).mockImplementation(
+                (
+                    url: string,
+                    body: string,
+                    headers: Record<string, string>
+                ) => {
+                    try {
+                        expect(headers[Constants.HeaderNames.DPOP]).toBe(
+                            "embedded-token-proof"
+                        );
+                        done();
+                    } catch (e) {
+                        done(e);
+                    }
+                    return Promise.resolve(
+                        JSON.parse(
+                            JSON.stringify(AUTHENTICATION_RESULT_WITH_HEADERS)
+                        )
+                    );
+                }
+            );
+
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const dpopRefreshTokenRequest: CommonRefreshTokenRequest = {
+                ...refreshTokenRequest,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                dpopProof: "embedded-token-proof",
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            client.acquireToken(dpopRefreshTokenRequest, 0).catch((e) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("sends referred DPoP binding parameters without a token proof header for refresh token requests", async () => {
+            const executePostToTokenEndpointSpy = jest
+                .spyOn(TokenProtocol, "executePostToTokenEndpoint")
+                .mockImplementation(
+                    (
+                        url: string,
+                        body: string,
+                        headers: Record<string, string>
+                    ) => {
+                        expect(
+                            headers[Constants.HeaderNames.DPOP]
+                        ).toBeUndefined();
+                        const params = new URLSearchParams(body);
+                        expect(params.get(AADServerParamKeys.REQ_CNF)).toBe(
+                            config.cryptoInterface?.encodeKid(
+                                TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+                            )
+                        );
+                        expect(params.get(AADServerParamKeys.TOKEN_TYPE)).toBe(
+                            Constants.AuthenticationScheme.DPOP
+                        );
+                        return Promise.resolve({
+                            ...AUTHENTICATION_RESULT_WITH_HEADERS,
+                            body: {
+                                ...AUTHENTICATION_RESULT_WITH_HEADERS.body,
+                                token_type: Constants.AuthenticationScheme.DPOP,
+                            },
+                        });
+                    }
+                );
+
+            const client = new RefreshTokenClient(
+                config,
+                stubPerformanceClient
+            );
+            const dpopRefreshTokenRequest: CommonRefreshTokenRequest = {
+                ...refreshTokenRequest,
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+                dpopReferredBinding: true,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            await client.acquireToken(dpopRefreshTokenRequest, 0);
+            expect(executePostToTokenEndpointSpy).toHaveBeenCalled();
+        });
+
         it("Adds extraQueryParameters to the /token request", (done) => {
             jest.spyOn(
                 TokenProtocol,

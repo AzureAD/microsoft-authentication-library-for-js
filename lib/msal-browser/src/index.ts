@@ -93,6 +93,10 @@ export {
     SignedHttpRequest,
     SignedHttpRequestOptions,
 } from "./crypto/SignedHttpRequest.js";
+export {
+    DpopProofSigner,
+    DpopProofSignerOptions,
+} from "./crypto/DpopProofSigner.js";
 
 export {
     PopupWindowAttributes,

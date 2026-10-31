@@ -29,7 +29,6 @@ export type DpopProofClaims = {
 
 /**
  * Parameters for building a token-endpoint DPoP proof.
- * @internal
  */
 export type DpopTokenProofParams = {
     tokenEndpoint: string;
@@ -83,12 +82,28 @@ function normalizeHtm(htm: string, correlationId: string): string {
 }
 
 /**
- * Normalizes a URL for use as the DPoP htu claim.
- * Per RFC 9449 §4.2, htu is the target URI without query and fragment components.
- * WHATWG URL serialization handles RFC 3986 syntax- and scheme-based normalization
- * such as lowercasing scheme/host and eliding default ports.
+ * Normalizes a URL using the DPoP target-URI (htu) semantics.
+ *
+ * Per RFC 9449 §4.2, the htu is the request target URI without its query and
+ * fragment components. This helper additionally enforces the transport
+ * invariants required for a DPoP token endpoint: the URL MUST be HTTPS and MUST
+ * NOT carry user information (userinfo). WHATWG URL serialization handles
+ * RFC 3986 syntax- and scheme-based normalization such as lowercasing
+ * scheme/host and eliding default ports.
+ *
+ * This is the single source of truth for DPoP htu normalization. Proof
+ * generation and token-endpoint agreement MUST use this same helper so both
+ * sides compare and bind against identical normalized values.
+ *
+ * @param url - The candidate URL to normalize.
+ * @param correlationId - Correlation id for error reporting.
+ * @returns The normalized URL string (query and fragment removed).
+ * @throws When the URL cannot be parsed, is not HTTPS, or carries userinfo.
  */
-function normalizeHtu(url: string, correlationId: string): string {
+export function normalizeDpopHtu(
+    url: string,
+    correlationId: string = ""
+): string {
     let parsedUrl: URL;
     try {
         parsedUrl = new URL(url);
@@ -132,12 +147,9 @@ function validateDpopNonce(
  * Builds RFC 9449 DPoP proof JWT payloads for token-endpoint and
  * resource-endpoint proof bindings.
  *
- * Not exported from any public package entry point.
- * This helper is internal-only until DPoP is wired into acquisition flows
- * in a subsequent work item.
+ * Exported for reuse by browser DPoP helpers.
  *
  * DPoP proofs do not contain SHR fields (at, ts, m, u, p, q).
- * @internal
  */
 export class DpopProofGenerator {
     private cryptoUtils: ICrypto;
@@ -168,6 +180,7 @@ export class DpopProofGenerator {
      * - htm is always "POST" because token endpoint requests use HTTP POST (RFC 9449 §5).
      * - htu is the normalized token endpoint URI (query and fragment stripped).
      * - jti is a fresh CSPRNG-backed unique identifier for every proof.
+     * @internal
      */
     buildTokenProofClaims(
         params: DpopTokenProofParams,
@@ -177,7 +190,7 @@ export class DpopProofGenerator {
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
             htm: "POST",
-            htu: normalizeHtu(params.tokenEndpoint, correlationId),
+            htu: normalizeDpopHtu(params.tokenEndpoint, correlationId),
             iat: TimeUtils.nowSeconds(),
         };
         if (params.nonce !== undefined) {
@@ -207,6 +220,7 @@ export class DpopProofGenerator {
      * - htu is the normalized resource URI (query and fragment stripped).
      * - ath is the base64url-encoded SHA-256 hash of the ASCII access token.
      * - jti is a fresh CSPRNG-backed unique identifier for every proof.
+     * @internal
      */
     buildResourceProofClaims(
         params: DpopResourceProofParams,
@@ -216,7 +230,7 @@ export class DpopProofGenerator {
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
             htm: normalizeHtm(params.htm, correlationId),
-            htu: normalizeHtu(params.htu, correlationId),
+            htu: normalizeDpopHtu(params.htu, correlationId),
             ath: params.ath,
             iat: TimeUtils.nowSeconds(),
         };
