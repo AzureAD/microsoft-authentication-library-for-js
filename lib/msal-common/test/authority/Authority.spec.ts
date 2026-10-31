@@ -42,7 +42,10 @@ import {
     TimeUtils,
     UrlString,
 } from "../../src/index.js";
-import { RegionDiscovery } from "../../src/authority/RegionDiscovery.js";
+import {
+    isValidRegionName,
+    RegionDiscovery,
+} from "../../src/authority/RegionDiscovery.js";
 import { RegionDiscoveryMetadata } from "../../src/authority/RegionDiscoveryMetadata.js";
 import { InstanceDiscoveryMetadata } from "../../src/authority/AuthorityMetadata.js";
 import * as authorityMetadata from "../../src/authority/AuthorityMetadata.js";
@@ -767,6 +770,37 @@ describe("Authority.ts Class Unit Tests", () => {
             );
         });
 
+        it.each([
+            "hostile.example/path",
+            "hostile.example?query",
+            "hostile.example#fragment",
+            "east.us",
+            "EastUS",
+            "east us",
+        ])("throws for invalid configured region %s", async (invalidRegion) => {
+            const authority = new Authority(
+                Constants.DEFAULT_AUTHORITY,
+                networkInterface,
+                mockStorage,
+                {
+                    ...authorityOptions,
+                    azureRegionConfiguration: {
+                        azureRegion: invalidRegion,
+                        environmentRegion: undefined,
+                    },
+                },
+                logger,
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
+            );
+
+            await expect(
+                authority.resolveEndpointsAsync()
+            ).rejects.toMatchObject({
+                errorCode: "invalid_azure_region",
+            });
+        });
+
         it("region is not auto-discovered if a region is provided by the user", async () => {
             const deepCopyOpenIdResponse = JSON.parse(
                 JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE)
@@ -951,6 +985,71 @@ describe("Authority.ts Class Unit Tests", () => {
                 options?: NetworkRequestOptions
             ): Promise<T> => Promise.resolve(getImpl(url, options) as T),
             sendPostRequestAsync: <T>(): Promise<T> => Promise.resolve({} as T),
+        });
+
+        it.each(["eastus", "westus2", "east-us-2", "a", "a1", "a-1"])(
+            "accepts valid region name %s",
+            (region) => {
+                expect(isValidRegionName(region)).toBe(true);
+            }
+        );
+
+        it.each([
+            "",
+            "hostile.example/path",
+            "hostile.example?query",
+            "hostile.example#fragment",
+            "EastUS",
+            "1eastus",
+            "-eastus",
+            "east_us",
+            "east us",
+            "eastus\n",
+        ])("rejects invalid region name %s", (region) => {
+            expect(isValidRegionName(region)).toBe(false);
+        });
+
+        it("throws for an invalid environment region", async () => {
+            const networkInterface = buildNetworkInterface(() => ({
+                status: Constants.HTTP_SUCCESS,
+                body: { location: "centralus" },
+            }));
+            const regionDiscovery = new RegionDiscovery(
+                networkInterface,
+                logger,
+                new StubPerformanceClient(),
+                correlationId
+            );
+            const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
+
+            await expect(
+                regionDiscovery.detectRegion(
+                    "hostile.example/path",
+                    regionDiscoveryMetadata
+                )
+            ).rejects.toMatchObject({
+                errorCode: "invalid_azure_region",
+            });
+        });
+
+        it("throws for an invalid region returned by IMDS", async () => {
+            const networkInterface = buildNetworkInterface(() => ({
+                status: Constants.HTTP_SUCCESS,
+                body: { location: "hostile.example/path" },
+            }));
+            const regionDiscovery = new RegionDiscovery(
+                networkInterface,
+                logger,
+                new StubPerformanceClient(),
+                correlationId
+            );
+            const regionDiscoveryMetadata: RegionDiscoveryMetadata = {};
+
+            await expect(
+                regionDiscovery.detectRegion(undefined, regionDiscoveryMetadata)
+            ).rejects.toMatchObject({
+                errorCode: "invalid_azure_region",
+            });
         });
 
         it("calls the IMDS /compute JSON endpoint and reads the location field", async () => {
@@ -3285,6 +3384,23 @@ describe("Authority.ts Class Unit Tests", () => {
     });
 
     describe("replaceWithRegionalInformation", () => {
+        it("throws before regionalizing an endpoint when the region is invalid", () => {
+            const tokenEndpoint =
+                "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token";
+
+            expect(() =>
+                Authority.buildRegionalAuthorityString(
+                    tokenEndpoint,
+                    "hostile.example/path",
+                    ""
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    errorCode: "invalid_azure_region",
+                })
+            );
+        });
+
         it("replaces authorization_endpoint", () => {
             const originResponse: OpenIdConfigResponse = {
                 ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
@@ -3313,6 +3429,24 @@ describe("Authority.ts Class Unit Tests", () => {
                 ""
             );
             expect(regionalResponse.end_session_endpoint).toBeUndefined();
+        });
+
+        it("throws before modifying metadata when the region is invalid", () => {
+            const originResponse: OpenIdConfigResponse = {
+                ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+            };
+
+            expect(() =>
+                Authority.replaceWithRegionalInformation(
+                    originResponse,
+                    "hostile.example/path",
+                    ""
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    errorCode: "invalid_azure_region",
+                })
+            );
         });
     });
 

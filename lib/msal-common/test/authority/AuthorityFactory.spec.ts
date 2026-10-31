@@ -16,6 +16,7 @@ import {
     ClientAuthErrorCodes,
 } from "../../src/error/ClientAuthError";
 import { Logger, LogLevel, StubPerformanceClient } from "../../src";
+import { createClientConfigurationError } from "../../src/error/ClientConfigurationError";
 
 const loggerOptions = {
     loggerCallback: (): void => {},
@@ -118,6 +119,29 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
             expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
             done();
         });
+    });
+
+    it("createDiscoveredInstance preserves configuration errors", async () => {
+        const configurationError = createClientConfigurationError(
+            "invalid_azure_region",
+            TEST_CONFIG.CORRELATION_ID
+        );
+        jest.spyOn(
+            Authority.prototype,
+            "resolveEndpointsAsync"
+        ).mockRejectedValue(configurationError);
+
+        await expect(
+            AuthorityFactory.createDiscoveredInstance(
+                DEFAULT_AUTHORITY,
+                networkInterface,
+                mockStorage,
+                authorityOptions,
+                logger,
+                TEST_CONFIG.CORRELATION_ID,
+                new StubPerformanceClient()
+            )
+        ).rejects.toBe(configurationError);
     });
 
     it("createDiscoveredInstance transforms CIAM authority", async () => {
