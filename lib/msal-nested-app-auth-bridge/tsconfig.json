@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "moduleResolution": "nodenext",
+    "module": "nodenext",
+    "rootDir": "./",
+    "outDir": "./dist",
+    "strict": true,
+    "noImplicitReturns": true,
+    "composite": false,
+    "types": [
+      "jest"
+    ]
+  },
+  "include": [
+    "src",
+    "test"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
