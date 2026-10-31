@@ -1,0 +1,24 @@
+{
+  "hostClientId": "f7369ce9-f248-485e-a6a0-c62bb3cac856",
+  "tenantId": "c7cef333-42af-492c-afb0-21f74a661133",
+  "children": [
+    {
+      "number": 1,
+      "clientId": "1170d177-31a3-43a2-834d-702308e83f6d",
+      "brokerHostClientId": "f7369ce9-f248-485e-a6a0-c62bb3cac856",
+      "redirectUri": "brk-multihub://bridge-poc.local",
+      "scopes": [
+        "User.Read"
+      ]
+    },
+    {
+      "number": 2,
+      "clientId": "dd138a81-f5f8-4d9c-8d24-d7bdd6ecc58f",
+      "brokerHostClientId": "f7369ce9-f248-485e-a6a0-c62bb3cac856",
+      "redirectUri": "brk-multihub://app2.bridge-poc.local",
+      "scopes": [
+        "User.Read"
+      ]
+    }
+  ]
+}

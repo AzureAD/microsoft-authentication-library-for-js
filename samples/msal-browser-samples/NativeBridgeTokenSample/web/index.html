@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src https://graph.microsoft.com; img-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+    <title>Embedded App | Native Bridge POC</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="msal-browser.js" defer></script>
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <header><span class="mark" aria-hidden="true">E</span><div><h1 id="app-name">Embedded App</h1><p>Web / MSAL.js / Microsoft Graph</p></div><span id="status" role="status">Starting</span></header>
+    <main>
+        <section aria-labelledby="session-title">
+            <h2 id="session-title">Authentication</h2>
+            <dl><dt>Runtime</dt><dd>MSAL.js nested-app authentication</dd><dt>Client ID</dt><dd id="client">Not configured</dd><dt>Authority</dt><dd id="authority">Not configured</dd><dt>Scopes</dt><dd id="scopes">Not configured</dd></dl>
+            <div class="actions"><button id="interactive" disabled>Sign In / Get Token</button><button id="silent" disabled>Get Token Silently</button><button id="graph" disabled>Call Graph /me</button></div>
+            <p id="outcome" role="status" aria-live="polite">Initializing native bridge.</p>
+            <dl id="result" hidden><dt>Access token</dt><dd id="token">Not acquired</dd><dt>Expires</dt><dd id="expiry"></dd><dt>Correlation</dt><dd id="correlation"></dd><dt>Graph</dt><dd id="graph-result">Not called</dd></dl>
+            <div id="graph-response-region" role="region" aria-labelledby="graph-response-title" hidden>
+                <div class="section-heading"><h3 id="graph-response-title">Graph Response</h3><button id="clear-graph-response">Clear Response</button></div>
+                <dl><dt>Name</dt><dd id="profile-name"></dd><dt>Email</dt><dd id="profile-email"></dd><dt>Job title</dt><dd id="profile-job-title"></dd></dl>
+                <details id="graph-raw"><summary>Raw JSON</summary><pre id="graph-response" tabindex="0" aria-label="Raw Graph JSON response"></pre></details>
+            </div>
+        </section>
+        <section id="bridge-request-region" aria-labelledby="bridge-request-title" hidden>
+            <div class="section-heading"><h2 id="bridge-request-title">Embedded app NAA request</h2><button id="clear-bridge-request">Clear Request / Response</button></div>
+            <p>Sensitive local display: full account, claims, and token values.</p>
+            <details open><summary>Raw serialized request (all parameters)</summary><pre id="bridge-request" tabindex="0" aria-label="Raw embedded app bridge request"></pre></details>
+        </section>
+        <section id="bridge-response-region" aria-labelledby="bridge-response-title" hidden>
+            <h2 id="bridge-response-title">Embedded app NAA response</h2>
+            <pre id="bridge-response" tabindex="0" aria-labelledby="bridge-response-title"></pre>
+        </section>
+        <section class="events" aria-labelledby="events-title"><div class="section-heading"><h2 id="events-title">Web Events</h2><button id="clear">Clear Log</button></div><pre id="events" tabindex="0" aria-label="Web diagnostic events"></pre></section>
+    </main>
+</body>
+</html>
