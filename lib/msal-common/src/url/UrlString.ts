@@ -190,7 +190,10 @@ export class UrlString {
         const defaultPort = DEFAULT_PORTS[parsedUrl.protocol] ?? "";
         const hostMatches =
             host === parsedUrl.host ||
-            host === `${parsedUrl.host}${defaultPort}`;
+            host === `${parsedUrl.host}${defaultPort}` ||
+            (/^\[[0-9a-f:.]+\](?::[0-9]+)?$/i.test(host ?? "") &&
+                new URL(`${urlComponents.Protocol}//${host}`).host ===
+                    parsedUrl.host);
 
         // Check authority ambiguity without restricting resource paths, queries, or fragments.
         if (UNSAFE_AUTHORITY.test(schemeAndAuthority) || !hostMatches) {
