@@ -37,6 +37,13 @@ describe("PasswordRequiredStateV2 sign-up", () => {
         links: {
             submitAttributes: "/signup/submitattributes",
         },
+        signUp: {
+            pendingProfileAttributes: {
+                givenName: "Test",
+                username: "test-user",
+            },
+            submittedAttributeIds: [],
+        },
     };
 
     const buildState = (
@@ -72,7 +79,7 @@ describe("PasswordRequiredStateV2 sign-up", () => {
         jest.clearAllMocks();
     });
 
-    it("submits password and profile attributes together", async () => {
+    it("forwards only the password action to the interaction client", async () => {
         flowClient.submitSignUpAttributes.mockResolvedValue({
             type: FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
             correlationId,
@@ -84,22 +91,12 @@ describe("PasswordRequiredStateV2 sign-up", () => {
             },
         });
 
-        const attributes = {
-            givenName: "Test",
-            username: "test-user",
-            password: "wrong-password",
-        };
-        const result = await buildState().submitPassword(
-            "valid-password",
-            attributes
-        );
+        const result = await buildState().submitPassword("valid-password");
 
         expect(flowClient.submitSignUpAttributes).toHaveBeenCalledWith({
             correlationId,
             continuationState,
             attributes: {
-                givenName: "Test",
-                username: "test-user",
                 password: "valid-password",
             },
         });
@@ -107,7 +104,10 @@ describe("PasswordRequiredStateV2 sign-up", () => {
         expect(result.state).toBeInstanceOf(SignInContinuationStateV2);
         expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);
         expect(result.data).toBeUndefined();
-        expect(attributes.password).toBe("wrong-password");
+        expect(continuationState.signUp.pendingProfileAttributes).toEqual({
+            givenName: "Test",
+            username: "test-user",
+        });
         expect(flowClient.submitSignInPassword).not.toHaveBeenCalled();
     });
 

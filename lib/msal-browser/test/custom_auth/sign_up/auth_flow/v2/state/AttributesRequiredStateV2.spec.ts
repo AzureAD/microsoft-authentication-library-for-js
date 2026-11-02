@@ -4,8 +4,10 @@
  */
 
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
+import type { UserAccountAttributes } from "../../../../../../src/custom_auth/UserAccountAttributes.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
+import { InvalidArgumentError } from "../../../../../../src/custom_auth/core/error/InvalidArgumentError.js";
 import { AuthMethodRegistrationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
@@ -89,6 +91,102 @@ describe("AttributesRequiredStateV2", () => {
         expect(result.isState("signInContinuation")).toBe(true);
         expect(result.state).toBeInstanceOf(SignInContinuationStateV2);
     });
+
+    it("ignores reserved attributes without mutating app input or logging PII", async () => {
+        flowClient.submitSignUpAttributes.mockResolvedValue({
+            type: FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-complete",
+                scenario: CustomAuthFlowScenarioV2.SignUp,
+                scopes,
+                links: {},
+            },
+        });
+        const state = buildState();
+        const warningSpy = jest.spyOn(
+            state["stateParameters"].logger,
+            "warning"
+        );
+        const attributes = {
+            EMAIL: "private@example.com",
+            Password: "private-password",
+            username: "test-user",
+            flatusername: "flat-user",
+            alternateEmail: "alternate@example.com",
+        };
+
+        await state.submitAttributes(attributes);
+
+        expect(flowClient.submitSignUpAttributes).toHaveBeenCalledWith({
+            correlationId,
+            continuationState,
+            attributes: {
+                username: "test-user",
+                flatusername: "flat-user",
+                alternateEmail: "alternate@example.com",
+            },
+        });
+        expect(attributes).toEqual({
+            EMAIL: "private@example.com",
+            Password: "private-password",
+            username: "test-user",
+            flatusername: "flat-user",
+            alternateEmail: "alternate@example.com",
+        });
+        expect(warningSpy).toHaveBeenCalledTimes(2);
+        for (const [message, loggedCorrelationId] of warningSpy.mock.calls) {
+            expect(message).toBe(
+                "Ignoring app-supplied sign-up attribute because it uses a reserved SDK attribute name."
+            );
+            expect(loggedCorrelationId).toBe(correlationId);
+            expect(message).not.toContain("EMAIL");
+            expect(message).not.toContain("Password");
+            expect(message).not.toContain("private@example.com");
+            expect(message).not.toContain("private-password");
+        }
+    });
+
+    it.each<UserAccountAttributes>([
+        {},
+        { EMAIL: "private@example.com", Password: "private-password" },
+    ])(
+        "rejects attributes that are empty after filtering without a request and allows retry (%j)",
+        async (attributes) => {
+            flowClient.submitSignUpAttributes.mockResolvedValue({
+                type: FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
+                correlationId,
+                continuationState: {
+                    ...continuationState,
+                    continuationToken: "ct-complete",
+                    links: {},
+                },
+            });
+            const state = buildState();
+
+            const result = await state.submitAttributes(attributes);
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.error?.isInvalidInput()).toBe(true);
+            expect(result.error?.errorData).toBeInstanceOf(
+                InvalidArgumentError
+            );
+            expect(result.error?.correlationId).toBe(correlationId);
+            expect(flowClient.submitSignUpAttributes).not.toHaveBeenCalled();
+
+            const retryResult = await state.submitAttributes({
+                givenName: "Test",
+            });
+
+            expect(retryResult.isState("signInContinuation")).toBe(true);
+            expect(flowClient.submitSignUpAttributes).toHaveBeenCalledTimes(1);
+            expect(flowClient.submitSignUpAttributes).toHaveBeenCalledWith({
+                correlationId,
+                continuationState,
+                attributes: { givenName: "Test" },
+            });
+        }
+    );
 
     it("returns fresh profile metadata and preserves the handler after attribute submission", async () => {
         const attributes = [{ attributeId: "surname", required: true }];

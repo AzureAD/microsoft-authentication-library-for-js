@@ -104,6 +104,7 @@ import {
 import type { AuthMethodRegistrationRequestV2 } from "../../network_client/custom_auth_api/v2/request/RequestsV2.js";
 import { InvalidArgumentError } from "../../error/InvalidArgumentError.js";
 import type { ResetPasswordPollResultV2 } from "../../network_client/custom_auth_api/v2/result/ResetPasswordResultsV2.js";
+import * as ArgumentValidator from "../../utils/ArgumentValidator.js";
 
 /*
  * Polls up to five times for password-update completion, waiting 1.5 seconds
@@ -251,6 +252,12 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         parameters: FlowSignUpStartParamsV2
     ): Promise<FlowCodeRequiredResultV2> {
         const correlationId = parameters.correlationId;
+        const pendingProfileAttributes =
+            ArgumentValidator.filterReservedSignUpAttributesV2(
+                parameters.attributes,
+                this.logger,
+                correlationId
+            );
         const context = this.createRequestContext(
             PublicApiId.SIGN_UP_V2_START,
             correlationId
@@ -285,6 +292,10 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 links: {
                     verify: startResult.verifyHref,
                     resend: startResult.resendHref,
+                },
+                signUp: {
+                    pendingProfileAttributes,
+                    submittedAttributeIds: [],
                 },
             },
             channel: startResult.type,
@@ -677,18 +688,12 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             correlationId,
             attributes: submittedAttributes,
         } = parameters;
-        if (
-            Object.keys(submittedAttributes).some(
-                (attributeId) => attributeId.toLowerCase() === "email"
-            )
-        ) {
-            this.logger.error(
-                "Email cannot be submitted as a V2 sign-up attribute.",
-                correlationId
-            );
-            throw new InvalidArgumentError("attributes.email", correlationId);
-        }
-
+        const pendingProfileAttributes =
+            continuationState.signUp?.pendingProfileAttributes;
+        const attributesToSubmit = {
+            ...pendingProfileAttributes,
+            ...submittedAttributes,
+        };
         const context = this.createRequestContext(
             this.resolveStepApiId(
                 continuationState.scenario,
@@ -703,8 +708,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             correlationId
         );
 
-        const submittedAttributeIds = Object.keys(submittedAttributes).filter(
-            (attributeId) => submittedAttributes[attributeId] !== undefined
+        const submittedAttributeIds = Object.keys(attributesToSubmit).filter(
+            (attributeId) => attributesToSubmit[attributeId] !== undefined
         );
         const submitResult = await this.apiClient.submitSignUpAttributes(
             this.requireLink(
@@ -713,12 +718,12 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             ),
             {
                 continuationToken: continuationState.continuationToken,
-                attributes: submittedAttributes,
+                attributes: attributesToSubmit,
             },
             context
         );
 
-        return this.toSignUpActionResult(
+        return this.toSignUpSubmitAttributesResult(
             submitResult,
             {
                 ...continuationState,
@@ -974,15 +979,16 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         );
     }
 
-    private handleSignUpVerification(
+    private async handleSignUpVerification(
         continuationState: FlowContinuationStateV2,
         verifyResult: VerifyResultV2,
         correlationId: string
-    ):
+    ): Promise<
         | FlowAuthMethodRegistrationRequiredResultV2
         | FlowSignUpPasswordRequiredResultV2
         | FlowAttributesRequiredResultV2
-        | FlowSignInContinuationRequiredResultV2 {
+        | FlowSignInContinuationRequiredResultV2
+    > {
         if (verifyResult.nextAction === COLLECT_ATTRIBUTES_RELATION) {
             const requestedAttributes = verifyResult.attributes;
             const requestedPasswordAttribute = requestedAttributes.find(
@@ -1007,6 +1013,18 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     continuationState: nextContinuationState,
                     attributes: requestedProfileAttributes,
                     requestedPasswordAttribute,
+                });
+            }
+
+            if (
+                Object.keys(
+                    nextContinuationState.signUp?.pendingProfileAttributes ?? {}
+                ).length > 0
+            ) {
+                return this.submitSignUpAttributes({
+                    correlationId,
+                    continuationState: nextContinuationState,
+                    attributes: {},
                 });
             }
 
@@ -1202,7 +1220,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         });
     }
 
-    private toSignUpActionResult(
+    private toSignUpSubmitAttributesResult(
         result: SignUpSubmitAttributesApiResultV2,
         continuationState: FlowContinuationStateV2,
         correlationId: string
@@ -1226,26 +1244,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             SignUpSubmitAttributesNextActionV2.COLLECT_ATTRIBUTES
         ) {
             const requestedAttributes = result.attributes;
-            this.ensureNoRepeatedSignUpAttributeCollection(
+            this.ensureValidSignUpAttributeCollectionAfterSubmission(
                 requestedAttributes,
                 continuationState,
                 correlationId
             );
-            if (
-                requestedAttributes.some(
-                    (attribute) =>
-                        attribute.attributeId.toLowerCase() === "password"
-                )
-            ) {
-                const message =
-                    "The sign-up API requested a password after profile submission, but password collection is only supported immediately after email verification.";
-                this.logger.error(message, correlationId);
-                throw new CustomAuthError(
-                    UNSUPPORTED_FLOW_TRANSITION,
-                    message,
-                    correlationId
-                );
-            }
             const nextContinuationState: FlowContinuationStateV2 = {
                 ...continuationState,
                 continuationToken: result.continuationToken,
@@ -1280,29 +1283,23 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         );
     }
 
-    private ensureNoRepeatedSignUpAttributeCollection(
+    private ensureValidSignUpAttributeCollectionAfterSubmission(
         requestedAttributes: SignUpAttributeV2[],
         continuationState: FlowContinuationStateV2,
         correlationId: string
     ): void {
         const submittedAttributeIds =
             continuationState.signUp?.submittedAttributeIds ?? [];
-        const repeatedAttribute = requestedAttributes.find(
+        const invalidAttribute = requestedAttributes.find(
             (requestedAttribute) =>
-                submittedAttributeIds.some(
-                    (submittedAttributeId) =>
-                        submittedAttributeId ===
-                            requestedAttribute.attributeId ||
-                        (submittedAttributeId.toLowerCase() === "password" &&
-                            requestedAttribute.attributeId.toLowerCase() ===
-                                "password")
-                )
+                requestedAttribute.attributeId.toLowerCase() === "password" ||
+                submittedAttributeIds.includes(requestedAttribute.attributeId)
         );
-        if (repeatedAttribute) {
+        if (invalidAttribute) {
             const message =
-                repeatedAttribute.attributeId.toLowerCase() === "password"
-                    ? "The sign-up API requested the password again after it was successfully submitted."
-                    : "The server requested a sign-up attribute after it was successfully submitted.";
+                invalidAttribute.attributeId.toLowerCase() === "password"
+                    ? "The sign-up API cannot request password collection after attribute submission."
+                    : "The sign-up API requested an attribute that was already successfully submitted.";
             this.logger.error(message, correlationId);
             throw new CustomAuthError(
                 UNSUPPORTED_FLOW_TRANSITION,
