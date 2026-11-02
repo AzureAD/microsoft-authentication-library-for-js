@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Validate authority and region inputs and honor instance-aware configuration during authorization code redemption.",
+  "comment": "Validate authority and region inputs and honor instance-aware configuration during authorization code redemption [#8959](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8959)",
   "packageName": "@azure/msal-common",
   "email": "nugetaad@microsoft.com",
   "dependentChangeType": "patch"
