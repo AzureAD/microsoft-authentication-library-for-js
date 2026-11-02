@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Sanitize authorization code response payloads consistently across Node clients.",
+  "packageName": "@azure/msal-node",
+  "email": "nugetaad@microsoft.com",
+  "dependentChangeType": "patch"
+}
