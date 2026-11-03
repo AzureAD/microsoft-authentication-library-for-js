@@ -22,16 +22,21 @@ export class LoopbackClient {
 
     /**
      * Spins up a loopback server which returns the server response when the localhost redirectUri is hit
+     * @param expectedState - State sent in the authorization request
      * @param successTemplate
      * @param errorTemplate
      * @returns
      */
     async listenForAuthCode(
+        expectedState: string,
         successTemplate?: string,
         errorTemplate?: string
     ): Promise<AuthorizeResponse> {
         if (this.server) {
             throw NodeAuthError.createLoopbackServerAlreadyExistsError();
+        }
+        if (!expectedState) {
+            throw NodeAuthError.createStateNotFoundError("");
         }
 
         return new Promise<AuthorizeResponse>((resolve, reject) => {
@@ -64,6 +69,7 @@ export class LoopbackClient {
                                 req,
                                 res,
                                 resolve,
+                                expectedState,
                                 successTemplate,
                                 errorTemplate
                             );
@@ -93,6 +99,17 @@ export class LoopbackClient {
                             // Ignore requests without OAuth params (e.g., /favicon.ico).
                             res.writeHead(200);
                             res.end();
+                            return;
+                        }
+
+                        if (
+                            !this.isExpectedState(
+                                parsedUrl.searchParams,
+                                expectedState
+                            )
+                        ) {
+                            res.writeHead(400);
+                            res.end("Invalid authorization response state.");
                             return;
                         }
 
@@ -139,6 +156,7 @@ export class LoopbackClient {
         req: http.IncomingMessage,
         res: http.ServerResponse,
         resolve: (value: AuthorizeResponse) => void,
+        expectedState: string,
         successTemplate?: string,
         errorTemplate?: string
     ): void {
@@ -171,6 +189,15 @@ export class LoopbackClient {
                 return;
             }
 
+            // Unrelated callbacks must not settle or cancel the pending sign-in.
+            if (
+                !this.isExpectedState(new URLSearchParams(body), expectedState)
+            ) {
+                res.writeHead(400);
+                res.end("Invalid authorization response state.");
+                return;
+            }
+
             if (authCodeResponse.error) {
                 res.writeHead(200);
                 res.end(
@@ -185,6 +212,17 @@ export class LoopbackClient {
             }
             resolve(authCodeResponse);
         });
+    }
+
+    /**
+     * Requires exactly one state value matching the pending authorization request.
+     */
+    private isExpectedState(
+        parameters: URLSearchParams,
+        expectedState: string
+    ): boolean {
+        const states = parameters.getAll("state");
+        return states.length === 1 && states[0] === expectedState;
     }
 
     /**

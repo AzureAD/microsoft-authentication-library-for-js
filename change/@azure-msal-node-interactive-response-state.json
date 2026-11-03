@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Bind interactive browser authorization responses to per-request state [#8952](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8952)",
+  "packageName": "@azure/msal-node",
+  "dependentChangeType": "patch"
+}
