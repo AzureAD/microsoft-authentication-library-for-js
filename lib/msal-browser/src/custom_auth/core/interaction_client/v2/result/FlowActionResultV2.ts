@@ -47,6 +47,18 @@ export interface FlowSignInCodeRequiredResultV2
     method: AuthenticationMethodV2;
 }
 
+export interface FlowExistingAccountCodeRequiredResultV2
+    extends Omit<FlowCodeRequiredResultV2, "type"> {
+    type: typeof FLOW_EXISTING_ACCOUNT_CODE_REQUIRED_V2;
+    method: AuthenticationMethodV2;
+}
+
+export interface FlowExistingAccountPasswordRequiredResultV2
+    extends FlowActionResultBaseV2 {
+    type: typeof FLOW_EXISTING_ACCOUNT_PASSWORD_REQUIRED_V2;
+    continuationState: FlowContinuationStateV2;
+}
+
 export interface FlowResetPasswordCodeRequiredResultV2
     extends FlowCodeRequiredResultV2 {
     method: AuthenticationMethodV2;
@@ -127,16 +139,57 @@ export type FlowSubmitCodeResultV2 =
     | FlowAuthMethodRegistrationRequiredResultV2
     | FlowCompletedResultV2;
 
-export type FlowSignUpActionResultV2 =
-    | FlowSignUpPasswordRequiredResultV2
+export type FlowSignInStartResultV2 =
+    | FlowMethodSelectionRequiredResultV2
+    | FlowPasswordRequiredResultV2
+    | FlowSignInCodeRequiredResultV2
+    | FlowMFARequiredResultV2
+    | FlowAuthMethodRegistrationRequiredResultV2
+    | FlowCompletedResultV2;
+
+export type FlowExistingAccountChallengeResultV2 =
+    | FlowExistingAccountCodeRequiredResultV2
+    | FlowExistingAccountPasswordRequiredResultV2;
+
+export type FlowSignUpStartResultV2 =
+    | FlowCodeRequiredResultV2
+    | FlowExistingAccountChallengeResultV2
+    | FlowMethodSelectionRequiredResultV2;
+
+export type FlowResetPasswordStartResultV2 =
+    | FlowMethodSelectionRequiredResultV2
+    | FlowResetPasswordCodeRequiredResultV2;
+
+export type FlowRequestChallengeResultV2 =
+    | FlowCodeRequiredResultV2
+    | FlowPasswordRequiredResultV2;
+
+export type FlowSubmitNewPasswordResultV2 =
+    | FlowSignInContinuationRequiredResultV2
+    | FlowAuthMethodRegistrationRequiredResultV2;
+
+export type FlowSubmitSignInPasswordResultV2 =
+    | FlowMFARequiredResultV2
+    | FlowAuthMethodRegistrationRequiredResultV2
+    | FlowCompletedResultV2;
+
+export type FlowSignUpSubmitAttributesResultV2 =
     | FlowAttributesRequiredResultV2
     | FlowAuthMethodRegistrationRequiredResultV2
     | FlowSignInContinuationRequiredResultV2;
+
+export type FlowSignUpVerificationResultV2 =
+    | FlowSignUpPasswordRequiredResultV2
+    | FlowSignUpSubmitAttributesResultV2;
 
 // Result type discriminators.
 export const FLOW_METHOD_SELECTION_REQUIRED_V2 =
     "FlowMethodSelectionRequiredResultV2";
 export const FLOW_CODE_REQUIRED_V2 = "FlowCodeRequiredResultV2";
+export const FLOW_EXISTING_ACCOUNT_CODE_REQUIRED_V2 =
+    "FlowExistingAccountCodeRequiredResultV2";
+export const FLOW_EXISTING_ACCOUNT_PASSWORD_REQUIRED_V2 =
+    "FlowExistingAccountPasswordRequiredResultV2";
 export const FLOW_PASSWORD_REQUIRED_V2 = "FlowPasswordRequiredResultV2";
 export const FLOW_SIGN_UP_PASSWORD_REQUIRED_V2 =
     "FlowSignUpPasswordRequiredResultV2";
@@ -161,6 +214,18 @@ export function createFlowCodeRequiredResultV2(
     input: Omit<FlowCodeRequiredResultV2, "type">
 ): FlowCodeRequiredResultV2 {
     return { type: FLOW_CODE_REQUIRED_V2, ...input };
+}
+
+export function createFlowExistingAccountCodeRequiredResultV2(
+    input: Omit<FlowExistingAccountCodeRequiredResultV2, "type">
+): FlowExistingAccountCodeRequiredResultV2 {
+    return { type: FLOW_EXISTING_ACCOUNT_CODE_REQUIRED_V2, ...input };
+}
+
+export function createFlowExistingAccountPasswordRequiredResultV2(
+    input: Omit<FlowExistingAccountPasswordRequiredResultV2, "type">
+): FlowExistingAccountPasswordRequiredResultV2 {
+    return { type: FLOW_EXISTING_ACCOUNT_PASSWORD_REQUIRED_V2, ...input };
 }
 
 export function createFlowPasswordRequiredResultV2(

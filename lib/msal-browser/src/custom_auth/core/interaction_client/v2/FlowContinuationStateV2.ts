@@ -30,8 +30,15 @@ export interface FlowContinuationStateV2 {
     scenario: CustomAuthFlowScenarioV2;
     scopes: string[];
     links: FlowLinksV2;
-    signUp?: {
-        pendingProfileAttributes?: Readonly<UserAccountAttributes>;
-        submittedAttributeIds: readonly string[];
-    };
+    signUp?:
+        | {
+              purpose: "existingAccount";
+              pendingProfileAttributes?: never;
+              submittedAttributeIds?: never;
+          }
+        | {
+              purpose: "newAccount";
+              pendingProfileAttributes?: Readonly<UserAccountAttributes>;
+              submittedAttributeIds: readonly string[];
+          };
 }

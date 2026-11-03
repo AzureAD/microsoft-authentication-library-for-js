@@ -150,6 +150,7 @@ describe("CustomAuthStandardController", () => {
                             verify: "https://endpoint/signup/verify",
                         },
                         signUp: {
+                            purpose: "newAccount",
                             pendingProfileAttributes: attributes,
                             submittedAttributeIds: [],
                         },

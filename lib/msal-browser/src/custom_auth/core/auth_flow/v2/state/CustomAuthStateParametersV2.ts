@@ -19,13 +19,13 @@ export interface CustomAuthActionRequiredStateParametersV2
     flowClient: FlowInteractionClientV2;
     continuationState: FlowContinuationStateV2;
     cacheClient: CustomAuthSilentCacheClient;
+    signInStateTransitionHandler?: SignInStateTransitionHandlerV2;
 }
 
 export interface AuthMethodSelectionRequiredStateParametersV2
     extends CustomAuthActionRequiredStateParametersV2 {
     methods: readonly AuthenticationMethodV2[];
     authenticationFactor: AuthenticationFactorV2;
-    signInStateTransitionHandler?: SignInStateTransitionHandlerV2;
 }
 
 export interface CodeVerificationStateParametersV2
@@ -39,7 +39,6 @@ export interface CodeVerificationStateParametersV2
 export interface CodeRequiredStateParametersV2
     extends CodeVerificationStateParametersV2 {
     signUpStateTransitionHandler?: SignUpStateTransitionHandlerV2;
-    signInStateTransitionHandler?: SignInStateTransitionHandlerV2;
 }
 
 export interface PasswordRequiredStateParametersV2
