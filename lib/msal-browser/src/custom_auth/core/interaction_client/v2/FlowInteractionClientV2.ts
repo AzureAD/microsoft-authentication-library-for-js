@@ -41,19 +41,17 @@ import {
     FLOW_PASSWORD_REQUIRED_V2,
 } from "./result/FlowActionResultV2.js";
 import type {
-    FlowMethodSelectionRequiredResultV2,
     FlowCodeRequiredResultV2,
-    FlowExistingAccountCodeRequiredResultV2,
-    FlowExistingAccountPasswordRequiredResultV2,
-    FlowSignInCodeRequiredResultV2,
-    FlowResetPasswordCodeRequiredResultV2,
-    FlowPasswordRequiredResultV2,
-    FlowSignUpPasswordRequiredResultV2,
-    FlowMFARequiredResultV2,
-    FlowAttributesRequiredResultV2,
-    FlowSignInContinuationRequiredResultV2,
+    FlowExistingAccountChallengeResultV2,
     FlowCompletedResultV2,
-    FlowSignUpActionResultV2,
+    FlowSignInStartResultV2,
+    FlowSignUpStartResultV2,
+    FlowResetPasswordStartResultV2,
+    FlowRequestChallengeResultV2,
+    FlowSubmitNewPasswordResultV2,
+    FlowSubmitSignInPasswordResultV2,
+    FlowSignUpSubmitAttributesResultV2,
+    FlowSignUpVerificationResultV2,
     FlowSubmitCodeResultV2,
     FlowAuthMethodRegistrationRequiredResultV2,
     FlowAuthMethodVerificationRequiredResultV2,
@@ -156,14 +154,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      */
     async signIn(
         parameters: FlowSignInStartParamsV2
-    ): Promise<
-        | FlowMethodSelectionRequiredResultV2
-        | FlowPasswordRequiredResultV2
-        | FlowSignInCodeRequiredResultV2
-        | FlowMFARequiredResultV2
-        | FlowAuthMethodRegistrationRequiredResultV2
-        | FlowCompletedResultV2
-    > {
+    ): Promise<FlowSignInStartResultV2> {
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             PublicApiId.SIGN_IN_V2_START,
@@ -255,12 +246,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
     async signUp(
         parameters: FlowSignUpStartParamsV2
-    ): Promise<
-        | FlowCodeRequiredResultV2
-        | FlowExistingAccountCodeRequiredResultV2
-        | FlowExistingAccountPasswordRequiredResultV2
-        | FlowMethodSelectionRequiredResultV2
-    > {
+    ): Promise<FlowSignUpStartResultV2> {
         const correlationId = parameters.correlationId;
         const pendingProfileAttributes =
             ArgumentValidator.filterReservedSignUpAttributesV2(
@@ -384,10 +370,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 links: {
                     challenge: selectedMethod.challengeHref,
                 },
-                signUp: {
-                    pendingProfileAttributes,
-                    submittedAttributeIds: [],
-                },
             },
         });
 
@@ -404,10 +386,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      */
     async resetPassword(
         parameters: FlowStartParamsV2
-    ): Promise<
-        | FlowMethodSelectionRequiredResultV2
-        | FlowResetPasswordCodeRequiredResultV2
-    > {
+    ): Promise<FlowResetPasswordStartResultV2> {
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
             PublicApiId.RESET_PASSWORD_V2_START,
@@ -523,7 +502,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      */
     async requestChallenge(
         parameters: FlowChallengeParamsV2
-    ): Promise<FlowCodeRequiredResultV2 | FlowPasswordRequiredResultV2> {
+    ): Promise<FlowRequestChallengeResultV2> {
         const challengeResult = await this.sendMethodChallenge(
             parameters,
             "requestChallenge"
@@ -801,7 +780,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
     async submitSignUpAttributes(
         parameters: FlowSubmitSignUpAttributesParamsV2
-    ): Promise<FlowSignUpActionResultV2> {
+    ): Promise<FlowSignUpSubmitAttributesResultV2> {
         const {
             continuationState,
             correlationId,
@@ -867,10 +846,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      */
     async submitNewPassword(
         parameters: FlowSubmitNewPasswordParamsV2
-    ): Promise<
-        | FlowSignInContinuationRequiredResultV2
-        | FlowAuthMethodRegistrationRequiredResultV2
-    > {
+    ): Promise<FlowSubmitNewPasswordResultV2> {
         const continuationState = parameters.continuationState;
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
@@ -976,11 +952,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
      */
     async submitSignInPassword(
         parameters: FlowSubmitSignInPasswordParamsV2
-    ): Promise<
-        | FlowMFARequiredResultV2
-        | FlowAuthMethodRegistrationRequiredResultV2
-        | FlowCompletedResultV2
-    > {
+    ): Promise<FlowSubmitSignInPasswordResultV2> {
         const verifyResult = await this.verifySignInPassword(parameters);
 
         return this.handleSignInVerification(
@@ -1040,11 +1012,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         continuationState: FlowContinuationStateV2,
         verifyResult: VerifyResultV2,
         correlationId: string
-    ): Promise<
-        | FlowMFARequiredResultV2
-        | FlowAuthMethodRegistrationRequiredResultV2
-        | FlowCompletedResultV2
-    > {
+    ): Promise<FlowSubmitSignInPasswordResultV2> {
         if (verifyResult.nextAction === ENROLL_RELATION) {
             return this.createAuthMethodRegistrationRequiredResult({
                 correlationId,
@@ -1102,12 +1070,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         continuationState: FlowContinuationStateV2,
         verifyResult: VerifyResultV2,
         correlationId: string
-    ): Promise<
-        | FlowAuthMethodRegistrationRequiredResultV2
-        | FlowSignUpPasswordRequiredResultV2
-        | FlowAttributesRequiredResultV2
-        | FlowSignInContinuationRequiredResultV2
-    > {
+    ): Promise<FlowSignUpVerificationResultV2> {
         if (verifyResult.nextAction === COLLECT_ATTRIBUTES_RELATION) {
             const requestedAttributes = verifyResult.attributes;
             const requestedPasswordAttribute = requestedAttributes.find(
@@ -1343,7 +1306,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         result: SignUpSubmitAttributesApiResultV2,
         continuationState: FlowContinuationStateV2,
         correlationId: string
-    ): FlowSignUpActionResultV2 {
+    ): FlowSignUpSubmitAttributesResultV2 {
         const nextAction: string = result.nextAction;
 
         if (result.nextAction === SignUpSubmitAttributesNextActionV2.ENROLL) {
@@ -1448,14 +1411,10 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     private toExistingAccountChallengeResult(
-        challengeResult:
-            | FlowCodeRequiredResultV2
-            | FlowPasswordRequiredResultV2,
+        challengeResult: FlowRequestChallengeResultV2,
         method: AuthenticationMethodV2,
         correlationId: string
-    ):
-        | FlowExistingAccountCodeRequiredResultV2
-        | FlowExistingAccountPasswordRequiredResultV2 {
+    ): FlowExistingAccountChallengeResultV2 {
         if (
             challengeResult.type === FLOW_CODE_REQUIRED_V2 &&
             challengeResult.channel?.toLowerCase() ===

@@ -8,6 +8,7 @@ import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core
 import { AuthMethodRegistrationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import { AttributesRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
+import type { FlowContinuationStateV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowContinuationStateV2.js";
 import {
     FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
     FLOW_ATTRIBUTES_REQUIRED_V2,
@@ -38,13 +39,14 @@ describe("PasswordRequiredStateV2 sign-up", () => {
             submitAttributes: "/signup/submitattributes",
         },
         signUp: {
+            purpose: "newAccount",
             pendingProfileAttributes: {
                 givenName: "Test",
                 username: "test-user",
             },
             submittedAttributeIds: [],
         },
-    };
+    } satisfies FlowContinuationStateV2;
 
     const buildState = (
         overrides: Partial<PasswordRequiredStateParametersV2> = {}

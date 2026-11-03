@@ -389,7 +389,7 @@ describe("FlowInteractionClientV2", () => {
                 "https://endpoint/password/verify",
             ],
         ])(
-            "dispatches an existing-account %s challenge without submitting sign-up attributes",
+            "dispatches an existing-account %s challenge without retaining or submitting upfront sign-up attributes",
             async (methodType, expectedType, verifyHref) => {
                 apiClient.authorizeChallengeStart.mockResolvedValue({
                     continuationToken: "ct-entry",
@@ -424,6 +424,10 @@ describe("FlowInteractionClientV2", () => {
                 const result = await client.signUp({
                     correlationId,
                     username: "existing@contoso.com",
+                    attributes: {
+                        givenName: "Signup profile",
+                        username: "signup-only-alias",
+                    },
                 });
 
                 expect(result.type).toBe(expectedType);
@@ -437,11 +441,14 @@ describe("FlowInteractionClientV2", () => {
                         purpose: "existingAccount",
                     },
                 });
+                expect(result.continuationState.signUp).toEqual({
+                    purpose: "existingAccount",
+                });
                 expect(apiClient.submitSignUpAttributes).not.toHaveBeenCalled();
             }
         );
 
-        it("offers multiple existing-account methods without requesting a challenge", async () => {
+        it("offers multiple existing-account methods without retaining upfront profiles or requesting a challenge", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
                 signUpHref: "https://endpoint/signup/start",
@@ -461,6 +468,10 @@ describe("FlowInteractionClientV2", () => {
             const result = await client.signUp({
                 correlationId,
                 username: "existing@contoso.com",
+                attributes: {
+                    givenName: "Signup profile",
+                    username: "signup-only-alias",
+                },
             });
 
             expect(result).toMatchObject({
@@ -472,7 +483,11 @@ describe("FlowInteractionClientV2", () => {
                     signUp: { purpose: "existingAccount" },
                 },
             });
+            expect(result.continuationState.signUp).toEqual({
+                purpose: "existingAccount",
+            });
             expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+            expect(apiClient.submitSignUpAttributes).not.toHaveBeenCalled();
         });
 
         it.each([{ methodTypes: [] }, { methodTypes: ["sms"] }])(
@@ -1659,6 +1674,7 @@ describe("FlowInteractionClientV2", () => {
                     resend: "https://endpoint/signup/resend",
                 },
                 signUp: {
+                    purpose: "newAccount",
                     pendingProfileAttributes: {
                         displayName: "Test User",
                     },
@@ -1725,6 +1741,7 @@ describe("FlowInteractionClientV2", () => {
                     verify: "https://endpoint/signup/verify",
                 },
                 signUp: {
+                    purpose: "newAccount",
                     pendingProfileAttributes: {
                         displayName: "Test User",
                     },
@@ -1780,6 +1797,7 @@ describe("FlowInteractionClientV2", () => {
                     .continuationState.signUp
             ).not.toHaveProperty("pendingProfileAttributes");
             expect(signUpContinuationState.signUp).toEqual({
+                purpose: "newAccount",
                 pendingProfileAttributes: {
                     displayName: "Test User",
                 },
@@ -1796,6 +1814,7 @@ describe("FlowInteractionClientV2", () => {
                     verify: "https://endpoint/signup/verify",
                 },
                 signUp: {
+                    purpose: "newAccount",
                     pendingProfileAttributes: {},
                     submittedAttributeIds: [],
                 },
@@ -1827,6 +1846,7 @@ describe("FlowInteractionClientV2", () => {
                     verify: "https://endpoint/signup/verify",
                 },
                 signUp: {
+                    purpose: "newAccount",
                     pendingProfileAttributes: {
                         displayName: "Test User",
                     },
@@ -2528,6 +2548,7 @@ describe("FlowInteractionClientV2", () => {
             const trackedContinuationState: FlowContinuationStateV2 = {
                 ...continuationState,
                 signUp: {
+                    purpose: "newAccount",
                     pendingProfileAttributes: {
                         givenName: "Test",
                         username: "test-user",
@@ -2563,9 +2584,11 @@ describe("FlowInteractionClientV2", () => {
                 expect.objectContaining({ correlationId })
             );
             expect(result.continuationState.signUp).toEqual({
+                purpose: "newAccount",
                 submittedAttributeIds: ["givenName", "username", "surname"],
             });
             expect(trackedContinuationState.signUp).toEqual({
+                purpose: "newAccount",
                 pendingProfileAttributes: {
                     givenName: "Test",
                     username: "test-user",
@@ -2587,6 +2610,7 @@ describe("FlowInteractionClientV2", () => {
                 const trackedContinuationState: FlowContinuationStateV2 = {
                     ...continuationState,
                     signUp: {
+                        purpose: "newAccount",
                         pendingProfileAttributes: {
                             givenName: "Test",
                         },
@@ -2614,6 +2638,7 @@ describe("FlowInteractionClientV2", () => {
                 ).rejects.toBe(error);
 
                 expect(trackedContinuationState.signUp).toEqual({
+                    purpose: "newAccount",
                     pendingProfileAttributes: {
                         givenName: "Test",
                     },
@@ -2643,12 +2668,14 @@ describe("FlowInteractionClientV2", () => {
                     );
                 }
                 expect(result.continuationState.signUp).toEqual({
+                    purpose: "newAccount",
                     submittedAttributeIds: [
                         "givenName",
                         ...Object.keys(attributes),
                     ],
                 });
                 expect(trackedContinuationState.signUp).toEqual({
+                    purpose: "newAccount",
                     pendingProfileAttributes: { givenName: "Test" },
                     submittedAttributeIds: [],
                 });
@@ -2659,6 +2686,7 @@ describe("FlowInteractionClientV2", () => {
             const trackedContinuationState: FlowContinuationStateV2 = {
                 ...continuationState,
                 signUp: {
+                    purpose: "newAccount",
                     pendingProfileAttributes: {
                         givenName: "Test",
                     },

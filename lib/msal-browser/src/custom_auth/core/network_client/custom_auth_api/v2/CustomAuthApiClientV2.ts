@@ -151,7 +151,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 ),
                 methods: this.resolveMethods(
                     this.handler.requireMethods(
-                        parsedResponse.body._embedded.methods,
+                        parsedResponse.body._embedded?.methods,
                         parsedResponse.correlationId
                     ),
                     parsedResponse.correlationId

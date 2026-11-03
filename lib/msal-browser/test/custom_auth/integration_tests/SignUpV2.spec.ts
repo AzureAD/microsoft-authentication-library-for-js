@@ -120,7 +120,7 @@ describe("Sign-up V2 entry", () => {
         jest.clearAllMocks();
     });
 
-    it("authenticates an existing account with an email code from signup/start", async () => {
+    it("authenticates an existing account with an email code without submitting upfront profiles", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
             .mockResolvedValueOnce(
@@ -138,6 +138,10 @@ describe("Sign-up V2 entry", () => {
         const startResult = await app.signUpV2({
             username: "existing@contoso.com",
             scopes: ["User.Read"],
+            attributes: {
+                displayName: "Signup profile",
+                username: "signup-only-alias",
+            },
         });
 
         expect(startResult.isState("existingAccountCodeRequired")).toBe(true);
@@ -152,6 +156,9 @@ describe("Sign-up V2 entry", () => {
             sentTo: "e***@contoso.com",
             codeLength: 6,
         });
+        expect(
+            startResult.state["stateParameters"].continuationState.signUp
+        ).toEqual({ purpose: "existingAccount" });
 
         const result = await startResult.state.submitCode("123456");
 
@@ -161,9 +168,14 @@ describe("Sign-up V2 entry", () => {
             continuationToken: "ct-existing-email",
             otp: "123456",
         });
+        expect(
+            (fetch as jest.Mock).mock.calls.some(([url]) =>
+                String(url).includes("submitattributes")
+            )
+        ).toBe(false);
     });
 
-    it("verifies an existing password without submitting signup attributes", async () => {
+    it("verifies an existing password without retaining or submitting upfront signup profiles", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
             .mockResolvedValueOnce(
@@ -178,6 +190,10 @@ describe("Sign-up V2 entry", () => {
 
         const startResult = await app.signUpV2({
             username: "existing@contoso.com",
+            attributes: {
+                displayName: "Signup profile",
+                username: "signup-only-alias",
+            },
         });
 
         expect(startResult.isState("existingAccountPasswordRequired")).toBe(
@@ -189,6 +205,9 @@ describe("Sign-up V2 entry", () => {
         expect(startResult.state).toBeInstanceOf(
             customAuth.ExistingAccountPasswordRequiredStateV2
         );
+        expect(
+            startResult.state["stateParameters"].continuationState.signUp
+        ).toEqual({ purpose: "existingAccount" });
 
         const result = await startResult.state.submitPassword("valid-password");
 
@@ -217,6 +236,10 @@ describe("Sign-up V2 entry", () => {
 
             const startResult = await app.signUpV2({
                 username: "existing@contoso.com",
+                attributes: {
+                    displayName: "Signup profile",
+                    username: "signup-only-alias",
+                },
             });
 
             expect(startResult.isState("authMethodSelectionRequired")).toBe(
@@ -229,6 +252,9 @@ describe("Sign-up V2 entry", () => {
             expect(startResult.state).toBeInstanceOf(
                 customAuth.AuthMethodSelectionRequiredStateV2
             );
+            expect(
+                startResult.state["stateParameters"].continuationState.signUp
+            ).toEqual({ purpose: "existingAccount" });
             const method = startResult.state.methods.find(
                 (candidate) => candidate.type === methodType
             );
@@ -277,6 +303,22 @@ describe("Sign-up V2 entry", () => {
             expect(completed?.isState("completed")).toBe(true);
             expect(completed?.scenario).toBe("signUp");
             expect(completed?.data).toBeInstanceOf(CustomAuthAccountData);
+            expect(
+                JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)
+            ).toEqual({
+                continuationToken:
+                    methodType === "email"
+                        ? SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE.continuationToken
+                        : PASSWORD_CHALLENGE_RESPONSE.continuationToken,
+                ...(methodType === "email"
+                    ? { otp: "123456" }
+                    : { password: "valid-password" }),
+            });
+            expect(
+                (fetch as jest.Mock).mock.calls.some(([url]) =>
+                    String(url).includes("submitattributes")
+                )
+            ).toBe(false);
         }
     );
 
@@ -341,7 +383,13 @@ describe("Sign-up V2 entry", () => {
             .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
             .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
 
-        const start = await app.signUpV2({ username: "existing@contoso.com" });
+        const start = await app.signUpV2({
+            username: "existing@contoso.com",
+            attributes: {
+                displayName: "Signup profile",
+                username: "signup-only-alias",
+            },
+        });
         if (!start.isState("existingAccountCodeRequired")) {
             throw new Error("Expected existing-account email verification.");
         }
@@ -463,6 +511,10 @@ describe("Sign-up V2 entry", () => {
 
             const start = await app.signUpV2({
                 username: "existing@contoso.com",
+                attributes: {
+                    displayName: "Signup profile",
+                    username: "signup-only-alias",
+                },
             });
             const failed = start.isState("existingAccountCodeRequired")
                 ? await start.state.submitCode("000000")
@@ -522,6 +574,10 @@ describe("Sign-up V2 entry", () => {
 
             const start = await app.signUpV2({
                 username: "existing@contoso.com",
+                attributes: {
+                    displayName: "Signup profile",
+                    username: "signup-only-alias",
+                },
             });
             const result = start.isState("existingAccountCodeRequired")
                 ? await start.state.submitCode("123456")
@@ -540,6 +596,11 @@ describe("Sign-up V2 entry", () => {
                 UNSUPPORTED_FLOW_TRANSITION
             );
             expect(fetch).toHaveBeenCalledTimes(4);
+            expect(
+                (fetch as jest.Mock).mock.calls.some(([url]) =>
+                    String(url).includes("submitattributes")
+                )
+            ).toBe(false);
         }
     );
 
@@ -624,6 +685,10 @@ describe("Sign-up V2 entry", () => {
 
             const start = await app.signUpV2({
                 username: "existing@contoso.com",
+                attributes: {
+                    displayName: "Signup profile",
+                    username: "signup-only-alias",
+                },
             });
             const verified = start.isState("existingAccountCodeRequired")
                 ? await start.state.submitCode("123456")
@@ -666,6 +731,11 @@ describe("Sign-up V2 entry", () => {
                 continuationToken: SMS_MFA_RESEND_RESPONSE.continuationToken,
                 otp: "123456",
             });
+            expect(
+                (fetch as jest.Mock).mock.calls.some(([url]) =>
+                    String(url).includes("submitattributes")
+                )
+            ).toBe(false);
         }
     );
 
@@ -700,6 +770,10 @@ describe("Sign-up V2 entry", () => {
 
             const start = await app.signUpV2({
                 username: "existing@contoso.com",
+                attributes: {
+                    displayName: "Signup profile",
+                    username: "signup-only-alias",
+                },
             });
             const verified = start.isState("existingAccountCodeRequired")
                 ? await start.state.submitCode("123456")
@@ -1829,6 +1903,7 @@ describe("Sign-up V2 entry", () => {
                 continuationResult.state["stateParameters"].continuationState
                     .signUp
             ).toEqual({
+                purpose: "newAccount",
                 submittedAttributeIds: [
                     ...Object.keys(profile),
                     ...(initialPassword ? ["password"] : []),
@@ -2059,6 +2134,7 @@ describe("Sign-up V2 entry", () => {
         expect(
             verifyResult.state["stateParameters"].continuationState.signUp
         ).toEqual({
+            purpose: "newAccount",
             pendingProfileAttributes: {},
             submittedAttributeIds: [],
         });
@@ -2076,6 +2152,7 @@ describe("Sign-up V2 entry", () => {
         expect(
             retryResult.state["stateParameters"].continuationState.signUp
         ).toEqual({
+            purpose: "newAccount",
             submittedAttributeIds: ["jobTitle", "city"],
         });
         expect(fetch).toHaveBeenCalledTimes(5);

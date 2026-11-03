@@ -765,6 +765,40 @@ describe("CustomAuthApiClientV2", () => {
             }
         );
 
+        it.each([
+            { label: "absent", embedded: {} },
+            { label: "null", embedded: { _embedded: null } },
+        ])(
+            "rejects an existing-account challenge when embedded methods are $label",
+            async ({ embedded }) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-existing",
+                        state: "interactionRequired",
+                        action: "challenge",
+                        challengeContext: {
+                            authenticationFactor: "singleFactor",
+                        },
+                        ...embedded,
+                    })
+                );
+
+                await expect(
+                    apiClient.signUpStart(
+                        "/tenant/api/v0.1/signup/start",
+                        {
+                            continuationToken: "ct-entry",
+                            username: "existing@contoso.com",
+                        },
+                        context
+                    )
+                ).rejects.toMatchObject({
+                    error: NO_AUTHENTICATION_METHODS,
+                    correlationId: context.correlationId,
+                });
+            }
+        );
+
         it("rejects an existing-account challenge without a continuation token", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({

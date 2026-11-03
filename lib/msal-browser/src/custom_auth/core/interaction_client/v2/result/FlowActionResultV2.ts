@@ -139,11 +139,48 @@ export type FlowSubmitCodeResultV2 =
     | FlowAuthMethodRegistrationRequiredResultV2
     | FlowCompletedResultV2;
 
-export type FlowSignUpActionResultV2 =
-    | FlowSignUpPasswordRequiredResultV2
+export type FlowSignInStartResultV2 =
+    | FlowMethodSelectionRequiredResultV2
+    | FlowPasswordRequiredResultV2
+    | FlowSignInCodeRequiredResultV2
+    | FlowMFARequiredResultV2
+    | FlowAuthMethodRegistrationRequiredResultV2
+    | FlowCompletedResultV2;
+
+export type FlowExistingAccountChallengeResultV2 =
+    | FlowExistingAccountCodeRequiredResultV2
+    | FlowExistingAccountPasswordRequiredResultV2;
+
+export type FlowSignUpStartResultV2 =
+    | FlowCodeRequiredResultV2
+    | FlowExistingAccountChallengeResultV2
+    | FlowMethodSelectionRequiredResultV2;
+
+export type FlowResetPasswordStartResultV2 =
+    | FlowMethodSelectionRequiredResultV2
+    | FlowResetPasswordCodeRequiredResultV2;
+
+export type FlowRequestChallengeResultV2 =
+    | FlowCodeRequiredResultV2
+    | FlowPasswordRequiredResultV2;
+
+export type FlowSubmitNewPasswordResultV2 =
+    | FlowSignInContinuationRequiredResultV2
+    | FlowAuthMethodRegistrationRequiredResultV2;
+
+export type FlowSubmitSignInPasswordResultV2 =
+    | FlowMFARequiredResultV2
+    | FlowAuthMethodRegistrationRequiredResultV2
+    | FlowCompletedResultV2;
+
+export type FlowSignUpSubmitAttributesResultV2 =
     | FlowAttributesRequiredResultV2
     | FlowAuthMethodRegistrationRequiredResultV2
     | FlowSignInContinuationRequiredResultV2;
+
+export type FlowSignUpVerificationResultV2 =
+    | FlowSignUpPasswordRequiredResultV2
+    | FlowSignUpSubmitAttributesResultV2;
 
 // Result type discriminators.
 export const FLOW_METHOD_SELECTION_REQUIRED_V2 =
