@@ -446,6 +446,39 @@ describe("Reset password V2 (SSPR)", () => {
         );
     });
 
+    it("surfaces a reset-disabled error when starting password reset", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse(
+                    {
+                        error: {
+                            code: "invalidRequest",
+                            message:
+                                "AADSTS10040039: You can't reset your own password because password reset isn't turned on for your account.",
+                            innerError: {
+                                code: "passwordResetNotEnabledForUser",
+                            },
+                        },
+                    },
+                    400
+                )
+            );
+
+        const result = await app.resetPasswordV2({
+            username: "user@contoso.com",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
+        expect(result.error?.isPasswordResetNotEnabled()).toBe(true);
+        expect(result.error?.isInvalidPassword()).toBe(false);
+        expect(result.error?.innerErrorCode).toBe(
+            "passwordResetNotEnabledForUser"
+        );
+        expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
     it("surfaces an invalid-code failure while awaiting a valid code", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
@@ -477,41 +510,51 @@ describe("Reset password V2 (SSPR)", () => {
         expect(fetch).toHaveBeenCalledTimes(4);
     });
 
-    it("surfaces an invalid-password failure while awaiting a valid password", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
-            .mockResolvedValueOnce(
-                buildResponse(
-                    {
-                        error: {
-                            code: "invalidRequest",
-                            message:
-                                "AADSTS120002: New password doesn't meet complexity requirements.",
-                            innerError: { code: "passwordTooWeak" },
+    it.each([
+        "passwordTooWeak",
+        "passwordTooShort",
+        "passwordTooLong",
+        "passwordIsInvalid",
+        "passwordRecentlyUsed",
+        "passwordBanned",
+    ])(
+        "surfaces %s while awaiting a valid password",
+        async (innerErrorCode) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        {
+                            error: {
+                                code: "invalidRequest",
+                                message:
+                                    "AADSTS120002: New password doesn't meet complexity requirements.",
+                                innerError: { code: innerErrorCode },
+                            },
                         },
-                    },
-                    400
-                )
-            );
+                        400
+                    )
+                );
 
-        const startResult = await app.resetPasswordV2({
-            username: "user@contoso.com",
-        });
-        const verifyResult = await (
-            startResult.state as CodeRequiredStateV2
-        ).submitCode("123456");
-        const result = await (
-            verifyResult.state as NewPasswordRequiredStateV2
-        ).submitNewPassword("weak");
+            const startResult = await app.resetPasswordV2({
+                username: "user@contoso.com",
+            });
+            const verifyResult = await (
+                startResult.state as CodeRequiredStateV2
+            ).submitCode("123456");
+            const result = await (
+                verifyResult.state as NewPasswordRequiredStateV2
+            ).submitNewPassword("weak");
 
-        expect(result.isFailed()).toBe(true);
-        expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
-        expect(result.error?.isInvalidPassword()).toBe(true);
-        expect(fetch).toHaveBeenCalledTimes(5);
-    });
+            expect(result.isFailed()).toBe(true);
+            expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
+            expect(result.error?.isInvalidPassword()).toBe(true);
+            expect(fetch).toHaveBeenCalledTimes(5);
+        }
+    );
 
     it("surfaces a browser-required failure when the server asks for web fallback", async () => {
         (fetch as jest.Mock)

@@ -72,7 +72,6 @@ describe("CustomAuthResultV2", () => {
         expect(typeof result.error.isInvalidCredentials).toBe("function");
         expect(typeof result.error.isInvalidCode).toBe("function");
         expect(typeof result.error.isInvalidPassword).toBe("function");
-        expect(typeof result.error.isUserAlreadyExists).toBe("function");
         expect(typeof result.error.isMissingRequiredAttributes).toBe(
             "function"
         );

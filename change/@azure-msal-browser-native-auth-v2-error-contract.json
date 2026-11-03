@@ -1,0 +1,6 @@
+{
+    "type": "patch",
+    "comment": "Correct Native Auth V2 user-not-found and password-error classification, add reset-disabled detection, and remove the obsolete existing-account error helper.",
+    "packageName": "@azure/msal-browser",
+    "dependentChangeType": "patch"
+}

@@ -84,17 +84,29 @@ describe("AuthFlowErrorV2 error mapping", () => {
     });
 
     describe("isInvalidPassword", () => {
-        it("is true for the inner passwordTooWeak (AADSTS120002)", () => {
-            const error = new AuthFlowErrorV2(
-                apiError("invalidRequest", {
-                    innerErrorCode: "passwordTooWeak",
-                    message:
-                        "AADSTS120002: New password doesn't meet complexity requirements.",
-                })
-            );
+        const passwordPolicyCodes = [
+            "passwordTooWeak",
+            "passwordTooShort",
+            "passwordTooLong",
+            "passwordIsInvalid",
+            "passwordRecentlyUsed",
+            "passwordBanned",
+        ];
 
-            expect(error.isInvalidPassword()).toBe(true);
-        });
+        it.each(passwordPolicyCodes)(
+            "is true for inner %s",
+            (innerErrorCode) => {
+                const error = new AuthFlowErrorV2(
+                    apiError("invalidRequest", {
+                        innerErrorCode,
+                        message:
+                            "The supplied password does not meet password policy.",
+                    })
+                );
+
+                expect(error.isInvalidPassword()).toBe(true);
+            }
+        );
 
         it("is false for the legacy synthetic passwordInvalid code", () => {
             const error = new AuthFlowErrorV2(
@@ -106,14 +118,17 @@ describe("AuthFlowErrorV2 error mapping", () => {
             expect(error.isInvalidPassword()).toBe(false);
         });
 
-        it("is false when passwordTooWeak has a different outer code", () => {
-            const error = new AuthFlowErrorV2(
-                apiError("invalidGrant", {
-                    innerErrorCode: "passwordTooWeak",
-                })
-            );
-            expect(error.isInvalidPassword()).toBe(false);
-        });
+        it.each(passwordPolicyCodes)(
+            "is false when %s has a different outer code",
+            (innerErrorCode) => {
+                const error = new AuthFlowErrorV2(
+                    apiError("invalidGrant", {
+                        innerErrorCode,
+                    })
+                );
+                expect(error.isInvalidPassword()).toBe(false);
+            }
+        );
 
         it("is true for a password-targeted policy violation", () => {
             const error = new AuthFlowErrorV2(
@@ -210,8 +225,50 @@ describe("AuthFlowErrorV2 error mapping", () => {
         });
     });
 
+    describe("isPasswordResetNotEnabled", () => {
+        it("recognizes the structured reset-disabled error without treating it as an invalid password", () => {
+            const error = new AuthFlowErrorV2(
+                apiError("invalidRequest", {
+                    innerErrorCode: "passwordResetNotEnabledForUser",
+                })
+            );
+
+            expect(error.isPasswordResetNotEnabled()).toBe(true);
+            expect(error.isInvalidPassword()).toBe(false);
+        });
+
+        it.each([
+            {
+                code: "invalidGrant",
+                innerErrorCode: "passwordResetNotEnabledForUser",
+            },
+            { code: "invalidRequest", innerErrorCode: "passwordTooWeak" },
+            { code: "invalidRequest", innerErrorCode: undefined },
+        ])(
+            "does not match outer $code with inner $innerErrorCode",
+            ({ code, innerErrorCode }) => {
+                const error = new AuthFlowErrorV2(
+                    apiError(code, { innerErrorCode })
+                );
+
+                expect(error.isPasswordResetNotEnabled()).toBe(false);
+            }
+        );
+
+        it("does not classify a message-only AADSTS10040039 failure", () => {
+            const error = new AuthFlowErrorV2(
+                apiError("invalidRequest", {
+                    message:
+                        "AADSTS10040039: Password reset isn't turned on for your account.",
+                })
+            );
+
+            expect(error.isPasswordResetNotEnabled()).toBe(false);
+        });
+    });
+
     describe("isUserNotFound", () => {
-        it("is true when AADSTS50034 is carried in the message (nested /api error)", () => {
+        it("does not classify a message-only AADSTS50034 failure", () => {
             const error = new AuthFlowErrorV2(
                 apiError("invalidRequest", {
                     message:
@@ -219,14 +276,15 @@ describe("AuthFlowErrorV2 error mapping", () => {
                 })
             );
 
-            expect(error.isUserNotFound()).toBe(true);
+            expect(error.isUserNotFound()).toBe(false);
         });
 
         it("is true when the nested error code is userNotFound", () => {
             const error = new AuthFlowErrorV2(
                 apiError("invalidRequest", {
                     innerErrorCode: "userNotFound",
-                    message: "The supplied account was not found.",
+                    message:
+                        "AADSTS10040172: The user account does not exist in the directory.",
                 })
             );
 
@@ -238,6 +296,28 @@ describe("AuthFlowErrorV2 error mapping", () => {
             const error = new AuthFlowErrorV2(
                 apiError("invalidRequest", {
                     message: "AADSTS999999: some other failure.",
+                })
+            );
+
+            expect(error.isUserNotFound()).toBe(false);
+        });
+
+        it("requires invalidRequest for inner userNotFound", () => {
+            const error = new AuthFlowErrorV2(
+                apiError("invalidGrant", {
+                    innerErrorCode: "userNotFound",
+                })
+            );
+
+            expect(error.isUserNotFound()).toBe(false);
+        });
+
+        it("does not override a different inner code using AADSTS50034", () => {
+            const error = new AuthFlowErrorV2(
+                apiError("invalidRequest", {
+                    innerErrorCode: "sessionExpiredOrInvalid",
+                    message:
+                        "AADSTS50034: The user account does not exist in the tenant.",
                 })
             );
 
@@ -279,7 +359,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
             );
             expect(error.errorCodes).toEqual([50034]);
             expect(error.scenario).toBe(CustomAuthFlowScenarioV2.SignIn);
-            expect(error.isUserNotFound()).toBe(true);
+            expect(error.isUserNotFound()).toBe(false);
             expect(error.correlationId).toBe(
                 "66693bdf-6ecc-4b63-8773-8bdafe4f9ca4"
             );
@@ -303,7 +383,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
     });
 
     describe("sign-in errors", () => {
-        it("identifies invalidGrant with inner invalidUserNameOrPassword", () => {
+        it("identifies invalidGrant with inner invalidUserNameOrPassword as an invalid password", () => {
             const error = new AuthFlowErrorV2(
                 apiError("invalidGrant", {
                     innerErrorCode: "invalidUserNameOrPassword",
@@ -313,13 +393,26 @@ describe("AuthFlowErrorV2 error mapping", () => {
             );
 
             expect(error.isInvalidCredentials()).toBe(true);
-            expect(error.isInvalidPassword()).toBe(false);
+            expect(error.isInvalidPassword()).toBe(true);
         });
 
         it("does not identify invalid credentials from the outer code alone", () => {
             const error = new AuthFlowErrorV2(apiError("invalidGrant"));
 
             expect(error.isInvalidCredentials()).toBe(false);
+            expect(error.isInvalidPassword()).toBe(false);
+        });
+
+        it("does not identify an invalid password from AADSTS50126 message text alone", () => {
+            const error = new AuthFlowErrorV2(
+                apiError("invalidGrant", {
+                    message:
+                        "AADSTS50126: Error validating credentials due to invalid username or password.",
+                })
+            );
+
+            expect(error.isInvalidCredentials()).toBe(false);
+            expect(error.isInvalidPassword()).toBe(false);
         });
 
         it("requires invalidGrant for invalidUserNameOrPassword", () => {
@@ -330,6 +423,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
             );
 
             expect(error.isInvalidCredentials()).toBe(false);
+            expect(error.isInvalidPassword()).toBe(false);
         });
 
         it("does not identify another invalidGrant suberror as invalid credentials", () => {
@@ -340,6 +434,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
             );
 
             expect(error.isInvalidCredentials()).toBe(false);
+            expect(error.isInvalidPassword()).toBe(false);
         });
 
         it("identifies an invalid username parameter", () => {
@@ -469,59 +564,6 @@ describe("AuthFlowErrorV2 error mapping", () => {
         });
     });
 
-    describe("isUserAlreadyExists", () => {
-        it("is true for a nested userAlreadyExists validation detail", () => {
-            const error = new AuthFlowErrorV2(
-                new CustomAuthApiError(
-                    "invalidRequest",
-                    "AADSTS1003037: An account may already exist.",
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                        {
-                            attributeIds: ["email"],
-                            code: "userAlreadyExists",
-                            message:
-                                "An account with this identifier already exists.",
-                        },
-                    ]
-                )
-            );
-
-            expect(error.isUserAlreadyExists()).toBe(true);
-        });
-
-        it("is false for another attribute-validation error", () => {
-            const error = new AuthFlowErrorV2(
-                new CustomAuthApiError(
-                    "invalidRequest",
-                    "Attribute validation failed.",
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                        {
-                            attributeIds: ["email"],
-                            code: "invalidFormat",
-                            message: "The email address is invalid.",
-                        },
-                    ]
-                )
-            );
-
-            expect(error.isUserAlreadyExists()).toBe(false);
-        });
-    });
-
     describe("isMissingRequiredAttributes", () => {
         it("is true for a nested attributeRequired validation detail", () => {
             const error = new AuthFlowErrorV2(
@@ -537,17 +579,18 @@ describe("AuthFlowErrorV2 error mapping", () => {
                     undefined,
                     [
                         {
-                            attributeIds: ["jobTitle"],
+                            attributeIds: ["givenName"],
                             code: "attributeRequired",
-                            message: "Attribute 'jobTitle' is required.",
+                            message: "This field is required.",
                         },
                     ]
                 )
             );
 
             expect(error.isMissingRequiredAttributes()).toBe(true);
-            expect(error.requiredAttributes).toEqual(["jobTitle"]);
+            expect(error.requiredAttributes).toEqual(["givenName"]);
             expect(error.invalidAttributes).toEqual([]);
+            expect(error.isInvalidPassword()).toBe(false);
         });
 
         it("is false for unrelated attribute validation details", () => {
@@ -613,6 +656,8 @@ describe("AuthFlowErrorV2 error mapping", () => {
 
             expect(error.requiredAttributes).toEqual(["password", "username"]);
             expect(error.invalidAttributes).toEqual(["givenName", "username"]);
+            expect(error.isMissingRequiredAttributes()).toBe(true);
+            expect(error.isInvalidPassword()).toBe(true);
         });
     });
 });

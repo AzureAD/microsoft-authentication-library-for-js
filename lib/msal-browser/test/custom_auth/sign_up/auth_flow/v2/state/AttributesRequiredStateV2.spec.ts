@@ -152,35 +152,38 @@ describe("AttributesRequiredStateV2", () => {
         });
     });
 
-    it("identifies an existing account from an attribute-submission error", async () => {
-        flowClient.submitSignUpAttributes.mockRejectedValue(
-            new CustomAuthApiError(
-                "invalidRequest",
-                "AADSTS1003037: An account may already exist.",
-                correlationId,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                [
-                    {
-                        attributeIds: ["email"],
-                        code: "userAlreadyExists",
-                        message:
-                            "An account with this identifier already exists.",
-                    },
-                ]
-            )
+    it("preserves required-attribute details from an attribute-submission error", async () => {
+        const errorData = new CustomAuthApiError(
+            "invalidRequest",
+            "AADSTS1002027: Some of the collected attributes were invalid.",
+            correlationId,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            [
+                {
+                    attributeIds: ["givenName"],
+                    code: "attributeRequired",
+                    message: "This field is required.",
+                },
+            ],
+            "attributeValidationError"
         );
+        flowClient.submitSignUpAttributes.mockRejectedValue(errorData);
 
         const result = await buildState().submitAttributes({
             givenName: "Test",
         });
 
         expect(result.isFailed()).toBe(true);
-        expect(result.error?.isUserAlreadyExists()).toBe(true);
+        expect(result.error?.errorData).toBe(errorData);
+        expect(result.error?.isMissingRequiredAttributes()).toBe(true);
+        expect(result.error?.requiredAttributes).toEqual(["givenName"]);
+        expect(result.error?.invalidAttributes).toEqual([]);
+        expect(result.error?.isInvalidPassword()).toBe(false);
     });
 
     it("returns a failed result for an unsupported transition", async () => {

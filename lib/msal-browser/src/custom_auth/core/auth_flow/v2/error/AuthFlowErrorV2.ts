@@ -10,6 +10,13 @@ import { WEB_REDIRECT_REQUIRED } from "../../../network_client/custom_auth_api/v
 import {
     INVALID_ONE_TIME_CODE,
     INVALID_USERNAME_OR_PASSWORD,
+    PASSWORD_BANNED,
+    PASSWORD_IS_INVALID,
+    PASSWORD_POLICY_VIOLATION,
+    PASSWORD_RECENTLY_USED,
+    PASSWORD_RESET_NOT_ENABLED_FOR_USER,
+    PASSWORD_TOO_LONG,
+    PASSWORD_TOO_SHORT,
     PASSWORD_TOO_WEAK,
     USER_NOT_FOUND,
 } from "./AuthFlowErrorSubcodesV2.js";
@@ -121,25 +128,29 @@ export class AuthFlowErrorV2 {
     }
 
     /**
-     * Checks whether a new password violates password policy. It recognizes
-     * both weak-password responses and password-targeted validation details.
-     * @returns True when the new password is invalid, otherwise false.
+     * Checks whether the service rejected a supplied password. It recognizes
+     * incorrect sign-in credentials, password-policy failures, and
+     * password-targeted validation details.
+     * @returns True when the supplied password is invalid, otherwise false.
      */
     isInvalidPassword(): boolean {
         return (
+            this.isPasswordIncorrectError() ||
             this.isInvalidPasswordError() ||
             this.isPasswordPolicyViolationError()
         );
     }
 
     /**
-     * Checks whether an account already exists for the supplied identifier.
-     * This can occur at different stages while completing sign-up.
-     * @returns True if the account already exists, otherwise false.
+     * Checks whether the service reports that password reset is not enabled
+     * for the supplied account. Use it to distinguish unavailable password
+     * reset from invalid-password failures.
+     * @returns True when password reset is not enabled for the account.
      */
-    isUserAlreadyExists(): boolean {
-        return this.getAttributeValidationDetails().some(
-            (detail) => detail.code === "userAlreadyExists"
+    isPasswordResetNotEnabled(): boolean {
+        return (
+            this.errorData.error === "invalidRequest" &&
+            this.innerErrorCode === PASSWORD_RESET_NOT_ENABLED_FOR_USER
         );
     }
 
@@ -155,9 +166,7 @@ export class AuthFlowErrorV2 {
     private isUserNotFoundError(): boolean {
         return (
             this.errorData.error === "invalidRequest" &&
-            (this.innerErrorCode === USER_NOT_FOUND ||
-                this.errorData.errorDescription?.includes("AADSTS50034") ===
-                    true)
+            this.innerErrorCode === USER_NOT_FOUND
         );
     }
 
@@ -179,9 +188,16 @@ export class AuthFlowErrorV2 {
     }
 
     private isInvalidPasswordError(): boolean {
+        const innerErrorCode = this.innerErrorCode;
+
         return (
             this.errorData.error === "invalidRequest" &&
-            this.innerErrorCode === PASSWORD_TOO_WEAK
+            (innerErrorCode === PASSWORD_TOO_WEAK ||
+                innerErrorCode === PASSWORD_TOO_SHORT ||
+                innerErrorCode === PASSWORD_TOO_LONG ||
+                innerErrorCode === PASSWORD_IS_INVALID ||
+                innerErrorCode === PASSWORD_RECENTLY_USED ||
+                innerErrorCode === PASSWORD_BANNED)
         );
     }
 
@@ -190,7 +206,7 @@ export class AuthFlowErrorV2 {
             const attributeIds: unknown = detail.attributeIds;
 
             return (
-                detail.code === "passwordPolicyViolation" &&
+                detail.code === PASSWORD_POLICY_VIOLATION &&
                 Array.isArray(attributeIds) &&
                 attributeIds.some(
                     (attributeId: unknown) =>

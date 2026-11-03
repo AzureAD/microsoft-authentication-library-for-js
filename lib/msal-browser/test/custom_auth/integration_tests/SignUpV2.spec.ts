@@ -505,52 +505,74 @@ describe("Sign-up V2 entry", () => {
         }
     );
 
-    it("surfaces an existing-email error from initial attribute submission", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
-            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-            .mockResolvedValueOnce(
-                buildResponse(
-                    {
-                        error: {
-                            code: "invalidRequest",
-                            message:
-                                "AADSTS1003037: An account with this email address may already exist.",
-                            correlationId: "corr-existing",
-                            innerError: {
-                                details: [
-                                    {
-                                        attributeIds: ["email"],
-                                        code: "userAlreadyExists",
-                                        message:
-                                            "An account with this identifier already exists.",
-                                    },
-                                ],
+    it.each([
+        {
+            code: "userAlreadyExists",
+            attributeId: "email",
+            missingRequired: false,
+        },
+        {
+            code: "attributeRequired",
+            attributeId: "givenName",
+            missingRequired: true,
+        },
+    ])(
+        "preserves $code details from initial attribute submission",
+        async ({ code, attributeId, missingRequired }) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        {
+                            error: {
+                                code: "invalidRequest",
+                                message:
+                                    "AADSTS1002027: Some of the collected attributes were invalid.",
+                                correlationId: "corr-attributes",
+                                innerError: {
+                                    code: "attributeValidationError",
+                                    details: [
+                                        {
+                                            attributeIds: [attributeId],
+                                            code,
+                                            message:
+                                                "Attribute validation failed.",
+                                        },
+                                    ],
+                                },
                             },
                         },
+                        400
+                    )
+                );
+
+            const result = await app.signUpV2({
+                username: "existing@contoso.com",
+            });
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.error?.correlationId).toBe("corr-attributes");
+            expect(result.error?.errorData).toMatchObject({
+                error: "invalidRequest",
+                attributeValidationDetails: [
+                    {
+                        attributeIds: [attributeId],
+                        code,
+                        message: "Attribute validation failed.",
                     },
-                    400
-                )
+                ],
+            });
+            expect(result.error?.isMissingRequiredAttributes()).toBe(
+                missingRequired
             );
-
-        const result = await app.signUpV2({
-            username: "existing@contoso.com",
-        });
-
-        expect(result.isFailed()).toBe(true);
-        expect(result.error?.correlationId).toBe("corr-existing");
-        expect(result.error?.errorData).toMatchObject({
-            error: "invalidRequest",
-            attributeValidationDetails: [
-                {
-                    attributeIds: ["email"],
-                    code: "userAlreadyExists",
-                    message: "An account with this identifier already exists.",
-                },
-            ],
-        });
-        expect(result.error?.isUserAlreadyExists()).toBe(true);
-    });
+            expect(result.error?.requiredAttributes).toEqual(
+                missingRequired ? [attributeId] : []
+            );
+            expect(result.error?.invalidAttributes).toEqual([]);
+            expect(result.error?.isInvalidPassword()).toBe(false);
+        }
+    );
 
     it("surfaces an initial attribute-submission server error as a general sign-up error", async () => {
         (fetch as jest.Mock)
