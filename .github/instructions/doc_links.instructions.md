@@ -7,6 +7,8 @@ description: "Use when editing, reviewing, or creating markdown files. Validates
 
 When editing markdown files or deleting/renaming/moving files and directories, verify that all internal links remain valid.
 
+When a repository's link validator reports a broken link, correct the reported link or restore its intended target, then rerun validation. Do not suppress the check merely because the target exists locally. Investigate Git or configuration errors separately rather than assuming every validation failure requires a documentation edit.
+
 ## When to check
 
 - **Editing a `.md` file**: Validate all links within the file being edited
@@ -21,6 +23,15 @@ When editing markdown files or deleting/renaming/moving files and directories, v
 - `[text](./path/to/file.md)` — verify the target file exists at that relative path
 - `[text](../other-package/docs/file.md)` — verify cross-package references resolve correctly
 - `[text](./path/to/file.md#anchor)` — verify the anchor heading exists in the target file
+
+### Submodule boundaries
+
+- Never use a relative Markdown link from a parent repository into a nested file within a Git submodule. Use the submodule repository's canonical absolute `blob/<base-branch>/...` URL instead.
+- For example, a parent-repository link to `../../microsoft-authentication-library-for-js/lib/msal-browser/docs/configuration.md` must use `https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md`.
+- `Test-Path` or filesystem existence is insufficient: an initialized local submodule exposes files that are not stored in the parent repository's committed Git tree. Link validation must consider that tree and the ADO/GitHub web-rendering context.
+- Discover submodule roots from `.gitmodules` and confirm boundaries using Git metadata, such as `git ls-tree` entries with mode `160000`. A relative link to the gitlink root itself may be supported by the host; it does not permit linking to nested paths.
+- Set each submodule's `branch` in `.gitmodules` to its canonical base branch so link validators can recommend an absolute GitHub URL from the configured repository URL and branch without network access.
+- Preserve validation of ordinary same-repository relative paths and heading anchors.
 
 ### GitHub repository URLs
 

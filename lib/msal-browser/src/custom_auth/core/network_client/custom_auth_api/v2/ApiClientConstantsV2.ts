@@ -12,10 +12,19 @@ export const CHALLENGE_RELATION = "challenge";
 export const VERIFY_RELATION = "verify";
 export const RISK_VERIFY_RELATION = "riskverify";
 export const COLLECT_ATTRIBUTES_RELATION = "collectAttributes";
+export const ENROLL_RELATION = "enroll";
+export const ACTIVATE_RELATION = "activate";
+export const RESEND_RELATION = "resend";
+export const POLL_RELATION = "poll";
 
 export const AuthenticationMethodTypeV2 = {
     EMAIL: "email",
     PASSWORD: "password",
+    PHONE: "phone",
+    SMS: "sms",
+} as const;
+
+export const PhoneRegistrationChannelV2 = {
     SMS: "sms",
 } as const;
 

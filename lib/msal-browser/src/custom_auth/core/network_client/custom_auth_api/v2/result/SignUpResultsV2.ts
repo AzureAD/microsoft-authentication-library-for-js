@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import type { ChallengeVerificationResultV2 } from "./BaseResultsV2.js";
+import type {
+    ChallengeVerificationResultV2,
+    EnrollmentRequiredResultV2,
+} from "./BaseResultsV2.js";
 
 export interface SignUpAttributeV2 {
     attributeId: string;
@@ -25,6 +28,7 @@ export const SignUpSubmitAttributesNextActionV2 = {
     VERIFY: "verify",
     COLLECT_ATTRIBUTES: "collectAttributes",
     CONTINUE: "continue",
+    ENROLL: "enroll",
 } as const;
 
 export type SignUpSubmitAttributesApiResultV2 =
@@ -38,6 +42,7 @@ export type SignUpSubmitAttributesApiResultV2 =
           attributes: SignUpAttributeV2[];
           submitAttributesHref: string;
       }
+    | EnrollmentRequiredResultV2
     | {
           nextAction: typeof SignUpSubmitAttributesNextActionV2.CONTINUE;
           continuationToken: string;

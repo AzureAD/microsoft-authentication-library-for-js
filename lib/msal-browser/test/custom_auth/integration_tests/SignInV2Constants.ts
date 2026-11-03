@@ -118,6 +118,61 @@ export const SIGN_IN_CONTINUE_RESPONSE = {
     },
 };
 
+export const EMAIL_REGISTRATION_REQUIRED_RESPONSE = {
+    continuationToken: "ct-email-enroll",
+    state: "interactionRequired",
+    action: "enroll",
+    _embedded: {
+        methods: [
+            {
+                type: "email",
+                _links: {
+                    enroll: { href: "/tenant/api/v0.1/enroll/email" },
+                },
+            },
+        ],
+    },
+};
+
+export const PHONE_REGISTRATION_REQUIRED_RESPONSE = {
+    continuationToken: "ct-phone-enroll",
+    state: "interactionRequired",
+    action: "enroll",
+    _embedded: {
+        methods: [
+            {
+                type: "phone",
+                channels: ["sms"],
+                _links: {
+                    enroll: { href: "/tenant/api/v0.1/enroll/phone" },
+                },
+            },
+        ],
+    },
+};
+
+export const EMAIL_REGISTRATION_ACTIVATION_RESPONSE = {
+    continuationToken: "ct-email-activate",
+    action: "activate",
+    codeLength: 6,
+    hint: "u***@contoso.com",
+    _links: {
+        activate: { href: "/tenant/api/v0.1/activate/email" },
+        resend: { href: "/tenant/api/v0.1/enroll/email" },
+    },
+};
+
+export const PHONE_REGISTRATION_ACTIVATION_RESPONSE = {
+    continuationToken: "ct-phone-activate",
+    action: "activate",
+    codeLength: 6,
+    hint: "+1******1234",
+    _links: {
+        activate: { href: "/tenant/api/v0.1/activate/phone" },
+        resend: { href: "/tenant/api/v0.1/enroll/phone" },
+    },
+};
+
 export const EMAIL_MFA_REQUIRED_RESPONSE = {
     continuationToken: "ct-email-mfa",
     state: "interactionRequired",

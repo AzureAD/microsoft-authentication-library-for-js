@@ -12,11 +12,26 @@ import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/
 import { AuthFlowErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
 import { MFAVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
+import {
+    AuthMethodRegistrationRequiredStateV2,
+    AuthMethodVerificationRequiredStateV2,
+} from "../../../src/custom_auth/index.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 import {
+    MFA_V2_RESEND_CHALLENGE,
+    MFA_V2_SELECT_AUTH_METHOD,
+    MFA_V2_SUBMIT_CHALLENGE,
+    SIGN_IN_V2_CHALLENGE,
+    SIGN_IN_V2_COMPLETE,
+    SIGN_IN_V2_START,
+    SIGN_IN_V2_SUBMIT_PASSWORD,
+} from "../../../src/custom_auth/core/telemetry/PublicApiId.js";
+import {
     CONTINUE_RESPONSE,
     EMAIL_CHALLENGE_RESPONSE,
+    EMAIL_REGISTRATION_ACTIVATION_RESPONSE,
+    EMAIL_REGISTRATION_REQUIRED_RESPONSE,
     EMAIL_MFA_CHALLENGE_RESPONSE,
     EMAIL_MFA_REQUIRED_RESPONSE,
     EMAIL_RESEND_RESPONSE,
@@ -26,6 +41,8 @@ import {
     PASSWORD_AND_EMAIL_START_RESPONSE,
     PASSWORD_CHALLENGE_RESPONSE,
     PASSWORD_EMAIL_AND_SMS_START_RESPONSE,
+    PHONE_REGISTRATION_ACTIVATION_RESPONSE,
+    PHONE_REGISTRATION_REQUIRED_RESPONSE,
     SIGN_IN_CONTINUE_RESPONSE,
     SMS_CHALLENGE_RESPONSE,
     SMS_MFA_CHALLENGE_RESPONSE,
@@ -371,6 +388,219 @@ describe("Sign-in V2", () => {
         });
     });
 
+    describe("JIT registration after sign-in verification", () => {
+        it("signInV2 -> passwordRequired -> register email -> resend activation -> completed", async () => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(PASSWORD_CHALLENGE_RESPONSE)
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(EMAIL_REGISTRATION_REQUIRED_RESPONSE)
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(EMAIL_REGISTRATION_ACTIVATION_RESPONSE)
+                )
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        ...EMAIL_REGISTRATION_ACTIVATION_RESPONSE,
+                        continuationToken: "ct-email-resend",
+                        codeLength: 8,
+                    })
+                )
+                .mockResolvedValueOnce(buildResponse(SIGN_IN_CONTINUE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+            const startResult = await app.signInV2({
+                username: "user@contoso.com",
+                scopes: ["User.Read"],
+            });
+            expect(startResult.isState("passwordRequired")).toBe(true);
+            if (!startResult.isState("passwordRequired")) {
+                throw new Error("Expected a password challenge.");
+            }
+
+            const registrationResult = await startResult.state.submitPassword(
+                "valid-password"
+            );
+            expect(
+                registrationResult.isState("authMethodRegistrationRequired")
+            ).toBe(true);
+            if (!registrationResult.isState("authMethodRegistrationRequired")) {
+                throw new Error("Expected authentication-method registration.");
+            }
+            expect(registrationResult.state).toBeInstanceOf(
+                AuthMethodRegistrationRequiredStateV2
+            );
+            expect(registrationResult.state.methods).toMatchObject([
+                { type: "email" },
+            ]);
+
+            const activationResult =
+                await registrationResult.state.selectAuthMethod(
+                    registrationResult.state.methods[0],
+                    "user@contoso.com"
+                );
+            expect(
+                activationResult.isState("authMethodVerificationRequired")
+            ).toBe(true);
+            if (!activationResult.isState("authMethodVerificationRequired")) {
+                throw new Error("Expected an activation challenge.");
+            }
+            expect(activationResult.state).toBeInstanceOf(
+                AuthMethodVerificationRequiredStateV2
+            );
+            expect(activationResult.state.codeLength).toBe(6);
+            expect(activationResult.state.sentTo).toBe("u***@contoso.com");
+
+            const resendResult = await activationResult.state.resendChallenge();
+            expect(resendResult.isState("authMethodVerificationRequired")).toBe(
+                true
+            );
+            if (!resendResult.isState("authMethodVerificationRequired")) {
+                throw new Error("Expected a replacement activation challenge.");
+            }
+            expect(resendResult.state.codeLength).toBe(8);
+
+            const result = await resendResult.state.submitChallenge("12345678");
+            expect(result.isState("completed")).toBe(true);
+            expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+            expect(fetch).toHaveBeenCalledTimes(9);
+            const requests = (fetch as jest.Mock).mock.calls;
+            expect(String(requests[4][0])).toContain("/enroll/email");
+            expect(JSON.parse(requests[4][1].body)).toMatchObject({
+                email: "user@contoso.com",
+                continuationToken: "ct-email-enroll",
+            });
+            expect(String(requests[5][0])).toContain("/enroll/email");
+            expect(JSON.parse(requests[5][1].body)).toMatchObject({
+                continuationToken: "ct-email-activate",
+            });
+            expect(String(requests[6][0])).toContain("/activate/email");
+            expect(JSON.parse(requests[6][1].body)).toMatchObject({
+                otp: "12345678",
+                continuationToken: "ct-email-resend",
+            });
+        });
+
+        it("signInV2(password supplied) -> register email -> completed", async () => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(PASSWORD_CHALLENGE_RESPONSE)
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(EMAIL_REGISTRATION_REQUIRED_RESPONSE)
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(EMAIL_REGISTRATION_ACTIVATION_RESPONSE)
+                )
+                .mockResolvedValueOnce(buildResponse(SIGN_IN_CONTINUE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+            const startResult = await app.signInV2({
+                username: "user@contoso.com",
+                password: "valid-password",
+                scopes: ["User.Read"],
+            });
+            expect(startResult.isState("authMethodRegistrationRequired")).toBe(
+                true
+            );
+            if (!startResult.isState("authMethodRegistrationRequired")) {
+                throw new Error("Expected authentication-method registration.");
+            }
+
+            const activationResult = await startResult.state.selectAuthMethod(
+                startResult.state.methods[0],
+                "user@contoso.com"
+            );
+            expect(
+                activationResult.isState("authMethodVerificationRequired")
+            ).toBe(true);
+            if (!activationResult.isState("authMethodVerificationRequired")) {
+                throw new Error("Expected an activation challenge.");
+            }
+
+            const result = await activationResult.state.submitChallenge(
+                "123456"
+            );
+            expect(result.isState("completed")).toBe(true);
+            expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+            expect(fetch).toHaveBeenCalledTimes(8);
+        });
+
+        it("signInV2 -> codeRequired -> register SMS phone -> completed", async () => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(PHONE_REGISTRATION_REQUIRED_RESPONSE)
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(PHONE_REGISTRATION_ACTIVATION_RESPONSE)
+                )
+                .mockResolvedValueOnce(buildResponse(SIGN_IN_CONTINUE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+            const startResult = await app.signInV2({
+                username: "user@contoso.com",
+                scopes: ["User.Read"],
+            });
+            expect(startResult.isState("codeRequired")).toBe(true);
+            if (!startResult.isState("codeRequired")) {
+                throw new Error("Expected an email code challenge.");
+            }
+
+            const registrationResult = await startResult.state.submitCode(
+                "123456"
+            );
+            expect(
+                registrationResult.isState("authMethodRegistrationRequired")
+            ).toBe(true);
+            if (!registrationResult.isState("authMethodRegistrationRequired")) {
+                throw new Error("Expected authentication-method registration.");
+            }
+            expect(registrationResult.state.methods).toMatchObject([
+                { type: "phone", channels: ["sms"] },
+            ]);
+
+            const activationResult =
+                await registrationResult.state.selectAuthMethod(
+                    registrationResult.state.methods[0],
+                    "+15555551234"
+                );
+            expect(
+                activationResult.isState("authMethodVerificationRequired")
+            ).toBe(true);
+            if (!activationResult.isState("authMethodVerificationRequired")) {
+                throw new Error("Expected an activation challenge.");
+            }
+            expect(activationResult.state.type).toBe("phone");
+            expect(activationResult.state.codeLength).toBe(6);
+
+            const result = await activationResult.state.submitChallenge(
+                "123456"
+            );
+            expect(result.isState("completed")).toBe(true);
+            expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+            expect(fetch).toHaveBeenCalledTimes(8);
+            const requests = (fetch as jest.Mock).mock.calls;
+            expect(String(requests[4][0])).toContain("/enroll/phone");
+            expect(JSON.parse(requests[4][1].body)).toMatchObject({
+                phoneNumber: "+15555551234",
+                channel: "sms",
+                continuationToken: "ct-phone-enroll",
+            });
+            expect(String(requests[5][0])).toContain("/activate/phone");
+        });
+    });
+
     describe("MFA completion", () => {
         describe("after PasswordRequiredStateV2", () => {
             it("IT-MFA-01: signInV2 -> passwordRequired -> authMethodSelectionRequired(multiFactor: email) -> mfaVerificationRequired -> completed", async () => {
@@ -478,6 +708,31 @@ describe("Sign-in V2", () => {
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
+
+                const expectedApiIds = [
+                    SIGN_IN_V2_START,
+                    SIGN_IN_V2_START,
+                    SIGN_IN_V2_CHALLENGE,
+                    SIGN_IN_V2_SUBMIT_PASSWORD,
+                    MFA_V2_SELECT_AUTH_METHOD,
+                    MFA_V2_RESEND_CHALLENGE,
+                    MFA_V2_SUBMIT_CHALLENGE,
+                    SIGN_IN_V2_COMPLETE,
+                    SIGN_IN_V2_COMPLETE,
+                ];
+                expect(fetch).toHaveBeenCalledTimes(expectedApiIds.length);
+                expectedApiIds.forEach((apiId, index) => {
+                    expect(fetch).toHaveBeenNthCalledWith(
+                        index + 1,
+                        expect.anything(),
+                        expect.objectContaining({
+                            headers: expect.objectContaining({
+                                "x-client-current-telemetry":
+                                    expect.stringContaining(`|${apiId},`),
+                            }),
+                        })
+                    );
+                });
             });
         });
 

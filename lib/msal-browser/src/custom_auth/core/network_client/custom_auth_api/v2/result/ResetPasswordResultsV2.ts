@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import type { EnrollmentMethodV2 } from "./BaseResultsV2.js";
+
 /*
  * Reset-password response contracts used by the controller. Shared response
  * contracts are defined in `BaseResultsV2`.
@@ -14,13 +16,9 @@ export interface ResetPasswordUpdateResultV2 {
     pollHref: string;
 }
 
-/*
- * Result of a single poll. `isCompleted` is true once the server reports
- * `state: continue`. While still in progress the server returns a fresh
- * `pollHref`; the bounded poll loop lives in the controller layer.
- */
 export interface ResetPasswordPollResultV2 {
     continuationToken: string;
-    isCompleted: boolean;
+    nextAction: string;
     pollHref?: string;
+    enrollmentMethods?: EnrollmentMethodV2[];
 }

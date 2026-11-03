@@ -10,6 +10,7 @@ import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/Cu
 import type { PasswordRequiredStateV2 } from "../state/PasswordRequiredStateV2.js";
 import type { AuthMethodSelectionRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import type { CodeRequiredStateV2 } from "../../../../core/auth_flow/v2/state/CodeRequiredStateV2.js";
+import type { AuthMethodRegistrationRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 
 /**
  * States returned when native auth V2 sign-in starts.
@@ -18,6 +19,7 @@ export type SignInStartResultStateV2 =
     | PasswordRequiredStateV2
     | CodeRequiredStateV2
     | AuthMethodSelectionRequiredStateV2
+    | AuthMethodRegistrationRequiredStateV2
     | CompletedStateV2
     | FailedStateV2;
 
