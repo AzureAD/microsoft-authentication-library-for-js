@@ -4,6 +4,7 @@
  */
 
 import { CustomAuthFlowScenarioV2 } from "../../auth_flow/v2/CustomAuthFlowScenarioV2.js";
+import type { UserAccountAttributes } from "../../../UserAccountAttributes.js";
 
 /*
  * Server-provided `_links` hrefs used to continue a flow. Each response supplies
@@ -29,7 +30,15 @@ export interface FlowContinuationStateV2 {
     scenario: CustomAuthFlowScenarioV2;
     scopes: string[];
     links: FlowLinksV2;
-    signUp?: {
-        passwordWasSupplied: boolean;
-    };
+    signUp?:
+        | {
+              purpose: "existingAccount";
+              pendingProfileAttributes?: never;
+              submittedAttributeIds?: never;
+          }
+        | {
+              purpose: "newAccount";
+              pendingProfileAttributes?: Readonly<UserAccountAttributes>;
+              submittedAttributeIds: readonly string[];
+          };
 }

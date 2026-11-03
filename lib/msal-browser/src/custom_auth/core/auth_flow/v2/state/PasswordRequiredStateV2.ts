@@ -22,7 +22,6 @@ import { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/
 import { AuthMethodRegistrationRequiredStateV2 } from "./AuthMethodRegistrationRequiredStateV2.js";
 import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
 import type { SignUpAttributeV2 } from "../../../network_client/custom_auth_api/v2/result/SignUpResultsV2.js";
-import type { UserAccountAttributes } from "../../../../UserAccountAttributes.js";
 import type { SubmitAttributesResultV2 } from "../../../../sign_up/auth_flow/v2/result/SubmitAttributesResultV2.js";
 
 /**
@@ -34,26 +33,22 @@ export class PasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<Pas
 
     readonly attributes: readonly SignUpAttributeV2[];
 
-    readonly requiredPasswordAttribute?: SignUpAttributeV2;
+    readonly requestedPasswordAttribute?: SignUpAttributeV2;
 
     constructor(stateParameters: PasswordRequiredStateParametersV2) {
         super(stateParameters);
         this.attributes = stateParameters.attributes ?? [];
-        this.requiredPasswordAttribute =
-            stateParameters.requiredPasswordAttribute;
+        this.requestedPasswordAttribute =
+            stateParameters.requestedPasswordAttribute;
     }
 
     /**
-     * Submits the password and advances the active flow. Sign-up also accepts
-     * profile attributes requested alongside the password.
+     * Submits the password and advances the active flow. During sign-up, the SDK
+     * combines it with profile attributes retained from the sign-up start.
      * @param password - The account password.
-     * @param attributes - Additional profile attributes to submit during sign-up.
      * @returns The next state or a password submission error.
      */
-    async submitPassword(
-        password: string,
-        attributes: UserAccountAttributes = {}
-    ): Promise<SubmitPasswordResultV2> {
+    async submitPassword(password: string): Promise<SubmitPasswordResultV2> {
         const { correlationId, logger, continuationState } =
             this.stateParameters;
 
@@ -63,7 +58,7 @@ export class PasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<Pas
             if (
                 continuationState.scenario === CustomAuthFlowScenarioV2.SignUp
             ) {
-                return await this.submitSignUpPassword(password, attributes);
+                return await this.submitSignUpPassword(password);
             }
 
             if (
@@ -91,8 +86,7 @@ export class PasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<Pas
     }
 
     private async submitSignUpPassword(
-        password: string,
-        attributes: UserAccountAttributes
+        password: string
     ): Promise<SubmitAttributesResultV2> {
         const { correlationId, continuationState, flowClient } =
             this.stateParameters;
@@ -109,7 +103,7 @@ export class PasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<Pas
         const result = await flowClient.submitSignUpAttributes({
             correlationId,
             continuationState,
-            attributes: { ...attributes, password },
+            attributes: { password },
         });
         return signUpStateTransitionHandler.handleAttributeSubmission(
             result,

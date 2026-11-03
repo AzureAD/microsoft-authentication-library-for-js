@@ -168,13 +168,11 @@ describe("PasswordRequiredStateV2 sign-in", () => {
         });
         const state = buildState();
 
-        const result = await state.submitPassword("valid-password", {
-            givenName: "Ignored",
-        });
+        const result = await state.submitPassword("valid-password");
 
         expect(result.isState("completed")).toBe(true);
         expect(state.attributes).toEqual([]);
-        expect(state.requiredPasswordAttribute).toBeUndefined();
+        expect(state.requestedPasswordAttribute).toBeUndefined();
         expect(flowClient.submitSignInPassword).toHaveBeenCalledWith({
             correlationId,
             continuationState: state["stateParameters"].continuationState,
