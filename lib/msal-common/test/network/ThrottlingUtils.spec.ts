@@ -20,6 +20,12 @@ import { BaseAuthRequest, Logger } from "../../src/index.js";
 import { StubPerformanceClient } from "../../src/telemetry/performance/StubPerformanceClient.js";
 
 const performanceClient = new StubPerformanceClient();
+const retryAfterHeaderNames = [
+    "Retry-After",
+    "retry-after",
+    "RETRY-AFTER",
+    "rEtRy-AfTeR",
+];
 
 describe("ThrottlingUtils", () => {
     afterAll(() => {
@@ -113,57 +119,201 @@ describe("ThrottlingUtils", () => {
     });
 
     describe("postProcess", () => {
-        it("sets an item in the cache", () => {
-            const thumbprint: RequestThumbprint = THUMBPRINT;
-            const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: {},
-                body: {},
-                status: 429,
-            };
-            const cache = new MockStorageClass(
+        let cache: MockStorageClass;
+
+        beforeEach(() => {
+            jest.spyOn(Date, "now").mockReturnValue(5_000);
+            cache = new MockStorageClass(
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 mockCrypto,
                 new Logger({}),
                 performanceClient
             );
-            const setItemStub = jest
-                .spyOn(cache, "setThrottlingCache")
-                .mockImplementation();
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it("reads normalized response headers without enumerating them", () => {
+            const enumerateHeaders = jest.fn(Reflect.ownKeys);
+            const response: NetworkResponse<ServerAuthorizationTokenResponse> =
+                {
+                    headers: new Proxy<Record<string, string>>(
+                        { "retry-after": "120" },
+                        { ownKeys: enumerateHeaders }
+                    ),
+                    body: {},
+                    status: 400,
+                };
 
             ThrottlingUtils.postProcess(
                 cache,
-                thumbprint,
-                res,
+                THUMBPRINT,
+                response,
                 RANDOM_TEST_GUID
             );
-            expect(setItemStub).toHaveBeenCalledTimes(1);
+
+            expect(enumerateHeaders).not.toHaveBeenCalled();
+            expect(
+                cache.getThrottlingCache(
+                    ThrottlingUtils.generateThrottlingStorageKey(THUMBPRINT)
+                )
+            ).toMatchObject({ throttleTime: 125_000 });
         });
 
-        it("does not set an item in the cache", () => {
-            const thumbprint: RequestThumbprint = THUMBPRINT;
-            const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: {},
-                body: {},
-                status: 200,
-            };
-            const cache = new MockStorageClass(
-                TEST_CONFIG.MSAL_CLIENT_ID,
-                mockCrypto,
-                new Logger({}),
-                performanceClient
-            );
-            const setItemStub = jest
-                .spyOn(cache, "setThrottlingCache")
-                .mockImplementation();
+        it.each(
+            retryAfterHeaderNames.flatMap((headerName) =>
+                [199, 300, 400, 429, 500, 503].map((status) => ({
+                    headerName,
+                    status,
+                }))
+            )
+        )(
+            "honors raw $headerName on HTTP $status responses",
+            ({ headerName, status }) => {
+                const headers = Object.freeze({ [headerName]: "120" });
+                const response: NetworkResponse<ServerAuthorizationTokenResponse> =
+                    {
+                        headers,
+                        body: {
+                            error: "invalid_grant",
+                            error_codes: ["50196"],
+                            error_description: "test-description",
+                            suberror: "test-suberror",
+                        },
+                        status,
+                    };
+
+                ThrottlingUtils.postProcess(
+                    cache,
+                    THUMBPRINT,
+                    response,
+                    RANDOM_TEST_GUID
+                );
+
+                expect(
+                    cache.getThrottlingCache(
+                        ThrottlingUtils.generateThrottlingStorageKey(THUMBPRINT)
+                    )
+                ).toMatchObject({
+                    throttleTime: 125_000,
+                    error: "invalid_grant",
+                    errorCodes: ["50196"],
+                    errorMessage: "test-description",
+                    subError: "test-suberror",
+                });
+                expect(response.headers).toBe(headers);
+                expect(headers[headerName]).toBe("120");
+            }
+        );
+
+        it.each([429, 500, 503])(
+            "uses the default throttle time on HTTP %i without Retry-After",
+            (status) => {
+                ThrottlingUtils.postProcess(
+                    cache,
+                    THUMBPRINT,
+                    { headers: {}, body: {}, status },
+                    RANDOM_TEST_GUID
+                );
+
+                expect(
+                    cache.getThrottlingCache(
+                        ThrottlingUtils.generateThrottlingStorageKey(THUMBPRINT)
+                    )
+                ).toMatchObject({ throttleTime: 65_000 });
+            }
+        );
+
+        it.each(
+            retryAfterHeaderNames.flatMap((headerName) =>
+                ["", "invalid", "0", "-1"].map((retryAfter) => ({
+                    headerName,
+                    retryAfter,
+                }))
+            )
+        )(
+            "uses the default throttle time for $headerName '$retryAfter'",
+            ({ headerName, retryAfter }) => {
+                ThrottlingUtils.postProcess(
+                    cache,
+                    THUMBPRINT,
+                    {
+                        headers: { [headerName]: retryAfter },
+                        body: {},
+                        status: 400,
+                    },
+                    RANDOM_TEST_GUID
+                );
+
+                expect(
+                    cache.getThrottlingCache(
+                        ThrottlingUtils.generateThrottlingStorageKey(THUMBPRINT)
+                    )
+                ).toMatchObject({ throttleTime: 65_000 });
+            }
+        );
+
+        it.each(retryAfterHeaderNames)(
+            "caps a raw %s duration at the existing maximum",
+            (headerName) => {
+                ThrottlingUtils.postProcess(
+                    cache,
+                    THUMBPRINT,
+                    {
+                        headers: { [headerName]: "1000000000" },
+                        body: {},
+                        status: 429,
+                    },
+                    RANDOM_TEST_GUID
+                );
+
+                expect(
+                    cache.getThrottlingCache(
+                        ThrottlingUtils.generateThrottlingStorageKey(THUMBPRINT)
+                    )
+                ).toMatchObject({ throttleTime: 3_605_000 });
+            }
+        );
+
+        it("does not throttle HTTP 400 without Retry-After", () => {
+            const setItem = jest.spyOn(cache, "setThrottlingCache");
 
             ThrottlingUtils.postProcess(
                 cache,
-                thumbprint,
-                res,
+                THUMBPRINT,
+                { headers: {}, body: {}, status: 400 },
                 RANDOM_TEST_GUID
             );
-            expect(setItemStub).toHaveBeenCalledTimes(0);
+
+            expect(setItem).not.toHaveBeenCalled();
         });
+
+        it.each([200, 204, 299])(
+            "does not read headers or cache a throttle on HTTP %i",
+            (status) => {
+                const thumbprint: RequestThumbprint = THUMBPRINT;
+                const readHeaders = jest.fn(() => ({ "rEtRy-AfTeR": "120" }));
+                const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
+                    get headers() {
+                        return readHeaders();
+                    },
+                    body: {},
+                    status,
+                };
+                const setItemStub = jest.spyOn(cache, "setThrottlingCache");
+
+                ThrottlingUtils.postProcess(
+                    cache,
+                    thumbprint,
+                    res,
+                    RANDOM_TEST_GUID
+                );
+                expect(setItemStub).toHaveBeenCalledTimes(0);
+                expect(readHeaders).not.toHaveBeenCalled();
+            }
+        );
     });
 
     describe("checkResponseStatus", () => {
@@ -202,31 +352,27 @@ describe("ThrottlingUtils", () => {
     });
 
     describe("checkResponseForRetryAfter", () => {
-        it("returns true when Retry-After header exists and when status <= 200", () => {
-            const headers: Record<string, string> = {};
-            headers["Retry-After"] = "test";
-            const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers,
-                body: {},
-                status: 199,
-            };
+        it.each(
+            retryAfterHeaderNames.flatMap((headerName) =>
+                [199, 300, 400, 429, 500, 503].map((status) => ({
+                    headerName,
+                    status,
+                }))
+            )
+        )(
+            "returns true when raw $headerName exists on HTTP $status",
+            ({ headerName, status }) => {
+                const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
+                    headers: { [headerName]: "test" },
+                    body: {},
+                    status,
+                };
 
-            const bool = ThrottlingUtils.checkResponseForRetryAfter(res);
-            expect(bool).toBe(true);
-        });
-
-        it("returns true when Retry-After header exists and when status > 300", () => {
-            const headers: Record<string, string> = {};
-            headers["Retry-After"] = "test";
-            const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers,
-                body: {},
-                status: 300,
-            };
-
-            const bool = ThrottlingUtils.checkResponseForRetryAfter(res);
-            expect(bool).toBe(true);
-        });
+                expect(ThrottlingUtils.checkResponseForRetryAfter(res)).toBe(
+                    true
+                );
+            }
+        );
 
         it("returns false when there is no RetryAfter header", () => {
             const headers: Record<string, string> = {};
@@ -240,17 +386,41 @@ describe("ThrottlingUtils", () => {
             expect(bool).toBe(false);
         });
 
-        it("returns false when 200 <= status < 300", () => {
-            const headers: Record<string, string> = {};
-            const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers,
-                body: {},
-                status: 200,
-            };
+        it.each(retryAfterHeaderNames)(
+            "ignores an inherited %s header",
+            (headerName) => {
+                const headers: Record<string, string> = {};
+                Object.setPrototypeOf(headers, { [headerName]: "120" });
+                const response: NetworkResponse<ServerAuthorizationTokenResponse> =
+                    { headers, body: {}, status: 400 };
 
-            const bool = ThrottlingUtils.checkResponseForRetryAfter(res);
-            expect(bool).toBe(false);
-        });
+                expect(
+                    ThrottlingUtils.checkResponseForRetryAfter(response)
+                ).toBe(false);
+            }
+        );
+
+        it.each(
+            retryAfterHeaderNames.flatMap((headerName) =>
+                [200, 204, 299].map((status) => ({
+                    headerName,
+                    status,
+                }))
+            )
+        )(
+            "returns false when raw $headerName exists on HTTP $status",
+            ({ headerName, status }) => {
+                const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
+                    headers: { [headerName]: "test" },
+                    body: {},
+                    status,
+                };
+
+                expect(ThrottlingUtils.checkResponseForRetryAfter(res)).toBe(
+                    false
+                );
+            }
+        );
     });
 
     describe("calculateThrottleTime", () => {

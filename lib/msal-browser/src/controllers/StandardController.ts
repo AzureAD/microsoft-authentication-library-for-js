@@ -54,6 +54,7 @@ import {
     INTERACTION_TYPE,
 } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { cancelPendingPopupPollingResponse } from "../utils/PopupMonitor.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
@@ -473,7 +474,39 @@ export class StandardController implements IController {
     private async handleRedirectPromiseInternal(
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
-        if (!this.browserStorage.isInteractionInProgress(true)) {
+        // Preserve the response for RedirectClient before removing it from the URL.
+        const responseString =
+            options?.hash ||
+            (this.config.auth.OIDCOptions.responseMode ===
+            Constants.ResponseMode.QUERY
+                ? window.location.search
+                : window.location.hash);
+        const anyClientInteractionInProgress =
+            this.browserStorage.isInteractionInProgress(false);
+        const currentClientInteraction =
+            this.browserStorage.isInteractionInProgress(true);
+        const isBridgeCallback =
+            BrowserUtils.isInPopup() ||
+            (BrowserUtils.isInIframe() &&
+                !this.config.system.allowRedirectInIframe);
+        /*
+         * Clear recognized response fragments for:
+         * - Stale callbacks with no pending interaction.
+         * - This client's login callback, even if request setup or response validation fails.
+         * - This client's logout callback containing state, before the SIGNOUT early return.
+         * Leave another client's callback untouched. clearHash preserves query strings
+         * and application routes, and does nothing when no response fragment is present.
+         * Skip popup and non-redirect iframe callbacks: legacy apps may call HRP
+         * before their redirect bridge reads and broadcasts the response.
+         */
+        if (
+            !isBridgeCallback &&
+            (!anyClientInteractionInProgress || currentClientInteraction)
+        ) {
+            BrowserUtils.clearHash(window);
+        }
+
+        if (!currentClientInteraction) {
             this.logger.info(
                 "handleRedirectPromise called but there is no interaction in progress, returning null.",
                 ""
@@ -489,7 +522,7 @@ export class StandardController implements IController {
                 ""
             );
             this.browserStorage.setInteractionInProgress(false);
-            return Promise.resolve(null);
+            return null;
         }
 
         const loggedInAccounts = this.getAllAccounts();
@@ -571,7 +604,14 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     rootMeasurement.event.correlationId
-                )(standardRequest, codeVerifier, rootMeasurement, options);
+                )(
+                    standardRequest,
+                    codeVerifier,
+                    rootMeasurement,
+                    options?.hash
+                        ? options
+                        : { ...options, hash: responseString }
+                );
             }
         } catch (e) {
             this.browserStorage.resetRequestCache("");
@@ -840,6 +880,9 @@ export class StandardController implements IController {
                 request.overrideInteractionInProgress,
                 correlationId
             );
+            if (request.overrideInteractionInProgress) {
+                cancelPendingPopupPollingResponse(this.logger);
+            }
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);

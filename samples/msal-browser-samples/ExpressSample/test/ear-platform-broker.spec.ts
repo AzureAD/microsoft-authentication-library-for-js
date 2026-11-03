@@ -9,9 +9,6 @@ import {
     LabClient,
     AzureEnvironments,
     AppTypes,
-} from "e2e-test-utils";
-import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
-import {
     createPlatformBrokerProfile,
     launchPlatformBrokerBrowser,
     PLATFORM_LOGIN_TIMEOUT,
@@ -19,7 +16,8 @@ import {
     removePlatformBrokerProfile,
     verifyPlatformBrokerResponse,
     verifyPlatformBrokerTokenStore,
-} from "./platformBrokerTestUtils";
+} from "e2e-test-utils";
+import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
 
 // CommonJS helper; require by relative path.
 // eslint-disable-next-line @typescript-eslint/no-var-requires

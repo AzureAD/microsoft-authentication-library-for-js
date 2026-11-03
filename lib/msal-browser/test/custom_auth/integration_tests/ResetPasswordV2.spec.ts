@@ -8,18 +8,24 @@ import { CustomAuthStandardController } from "../../../src/custom_auth/controlle
 import { AuthMethodSelectionRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
+import { AuthMethodRegistrationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
+import { AuthMethodVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodVerificationRequiredStateV2.js";
 import { AuthFlowErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import { NewPasswordRequiredStateV2 } from "../../../src/custom_auth/reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import { SignInContinuationStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
+import { INVALID_HAL_RESPONSE } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 import {
+    ACTIVATED_CONTINUE_RESPONSE,
     CONTINUE_RESPONSE,
+    ENROLL_ACTIVATION_RESPONSE,
     EMAIL_AND_SMS_START_RESPONSE,
     EMAIL_CHALLENGE_RESPONSE,
     EMAIL_ONLY_START_RESPONSE,
     ENTRY_RESPONSE,
+    POLL_ENROLL_REQUIRED_RESPONSE,
     POLL_COMPLETED_RESPONSE,
     SMS_CHALLENGE_RESPONSE,
     SMS_ONLY_START_RESPONSE,
@@ -71,6 +77,7 @@ describe("Reset password V2 (SSPR)", () => {
         }
 
         jest.clearAllMocks();
+        jest.useRealTimers();
     });
 
     const completePasswordReset = async (
@@ -124,6 +131,185 @@ describe("Reset password V2 (SSPR)", () => {
         await completePasswordReset(codeState);
 
         expect(fetch as jest.Mock).toHaveBeenCalledTimes(8);
+    });
+
+    it.each([false, true])(
+        "enrolls and activates a method after the final poll (in-progress poll: %s)",
+        async (pollInProgress) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE));
+            if (pollInProgress) {
+                (fetch as jest.Mock).mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-poll-in-progress",
+                        action: "poll",
+                        _links: {
+                            poll: { href: "/tenant/api/v0.1/poll-next" },
+                        },
+                    })
+                );
+            }
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(
+                    buildResponse(POLL_ENROLL_REQUIRED_RESPONSE)
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(ENROLL_ACTIVATION_RESPONSE)
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(ACTIVATED_CONTINUE_RESPONSE)
+                )
+                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+            const startResult = await app.resetPasswordV2({
+                username: "user@contoso.com",
+                scopes: ["openid"],
+            });
+            if (!startResult.isState("codeRequired")) {
+                throw new Error("Expected a reset verification code.");
+            }
+            const verified = await startResult.state.submitCode("123456");
+            if (!verified.isState("newPasswordRequired")) {
+                throw new Error("Expected a new password before enrollment.");
+            }
+            expect(fetch).toHaveBeenCalledTimes(4);
+
+            if (pollInProgress) {
+                jest.useFakeTimers();
+            }
+            const registrationPromise =
+                verified.state.submitNewPassword("new-valid-password");
+            if (pollInProgress) {
+                await jest.advanceTimersByTimeAsync(1500);
+            }
+            const registration = await registrationPromise;
+            jest.useRealTimers();
+            expect(registration.state).toBeInstanceOf(
+                AuthMethodRegistrationRequiredStateV2
+            );
+            if (!registration.isState("authMethodRegistrationRequired")) {
+                throw new Error("Expected enrollment after password update.");
+            }
+            const enrollCallIndex = pollInProgress ? 7 : 6;
+            expect(fetch).toHaveBeenCalledTimes(enrollCallIndex);
+            const pollCalls = (fetch as jest.Mock).mock.calls;
+            expect(String(pollCalls[5][0])).toContain("/poll");
+            expect(JSON.parse(pollCalls[5][1].body)).toEqual({
+                continuationToken: "ct-update",
+            });
+            if (pollInProgress) {
+                expect(String(pollCalls[6][0])).toContain("/poll-next");
+                expect(JSON.parse(pollCalls[6][1].body)).toEqual({
+                    continuationToken: "ct-poll-in-progress",
+                });
+            }
+            const activation = await registration.state.selectAuthMethod(
+                registration.state.methods[0],
+                "user@contoso.com"
+            );
+            expect(activation.state).toBeInstanceOf(
+                AuthMethodVerificationRequiredStateV2
+            );
+            if (!activation.isState("authMethodVerificationRequired")) {
+                throw new Error("Expected method activation.");
+            }
+
+            const completed = await activation.state.submitChallenge("123456");
+            expect(completed.isState("completed")).toBe(true);
+            expect(completed.data).toBeInstanceOf(CustomAuthAccountData);
+            expect(fetch).toHaveBeenCalledTimes(enrollCallIndex + 4);
+            const calls = (fetch as jest.Mock).mock.calls;
+            expect(String(calls[enrollCallIndex][0])).toContain(
+                "/enroll/email"
+            );
+            expect(JSON.parse(calls[enrollCallIndex][1].body)).toEqual({
+                continuationToken: "ct-enroll",
+                email: "user@contoso.com",
+            });
+            expect(String(calls[enrollCallIndex + 1][0])).toContain(
+                "/activate/email"
+            );
+            expect(
+                (calls[enrollCallIndex + 2][1].body as URLSearchParams).get(
+                    "continuation_token"
+                )
+            ).toBe("ct-activated");
+        }
+    );
+
+    it.each([
+        { state: "continue", action: "future-action" },
+        { state: "future-state" },
+    ])(
+        "rejects an unsupported poll response %j without retrying",
+        async (body) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
+                .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        ...body,
+                        continuationToken: "ct-poll",
+                        _links: {
+                            poll: { href: "/tenant/api/v0.1/poll-next" },
+                        },
+                    })
+                );
+
+            const startResult = await app.resetPasswordV2({
+                username: "user@contoso.com",
+            });
+            if (!startResult.isState("codeRequired")) {
+                throw new Error("Expected a reset verification code.");
+            }
+            const verified = await startResult.state.submitCode("123456");
+            if (!verified.isState("newPasswordRequired")) {
+                throw new Error("Expected a new password.");
+            }
+
+            const result = await verified.state.submitNewPassword(
+                "new-valid-password"
+            );
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.error?.errorData).toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+            });
+            expect(result.isState("failed")).toBe(true);
+            expect(fetch).toHaveBeenCalledTimes(6);
+        }
+    );
+
+    it("rejects enrollment before a new password is submitted", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse(POLL_ENROLL_REQUIRED_RESPONSE)
+            );
+
+        const startResult = await app.resetPasswordV2({
+            username: "user@contoso.com",
+        });
+        if (!startResult.isState("codeRequired")) {
+            throw new Error("Expected a reset verification code.");
+        }
+        const result = await startResult.state.submitCode("123456");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.errorData).toMatchObject({
+            error: "unsupported_flow_transition",
+        });
+        expect(fetch).toHaveBeenCalledTimes(4);
     });
 
     it("completes password reset after automatically challenging the only SMS method", async () => {

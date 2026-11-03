@@ -4,6 +4,9 @@
  */
 
 export type NetworkResponse<T> = {
+    /**
+     * Header names are case-insensitive. Built-in clients return lowercase keys.
+     */
     headers: Record<string, string>;
     body: T;
     status: number;

@@ -20,7 +20,7 @@ export type RequestChallengeResultStateV2 =
     | FailedStateV2;
 
 /**
- * Result of requesting (or resending) a challenge. It wraps one of
+ * Result of requesting a challenge. It wraps one of
  * {@link RequestChallengeResultStateV2} plus, on failure, the unified V2 flow
  * error.
  */

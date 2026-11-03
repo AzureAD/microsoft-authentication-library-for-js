@@ -247,6 +247,7 @@ export type BrowserAuthOptions = {
     instanceAware?: boolean;
     isMcp?: boolean;
     verifySSO?: boolean;
+    originCheck?: boolean;
 };
 
 // @public (undocumented)
@@ -334,6 +335,7 @@ export type BrowserSystemOptions = SystemOptions & {
     navigationClient?: INavigationClient;
     popupBridgeTimeout?: number;
     iframeBridgeTimeout?: number;
+    enableLegacyPolling?: boolean;
     redirectNavigationTimeout?: number;
     navigatePopups?: boolean;
     allowRedirectInIframe?: boolean;
@@ -1128,7 +1130,7 @@ const unsupportedTokenBindingAlgorithm = "unsupported_token_binding_algorithm";
 const userCancelled = "user_cancelled";
 
 // @public (undocumented)
-export const version = "5.26.0";
+export const version = "5.27.0";
 
 // @public (undocumented)
 const WaitForBridgeLateResponse = "waitForBridgeLateResponse";

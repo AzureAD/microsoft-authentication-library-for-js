@@ -12,6 +12,7 @@ import { CompletedStateV2 } from "./CompletedStateV2.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import {
     FLOW_ATTRIBUTES_REQUIRED_V2,
+    FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
     FLOW_COMPLETED_V2,
     FLOW_MFA_REQUIRED_V2,
     FLOW_NEW_PASSWORD_REQUIRED_V2,
@@ -22,6 +23,7 @@ import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import { ChallengeVerificationStateBaseV2 } from "./ChallengeVerificationStateBaseV2.js";
+import { AuthMethodRegistrationRequiredStateV2 } from "./AuthMethodRegistrationRequiredStateV2.js";
 
 /**
  * State returned when first-factor email authentication requires a one-time
@@ -89,6 +91,22 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
                         flowClient: this.stateParameters.flowClient,
                         continuationState: result.continuationState,
                         cacheClient: this.stateParameters.cacheClient,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new AuthMethodRegistrationRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger,
+                        config: this.stateParameters.config,
+                        flowClient: this.stateParameters.flowClient,
+                        continuationState: result.continuationState,
+                        cacheClient: this.stateParameters.cacheClient,
+                        methods: result.methods,
                     }),
                     undefined,
                     result.continuationState.scenario

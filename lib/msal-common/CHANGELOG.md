@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Wed, 21 Oct 2026 18:37:17 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 27 Oct 2026 18:15:10 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.15.0
+
+Tue, 27 Oct 2026 18:15:10 GMT
+
+### Minor changes
+
+- Add the pocd (popup origin check done) parameter to authorize and end-session requests, preserving computed parameter precedence [#8793](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8793) (kshabelko@microsoft.com)
+
+### Patches
+
+- Handle response headers case-insensitively [#8916](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8916) (kshabelko@microsoft.com)
+- Avoid interpreting application routes as authorization responses [#8918](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8918) (223556219+Copilot@users.noreply.github.com)
 
 ## 16.14.3
 

@@ -32,7 +32,8 @@ export function stripLeadingHashOrQuery(responseString: string): string {
 }
 
 /**
- * Returns URL hash as server auth code response object.
+ * Returns flat fragment or query parameters as an authorization response.
+ * Application routes and unrecognized responses return null.
  */
 export function getDeserializedResponse(
     responseString: string
@@ -44,7 +45,16 @@ export function getDeserializedResponse(
     try {
         // Strip the # or ? symbol if present
         const normalizedResponse = stripLeadingHashOrQuery(responseString);
-        // If # symbol was not present, above will return empty string, so give original hash value
+        /*
+         * Require a flat parameter name, not an application route.
+         * Reject routes like #/dashboard?tab=orders&code=... and
+         * #/dashboard/orders&state=..., where ?, /, or # appears before
+         * the first = or &. These characters are allowed in parameter values.
+         */
+        if (!/^[^=&?#/]+(?:=|&|$)/.test(normalizedResponse)) {
+            return null;
+        }
+
         const deserializedHash: AuthorizeResponse = Object.fromEntries(
             new URLSearchParams(normalizedResponse)
         );

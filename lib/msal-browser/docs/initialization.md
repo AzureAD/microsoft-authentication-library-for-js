@@ -227,6 +227,11 @@ msalInstance
 
 It is not recommended to use both interaction types in a single application.
 
+### Redirect response URL cleanup
+
+For redirect flows, `handleRedirectPromise()` removes recognized response fragments
+from the callback URL even when processing fails.
+
 **Note:** `handleRedirectPromise` will optionally accept a hash value to be processed, defaulting to the current value of `window.location.hash`. This parameter only needs to be provided in scenarios where the current value of `window.location.hash` does not contain the redirect response that needs to be processed. **For almost all scenarios, applications should not need to provide this parameter explicitly.**
 
 # Next Steps

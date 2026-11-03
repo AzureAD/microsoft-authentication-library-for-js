@@ -78,4 +78,12 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
      * @internal
      */
     reqCnf?: string;
+    /**
+     * Adds `pocd=1`, signalling that no untrusted window can reach the window
+     * driving this request. msal-browser computes this for every authorize
+     * request; a flow sets it explicitly only to assert a value the current
+     * window cannot be measured for, such as the popup-relay topology.
+     * @internal
+     */
+    popupOriginCheckDone?: boolean;
 };

@@ -125,4 +125,33 @@ export const POLL_COMPLETED_RESPONSE = {
     _links: { continue: { href: "/tenant/api/v0.1/continue" } },
 };
 
+export const POLL_ENROLL_REQUIRED_RESPONSE = {
+    continuationToken: "ct-enroll",
+    state: "interactionRequired",
+    action: "enroll",
+    _embedded: {
+        methods: [
+            {
+                type: "email",
+                _links: { enroll: { href: "/tenant/api/v0.1/enroll/email" } },
+            },
+        ],
+    },
+};
+
+export const ENROLL_ACTIVATION_RESPONSE = {
+    continuationToken: "ct-activation",
+    action: "activate",
+    codeLength: 6,
+    _links: {
+        activate: { href: "/tenant/api/v0.1/activate/email" },
+        resend: { href: "/tenant/api/v0.1/enroll/email" },
+    },
+};
+
+export const ACTIVATED_CONTINUE_RESPONSE = {
+    continuationToken: "ct-activated",
+    state: "continue",
+};
+
 export const CONTINUE_RESPONSE = { code: "auth-code-1" };

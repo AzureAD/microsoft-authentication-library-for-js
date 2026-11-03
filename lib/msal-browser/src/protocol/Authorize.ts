@@ -29,6 +29,7 @@ import {
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
+import { computePocd } from "../utils/PopupOriginCheck.js";
 import { ApiId, BrowserConstants } from "../utils/BrowserConstants.js";
 import { version } from "../packageMetadata.js";
 import { CryptoOps } from "../crypto/CryptoOps.js";
@@ -165,7 +166,17 @@ async function getStandardParameters(
 ): Promise<Map<string, string>> {
     const parameters = AuthorizeProtocol.getStandardAuthorizeRequestParameters(
         { ...config.auth, authority: authority },
-        request,
+        {
+            ...request,
+            /*
+             * Computed here rather than per flow so every authorize request
+             * carries it — GET, POST and EAR, interactive and silent alike.
+             * A request may assert it instead when the topology, rather than
+             * the current window, is what makes the popup unreachable.
+             */
+            popupOriginCheckDone:
+                request.popupOriginCheckDone ?? computePocd(config) === 1,
+        },
         logger,
         performanceClient
     );
@@ -275,6 +286,26 @@ export type AuthorizeFormData = {
     action: string;
     fields: Record<string, string>;
 };
+
+function getAuthorizeFormAction(
+    authority: Authority,
+    request: CommonAuthorizationUrlRequest,
+    parameters: Map<string, string>
+): string {
+    const queryParams = new Map<string, string>();
+    RequestParameterBuilder.addExtraParameters(
+        queryParams,
+        request.extraQueryParameters || {}
+    );
+    if (parameters.has(AADServerParamKeys.POPUP_ORIGIN_CHECK_DONE)) {
+        queryParams.delete(AADServerParamKeys.POPUP_ORIGIN_CHECK_DONE);
+    }
+    RequestParameterBuilder.addCorrelationId(
+        queryParams,
+        request.correlationId
+    );
+    return AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
+}
 
 /**
  * Prepares the selected EAR construction before authorization. A null result requests PKCE fallback.
@@ -401,19 +432,7 @@ export async function getEARFormData(
         ...request.extraParameters,
     });
 
-    const queryParams = new Map<string, string>();
-    RequestParameterBuilder.addExtraParameters(
-        queryParams,
-        request.extraQueryParameters || {}
-    );
-
-    // Add correlationId to query params so gateway can propagate it to IDPs
-    RequestParameterBuilder.addCorrelationId(
-        queryParams,
-        request.correlationId
-    );
-
-    const action = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
+    const action = getAuthorizeFormAction(authority, request, parameters);
 
     return { action, fields: Object.fromEntries(parameters) };
 }
@@ -473,20 +492,7 @@ export async function getCodeFormData(
         ...request.extraParameters,
     });
 
-    // Add extraQueryParameters to be appended to request URL
-    const queryParams = new Map<string, string>();
-    RequestParameterBuilder.addExtraParameters(
-        queryParams,
-        request.extraQueryParameters || {}
-    );
-
-    // Add correlationId to query params so gateway can propagate it to IDPs
-    RequestParameterBuilder.addCorrelationId(
-        queryParams,
-        request.correlationId
-    );
-
-    const action = AuthorizeProtocol.getAuthorizeUrl(authority, queryParams);
+    const action = getAuthorizeFormAction(authority, request, parameters);
 
     return { action, fields: Object.fromEntries(parameters) };
 }

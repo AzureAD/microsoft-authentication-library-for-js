@@ -70,3 +70,9 @@ export const USERNAME = "username";
 export const USER_ID = "user_id";
 export const FMI_PATH = "fmi_path";
 export const ATTRIBUTE_TOKENS = "attribute_tokens";
+/**
+ * Popup-origin-check-done. Signals to the STS that the client verified the
+ * popup cannot be reached by an untrusted window, so the
+ * Cross-Origin-Opener-Policy response header may be omitted.
+ */
+export const POPUP_ORIGIN_CHECK_DONE = "pocd";

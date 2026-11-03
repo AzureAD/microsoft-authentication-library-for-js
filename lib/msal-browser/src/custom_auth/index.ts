@@ -258,6 +258,7 @@ export { CustomAuthFlowScenarioV2 } from "./core/auth_flow/v2/CustomAuthFlowScen
 
 // Native Auth V2 Authentication Method
 export { AuthenticationMethodV2 } from "./core/auth_flow/v2/AuthenticationMethodV2.js";
+export type { AuthenticationMethodRegistrationV2 } from "./core/auth_flow/v2/AuthenticationMethodRegistrationV2.js";
 
 // Native Auth V2 Errors
 export { AuthFlowErrorV2 } from "./core/auth_flow/v2/error/AuthFlowErrorV2.js";
@@ -269,6 +270,8 @@ export { NewPasswordRequiredStateV2 } from "./reset_password/auth_flow/v2/state/
 export { CodeRequiredStateV2 } from "./core/auth_flow/v2/state/CodeRequiredStateV2.js";
 export { MFAVerificationRequiredStateV2 } from "./core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
 export { AuthMethodSelectionRequiredStateV2 } from "./core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
+export { AuthMethodRegistrationRequiredStateV2 } from "./core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
+export { AuthMethodVerificationRequiredStateV2 } from "./core/auth_flow/v2/state/AuthMethodVerificationRequiredStateV2.js";
 export { PasswordRequiredStateV2 } from "./sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
 export { SignInContinuationStateV2 } from "./sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 export { AttributesRequiredStateV2 } from "./sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
@@ -303,6 +306,14 @@ export {
     MFAResendChallengeResultV2,
     MFAResendChallengeResultStateV2,
 } from "./core/auth_flow/v2/result/MFAResendChallengeResultV2.js";
+export type {
+    AuthMethodRegistrationChallengeResultV2,
+    AuthMethodRegistrationChallengeResultStateV2,
+} from "./core/auth_flow/v2/result/AuthMethodRegistrationChallengeResultV2.js";
+export type {
+    AuthMethodVerificationSubmitChallengeResultV2,
+    AuthMethodVerificationSubmitChallengeResultStateV2,
+} from "./core/auth_flow/v2/result/AuthMethodVerificationSubmitChallengeResultV2.js";
 export {
     VerifyChallengeResultV2,
     VerifyChallengeResultStateV2,

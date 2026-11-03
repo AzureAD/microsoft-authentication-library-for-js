@@ -1,0 +1,191 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
+import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
+import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
+import { AuthMethodVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodVerificationRequiredStateV2.js";
+import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
+import {
+    FLOW_AUTH_METHOD_VERIFICATION_REQUIRED_V2,
+    FLOW_COMPLETED_V2,
+} from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
+import { CustomAuthAccountData } from "../../../../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
+import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import type { AuthenticationResult } from "../../../../../../src/response/AuthenticationResult.js";
+import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
+
+describe("AuthMethodVerificationRequiredStateV2", () => {
+    const correlationId = "test-correlation-id";
+    const flowClient = {
+        verifyAuthMethodRegistration: jest.fn(),
+        resendAuthMethodRegistrationChallenge: jest.fn(),
+    } as unknown as jest.Mocked<FlowInteractionClientV2>;
+    const continuationState = {
+        continuationToken: "ct-activate",
+        scenario: CustomAuthFlowScenarioV2.SignIn,
+        scopes: ["openid", "profile", "offline_access"],
+        links: {
+            activate: "/activate/email",
+            resend: "/resend/email",
+        },
+    };
+
+    const buildState = () =>
+        new AuthMethodVerificationRequiredStateV2({
+            correlationId,
+            logger: getDefaultLogger(),
+            config: {
+                auth: { clientId: "test-client-id" },
+                customAuth: { challengeTypes: ["oob"] },
+            } as unknown as CustomAuthBrowserConfiguration,
+            flowClient,
+            cacheClient: {} as CustomAuthSilentCacheClient,
+            continuationState,
+            type: "email",
+            sentTo: "u***@contoso.com",
+            codeLength: 6,
+        });
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        flowClient.verifyAuthMethodRegistration.mockResolvedValue({
+            type: FLOW_COMPLETED_V2,
+            correlationId,
+            authenticationResult: {
+                account: {
+                    homeAccountId: "uid.utid",
+                },
+            } as unknown as AuthenticationResult,
+        });
+        flowClient.resendAuthMethodRegistrationChallenge.mockResolvedValue({
+            type: FLOW_AUTH_METHOD_VERIFICATION_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                ...continuationState,
+                continuationToken: "ct-resend",
+                links: {
+                    activate: "/activate/email-refreshed",
+                    resend: "/resend/email-refreshed",
+                },
+            },
+            sentTo: "us***@contoso.com",
+            codeLength: 8,
+        });
+    });
+
+    it("submits the activation challenge and completes sign-in", async () => {
+        const result = await buildState().submitChallenge("123456");
+
+        expect(flowClient.verifyAuthMethodRegistration).toHaveBeenCalledWith({
+            correlationId,
+            continuationState,
+            code: "123456",
+        });
+        expect(result.isState("completed")).toBe(true);
+        expect(result.state).toBeInstanceOf(CompletedStateV2);
+        expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+    });
+
+    it("rejects a null activation challenge", async () => {
+        const result = await buildState().submitChallenge(
+            null as unknown as string
+        );
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.isInvalidInput()).toBe(true);
+        expect(flowClient.verifyAuthMethodRegistration).not.toHaveBeenCalled();
+    });
+
+    it("passes a wrong-length challenge to the server", async () => {
+        const result = await buildState().submitChallenge("12345");
+
+        expect(flowClient.verifyAuthMethodRegistration).toHaveBeenCalledWith(
+            expect.objectContaining({
+                code: "12345",
+            })
+        );
+        expect(result.isState("completed")).toBe(true);
+    });
+
+    it("resends with only verification metadata and submits using the refreshed continuation", async () => {
+        const result = await buildState().resendChallenge();
+
+        expect(
+            flowClient.resendAuthMethodRegistrationChallenge
+        ).toHaveBeenCalledWith({
+            correlationId,
+            continuationState,
+        });
+        expect(result.isState("authMethodVerificationRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(
+            AuthMethodVerificationRequiredStateV2
+        );
+        if (!result.isState("authMethodVerificationRequired")) {
+            throw new Error("Expected a replacement activation challenge.");
+        }
+        expect(result.state.type).toBe("email");
+        expect(result.state.sentTo).toBe("us***@contoso.com");
+        expect(result.state.codeLength).toBe(8);
+        expect(result.state).not.toHaveProperty("method");
+
+        const completed = await result.state.submitChallenge("12345678");
+
+        expect(flowClient.verifyAuthMethodRegistration).toHaveBeenCalledWith({
+            correlationId,
+            continuationState: {
+                ...continuationState,
+                continuationToken: "ct-resend",
+                links: {
+                    activate: "/activate/email-refreshed",
+                    resend: "/resend/email-refreshed",
+                },
+            },
+            code: "12345678",
+        });
+        expect(completed.isState("completed")).toBe(true);
+    });
+
+    it("retains the masked destination when resend omits it", async () => {
+        flowClient.resendAuthMethodRegistrationChallenge.mockResolvedValueOnce({
+            type: FLOW_AUTH_METHOD_VERIFICATION_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                ...continuationState,
+                continuationToken: "ct-resend",
+            },
+            codeLength: 8,
+        });
+
+        const result = await buildState().resendChallenge();
+
+        if (!result.isState("authMethodVerificationRequired")) {
+            throw new Error("Expected a replacement activation challenge.");
+        }
+        expect(result.state.sentTo).toBe("u***@contoso.com");
+    });
+
+    it("wraps activation failures", async () => {
+        flowClient.verifyAuthMethodRegistration.mockRejectedValue(
+            new Error("failed")
+        );
+
+        const result = await buildState().submitChallenge("123456");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error).toBeDefined();
+    });
+
+    it("wraps resend failures", async () => {
+        flowClient.resendAuthMethodRegistrationChallenge.mockRejectedValue(
+            new Error("failed")
+        );
+
+        const result = await buildState().resendChallenge();
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error).toBeDefined();
+    });
+});

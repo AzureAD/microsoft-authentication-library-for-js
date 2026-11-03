@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 21 Oct 2026 18:37:16 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 27 Oct 2026 18:15:10 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.27.0
+
+Tue, 27 Oct 2026 18:15:10 GMT
+
+### Minor changes
+
+- Add the pocd (popup origin check done) parameter to authorize and end-session requests, preserving computed parameter precedence [#8793](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8793) (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v16.15.0
+
+### Patches
+
+- Improve redirect response URL cleanup [#8918](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8918) (lalima.sharda@gmail.com)
 
 ## 5.26.0
 

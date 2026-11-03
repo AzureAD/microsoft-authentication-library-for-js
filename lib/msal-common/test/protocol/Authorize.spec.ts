@@ -52,6 +52,63 @@ describe("Authorize Protocol Tests", () => {
         jest.restoreAllMocks();
     });
     describe("Authorization url creation", () => {
+        const basePocdRequest = (): CommonAuthorizationUrlRequest => ({
+            authority: TEST_CONFIG.validAuthority,
+            responseMode: Constants.ResponseMode.QUERY,
+            redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+            nonce: RANDOM_TEST_GUID,
+            state: TEST_CONFIG.STATE,
+            scopes: TEST_CONFIG.DEFAULT_SCOPES,
+            codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+            codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+            correlationId: RANDOM_TEST_GUID,
+            authenticationScheme: Constants.AuthenticationScheme.BEARER,
+        });
+
+        it("adds pocd=1 when popupOriginCheckDone is set", async () => {
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    { ...basePocdRequest(), popupOriginCheckDone: true },
+                    new Logger({})
+                );
+            const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
+                authority,
+                params
+            );
+            expect(
+                loginUrl.includes(
+                    `${AADServerParamKeys.POPUP_ORIGIN_CHECK_DONE}=1`
+                )
+            ).toBe(true);
+        });
+
+        it.each([false, undefined])(
+            "omits pocd entirely when popupOriginCheckDone is %s",
+            async (popupOriginCheckDone) => {
+                const params =
+                    AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                        authOptions,
+                        { ...basePocdRequest(), popupOriginCheckDone },
+                        new Logger({})
+                    );
+                const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
+                    authority,
+                    params
+                );
+                /*
+                 * A negative result is signalled by omission, not pocd=0, so
+                 * the STS default (apply COOP) applies and older library
+                 * versions stay compatible.
+                 */
+                expect(
+                    loginUrl.includes(
+                        AADServerParamKeys.POPUP_ORIGIN_CHECK_DONE
+                    )
+                ).toBe(false);
+            }
+        );
+
         it("Creates an authorization url with default parameters", async () => {
             const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 authority: TEST_CONFIG.validAuthority,

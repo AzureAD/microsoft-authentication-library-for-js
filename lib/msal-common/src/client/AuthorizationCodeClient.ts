@@ -597,6 +597,10 @@ export class AuthorizationCodeClient {
             );
         }
 
+        if (request.popupOriginCheckDone) {
+            RequestParameterBuilder.addPopupOriginCheckDone(parameters);
+        }
+
         if (request.extraQueryParameters) {
             RequestParameterBuilder.addExtraParameters(
                 parameters,

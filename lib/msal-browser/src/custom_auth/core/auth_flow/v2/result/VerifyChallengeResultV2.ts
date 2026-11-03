@@ -12,6 +12,7 @@ import type { AttributesRequiredStateV2 } from "../../../../sign_up/auth_flow/v2
 import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import type { SignUpPasswordRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
 import type { AuthMethodSelectionRequiredStateV2 } from "../state/AuthMethodSelectionRequiredStateV2.js";
+import type { AuthMethodRegistrationRequiredStateV2 } from "../state/AuthMethodRegistrationRequiredStateV2.js";
 
 /**
  * The states a verify-challenge action can resolve to. Verifying the one-time
@@ -24,6 +25,7 @@ export type VerifyChallengeResultStateV2 =
     | AttributesRequiredStateV2
     | SignInContinuationStateV2
     | AuthMethodSelectionRequiredStateV2
+    | AuthMethodRegistrationRequiredStateV2
     | CompletedStateV2
     | FailedStateV2;
 

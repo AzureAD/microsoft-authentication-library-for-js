@@ -98,6 +98,8 @@ Select the guide that matches your current MSAL version:
 
 The [`msal-browser-samples` folder](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples) contains sample applications for our libraries.
 
+-   [Popup origin check (POCD)](../../samples/msal-browser-samples/PocdSample/README.md): direct popup authentication with trusted/untrusted openers and COOP enforcement.
+
 More advanced samples backed with a tutorial can be found in the [Azure Samples](https://github.com/Azure-Samples) space on GitHub:
 
 -   [JavaScript SPA calling Express.js web API](https://github.com/Azure-Samples/ms-identity-javascript-tutorial/tree/main/3-Authorization-II/1-call-api)
