@@ -41,7 +41,16 @@ import { InteractionHandler } from "../interaction_handler/InteractionHandler.js
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { PlatformAuthInteractionClient } from "../interaction_client/PlatformAuthInteractionClient.js";
 import { EventHandler } from "../event/EventHandler.js";
-import { decryptEarResponse } from "../crypto/BrowserCrypto.js";
+import {
+    createNewGuid,
+    decryptAsymmetricEarResponse,
+    decryptEarResponse,
+    generateAsymmetricEarApv,
+    generateAsymmetricEarKey,
+    generateEarKey,
+} from "../crypto/BrowserCrypto.js";
+import { base64Encode } from "../encode/Base64Encode.js";
+import { EarRequest } from "../request/EarRequest.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 
@@ -268,12 +277,83 @@ export type AuthorizeFormData = {
 };
 
 /**
+ * Prepares the selected EAR construction before authorization. A null result requests PKCE fallback.
+ * @internal
+ */
+export async function initializeEarRequest(
+    config: BrowserConfiguration,
+    request: CommonAuthorizationUrlRequest,
+    browserStorage: BrowserCacheManager,
+    logger: Logger,
+    performanceClient: IPerformanceClient
+): Promise<EarRequest | null> {
+    if (!config.experimental.enableAsymmetricEar) {
+        const earJwk = await invokeAsync(
+            generateEarKey,
+            BrowserPerformanceEvents.GenerateEarKey,
+            logger,
+            performanceClient,
+            request.correlationId
+        )();
+        return {
+            ...request,
+            earJwk,
+            asymmetricEar: undefined,
+        };
+    }
+    try {
+        const { privateJwk, publicJwk } = await invokeAsync(
+            generateAsymmetricEarKey,
+            BrowserPerformanceEvents.GenerateAsymmetricEarKey,
+            logger,
+            performanceClient,
+            request.correlationId
+        )();
+        const apv = generateAsymmetricEarApv(publicJwk);
+        const keyId = createNewGuid();
+        const earJwk = base64Encode(JSON.stringify(publicJwk));
+        browserStorage.cacheAsymmetricEarKey(
+            keyId,
+            { privateJwk, apv },
+            request.correlationId
+        );
+        return {
+            ...request,
+            earJwk,
+            asymmetricEar: { version: 1, keyId, apv },
+        };
+    } catch {
+        logger.warning(
+            "Asymmetric EAR setup failed; using authorization code + PKCE.",
+            request.correlationId
+        );
+        return null;
+    }
+}
+
+/**
+ * Releases only this request's private context on a terminal path.
+ * @internal
+ */
+export function cleanEarRequest(
+    request: EarRequest,
+    browserStorage: BrowserCacheManager
+): void {
+    if (request.asymmetricEar) {
+        browserStorage.removeAsymmetricEarKey(
+            request.asymmetricEar.keyId,
+            request.correlationId
+        );
+    }
+}
+
+/**
  * Builds the action URL + POST-body fields for the EAR /authorize form.
  */
 export async function getEARFormData(
     config: BrowserConfiguration,
     authority: Authority,
-    request: CommonAuthorizationUrlRequest,
+    request: EarRequest,
     logger: Logger,
     performanceClient: IPerformanceClient
 ): Promise<AuthorizeFormData> {
@@ -297,6 +377,18 @@ export async function getEARFormData(
         Constants.OAuthResponseType.IDTOKEN_TOKEN_REFRESHTOKEN
     );
     RequestParameterBuilder.addEARParameters(parameters, request.earJwk);
+    if (request.asymmetricEar) {
+        parameters.set(
+            AADServerParamKeys.EAR_JWE_CRYPTO,
+            base64Encode(
+                JSON.stringify({
+                    alg: "ECDH-ES",
+                    enc: "A256GCM",
+                    apv: request.asymmetricEar.apv,
+                })
+            )
+        );
+    }
 
     // Also add codeChallenge as backup in case EAR is not supported
     RequestParameterBuilder.addCodeChallengeParams(
@@ -618,7 +710,7 @@ export async function handleResponseCode(
  * @returns
  */
 export async function handleResponseEAR(
-    request: CommonAuthorizationUrlRequest,
+    request: EarRequest,
     response: AuthorizeResponse,
     apiId: ApiId,
     config: BrowserConfiguration,
@@ -661,15 +753,45 @@ export async function handleResponseEAR(
         );
     }
 
-    const decryptedData = JSON.parse(
-        await invokeAsync(
+    let plaintext: string;
+    if (request.asymmetricEar) {
+        const context = browserStorage.getAsymmetricEarKey(
+            request.asymmetricEar.keyId,
+            request.correlationId
+        );
+        if (context.apv !== request.asymmetricEar.apv) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.asymmetricEarKeyError,
+                request.correlationId,
+                "request_apv_mismatch"
+            );
+        }
+        plaintext = await invokeAsync(
+            decryptAsymmetricEarResponse,
+            BrowserPerformanceEvents.DecryptEarResponse,
+            logger,
+            performanceClient,
+            request.correlationId
+        )(context.privateJwk, context.apv, response.ear_jwe);
+    } else {
+        plaintext = await invokeAsync(
             decryptEarResponse,
             BrowserPerformanceEvents.DecryptEarResponse,
             logger,
             performanceClient,
             request.correlationId
-        )(request.earJwk, response.ear_jwe)
-    ) as AuthorizeResponse & ServerAuthorizationTokenResponse;
+        )(request.earJwk, response.ear_jwe);
+    }
+    let decryptedData: AuthorizeResponse & ServerAuthorizationTokenResponse;
+    try {
+        decryptedData = JSON.parse(plaintext);
+    } catch {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            request.correlationId,
+            "invalid_decrypted_response_payload"
+        );
+    }
 
     if (decryptedData.accountId) {
         return invokeAsync(

@@ -89,6 +89,7 @@ export const TemporaryCacheKeys = {
     ORIGIN_URI: "request.origin",
     URL_HASH: "urlHash",
     REQUEST_PARAMS: "request.params",
+    ASYMMETRIC_EAR_KEY: "request.asymmetric-ear",
     VERIFIER: "code.verifier",
     INTERACTION_STATUS_KEY: "interaction.status",
     NATIVE_REQUEST: "request.native",

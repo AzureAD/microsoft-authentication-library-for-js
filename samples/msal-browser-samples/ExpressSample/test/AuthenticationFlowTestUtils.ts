@@ -8,6 +8,13 @@ type ObservedRequest = {
 export class AuthenticationFlowTestUtils {
     private readonly requests: ObservedRequest[] = [];
     private readonly fragmentParameters = new Map<string, number>();
+    private readonly earRequests: {
+        method: string;
+        algorithm: string;
+        curve?: string;
+        hasApv: boolean;
+        hasPrivateKey: boolean;
+    }[] = [];
 
     constructor(private readonly page: puppeteer.Page) {
         page.on("request", (request) => {
@@ -15,6 +22,43 @@ export class AuthenticationFlowTestUtils {
                 method: request.method(),
                 url: request.url(),
             });
+            if (
+                request.method() === "POST" &&
+                request.url().includes("/authorize")
+            ) {
+                const parameters = new URLSearchParams(request.postData());
+                if (parameters.has("ear_jwk")) {
+                    try {
+                        const decode = (value: string) =>
+                            JSON.parse(
+                                Buffer.from(
+                                    decodeURIComponent(value),
+                                    "base64"
+                                ).toString("utf8")
+                            );
+                        const jwk = decode(parameters.get("ear_jwk") || "");
+                        const controls = decode(
+                            parameters.get("ear_jwe_crypto") || ""
+                        );
+                        this.earRequests.push({
+                            method: request.method(),
+                            algorithm: controls.alg,
+                            curve: jwk.crv,
+                            hasApv:
+                                typeof controls.apv === "string" &&
+                                controls.apv.length > 0,
+                            hasPrivateKey: "d" in jwk || "k" in jwk,
+                        });
+                    } catch {
+                        this.earRequests.push({
+                            method: request.method(),
+                            algorithm: "invalid",
+                            hasApv: false,
+                            hasPrivateKey: false,
+                        });
+                    }
+                }
+            }
         });
         page.on("framenavigated", (frame) => {
             try {
@@ -41,6 +85,16 @@ export class AuthenticationFlowTestUtils {
 
     getFragmentParameterCount(parameter: string): number {
         return this.fragmentParameters.get(parameter) || 0;
+    }
+
+    getEarRequests(): {
+        method: string;
+        algorithm: string;
+        curve?: string;
+        hasApv: boolean;
+        hasPrivateKey: boolean;
+    }[] {
+        return this.earRequests;
     }
 
     async installCryptoOperationSpy(

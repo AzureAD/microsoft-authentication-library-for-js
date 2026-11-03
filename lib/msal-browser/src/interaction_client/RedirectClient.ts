@@ -54,7 +54,7 @@ import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
-import { generateEarKey } from "../crypto/BrowserCrypto.js";
+import type { EarRequest } from "../request/EarRequest.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
     clearCacheOnLogout,
@@ -326,13 +326,6 @@ export class RedirectClient extends StandardInteractionClient {
             account
         );
 
-        const earJwk = await invokeAsync(
-            generateEarKey,
-            BrowserPerformanceEvents.GenerateEarKey,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )();
         const pkceCodes = await invokeAsync(
             generatePkceCodes,
             BrowserPerformanceEvents.GeneratePkceCodes,
@@ -347,39 +340,84 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        const redirectRequest = {
-            ...request,
-            earJwk: earJwk,
-            codeChallenge: pkceCodes.challenge,
-            ...tokenBindingParams,
-        };
-
-        this.browserStorage.cacheAuthorizeRequest(
-            redirectRequest,
-            this.correlationId,
-            pkceCodes.verifier
-        );
-
-        const form = await Authorize.getEARForm(
-            document,
+        const redirectRequest = await Authorize.initializeEarRequest(
             this.config,
-            discoveredAuthority,
-            redirectRequest,
+            {
+                ...request,
+                codeChallenge: pkceCodes.challenge,
+                ...tokenBindingParams,
+            },
+            this.browserStorage,
             this.logger,
             this.performanceClient
         );
-        form.submit();
-        return new Promise<void>((resolve, reject) => {
-            setTimeout(() => {
-                reject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.timedOut,
-                        "",
-                        "failed_to_redirect"
-                    )
+        if (!redirectRequest) {
+            return this.executeCodeFlow(request);
+        }
+
+        try {
+            this.browserStorage.cacheAuthorizeRequest(
+                redirectRequest,
+                this.correlationId,
+                pkceCodes.verifier
+            );
+            if (redirectRequest.asymmetricEar) {
+                const [cachedRequest, cachedVerifier] =
+                    this.browserStorage.getCachedRequest(this.correlationId);
+                const cachedContext = (cachedRequest as EarRequest)
+                    .asymmetricEar;
+                if (
+                    cachedContext?.version !== 1 ||
+                    cachedContext.keyId !==
+                        redirectRequest.asymmetricEar.keyId ||
+                    cachedContext.apv !== redirectRequest.asymmetricEar.apv ||
+                    cachedRequest.earJwk !== redirectRequest.earJwk ||
+                    cachedVerifier !== pkceCodes.verifier
+                ) {
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.asymmetricEarKeyError,
+                        correlationId,
+                        "persist_request"
+                    );
+                }
+            }
+        } catch (error) {
+            Authorize.cleanEarRequest(redirectRequest, this.browserStorage);
+            if (redirectRequest.asymmetricEar) {
+                this.logger.warning(
+                    "Asymmetric EAR request persistence failed; using authorization code + PKCE.",
+                    correlationId
                 );
-            }, this.config.system.redirectNavigationTimeout);
-        });
+                return this.executeCodeFlow(request);
+            }
+            throw error;
+        }
+
+        try {
+            const form = await Authorize.getEARForm(
+                document,
+                this.config,
+                discoveredAuthority,
+                redirectRequest,
+                this.logger,
+                this.performanceClient
+            );
+            form.submit();
+            return await new Promise<void>((resolve, reject) => {
+                setTimeout(() => {
+                    reject(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.timedOut,
+                            "",
+                            "failed_to_redirect"
+                        )
+                    );
+                }, this.config.system.redirectNavigationTimeout);
+            });
+        } catch (error) {
+            Authorize.cleanEarRequest(redirectRequest, this.browserStorage);
+            throw error;
+        }
     }
 
     /**
@@ -787,7 +825,6 @@ export class RedirectClient extends StandardInteractionClient {
     /**
      * Redirects window to given URL.
      * @param urlNavigate
-     * @param onRedirectNavigateRequest - onRedirectNavigate callback provided on the request
      */
     async initiateAuthRequest(requestUrl: string): Promise<void> {
         this.logger.verbose(

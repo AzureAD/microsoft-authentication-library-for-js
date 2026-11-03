@@ -74,6 +74,21 @@ npm run build:package
 
 The Puppeteer e2e tests live in [`./test`](./test). The EAR (Encrypted Authorize Response) web-flow suite is in [`./test/ear-basic.spec.ts`](./test/ear-basic.spec.ts).
 
+### Symmetric and asymmetric EAR
+
+The existing EAR configuration uses an EAR-approved test application and disables the platform broker. Start its HTTPS server with `npm run start:ear:e2e`, then open:
+
+- `https://localhost:3443/?ear=true` for symmetric EAR.
+- `https://localhost:3443/?ear=true&asymmetricEar=true` for experimental asymmetric EAR (`experimental.enableAsymmetricEar`).
+
+Both symmetric and asymmetric EAR use POST only. Authorization request parameters are sent in the form body.
+
+Run symmetric and asymmetric POST through redirect, popup, silent sign-in and refresh-token acquisition using the existing lab credentials and HTTPS test prerequisites:
+
+```powershell
+npm run test:e2e -- --runInBand ear-basic
+```
+
 The [`./test/kmsi-basic.spec.ts`](./test/kmsi-basic.spec.ts) suite verifies that both standard web and Encrypted Authorize Response sign-ins with KMSI persist across a complete browser restart:
 
 ```powershell
@@ -82,11 +97,12 @@ npm run test:e2e:kmsi
 
 These web-flow KMSI scenarios are enabled in the 3P e2e pipeline.
 
-A separate [`./test/ear-platform-broker.spec.ts`](./test/ear-platform-broker.spec.ts) suite exercises EAR combined with the platform broker. It is excluded from CI (the pipeline `testFilter` runs only `ear-basic`) because the platform broker is only available locally. To run it locally, set `SSO_EXTENSION_PATH` to the unpacked "Microsoft Single Sign On" extension directory (the folder containing its `manifest.json`):
+A separate [`./test/ear-platform-broker.spec.ts`](./test/ear-platform-broker.spec.ts) suite exercises symmetric and asymmetric EAR combined with the platform broker through redirect, popup, silent sign-in and broker token renewal. It is excluded from CI (the pipeline `testFilter` runs only `ear-basic`) because the platform broker is only available locally. To run it locally, set `SSO_EXTENSION_PATH` to the unpacked "Microsoft Single Sign On" extension directory (the folder containing its `manifest.json`):
 
 ```powershell
 # PowerShell — set before running the EAR tests
 $env:SSO_EXTENSION_PATH = "C:\Users\<you>\AppData\Local\Microsoft\Edge\User Data\Default\Extensions\ppnbnpeolgkicgegkbkbjmhlideopiji\<version>"
+npm run test:e2e -- --runInBand --runTestsByPath test\ear-platform-broker.spec.ts
 ```
 
 The path is machine-specific (Edge version subfolder and user profile vary). If the platform-broker suite is run without this variable set, it fails fast with a clear error.

@@ -59,6 +59,11 @@ import * as CacheKeys from "../../src/cache/CacheKeys.js";
 import { getAccount } from "../../src/cache/AccountManager.js";
 import { isEncrypted } from "../../src/cache/EncryptedData.js";
 import { SessionStorage } from "../../src/cache/SessionStorage.js";
+import {
+    generateAsymmetricEarKey,
+    importAsymmetricEarKey,
+} from "../../src/crypto/BrowserCrypto.js";
+import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -84,6 +89,318 @@ describe("BrowserCacheManager tests", () => {
         jest.restoreAllMocks();
         window.sessionStorage.clear();
         window.localStorage.clear();
+    });
+
+    describe("asymmetric EAR private context", () => {
+        let privateJwk: JsonWebKey;
+        const keyId = "request-key-id";
+        const correlationId = TEST_CONFIG.CORRELATION_ID;
+        const storageKey = `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ASYMMETRIC_EAR_KEY}.${keyId}`;
+        let cache: BrowserCacheManager;
+        let performanceClient: StubPerformanceClient;
+        const createCache = (clientId = TEST_CONFIG.MSAL_CLIENT_ID) =>
+            new BrowserCacheManager(
+                clientId,
+                {
+                    ...cacheConfig,
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+                browserCrypto,
+                logger,
+                performanceClient,
+                new EventHandler()
+            );
+
+        beforeAll(async () => {
+            privateJwk = (await generateAsymmetricEarKey()).privateJwk;
+        });
+
+        beforeEach(() => {
+            performanceClient = new StubPerformanceClient();
+            cache = createCache();
+        });
+
+        it("Restores the serialized private key from a fresh instance using sessionStorage only", async () => {
+            const context = { privateJwk, apv: "request-context" };
+            const traceSpy = jest.spyOn(logger, "trace");
+            const measureSpy = jest.spyOn(
+                performanceClient,
+                "startMeasurement"
+            );
+            cache.cacheAsymmetricEarKey(keyId, context, correlationId);
+
+            expect(window.localStorage.getItem(storageKey)).toBeNull();
+            const restored = createCache().getAsymmetricEarKey(
+                keyId,
+                correlationId
+            );
+            expect(restored).toEqual(context);
+            const key = await importAsymmetricEarKey(restored.privateJwk);
+            expect(key.extractable).toBe(false);
+            expect(key.usages).toEqual(["deriveBits"]);
+            expect(JSON.stringify(traceSpy.mock.calls)).not.toContain(
+                privateJwk.d
+            );
+            expect(measureSpy).toHaveBeenCalledWith(
+                BrowserPerformanceEvents.BrowserCacheManagerCacheAsymmetricEarKey,
+                correlationId
+            );
+            expect(measureSpy).toHaveBeenCalledWith(
+                BrowserPerformanceEvents.BrowserCacheManagerGetAsymmetricEarKey,
+                correlationId
+            );
+        });
+
+        it("Keeps independent request/client contexts and removes only the matching key", () => {
+            const context = { privateJwk, apv: "request-context" };
+            const otherClient = createCache("other-client");
+            cache.cacheAsymmetricEarKey(keyId, context, correlationId);
+            cache.cacheAsymmetricEarKey("other-key", context, correlationId);
+            otherClient.cacheAsymmetricEarKey(keyId, context, correlationId);
+
+            cache.removeAsymmetricEarKey(keyId, correlationId);
+            cache.removeAsymmetricEarKey(keyId, correlationId);
+
+            expect(() =>
+                cache.getAsymmetricEarKey(keyId, correlationId)
+            ).toThrow(
+                expect.objectContaining({
+                    subError: "private_key_context_missing_or_invalid",
+                })
+            );
+            expect(
+                cache.getAsymmetricEarKey("other-key", correlationId)
+            ).toEqual(context);
+            expect(
+                otherClient.getAsymmetricEarKey(keyId, correlationId)
+            ).toEqual(context);
+        });
+
+        it("Reports private key removal failures while retaining the context", () => {
+            const context = { privateJwk, apv: "request-context" };
+            cache.cacheAsymmetricEarKey(keyId, context, correlationId);
+            jest.spyOn(
+                SessionStorage.prototype,
+                "removeItem"
+            ).mockImplementation(() => {
+                throw new DOMException("Storage blocked", "SecurityError");
+            });
+
+            expect(() =>
+                cache.removeAsymmetricEarKey(keyId, correlationId)
+            ).toThrow(
+                expect.objectContaining({
+                    errorCode: BrowserAuthErrorCodes.asymmetricEarKeyError,
+                    subError: "private_key_removal_failed",
+                    correlationId,
+                })
+            );
+            expect(cache.getAsymmetricEarKey(keyId, correlationId)).toEqual(
+                context
+            );
+        });
+
+        it("Existing redirect cleanup removes only the private record referenced by the cached request", () => {
+            const context = { privateJwk, apv: "request-context" };
+            cache.cacheAsymmetricEarKey(keyId, context, correlationId);
+            cache.cacheAsymmetricEarKey("other-key", context, correlationId);
+            cache.cacheAuthorizeRequest(
+                {
+                    authority: TEST_CONFIG.validAuthority,
+                    redirectUri: window.location.href,
+                    scopes: ["User.Read"],
+                    correlationId,
+                    nonce: "nonce",
+                    state: "state",
+                    responseMode: Constants.ResponseMode.FRAGMENT,
+                    asymmetricEar: { version: 1, keyId, apv: context.apv },
+                } as import("../../src/request/EarRequest.js").EarRequest,
+                correlationId
+            );
+
+            cache.resetRequestCache(correlationId);
+            cache.resetRequestCache(correlationId);
+            expect(() =>
+                cache.getAsymmetricEarKey(keyId, correlationId)
+            ).toThrow();
+            expect(
+                cache.getAsymmetricEarKey("other-key", correlationId)
+            ).toEqual(context);
+        });
+
+        it("Does not overwrite an active key reference", () => {
+            const context = { privateJwk, apv: "original" };
+            cache.cacheAsymmetricEarKey(keyId, context, correlationId);
+            expect(() =>
+                cache.cacheAsymmetricEarKey(
+                    keyId,
+                    { privateJwk, apv: "replacement" },
+                    correlationId
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    subError: "private_key_id_already_in_use",
+                })
+            );
+            expect(cache.getAsymmetricEarKey(keyId, correlationId)).toEqual(
+                context
+            );
+        });
+
+        it("Rejects a memory-only temporary store instead of claiming redirect durability", () => {
+            const getter = jest
+                .spyOn(window, "sessionStorage", "get")
+                .mockReturnValue(null as any);
+            const memoryCache = createCache();
+            getter.mockRestore();
+            expect(() =>
+                memoryCache.cacheAsymmetricEarKey(
+                    keyId,
+                    { privateJwk, apv: "context" },
+                    correlationId
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    errorCode: BrowserAuthErrorCodes.asymmetricEarKeyError,
+                    subError: "session_storage_unavailable",
+                })
+            );
+            expect(window.sessionStorage.getItem(storageKey)).toBeNull();
+        });
+
+        it("Removes partial writes when persistence fails", () => {
+            jest.spyOn(SessionStorage.prototype, "setItem").mockImplementation(
+                (key, value) => {
+                    window.sessionStorage.setItem(key, value);
+                    throw new DOMException(
+                        "Storage blocked",
+                        "QuotaExceededError"
+                    );
+                }
+            );
+            expect(() =>
+                cache.cacheAsymmetricEarKey(
+                    keyId,
+                    { privateJwk, apv: "context" },
+                    correlationId
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    subError: "private_key_persistence_failed",
+                })
+            );
+            expect(window.sessionStorage.getItem(storageKey)).toBeNull();
+        });
+
+        it("Rejects writes that cannot be read back", () => {
+            jest.spyOn(SessionStorage.prototype, "getItem").mockReturnValue(
+                null
+            );
+            expect(() =>
+                cache.cacheAsymmetricEarKey(
+                    keyId,
+                    { privateJwk, apv: "context" },
+                    correlationId
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    subError: "private_key_persistence_failed",
+                })
+            );
+            expect(window.sessionStorage.getItem(storageKey)).toBeNull();
+        });
+
+        it.each([
+            { version: 2 },
+            { alg: "dir" },
+            { apv: "" },
+            { privateJwk: { kty: "EC", crv: "P-256", d: "private" } },
+            {
+                privateJwk: {
+                    kty: "EC",
+                    crv: "P-384",
+                    x: "public",
+                    y: "public",
+                },
+            },
+        ])("Rejects incompatible private records: %j", (override) => {
+            window.sessionStorage.setItem(
+                storageKey,
+                JSON.stringify({
+                    version: 1,
+                    alg: "ECDH-ES",
+                    apv: "context",
+                    privateJwk,
+                    ...override,
+                })
+            );
+            expect(() =>
+                cache.getAsymmetricEarKey(keyId, correlationId)
+            ).toThrow(
+                expect.objectContaining({
+                    errorCode: BrowserAuthErrorCodes.asymmetricEarKeyError,
+                    subError: "private_key_context_missing_or_invalid",
+                })
+            );
+        });
+
+        it("Reports corrupt JSON without logging the serialized private context", () => {
+            const traceSpy = jest.spyOn(logger, "trace");
+            window.sessionStorage.setItem(
+                storageKey,
+                `{"privateJwk":${JSON.stringify(privateJwk)}`
+            );
+            expect(() =>
+                cache.getAsymmetricEarKey(keyId, correlationId)
+            ).toThrow(
+                expect.objectContaining({ subError: "private_key_read_failed" })
+            );
+            expect(JSON.stringify(traceSpy.mock.calls)).not.toContain(
+                privateJwk.d
+            );
+        });
+
+        it("Leaves pending legacy symmetric requests unchanged across a private-record round trip", () => {
+            const request: CommonAuthorizationUrlRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["openid"],
+                correlationId,
+                earJwk: "legacy-symmetric-key",
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
+            };
+            cache.cacheAuthorizeRequest(
+                request,
+                correlationId,
+                "pkce-verifier"
+            );
+            cache.cacheAsymmetricEarKey(
+                keyId,
+                { privateJwk, apv: "context" },
+                correlationId
+            );
+            expect(createCache().getCachedRequest(correlationId)).toEqual([
+                request,
+                "pkce-verifier",
+            ]);
+            cache.removeAsymmetricEarKey(keyId, correlationId);
+            expect(createCache().getCachedRequest(correlationId)).toEqual([
+                request,
+                "pkce-verifier",
+            ]);
+        });
+
+        it("Removes private records through existing cache clearing", () => {
+            cache.cacheAsymmetricEarKey(
+                keyId,
+                { privateJwk, apv: "context" },
+                correlationId
+            );
+            cache.clear(correlationId);
+            expect(window.sessionStorage.getItem(storageKey)).toBeNull();
+        });
     });
 
     describe("Constructor", () => {

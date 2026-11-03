@@ -1,7 +1,15 @@
 import * as path from "path";
 import { spawn, ChildProcess } from "child_process";
 import * as puppeteer from "puppeteer";
-import { Screenshot, BrowserCacheUtils } from "e2e-test-utils";
+import {
+    Screenshot,
+    BrowserCacheUtils,
+    enterCredentials,
+    setupCredentials,
+    LabClient,
+    AzureEnvironments,
+    AppTypes,
+} from "e2e-test-utils";
 import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
 import {
     createPlatformBrokerProfile,
@@ -26,24 +34,70 @@ const EAR_PORT = 3443;
 const EAR_START_CMD = "npm run start:ear:e2e";
 const EXPRESS_SAMPLE_ROOT = path.join(__dirname, "..");
 
-// Enable both EAR protocol and the platform broker for this suite.
-const EAR_QUERY_STRING = "?ear=true&platformBroker=true";
 const EAR_CACHE_LOCATION = "sessionStorage";
 const EAR_ORIGIN = `https://localhost:${EAR_PORT}`;
 const EAR_CRYPTO_ALGORITHM = "AES-GCM";
 
 // Platform-broker EAR tests are local-only: they need the MS SSO extension,
-// native host and a brokerable signed-in Windows account, none of which exist
+// native host and a brokerable lab account available for SSO, none of which exist
 // in ADO/prod CI. This whole spec is excluded from CI by the `ear-basic`
 // testFilter in the pipeline; run it locally by pointing SSO_EXTENSION_PATH at
 // the unpacked "Microsoft Single Sign On" extension directory.
-describe("EAR + Platform Broker Tests", () => {
+describe.each([
+    {
+        mode: "symmetric",
+        query: "?ear=true&platformBroker=true",
+        algorithm: "dir",
+    },
+    {
+        mode: "asymmetric",
+        query: "?ear=true&platformBroker=true&asymmetricEar=true",
+        algorithm: "ECDH-ES",
+    },
+])("EAR + Platform Broker Tests ($mode)", ({ mode, query, algorithm }) => {
     let browser: puppeteer.Browser;
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
     let flowUtils: AuthenticationFlowTestUtils;
     let earServerProcess: ChildProcess;
     let profile: PlatformBrokerProfile;
+    let username = "";
+    let accountPwd = "";
+
+    const completeSignIn = async (
+        authPage: puppeteer.Page,
+        screenshot: Screenshot
+    ) => {
+        const loginPrompt = await authPage
+            .waitForSelector('input[type="email"], #i0116', {
+                visible: true,
+                timeout: 10000,
+            })
+            .catch(() => null);
+        if (loginPrompt) {
+            await enterCredentials(authPage, screenshot, username, accountPwd);
+        }
+        await page.waitForSelector("a#viewProfileButton", {
+            visible: true,
+            timeout: PLATFORM_LOGIN_TIMEOUT,
+        });
+    };
+
+    const assertEarRequests = (flow: AuthenticationFlowTestUtils) => {
+        const requests = flow.getEarRequests();
+        expect(requests.length).toBeGreaterThan(0);
+        for (const request of requests) {
+            expect(request).toEqual(
+                expect.objectContaining({
+                    method: "POST",
+                    algorithm,
+                    ...(mode === "asymmetric"
+                        ? { curve: "P-384", hasApv: true, hasPrivateKey: false }
+                        : { hasPrivateKey: true }),
+                })
+            );
+        }
+    };
 
     beforeAll(async () => {
         profile = createPlatformBrokerProfile();
@@ -61,6 +115,15 @@ describe("EAR + Platform Broker Tests", () => {
         }
 
         browser = await launchPlatformBrokerBrowser(profile);
+        const labClient = new LabClient();
+        const environments = await labClient.getVarsByCloudEnvironment({
+            azureEnvironment: AzureEnvironments.CLOUD,
+            appType: AppTypes.CLOUD,
+        });
+        [username, accountPwd] = await setupCredentials(
+            environments[0],
+            labClient
+        );
     });
 
     afterAll(async () => {
@@ -84,42 +147,60 @@ describe("EAR + Platform Broker Tests", () => {
         // Use the default context: an extension loaded via --load-extension is
         // not enabled in additional (incognito) contexts.
         page = await browser.newPage();
+        const client = await page.createCDPSession();
+        await client.send("Network.clearBrowserCookies");
+        await client.detach();
         BrowserCache = new BrowserCacheUtils(page, EAR_CACHE_LOCATION);
         flowUtils = new AuthenticationFlowTestUtils(page);
         await flowUtils.installCryptoOperationSpy(
             EAR_ORIGIN,
             EAR_CRYPTO_ALGORITHM
         );
-        await page.goto(`https://localhost:${EAR_PORT}/${EAR_QUERY_STRING}`, {
+        await page.goto(`https://localhost:${EAR_PORT}/${query}`, {
             timeout: 10000,
         });
+        await page.evaluate(
+            `import("/js/authConfig.js").then(({ loginRequest }) => {
+                loginRequest.loginHint = ${JSON.stringify(username)};
+            })`
+        );
         await flowUtils.assertCryptoOperationSpyInstalled(EAR_CRYPTO_ALGORITHM);
     });
 
     afterEach(async () => {
-        await page.evaluate(() => window.sessionStorage.clear());
-        await page.evaluate(() => window.localStorage.clear());
-        await page.close();
+        if (!page) {
+            return;
+        }
+        try {
+            const remainingPrivateContexts = await page.evaluate(
+                () =>
+                    Object.keys(window.sessionStorage).filter((key) =>
+                        key.includes(".request.asymmetric-ear.")
+                    ).length
+            );
+            expect(remainingPrivateContexts).toBe(0);
+        } finally {
+            await page.evaluate(() => window.sessionStorage.clear());
+            await page.evaluate(() => window.localStorage.clear());
+            await page.close();
+        }
     });
 
     it("Performs EAR + platform broker loginRedirect", async () => {
         const screenshot = new Screenshot(
-            `${SCREENSHOT_BASE_FOLDER_NAME}/earPlatformRedirect`
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${mode}/earPlatformRedirect`
         );
 
-        // The SSO extension signs in the Windows account (no password prompt).
         await page.locator("button#signInButton").click();
         await page.locator("a#signInRedirect").click();
-        await page.waitForSelector("a#viewProfileButton", {
-            visible: true,
-            timeout: PLATFORM_LOGIN_TIMEOUT,
-        });
+        await completeSignIn(page, screenshot);
         await screenshot.takeScreenshot(page, "Logged In");
 
         // EAR still POSTs /authorize; ear_jwe is decrypted to extract accountId.
         expect(flowUtils.getRequestCount("/authorize", "POST")).toBeGreaterThan(
             0
         );
+        assertEarRequests(flowUtils);
         expect(
             await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
         ).toBeGreaterThan(0);
@@ -129,7 +210,7 @@ describe("EAR + Platform Broker Tests", () => {
 
     it("Performs EAR + platform broker loginPopup", async () => {
         const screenshot = new Screenshot(
-            `${SCREENSHOT_BASE_FOLDER_NAME}/earPlatformPopup`
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${mode}/earPlatformPopup`
         );
 
         await page.locator("button#signInButton").click();
@@ -152,16 +233,13 @@ describe("EAR + Platform Broker Tests", () => {
             throw new Error("Popup window was not opened");
         }
 
-        // The SSO extension completes the popup sign-in for the Windows account.
-        await page.waitForSelector("a#viewProfileButton", {
-            visible: true,
-            timeout: PLATFORM_LOGIN_TIMEOUT,
-        });
+        await completeSignIn(popupPage, screenshot);
         await screenshot.takeScreenshot(page, "Logged In");
 
         expect(
             popupFlowUtils?.getRequestCount("/authorize", "POST")
         ).toBeGreaterThan(0);
+        assertEarRequests(popupFlowUtils!);
         expect(
             await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
         ).toBeGreaterThan(0);
@@ -171,20 +249,18 @@ describe("EAR + Platform Broker Tests", () => {
 
     it("Performs EAR + platform broker ssoSilent", async () => {
         const screenshot = new Screenshot(
-            `${SCREENSHOT_BASE_FOLDER_NAME}/earPlatformSsoSilent`
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${mode}/earPlatformSsoSilent`
         );
 
         // Seed an interactive login to establish the account/session.
         await page.locator("button#signInButton").click();
         await page.locator("a#signInRedirect").click();
-        await page.waitForSelector("a#viewProfileButton", {
-            visible: true,
-            timeout: PLATFORM_LOGIN_TIMEOUT,
-        });
+        await completeSignIn(page, screenshot);
 
         const decryptCountBefore = await flowUtils.getCryptoOperationCount(
             EAR_CRYPTO_ALGORITHM
         );
+        const authorizeCountBefore = flowUtils.getEarRequests().length;
 
         await page.locator("button#ssoSilentButton").click();
         await page.waitForSelector(
@@ -197,22 +273,23 @@ describe("EAR + Platform Broker Tests", () => {
         expect(
             await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
         ).toBeGreaterThan(decryptCountBefore);
+        expect(flowUtils.getEarRequests().length).toBeGreaterThan(
+            authorizeCountBefore
+        );
+        assertEarRequests(flowUtils);
         await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 
     it("Performs EAR + platform broker acquireTokenSilent", async () => {
         const screenshot = new Screenshot(
-            `${SCREENSHOT_BASE_FOLDER_NAME}/earPlatformAcquireTokenSilent`
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${mode}/earPlatformAcquireTokenSilent`
         );
 
         // Seed an interactive login.
         await page.locator("button#signInButton").click();
         await page.locator("a#signInRedirect").click();
-        await page.waitForSelector("a#viewProfileButton", {
-            visible: true,
-            timeout: PLATFORM_LOGIN_TIMEOUT,
-        });
+        await completeSignIn(page, screenshot);
 
         await page.locator("button#acquireTokenSilentButton").click();
         await page.waitForSelector(
@@ -222,6 +299,7 @@ describe("EAR + Platform Broker Tests", () => {
         await screenshot.takeScreenshot(page, "acquireTokenSilent completed");
 
         // Platform accounts renew through the broker, not the EAR RT grant.
+        assertEarRequests(flowUtils);
         await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });

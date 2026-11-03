@@ -199,6 +199,11 @@ export type BrowserSystemOptions = SystemOptions & {
  */
 export type BrowserExperimentalOptions = {
     /**
+     * Opts EAR requests into asymmetric encryption. Defaults to false.
+     * Requires system.protocolMode to be ProtocolMode.EAR.
+     */
+    enableAsymmetricEar?: boolean;
+    /**
      * Enables iframe timeout telemetry experiment for silent iframe bridge monitoring.
      */
     iframeTimeoutTelemetry?: boolean;
@@ -361,6 +366,7 @@ export function buildConfiguration(
     };
 
     const DEFAULT_EXPERIMENTAL_OPTIONS: Required<BrowserExperimentalOptions> = {
+        enableAsymmetricEar: false,
         iframeTimeoutTelemetry: false,
         allowPlatformBrokerWithDOM: false,
     };
@@ -412,9 +418,27 @@ export function buildConfiguration(
         experimental: {
             ...DEFAULT_EXPERIMENTAL_OPTIONS,
             ...userInputExperimental,
+            enableAsymmetricEar:
+                userInputExperimental?.enableAsymmetricEar ?? false,
         },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
+
+    if (
+        overlayedConfig.experimental.enableAsymmetricEar &&
+        overlayedConfig.system.protocolMode !== ProtocolMode.EAR
+    ) {
+        const logger = new Logger(
+            providedSystemOptions.loggerOptions,
+            name,
+            version
+        );
+        logger.warning(
+            "experimental.enableAsymmetricEar is ignored because system.protocolMode is not ProtocolMode.EAR.",
+            ""
+        );
+        overlayedConfig.experimental.enableAsymmetricEar = false;
+    }
 
     return overlayedConfig;
 }

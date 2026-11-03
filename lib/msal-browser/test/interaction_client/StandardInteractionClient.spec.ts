@@ -539,31 +539,50 @@ describe("StandardInteractionClient EAR Tests", () => {
         jest.restoreAllMocks();
     });
 
-    it("initializeAuthorizationRequest throws error when protocolMode is EAR and httpMethod is GET", async () => {
-        const request: CommonAuthorizationUrlRequest = {
-            redirectUri: TEST_URIS.TEST_REDIR_URI,
-            scopes: ["scope"],
-            state: TEST_STATE_VALUES.USER_STATE,
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            responseMode: Constants.ResponseMode.QUERY,
-            nonce: "",
-            httpMethod: Constants.HttpMethod.GET,
-        };
+    it.each([false, true])(
+        "initializeAuthorizationRequest rejects EAR GET (asymmetric: %s)",
+        async (enableAsymmetricEar) => {
+            (pca as any).config.experimental.enableAsymmetricEar =
+                enableAsymmetricEar;
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["scope"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: Constants.ResponseMode.QUERY,
+                nonce: "",
+                httpMethod: Constants.HttpMethod.GET,
+            };
 
-        try {
-            await testClient.initializeAuthorizationRequest(
-                request,
+            try {
+                await testClient.initializeAuthorizationRequest(
+                    request,
+                    InteractionType.Redirect
+                );
+                throw "Unexpected! Should throw";
+            } catch (e) {
+                expect(e).toBeInstanceOf(ClientConfigurationError);
+                expect((e as ClientConfigurationError).errorCode).toEqual(
+                    ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+                );
+            }
+        }
+    );
+
+    it.each([Constants.HttpMethod.POST, undefined])(
+        "Accepts asymmetric EAR method %s and defaults to POST",
+        async (httpMethod) => {
+            (pca as any).config.experimental.enableAsymmetricEar = true;
+            const request = await testClient.initializeAuthorizationRequest(
+                { scopes: ["openid"], httpMethod },
                 InteractionType.Redirect
             );
-            throw "Unexpected! Should throw";
-        } catch (e) {
-            expect(e).toBeInstanceOf(ClientConfigurationError);
-            expect((e as ClientConfigurationError).errorCode).toEqual(
-                ClientConfigurationErrorCodes.invalidRequestMethodForEAR
+            expect(request.httpMethod).toBe(
+                httpMethod || Constants.HttpMethod.POST
             );
         }
-    });
+    );
 
     it("initializeAuthorizationRequest sets httpMethod to POST when protocolMode is EAR and httpMethod is not set", async () => {
         const request: CommonAuthorizationUrlRequest = {

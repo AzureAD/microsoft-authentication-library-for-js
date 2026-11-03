@@ -89,6 +89,9 @@ export const ApiId: {
 export type ApiId = (typeof ApiId)[keyof typeof ApiId];
 
 // @public (undocumented)
+const asymmetricEarKeyError = "asymmetric_ear_key_error";
+
+// @public (undocumented)
 const authCodeOrNativeAccountIdRequired = "auth_code_or_nativeAccountId_required";
 
 // @public (undocumented)
@@ -220,6 +223,7 @@ declare namespace BrowserAuthErrorCodes {
         failedToBuildHeaders,
         failedToParseHeaders,
         failedToDecryptEarResponse,
+        asymmetricEarKeyError,
         timedOut,
         emptyResponse
     }
@@ -280,6 +284,7 @@ export { BrowserConfigurationAuthErrorCodes }
 
 // @public
 export type BrowserExperimentalOptions = {
+    enableAsymmetricEar?: boolean;
     iframeTimeoutTelemetry?: boolean;
     allowPlatformBrokerWithDOM?: boolean;
 };

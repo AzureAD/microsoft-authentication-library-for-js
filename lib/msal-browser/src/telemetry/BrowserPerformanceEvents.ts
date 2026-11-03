@@ -200,7 +200,14 @@ export const UrlEncodeArr = "urlEncodeArr";
 export const Encrypt = "encrypt";
 export const Decrypt = "decrypt";
 export const GenerateEarKey = "generateEarKey";
+export const GenerateAsymmetricEarKey = "generateAsymmetricEarKey";
 export const DecryptEarResponse = "decryptEarResponse";
+export const BrowserCacheManagerCacheAsymmetricEarKey =
+    "browserCacheManagerCacheAsymmetricEarKey";
+export const BrowserCacheManagerGetAsymmetricEarKey =
+    "browserCacheManagerGetAsymmetricEarKey";
+export const BrowserCacheManagerRemoveAsymmetricEarKey =
+    "browserCacheManagerRemoveAsymmetricEarKey";
 
 export const LoadAccount = "loadAccount";
 export const LoadIdToken = "loadIdToken";

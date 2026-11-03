@@ -59,7 +59,6 @@ import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
-import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
     clearCacheOnLogout,
@@ -517,13 +516,6 @@ export class PopupClient extends StandardInteractionClient {
             account
         );
 
-        const earJwk = await invokeAsync(
-            generateEarKey,
-            BrowserPerformanceEvents.GenerateEarKey,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )();
         const pkce =
             pkceCodes ||
             (await invokeAsync(
@@ -539,106 +531,118 @@ export class PopupClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        const popupRequest = {
-            ...request,
-            earJwk: earJwk,
-            codeChallenge: pkce.challenge,
-            ...tokenBindingParams,
-        };
-        const popupWindow = await this.openPostFormPopup(
-            popupRequest,
-            discoveredAuthority,
-            popupParams,
-            correlationId,
-            true
+        const popupRequest = await Authorize.initializeEarRequest(
+            this.config,
+            {
+                ...request,
+                codeChallenge: pkce.challenge,
+                ...tokenBindingParams,
+            },
+            this.browserStorage,
+            this.logger,
+            this.performanceClient
         );
-
-        // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-        const responseString = await invokeAsync(
-            this.waitForPopupResponse.bind(this),
-            BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(popupRequest, popupWindow, popupParams.popupWindowParent);
-
-        const serverParams = invoke(
-            ResponseHandler.deserializeResponse,
-            BrowserPerformanceEvents.DeserializeResponse,
-            this.logger,
-            this.performanceClient,
-            this.correlationId
-        )(
-            responseString,
-            this.config.auth.OIDCOptions.responseMode,
-            this.logger,
-            this.correlationId
-        );
-
-        if (!serverParams.ear_jwe && serverParams.code) {
-            const authClient = await invokeAsync(
-                this.createAuthCodeClient.bind(this),
-                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )({
-                serverTelemetryManager: initializeServerTelemetryManager(
-                    ApiId.acquireTokenPopup,
-                    this.config.auth.clientId,
-                    correlationId,
-                    this.browserStorage,
-                    this.logger,
-                    undefined,
-                    this.config.system.serverTelemetryEnabled
-                ),
-                requestAuthority: request.authority,
-                requestAzureCloudOptions: request.azureCloudOptions,
-                requestExtraQueryParameters: request.extraQueryParameters,
-                account: request.account,
-                authority: discoveredAuthority,
-            });
-
-            return invokeAsync(
-                Authorize.handleResponseCode,
-                BrowserPerformanceEvents.HandleResponseCode,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(
+        if (!popupRequest) {
+            return this.executeCodeFlow(request, popupParams, pkce);
+        }
+        try {
+            const popupWindow = await this.openPostFormPopup(
                 popupRequest,
-                serverParams,
-                pkce.verifier,
-                ApiId.acquireTokenPopup,
-                this.config,
-                authClient,
-                this.browserStorage,
-                this.nativeStorage,
-                this.eventHandler,
-                this.logger,
-                this.performanceClient,
-                this.platformAuthProvider
-            );
-        } else {
-            return invokeAsync(
-                Authorize.handleResponseEAR,
-                BrowserPerformanceEvents.HandleResponseEar,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(
-                popupRequest,
-                serverParams,
-                ApiId.acquireTokenPopup,
-                this.config,
                 discoveredAuthority,
-                this.browserStorage,
-                this.nativeStorage,
-                this.eventHandler,
+                popupParams,
+                correlationId,
+                true
+            );
+
+            // Monitor the popup for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
+            const responseString = await invokeAsync(
+                this.waitForPopupResponse.bind(this),
+                BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
                 this.logger,
                 this.performanceClient,
-                this.platformAuthProvider
+                correlationId
+            )(popupRequest, popupWindow, popupParams.popupWindowParent);
+
+            const serverParams = invoke(
+                ResponseHandler.deserializeResponse,
+                BrowserPerformanceEvents.DeserializeResponse,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )(
+                responseString,
+                this.config.auth.OIDCOptions.responseMode,
+                this.logger,
+                this.correlationId
             );
+
+            if (!serverParams.ear_jwe && serverParams.code) {
+                const authClient = await invokeAsync(
+                    this.createAuthCodeClient.bind(this),
+                    BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )({
+                    serverTelemetryManager: initializeServerTelemetryManager(
+                        ApiId.acquireTokenPopup,
+                        this.config.auth.clientId,
+                        correlationId,
+                        this.browserStorage,
+                        this.logger,
+                        undefined,
+                        this.config.system.serverTelemetryEnabled
+                    ),
+                    requestAuthority: request.authority,
+                    requestAzureCloudOptions: request.azureCloudOptions,
+                    requestExtraQueryParameters: request.extraQueryParameters,
+                    account: request.account,
+                    authority: discoveredAuthority,
+                });
+
+                return await invokeAsync(
+                    Authorize.handleResponseCode,
+                    BrowserPerformanceEvents.HandleResponseCode,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(
+                    popupRequest,
+                    serverParams,
+                    pkce.verifier,
+                    ApiId.acquireTokenPopup,
+                    this.config,
+                    authClient,
+                    this.browserStorage,
+                    this.nativeStorage,
+                    this.eventHandler,
+                    this.logger,
+                    this.performanceClient,
+                    this.platformAuthProvider
+                );
+            } else {
+                return await invokeAsync(
+                    Authorize.handleResponseEAR,
+                    BrowserPerformanceEvents.HandleResponseEar,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(
+                    popupRequest,
+                    serverParams,
+                    ApiId.acquireTokenPopup,
+                    this.config,
+                    discoveredAuthority,
+                    this.browserStorage,
+                    this.nativeStorage,
+                    this.eventHandler,
+                    this.logger,
+                    this.performanceClient,
+                    this.platformAuthProvider
+                );
+            }
+        } finally {
+            Authorize.cleanEarRequest(popupRequest, this.browserStorage);
         }
     }
 

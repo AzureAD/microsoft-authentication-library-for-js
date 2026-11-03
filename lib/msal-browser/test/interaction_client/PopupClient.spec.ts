@@ -1044,6 +1044,90 @@ describe("PopupClient", () => {
                 expect(earFormSpy).toHaveBeenCalled();
             });
 
+            it.each([
+                { response: "ear", httpMethod: Constants.HttpMethod.POST },
+                { response: "code", httpMethod: Constants.HttpMethod.POST },
+                { response: "cancel", httpMethod: Constants.HttpMethod.POST },
+            ])(
+                "Cleans the asymmetric $httpMethod popup context after $response",
+                async ({ response, httpMethod }) => {
+                    pca.getConfiguration().experimental.enableAsymmetricEar =
+                        true;
+                    jest.spyOn(
+                        window.navigator,
+                        "userAgent",
+                        "get"
+                    ).mockReturnValue(
+                        "Mozilla/5.0 Chrome/137.0.0.0 Safari/537.36"
+                    );
+                    jest.spyOn(
+                        PopupClient.prototype,
+                        "openSizedPopup"
+                    ).mockReturnValue(popupWindow);
+                    const formSpy = jest
+                        .spyOn(HTMLFormElement.prototype, "submit")
+                        .mockImplementation(() => {
+                            expect(
+                                Object.keys(window.sessionStorage).filter(
+                                    (key) =>
+                                        key.includes(".request.asymmetric-ear.")
+                                )
+                            ).toHaveLength(1);
+                        });
+                    const responseSpy = jest.spyOn(
+                        BrowserUtils,
+                        "waitForBridgeResponse"
+                    );
+                    if (response === "cancel") {
+                        responseSpy.mockRejectedValue(
+                            new Error("popup cancelled")
+                        );
+                    } else {
+                        responseSpy.mockResolvedValue(
+                            `#${
+                                response === "ear" ? "ear_jwe" : "code"
+                            }=response&state=${
+                                TEST_STATE_VALUES.TEST_STATE_POPUP
+                            }`
+                        );
+                        jest.spyOn(
+                            AuthorizeProtocol,
+                            response === "ear"
+                                ? "handleResponseEAR"
+                                : "handleResponseCode"
+                        ).mockImplementation(async () => {
+                            await Promise.resolve();
+                            expect(
+                                Object.keys(window.sessionStorage).filter(
+                                    (key) =>
+                                        key.includes(".request.asymmetric-ear.")
+                                )
+                            ).toHaveLength(1);
+                            return getTestAuthenticationResult();
+                        });
+                    }
+                    const result = pca.acquireTokenPopup({
+                        scopes: ["openid"],
+                        state: TEST_STATE_VALUES.USER_STATE,
+                        httpMethod,
+                    });
+                    if (response === "cancel") {
+                        await expect(result).rejects.toThrow("popup cancelled");
+                    } else {
+                        await expect(result).resolves.toEqual(
+                            getTestAuthenticationResult()
+                        );
+                    }
+                    expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
+                    expect(formSpy).toHaveBeenCalled();
+                    expect(
+                        Object.keys(window.sessionStorage).filter((key) =>
+                            key.includes(".request.asymmetric-ear.")
+                        )
+                    ).toHaveLength(0);
+                }
+            );
+
             it("uses authorization code flow instead of EAR in Safari", async () => {
                 const validRequest: PopupRequest = {
                     authority: TEST_CONFIG.validAuthority,
@@ -1117,26 +1201,31 @@ describe("PopupClient", () => {
                 expect(earFormSpy).toHaveBeenCalled();
             });
 
-            it("throws error when ProtocolMode is set to EAR and httpMethod is set to GET", async () => {
-                const validRequest: PopupRequest = {
-                    authority: TEST_CONFIG.validAuthority,
-                    scopes: ["openid", "profile", "offline_access"],
-                    correlationId: TEST_CONFIG.CORRELATION_ID,
-                    redirectUri: window.location.href,
-                    state: TEST_STATE_VALUES.USER_STATE,
-                    nonce: ID_TOKEN_CLAIMS.nonce,
-                    httpMethod: Constants.HttpMethod.GET,
-                };
+            it.each([false, true])(
+                "throws error when EAR uses GET (asymmetric: %s)",
+                async (enableAsymmetricEar) => {
+                    pca.getConfiguration().experimental.enableAsymmetricEar =
+                        enableAsymmetricEar;
+                    const validRequest: PopupRequest = {
+                        authority: TEST_CONFIG.validAuthority,
+                        scopes: ["openid", "profile", "offline_access"],
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        redirectUri: window.location.href,
+                        state: TEST_STATE_VALUES.USER_STATE,
+                        nonce: ID_TOKEN_CLAIMS.nonce,
+                        httpMethod: Constants.HttpMethod.GET,
+                    };
 
-                await expect(
-                    pca.acquireTokenPopup(validRequest)
-                ).rejects.toThrow(
-                    createClientConfigurationError(
-                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
-                        ""
-                    )
-                );
-            });
+                    await expect(
+                        pca.acquireTokenPopup(validRequest)
+                    ).rejects.toThrow(
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
+                            ""
+                        )
+                    );
+                }
+            );
         });
     });
 

@@ -3626,5 +3626,87 @@ describe("RedirectClient", () => {
             );
             expect(earFormSpy).toHaveBeenCalled();
         });
+
+        it("Uses PKCE before navigation if asymmetric request metadata was not persisted", async () => {
+            pca.getConfiguration().experimental.enableAsymmetricEar = true;
+            jest.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+                "Mozilla/5.0 Chrome/137.0.0.0 Safari/537.36"
+            );
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "cacheAuthorizeRequest"
+            ).mockImplementation(() => {});
+            const fallback = jest
+                .spyOn(RedirectClient.prototype, "executeCodeFlow")
+                .mockResolvedValue();
+            const formSpy = jest
+                .spyOn(HTMLFormElement.prototype, "submit")
+                .mockImplementation();
+            await pca.acquireTokenRedirect({ scopes: ["openid"] });
+            expect(fallback).toHaveBeenCalled();
+            expect(formSpy).not.toHaveBeenCalled();
+            expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
+            expect(
+                Object.keys(window.sessionStorage).filter((key) =>
+                    key.includes(".request.asymmetric-ear.")
+                )
+            ).toHaveLength(0);
+        });
+
+        it("Rejects asymmetric EAR GET before navigation", async () => {
+            pca.getConfiguration().experimental.enableAsymmetricEar = true;
+            jest.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+                "Mozilla/5.0 Chrome/137.0.0.0 Safari/537.36"
+            );
+            const navigationSpy = jest.spyOn(
+                NavigationClient.prototype,
+                "navigateExternal"
+            );
+            const formSpy = jest.spyOn(HTMLFormElement.prototype, "submit");
+            await expect(
+                pca.acquireTokenRedirect({
+                    scopes: ["openid"],
+                    httpMethod: Constants.HttpMethod.GET,
+                })
+            ).rejects.toMatchObject({
+                errorCode:
+                    ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
+            });
+            expect(navigationSpy).not.toHaveBeenCalled();
+            expect(formSpy).not.toHaveBeenCalled();
+            expect(
+                Object.keys(window.sessionStorage).filter((key) =>
+                    key.includes(".request.asymmetric-ear.")
+                )
+            ).toHaveLength(0);
+        });
+
+        it("Retains an asymmetric redirect key until navigation terminates, then removes it on timeout", async () => {
+            pca.getConfiguration().experimental.enableAsymmetricEar = true;
+            jest.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+                "Mozilla/5.0 Chrome/137.0.0.0 Safari/537.36"
+            );
+            const formSpy = jest
+                .spyOn(HTMLFormElement.prototype, "submit")
+                .mockImplementation(() => {
+                    expect(
+                        Object.keys(window.sessionStorage).filter((key) =>
+                            key.includes(".request.asymmetric-ear.")
+                        )
+                    ).toHaveLength(1);
+                });
+            await expect(
+                pca.acquireTokenRedirect({ scopes: ["openid"] })
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.timedOut,
+            });
+            expect(formSpy).toHaveBeenCalled();
+            expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
+            expect(
+                Object.keys(window.sessionStorage).filter((key) =>
+                    key.includes(".request.asymmetric-ear.")
+                )
+            ).toHaveLength(0);
+        });
     });
 });
