@@ -155,9 +155,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         | FlowMethodSelectionRequiredResultV2
         | FlowPasswordRequiredResultV2
         | FlowSignInCodeRequiredResultV2
-        | FlowMFARequiredResultV2
-        | FlowAuthMethodRegistrationRequiredResultV2
-        | FlowCompletedResultV2
     > {
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
@@ -235,14 +232,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 ...challengeResult,
                 method: selectedMethod,
             };
-        }
-
-        if (parameters.password) {
-            return this.submitSignInPassword({
-                correlationId,
-                continuationState: challengeResult.continuationState,
-                password: parameters.password,
-            });
         }
 
         return challengeResult;

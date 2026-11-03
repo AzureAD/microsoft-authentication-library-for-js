@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Mark Native Auth V2 entry APIs as experimental and require sign-in passwords to be submitted through the requested password state.",
+    "packageName": "@azure/msal-browser",
+    "email": "",
+    "dependentChangeType": "patch"
+}

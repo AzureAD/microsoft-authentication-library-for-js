@@ -41,7 +41,6 @@ export type SignInWithContinuationTokenInputs = {
 
 export type SignInInputsV2 = CustomAuthActionInputs & {
     username: string;
-    password?: string;
     scopes?: Array<string> | null;
     claims?: string;
 };

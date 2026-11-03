@@ -27,9 +27,7 @@ export interface FlowStartParamsV2 extends FlowParamsBaseV2 {
     claims?: string;
 }
 
-export interface FlowSignInStartParamsV2 extends FlowStartParamsV2 {
-    password?: string;
-}
+export type FlowSignInStartParamsV2 = FlowStartParamsV2;
 
 export interface FlowSignUpStartParamsV2 extends FlowStartParamsV2 {
     password?: string;
