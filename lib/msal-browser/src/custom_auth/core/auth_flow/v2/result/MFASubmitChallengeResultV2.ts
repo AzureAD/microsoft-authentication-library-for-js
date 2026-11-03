@@ -11,12 +11,14 @@ import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/Cu
 /**
  * States returned after an app submits an MFA challenge. The operation either
  * completes sign-in or returns a failed state with error details.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type MFASubmitChallengeResultStateV2 = CompletedStateV2 | FailedStateV2;
 
 /**
  * Result returned after an app submits an MFA challenge. Inspect the state to
  * determine whether sign-in completed or challenge verification failed.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type MFASubmitChallengeResultV2 = CustomAuthResultV2<
     MFASubmitChallengeResultStateV2,

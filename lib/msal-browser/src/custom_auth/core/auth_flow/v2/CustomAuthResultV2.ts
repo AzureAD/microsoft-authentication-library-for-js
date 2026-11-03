@@ -20,6 +20,7 @@ type CreateWithErrorOptions = {
 /**
  * Result of a native auth V2 operation. Use {@link CustomAuthResultV2.isState}
  * to narrow the state before accessing its members.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class CustomAuthResultV2<
     TState extends AuthFlowStateBase,

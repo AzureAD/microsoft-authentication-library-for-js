@@ -18,6 +18,7 @@ import type { AuthMethodRegistrationRequiredStateV2 } from "../state/AuthMethodR
  * The states a verify-challenge action can resolve to. Verifying the one-time
  * code advances password reset to `NewPasswordRequiredStateV2` or completes
  * MFA sign-in. Failures resolve to `FailedStateV2`.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type VerifyChallengeResultStateV2 =
     | NewPasswordRequiredStateV2
@@ -33,6 +34,7 @@ export type VerifyChallengeResultStateV2 =
  * Result of verifying a challenge. It wraps one of
  * {@link VerifyChallengeResultStateV2} plus, on failure, the unified V2 flow
  * error.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type VerifyChallengeResultV2 = CustomAuthResultV2<
     VerifyChallengeResultStateV2,

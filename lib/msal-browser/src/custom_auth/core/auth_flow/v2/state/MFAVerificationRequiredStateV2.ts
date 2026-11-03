@@ -18,6 +18,7 @@ import { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/
 /**
  * State returned when sign-in requires verification of an email or SMS MFA
  * challenge. It allows the app to submit the challenge or request a replacement.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBaseV2<MFAVerificationRequiredStateParametersV2> {
     readonly stateType = "mfaVerificationRequired";

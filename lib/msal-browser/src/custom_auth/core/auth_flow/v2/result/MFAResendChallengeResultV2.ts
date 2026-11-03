@@ -10,6 +10,7 @@ import type { MFAVerificationRequiredStateV2 } from "../state/MFAVerificationReq
 /**
  * States returned after an app requests a replacement MFA challenge. The
  * operation either returns refreshed verification metadata or a failed state.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type MFAResendChallengeResultStateV2 =
     | MFAVerificationRequiredStateV2
@@ -18,6 +19,7 @@ export type MFAResendChallengeResultStateV2 =
 /**
  * Result returned after an app requests a replacement MFA challenge. Inspect
  * the state before prompting the user for the new email or SMS challenge.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type MFAResendChallengeResultV2 =
     CustomAuthResultV2<MFAResendChallengeResultStateV2>;

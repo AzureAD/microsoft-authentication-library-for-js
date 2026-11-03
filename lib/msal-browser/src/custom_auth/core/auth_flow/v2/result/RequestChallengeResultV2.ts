@@ -12,6 +12,7 @@ import type { PasswordRequiredStateV2 } from "../../../../sign_in/auth_flow/v2/s
 /**
  * The states a request-challenge action can resolve to. Trusted server response
  * context determines whether primary or MFA verification is required.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type RequestChallengeResultStateV2 =
     | CodeRequiredStateV2
@@ -23,6 +24,7 @@ export type RequestChallengeResultStateV2 =
  * Result of requesting a challenge. It wraps one of
  * {@link RequestChallengeResultStateV2} plus, on failure, the unified V2 flow
  * error.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type RequestChallengeResultV2 =
     CustomAuthResultV2<RequestChallengeResultStateV2>;

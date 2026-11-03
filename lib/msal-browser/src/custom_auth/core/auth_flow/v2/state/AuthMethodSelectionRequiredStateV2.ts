@@ -28,6 +28,7 @@ import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
  * methods before a challenge can be issued. It exposes the list of offered
  * methods and lets the app request a challenge for the chosen one. The flow
  * stays on this state until a challenge is successfully requested.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class AuthMethodSelectionRequiredStateV2 extends AuthFlowActionRequiredStateBase<AuthMethodSelectionRequiredStateParametersV2> {
     readonly stateType = "authMethodSelectionRequired";

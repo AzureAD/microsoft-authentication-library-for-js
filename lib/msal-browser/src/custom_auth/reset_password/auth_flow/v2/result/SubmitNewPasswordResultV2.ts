@@ -12,6 +12,7 @@ import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2
  * The states a submit-new-password action can resolve to. Submitting the new
  * password can require method registration after the update completes.
  * Without enrollment, the flow returns a continuation for explicit sign-in.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SubmitNewPasswordResultStateV2 =
     | SignInContinuationStateV2
@@ -23,6 +24,7 @@ export type SubmitNewPasswordResultStateV2 =
  * {@link SubmitNewPasswordResultStateV2} plus the unified V2 flow error on
  * failure. Enrollment, when requested, must be activated before sign-in can
  * complete; otherwise the returned continuation can be redeemed explicitly.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SubmitNewPasswordResultV2 =
     CustomAuthResultV2<SubmitNewPasswordResultStateV2>;

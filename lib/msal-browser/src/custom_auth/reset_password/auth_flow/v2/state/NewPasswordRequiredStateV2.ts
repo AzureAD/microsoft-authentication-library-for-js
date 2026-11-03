@@ -20,6 +20,7 @@ import type { SubmitNewPasswordResultV2 } from "../result/SubmitNewPasswordResul
  * State returned when the user must supply a new password to complete the flow.
  * A successful submission can require registration or return a continuation
  * for sign-in.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class NewPasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<NewPasswordRequiredStateParametersV2> {
     readonly stateType = "newPasswordRequired";

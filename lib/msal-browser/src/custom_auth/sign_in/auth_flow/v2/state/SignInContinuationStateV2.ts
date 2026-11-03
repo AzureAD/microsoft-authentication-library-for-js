@@ -14,6 +14,7 @@ import type { SignInContinuationResultV2 } from "../result/SignInContinuationRes
  * Shared state returned when a completed V2 flow can sign the user in by
  * redeeming its continuation. Password reset and sign-up can both surface this
  * state without duplicating the token-acquisition behavior.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class SignInContinuationStateV2 extends AuthFlowActionRequiredStateBase<SignInContinuationStateParametersV2> {
     readonly stateType = "signInContinuation";

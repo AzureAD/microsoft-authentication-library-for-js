@@ -13,6 +13,7 @@ import type { SignUpPasswordRequiredStateParametersV2 } from "./SignUpStateParam
 /**
  * State returned when sign-up requires a password that was not submitted with
  * an earlier attribute request.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class SignUpPasswordRequiredStateV2 extends SignUpAttributesRequiredStateBaseV2<SignUpPasswordRequiredStateParametersV2> {
     readonly stateType = "passwordRequired";

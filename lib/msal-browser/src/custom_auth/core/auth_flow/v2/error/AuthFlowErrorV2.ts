@@ -19,6 +19,7 @@ import type { AttributeValidationDetailV2 } from "../../../network_client/custom
 /**
  * Error returned by a native authentication V2 operation. Use its classifiers
  * to handle known failures while retaining raw diagnostics through `errorData`.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class AuthFlowErrorV2 {
     readonly scenario: CustomAuthFlowScenarioV2;

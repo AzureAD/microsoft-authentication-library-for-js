@@ -7,6 +7,7 @@
  * An authentication method that can be registered for the current account.
  * The enrollment link is supplied by the server and is used when the app
  * selects this method.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export interface AuthenticationMethodRegistrationV2 {
     type: string;

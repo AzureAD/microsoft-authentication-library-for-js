@@ -28,6 +28,7 @@ import { AuthMethodRegistrationRequiredStateV2 } from "./AuthMethodRegistrationR
 /**
  * State returned when first-factor email authentication requires a one-time
  * code. It allows the app to submit the code or request a replacement.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRequiredStateParametersV2> {
     readonly stateType = "codeRequired";

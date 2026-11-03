@@ -13,6 +13,7 @@ import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/Cu
  * flow continuation for tokens, so the terminal
  * `CompletedStateV2` carries `CustomAuthAccountData`. `CompletedStateV2` and the
  * account payload are declared together because they always occur together.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SignInContinuationResultStateV2 = CompletedStateV2 | FailedStateV2;
 
@@ -21,6 +22,7 @@ export type SignInContinuationResultStateV2 = CompletedStateV2 | FailedStateV2;
  * {@link SignInContinuationResultStateV2} plus the unified V2 flow error on
  * failure and signed-in account data on success. This is the flow's completion
  * point, so a successful result reaches `CompletedStateV2`.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SignInContinuationResultV2 = CustomAuthResultV2<
     SignInContinuationResultStateV2,

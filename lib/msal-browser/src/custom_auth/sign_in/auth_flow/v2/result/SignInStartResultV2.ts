@@ -12,6 +12,7 @@ import type { CodeRequiredStateV2 } from "../../../../core/auth_flow/v2/state/Co
 /**
  * States returned when native auth V2 sign-in starts. Supply the requested
  * credential or select an offered authentication method to continue.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SignInStartResultStateV2 =
     | PasswordRequiredStateV2
@@ -22,6 +23,7 @@ export type SignInStartResultStateV2 =
 /**
  * Result of starting native auth V2 sign-in. Account data is available only
  * after completing a subsequent authentication step.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SignInStartResultV2 = CustomAuthResultV2<
     SignInStartResultStateV2,
