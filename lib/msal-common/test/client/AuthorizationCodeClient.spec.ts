@@ -49,7 +49,6 @@ describe("AuthorizationCodeClient unit tests", () => {
     });
 
     afterEach(() => {
-        TokenProtocol.clearDpopNonceCache();
         jest.restoreAllMocks();
     });
 
@@ -546,6 +545,17 @@ describe("AuthorizationCodeClient unit tests", () => {
             const dpopProofProvider = jest
                 .fn()
                 .mockResolvedValue("nonce-bound-proof");
+            let retainedAuthorizationNonce: string | undefined;
+            config.dpopAuthorizationNonceProvider = {
+                getDpopAuthorizationNonce: () => retainedAuthorizationNonce,
+                setDpopAuthorizationNonce: (
+                    _tokenEndpoint,
+                    _dpopJkt,
+                    nonce
+                ) => {
+                    retainedAuthorizationNonce = nonce;
+                },
+            };
             const executePostToTokenEndpointSpy = jest
                 .spyOn(TokenProtocol, "executePostToTokenEndpoint")
                 .mockImplementation(

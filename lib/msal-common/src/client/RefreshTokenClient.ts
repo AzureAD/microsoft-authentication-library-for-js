@@ -48,13 +48,13 @@ import { getClientAssertion } from "../utils/ClientAssertionUtils.js";
 import { getRequestThumbprint } from "../network/RequestThumbprint.js";
 import {
     addDpopTokenProofHeader,
-    cacheDpopNonce,
     createTokenQueryParameters,
     createTokenRequestHeaders,
     executePostToTokenEndpoint,
-    getCachedDpopNonce,
+    getDpopAuthorizationNonce,
     getDpopNonce,
     getDpopNonceChallenge,
+    setDpopAuthorizationNonce,
 } from "../protocol/Token.js";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
 import { INetworkModule } from "../network/INetworkModule.js";
@@ -146,7 +146,8 @@ export class RefreshTokenClient {
             this.performanceClient,
             this.config.serializableCache,
             this.config.persistencePlugin,
-            this.config.tokenBindingKeyManager
+            this.config.tokenBindingKeyManager,
+            this.config.dpopNonceProvider
         );
         responseHandler.validateTokenResponse(
             response.body,
@@ -379,13 +380,24 @@ export class RefreshTokenClient {
             this.config.systemOptions.preventCorsPreflight,
             request.ccsCredential
         );
+        const cachedDpopNonce = getDpopAuthorizationNonce(
+            this.config.dpopAuthorizationNonceProvider,
+            request,
+            endpoint
+        );
+        this.performanceClient.addFields(
+            {
+                dpopAuthorizationNonceCacheHit: Boolean(cachedDpopNonce),
+            },
+            request.correlationId
+        );
         await addDpopTokenProofHeader(
             headers,
             request,
             endpoint,
             this.cryptoUtils,
             this.config.tokenBindingKeyManager,
-            getCachedDpopNonce(request, endpoint)
+            cachedDpopNonce
         );
 
         const thumbprint = getRequestThumbprint(
@@ -422,8 +434,16 @@ export class RefreshTokenClient {
             );
         }
         let response = await postTokenRequest();
-        cacheDpopNonce(request, endpoint, getDpopNonce(response));
-        const dpopNonce = getDpopNonceChallenge(response);
+        setDpopAuthorizationNonce(
+            this.config.dpopAuthorizationNonceProvider,
+            request,
+            endpoint,
+            getDpopNonce(response, request.correlationId)
+        );
+        const dpopNonce = getDpopNonceChallenge(
+            response,
+            request.correlationId
+        );
         if (
             request.authenticationScheme ===
                 Constants.AuthenticationScheme.DPOP &&
@@ -442,7 +462,12 @@ export class RefreshTokenClient {
                 dpopNonce
             );
             response = await postTokenRequest();
-            cacheDpopNonce(request, endpoint, getDpopNonce(response));
+            setDpopAuthorizationNonce(
+                this.config.dpopAuthorizationNonceProvider,
+                request,
+                endpoint,
+                getDpopNonce(response, request.correlationId)
+            );
         }
 
         return response;

@@ -173,6 +173,24 @@ describe("Non-browser environment", () => {
         instance.removePerformanceCallback("");
     });
 
+    it("loadDpopNonce throws", async () => {
+        const instance = new PublicClientApplication({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            },
+        });
+
+        await instance.initialize();
+        await expect(
+            instance.loadDpopNonce(
+                "https://api.contoso.com/resource",
+                "resource-nonce"
+            )
+        ).rejects.toMatchObject({
+            errorCode: BrowserAuthErrorCodes.nonBrowserEnvironment,
+        });
+    });
+
     it("getAccount returns null", async () => {
         const testAccount: AccountInfo = {
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,

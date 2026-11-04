@@ -466,6 +466,21 @@ export type PerformanceEvent = {
     dpopTokenTypeMismatch?: string;
 
     /**
+     * Authentication scheme used for the request.
+     */
+    authenticationScheme?: string;
+
+    /**
+     * Whether a resource-server nonce was applied to the generated DPoP proof.
+     */
+    dpopNonceAppliedToProof?: boolean;
+
+    /**
+     * Whether an authorization-server nonce was available before the request.
+     */
+    dpopAuthorizationNonceCacheHit?: boolean;
+
+    /**
      * Zero-based token-endpoint request attempt for an AS DPoP nonce challenge.
      */
     dpopNonceRetryAttempt?: number;

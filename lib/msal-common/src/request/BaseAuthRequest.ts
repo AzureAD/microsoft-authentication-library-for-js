@@ -56,10 +56,6 @@ export type BaseAuthRequest = {
      */
     resourceRequestUri?: string;
     /**
-     * Resource server nonce to include in a DPoP resource proof.
-     */
-    resourceRequestNonce?: string;
-    /**
      * A stringified JSON Web Key representing a public key that can be signed by an SSH certificate.
      */
     sshJwk?: string;

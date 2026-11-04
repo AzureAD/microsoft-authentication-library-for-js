@@ -43,9 +43,8 @@ import { CacheManager } from "../cache/CacheManager.js";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
 import { ICrypto } from "../crypto/ICrypto.js";
 import { ITokenBindingKeyManager } from "../crypto/ITokenBindingKeyManager.js";
-
-const MAX_DPOP_NONCE_CACHE_ENTRIES = 100;
-const dpopNonceCache = new Map<string, string>();
+import { IDpopAuthorizationNonceProvider } from "../crypto/IDpopAuthorizationNonceProvider.js";
+import { validateDpopNonce } from "../crypto/DpopNonceUtils.js";
 
 /**
  * Creates default headers for requests to token endpoint
@@ -154,14 +153,17 @@ export async function addDpopTokenProofHeader(
  * @internal
  */
 export function getDpopNonce(
-    response: NetworkResponse<ServerAuthorizationTokenResponse>
+    response: NetworkResponse<ServerAuthorizationTokenResponse>,
+    correlationId: string = ""
 ): string | undefined {
     const nonceHeaderName = HeaderNames.DPOP_NONCE.toLowerCase();
     const nonceEntry = Object.entries(response.headers || {}).find(
         ([name]) => name.toLowerCase() === nonceHeaderName
     );
     const nonce = nonceEntry?.[1];
-    return typeof nonce === "string" && nonce.trim() ? nonce : undefined;
+    return typeof nonce === "string" && nonce.trim()
+        ? validateDpopNonce(nonce, correlationId)
+        : undefined;
 }
 
 /**
@@ -169,28 +171,12 @@ export function getDpopNonce(
  * @internal
  */
 export function getDpopNonceChallenge(
-    response: NetworkResponse<ServerAuthorizationTokenResponse>
+    response: NetworkResponse<ServerAuthorizationTokenResponse>,
+    correlationId: string = ""
 ): string | undefined {
     return response.body.error === "use_dpop_nonce"
-        ? getDpopNonce(response)
+        ? getDpopNonce(response, correlationId)
         : undefined;
-}
-
-function getDpopNonceCacheKey(
-    request: BaseAuthRequest,
-    tokenEndpoint: string
-): string | undefined {
-    if (
-        request.authenticationScheme !== AuthenticationScheme.DPOP ||
-        !request.dpopJkt?.trim()
-    ) {
-        return undefined;
-    }
-
-    return `${request.dpopJkt}:${normalizeDpopHtu(
-        tokenEndpoint,
-        request.correlationId
-    )}`;
 }
 
 /**
@@ -198,12 +184,24 @@ function getDpopNonceCacheKey(
  * endpoint.
  * @internal
  */
-export function getCachedDpopNonce(
+export function getDpopAuthorizationNonce(
+    provider: IDpopAuthorizationNonceProvider | undefined,
     request: BaseAuthRequest,
     tokenEndpoint: string
 ): string | undefined {
-    const key = getDpopNonceCacheKey(request, tokenEndpoint);
-    return key ? dpopNonceCache.get(key) : undefined;
+    if (
+        !provider ||
+        request.authenticationScheme !== AuthenticationScheme.DPOP ||
+        !request.dpopJkt?.trim()
+    ) {
+        return undefined;
+    }
+
+    return provider.getDpopAuthorizationNonce(
+        tokenEndpoint,
+        request.dpopJkt,
+        request.correlationId
+    );
 }
 
 /**
@@ -211,36 +209,27 @@ export function getCachedDpopNonce(
  * the same DPoP key and token endpoint.
  * @internal
  */
-export function cacheDpopNonce(
+export function setDpopAuthorizationNonce(
+    provider: IDpopAuthorizationNonceProvider | undefined,
     request: BaseAuthRequest,
     tokenEndpoint: string,
     nonce: string | undefined
 ): void {
-    const key = getDpopNonceCacheKey(request, tokenEndpoint);
-    if (!key) {
+    if (
+        !provider ||
+        !nonce ||
+        request.authenticationScheme !== AuthenticationScheme.DPOP ||
+        !request.dpopJkt?.trim()
+    ) {
         return;
     }
 
-    dpopNonceCache.delete(key);
-    if (!nonce) {
-        return;
-    }
-    dpopNonceCache.set(key, nonce);
-    while (dpopNonceCache.size > MAX_DPOP_NONCE_CACHE_ENTRIES) {
-        const oldestKey = dpopNonceCache.keys().next().value;
-        if (!oldestKey) {
-            break;
-        }
-        dpopNonceCache.delete(oldestKey);
-    }
-}
-
-/**
- * Clears retained authorization-server DPoP nonces.
- * @internal
- */
-export function clearDpopNonceCache(): void {
-    dpopNonceCache.clear();
+    provider.setDpopAuthorizationNonce(
+        tokenEndpoint,
+        request.dpopJkt,
+        nonce,
+        request.correlationId
+    );
 }
 
 /**

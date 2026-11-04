@@ -226,14 +226,27 @@ describe("BaseInteractionClient", () => {
         });
 
         it("Removes all accounts from cache if no account provided", async () => {
+            (pca as any).browserStorage.setDpopNonce(
+                "https://api.contoso.com/resource",
+                "nonce"
+            );
             expect(pca.getAllAccounts().length).toBe(2);
             expect(pca.getActiveAccount()).toMatchObject(testAccountInfo1);
             await testClient.logout({ account: null });
             expect(pca.getAllAccounts().length).toBe(0);
             expect(pca.getActiveAccount()).toBe(null);
+            expect(
+                (pca as any).browserStorage.getDpopNonce(
+                    "https://api.contoso.com/resource"
+                )
+            ).toBeUndefined();
         });
 
         it("Removes account provided", async () => {
+            (pca as any).browserStorage.setDpopNonce(
+                "https://api.contoso.com/resource",
+                "nonce"
+            );
             expect(pca.getAllAccounts().length).toBe(2);
             expect(pca.getActiveAccount()).toMatchObject(testAccountInfo1);
             await testClient.logout({ account: testAccountInfo1 });
@@ -248,6 +261,11 @@ describe("BaseInteractionClient", () => {
                 })
             ).toMatchObject(testAccountInfo2);
             expect(pca.getActiveAccount()).toBe(null);
+            expect(
+                (pca as any).browserStorage.getDpopNonce(
+                    "https://api.contoso.com/resource"
+                )
+            ).toBeUndefined();
         });
     });
     describe("getDiscoveredAuthority()", () => {
