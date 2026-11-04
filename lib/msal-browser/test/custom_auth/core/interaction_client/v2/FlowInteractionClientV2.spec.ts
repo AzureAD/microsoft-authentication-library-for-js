@@ -34,7 +34,6 @@ import { FlowAuthMethodRegistrationRequiredParamsV2 } from "../../../../../src/c
 import { CustomAuthAuthority } from "../../../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { CustomAuthApiClientV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { AuthenticationFactorV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
-import type { ResetPasswordPollResultV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/ResetPasswordResultsV2.js";
 import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import {
     CONTINUATION_LINK_MISSING,
@@ -1364,6 +1363,104 @@ describe("FlowInteractionClientV2", () => {
             );
         });
 
+        it("verifies a password-reset MFA code and completes sign-in", async () => {
+            const tokenResponse = {
+                token_type: "Bearer",
+                expires_in: 3600,
+                access_token: "at",
+                refresh_token: "rt",
+                scope: "openid profile offline_access",
+                id_token: "id",
+                client_info: "ci",
+            };
+            const fakeAuthResult = {
+                account: { homeAccountId: "uid.utid" },
+            };
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "continue",
+                continuationToken: "ct-mfa-verify",
+            });
+            apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
+            jest.spyOn(
+                client as unknown as {
+                    handleTokenResponse: (
+                        ...args: unknown[]
+                    ) => Promise<unknown>;
+                },
+                "handleTokenResponse"
+            ).mockResolvedValue(fakeAuthResult);
+
+            const result = await client.submitCode({
+                correlationId,
+                continuationState: {
+                    ...continuationState,
+                    continuationToken: "ct-reset-mfa",
+                    links: { verify: "https://endpoint/reset/mfa/verify" },
+                },
+                authenticationFactor: AuthenticationFactorV2.MULTI_FACTOR,
+                code: "123456",
+            });
+
+            expect(result).toMatchObject({
+                type: FLOW_COMPLETED_V2,
+                authenticationResult: fakeAuthResult,
+            });
+            expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
+                { continuationToken: "ct-mfa-verify" },
+                expect.objectContaining({ correlationId })
+            );
+        });
+
+        it("rejects enrollment after password-reset MFA verification", async () => {
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "enroll",
+                continuationToken: "ct-enroll",
+                methods: [
+                    {
+                        type: "email",
+                        enrollHref: "https://endpoint/enroll/email",
+                    },
+                ],
+            });
+
+            await expect(
+                client.submitCode({
+                    correlationId,
+                    continuationState: {
+                        ...continuationState,
+                        continuationToken: "ct-reset-mfa",
+                        links: { verify: "https://endpoint/reset/mfa/verify" },
+                    },
+                    authenticationFactor: AuthenticationFactorV2.MULTI_FACTOR,
+                    code: "123456",
+                })
+            ).rejects.toMatchObject({ error: UNSUPPORTED_FLOW_TRANSITION });
+            expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
+        });
+
+        it("rejects update after password-reset MFA instead of returning to new-password collection", async () => {
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "update",
+                continuationToken: "ct-update-again",
+                updateHref: "https://endpoint/update-again",
+            });
+
+            await expect(
+                client.submitCode({
+                    correlationId,
+                    continuationState: {
+                        ...continuationState,
+                        continuationToken: "ct-reset-mfa",
+                        links: { verify: "https://endpoint/reset/mfa/verify" },
+                    },
+                    authenticationFactor: AuthenticationFactorV2.MULTI_FACTOR,
+                    code: "123456",
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+            });
+        });
+
         it("returns MFA-required after verifying a first-factor code", async () => {
             const signInContinuationState: FlowContinuationStateV2 = {
                 continuationToken: "ct-email",
@@ -2266,9 +2363,7 @@ describe("FlowInteractionClientV2", () => {
             apiClient.poll.mockResolvedValue({
                 continuationToken: "ct-enroll",
                 nextAction: "enroll",
-                enrollmentMethods: [
-                    { type: "email", enrollHref: "/enroll/email" },
-                ],
+                methods: [{ type: "email", enrollHref: "/enroll/email" }],
             });
 
             const result = await client.submitNewPassword({
@@ -2306,7 +2401,7 @@ describe("FlowInteractionClientV2", () => {
                 .mockResolvedValueOnce({
                     continuationToken: "ct-enroll",
                     nextAction: "enroll",
-                    enrollmentMethods: [
+                    methods: [
                         {
                             type: "phone",
                             channels: ["sms"],
@@ -2350,7 +2445,111 @@ describe("FlowInteractionClientV2", () => {
             expect(jest.getTimerCount()).toBe(0);
         });
 
-        it.each<ResetPasswordPollResultV2>([
+        it.each([false, true])(
+            "stops %s terminal reset polling at MFA selection with fresh continuation state",
+            async (delayed) => {
+                if (delayed) {
+                    jest.useFakeTimers();
+                }
+                apiClient.submitNewPassword.mockResolvedValue({
+                    continuationToken: "ct-update",
+                    pollHref: "https://endpoint/poll",
+                });
+                if (delayed) {
+                    apiClient.poll.mockResolvedValueOnce({
+                        continuationToken: "ct-poll",
+                        nextAction: "poll",
+                        pollHref: "https://endpoint/poll-next",
+                    });
+                }
+                apiClient.poll.mockResolvedValueOnce({
+                    continuationToken: "ct-mfa",
+                    nextAction: "challenge",
+                    authenticationFactor: AuthenticationFactorV2.MULTI_FACTOR,
+                    methods: [
+                        {
+                            id: "email-mfa",
+                            type: "email",
+                            hint: "u***@contoso.com",
+                            challengeHref:
+                                "https://endpoint/mfa/email/challenge",
+                        },
+                    ],
+                });
+
+                const promise = client.submitNewPassword({
+                    correlationId,
+                    continuationState,
+                    newPassword: "new-valid-password",
+                });
+                if (delayed) {
+                    await jest.advanceTimersByTimeAsync(1500);
+                }
+                const result = await promise;
+
+                expect(result).toMatchObject({
+                    type: FLOW_MFA_REQUIRED_V2,
+                    continuationState: {
+                        continuationToken: "ct-mfa",
+                        scenario: "passwordReset",
+                        scopes: ["openid", "profile", "offline_access"],
+                        links: {},
+                    },
+                    methods: [
+                        {
+                            id: "email-mfa",
+                            type: "email",
+                            hint: "u***@contoso.com",
+                            challengeHref:
+                                "https://endpoint/mfa/email/challenge",
+                        },
+                    ],
+                });
+                expect(apiClient.poll).toHaveBeenCalledTimes(delayed ? 2 : 1);
+                expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
+                expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+                if (delayed) {
+                    expect(apiClient.poll).toHaveBeenLastCalledWith(
+                        "https://endpoint/poll-next",
+                        { continuationToken: "ct-poll" },
+                        expect.objectContaining({ correlationId })
+                    );
+                    expect(jest.getTimerCount()).toBe(0);
+                }
+            }
+        );
+
+        it("rejects a terminal reset challenge that is not multi-factor", async () => {
+            apiClient.submitNewPassword.mockResolvedValue({
+                continuationToken: "ct-update",
+                pollHref: "https://endpoint/poll",
+            });
+            apiClient.poll.mockResolvedValue({
+                continuationToken: "ct-challenge",
+                nextAction: "challenge",
+                authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
+                methods: [
+                    {
+                        id: "email",
+                        type: "email",
+                        challengeHref: "https://endpoint/email/challenge",
+                    },
+                ],
+            });
+
+            await expect(
+                client.submitNewPassword({
+                    correlationId,
+                    continuationState,
+                    newPassword: "new-valid-password",
+                })
+            ).rejects.toMatchObject({
+                error: UNSUPPORTED_FLOW_TRANSITION,
+            });
+            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+        });
+
+        it.each([
             { continuationToken: "ct-poll", nextAction: "future-action" },
             {
                 continuationToken: "ct-poll",
@@ -2370,7 +2569,8 @@ describe("FlowInteractionClientV2", () => {
                     continuationToken: "ct-update",
                     pollHref: "https://endpoint/poll",
                 });
-                apiClient.poll.mockResolvedValue(pollResult);
+                const pollMock = jest.fn().mockResolvedValue(pollResult);
+                apiClient.poll.mockImplementation(pollMock);
 
                 await expect(
                     client.submitNewPassword({
@@ -2562,7 +2762,7 @@ describe("FlowInteractionClientV2", () => {
         it.each([
             ["enroll", FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2],
             ["continue", FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2],
-        ])(
+        ] as const)(
             "handles %s on the last allowed poll attempt",
             async (nextAction, resultType) => {
                 jest.useFakeTimers();
@@ -2577,14 +2777,23 @@ describe("FlowInteractionClientV2", () => {
                         pollHref: "https://endpoint/poll",
                     });
                 }
-                apiClient.poll.mockResolvedValueOnce({
-                    nextAction,
-                    continuationToken: "ct-final",
-                    enrollmentMethods:
-                        nextAction === "enroll"
-                            ? [{ type: "email", enrollHref: "/enroll/email" }]
-                            : undefined,
-                });
+                apiClient.poll.mockResolvedValueOnce(
+                    nextAction === "enroll"
+                        ? {
+                              nextAction,
+                              continuationToken: "ct-final",
+                              methods: [
+                                  {
+                                      type: "email",
+                                      enrollHref: "/enroll/email",
+                                  },
+                              ],
+                          }
+                        : {
+                              nextAction,
+                              continuationToken: "ct-final",
+                          }
+                );
 
                 const promise = client.submitNewPassword({
                     correlationId,

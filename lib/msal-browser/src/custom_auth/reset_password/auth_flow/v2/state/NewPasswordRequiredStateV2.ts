@@ -6,8 +6,11 @@
 import { AuthFlowActionRequiredStateBase } from "../../../../core/auth_flow/AuthFlowState.js";
 import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
 import { AuthMethodRegistrationRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
+import { AuthMethodSelectionRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
+import { AuthenticationFactorV2 } from "../../../../core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import {
     FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+    FLOW_MFA_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "../../../../core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthError } from "../../../../core/error/CustomAuthError.js";
@@ -17,16 +20,17 @@ import type { NewPasswordRequiredStateParametersV2 } from "./ResetPasswordStateP
 import type { SubmitNewPasswordResultV2 } from "../result/SubmitNewPasswordResultV2.js";
 
 /**
- * State returned when the user must supply a new password to complete the flow.
- * A successful submission can require registration or return a continuation
- * for sign-in.
+ * State returned when the user must supply a new password. Submission can
+ * require method registration or MFA, and the flow is not complete until any
+ * subsequent required actions finish.
  */
 export class NewPasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<NewPasswordRequiredStateParametersV2> {
     readonly stateType = "newPasswordRequired";
 
     /**
-     * Submits the new password to complete the reset. Enrollment may be
-     * required before sign-in; a rejected password returns an error.
+     * Submits the new password. The result can require method registration or
+     * MFA, and completion is not final until any subsequent required actions
+     * finish.
      * @param password - The new password to set.
      * @returns The result of submitting the new password.
      */
@@ -58,6 +62,24 @@ export class NewPasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<
                         continuationState: result.continuationState,
                         cacheClient: this.stateParameters.cacheClient,
                         methods: result.methods,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (result.type === FLOW_MFA_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new AuthMethodSelectionRequiredStateV2({
+                        correlationId: result.correlationId,
+                        logger,
+                        config: this.stateParameters.config,
+                        flowClient,
+                        continuationState: result.continuationState,
+                        cacheClient: this.stateParameters.cacheClient,
+                        methods: result.methods,
+                        authenticationFactor:
+                            AuthenticationFactorV2.MULTI_FACTOR,
                     }),
                     undefined,
                     result.continuationState.scenario

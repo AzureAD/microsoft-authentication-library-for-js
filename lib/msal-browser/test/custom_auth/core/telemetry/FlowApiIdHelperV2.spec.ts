@@ -120,6 +120,23 @@ describe("getPublicApiIdV2", () => {
         ).toBe(SIGN_IN_V2_COMPLETE);
     });
 
+    it.each([
+        ["requestChallenge", MFA_V2_SELECT_AUTH_METHOD],
+        ["submitCode", MFA_V2_SUBMIT_CHALLENGE],
+        ["resendCode", MFA_V2_RESEND_CHALLENGE],
+    ] as const)(
+        "uses existing MFA ID for password-reset %s",
+        (step, expectedApiId) => {
+            expect(
+                getPublicApiIdV2(
+                    CustomAuthFlowScenarioV2.PasswordReset,
+                    step,
+                    AuthenticationFactorV2.MULTI_FACTOR
+                )
+            ).toBe(expectedApiId);
+        }
+    );
+
     it("uses distinct API IDs for sign-in code and password submission", () => {
         expect(SIGN_IN_V2_SUBMIT_CODE).not.toBe(SIGN_IN_V2_SUBMIT_PASSWORD);
     });

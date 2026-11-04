@@ -4,7 +4,6 @@
  */
 
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import { NewPasswordRequiredStateV2 } from "../../../../reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import type { CodeRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { VerifyChallengeResultV2 } from "../result/VerifyChallengeResultV2.js";
 import type { ResendCodeResultV2 } from "../result/ResendCodeResultV2.js";
@@ -48,17 +47,19 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
             const resultType: string = result.type;
 
             if (result.type === FLOW_NEW_PASSWORD_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new NewPasswordRequiredStateV2({
-                        correlationId: result.correlationId,
-                        logger,
-                        config: this.stateParameters.config,
-                        flowClient: this.stateParameters.flowClient,
-                        continuationState: result.continuationState,
-                        cacheClient: this.stateParameters.cacheClient,
-                    }),
-                    undefined,
-                    result.continuationState.scenario
+                const resetPasswordStateTransitionHandler =
+                    this.stateParameters.resetPasswordStateTransitionHandler;
+                if (!resetPasswordStateTransitionHandler) {
+                    throw new CustomAuthError(
+                        UNSUPPORTED_FLOW_TRANSITION,
+                        "Password-reset state transition handler is missing.",
+                        correlationId
+                    );
+                }
+
+                return resetPasswordStateTransitionHandler.handleNewPasswordRequired(
+                    result,
+                    this.stateParameters
                 );
             }
 
@@ -189,6 +190,9 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
                         this.stateParameters.signUpStateTransitionHandler,
                     signInStateTransitionHandler:
                         this.stateParameters.signInStateTransitionHandler,
+                    resetPasswordStateTransitionHandler:
+                        this.stateParameters
+                            .resetPasswordStateTransitionHandler,
                     method: this.method,
                     sentTo: result.sentTo,
                     channel: result.channel,

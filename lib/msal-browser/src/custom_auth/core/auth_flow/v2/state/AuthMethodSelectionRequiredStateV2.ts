@@ -54,6 +54,7 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthFlowActionRequiredSt
             continuationState,
             flowClient,
             signInStateTransitionHandler,
+            resetPasswordStateTransitionHandler,
         } = this.stateParameters;
 
         try {
@@ -86,6 +87,7 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthFlowActionRequiredSt
                     new CodeRequiredStateV2({
                         ...commonStateParameters,
                         signInStateTransitionHandler,
+                        resetPasswordStateTransitionHandler,
                         method: selectedMethod,
                         sentTo: result.sentTo,
                         channel: result.channel,

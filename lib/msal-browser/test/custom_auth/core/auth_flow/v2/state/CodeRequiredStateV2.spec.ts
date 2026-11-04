@@ -20,6 +20,7 @@ import {
     FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
     FLOW_COMPLETED_V2,
     FLOW_MFA_REQUIRED_V2,
+    FLOW_NEW_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
@@ -28,6 +29,7 @@ import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/g
 import type { AuthenticationResult } from "../../../../../../src/response/AuthenticationResult.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 import { AuthMethodRegistrationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
+import { UNSUPPORTED_FLOW_TRANSITION } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 
 describe("CodeRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
@@ -39,7 +41,9 @@ describe("CodeRequiredStateV2", () => {
     const signInStateTransitionHandler = new SignInStateTransitionHandlerV2();
     const signUpStateTransitionHandler = new SignUpStateTransitionHandlerV2();
 
-    const buildState = (): CodeRequiredStateV2 =>
+    const buildState = (
+        scenario: CustomAuthFlowScenarioV2 = CustomAuthFlowScenarioV2.SignIn
+    ): CodeRequiredStateV2 =>
         new CodeRequiredStateV2({
             correlationId,
             logger: getDefaultLogger(),
@@ -52,7 +56,7 @@ describe("CodeRequiredStateV2", () => {
             signInStateTransitionHandler,
             continuationState: {
                 continuationToken: "ct-mfa-challenge",
-                scenario: CustomAuthFlowScenarioV2.SignIn,
+                scenario,
                 scopes,
                 links: {
                     verify: "/mfa/verify",
@@ -95,6 +99,29 @@ describe("CodeRequiredStateV2", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it("fails explicitly when a recovery-code transition has no reset handler", async () => {
+        flowClient.submitCode.mockResolvedValue({
+            type: FLOW_NEW_PASSWORD_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-update",
+                scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                scopes,
+                links: { update: "/reset/update" },
+            },
+        });
+
+        const result = await buildState(
+            CustomAuthFlowScenarioV2.PasswordReset
+        ).submitCode("123456");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.errorData.error).toBe(UNSUPPORTED_FLOW_TRANSITION);
+        expect(result.error?.errorDescription).toBe(
+            "Password-reset state transition handler is missing."
+        );
     });
 
     it("returns completed sign-in after submitting a first-factor code", async () => {

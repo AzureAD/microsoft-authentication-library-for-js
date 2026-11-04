@@ -52,6 +52,7 @@ import type {
     FlowCompletedResultV2,
     FlowSignUpActionResultV2,
     FlowSubmitCodeResultV2,
+    FlowSubmitNewPasswordResultV2,
     FlowAuthMethodRegistrationRequiredResultV2,
     FlowAuthMethodVerificationRequiredResultV2,
 } from "./result/FlowActionResultV2.js";
@@ -403,54 +404,54 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             );
         }
 
-        if (methods.length === 1) {
-            const selectedMethod = methods[0];
-            const challengeResult = await this.requestChallenge({
-                correlationId,
-                continuationState: {
-                    ...continuationState,
-                    links: {
-                        challenge: selectedMethod.challengeHref,
-                    },
-                },
-            });
-
-            if (
-                challengeResult.type === FLOW_CODE_REQUIRED_V2 &&
-                (challengeResult.channel?.toLowerCase() ===
-                    AuthenticationMethodTypeV2.EMAIL ||
-                    challengeResult.channel?.toLowerCase() ===
-                        AuthenticationMethodTypeV2.SMS)
-            ) {
-                return {
-                    ...challengeResult,
-                    method: selectedMethod,
-                };
-            }
-
-            const channel =
-                challengeResult.type === FLOW_CODE_REQUIRED_V2
-                    ? challengeResult.channel
-                    : AuthenticationMethodTypeV2.PASSWORD;
-            const message = `Challenge type '${challengeResult.type}' with channel '${channel}' is not supported for password reset.`;
-            this.logger.error(message, correlationId);
-            throw new CustomAuthError(
-                UNSUPPORTED_FLOW_TRANSITION,
-                message,
+        if (methods.length > 1) {
+            this.logger.verbose(
+                "V2 self-service password reset method selection required.",
                 correlationId
             );
+
+            return createFlowMethodSelectionRequiredResultV2({
+                correlationId,
+                continuationState,
+                methods,
+            });
         }
 
-        this.logger.verbose(
-            "V2 self-service password reset method selection required.",
+        const selectedMethod = methods[0];
+        const challengeResult = await this.requestChallenge({
+            correlationId,
+            continuationState: {
+                ...continuationState,
+                links: {
+                    challenge: selectedMethod.challengeHref,
+                },
+            },
+        });
+
+        if (
+            challengeResult.type === FLOW_CODE_REQUIRED_V2 &&
+            (challengeResult.channel?.toLowerCase() ===
+                AuthenticationMethodTypeV2.EMAIL ||
+                challengeResult.channel?.toLowerCase() ===
+                    AuthenticationMethodTypeV2.SMS)
+        ) {
+            return {
+                ...challengeResult,
+                method: selectedMethod,
+            };
+        }
+
+        const channel =
+            challengeResult.type === FLOW_CODE_REQUIRED_V2
+                ? challengeResult.channel
+                : AuthenticationMethodTypeV2.PASSWORD;
+        const message = `Challenge type '${challengeResult.type}' with channel '${channel}' is not supported for password reset.`;
+        this.logger.error(message, correlationId);
+        throw new CustomAuthError(
+            UNSUPPORTED_FLOW_TRANSITION,
+            message,
             correlationId
         );
-
-        return createFlowMethodSelectionRequiredResultV2({
-            correlationId,
-            continuationState,
-            methods,
-        });
     }
 
     /*
@@ -646,18 +647,30 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         if (
             continuationState.scenario ===
-                CustomAuthFlowScenarioV2.PasswordReset &&
-            verifyResult.nextAction === UPDATE_RELATION
+            CustomAuthFlowScenarioV2.PasswordReset
         ) {
-            return createFlowNewPasswordRequiredResultV2({
-                correlationId,
-                continuationState: {
-                    continuationToken: verifyResult.continuationToken,
-                    scenario: continuationState.scenario,
-                    scopes: continuationState.scopes,
-                    links: { update: verifyResult.updateHref },
-                },
-            });
+            if (
+                parameters.authenticationFactor ===
+                AuthenticationFactorV2.MULTI_FACTOR
+            ) {
+                if (verifyResult.nextAction === ResponseStateV2.CONTINUE) {
+                    return this.completeSignInAfterVerification(
+                        continuationState,
+                        verifyResult.continuationToken,
+                        correlationId
+                    );
+                }
+            } else if (verifyResult.nextAction === UPDATE_RELATION) {
+                return createFlowNewPasswordRequiredResultV2({
+                    correlationId,
+                    continuationState: {
+                        continuationToken: verifyResult.continuationToken,
+                        scenario: continuationState.scenario,
+                        scopes: continuationState.scopes,
+                        links: { update: verifyResult.updateHref },
+                    },
+                });
+            }
         }
 
         if (continuationState.scenario === CustomAuthFlowScenarioV2.SignIn) {
@@ -755,15 +768,12 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Submits the new password and polls until the reset completes. The result
-     * contains the continuation state required for explicit sign-in.
+     * Submits the new password and polls for the next action: method registration,
+     * MFA, or a continuation for explicit sign-in.
      */
     async submitNewPassword(
         parameters: FlowSubmitNewPasswordParamsV2
-    ): Promise<
-        | FlowSignInContinuationRequiredResultV2
-        | FlowAuthMethodRegistrationRequiredResultV2
-    > {
+    ): Promise<FlowSubmitNewPasswordResultV2> {
         const continuationState = parameters.continuationState;
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
@@ -799,7 +809,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             );
 
             isPolling = pollResult.nextAction === POLL_RELATION;
-            if (!isPolling) {
+            if (pollResult.nextAction !== POLL_RELATION) {
                 break;
             }
 
@@ -823,10 +833,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             );
         }
 
-        if (
-            pollResult.nextAction === ENROLL_RELATION &&
-            pollResult.enrollmentMethods
-        ) {
+        if (pollResult.nextAction === ENROLL_RELATION && pollResult.methods) {
             return this.createAuthMethodRegistrationRequiredResult({
                 correlationId,
                 continuationState: {
@@ -834,7 +841,43 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     continuationToken: pollResult.continuationToken,
                     links: {},
                 },
-                methods: pollResult.enrollmentMethods,
+                methods: pollResult.methods,
+            });
+        }
+
+        if (pollResult.nextAction === CHALLENGE_RELATION) {
+            if (!pollResult.authenticationFactor) {
+                const message =
+                    "Password-reset MFA challenge is missing its authentication factor.";
+                this.logger.error(message, correlationId);
+                throw new CustomAuthError(
+                    UNSUPPORTED_FLOW_TRANSITION,
+                    message,
+                    correlationId
+                );
+            }
+
+            this.ensureAuthenticationFactor(
+                pollResult.authenticationFactor,
+                AuthenticationFactorV2.MULTI_FACTOR,
+                "after password reset",
+                correlationId
+            );
+
+            return createFlowMFARequiredResultV2({
+                correlationId,
+                continuationState: {
+                    continuationToken: pollResult.continuationToken,
+                    scenario: continuationState.scenario,
+                    scopes: continuationState.scopes,
+                    links: {},
+                },
+                methods: pollResult.methods.map((method) => ({
+                    id: method.id,
+                    type: method.type ?? "",
+                    hint: method.hint,
+                    challengeHref: method.challengeHref,
+                })),
             });
         }
 

@@ -67,7 +67,7 @@ export interface FlowSignUpPasswordRequiredResultV2
     requiredPasswordAttribute: SignUpAttributeV2;
 }
 
-// A registered MFA method must be selected to continue sign-in.
+// A registered MFA method must be selected to continue the active flow.
 export interface FlowMFARequiredResultV2 extends FlowActionResultBaseV2 {
     type: typeof FLOW_MFA_REQUIRED_V2;
     continuationState: FlowContinuationStateV2;
@@ -126,6 +126,11 @@ export type FlowSubmitCodeResultV2 =
     | FlowMFARequiredResultV2
     | FlowAuthMethodRegistrationRequiredResultV2
     | FlowCompletedResultV2;
+
+export type FlowSubmitNewPasswordResultV2 =
+    | FlowSignInContinuationRequiredResultV2
+    | FlowAuthMethodRegistrationRequiredResultV2
+    | FlowMFARequiredResultV2;
 
 export type FlowSignUpActionResultV2 =
     | FlowCodeRequiredResultV2

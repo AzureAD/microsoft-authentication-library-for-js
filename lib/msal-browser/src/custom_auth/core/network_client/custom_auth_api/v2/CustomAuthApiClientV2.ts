@@ -441,11 +441,29 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             return {
                 nextAction,
                 continuationToken,
-                enrollmentMethods: this.resolveEnrollmentMethods(
+                methods: this.resolveEnrollmentMethods(
                     this.handler.requireMethods(
                         parsedResponse.body._embedded?.methods,
                         correlationId
-                    ),
+                    ) as EmbeddedEnrollmentMethodV2[],
+                    correlationId
+                ),
+            };
+        }
+
+        if (nextAction === CHALLENGE_RELATION) {
+            return {
+                nextAction,
+                continuationToken,
+                authenticationFactor: this.resolveAuthenticationFactor(
+                    parsedResponse.body.challengeContext?.authenticationFactor,
+                    correlationId
+                ),
+                methods: this.resolveMethods(
+                    this.handler.requireMethods(
+                        parsedResponse.body._embedded?.methods,
+                        correlationId
+                    ) as EmbeddedMethodV2[],
                     correlationId
                 ),
             };
