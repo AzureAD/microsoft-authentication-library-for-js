@@ -47,6 +47,20 @@ export type DpopResourceProofParams = {
     nonce?: string;
 };
 
+/**
+ * HTTP resource context used by a DPoP-bound request.
+ * @internal
+ */
+export type DpopResourceRequestContext = {
+    htu: string;
+    htm: string;
+};
+
+/**
+ * Resource request context and access token used to generate a DPoP proof.
+ * Exported for use by MSAL Browser and unsupported for direct consumers.
+ * @internal
+ */
 export type GenerateDpopResourceProofParams = {
     htu?: string;
     htm?: string;
@@ -129,12 +143,25 @@ function validateDpopNonce(
 }
 
 /**
+ * Validates and normalizes the HTTP resource context for a DPoP-bound request.
+ * @internal
+ */
+export function normalizeDpopResourceRequestContext(
+    context: DpopResourceRequestContext,
+    correlationId: string = ""
+): DpopResourceRequestContext {
+    return {
+        htm: normalizeHtm(context.htm, correlationId),
+        htu: normalizeHtu(context.htu, correlationId),
+    };
+}
+
+/**
  * Builds RFC 9449 DPoP proof JWT payloads for token-endpoint and
  * resource-endpoint proof bindings.
  *
- * Not exported from any public package entry point.
- * This helper is internal-only until DPoP is wired into acquisition flows
- * in a subsequent work item.
+ * Exported from package entry points for use by MSAL Browser.
+ * This helper remains an unsupported internal API for direct consumers.
  *
  * DPoP proofs do not contain SHR fields (at, ts, m, u, p, q).
  * @internal
@@ -213,10 +240,14 @@ export class DpopProofGenerator {
         correlationId: string = ""
     ): DpopProofClaims {
         validateDpopNonce(params.nonce, correlationId);
+        const resourceContext = normalizeDpopResourceRequestContext(
+            params,
+            correlationId
+        );
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
-            htm: normalizeHtm(params.htm, correlationId),
-            htu: normalizeHtu(params.htu, correlationId),
+            htm: resourceContext.htm,
+            htu: resourceContext.htu,
             ath: params.ath,
             iat: TimeUtils.nowSeconds(),
         };
