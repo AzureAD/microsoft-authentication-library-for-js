@@ -21,6 +21,7 @@ import {
     createCacheError,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     ICrypto,
+    IDpopNonceProvider,
     IdTokenEntity,
     invokeAsync,
     IPerformanceClient,
@@ -40,6 +41,8 @@ import {
     AuthToken,
     getTenantIdFromIdTokenClaims,
     buildTenantProfile,
+    canonicalizeDpopResourceServer,
+    validateDpopNonce,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -79,6 +82,41 @@ import { EncryptedData, isEncrypted } from "./EncryptedData.js";
 
 type KmsiMap = { [homeAccountId: string]: boolean };
 
+const DPOP_NONCE_REDIRECT_HANDOFF = "dpop.nonce.redirect";
+const MAX_RESOURCE_SERVER_NONCES = 50;
+const REDIRECT_HANDOFF_TTL_MS = 5 * 60 * 1000;
+
+type DpopNonceRedirectHandoff = {
+    nonce: string;
+    resourceServer: string;
+    state: string;
+    correlationId: string;
+    expiresAt: number;
+};
+
+function isDpopNonceRedirectHandoff(
+    value: object
+): value is DpopNonceRedirectHandoff {
+    const handoff = value as Partial<DpopNonceRedirectHandoff>;
+    if (
+        typeof handoff.nonce !== "string" ||
+        typeof handoff.resourceServer !== "string" ||
+        typeof handoff.state !== "string" ||
+        typeof handoff.correlationId !== "string" ||
+        typeof handoff.expiresAt !== "number" ||
+        !Number.isFinite(handoff.expiresAt)
+    ) {
+        return false;
+    }
+
+    try {
+        validateDpopNonce(handoff.nonce);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 /**
  * Reason an old-schema cache entry was removed during migration.
  */
@@ -99,7 +137,10 @@ type UpdateOldEntryResult =
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
  */
-export class BrowserCacheManager extends CacheManager {
+export class BrowserCacheManager
+    extends CacheManager
+    implements IDpopNonceProvider
+{
     // Cache configuration, either set by user or default values.
     protected cacheConfig: Required<CacheOptions>;
     // Window storage object (either local or sessionStorage)
@@ -114,6 +155,7 @@ export class BrowserCacheManager extends CacheManager {
     protected logger: Logger;
     // Event Handler
     private eventHandler: EventHandler;
+    private dpopNonces = new Map<string, string>();
 
     constructor(
         clientId: string,
@@ -1870,6 +1912,208 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * Stores a validated resource-server DPoP nonce in PCA-local memory.
+     * @internal
+     */
+    setDpopNonce(
+        resourceRequestUri: string,
+        dpopNonce: string,
+        correlationId: string = ""
+    ): void {
+        const resourceServer = canonicalizeDpopResourceServer(
+            resourceRequestUri,
+            correlationId
+        );
+        const validatedNonce = validateDpopNonce(dpopNonce, correlationId);
+
+        // Reinsert replacements so eviction remains oldest-write ordered.
+        this.dpopNonces.delete(resourceServer);
+        this.dpopNonces.set(resourceServer, validatedNonce);
+
+        if (this.dpopNonces.size > MAX_RESOURCE_SERVER_NONCES) {
+            const oldestResourceServer = this.dpopNonces.keys().next().value;
+            if (oldestResourceServer) {
+                this.dpopNonces.delete(oldestResourceServer);
+            }
+            this.performanceClient.incrementFields(
+                { "ext.dpopNonceCacheEvictionCount": 1 },
+                correlationId
+            );
+        }
+    }
+
+    /**
+     * Reads the current resource-server DPoP nonce from PCA-local memory.
+     * This optional structural capability is consumed by msal-common without
+     * adding methods to the CacheManager abstraction.
+     * @internal
+     */
+    getDpopNonce(
+        resourceRequestUri: string,
+        correlationId: string = ""
+    ): string | undefined {
+        return this.dpopNonces.get(
+            canonicalizeDpopResourceServer(resourceRequestUri, correlationId)
+        );
+    }
+
+    /**
+     * Saves the active redirect request's nonce in tab-scoped temporary cache.
+     * @internal
+     */
+    saveDpopNonceRedirectHandoff(
+        resourceRequestUri: string,
+        state: string,
+        correlationId: string
+    ): void {
+        if (!state || !correlationId) {
+            return;
+        }
+
+        const nonce = this.getDpopNonce(resourceRequestUri, correlationId);
+        if (!nonce) {
+            return;
+        }
+
+        const handoff: DpopNonceRedirectHandoff = {
+            nonce,
+            resourceServer: canonicalizeDpopResourceServer(
+                resourceRequestUri,
+                correlationId
+            ),
+            state,
+            correlationId,
+            expiresAt: Date.now() + REDIRECT_HANDOFF_TTL_MS,
+        };
+
+        if (this.temporaryCacheStorage instanceof MemoryStorage) {
+            this.performanceClient.incrementFields(
+                { "ext.dpopNonceRedirectHandoffSaveFailureCount": 1 },
+                correlationId
+            );
+            this.logger.warning(
+                "Unable to save the DPoP nonce redirect handoff.",
+                correlationId
+            );
+            return;
+        }
+
+        try {
+            this.setTemporaryCache(
+                DPOP_NONCE_REDIRECT_HANDOFF,
+                JSON.stringify(handoff),
+                true
+            );
+            this.performanceClient.incrementFields(
+                { "ext.dpopNonceRedirectHandoffSaveCount": 1 },
+                correlationId
+            );
+        } catch {
+            this.performanceClient.incrementFields(
+                { "ext.dpopNonceRedirectHandoffSaveFailureCount": 1 },
+                correlationId
+            );
+            this.logger.warning(
+                "Unable to save the DPoP nonce redirect handoff.",
+                correlationId
+            );
+        }
+    }
+
+    /**
+     * Restores and one-shot removes a redirect nonce handoff.
+     * @internal
+     */
+    restoreDpopNonceRedirectHandoff(
+        resourceRequestUri: string,
+        state: string,
+        correlationId: string
+    ): void {
+        let serializedHandoff: string | null;
+        const cacheKey = this.generateCacheKey(DPOP_NONCE_REDIRECT_HANDOFF);
+        try {
+            serializedHandoff = this.getTemporaryCache(cacheKey, correlationId);
+            this.removeTemporaryItem(cacheKey);
+        } catch {
+            this.performanceClient.incrementFields(
+                { "ext.dpopNonceRedirectHandoffRestoreFailureCount": 1 },
+                correlationId
+            );
+            this.logger.warning(
+                "Unable to read or clear the DPoP nonce redirect handoff.",
+                correlationId
+            );
+            return;
+        }
+
+        if (!serializedHandoff) {
+            return;
+        }
+
+        const parsedHandoff = this.validateAndParseJson(serializedHandoff);
+        if (!parsedHandoff || !isDpopNonceRedirectHandoff(parsedHandoff)) {
+            this.logger.warning(
+                "Ignoring an invalid DPoP nonce redirect handoff.",
+                correlationId
+            );
+            return;
+        }
+
+        if (
+            parsedHandoff.expiresAt < Date.now() ||
+            parsedHandoff.state !== state ||
+            parsedHandoff.correlationId !== correlationId ||
+            parsedHandoff.resourceServer !==
+                canonicalizeDpopResourceServer(
+                    resourceRequestUri,
+                    correlationId
+                )
+        ) {
+            return;
+        }
+
+        this.setDpopNonce(
+            parsedHandoff.resourceServer,
+            parsedHandoff.nonce,
+            correlationId
+        );
+        this.performanceClient.incrementFields(
+            { "ext.dpopNonceRedirectHandoffRestoreCount": 1 },
+            correlationId
+        );
+    }
+
+    /**
+     * Clears the redirect nonce handoff from temporary cache.
+     * @internal
+     */
+    clearDpopNonceRedirectHandoff(correlationId: string = ""): void {
+        try {
+            this.removeTemporaryItem(
+                this.generateCacheKey(DPOP_NONCE_REDIRECT_HANDOFF)
+            );
+        } catch {
+            this.performanceClient.incrementFields(
+                { "ext.dpopNonceRedirectHandoffClearFailureCount": 1 },
+                correlationId
+            );
+            this.logger.warning(
+                "Unable to clear the DPoP nonce redirect handoff.",
+                correlationId
+            );
+        }
+    }
+
+    /**
+     * Clears all PCA-local DPoP nonce state.
+     * @internal
+     */
+    clearDpopNonces(correlationId: string = ""): void {
+        this.dpopNonces.clear();
+        this.clearDpopNonceRedirectHandoff(correlationId);
+    }
+
+    /**
      *
      * @param key
      * @param entity
@@ -2110,6 +2354,7 @@ export class BrowserCacheManager extends CacheManager {
         });
 
         this.internalStorage.clear();
+        this.dpopNonces.clear();
     }
 
     /**
