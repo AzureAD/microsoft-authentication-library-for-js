@@ -476,6 +476,16 @@ export type PerformanceEvent = {
     dpopNonceAppliedToProof?: boolean;
 
     /**
+     * Whether an authorization-server nonce was available before the request.
+     */
+    dpopAuthorizationNonceCacheHit?: boolean;
+
+    /**
+     * Zero-based token-endpoint request attempt for an AS DPoP nonce challenge.
+     */
+    dpopNonceRetryAttempt?: number;
+
+    /**
      * Whether the user has "Keep Me Signed In" enabled
      */
     kmsi?: boolean;

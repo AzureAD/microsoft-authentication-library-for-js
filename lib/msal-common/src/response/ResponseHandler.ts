@@ -646,7 +646,7 @@ export class ResponseHandler {
         let extExpiresOn: Date | undefined;
         let refreshOn: Date | undefined;
         let familyId: string = "";
-        let dpopProof: string | undefined;
+        let resourceProof: string | undefined;
         const cachedAccessTokenType = cacheRecord.accessToken?.tokenType || "";
         const isDpopAccessToken =
             cachedAccessTokenType.toLowerCase() ===
@@ -688,7 +688,10 @@ export class ResponseHandler {
             } else {
                 accessToken = cacheRecord.accessToken.secret;
             }
-            if (isDpopAccessToken) {
+            const externalDpopKeyOwner =
+                Boolean(request.dpopProofProvider) &&
+                request.storeInCache?.accessToken === false;
+            if (isDpopAccessToken && !externalDpopKeyOwner) {
                 if (!cacheRecord.accessToken.keyId) {
                     throw createClientAuthError(
                         ClientAuthErrorCodes.keyIdMissing,
@@ -707,7 +710,7 @@ export class ResponseHandler {
                     { dpopNonceAppliedToProof: Boolean(dpopNonce) },
                     request.correlationId
                 );
-                dpopProof = await dpopProofGenerator.generateResourceProof(
+                resourceProof = await dpopProofGenerator.generateResourceProof(
                     {
                         htu: request.resourceRequestUri,
                         htm: request.resourceRequestMethod,
@@ -794,7 +797,8 @@ export class ResponseHandler {
             idToken: cacheRecord?.idToken?.secret || "",
             idTokenClaims: idTokenClaims || {},
             accessToken: accessToken,
-            dpopProof,
+            resourceProof,
+            dpopProof: resourceProof,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
             extExpiresOn: extExpiresOn,
@@ -810,7 +814,7 @@ export class ResponseHandler {
             fromPlatformBroker: false,
         };
 
-        if (isDpopAccessToken && cacheRecord.accessToken?.keyId) {
+        if (resourceProof && cacheRecord.accessToken?.keyId) {
             dpopKeyIds.set(authenticationResult, cacheRecord.accessToken.keyId);
         }
 

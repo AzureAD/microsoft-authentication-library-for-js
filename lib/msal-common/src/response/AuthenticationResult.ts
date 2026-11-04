@@ -14,7 +14,7 @@ import { AccountInfo } from "../account/AccountInfo.js";
  * - idToken                - Id token received as part of the response
  * - idTokenClaims          - MSAL-relevant ID token claims
  * - accessToken            - Access token or SSH certificate received as part of the response
- * - dpopProof              - DPoP proof JWT to send with the access token for resource requests
+ * - resourceProof          - DPoP proof JWT to send with the access token for the requested resource
  * - fromCache              - Boolean denoting whether token came from cache
  * - expiresOn              - Javascript Date object representing relative expiration of access token
  * - extExpiresOn           - Javascript Date object representing extended relative expiration of access token in case of server outage
@@ -32,6 +32,10 @@ export type AuthenticationResult = {
     idToken: string;
     idTokenClaims: object;
     accessToken: string;
+    resourceProof?: string;
+    /**
+     * @deprecated Use resourceProof instead.
+     */
     dpopProof?: string;
     fromCache: boolean;
     expiresOn: Date | null;

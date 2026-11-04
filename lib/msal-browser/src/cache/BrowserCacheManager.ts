@@ -21,6 +21,7 @@ import {
     createCacheError,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     ICrypto,
+    IDpopAuthorizationNonceProvider,
     IDpopNonceProvider,
     IdTokenEntity,
     invokeAsync,
@@ -42,6 +43,7 @@ import {
     getTenantIdFromIdTokenClaims,
     buildTenantProfile,
     canonicalizeDpopResourceServer,
+    normalizeDpopHtu,
     validateDpopNonce,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
@@ -84,6 +86,7 @@ type KmsiMap = { [homeAccountId: string]: boolean };
 
 const DPOP_NONCE_REDIRECT_HANDOFF = "dpop.nonce.redirect";
 const MAX_RESOURCE_SERVER_NONCES = 50;
+const MAX_AUTHORIZATION_SERVER_NONCES = 100;
 const REDIRECT_HANDOFF_TTL_MS = 5 * 60 * 1000;
 
 type DpopNonceRedirectHandoff = {
@@ -139,7 +142,7 @@ type UpdateOldEntryResult =
  */
 export class BrowserCacheManager
     extends CacheManager
-    implements IDpopNonceProvider
+    implements IDpopNonceProvider, IDpopAuthorizationNonceProvider
 {
     // Cache configuration, either set by user or default values.
     protected cacheConfig: Required<CacheOptions>;
@@ -156,6 +159,7 @@ export class BrowserCacheManager
     // Event Handler
     private eventHandler: EventHandler;
     private dpopNonces = new Map<string, string>();
+    private dpopAuthorizationNonces = new Map<string, string>();
 
     constructor(
         clientId: string,
@@ -1958,6 +1962,66 @@ export class BrowserCacheManager
     }
 
     /**
+     * Stores a validated authorization-server nonce in PCA-local memory.
+     * @internal
+     */
+    setDpopAuthorizationNonce(
+        tokenEndpoint: string,
+        dpopJkt: string,
+        dpopNonce: string,
+        correlationId: string = ""
+    ): void {
+        const key = this.getDpopAuthorizationNonceKey(
+            tokenEndpoint,
+            dpopJkt,
+            correlationId
+        );
+        const validatedNonce = validateDpopNonce(dpopNonce, correlationId);
+
+        this.dpopAuthorizationNonces.delete(key);
+        this.dpopAuthorizationNonces.set(key, validatedNonce);
+
+        if (
+            this.dpopAuthorizationNonces.size > MAX_AUTHORIZATION_SERVER_NONCES
+        ) {
+            const oldestKey = this.dpopAuthorizationNonces.keys().next().value;
+            if (oldestKey) {
+                this.dpopAuthorizationNonces.delete(oldestKey);
+            }
+            this.performanceClient.incrementFields(
+                { "ext.dpopAuthorizationNonceCacheEvictionCount": 1 },
+                correlationId
+            );
+        }
+    }
+
+    /**
+     * Reads the current authorization-server nonce for a DPoP key and endpoint.
+     * @internal
+     */
+    getDpopAuthorizationNonce(
+        tokenEndpoint: string,
+        dpopJkt: string,
+        correlationId: string = ""
+    ): string | undefined {
+        return this.dpopAuthorizationNonces.get(
+            this.getDpopAuthorizationNonceKey(
+                tokenEndpoint,
+                dpopJkt,
+                correlationId
+            )
+        );
+    }
+
+    private getDpopAuthorizationNonceKey(
+        tokenEndpoint: string,
+        dpopJkt: string,
+        correlationId: string
+    ): string {
+        return `${dpopJkt}:${normalizeDpopHtu(tokenEndpoint, correlationId)}`;
+    }
+
+    /**
      * Saves the active redirect request's nonce in tab-scoped temporary cache.
      * @internal
      */
@@ -2110,6 +2174,7 @@ export class BrowserCacheManager
      */
     clearDpopNonces(correlationId: string = ""): void {
         this.dpopNonces.clear();
+        this.dpopAuthorizationNonces.clear();
         this.clearDpopNonceRedirectHandoff(correlationId);
     }
 
@@ -2355,6 +2420,7 @@ export class BrowserCacheManager
 
         this.internalStorage.clear();
         this.dpopNonces.clear();
+        this.dpopAuthorizationNonces.clear();
     }
 
     /**

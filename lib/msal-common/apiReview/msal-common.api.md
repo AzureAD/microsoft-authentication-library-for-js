@@ -242,7 +242,7 @@ function addDeviceCode(parameters: Map<string, string>, code: string): void;
 function addDomainHint(parameters: Map<string, string>, domainHint: string): void;
 
 // @internal
-function addDpopTokenProofHeader(headers: Record<string, string>, request: BaseAuthRequest, tokenEndpoint: string, cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager): Promise<void>;
+function addDpopTokenProofHeader(headers: Record<string, string>, request: BaseAuthRequest, tokenEndpoint: string, cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager, nonce?: string): Promise<void>;
 
 // @public
 function addEARParameters(parameters: Map<string, string>, jwk: string): void;
@@ -393,6 +393,7 @@ export type AuthenticationResult = {
     idToken: string;
     idTokenClaims: object;
     accessToken: string;
+    resourceProof?: string;
     dpopProof?: string;
     fromCache: boolean;
     expiresOn: Date | null;
@@ -717,6 +718,8 @@ export type BaseAuthRequest = {
     scenarioId?: string;
     popKid?: string;
     dpopJkt?: string;
+    dpopProof?: string;
+    dpopProofProvider?: (tokenEndpoint: string, nonce?: string) => Promise<string>;
     embeddedClientId?: string;
     httpMethod?: HttpMethod;
     resource?: string;
@@ -1087,6 +1090,7 @@ export type ClientConfiguration = {
     cryptoInterface?: ICrypto;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
     dpopNonceProvider?: IDpopNonceProvider;
+    dpopAuthorizationNonceProvider?: IDpopAuthorizationNonceProvider;
     clientCredentials?: ClientCredentials;
     libraryInfo?: LibraryInfo;
     telemetry?: TelemetryOptions;
@@ -1210,6 +1214,7 @@ export type CommonClientConfiguration = {
     cryptoInterface: Required<ICrypto>;
     tokenBindingKeyManager: ITokenBindingKeyManager;
     dpopNonceProvider?: IDpopNonceProvider;
+    dpopAuthorizationNonceProvider?: IDpopAuthorizationNonceProvider;
     libraryInfo: LibraryInfo;
     telemetry: Required<TelemetryOptions>;
     serverTelemetryManager: ServerTelemetryManager | null;
@@ -1552,6 +1557,16 @@ const DPOP_JKT = "dpop_jkt";
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";
 
+// @internal
+export class DpopProofGenerator {
+    constructor(cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager);
+    buildResourceProofClaims(params: DpopResourceProofParams, correlationId?: string): DpopProofClaims;
+    buildTokenProofClaims(params: DpopTokenProofParams, correlationId?: string): DpopProofClaims;
+    generateJkt(correlationId?: string): Promise<string>;
+    generateResourceProof(params: GenerateDpopResourceProofParams, keyId: string, correlationId?: string): Promise<string>;
+    generateTokenProof(params: DpopTokenProofParams, keyId: string, correlationId?: string): Promise<string>;
+}
+
 // @public (undocumented)
 const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
 
@@ -1641,6 +1656,14 @@ export type GenerateAuthenticationResultOptions = {
 // @public
 function generateAuthorityMetadataExpiresAt(): number;
 
+// @public (undocumented)
+export type GenerateDpopResourceProofParams = {
+    htu?: string;
+    htm?: string;
+    nonce?: string;
+    accessToken: string;
+};
+
 // @public
 function generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, correlationId: string, idTokenClaims?: TokenClaims): string;
 
@@ -1664,6 +1687,15 @@ export function getClientAssertion(clientAssertion: string | ClientAssertionCall
 
 // @public
 function getDeserializedResponse(responseString: string): AuthorizeResponse | null;
+
+// @internal
+function getDpopAuthorizationNonce(provider: IDpopAuthorizationNonceProvider | undefined, request: BaseAuthRequest, tokenEndpoint: string): string | undefined;
+
+// @internal
+function getDpopNonce(response: NetworkResponse<ServerAuthorizationTokenResponse>, correlationId?: string): string | undefined;
+
+// @internal
+function getDpopNonceChallenge(response: NetworkResponse<ServerAuthorizationTokenResponse>, correlationId?: string): string | undefined;
 
 // @public
 function getJWSPayload(authToken: string, correlationId: string): string;
@@ -1709,6 +1741,7 @@ const HeaderNames: {
     readonly CONTENT_TYPE: "Content-Type";
     readonly CONTENT_LENGTH: "Content-Length";
     readonly DPOP: "DPoP";
+    readonly DPOP_NONCE: "DPoP-Nonce";
     readonly RETRY_AFTER: "Retry-After";
     readonly CCS_HEADER: "X-AnchorMailbox";
     readonly WWWAuthenticate: "WWW-Authenticate";
@@ -1819,6 +1852,12 @@ const ID_TOKEN = "id_token";
 
 // @public (undocumented)
 const ID_TOKEN_HINT = "id_token_hint";
+
+// @internal
+export interface IDpopAuthorizationNonceProvider {
+    getDpopAuthorizationNonce(tokenEndpoint: string, dpopJkt: string, correlationId?: string): string | undefined;
+    setDpopAuthorizationNonce(tokenEndpoint: string, dpopJkt: string, dpopNonce: string, correlationId?: string): void;
+}
 
 // @internal
 export interface IDpopNonceProvider {
@@ -2314,6 +2353,9 @@ const nonceMismatch = "nonce_mismatch";
 const noNetworkConnectivity = "no_network_connectivity";
 
 // @public
+export function normalizeDpopHtu(url: string, correlationId: string): string;
+
+// @public
 function normalizeUrlForComparison(url: string, logger?: Logger, correlationId?: string): string;
 
 // @public (undocumented)
@@ -2558,6 +2600,8 @@ export type PerformanceEvent = {
     dpopTokenTypeMismatch?: string;
     authenticationScheme?: string;
     dpopNonceAppliedToProof?: boolean;
+    dpopAuthorizationNonceCacheHit?: boolean;
+    dpopNonceRetryAttempt?: number;
     kmsi?: boolean;
     regionSubScope?: string;
     ssoCapable?: boolean;
@@ -3110,6 +3154,9 @@ export type ServerTelemetryRequest = {
 // @public (undocumented)
 const SESSION_STATE = "session_state";
 
+// @internal
+function setDpopAuthorizationNonce(provider: IDpopAuthorizationNonceProvider | undefined, request: BaseAuthRequest, tokenEndpoint: string, nonce: string | undefined): void;
+
 // @public
 function setRequestState(cryptoObj: ICrypto, userState: string | undefined, meta: Record<string, string> | undefined, correlationId: string): string;
 
@@ -3413,6 +3460,10 @@ declare namespace TokenProtocol {
     export {
         createTokenRequestHeaders,
         addDpopTokenProofHeader,
+        getDpopNonce,
+        getDpopNonceChallenge,
+        getDpopAuthorizationNonce,
+        setDpopAuthorizationNonce,
         createTokenQueryParameters,
         executePostToTokenEndpoint,
         sendPostRequest

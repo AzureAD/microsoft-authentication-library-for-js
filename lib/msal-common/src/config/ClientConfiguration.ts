@@ -30,6 +30,7 @@ import {
 } from "../error/ClientAuthError.js";
 import { StubPerformanceClient } from "../telemetry/performance/StubPerformanceClient.js";
 import { IDpopNonceProvider } from "../crypto/IDpopNonceProvider.js";
+import { IDpopAuthorizationNonceProvider } from "../crypto/IDpopAuthorizationNonceProvider.js";
 
 /**
  * Use the configuration object to configure MSAL Modules and initialize the base interfaces for MSAL.
@@ -39,6 +40,7 @@ import { IDpopNonceProvider } from "../crypto/IDpopNonceProvider.js";
  * - cryptoInterface            - Implementation of crypto functions
  * - tokenBindingKeyManager     - Implementation of token-binding key lifecycle functions
  * - dpopNonceProvider          - Resource-server DPoP nonce provider
+ * - dpopAuthorizationNonceProvider - Authorization-server DPoP nonce provider
  * - libraryInfo                - Library metadata
  * - telemetry                  - Telemetry options and data
  * - loggerOptions              - Logging for application
@@ -57,6 +59,7 @@ export type ClientConfiguration = {
     cryptoInterface?: ICrypto;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
     dpopNonceProvider?: IDpopNonceProvider;
+    dpopAuthorizationNonceProvider?: IDpopAuthorizationNonceProvider;
     clientCredentials?: ClientCredentials;
     libraryInfo?: LibraryInfo;
     telemetry?: TelemetryOptions;
@@ -77,6 +80,7 @@ export type CommonClientConfiguration = {
     cryptoInterface: Required<ICrypto>;
     tokenBindingKeyManager: ITokenBindingKeyManager;
     dpopNonceProvider?: IDpopNonceProvider;
+    dpopAuthorizationNonceProvider?: IDpopAuthorizationNonceProvider;
     libraryInfo: LibraryInfo;
     telemetry: Required<TelemetryOptions>;
     serverTelemetryManager: ServerTelemetryManager | null;
@@ -239,6 +243,7 @@ export function buildClientConfiguration({
     cryptoInterface: cryptoImplementation,
     tokenBindingKeyManager: tokenBindingKeyManager,
     dpopNonceProvider: dpopNonceProvider,
+    dpopAuthorizationNonceProvider: dpopAuthorizationNonceProvider,
     clientCredentials: clientCredentials,
     libraryInfo: libraryInfo,
     telemetry: telemetry,
@@ -272,6 +277,7 @@ export function buildClientConfiguration({
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         tokenBindingKeyManager: resolvedTokenBindingKeyManager,
         dpopNonceProvider,
+        dpopAuthorizationNonceProvider,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },

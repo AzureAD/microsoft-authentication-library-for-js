@@ -164,6 +164,78 @@ describe("BrowserCacheManager DPoP nonce state", () => {
         ).toBe("nonce-2");
     });
 
+    it("scopes authorization-server nonces by normalized token endpoint and JKT", () => {
+        const cacheManager = createCacheManager();
+
+        cacheManager.setDpopAuthorizationNonce(
+            "https://LOGIN.CONTOSO.COM:443/oauth2/v2.0/token?query=value",
+            "jkt-1",
+            "as-nonce"
+        );
+
+        expect(
+            cacheManager.getDpopAuthorizationNonce(
+                "https://login.contoso.com/oauth2/v2.0/token",
+                "jkt-1"
+            )
+        ).toBe("as-nonce");
+        expect(
+            cacheManager.getDpopAuthorizationNonce(
+                "https://login.contoso.com/oauth2/v2.0/token",
+                "jkt-2"
+            )
+        ).toBeUndefined();
+    });
+
+    it("keeps resource-server and authorization-server nonce state separate", () => {
+        const cacheManager = createCacheManager();
+
+        cacheManager.setDpopNonce(
+            "https://api.contoso.com/resource",
+            "resource-nonce"
+        );
+        cacheManager.setDpopAuthorizationNonce(
+            "https://api.contoso.com/token",
+            "jkt-1",
+            "authorization-nonce"
+        );
+
+        expect(
+            cacheManager.getDpopNonce("https://api.contoso.com/resource")
+        ).toBe("resource-nonce");
+        expect(
+            cacheManager.getDpopAuthorizationNonce(
+                "https://api.contoso.com/token",
+                "jkt-1"
+            )
+        ).toBe("authorization-nonce");
+    });
+
+    it("clears both resource-server and authorization-server nonce state", () => {
+        const cacheManager = createCacheManager();
+        cacheManager.setDpopNonce(
+            "https://api.contoso.com/resource",
+            "resource-nonce"
+        );
+        cacheManager.setDpopAuthorizationNonce(
+            "https://login.contoso.com/oauth2/v2.0/token",
+            "jkt-1",
+            "authorization-nonce"
+        );
+
+        cacheManager.clearDpopNonces();
+
+        expect(
+            cacheManager.getDpopNonce("https://api.contoso.com/resource")
+        ).toBeUndefined();
+        expect(
+            cacheManager.getDpopAuthorizationNonce(
+                "https://login.contoso.com/oauth2/v2.0/token",
+                "jkt-1"
+            )
+        ).toBeUndefined();
+    });
+
     it("restores a matching redirect handoff once and removes it immediately", () => {
         const performanceClient = new StubPerformanceClient();
         const incrementFieldsSpy = jest.spyOn(

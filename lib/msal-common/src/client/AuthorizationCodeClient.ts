@@ -48,6 +48,10 @@ import {
     createTokenQueryParameters,
     createTokenRequestHeaders,
     executePostToTokenEndpoint,
+    getDpopAuthorizationNonce,
+    getDpopNonce,
+    getDpopNonceChallenge,
+    setDpopAuthorizationNonce,
 } from "../protocol/Token.js";
 import { createDiscoveredInstance } from "../authority/AuthorityFactory.js";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
@@ -274,12 +278,24 @@ export class AuthorizationCodeClient {
             this.config.systemOptions.preventCorsPreflight,
             ccsCredential || request.ccsCredential
         );
+        const cachedDpopNonce = getDpopAuthorizationNonce(
+            this.config.dpopAuthorizationNonceProvider,
+            request,
+            endpoint
+        );
+        this.performanceClient.addFields(
+            {
+                dpopAuthorizationNonceCacheHit: Boolean(cachedDpopNonce),
+            },
+            request.correlationId
+        );
         await addDpopTokenProofHeader(
             headers,
             request,
             endpoint,
             this.cryptoUtils,
-            this.config.tokenBindingKeyManager
+            this.config.tokenBindingKeyManager,
+            cachedDpopNonce
         );
 
         const thumbprint = getRequestThumbprint(
@@ -287,24 +303,72 @@ export class AuthorizationCodeClient {
             request
         );
 
-        return invokeAsync(
-            executePostToTokenEndpoint,
-            PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint,
-            this.logger,
-            this.performanceClient,
-            request.correlationId
-        )(
+        const postTokenRequest = () =>
+            invokeAsync(
+                executePostToTokenEndpoint,
+                PerformanceEvents.AuthorizationCodeClientExecutePostToTokenEndpoint,
+                this.logger,
+                this.performanceClient,
+                request.correlationId
+            )(
+                endpoint,
+                requestBody,
+                headers,
+                thumbprint,
+                request.correlationId,
+                this.cacheManager,
+                this.networkClient,
+                this.logger,
+                this.performanceClient,
+                serverTelemetryManager
+            );
+
+        if (
+            request.authenticationScheme === Constants.AuthenticationScheme.DPOP
+        ) {
+            this.performanceClient.addFields(
+                { dpopNonceRetryAttempt: 0 },
+                request.correlationId
+            );
+        }
+        let response = await postTokenRequest();
+        setDpopAuthorizationNonce(
+            this.config.dpopAuthorizationNonceProvider,
+            request,
             endpoint,
-            requestBody,
-            headers,
-            thumbprint,
-            request.correlationId,
-            this.cacheManager,
-            this.networkClient,
-            this.logger,
-            this.performanceClient,
-            serverTelemetryManager
+            getDpopNonce(response, request.correlationId)
         );
+        const dpopNonce = getDpopNonceChallenge(
+            response,
+            request.correlationId
+        );
+        if (
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP &&
+            dpopNonce
+        ) {
+            this.performanceClient.addFields(
+                { dpopNonceRetryAttempt: 1 },
+                request.correlationId
+            );
+            await addDpopTokenProofHeader(
+                headers,
+                request,
+                endpoint,
+                this.cryptoUtils,
+                this.config.tokenBindingKeyManager,
+                dpopNonce
+            );
+            response = await postTokenRequest();
+            setDpopAuthorizationNonce(
+                this.config.dpopAuthorizationNonceProvider,
+                request,
+                endpoint,
+                getDpopNonce(response, request.correlationId)
+            );
+        }
+
+        return response;
     }
 
     /**

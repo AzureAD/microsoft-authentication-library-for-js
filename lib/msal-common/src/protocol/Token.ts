@@ -5,7 +5,10 @@
 
 import { CcsCredential, CcsCredentialType } from "../account/CcsCredential.js";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo.js";
-import { DpopProofGenerator } from "../crypto/DpopProofGenerator.js";
+import {
+    DpopProofGenerator,
+    normalizeDpopHtu,
+} from "../crypto/DpopProofGenerator.js";
 import { Logger } from "../logger/Logger.js";
 import { BaseAuthRequest } from "../request/BaseAuthRequest.js";
 import {
@@ -40,6 +43,8 @@ import { CacheManager } from "../cache/CacheManager.js";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
 import { ICrypto } from "../crypto/ICrypto.js";
 import { ITokenBindingKeyManager } from "../crypto/ITokenBindingKeyManager.js";
+import { IDpopAuthorizationNonceProvider } from "../crypto/IDpopAuthorizationNonceProvider.js";
+import { validateDpopNonce } from "../crypto/DpopNonceUtils.js";
 
 /**
  * Creates default headers for requests to token endpoint
@@ -85,7 +90,8 @@ export async function addDpopTokenProofHeader(
     request: BaseAuthRequest,
     tokenEndpoint: string,
     cryptoUtils: ICrypto,
-    tokenBindingKeyManager: ITokenBindingKeyManager
+    tokenBindingKeyManager: ITokenBindingKeyManager,
+    nonce?: string
 ): Promise<void> {
     if (request.authenticationScheme !== AuthenticationScheme.DPOP) {
         return;
@@ -95,6 +101,33 @@ export async function addDpopTokenProofHeader(
         cryptoUtils,
         tokenBindingKeyManager
     );
+    if (!nonce && request.dpopProof?.trim()) {
+        headers[HeaderNames.DPOP] = request.dpopProof;
+        return;
+    }
+
+    if (request.dpopProofProvider) {
+        const normalizedTokenEndpoint = normalizeDpopHtu(
+            tokenEndpoint,
+            request.correlationId
+        );
+        const providedProof =
+            nonce === undefined
+                ? await request.dpopProofProvider(normalizedTokenEndpoint)
+                : await request.dpopProofProvider(
+                      normalizedTokenEndpoint,
+                      nonce
+                  );
+        if (!providedProof?.trim()) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.requestCannotBeMade,
+                request.correlationId
+            );
+        }
+        headers[HeaderNames.DPOP] = providedProof;
+        return;
+    }
+
     const keyId = request.dpopJkt;
     if (!keyId?.trim()) {
         throw createClientAuthError(
@@ -106,8 +139,95 @@ export async function addDpopTokenProofHeader(
     headers[HeaderNames.DPOP] = await dpopProofGenerator.generateTokenProof(
         {
             tokenEndpoint,
+            nonce,
         },
         keyId,
+        request.correlationId
+    );
+}
+
+/**
+ * Returns an authorization-server DPoP nonce from any token response.
+ * Header names are matched case-insensitively because network clients normalize
+ * response headers differently.
+ * @internal
+ */
+export function getDpopNonce(
+    response: NetworkResponse<ServerAuthorizationTokenResponse>,
+    correlationId: string = ""
+): string | undefined {
+    const nonceHeaderName = HeaderNames.DPOP_NONCE.toLowerCase();
+    const nonceEntry = Object.entries(response.headers || {}).find(
+        ([name]) => name.toLowerCase() === nonceHeaderName
+    );
+    const nonce = nonceEntry?.[1];
+    return typeof nonce === "string" && nonce.trim()
+        ? validateDpopNonce(nonce, correlationId)
+        : undefined;
+}
+
+/**
+ * Returns the authorization-server DPoP nonce for an RFC 9449 nonce challenge.
+ * @internal
+ */
+export function getDpopNonceChallenge(
+    response: NetworkResponse<ServerAuthorizationTokenResponse>,
+    correlationId: string = ""
+): string | undefined {
+    return response.body.error === "use_dpop_nonce"
+        ? getDpopNonce(response, correlationId)
+        : undefined;
+}
+
+/**
+ * Returns a retained authorization-server nonce for this DPoP key and token
+ * endpoint.
+ * @internal
+ */
+export function getDpopAuthorizationNonce(
+    provider: IDpopAuthorizationNonceProvider | undefined,
+    request: BaseAuthRequest,
+    tokenEndpoint: string
+): string | undefined {
+    if (
+        !provider ||
+        request.authenticationScheme !== AuthenticationScheme.DPOP ||
+        !request.dpopJkt?.trim()
+    ) {
+        return undefined;
+    }
+
+    return provider.getDpopAuthorizationNonce(
+        tokenEndpoint,
+        request.dpopJkt,
+        request.correlationId
+    );
+}
+
+/**
+ * Retains an authorization-server nonce for the next token request made with
+ * the same DPoP key and token endpoint.
+ * @internal
+ */
+export function setDpopAuthorizationNonce(
+    provider: IDpopAuthorizationNonceProvider | undefined,
+    request: BaseAuthRequest,
+    tokenEndpoint: string,
+    nonce: string | undefined
+): void {
+    if (
+        !provider ||
+        !nonce ||
+        request.authenticationScheme !== AuthenticationScheme.DPOP ||
+        !request.dpopJkt?.trim()
+    ) {
+        return;
+    }
+
+    provider.setDpopAuthorizationNonce(
+        tokenEndpoint,
+        request.dpopJkt,
+        nonce,
         request.correlationId
     );
 }
