@@ -143,52 +143,69 @@ describe("Reset password V2 (SSPR)", () => {
             return selection.state;
         };
 
-    it.each([false, true])(
-        "completes password reset after automatically challenging the only Email method (resend: %s)",
-        async (resend) => {
-            (fetch as jest.Mock)
-                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE));
-            if (resend) {
-                (fetch as jest.Mock).mockResolvedValueOnce(
-                    buildResponse({
-                        ...EMAIL_CHALLENGE_RESPONSE,
-                        continuationToken: "ct-email-resend",
-                    })
-                );
-            }
-            (fetch as jest.Mock)
-                .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(POLL_COMPLETED_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+    it("completes password reset after automatically challenging the only Email method", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(POLL_COMPLETED_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
 
-            const startResult = await app.resetPasswordV2({
-                username: "user@contoso.com",
-            });
-            if (!startResult.isState("codeRequired")) {
-                throw new Error("Expected a reset verification code.");
-            }
-
-            const codeState = startResult.state;
-            expect(codeState.method?.id).toBe("email");
-            expect(codeState.channel).toBe("email");
-
-            if (resend) {
-                const resent = await codeState.resendCode();
-                if (!resent.isState("codeRequired")) {
-                    throw new Error("Expected a replacement reset code.");
-                }
-                await completePasswordReset(resent.state);
-            } else {
-                await completePasswordReset(codeState);
-            }
-
-            expect(fetch).toHaveBeenCalledTimes(resend ? 9 : 8);
+        const startResult = await app.resetPasswordV2({
+            username: "user@contoso.com",
+        });
+        if (!startResult.isState("codeRequired")) {
+            throw new Error("Expected a reset verification code.");
         }
-    );
+
+        const codeState = startResult.state;
+        expect(codeState.method?.id).toBe("email");
+        expect(codeState.channel).toBe("email");
+
+        await completePasswordReset(codeState);
+
+        expect(fetch).toHaveBeenCalledTimes(8);
+    });
+
+    it("completes password reset after automatically challenging the only Email method and resending the code", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse({
+                    ...EMAIL_CHALLENGE_RESPONSE,
+                    continuationToken: "ct-email-resend",
+                })
+            )
+            .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(POLL_COMPLETED_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+
+        const startResult = await app.resetPasswordV2({
+            username: "user@contoso.com",
+        });
+        if (!startResult.isState("codeRequired")) {
+            throw new Error("Expected a reset verification code.");
+        }
+
+        const codeState = startResult.state;
+        expect(codeState.method?.id).toBe("email");
+        expect(codeState.channel).toBe("email");
+
+        const resent = await codeState.resendCode();
+        if (!resent.isState("codeRequired")) {
+            throw new Error("Expected a replacement reset code.");
+        }
+        await completePasswordReset(resent.state);
+
+        expect(fetch).toHaveBeenCalledTimes(9);
+    });
 
     it.each([false, true])(
         "enrolls and activates a method after the final poll (in-progress poll: %s)",
