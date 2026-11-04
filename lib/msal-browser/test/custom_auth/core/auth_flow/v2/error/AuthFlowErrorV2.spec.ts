@@ -118,6 +118,16 @@ describe("AuthFlowErrorV2 error mapping", () => {
             expect(error.isInvalidPassword()).toBe(false);
         });
 
+        it("is false when password reset is not enabled for the account", () => {
+            const error = new AuthFlowErrorV2(
+                apiError("invalidRequest", {
+                    innerErrorCode: "passwordResetNotEnabledForUser",
+                })
+            );
+
+            expect(error.isInvalidPassword()).toBe(false);
+        });
+
         it.each(passwordPolicyCodes)(
             "is false when %s has a different outer code",
             (innerErrorCode) => {
@@ -222,48 +232,6 @@ describe("AuthFlowErrorV2 error mapping", () => {
             ]);
 
             expect(error.isInvalidPassword()).toBe(true);
-        });
-    });
-
-    describe("isPasswordResetNotEnabled", () => {
-        it("recognizes the structured reset-disabled error without treating it as an invalid password", () => {
-            const error = new AuthFlowErrorV2(
-                apiError("invalidRequest", {
-                    innerErrorCode: "passwordResetNotEnabledForUser",
-                })
-            );
-
-            expect(error.isPasswordResetNotEnabled()).toBe(true);
-            expect(error.isInvalidPassword()).toBe(false);
-        });
-
-        it.each([
-            {
-                code: "invalidGrant",
-                innerErrorCode: "passwordResetNotEnabledForUser",
-            },
-            { code: "invalidRequest", innerErrorCode: "passwordTooWeak" },
-            { code: "invalidRequest", innerErrorCode: undefined },
-        ])(
-            "does not match outer $code with inner $innerErrorCode",
-            ({ code, innerErrorCode }) => {
-                const error = new AuthFlowErrorV2(
-                    apiError(code, { innerErrorCode })
-                );
-
-                expect(error.isPasswordResetNotEnabled()).toBe(false);
-            }
-        );
-
-        it("does not classify a message-only AADSTS10040039 failure", () => {
-            const error = new AuthFlowErrorV2(
-                apiError("invalidRequest", {
-                    message:
-                        "AADSTS10040039: Password reset isn't turned on for your account.",
-                })
-            );
-
-            expect(error.isPasswordResetNotEnabled()).toBe(false);
         });
     });
 

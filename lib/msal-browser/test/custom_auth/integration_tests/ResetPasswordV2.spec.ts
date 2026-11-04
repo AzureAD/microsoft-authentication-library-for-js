@@ -471,7 +471,6 @@ describe("Reset password V2 (SSPR)", () => {
 
         expect(result.isFailed()).toBe(true);
         expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
-        expect(result.error?.isPasswordResetNotEnabled()).toBe(true);
         expect(result.error?.isInvalidPassword()).toBe(false);
         expect(result.error?.innerErrorCode).toBe(
             "passwordResetNotEnabledForUser"

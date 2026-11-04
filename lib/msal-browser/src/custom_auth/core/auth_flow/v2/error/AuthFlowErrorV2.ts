@@ -14,7 +14,6 @@ import {
     PASSWORD_IS_INVALID,
     PASSWORD_POLICY_VIOLATION,
     PASSWORD_RECENTLY_USED,
-    PASSWORD_RESET_NOT_ENABLED_FOR_USER,
     PASSWORD_TOO_LONG,
     PASSWORD_TOO_SHORT,
     PASSWORD_TOO_WEAK,
@@ -138,19 +137,6 @@ export class AuthFlowErrorV2 {
             this.isPasswordIncorrectError() ||
             this.isInvalidPasswordError() ||
             this.isPasswordPolicyViolationError()
-        );
-    }
-
-    /**
-     * Checks whether the service reports that password reset is not enabled
-     * for the supplied account. Use it to distinguish unavailable password
-     * reset from invalid-password failures.
-     * @returns True when password reset is not enabled for the account.
-     */
-    isPasswordResetNotEnabled(): boolean {
-        return (
-            this.errorData.error === "invalidRequest" &&
-            this.innerErrorCode === PASSWORD_RESET_NOT_ENABLED_FOR_USER
         );
     }
 
