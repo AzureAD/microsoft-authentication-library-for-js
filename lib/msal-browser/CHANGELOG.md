@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 27 Oct 2026 18:15:10 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 04 Nov 2026 23:21:24 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.28.0
+
+Wed, 04 Nov 2026 23:21:24 GMT
+
+### Minor changes
+
+- Support Native Auth V2 JIT email and SMS enrollment during sign-in, sign-up, and password reset. [#8927](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8927) (undefined)
 
 ## 5.27.0
 
