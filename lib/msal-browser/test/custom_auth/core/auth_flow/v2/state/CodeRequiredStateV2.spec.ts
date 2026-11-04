@@ -281,7 +281,12 @@ describe("CodeRequiredStateV2", () => {
                               required: true,
                           },
                       }
-                    : { type: FLOW_ATTRIBUTES_REQUIRED_V2 }),
+                    : {
+                          type: FLOW_ATTRIBUTES_REQUIRED_V2,
+                          attributes: [
+                              { attributeId: "givenName", required: true },
+                          ],
+                      }),
                 correlationId,
                 continuationState: {
                     continuationToken: "ct-sign-up-attributes",
@@ -289,7 +294,6 @@ describe("CodeRequiredStateV2", () => {
                     scopes,
                     links: { submitAttributes: "/signup/submitattributes" },
                 },
-                attributes: [{ attributeId: "givenName", required: true }],
             });
 
             const verificationResult = await result.state.submitCode(
@@ -380,7 +384,6 @@ describe("CodeRequiredStateV2", () => {
                     submitAttributes: "/signup/submitattributes",
                 },
             },
-            attributes: [],
             requestedPasswordAttribute,
         });
 

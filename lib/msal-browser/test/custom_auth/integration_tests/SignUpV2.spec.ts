@@ -18,6 +18,8 @@ import type {
     SignUpInputsV2,
 } from "../../../src/custom_auth/index.js";
 import type { FlowSignUpStartParamsV2 } from "../../../src/custom_auth/core/interaction_client/v2/parameter/FlowParamsV2.js";
+import type { UserAccountAttributes } from "../../../src/custom_auth/UserAccountAttributes.js";
+import type { AttributeValidationDetailV2 } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/response/ErrorResponsesV2.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import { AuthFlowErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
 import { UnexpectedError } from "../../../src/custom_auth/core/error/UnexpectedError.js";
@@ -889,70 +891,89 @@ describe("Sign-up V2 entry", () => {
         }
     );
 
-    it("surfaces server-requested email collection as an API failure", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
-            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-            .mockResolvedValueOnce(
+    it.each([false, true])(
+        "surfaces server-requested email collection as an API failure (automatic profile submission %s)",
+        async (automaticProfileSubmission) => {
+            const fetchMock = (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE));
+            if (automaticProfileSubmission) {
+                fetchMock.mockResolvedValueOnce(
+                    buildResponse(FLAT_USERNAME_REQUIRED_RESPONSE)
+                );
+            }
+            fetchMock.mockResolvedValueOnce(
                 buildResponse({
                     ...FLAT_USERNAME_REQUIRED_RESPONSE,
                     attributes: [{ attributeId: "Email", required: true }],
                 })
             );
 
-        const startResult = await app.signUpV2({
-            username: "user@contoso.com",
-        });
-        if (!startResult.isState("codeRequired")) {
-            throw new Error("Expected email verification first.");
-        }
+            const startResult = await app.signUpV2({
+                username: "user@contoso.com",
+                attributes: automaticProfileSubmission
+                    ? { givenName: "Test" }
+                    : undefined,
+            });
+            if (!startResult.isState("codeRequired")) {
+                throw new Error("Expected email verification first.");
+            }
 
-        const result = await startResult.state.submitCode("12345678");
+            const result = await startResult.state.submitCode("12345678");
 
-        expect(result.isFailed()).toBe(true);
-        expect(result.error?.isInvalidInput()).toBe(false);
-        expect(result.error?.errorData).toBeInstanceOf(CustomAuthApiError);
-        expect(result.error?.errorData.error).toBe("invalid_hal_response");
-        expect(result.error?.correlationId).toBe("corr-1");
-    });
-
-    it("filters a reserved upfront profile attribute before password submission", async () => {
-        const attributes = { eMaIl: "other@example.com" };
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
-            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-            .mockResolvedValueOnce(
-                buildResponse(PASSWORD_AND_PROFILE_REQUIRED_RESPONSE)
-            )
-            .mockResolvedValueOnce(
-                buildResponse({
-                    continuationToken: "ct-complete",
-                    state: "continue",
-                })
+            expect(result.isFailed()).toBe(true);
+            expect(result.error?.isInvalidInput()).toBe(false);
+            expect(result.error?.errorData).toBeInstanceOf(CustomAuthApiError);
+            expect(result.error?.errorData.error).toBe("invalid_hal_response");
+            expect(result.error?.correlationId).toBe("corr-1");
+            expect(fetch).toHaveBeenCalledTimes(
+                automaticProfileSubmission ? 4 : 3
             );
-        const startResult = await app.signUpV2({
-            username: "user@contoso.com",
-            attributes,
-        });
-        if (!startResult.isState("codeRequired")) {
-            throw new Error("Expected email verification first.");
         }
-        const verifyResult = await startResult.state.submitCode("12345678");
-        const result = verifyResult.isState("passwordRequired")
-            ? await verifyResult.state.submitPassword("valid-password")
-            : undefined;
+    );
 
-        expect(result).toBeDefined();
-        expect(result?.isState("signInContinuation")).toBe(true);
-        expect(attributes).toEqual({ eMaIl: "other@example.com" });
-        expect(JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)).toEqual({
-            continuationToken: "ct-password-profile",
-            attributes: {
-                password: "valid-password",
-            },
-        });
-        expect(fetch).toHaveBeenCalledTimes(4);
-    });
+    it.each(["eMaIl", "PaSsWoRd"])(
+        "filters the reserved upfront profile attribute %s before password submission",
+        async (attributeId) => {
+            const attributes = { [attributeId]: "ignored-value" };
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(PASSWORD_AND_PROFILE_REQUIRED_RESPONSE)
+                )
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-complete",
+                        state: "continue",
+                    })
+                );
+            const startResult = await app.signUpV2({
+                username: "user@contoso.com",
+                attributes,
+            });
+            if (!startResult.isState("codeRequired")) {
+                throw new Error("Expected email verification first.");
+            }
+            const verifyResult = await startResult.state.submitCode("12345678");
+            const result = verifyResult.isState("passwordRequired")
+                ? await verifyResult.state.submitPassword("valid-password")
+                : undefined;
+
+            expect(result).toBeDefined();
+            expect(result?.isState("signInContinuation")).toBe(true);
+            expect(attributes).toEqual({ [attributeId]: "ignored-value" });
+            expect(
+                JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)
+            ).toEqual({
+                continuationToken: "ct-password-profile",
+                attributes: {
+                    password: "valid-password",
+                },
+            });
+            expect(fetch).toHaveBeenCalledTimes(4);
+        }
+    );
 
     it("rejects malformed claims without sending a request", async () => {
         const result = await app.signUpV2({
@@ -1211,6 +1232,21 @@ describe("Sign-up V2 entry", () => {
             .mockResolvedValueOnce(buildResponse(START_RESPONSE))
             .mockResolvedValueOnce(
                 buildResponse(PASSWORD_AND_PROFILE_REQUIRED_RESPONSE)
+            )
+            .mockResolvedValueOnce(
+                buildResponse({
+                    ...PASSWORD_AND_PROFILE_REQUIRED_RESPONSE,
+                    continuationToken: "ct-password",
+                    attributes: [
+                        PASSWORD_AND_PROFILE_REQUIRED_RESPONSE.attributes[0],
+                        PASSWORD_AND_PROFILE_REQUIRED_RESPONSE.attributes[2],
+                    ],
+                    _links: {
+                        submitAttributes: {
+                            href: "/tenant/api/v0.1/signup/submitpassword",
+                        },
+                    },
+                })
             );
 
         const startResult = await app.signUpV2({
@@ -1234,13 +1270,17 @@ describe("Sign-up V2 entry", () => {
         expect(result.state.requestedPasswordAttribute).toEqual(
             PASSWORD_AND_PROFILE_REQUIRED_RESPONSE.attributes[0]
         );
-        expect(result.state.attributes).toEqual(
-            PASSWORD_AND_PROFILE_REQUIRED_RESPONSE.attributes.slice(1)
-        );
-        expect(fetch).toHaveBeenCalledTimes(3);
+        expect(result.state).not.toHaveProperty("attributes");
+        expect(fetch).toHaveBeenCalledTimes(4);
         expect(JSON.parse((fetch as jest.Mock).mock.calls[2][1].body)).toEqual({
             continuationToken: "ct-start",
             otp: "12345678",
+        });
+        expect(JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)).toEqual({
+            continuationToken: "ct-password-profile",
+            attributes: {
+                username: "ignored-profile",
+            },
         });
     });
 
@@ -1380,7 +1420,7 @@ describe("Sign-up V2 entry", () => {
     it.each(["attributes", "password"] as const)(
         "registers after deferred %s submission and completes sign-up",
         async (submission) => {
-            (fetch as jest.Mock)
+            const fetchMock = (fetch as jest.Mock)
                 .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
                 .mockResolvedValueOnce(buildResponse(START_RESPONSE))
                 .mockResolvedValueOnce(
@@ -1410,7 +1450,29 @@ describe("Sign-up V2 entry", () => {
                             },
                         },
                     })
-                )
+                );
+            if (submission === "password") {
+                fetchMock.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-password",
+                        state: "interactionRequired",
+                        action: "collectAttributes",
+                        attributes: [
+                            {
+                                attributeId: "password",
+                                inputType: "password",
+                                required: true,
+                            },
+                        ],
+                        _links: {
+                            submitAttributes: {
+                                href: "/tenant/api/v0.1/signup/submitpassword",
+                            },
+                        },
+                    })
+                );
+            }
+            fetchMock
                 .mockResolvedValueOnce(buildResponse(ENROLL_REQUIRED_RESPONSE))
                 .mockResolvedValueOnce(
                     buildResponse(ENROLL_ACTIVATION_RESPONSE)
@@ -1470,21 +1532,29 @@ describe("Sign-up V2 entry", () => {
             expect(completedResult.isState("completed")).toBe(true);
             expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);
             const requests = (fetch as jest.Mock).mock.calls;
-            expect(requests).toHaveLength(8);
-            expect(JSON.parse(requests[3][1].body)).toMatchObject({
+            expect(requests).toHaveLength(submission === "password" ? 9 : 8);
+            expect(JSON.parse(requests[3][1].body)).toEqual({
                 continuationToken: "ct-attributes",
-                attributes: {
-                    jobTitle: "Engineer",
-                    ...(submission === "password"
+                attributes:
+                    submission === "password"
                         ? {
                               displayName: "Test User",
-                              password: "valid-password",
+                              jobTitle: "Engineer",
                           }
-                        : {}),
-                },
+                        : {
+                              jobTitle: "Engineer",
+                          },
             });
+            if (submission === "password") {
+                expect(JSON.parse(requests[4][1].body)).toEqual({
+                    continuationToken: "ct-password",
+                    attributes: {
+                        password: "valid-password",
+                    },
+                });
+            }
             expect(
-                (requests[6][1].body as URLSearchParams).get(
+                (requests[requests.length - 2][1].body as URLSearchParams).get(
                     "continuation_token"
                 )
             ).toBe("ct-activated");
@@ -1630,7 +1700,7 @@ describe("Sign-up V2 entry", () => {
         });
     });
 
-    it("IT-SU-05, IT-SU-09: collects a password after verification and submits it with profile attributes", async () => {
+    it("IT-SU-05, IT-SU-09: validates retained profiles before collecting and submitting only the password", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
             .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -1672,6 +1742,35 @@ describe("Sign-up V2 entry", () => {
             )
             .mockResolvedValueOnce(
                 buildResponse({
+                    continuationToken: "ct-profile-accepted",
+                    state: "interactionRequired",
+                    action: "collectAttributes",
+                    attributes: [
+                        {
+                            attributeId: "password",
+                            inputType: "password",
+                            required: true,
+                            canChange: false,
+                            label: "Create password",
+                            confirmationInput: "confirm",
+                        },
+                        {
+                            attributeId: "city",
+                            inputType: "text",
+                            required: false,
+                            canChange: true,
+                            label: "City",
+                        },
+                    ],
+                    _links: {
+                        submitAttributes: {
+                            href: "/tenant/api/v0.1/signup/submitpassword",
+                        },
+                    },
+                })
+            )
+            .mockResolvedValueOnce(
+                buildResponse({
                     continuationToken: "ct-complete",
                     state: "continue",
                 })
@@ -1701,26 +1800,23 @@ describe("Sign-up V2 entry", () => {
                 attributeId: "password",
                 inputType: "password",
                 required: true,
-                canChange: true,
-                label: "Password",
-                confirmationInput: "retype",
+                canChange: false,
+                label: "Create password",
+                confirmationInput: "confirm",
             });
-            expect(verifyResult.state.attributes).toEqual([
-                {
-                    attributeId: "jobTitle",
-                    inputType: "text",
-                    required: true,
-                    canChange: true,
-                    label: "Job Title",
+            expect(verifyResult.state).not.toHaveProperty("attributes");
+            expect(
+                verifyResult.state["stateParameters"].continuationState
+            ).toMatchObject({
+                continuationToken: "ct-profile-accepted",
+                links: {
+                    submitAttributes: "/tenant/api/v0.1/signup/submitpassword",
                 },
-                {
-                    attributeId: "city",
-                    inputType: "text",
-                    required: false,
-                    canChange: true,
-                    label: "City",
+                signUp: {
+                    purpose: "newAccount",
+                    submittedAttributeIds: ["displayName", "jobTitle"],
                 },
-            ]);
+            });
 
             const submitResult = await verifyResult.state.submitPassword(
                 "valid-password"
@@ -1740,12 +1836,129 @@ describe("Sign-up V2 entry", () => {
             attributes: {
                 displayName: "Test User",
                 jobTitle: "Engineer",
+            },
+        });
+
+        const [, passwordOptions] = (fetch as jest.Mock).mock.calls[4];
+        expect(JSON.parse(passwordOptions.body)).toEqual({
+            continuationToken: "ct-profile-accepted",
+            attributes: {
                 password: "valid-password",
             },
         });
+        expect(fetch).toHaveBeenCalledTimes(5);
     });
 
-    it("rejects a first password request after profile submission", async () => {
+    it.each([
+        ["password", true],
+        ["more attributes", false],
+    ])(
+        "fails retained profile validation during submitCode before prompting for %s",
+        async (_nextPrompt, requestsPassword) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-verify",
+                        state: "interactionRequired",
+                        action: "collectAttributes",
+                        attributes: [
+                            ...(requestsPassword
+                                ? [
+                                      {
+                                          attributeId: "password",
+                                          inputType: "password",
+                                          required: true,
+                                      },
+                                  ]
+                                : []),
+                            {
+                                attributeId: "jobTitle",
+                                inputType: "text",
+                                required: true,
+                            },
+                        ],
+                        _links: {
+                            submitAttributes: {
+                                href: "/tenant/api/v0.1/signup/submitattributes",
+                            },
+                        },
+                    })
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        {
+                            error: {
+                                code: "invalidRequest",
+                                message: "Attribute validation failed.",
+                                correlationId: "corr-profile-validation",
+                                innerError: {
+                                    code: "attributeValidationError",
+                                    details: [
+                                        {
+                                            attributeIds: ["jobTitle"],
+                                            code: "attributeRequired",
+                                            message:
+                                                "Attribute 'jobTitle' is required.",
+                                        },
+                                        {
+                                            attributeIds: ["displayName"],
+                                            code: "attributeValidationFailed",
+                                            message: "Enter a valid value.",
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                        400
+                    )
+                );
+
+            const startResult = await app.signUpV2({
+                username: "user@contoso.com",
+                attributes: {
+                    displayName: "Invalid profile",
+                },
+            });
+            if (!startResult.isState("codeRequired")) {
+                throw new Error("Expected email verification first.");
+            }
+
+            const result = await startResult.state.submitCode("12345678");
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.isPasswordRequired()).toBe(false);
+            expect(result.isState("attributesRequired")).toBe(false);
+            expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
+            expect(result.error?.requiredAttributes).toEqual(["jobTitle"]);
+            expect(result.error?.invalidAttributes).toEqual(["displayName"]);
+            expect(result.error?.correlationId).toBe("corr-profile-validation");
+            expect(result.error?.errorData).toMatchObject({
+                attributeValidationDetails: [
+                    {
+                        attributeIds: ["jobTitle"],
+                        code: "attributeRequired",
+                    },
+                    {
+                        attributeIds: ["displayName"],
+                        code: "attributeValidationFailed",
+                    },
+                ],
+            });
+            expect(
+                JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)
+            ).toEqual({
+                continuationToken: "ct-verify",
+                attributes: {
+                    displayName: "Invalid profile",
+                },
+            });
+            expect(fetch).toHaveBeenCalledTimes(4);
+        }
+    );
+
+    it("collects the first password after manual profiles without replaying submitted attributes", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
             .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -1759,6 +1972,19 @@ describe("Sign-up V2 entry", () => {
                         { attributeId: "PaSsWoRd", required: true },
                         { attributeId: "surname", required: true },
                     ],
+                })
+            )
+            .mockResolvedValueOnce(
+                buildResponse({
+                    ...FLAT_USERNAME_REQUIRED_RESPONSE,
+                    continuationToken: "ct-profile-next",
+                    attributes: [{ attributeId: "surname", required: true }],
+                })
+            )
+            .mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-complete",
+                    state: "continue",
                 })
             );
 
@@ -1778,24 +2004,69 @@ describe("Sign-up V2 entry", () => {
             givenName: "Test",
         });
 
-        expect(result.isFailed()).toBe(true);
-        expect(result.isPasswordRequired()).toBe(false);
-        expect(result.error?.errorData).toBeInstanceOf(CustomAuthError);
-        expect(result.error?.errorData).not.toBeInstanceOf(CustomAuthApiError);
-        expect(result.error?.errorData).toMatchObject({
-            error: UNSUPPORTED_FLOW_TRANSITION,
-            correlationId: "corr-1",
+        expect(result.isPasswordRequired()).toBe(true);
+        if (!result.isPasswordRequired()) {
+            throw new Error("Expected the first password request.");
+        }
+        expect(result.state.requestedPasswordAttribute).toMatchObject({
+            attributeId: "PaSsWoRd",
+            required: true,
         });
+        expect(result.state).not.toHaveProperty("attributes");
+        expect(result.error).toBeUndefined();
         expect(fetch).toHaveBeenCalledTimes(4);
+
+        const profileResult = await result.state.submitPassword(
+            "valid-password"
+        );
+        if (!profileResult.isState("attributesRequired")) {
+            throw new Error("Expected remaining profile collection.");
+        }
+        const continuationResult = await profileResult.state.submitAttributes({
+            surname: "User",
+        });
+        expect(continuationResult.isState("signInContinuation")).toBe(true);
+        if (!continuationResult.isState("signInContinuation")) {
+            throw new Error("Expected explicit sign-in continuation.");
+        }
+        expect(
+            continuationResult.state["stateParameters"].continuationState.signUp
+        ).toEqual({
+            purpose: "newAccount",
+            submittedAttributeIds: [
+                "username",
+                "givenName",
+                "password",
+                "surname",
+            ],
+        });
+
+        const requests = (fetch as jest.Mock).mock.calls;
+        expect(requests).toHaveLength(6);
+        expect(JSON.parse(requests[3][1].body)).toEqual({
+            continuationToken:
+                FLAT_USERNAME_REQUIRED_RESPONSE.continuationToken,
+            attributes: { username: "test-user", givenName: "Test" },
+        });
+        expect(JSON.parse(requests[4][1].body)).toEqual({
+            continuationToken:
+                PASSWORD_AND_PROFILE_REQUIRED_RESPONSE.continuationToken,
+            attributes: { password: "valid-password" },
+        });
+        expect(JSON.parse(requests[5][1].body)).toEqual({
+            continuationToken: "ct-profile-next",
+            attributes: { surname: "User" },
+        });
     });
 
     it.each([
         [false, false, false],
+        [false, true, false],
         [false, false, true],
         [true, false, true],
         [true, true, true],
     ])(
-        "follows repeated profile collection (initial password %s, empty %s, upfront profiles %s) before explicit sign-in",
+        "handles repeated profile collection (initial password %s, empty submission %s, upfront profiles %s)",
         async (initialPassword, empty, upfrontProfiles) => {
             const claims = JSON.stringify({
                 id_token: { auth_time: { essential: true } },
@@ -1803,9 +2074,7 @@ describe("Sign-up V2 entry", () => {
             const initialResponse = initialPassword
                 ? PASSWORD_AND_PROFILE_REQUIRED_RESPONSE
                 : FLAT_USERNAME_REQUIRED_RESPONSE;
-            const attributes = empty
-                ? []
-                : [{ attributeId: "surname", required: true }];
+            const attributes = [{ attributeId: "surname", required: true }];
             const nextResponse = {
                 ...FLAT_USERNAME_REQUIRED_RESPONSE,
                 continuationToken: "ct-next",
@@ -1816,19 +2085,69 @@ describe("Sign-up V2 entry", () => {
                     },
                 },
             };
-            (fetch as jest.Mock)
+            const fetchMock = (fetch as jest.Mock)
                 .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
                 .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(initialResponse))
-                .mockResolvedValueOnce(buildResponse(nextResponse))
-                .mockResolvedValueOnce(
+                .mockResolvedValueOnce(buildResponse(initialResponse));
+            if (initialPassword && upfrontProfiles) {
+                fetchMock.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-password",
+                        state: "interactionRequired",
+                        action: "collectAttributes",
+                        attributes: [
+                            {
+                                attributeId: "password",
+                                inputType: "password",
+                                required: true,
+                            },
+                        ],
+                        _links: {
+                            submitAttributes: {
+                                href: "/tenant/api/v0.1/signup/submitpassword",
+                            },
+                        },
+                    })
+                );
+            }
+            fetchMock.mockResolvedValueOnce(buildResponse(nextResponse));
+            if (empty) {
+                fetchMock.mockResolvedValueOnce(
+                    buildResponse(
+                        {
+                            error: {
+                                code: "invalidRequest",
+                                message:
+                                    "AADSTS1002027: Some of the collected attributes were invalid.",
+                                correlationId: "corr-empty-attributes",
+                                innerError: {
+                                    code: "attributeValidationError",
+                                    details: [
+                                        {
+                                            attributeIds: ["surname"],
+                                            code: "attributeRequired",
+                                            message: "This field is required.",
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                        400
+                    )
+                );
+            } else {
+                fetchMock.mockResolvedValueOnce(
                     buildResponse({
                         continuationToken: "ct-final",
                         state: "continue",
                     })
-                )
-                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+                );
+                fetchMock
+                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                    .mockResolvedValueOnce(
+                        buildResponse(TestServerTokenResponse)
+                    );
+            }
 
             const profile = { username: "test-user", givenName: "Test" };
             const startResult = await app.signUpV2({
@@ -1884,18 +2203,41 @@ describe("Sign-up V2 entry", () => {
                 username: "test-user",
                 givenName: "Test",
             });
-            if (empty) {
-                const emptyResult =
-                    await collectionResult.state.submitAttributes({});
-                expect(emptyResult.isFailed()).toBe(true);
-                expect(emptyResult.error?.isInvalidInput()).toBe(true);
-                expect(fetch).toHaveBeenCalledTimes(4);
-            }
-            const nextAttributes: customAuth.UserAccountAttributes = {
-                surname: "User",
-            };
+            const nextAttributes: customAuth.UserAccountAttributes = empty
+                ? {}
+                : { surname: "User" };
             const continuationResult =
                 await collectionResult.state.submitAttributes(nextAttributes);
+            if (empty) {
+                expect(continuationResult.isFailed()).toBe(true);
+                expect(continuationResult.state).toBeInstanceOf(FailedStateV2);
+                expect(continuationResult.error?.requiredAttributes).toEqual([
+                    "surname",
+                ]);
+                expect(continuationResult.error?.innerErrorCode).toBe(
+                    "attributeValidationError"
+                );
+                expect(
+                    collectionResult.state["stateParameters"].continuationState
+                        .signUp?.submittedAttributeIds
+                ).toEqual([
+                    ...Object.keys(profile),
+                    ...(initialPassword ? ["password"] : []),
+                ]);
+                expect(fetch).toHaveBeenCalledTimes(initialPassword ? 6 : 5);
+                expect(
+                    JSON.parse(
+                        (fetch as jest.Mock).mock.calls[
+                            initialPassword ? 5 : 4
+                        ][1].body
+                    )
+                ).toEqual({
+                    continuationToken: "ct-next",
+                    attributes: {},
+                });
+                expect(app.getAllAccounts()).toHaveLength(0);
+                return;
+            }
             if (!continuationResult.isState("signInContinuation")) {
                 throw new Error("Expected explicit sign-in continuation.");
             }
@@ -1907,11 +2249,11 @@ describe("Sign-up V2 entry", () => {
                 submittedAttributeIds: [
                     ...Object.keys(profile),
                     ...(initialPassword ? ["password"] : []),
-                    "surname",
+                    ...Object.keys(nextAttributes),
                 ],
             });
             expect(continuationResult.data).toBeUndefined();
-            expect(fetch).toHaveBeenCalledTimes(5);
+            expect(fetch).toHaveBeenCalledTimes(initialPassword ? 6 : 5);
             expect(app.getAllAccounts()).toHaveLength(0);
 
             const requests = (fetch as jest.Mock).mock.calls;
@@ -1925,29 +2267,41 @@ describe("Sign-up V2 entry", () => {
             ).toEqual(["User.Read", "openid", "profile", "offline_access"]);
             expect(JSON.parse(requests[3][1].body)).toEqual({
                 continuationToken: initialResponse.continuationToken,
-                attributes: {
-                    ...profile,
-                    ...(initialPassword
-                        ? { password: "initial-password" }
-                        : {}),
-                },
+                attributes: profile,
             });
-            expect(String(requests[4][0])).toContain("/signup/next");
-            expect(JSON.parse(requests[4][1].body)).toEqual({
+            if (initialPassword) {
+                expect(JSON.parse(requests[4][1].body)).toEqual({
+                    continuationToken: "ct-password",
+                    attributes: {
+                        password: "initial-password",
+                    },
+                });
+            }
+            const nextAttributesRequestIndex = initialPassword ? 5 : 4;
+            expect(String(requests[nextAttributesRequestIndex][0])).toContain(
+                "/signup/next"
+            );
+            expect(
+                JSON.parse(requests[nextAttributesRequestIndex][1].body)
+            ).toEqual({
                 continuationToken: "ct-next",
                 attributes: nextAttributes,
             });
             expect(requests[3][1].headers["client-request-id"]).toBe("corr-1");
-            expect(requests[4][1].headers["client-request-id"]).toBe("corr-1");
+            expect(
+                requests[nextAttributesRequestIndex][1].headers[
+                    "client-request-id"
+                ]
+            ).toBe("corr-1");
 
             const completedResult = await continuationResult.state.signIn();
             expect(completedResult.isState("completed")).toBe(true);
             expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);
-            expect(fetch).toHaveBeenCalledTimes(7);
+            expect(fetch).toHaveBeenCalledTimes(initialPassword ? 8 : 7);
             expect(
-                (requests[5][1].body as URLSearchParams).get(
-                    "continuation_token"
-                )
+                (
+                    requests[initialPassword ? 6 : 5][1].body as URLSearchParams
+                ).get("continuation_token")
             ).toBe("ct-final");
         }
     );
@@ -1968,6 +2322,25 @@ describe("Sign-up V2 entry", () => {
                 .mockResolvedValueOnce(buildResponse(START_RESPONSE))
                 .mockResolvedValueOnce(
                     buildResponse(PASSWORD_AND_PROFILE_REQUIRED_RESPONSE)
+                )
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-password",
+                        state: "interactionRequired",
+                        action: "collectAttributes",
+                        attributes: [
+                            {
+                                attributeId: "password",
+                                inputType: "password",
+                                required: true,
+                            },
+                        ],
+                        _links: {
+                            submitAttributes: {
+                                href: "/signup/password",
+                            },
+                        },
+                    })
                 )
                 .mockResolvedValueOnce(buildResponse(nextAttributesResponse))
                 .mockResolvedValueOnce(
@@ -2016,151 +2389,195 @@ describe("Sign-up V2 entry", () => {
             });
             expect(result.error?.isInvalidInput()).toBe(false);
             expect(result.scenario).toBe("signUp");
-            expect(fetch).toHaveBeenCalledTimes(5);
+            expect(fetch).toHaveBeenCalledTimes(6);
             expect(app.getAllAccounts()).toHaveLength(0);
         }
     );
 
-    it("IT-SU-13: preserves attribute validation details and retries the same collection state", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
-            .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-            .mockResolvedValueOnce(
-                buildResponse({
-                    continuationToken: "ct-profile",
-                    state: "interactionRequired",
-                    action: "collectAttributes",
-                    attributes: [
-                        {
-                            attributeId: "jobTitle",
-                            inputType: "text",
-                            required: true,
-                        },
-                        {
-                            attributeId: "city",
-                            inputType: "text",
-                            required: false,
-                        },
-                    ],
-                    _links: {
-                        submitAttributes: {
-                            href: "/tenant/api/v0.1/signup/submitattributes",
-                        },
-                    },
-                })
-            )
-            .mockResolvedValueOnce(
-                buildResponse(
-                    {
-                        error: {
-                            code: "invalidRequest",
-                            message: "Attribute validation failed.",
-                            correlationId: "corr-attributes",
-                            innerError: {
-                                code: "attributeValidationError",
-                                details: [
-                                    {
-                                        attributeIds: ["jobTitle"],
-                                        code: "attributeRequired",
-                                        message:
-                                            "Attribute 'jobTitle' is required.",
-                                    },
-                                    {
-                                        attributeIds: ["city"],
-                                        code: "attributeValidationFailed",
-                                        message: "Enter a valid value.",
-                                    },
-                                ],
+    it.each<{
+        name: string;
+        attributes: UserAccountAttributes;
+        requiredAttributes: string[];
+        invalidAttributes: string[];
+        details: AttributeValidationDetailV2[];
+    }>([
+        {
+            name: "invalid and missing profile values",
+            attributes: { city: "Redmond" },
+            requiredAttributes: ["jobTitle"],
+            invalidAttributes: ["city"],
+            details: [
+                {
+                    attributeIds: ["jobTitle"],
+                    code: "attributeRequired",
+                    message: "Attribute 'jobTitle' is required.",
+                },
+                {
+                    attributeIds: ["city"],
+                    code: "attributeValidationFailed",
+                    message: "Enter a valid value.",
+                },
+            ],
+        },
+        {
+            name: "an empty required attribute",
+            attributes: { givenName: "" },
+            requiredAttributes: ["givenName"],
+            invalidAttributes: [],
+            details: [
+                {
+                    attributeIds: ["givenName"],
+                    code: "attributeRequired",
+                    message: "This field is required.",
+                },
+            ],
+        },
+        {
+            name: "an empty attribute object",
+            attributes: {},
+            requiredAttributes: ["password", "username", "givenName"],
+            invalidAttributes: [],
+            details: [
+                {
+                    attributeIds: ["password"],
+                    code: "attributeRequired",
+                    message: "This field is required.",
+                },
+                {
+                    attributeIds: ["username"],
+                    code: "attributeRequired",
+                    message: "This field is required.",
+                },
+                {
+                    attributeIds: ["givenName"],
+                    code: "attributeRequired",
+                    message: "This field is required.",
+                },
+            ],
+        },
+    ])(
+        "IT-SU-13: preserves terminal validation errors for $name",
+        async ({
+            attributes,
+            requiredAttributes,
+            invalidAttributes,
+            details,
+        }) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-profile",
+                        state: "interactionRequired",
+                        action: "collectAttributes",
+                        attributes: [
+                            {
+                                attributeId: "jobTitle",
+                                inputType: "text",
+                                required: true,
+                            },
+                            {
+                                attributeId: "city",
+                                inputType: "text",
+                                required: false,
+                            },
+                        ],
+                        _links: {
+                            submitAttributes: {
+                                href: "/tenant/api/v0.1/signup/submitattributes",
                             },
                         },
-                    },
-                    400
+                    })
                 )
-            )
-            .mockResolvedValueOnce(
-                buildResponse({
-                    continuationToken: "ct-complete",
-                    state: "continue",
-                })
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        {
+                            error: {
+                                code: "invalidRequest",
+                                message:
+                                    "AADSTS1002027: Some of the collected attributes were invalid.",
+                                correlationId: "corr-attributes",
+                                innerError: {
+                                    code: "attributeValidationError",
+                                    details,
+                                },
+                            },
+                        },
+                        400
+                    )
+                );
+
+            const startResult = await app.signUpV2({
+                username: "user@contoso.com",
+            });
+            if (!startResult.isState("codeRequired")) {
+                throw new Error("Expected challenge verification state.");
+            }
+
+            const verifyResult = await startResult.state.submitCode("12345678");
+            expect(verifyResult.state).toBeInstanceOf(
+                AttributesRequiredStateV2
             );
+            if (!verifyResult.isState("attributesRequired")) {
+                throw new Error("Expected attributes required state.");
+            }
+            expect(verifyResult.state.attributes).toEqual([
+                {
+                    attributeId: "jobTitle",
+                    inputType: "text",
+                    required: true,
+                },
+                {
+                    attributeId: "city",
+                    inputType: "text",
+                    required: false,
+                },
+            ]);
 
-        const startResult = await app.signUpV2({
-            username: "user@contoso.com",
-        });
-        if (!startResult.isState("codeRequired")) {
-            throw new Error("Expected challenge verification state.");
-        }
-
-        const verifyResult = await startResult.state.submitCode("12345678");
-        expect(verifyResult.state).toBeInstanceOf(AttributesRequiredStateV2);
-        if (!verifyResult.isState("attributesRequired")) {
-            throw new Error("Expected attributes required state.");
-        }
-        expect(verifyResult.state.attributes).toEqual([
-            {
-                attributeId: "jobTitle",
-                inputType: "text",
-                required: true,
-            },
-            {
-                attributeId: "city",
-                inputType: "text",
-                required: false,
-            },
-        ]);
-
-        const submitResult = await verifyResult.state.submitAttributes({
-            city: "Redmond",
-        });
-        expect(submitResult.isFailed()).toBe(true);
-        expect(submitResult.error).toBeInstanceOf(AuthFlowErrorV2);
-        expect(submitResult.error?.isMissingRequiredAttributes()).toBe(true);
-        expect(submitResult.error?.requiredAttributes).toEqual(["jobTitle"]);
-        expect(submitResult.error?.invalidAttributes).toEqual(["city"]);
-        expect(submitResult.error?.correlationId).toBe("corr-attributes");
-        expect(submitResult.error?.errorData).toMatchObject({
-            attributeValidationDetails: [
-                { attributeIds: ["jobTitle"], code: "attributeRequired" },
-                { attributeIds: ["city"], code: "attributeValidationFailed" },
-            ],
-        });
-
-        expect(JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)).toEqual({
-            continuationToken: "ct-profile",
-            attributes: {
-                city: "Redmond",
-            },
-        });
-        expect(
-            verifyResult.state["stateParameters"].continuationState.signUp
-        ).toEqual({
-            purpose: "newAccount",
-            pendingProfileAttributes: {},
-            submittedAttributeIds: [],
-        });
-
-        const retryResult = await verifyResult.state.submitAttributes({
-            jobTitle: "Engineer",
-            city: "Seattle",
-        });
-
-        if (!retryResult.isState("signInContinuation")) {
-            throw new Error(
-                "Expected continuation after corrected attributes."
+            const submitResult = await verifyResult.state.submitAttributes(
+                attributes
             );
+            expect(submitResult.isFailed()).toBe(true);
+            expect(submitResult.state).toBeInstanceOf(FailedStateV2);
+            expect(submitResult.isState("attributesRequired")).toBe(false);
+            expect(submitResult.isPasswordRequired()).toBe(false);
+            expect(submitResult.error).toBeInstanceOf(AuthFlowErrorV2);
+            expect(submitResult.error?.isMissingRequiredAttributes()).toBe(
+                true
+            );
+            expect(submitResult.error?.requiredAttributes).toEqual(
+                requiredAttributes
+            );
+            expect(submitResult.error?.invalidAttributes).toEqual(
+                invalidAttributes
+            );
+            expect(submitResult.error?.correlationId).toBe("corr-attributes");
+            expect(submitResult.error?.errorData).toMatchObject({
+                error: "invalidRequest",
+                errorDescription:
+                    "AADSTS1002027: Some of the collected attributes were invalid.",
+                innerErrorCode: "attributeValidationError",
+                attributeValidationDetails: details,
+            });
+
+            expect(
+                JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)
+            ).toEqual({
+                continuationToken: "ct-profile",
+                attributes,
+            });
+            expect(
+                verifyResult.state["stateParameters"].continuationState.signUp
+            ).toEqual({
+                purpose: "newAccount",
+                pendingProfileAttributes: {},
+                submittedAttributeIds: [],
+            });
+
+            expect(fetch).toHaveBeenCalledTimes(4);
         }
-        expect(
-            retryResult.state["stateParameters"].continuationState.signUp
-        ).toEqual({
-            purpose: "newAccount",
-            submittedAttributeIds: ["jobTitle", "city"],
-        });
-        expect(fetch).toHaveBeenCalledTimes(5);
-        expect(JSON.parse((fetch as jest.Mock).mock.calls[4][1].body)).toEqual({
-            continuationToken: "ct-profile",
-            attributes: { jobTitle: "Engineer", city: "Seattle" },
-        });
-    });
+    );
 
     it("returns sign-in continuation when code verification completes sign-up", async () => {
         (fetch as jest.Mock)
@@ -2309,6 +2726,25 @@ describe("Sign-up V2 entry", () => {
             )
             .mockResolvedValueOnce(
                 buildResponse({
+                    continuationToken: "ct-password-only",
+                    state: "interactionRequired",
+                    action: "collectAttributes",
+                    attributes: [
+                        {
+                            attributeId: "password",
+                            inputType: "password",
+                            required: true,
+                        },
+                    ],
+                    _links: {
+                        submitAttributes: {
+                            href: "/tenant/api/v0.1/signup/submitpassword",
+                        },
+                    },
+                })
+            )
+            .mockResolvedValueOnce(
+                buildResponse({
                     continuationToken: "ct-complete",
                     state: "continue",
                 })
@@ -2352,10 +2788,15 @@ describe("Sign-up V2 entry", () => {
                 displayName: "Test User",
                 givenName: "Test",
                 username: "test-user",
+            },
+        });
+        expect(JSON.parse((fetch as jest.Mock).mock.calls[4][1].body)).toEqual({
+            continuationToken: "ct-password-only",
+            attributes: {
                 password: "valid-password",
             },
         });
-        expect(fetch).toHaveBeenCalledTimes(6);
+        expect(fetch).toHaveBeenCalledTimes(7);
     });
 
     it.each([
@@ -2406,6 +2847,25 @@ describe("Sign-up V2 entry", () => {
                         },
                     })
                 )
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-password-only",
+                        state: "interactionRequired",
+                        action: "collectAttributes",
+                        attributes: [
+                            {
+                                attributeId: "password",
+                                inputType: "password",
+                                required: true,
+                            },
+                        ],
+                        _links: {
+                            submitAttributes: {
+                                href: "/tenant/api/v0.1/signup/submitpassword",
+                            },
+                        },
+                    })
+                )
                 .mockResolvedValueOnce(buildResponse(response, 400));
 
             const startResult = await app.signUpV2({
@@ -2435,6 +2895,22 @@ describe("Sign-up V2 entry", () => {
             expect(passwordResult.error?.correlationId).toBe(
                 response.error.correlationId
             );
+            expect(
+                JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)
+            ).toEqual({
+                continuationToken: "ct-password",
+                attributes: {
+                    displayName: "Test User",
+                },
+            });
+            expect(
+                JSON.parse((fetch as jest.Mock).mock.calls[4][1].body)
+            ).toEqual({
+                continuationToken: "ct-password-only",
+                attributes: {
+                    password: "weak",
+                },
+            });
         }
     );
 });

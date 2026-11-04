@@ -11,7 +11,6 @@ import {
     FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
     FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
-    type FlowSignUpPasswordRequiredResultV2,
     type FlowSignUpSubmitAttributesResultV2,
 } from "../../../../core/interaction_client/v2/result/FlowActionResultV2.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../../core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
@@ -26,9 +25,7 @@ export class SignUpStateTransitionHandlerV2 {
      * Maps new-account verification and attribute-submission outcomes to public states.
      */
     handleAttributeSubmission(
-        result:
-            | FlowSignUpPasswordRequiredResultV2
-            | FlowSignUpSubmitAttributesResultV2,
+        result: FlowSignUpSubmitAttributesResultV2,
         stateParameters: SignUpActionRequiredStateParametersV2,
         submission: "attribute" | "password"
     ): SubmitAttributesResultV2 {
@@ -42,7 +39,6 @@ export class SignUpStateTransitionHandlerV2 {
             return new CustomAuthResultV2(
                 new PasswordRequiredStateV2({
                     ...commonStateParameters,
-                    attributes: result.attributes,
                     requestedPasswordAttribute:
                         result.requestedPasswordAttribute,
                 }),
@@ -89,9 +85,7 @@ export class SignUpStateTransitionHandlerV2 {
     }
 
     private createCommonStateParameters(
-        result:
-            | FlowSignUpPasswordRequiredResultV2
-            | FlowSignUpSubmitAttributesResultV2,
+        result: FlowSignUpSubmitAttributesResultV2,
         stateParameters: SignUpActionRequiredStateParametersV2
     ): SignUpActionRequiredStateParametersV2 {
         return {

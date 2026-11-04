@@ -43,7 +43,6 @@ export interface CodeRequiredStateParametersV2
 
 export interface PasswordRequiredStateParametersV2
     extends CustomAuthActionRequiredStateParametersV2 {
-    attributes?: SignUpAttributeV2[];
     requestedPasswordAttribute?: SignUpAttributeV2;
     signUpStateTransitionHandler?: SignUpStateTransitionHandlerV2;
 }

@@ -62,13 +62,6 @@ describe("PasswordRequiredStateV2 sign-up", () => {
             cacheClient: {} as CustomAuthSilentCacheClient,
             signUpStateTransitionHandler: new SignUpStateTransitionHandlerV2(),
             continuationState,
-            attributes: [
-                {
-                    attributeId: "givenName",
-                    inputType: "text",
-                    required: true,
-                },
-            ],
             requestedPasswordAttribute: {
                 attributeId: "password",
                 inputType: "password",

@@ -10,7 +10,6 @@ import { AuthFlowActionRequiredStateBase } from "../../../../core/auth_flow/Auth
 import type { SignUpAttributeV2 } from "../../../../core/network_client/custom_auth_api/v2/result/SignUpResultsV2.js";
 import type { AttributesRequiredStateParametersV2 } from "./SignUpStateParametersV2.js";
 import * as ArgumentValidator from "../../../../core/utils/ArgumentValidator.js";
-import { InvalidArgumentError } from "../../../../core/error/InvalidArgumentError.js";
 
 /**
  * State returned when sign-up requires profile or custom attributes.
@@ -27,7 +26,7 @@ export class AttributesRequiredStateV2 extends AuthFlowActionRequiredStateBase<A
     }
 
     /**
-     * Submits the attributes requested by the latest server response.
+     * Submits the supplied attributes, including an empty object, to the service.
      * The returned result identifies the next step or a submission failure.
      */
     async submitAttributes(
@@ -43,9 +42,6 @@ export class AttributesRequiredStateV2 extends AuthFlowActionRequiredStateBase<A
                     logger,
                     correlationId
                 );
-            if (Object.keys(filteredAttributes).length === 0) {
-                throw new InvalidArgumentError("attributes", correlationId);
-            }
             const result = await flowClient.submitSignUpAttributes({
                 correlationId,
                 continuationState,

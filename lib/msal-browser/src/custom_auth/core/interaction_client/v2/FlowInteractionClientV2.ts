@@ -786,12 +786,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             correlationId,
             attributes: submittedAttributes,
         } = parameters;
-        const pendingProfileAttributes =
-            continuationState.signUp?.pendingProfileAttributes;
-        const attributesToSubmit = {
-            ...pendingProfileAttributes,
-            ...submittedAttributes,
-        };
         const context = this.createRequestContext(
             this.resolveStepApiId(
                 continuationState.scenario,
@@ -806,9 +800,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             correlationId
         );
 
-        const submittedAttributeIds = Object.keys(attributesToSubmit).filter(
-            (attributeId) => attributesToSubmit[attributeId] !== undefined
-        );
+        const submittedAttributeIds = Object.keys(submittedAttributes);
         const submitResult = await this.apiClient.submitSignUpAttributes(
             this.requireLink(
                 correlationId,
@@ -816,7 +808,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             ),
             {
                 continuationToken: continuationState.continuationToken,
-                attributes: attributesToSubmit,
+                attributes: submittedAttributes,
             },
             context
         );
@@ -1084,36 +1076,32 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     submitAttributes: verifyResult.submitAttributesHref,
                 },
             };
-            const requestedProfileAttributes = requestedAttributes.filter(
-                (attribute) =>
-                    attribute.attributeId.toLowerCase() !== "password"
-            );
+            const pendingProfileAttributes =
+                continuationState.signUp?.pendingProfileAttributes;
+
+            if (
+                pendingProfileAttributes &&
+                Object.keys(pendingProfileAttributes).length > 0
+            ) {
+                return this.submitSignUpAttributes({
+                    correlationId,
+                    continuationState: nextContinuationState,
+                    attributes: pendingProfileAttributes,
+                });
+            }
 
             if (requestedPasswordAttribute) {
                 return createFlowSignUpPasswordRequiredResultV2({
                     correlationId,
                     continuationState: nextContinuationState,
-                    attributes: requestedProfileAttributes,
                     requestedPasswordAttribute,
-                });
-            }
-
-            if (
-                Object.keys(
-                    nextContinuationState.signUp?.pendingProfileAttributes ?? {}
-                ).length > 0
-            ) {
-                return this.submitSignUpAttributes({
-                    correlationId,
-                    continuationState: nextContinuationState,
-                    attributes: {},
                 });
             }
 
             return createFlowAttributesRequiredResultV2({
                 correlationId,
                 continuationState: nextContinuationState,
-                attributes: requestedProfileAttributes,
+                attributes: requestedAttributes,
             });
         }
 
@@ -1338,6 +1326,19 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     submitAttributes: result.submitAttributesHref,
                 },
             };
+
+            const requestedPasswordAttribute = requestedAttributes.find(
+                (attribute) =>
+                    attribute.attributeId.toLowerCase() === "password"
+            );
+            if (requestedPasswordAttribute) {
+                return createFlowSignUpPasswordRequiredResultV2({
+                    correlationId,
+                    continuationState: nextContinuationState,
+                    requestedPasswordAttribute,
+                });
+            }
+
             return createFlowAttributesRequiredResultV2({
                 correlationId,
                 continuationState: nextContinuationState,
@@ -1372,10 +1373,16 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     ): void {
         const submittedAttributeIds =
             continuationState.signUp?.submittedAttributeIds ?? [];
+        const hasSubmittedPassword = submittedAttributeIds.some(
+            (attributeId) => attributeId.toLowerCase() === "password"
+        );
         const invalidAttribute = requestedAttributes.find(
             (requestedAttribute) =>
-                requestedAttribute.attributeId.toLowerCase() === "password" ||
-                submittedAttributeIds.includes(requestedAttribute.attributeId)
+                requestedAttribute.attributeId.toLowerCase() === "password"
+                    ? hasSubmittedPassword
+                    : submittedAttributeIds.includes(
+                          requestedAttribute.attributeId
+                      )
         );
         if (invalidAttribute) {
             const message =

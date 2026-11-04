@@ -78,7 +78,9 @@ export function filterReservedSignUpAttributesV2(
             continue;
         }
 
-        filteredAttributes.push([attributeId, value]);
+        if (value !== undefined) {
+            filteredAttributes.push([attributeId, value]);
+        }
     }
 
     return Object.fromEntries(filteredAttributes);

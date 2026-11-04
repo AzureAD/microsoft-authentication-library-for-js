@@ -7,7 +7,6 @@ import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_aut
 import type { UserAccountAttributes } from "../../../../../../src/custom_auth/UserAccountAttributes.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
-import { InvalidArgumentError } from "../../../../../../src/custom_auth/core/error/InvalidArgumentError.js";
 import { AuthMethodRegistrationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
@@ -37,6 +36,8 @@ describe("AttributesRequiredStateV2", () => {
             submitAttributes: "/signup/submitattributes",
         },
     };
+    const omittedAttributes: UserAccountAttributes = {};
+    omittedAttributes.givenName = undefined;
 
     const buildState = (): AttributesRequiredStateV2 =>
         new AttributesRequiredStateV2({
@@ -75,10 +76,12 @@ describe("AttributesRequiredStateV2", () => {
             },
         });
 
-        const result = await buildState().submitAttributes({
+        const attributes: UserAccountAttributes = {
             givenName: "Test",
             username: "test-user",
-        });
+        };
+        attributes.city = undefined;
+        const result = await buildState().submitAttributes(attributes);
 
         expect(flowClient.submitSignUpAttributes).toHaveBeenCalledWith({
             correlationId,
@@ -90,6 +93,10 @@ describe("AttributesRequiredStateV2", () => {
         });
         expect(result.isState("signInContinuation")).toBe(true);
         expect(result.state).toBeInstanceOf(SignInContinuationStateV2);
+        expect(
+            flowClient.submitSignUpAttributes.mock.calls[0][0].attributes
+        ).not.toHaveProperty("city");
+        expect(attributes).toHaveProperty("city", undefined);
     });
 
     it("ignores reserved attributes without mutating app input or logging PII", async () => {
@@ -150,40 +157,46 @@ describe("AttributesRequiredStateV2", () => {
     it.each<UserAccountAttributes>([
         {},
         { EMAIL: "private@example.com", Password: "private-password" },
+        omittedAttributes,
     ])(
-        "rejects attributes that are empty after filtering without a request and allows retry (%j)",
+        "surfaces the service error when attributes are empty after filtering (%j)",
         async (attributes) => {
-            flowClient.submitSignUpAttributes.mockResolvedValue({
-                type: FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
+            const error = new CustomAuthApiError(
+                "invalidRequest",
+                "AADSTS1002027: Some of the collected attributes were invalid.",
                 correlationId,
-                continuationState: {
-                    ...continuationState,
-                    continuationToken: "ct-complete",
-                    links: {},
-                },
-            });
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                [
+                    {
+                        attributeIds: ["givenName"],
+                        code: "attributeRequired",
+                        message: "This field is required.",
+                    },
+                ],
+                "attributeValidationError"
+            );
+            flowClient.submitSignUpAttributes.mockRejectedValueOnce(error);
             const state = buildState();
 
             const result = await state.submitAttributes(attributes);
 
             expect(result.isFailed()).toBe(true);
-            expect(result.error?.isInvalidInput()).toBe(true);
-            expect(result.error?.errorData).toBeInstanceOf(
-                InvalidArgumentError
+            expect(result.isState("attributesRequired")).toBe(false);
+            expect(result.error?.errorData).toBe(error);
+            expect(result.error?.requiredAttributes).toEqual(["givenName"]);
+            expect(state["stateParameters"].continuationState).toBe(
+                continuationState
             );
-            expect(result.error?.correlationId).toBe(correlationId);
-            expect(flowClient.submitSignUpAttributes).not.toHaveBeenCalled();
-
-            const retryResult = await state.submitAttributes({
-                givenName: "Test",
-            });
-
-            expect(retryResult.isState("signInContinuation")).toBe(true);
             expect(flowClient.submitSignUpAttributes).toHaveBeenCalledTimes(1);
             expect(flowClient.submitSignUpAttributes).toHaveBeenCalledWith({
                 correlationId,
                 continuationState,
-                attributes: { givenName: "Test" },
+                attributes: {},
             });
         }
     );

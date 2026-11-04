@@ -31,22 +31,19 @@ import type { SubmitAttributesResultV2 } from "../../../../sign_up/auth_flow/v2/
 export class PasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<PasswordRequiredStateParametersV2> {
     readonly stateType = "passwordRequired";
 
-    readonly attributes: readonly SignUpAttributeV2[];
-
     readonly requestedPasswordAttribute?: SignUpAttributeV2;
 
     constructor(stateParameters: PasswordRequiredStateParametersV2) {
         super(stateParameters);
-        this.attributes = stateParameters.attributes ?? [];
         this.requestedPasswordAttribute =
             stateParameters.requestedPasswordAttribute;
     }
 
     /**
-     * Submits the password and advances the active flow. During sign-up, the SDK
-     * combines it with profile attributes retained from the sign-up start.
+     * Submits the password and advances the active flow. Use the returned result
+     * to continue the flow.
      * @param password - The account password.
-     * @returns The next state or a password submission error.
+     * @returns The result containing the next state or an error.
      */
     async submitPassword(password: string): Promise<SubmitPasswordResultV2> {
         const { correlationId, logger, continuationState } =
