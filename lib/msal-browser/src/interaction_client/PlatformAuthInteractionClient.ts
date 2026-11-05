@@ -423,7 +423,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @param nativeAccountId
      * @param request
      * @param cacheLookupPolicy
-     * @returns Cached result, or undefined when child context or cache policy forbids the lookup.
+     * @returns Cached result, or undefined when cache policy forbids the lookup.
      */
     protected async acquireTokensFromCache(
         nativeAccountId: string,
@@ -431,12 +431,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         cacheLookupPolicy: CacheLookupPolicy = CacheLookupPolicy.Default
     ): Promise<AuthenticationResult | undefined> {
         if (
-            request.extraParameters?.child_client_id ||
             cacheLookupPolicy === CacheLookupPolicy.RefreshTokenAndNetwork ||
             cacheLookupPolicy === CacheLookupPolicy.Skip
         ) {
             this.logger.verbose(
-                "Native cache lookup bypassed for child context or cache policy",
+                "Native cache lookup bypassed for cache policy",
                 this.correlationId
             );
             return undefined;
@@ -860,11 +859,6 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 storeInCache?.accessToken === false);
         if (shouldRemoveGeneratedDpopKey) {
             await this.resetGeneratedDpopRequestKey(request);
-        }
-
-        // Child responses must not clear or replace the parent's cache.
-        if (request.extraParameters?.child_client_id) {
-            return result;
         }
 
         await invokeAsync(

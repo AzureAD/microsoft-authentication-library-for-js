@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Honor native cache lookup policies and prevent brokered child requests from reusing the parent token cache [#8971](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8971)",
+  "comment": "Honor native cache lookup policies for silent platform-broker requests [#8971](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8971)",
   "packageName": "@azure/msal-browser",
   "email": "lalima.sharda@gmail.com",
   "dependentChangeType": "patch"

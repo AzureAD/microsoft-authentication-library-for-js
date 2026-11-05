@@ -325,12 +325,16 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     },
                 },
             },
-        ])("does not return parent tokens for $name", async ({ request }) => {
+        ])("honors cache directives for $name", async ({ request }) => {
             const acquireCachedToken = jest.spyOn(
                 SilentCacheClient.prototype,
                 "acquireToken"
             );
             const setAccount = jest.spyOn(browserCacheManager, "setAccount");
+            const setIdToken = jest.spyOn(
+                browserCacheManager,
+                "setIdTokenCredential"
+            );
             const removeAccountContext = jest.spyOn(
                 browserCacheManager,
                 "removeAccountContext"
@@ -347,11 +351,15 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     id_token: TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
                 });
 
-            const response = await platformAuthInteractionClient.acquireToken({
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                redirectUri: "brk-parent://localhost:30662",
-                ...request,
-            });
+            const response = await platformAuthInteractionClient.acquireToken(
+                {
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    redirectUri: "brk-parent://localhost:30662",
+                    ...request,
+                    storeInCache: { accessToken: false },
+                },
+                CacheLookupPolicy.RefreshTokenAndNetwork
+            );
 
             expect(sendMessage).toHaveBeenCalledTimes(1);
             expect(sendMessage).toHaveBeenCalledWith(
@@ -366,28 +374,34 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(response.idToken).not.toBe(TEST_ID_TOKEN.secret);
             expect(response.fromPlatformBroker).toBe(true);
             expect(acquireCachedToken).not.toHaveBeenCalled();
-            expect(setAccount).not.toHaveBeenCalled();
-            expect(removeAccountContext).not.toHaveBeenCalled();
+            expect(setAccount).toHaveBeenCalledTimes(1);
+            expect(setIdToken).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    secret: TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
+                }),
+                RANDOM_TEST_GUID,
+                expect.any(Boolean)
+            );
+            expect(removeAccountContext).toHaveBeenCalledTimes(1);
             expect(saveCacheRecord).not.toHaveBeenCalled();
         });
 
-        it.each(Object.values(CacheLookupPolicy))(
-            "calls WAM instead of reading the parent cache for a child request with policy %s",
+        it.each([
+            CacheLookupPolicy.Default,
+            CacheLookupPolicy.AccessToken,
+            CacheLookupPolicy.AccessTokenAndRefreshToken,
+            CacheLookupPolicy.RefreshToken,
+        ])(
+            "uses the native cache for policy %s even with child context",
             async (cacheLookupPolicy) => {
                 const acquireCachedToken = jest.spyOn(
                     SilentCacheClient.prototype,
                     "acquireToken"
                 );
-                const sendMessage = jest
-                    .spyOn(
-                        PlatformAuthExtensionHandler.prototype,
-                        "sendMessage"
-                    )
-                    .mockResolvedValue({
-                        ...MOCK_WAM_RESPONSE,
-                        access_token: "embedded-access-token",
-                        id_token: TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
-                    });
+                const sendMessage = jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                );
 
                 const response =
                     await platformAuthInteractionClient.acquireToken(
@@ -398,11 +412,10 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         cacheLookupPolicy
                     );
 
-                expect(acquireCachedToken).not.toHaveBeenCalled();
-                expect(sendMessage).toHaveBeenCalledTimes(1);
-                expect(response.accessToken).toBe("embedded-access-token");
-                expect(response.idToken).toBe(TEST_TOKENS.IDTOKEN_V2_NEWCLAIM);
-                expect(response.fromPlatformBroker).toBe(true);
+                expect(acquireCachedToken).toHaveBeenCalledTimes(1);
+                expect(sendMessage).not.toHaveBeenCalled();
+                expect(response.accessToken).toBe(testAccessTokenEntity.secret);
+                expect(response.fromCache).toBe(true);
             }
         );
 
@@ -462,15 +475,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
     });
 
     describe("acquireToken Tests", () => {
-        it("keeps parent and child tokens isolated with real SDK caches", async () => {
+        it("keeps brokered access tokens out of the parent cache with real SDK caches", async () => {
             const childResponse: PlatformAuthResponse = {
                 ...MOCK_WAM_RESPONSE,
                 access_token: "embedded-access-token",
                 id_token: TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
-                account: {
-                    ...MOCK_WAM_RESPONSE.account,
-                    id: "embedded-native-account-id",
-                },
             };
             const sendMessage = jest
                 .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
@@ -488,19 +497,20 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(cachedParent.fromCache).toBe(true);
             expect(sendMessage).toHaveBeenCalledTimes(1);
 
-            const child = await platformAuthInteractionClient.acquireToken({
-                ...parentRequest,
-                embeddedClientId: "embedded-client",
-                storeInCache: { idToken: false, accessToken: false },
-            });
+            const child = await platformAuthInteractionClient.acquireToken(
+                {
+                    ...parentRequest,
+                    embeddedClientId: "embedded-client",
+                    storeInCache: { accessToken: false },
+                },
+                CacheLookupPolicy.RefreshTokenAndNetwork
+            );
             expect({
                 accessTokenMatchesParent:
                     child.accessToken === parent.accessToken,
-                idTokenMatchesParent: child.idToken === parent.idToken,
                 brokerCalls: sendMessage.mock.calls.length,
             }).toEqual({
                 accessTokenMatchesParent: false,
-                idTokenMatchesParent: false,
                 brokerCalls: 2,
             });
             expect(child.accessToken).toBe(childResponse.access_token);
@@ -516,7 +526,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             const retainedParent =
                 await platformAuthInteractionClient.acquireToken(parentRequest);
             expect(retainedParent.accessToken).toBe(parent.accessToken);
-            expect(retainedParent.idToken).toBe(parent.idToken);
+            expect(retainedParent.idToken).toBe(childResponse.id_token);
             expect(retainedParent.account?.nativeAccountId).toBe(
                 parent.account?.nativeAccountId
             );
