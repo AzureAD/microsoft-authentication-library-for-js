@@ -6,7 +6,7 @@
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import type { MFAVerificationRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { MFASubmitChallengeResultV2 } from "../result/MFASubmitChallengeResultV2.js";
-import type { MFAResendChallengeResultV2 } from "../result/MFAResendChallengeResultV2.js";
+import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
 import { CompletedStateV2 } from "./CompletedStateV2.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import { FLOW_COMPLETED_V2 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
@@ -16,15 +16,14 @@ import { ChallengeVerificationStateBaseV2 } from "./ChallengeVerificationStateBa
 import { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 
 /**
- * State returned when sign-in requires verification of an email or SMS MFA
- * challenge. It allows the app to submit the challenge or request a replacement.
+ * State returned when sign-in requires verification of an email or SMS MFA challenge.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBaseV2<MFAVerificationRequiredStateParametersV2> {
     readonly stateType = "mfaVerificationRequired";
 
     /**
      * Submits the email or SMS challenge as the second authentication factor.
-     * Successful verification completes sign-in.
      * @param challenge - The challenge value to submit.
      * @returns The result of submitting the MFA challenge.
      */
@@ -76,11 +75,10 @@ export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBa
     }
 
     /**
-     * Requests a replacement challenge for the selected MFA method. The
-     * returned state contains the refreshed email or SMS challenge metadata.
+     * Requests a replacement challenge for the selected MFA method.
      * @returns The result of requesting a replacement MFA challenge.
      */
-    async resendChallenge(): Promise<MFAResendChallengeResultV2> {
+    async resendChallenge(): Promise<RequestChallengeResultV2> {
         const { correlationId, logger, continuationState } =
             this.stateParameters;
 

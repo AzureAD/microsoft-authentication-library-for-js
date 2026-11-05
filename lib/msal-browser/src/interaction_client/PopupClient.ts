@@ -28,6 +28,7 @@ import {
 } from "./StandardInteractionClient.js";
 import {
     getTokenBindingRequestParams,
+    removeTokenBindingKeyOnFailure,
     validateRequestMethod,
 } from "../request/RequestHelpers.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
@@ -473,13 +474,20 @@ export class PopupClient extends StandardInteractionClient {
                     this.eventHandler,
                     this.logger,
                     this.performanceClient,
-                    this.platformAuthProvider
+                    this.platformAuthProvider,
+                    this.tokenBindingKeyManager
                 );
             }
         } catch (e) {
             // Close the synchronous popup if an error is thrown before the window unload event is registered
             popupParams.popup?.close();
 
+            await removeTokenBindingKeyOnFailure(
+                popupRequest,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
             if (e instanceof AuthError) {
                 (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
@@ -628,7 +636,8 @@ export class PopupClient extends StandardInteractionClient {
                     this.eventHandler,
                     this.logger,
                     this.performanceClient,
-                    this.platformAuthProvider
+                    this.platformAuthProvider,
+                    this.tokenBindingKeyManager
                 );
             } else {
                 return await invokeAsync(
@@ -648,9 +657,18 @@ export class PopupClient extends StandardInteractionClient {
                     this.eventHandler,
                     this.logger,
                     this.performanceClient,
-                    this.platformAuthProvider
+                    this.platformAuthProvider,
+                    this.tokenBindingKeyManager
                 );
             }
+        } catch (e) {
+            await removeTokenBindingKeyOnFailure(
+                popupRequest,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
+            throw e;
         } finally {
             Authorize.cleanEarRequest(popupRequest, this.browserStorage);
         }
@@ -726,7 +744,8 @@ export class PopupClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.tokenBindingKeyManager
         );
     }
 

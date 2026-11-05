@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add experimental P-384 asymmetric EAR for browser authorization flows with request-scoped sessionStorage keys and pre-authorization PKCE fallback.",
+  "comment": "Add experimental P-384 asymmetric EAR for browser authorization flows with request-scoped sessionStorage keys and pre-authorization PKCE fallback [#8970](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8970)",
   "packageName": "@azure/msal-browser",
   "email": "shylasummers@microsoft.com",
   "dependentChangeType": "patch"

@@ -26,7 +26,11 @@ import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
-import { getTokenBindingRequestParams } from "../request/RequestHelpers.js";
+import {
+    getTokenBindingRequestParams,
+    isTokenBindingKeyPersistedForRedirect,
+    removeTokenBindingKeyOnFailure,
+} from "../request/RequestHelpers.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     ApiId,
@@ -241,13 +245,23 @@ export class RedirectClient extends StandardInteractionClient {
             ...tokenBindingParams,
         };
 
-        this.browserStorage.cacheAuthorizeRequest(
-            redirectRequest,
-            this.correlationId,
-            pkceCodes.verifier
-        );
-
         try {
+            if (
+                !(await isTokenBindingKeyPersistedForRedirect(
+                    redirectRequest,
+                    this.tokenBindingKeyManager
+                ))
+            ) {
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.cryptoKeyNotFound,
+                    this.correlationId
+                );
+            }
+            this.browserStorage.cacheAuthorizeRequest(
+                redirectRequest,
+                this.correlationId,
+                pkceCodes.verifier
+            );
             if (redirectRequest.httpMethod === Constants.HttpMethod.POST) {
                 return await this.executeCodeFlowWithPost(redirectRequest);
             } else {
@@ -285,6 +299,12 @@ export class RedirectClient extends StandardInteractionClient {
                 return await this.initiateAuthRequest(navigateUrl);
             }
         } catch (e) {
+            await removeTokenBindingKeyOnFailure(
+                redirectRequest,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
             if (e instanceof AuthError) {
                 e.correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
@@ -356,44 +376,58 @@ export class RedirectClient extends StandardInteractionClient {
         }
 
         try {
-            this.browserStorage.cacheAuthorizeRequest(
-                redirectRequest,
-                this.correlationId,
-                pkceCodes.verifier
-            );
-            if (redirectRequest.asymmetricEar) {
-                const [cachedRequest, cachedVerifier] =
-                    this.browserStorage.getCachedRequest(this.correlationId);
-                const cachedContext = (cachedRequest as EarRequest)
-                    .asymmetricEar;
-                if (
-                    cachedContext?.version !== 1 ||
-                    cachedContext.keyId !==
-                        redirectRequest.asymmetricEar.keyId ||
-                    cachedContext.apv !== redirectRequest.asymmetricEar.apv ||
-                    cachedRequest.earJwk !== redirectRequest.earJwk ||
-                    cachedVerifier !== pkceCodes.verifier
-                ) {
-                    throw createBrowserAuthError(
-                        BrowserAuthErrorCodes.asymmetricEarKeyError,
-                        correlationId,
-                        "persist_request"
-                    );
-                }
-            }
-        } catch (error) {
-            Authorize.cleanEarRequest(redirectRequest, this.browserStorage);
-            if (redirectRequest.asymmetricEar) {
-                this.logger.warning(
-                    "Asymmetric EAR request persistence failed; using authorization code + PKCE.",
-                    correlationId
+            if (
+                !(await isTokenBindingKeyPersistedForRedirect(
+                    redirectRequest,
+                    this.tokenBindingKeyManager
+                ))
+            ) {
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.cryptoKeyNotFound,
+                    this.correlationId
                 );
-                return this.executeCodeFlow(request);
             }
-            throw error;
-        }
+            try {
+                this.browserStorage.cacheAuthorizeRequest(
+                    redirectRequest,
+                    this.correlationId,
+                    pkceCodes.verifier
+                );
+                if (redirectRequest.asymmetricEar) {
+                    const [cachedRequest, cachedVerifier] =
+                        this.browserStorage.getCachedRequest(
+                            this.correlationId
+                        );
+                    const cachedContext = (cachedRequest as EarRequest)
+                        .asymmetricEar;
+                    if (
+                        cachedContext?.version !== 1 ||
+                        cachedContext.keyId !==
+                            redirectRequest.asymmetricEar.keyId ||
+                        cachedContext.apv !==
+                            redirectRequest.asymmetricEar.apv ||
+                        cachedRequest.earJwk !== redirectRequest.earJwk ||
+                        cachedVerifier !== pkceCodes.verifier
+                    ) {
+                        throw createBrowserAuthError(
+                            BrowserAuthErrorCodes.asymmetricEarKeyError,
+                            correlationId,
+                            "persist_request"
+                        );
+                    }
+                }
+            } catch (error) {
+                Authorize.cleanEarRequest(redirectRequest, this.browserStorage);
+                if (redirectRequest.asymmetricEar) {
+                    this.logger.warning(
+                        "Asymmetric EAR request persistence failed; using authorization code + PKCE.",
+                        correlationId
+                    );
+                    return this.executeCodeFlow(request);
+                }
+                throw error;
+            }
 
-        try {
             const form = await Authorize.getEARForm(
                 document,
                 this.config,
@@ -416,6 +450,12 @@ export class RedirectClient extends StandardInteractionClient {
             });
         } catch (error) {
             Authorize.cleanEarRequest(redirectRequest, this.browserStorage);
+            await removeTokenBindingKeyOnFailure(
+                redirectRequest,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
             throw error;
         }
     }
@@ -509,6 +549,12 @@ export class RedirectClient extends StandardInteractionClient {
                 this.logger.info(
                     "handleRedirectPromise did not detect a response as a result of a redirect. Cleaning temporary cache.",
                     this.correlationId
+                );
+                await removeTokenBindingKeyOnFailure(
+                    request,
+                    this.tokenBindingKeyManager,
+                    this.logger,
+                    this.performanceClient
                 );
                 this.browserStorage.resetRequestCache(this.correlationId);
 
@@ -647,6 +693,12 @@ export class RedirectClient extends StandardInteractionClient {
 
             return null;
         } catch (e) {
+            await removeTokenBindingKeyOnFailure(
+                request,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
             if (e instanceof AuthError) {
                 (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
@@ -788,7 +840,8 @@ export class RedirectClient extends StandardInteractionClient {
                 this.eventHandler,
                 this.logger,
                 this.performanceClient,
-                this.platformAuthProvider
+                this.platformAuthProvider,
+                this.tokenBindingKeyManager
             );
         }
 
@@ -817,7 +870,8 @@ export class RedirectClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.tokenBindingKeyManager
         );
     }
 

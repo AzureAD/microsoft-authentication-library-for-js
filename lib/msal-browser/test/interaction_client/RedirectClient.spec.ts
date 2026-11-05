@@ -213,6 +213,95 @@ describe("RedirectClient", () => {
     });
 
     describe("handleRedirectPromise", () => {
+        it("removes an unused DPoP key when no redirect response is found", async () => {
+            const tokenBindingKeyManager = (redirectClient as any)
+                .tokenBindingKeyManager;
+            const removeKeySpy = jest
+                .spyOn(tokenBindingKeyManager, "removeTokenBindingKey")
+                .mockResolvedValue(undefined);
+
+            const result = await redirectClient.handleRedirectPromise(
+                {
+                    ...testRequest,
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    dpopJkt: "test-dpop-jkt",
+                },
+                TEST_CONFIG.TEST_VERIFIER,
+                rootMeasurement,
+                { hash: "" }
+            );
+
+            expect(result).toBeNull();
+            expect(removeKeySpy).toHaveBeenCalledWith(
+                "test-dpop-jkt",
+                RANDOM_TEST_GUID
+            );
+        });
+
+        describe("authorization key persistence", () => {
+            it.each(["code", "ear", "asymmetric-ear"])(
+                "does not navigate when an owned DPoP key is not persisted (%s)",
+                async (flow) => {
+                    pca.getConfiguration().experimental.enableAsymmetricEar =
+                        flow === "asymmetric-ear";
+                    const tokenBindingKeyManager = (redirectClient as any)
+                        .tokenBindingKeyManager;
+                    jest.spyOn(
+                        tokenBindingKeyManager,
+                        "provisionTokenBindingKey"
+                    ).mockResolvedValue("owned-dpop-jkt");
+                    jest.spyOn(
+                        tokenBindingKeyManager,
+                        "isTokenBindingKeyPersisted"
+                    ).mockResolvedValue(false);
+                    const removeKeySpy = jest
+                        .spyOn(tokenBindingKeyManager, "removeTokenBindingKey")
+                        .mockResolvedValue(undefined);
+                    const navigateSpy = jest.spyOn(
+                        NavigationClient.prototype,
+                        "navigateExternal"
+                    );
+                    const formSpy = jest
+                        .spyOn(AuthorizeProtocol, "getEARForm")
+                        .mockRejectedValue(
+                            new Error("unexpected EAR navigation")
+                        );
+                    const codeFlowSpy = jest.spyOn(
+                        redirectClient,
+                        "executeCodeFlow"
+                    );
+                    const request = {
+                        ...testRequest,
+                        authenticationScheme:
+                            Constants.AuthenticationScheme.DPOP,
+                    };
+
+                    await expect(
+                        flow === "code"
+                            ? redirectClient.executeCodeFlow(request)
+                            : redirectClient.executeEarFlow(request)
+                    ).rejects.toMatchObject({
+                        errorCode: BrowserAuthErrorCodes.cryptoKeyNotFound,
+                    });
+
+                    expect(navigateSpy).not.toHaveBeenCalled();
+                    expect(formSpy).not.toHaveBeenCalled();
+                    if (flow !== "code") {
+                        expect(codeFlowSpy).not.toHaveBeenCalled();
+                    }
+                    expect(removeKeySpy).toHaveBeenCalledWith(
+                        "owned-dpop-jkt",
+                        testRequest.correlationId
+                    );
+                    expect(
+                        Object.keys(window.sessionStorage).filter((key) =>
+                            key.includes(".request.asymmetric-ear.")
+                        )
+                    ).toHaveLength(0);
+                }
+            );
+        });
+
         it("sets document.title during processing and restores original title when no title is set", (done) => {
             document.title = "";
             browserStorage.setInteractionInProgress(true);
