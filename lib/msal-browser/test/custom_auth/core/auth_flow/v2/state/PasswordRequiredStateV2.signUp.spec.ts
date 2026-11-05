@@ -6,24 +6,30 @@
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { AuthMethodRegistrationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
-import { CodeRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
+import { AttributesRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
+import type { FlowContinuationStateV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowContinuationStateV2.js";
 import {
     FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+    FLOW_ATTRIBUTES_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
-import { SignUpPasswordRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import type { PasswordRequiredStateParametersV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CustomAuthStateParametersV2.js";
+import { UnexpectedError } from "../../../../../../src/custom_auth/core/error/UnexpectedError.js";
 import { SignUpStateTransitionHandlerV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
 import { SignInContinuationStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 
-describe("SignUpPasswordRequiredStateV2", () => {
+describe("PasswordRequiredStateV2 sign-up", () => {
     const correlationId = "test-correlation-id";
     const scopes = ["openid", "profile", "offline_access"];
+    const submitSignUpAttributes = jest.fn();
     const flowClient = {
-        submitSignUpAttributes: jest.fn(),
+        submitSignUpAttributes,
+        submitSignInPassword: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
     const continuationState = {
         continuationToken: "ct-password",
@@ -33,12 +39,19 @@ describe("SignUpPasswordRequiredStateV2", () => {
             submitAttributes: "/signup/submitattributes",
         },
         signUp: {
-            passwordWasSupplied: false,
+            purpose: "newAccount",
+            pendingProfileAttributes: {
+                givenName: "Test",
+                username: "test-user",
+            },
+            submittedAttributeIds: [],
         },
-    };
+    } satisfies FlowContinuationStateV2;
 
-    const buildState = (): SignUpPasswordRequiredStateV2 =>
-        new SignUpPasswordRequiredStateV2({
+    const buildState = (
+        overrides: Partial<PasswordRequiredStateParametersV2> = {}
+    ): PasswordRequiredStateV2 =>
+        new PasswordRequiredStateV2({
             correlationId,
             logger: getDefaultLogger(),
             config: {
@@ -49,25 +62,19 @@ describe("SignUpPasswordRequiredStateV2", () => {
             cacheClient: {} as CustomAuthSilentCacheClient,
             signUpStateTransitionHandler: new SignUpStateTransitionHandlerV2(),
             continuationState,
-            attributes: [
-                {
-                    attributeId: "givenName",
-                    inputType: "text",
-                    required: true,
-                },
-            ],
-            requiredPasswordAttribute: {
+            requestedPasswordAttribute: {
                 attributeId: "password",
                 inputType: "password",
                 required: true,
             },
+            ...overrides,
         });
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    it("submits password and profile attributes together", async () => {
+    it("forwards only the password action to the interaction client", async () => {
         flowClient.submitSignUpAttributes.mockResolvedValue({
             type: FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
             correlationId,
@@ -79,23 +86,24 @@ describe("SignUpPasswordRequiredStateV2", () => {
             },
         });
 
-        const result = await buildState().submitPassword("valid-password", {
-            givenName: "Test",
-            username: "test-user",
-            password: "wrong-password",
-        });
+        const result = await buildState().submitPassword("valid-password");
 
         expect(flowClient.submitSignUpAttributes).toHaveBeenCalledWith({
             correlationId,
             continuationState,
             attributes: {
-                givenName: "Test",
-                username: "test-user",
                 password: "valid-password",
             },
         });
         expect(result.isState("signInContinuation")).toBe(true);
         expect(result.state).toBeInstanceOf(SignInContinuationStateV2);
+        expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);
+        expect(result.data).toBeUndefined();
+        expect(continuationState.signUp.pendingProfileAttributes).toEqual({
+            givenName: "Test",
+            username: "test-user",
+        });
+        expect(flowClient.submitSignInPassword).not.toHaveBeenCalled();
     });
 
     it("rejects an empty password before submitting attributes", async () => {
@@ -106,28 +114,37 @@ describe("SignUpPasswordRequiredStateV2", () => {
         expect(flowClient.submitSignUpAttributes).not.toHaveBeenCalled();
     });
 
-    it("returns another code-verification state when requested", async () => {
+    it("returns fresh profile metadata and preserves the handler after password submission", async () => {
+        const attributes = [{ attributeId: "surname", required: true }];
+        const nextContinuationState = {
+            ...continuationState,
+            continuationToken: "ct-next",
+            links: { submitAttributes: "/signup/next" },
+        };
         flowClient.submitSignUpAttributes.mockResolvedValue({
-            type: FLOW_CODE_REQUIRED_V2,
+            type: FLOW_ATTRIBUTES_REQUIRED_V2,
             correlationId,
-            continuationState: {
-                continuationToken: "ct-challenge",
-                scenario: CustomAuthFlowScenarioV2.SignUp,
-                scopes,
-                links: {
-                    verify: "/signup/verify",
-                    resend: "/signup/resend",
-                },
-            },
-            sentTo: "u***@contoso.com",
-            channel: "email",
-            codeLength: 8,
+            continuationState: nextContinuationState,
+            attributes,
         });
 
-        const result = await buildState().submitPassword("valid-password");
+        const state = buildState();
+        const result = await state.submitPassword("valid-password");
 
-        expect(result.isState("codeRequired")).toBe(true);
-        expect(result.state).toBeInstanceOf(CodeRequiredStateV2);
+        if (!result.isState("attributesRequired")) {
+            throw new Error("Expected profile collection.");
+        }
+        expect(result.state).toBeInstanceOf(AttributesRequiredStateV2);
+        expect(result.state.attributes).toEqual(attributes);
+        expect(result.state["stateParameters"].continuationState).toEqual(
+            nextContinuationState
+        );
+        expect(
+            result.state["stateParameters"].signUpStateTransitionHandler
+        ).toBe(state["stateParameters"].signUpStateTransitionHandler);
+        expect(result.error).toBeUndefined();
+        expect(result.data).toBeUndefined();
+        expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);
     });
 
     it("returns registration when deferred password submission requires enrollment", async () => {
@@ -165,18 +182,44 @@ describe("SignUpPasswordRequiredStateV2", () => {
         });
     });
 
-    it("returns a failed result for an unsupported transition", async () => {
-        flowClient.submitSignUpAttributes.mockResolvedValue({
-            type: "unsupported" as typeof FLOW_CODE_REQUIRED_V2,
-            correlationId,
-            continuationState,
-            sentTo: "",
-            channel: "",
-            codeLength: 0,
-        });
+    it.each([FLOW_CODE_REQUIRED_V2, "unsupported"])(
+        "returns a failed result for unsupported transition %s",
+        async (type) => {
+            submitSignUpAttributes.mockResolvedValueOnce({
+                type,
+                correlationId,
+                continuationState,
+            });
+
+            const result = await buildState().submitPassword("valid-password");
+
+            expect(result.isFailed()).toBe(true);
+        }
+    );
+
+    it("fails before networking when the sign-up transition handler is missing", async () => {
+        const result = await buildState({
+            signUpStateTransitionHandler: undefined,
+        }).submitPassword("valid-password");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);
+        expect(result.error?.errorData).toBeInstanceOf(UnexpectedError);
+        expect(result.error?.correlationId).toBe(correlationId);
+        expect(flowClient.submitSignUpAttributes).not.toHaveBeenCalled();
+        expect(flowClient.submitSignInPassword).not.toHaveBeenCalled();
+    });
+
+    it("wraps asynchronous sign-up submission failures", async () => {
+        flowClient.submitSignUpAttributes.mockRejectedValueOnce(
+            new Error("Sign-up password submission failed.")
+        );
 
         const result = await buildState().submitPassword("valid-password");
 
         expect(result.isFailed()).toBe(true);
+        expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);
+        expect(result.error?.correlationId).toBe(correlationId);
+        expect(flowClient.submitSignInPassword).not.toHaveBeenCalled();
     });
 });

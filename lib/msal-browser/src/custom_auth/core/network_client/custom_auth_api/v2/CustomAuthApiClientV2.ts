@@ -126,18 +126,51 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 context
             );
 
-        return {
-            continuationToken: this.handler.requireContinuationToken(
-                parsedResponse.continuationToken,
-                parsedResponse.correlationId
-            ),
-            submitAttributesHref: this.handler.requireHref(
-                parsedResponse.body._links?.submitAttributes?.href,
-                "submitAttributes",
-                parsedResponse.correlationId
-            ),
-            attributes: parsedResponse.body.attributes,
-        };
+        const challengeType =
+            parsedResponse.body.action === VERIFY_RELATION
+                ? parsedResponse.body.type
+                : undefined;
+        const isEmailChallenge =
+            typeof challengeType === "string" &&
+            challengeType.toLowerCase() === AuthenticationMethodTypeV2.EMAIL;
+
+        if (
+            parsedResponse.body.action === VERIFY_RELATION &&
+            isEmailChallenge
+        ) {
+            return this.toChallengeVerificationResult(parsedResponse);
+        }
+
+        if (parsedResponse.body.action === CHALLENGE_RELATION) {
+            return {
+                nextAction: CHALLENGE_RELATION,
+                continuationToken: this.handler.requireContinuationToken(
+                    parsedResponse.continuationToken,
+                    parsedResponse.correlationId
+                ),
+                methods: this.resolveMethods(
+                    this.handler.requireMethods(
+                        parsedResponse.body._embedded?.methods,
+                        parsedResponse.correlationId
+                    ),
+                    parsedResponse.correlationId
+                ),
+                authenticationFactor: this.resolveAuthenticationFactor(
+                    parsedResponse.body.challengeContext?.authenticationFactor,
+                    parsedResponse.correlationId
+                ),
+                scenario: parsedResponse.body.scenario,
+            };
+        }
+
+        const message =
+            "Invalid HAL response: sign-up start did not return an email verification or authentication challenge";
+        this.logger?.error(message, parsedResponse.correlationId);
+        throw new CustomAuthApiError(
+            INVALID_HAL_RESPONSE,
+            message,
+            parsedResponse.correlationId
+        );
     }
 
     /*
@@ -174,19 +207,15 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
                 nextAction:
                     SignUpSubmitAttributesNextActionV2.COLLECT_ATTRIBUTES,
                 continuationToken,
-                attributes: parsedResponse.body.attributes ?? [],
+                attributes: this.handler.resolveSignUpAttributes(
+                    parsedResponse.body.attributes,
+                    correlationId
+                ),
                 submitAttributesHref: this.handler.requireHref(
                     parsedResponse.body._links?.submitAttributes?.href,
                     "submitAttributes",
                     correlationId
                 ),
-            };
-        }
-
-        if (parsedResponse.body.action === VERIFY_RELATION) {
-            return {
-                ...this.toChallengeVerificationResult(parsedResponse),
-                attributes: parsedResponse.body.attributes,
             };
         }
 
@@ -528,7 +557,10 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             return {
                 nextAction: COLLECT_ATTRIBUTES_RELATION,
                 continuationToken,
-                attributes: parsedResponse.body.attributes ?? [],
+                attributes: this.handler.resolveSignUpAttributes(
+                    parsedResponse.body.attributes,
+                    correlationId
+                ),
                 submitAttributesHref: this.handler.requireHref(
                     parsedResponse.body._links?.submitAttributes?.href,
                     "submitAttributes",

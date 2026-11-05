@@ -7,7 +7,9 @@ import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import type { CodeRequiredStateV2 } from "../state/CodeRequiredStateV2.js";
 import type { FailedStateV2 } from "../state/FailedStateV2.js";
 import type { MFAVerificationRequiredStateV2 } from "../state/MFAVerificationRequiredStateV2.js";
-import type { PasswordRequiredStateV2 } from "../../../../sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import type { PasswordRequiredStateV2 } from "../state/PasswordRequiredStateV2.js";
+import type { ExistingAccountCodeRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/ExistingAccountCodeRequiredStateV2.js";
+import type { ExistingAccountPasswordRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/ExistingAccountPasswordRequiredStateV2.js";
 
 /**
  * States returned after requesting an authentication challenge.
@@ -17,6 +19,8 @@ export type RequestChallengeResultStateV2 =
     | CodeRequiredStateV2
     | MFAVerificationRequiredStateV2
     | PasswordRequiredStateV2
+    | ExistingAccountCodeRequiredStateV2
+    | ExistingAccountPasswordRequiredStateV2
     | FailedStateV2;
 
 /**
