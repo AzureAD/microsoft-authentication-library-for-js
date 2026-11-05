@@ -178,6 +178,27 @@ export class LocalStorage implements IWindowStorage<string> {
         return this.memoryStorage.getItem(key);
     }
 
+    /** Imports newly indexed entries without waiting for another tab's broadcast. */
+    async importMissingUserData(
+        keys: string[],
+        correlationId: string
+    ): Promise<void> {
+        await Promise.all(
+            keys
+                .filter((key) => !this.memoryStorage.containsKey(key))
+                .map(async (key) => {
+                    const stored = this.getItem(key);
+                    const value = await this.getItemFromEncryptedCache(
+                        key,
+                        correlationId
+                    );
+                    if (value && stored && this.getItem(key) === stored) {
+                        this.memoryStorage.setItem(key, value);
+                    }
+                })
+        );
+    }
+
     async decryptData(
         key: string,
         data: EncryptedData,

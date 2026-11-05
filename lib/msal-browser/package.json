@@ -28,6 +28,12 @@
   "types": "./types/index.d.ts",
   "typesVersions": {
     "*": {
+      "redirect-bridge": [
+        "types/redirect_bridge/index.d.ts"
+      ],
+      "popup-relay": [
+        "types/popup_relay/index.d.ts"
+      ],
       "web-broker-bridge": [
         "./types/webBrokerBridge/index.d.ts"
       ]

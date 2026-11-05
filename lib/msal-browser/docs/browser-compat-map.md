@@ -19,6 +19,9 @@ This document catalogs browser Web APIs that MSAL Browser depends on, their role
 - The unpublished CAE partition experiment uses the configured storage for a
   versioned access-token index and synchronous invalidation generations. It uses
   the existing storage adapters and encryption; it adds no new browser API.
+  Before cache lookup it decrypts missing indexed tokens without waiting for
+  `BroadcastChannel` delivery, rechecking stored values and invalidation after
+  the asynchronous read. This does not cross browser storage partitions.
   Session storage does not coordinate separate tabs. LocalStorage generation
   checks do not establish live multi-process behavior without browser testing.
 - Safari PB: `sessionStorage.setItem()` immediately before `location.replace()` may lose data — affects redirect bridge (`handleRedirectPromise` returns `null`)

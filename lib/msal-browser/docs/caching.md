@@ -93,6 +93,11 @@ their authentication owner is unchanged. Old unmarked ATs are never relabeled
 with an assumed capability. Turning the option off on a fresh instance restores
 ordinary version 3 lookup; old binaries do not discover version 4 ATs through
 their token index. The existing localStorage encryption and expiration rules apply.
+Before a cache lookup, the experiment imports missing encrypted tokens from its
+current generation's localStorage index, without waiting for a cross-tab broadcast.
+It discards a decrypted value if the stored entry changed while decryption was
+pending, and rejects an acquisition invalidated during that wait. This does not
+share data across browser storage partitions or enable cache lookup for a bypass.
 
 An additional-claims silent request invalidates its account/tenant/resource/capability
 family before renewal, without clearing other resources, the other capability or shared authentication.

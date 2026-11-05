@@ -2393,19 +2393,41 @@ export class StandardController implements IController {
             };
             const acquire = (acquisitionRequest: SilentRequest) => {
                 context.request = acquisitionRequest;
-                return invokeAsync(
-                    this.acquireTokenSilentAsync.bind(this),
-                    BrowserPerformanceEvents.AcquireTokenSilentAsync,
-                    this.logger,
-                    this.performanceClient,
-                    correlationId
-                )(
-                    {
-                        ...acquisitionRequest,
-                        correlationId,
-                    },
-                    preparedRequest.account
-                );
+                const run = () => {
+                    if (
+                        acquisitionRequest.experimentalCaeCache &&
+                        !this.browserStorage.isCapabilityAcquisitionCurrent(
+                            preparedRequest.account,
+                            acquisitionRequest
+                        )
+                    ) {
+                        throw createBrowserAuthError(
+                            BrowserAuthErrorCodes.caeTokenRequestInvalidated,
+                            correlationId
+                        );
+                    }
+                    return invokeAsync(
+                        this.acquireTokenSilentAsync.bind(this),
+                        BrowserPerformanceEvents.AcquireTokenSilentAsync,
+                        this.logger,
+                        this.performanceClient,
+                        correlationId
+                    )(
+                        {
+                            ...acquisitionRequest,
+                            correlationId,
+                        },
+                        preparedRequest.account
+                    );
+                };
+                return acquisitionRequest.experimentalCaeCache
+                    ? this.browserStorage
+                          .importCapabilityTokens(
+                              acquisitionRequest,
+                              correlationId
+                          )
+                          .then(run)
+                    : run();
             };
             const activeRequest = preparedRequest.request.experimentalCaeCache
                 ? this.prepareCapabilitySilentRequest(

@@ -1218,6 +1218,113 @@ describe("Unpublished CAE partition prototype", () => {
         });
     });
 
+    it("reads newly indexed encrypted tokens before their broadcast arrives", async () => {
+        const post = jest
+            .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+            .mockResolvedValueOnce(response("ordinary-shared"))
+            .mockResolvedValueOnce(response("cae-shared"));
+        const { pca } = await application(
+            true,
+            [],
+            BrowserCacheLocation.LocalStorage
+        );
+        const other = new PublicClientApplication(
+            config(true, [], BrowserCacheLocation.LocalStorage)
+        );
+        await other.initialize();
+        jest.spyOn(
+            BroadcastChannel.prototype,
+            "postMessage"
+        ).mockImplementation(() => {});
+        await pca.acquireTokenSilent(request);
+        await pca.acquireTokenSilent({ ...request, claims: cp1 });
+        const ordinary = await other.acquireTokenSilent({
+            ...request,
+            cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+        });
+        const cae = await other.acquireTokenSilent({
+            ...request,
+            claims: cp1,
+            cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+        });
+        expect(ordinary.accessToken).toBe("ordinary-shared");
+        expect(cae.accessToken).toBe("cae-shared");
+        expect(ordinary.fromCache && cae.fromCache).toBe(true);
+        expect(post).toHaveBeenCalledTimes(2);
+    });
+
+    it("does not restore a token invalidated while decrypting a missed broadcast", async () => {
+        const post = jest
+            .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+            .mockResolvedValueOnce(response("rejected-cae"))
+            .mockRejectedValueOnce(new Error("renewal failed"));
+        const { pca } = await application(
+            true,
+            [],
+            BrowserCacheLocation.LocalStorage
+        );
+        const other = new PublicClientApplication(
+            config(true, [], BrowserCacheLocation.LocalStorage)
+        );
+        await other.initialize();
+        jest.spyOn(
+            BroadcastChannel.prototype,
+            "postMessage"
+        ).mockImplementation(() => {});
+        await pca.acquireTokenSilent({ ...request, claims: cp1 });
+
+        let started!: () => void;
+        let release!: () => void;
+        const decryptStarted = new Promise<void>((resolve) => {
+            started = resolve;
+        });
+        const blocked = new Promise<void>((resolve) => {
+            release = resolve;
+        });
+        const decrypt = window.crypto.subtle.decrypt.bind(window.crypto.subtle);
+        jest.spyOn(window.crypto.subtle, "decrypt").mockImplementationOnce(
+            async (...args) => {
+                started();
+                await blocked;
+                return decrypt(...args);
+            }
+        );
+        const cacheOnly = {
+            ...request,
+            claims: cp1,
+            cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+        };
+        const stale = expect(
+            other.acquireTokenSilent(cacheOnly)
+        ).rejects.toMatchObject({
+            errorCode: "cae_token_request_invalidated",
+        });
+        try {
+            await decryptStarted;
+            await expect(
+                pca.acquireTokenSilent({
+                    ...request,
+                    claims: cp1,
+                    invalidateAccessTokenCache: true,
+                })
+            ).rejects.toMatchObject({ errorCode: "network_error" });
+            await expect(
+                other.acquireTokenSilent(cacheOnly)
+            ).rejects.toMatchObject({
+                errorCode: "token_refresh_required",
+            });
+        } finally {
+            release();
+            await stale;
+        }
+        await expect(other.acquireTokenSilent(cacheOnly)).rejects.toMatchObject(
+            {
+                errorCode: "token_refresh_required",
+            }
+        );
+        expect(post).toHaveBeenCalledTimes(2);
+    });
+
     it("rejects unknown capability sets and malformed claims", () => {
         expect(() =>
             prepareCaeCacheRequest(

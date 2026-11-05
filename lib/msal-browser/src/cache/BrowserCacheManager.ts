@@ -49,6 +49,7 @@ import {
 } from "../error/BrowserAuthError.js";
 import {
     BrowserCacheLocation,
+    CacheLookupPolicy,
     InMemoryCacheKeys,
     INTERACTION_TYPE,
     TemporaryCacheKeys,
@@ -1754,6 +1755,34 @@ export class BrowserCacheManager extends CacheManager {
             ...request,
             experimentalCaeCache: { ...context, epoch, realm },
         };
+    }
+
+    /** Loads this generation's indexed tokens before deciding that a refresh is required. */
+    async importCapabilityTokens(
+        request: SilentRequest,
+        correlationId: string
+    ): Promise<void> {
+        const epoch = request.experimentalCaeCache?.epoch;
+        const policy = request.cacheLookupPolicy ?? CacheLookupPolicy.Default;
+        if (
+            request.forceRefresh ||
+            request.experimentalCaeCache?.hasChallenge ||
+            (policy !== CacheLookupPolicy.Default &&
+                policy !== CacheLookupPolicy.AccessToken &&
+                policy !== CacheLookupPolicy.AccessTokenAndRefreshToken)
+        ) {
+            return;
+        }
+        if (epoch && this.browserStorage instanceof LocalStorage) {
+            await this.browserStorage.importMissingUserData(
+                this.getTokenKeys(
+                    CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
+                ).accessToken.filter((key) =>
+                    key.endsWith(`${CacheKeys.CACHE_KEY_SEPARATOR}${epoch}`)
+                ),
+                correlationId
+            );
+        }
     }
 
     /** Checks a silent result against invalidations from this instance or another tab. */

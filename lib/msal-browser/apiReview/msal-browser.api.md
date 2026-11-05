@@ -784,6 +784,7 @@ export class LocalStorage implements IWindowStorage<string> {
     getKeys(): string[];
     // (undocumented)
     getUserData(key: string): string | null;
+    importMissingUserData(keys: string[], correlationId: string): Promise<void>;
     // (undocumented)
     initialize(correlationId: string): Promise<void>;
     // (undocumented)
