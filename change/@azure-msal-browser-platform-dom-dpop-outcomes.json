@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Support capability-gated Platform Authentication DOM API DPoP outcomes with shared broker validation and MSAL-owned L1 keys",
+    "packageName": "@azure/msal-browser",
+    "email": "hectormmg@microsoft.com",
+    "dependentChangeType": "minor"
+}

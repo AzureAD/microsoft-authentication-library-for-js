@@ -43,6 +43,7 @@ import {
     NativeAuthErrorCodes,
 } from "../../src/error/NativeAuthError.js";
 import {
+    PlatformAuthBindingPreference,
     PlatformAuthRequest,
     PlatformAuthTokenType,
 } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
@@ -3237,6 +3238,462 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(cachedIdToken?.secret).toEqual(MOCK_WAM_RESPONSE.id_token);
         });
     });
+
+    describe.each(["extension", "DOM"])(
+        "%s DPoP outcome equivalence",
+        (transport) => {
+            let provider: PlatformAuthExtensionHandler | PlatformAuthDOMHandler;
+            let brokerResponse: PlatformAuthResponse;
+            let provisionKeySpy: jest.SpyInstance;
+            let removeKeySpy: jest.SpyInstance;
+            let signSpy: jest.SpyInstance;
+            let publicKeySpy: jest.SpyInstance;
+            let originalDOM: PropertyDescriptor | undefined;
+            let sentBindings: object[];
+            const request: PopupRequest = {
+                scopes: ["User.Read"],
+                authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                resourceRequestMethod: "POST",
+                resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+            };
+
+            function createClient(apiId: ApiId = ApiId.acquireTokenRedirect) {
+                return new PlatformAuthInteractionClient(
+                    // @ts-ignore
+                    pca.config,
+                    // @ts-ignore
+                    pca.browserStorage,
+                    // @ts-ignore
+                    pca.browserCrypto,
+                    pca.getLogger(),
+                    // @ts-ignore
+                    pca.eventHandler,
+                    // @ts-ignore
+                    pca.navigationClient,
+                    apiId,
+                    perfClient,
+                    provider,
+                    "nativeAccountId",
+                    internalStorage,
+                    RANDOM_TEST_GUID,
+                    // @ts-ignore
+                    pca.tokenBindingKeyManager
+                );
+            }
+
+            beforeEach(async () => {
+                originalDOM = Object.getOwnPropertyDescriptor(
+                    navigator,
+                    "platformAuthentication"
+                );
+                sentBindings = [];
+                brokerResponse = {
+                    ...MOCK_WAM_RESPONSE,
+                    properties: {
+                        token_type: "dpop+proof",
+                        binding_attested: "true",
+                        DPoP: "unchanged-broker-proof",
+                    },
+                };
+                const keyManager =
+                    // @ts-ignore
+                    platformAuthInteractionClient.tokenBindingKeyManager;
+                provisionKeySpy = jest
+                    .spyOn(keyManager, "provisionTokenBindingKey")
+                    .mockResolvedValue("local-dpop-key");
+                removeKeySpy = jest
+                    .spyOn(keyManager, "removeTokenBindingKey")
+                    .mockResolvedValue();
+                publicKeySpy = jest
+                    .spyOn(keyManager, "getTokenBindingPublicKeyJwk")
+                    .mockResolvedValue({
+                        kty: "EC",
+                        crv: "P-256",
+                        x: "test-x",
+                        y: "test-y",
+                    });
+                jest.spyOn(keyManager, "hasTokenBindingKey").mockResolvedValue(
+                    true
+                );
+                jest.spyOn(
+                    keyManager,
+                    "isTokenBindingKeyPersisted"
+                ).mockResolvedValue(true);
+                jest.spyOn(
+                    // @ts-ignore
+                    platformAuthInteractionClient.browserCrypto,
+                    "hashString"
+                ).mockResolvedValue("test-ath");
+                signSpy = jest
+                    .spyOn(
+                        // @ts-ignore
+                        platformAuthInteractionClient.browserCrypto,
+                        "signTokenBindingJwt"
+                    )
+                    .mockResolvedValue("local-resource-proof");
+
+                if (transport === "DOM") {
+                    Object.defineProperty(navigator, "platformAuthentication", {
+                        configurable: true,
+                        value: {
+                            getSupportedContracts: jest
+                                .fn()
+                                .mockResolvedValue(["get-token-and-sign-out"]),
+                            executeGetToken: jest
+                                .fn()
+                                .mockImplementation(async (wire) => {
+                                    sentBindings.push(
+                                        decodeReqCnf(wire.requestConfirmation)
+                                    );
+                                    expect(wire.preferBinding).toBe(
+                                        PlatformAuthBindingPreference.ATTESTED
+                                    );
+                                    expect(wire).not.toHaveProperty(
+                                        "bindingPreferenceSent"
+                                    );
+                                    expect(
+                                        wire.extraParameters
+                                    ).not.toHaveProperty(
+                                        "bindingPreferenceSent"
+                                    );
+                                    expect(
+                                        wire.extraParametersNoCache.pop_url
+                                    ).toBe(request.resourceRequestUri);
+                                    expect(
+                                        wire.extraParametersNoCache
+                                    ).not.toHaveProperty("pop_uri");
+                                    return {
+                                        isSuccess: true,
+                                        accessToken:
+                                            brokerResponse.access_token,
+                                        idToken: brokerResponse.id_token,
+                                        clientInfo: brokerResponse.client_info,
+                                        account: brokerResponse.account,
+                                        scopes: brokerResponse.scope,
+                                        expiresIn: brokerResponse.expires_in,
+                                        properties: brokerResponse.properties,
+                                    };
+                                }),
+                        },
+                    });
+                    provider = (await PlatformAuthDOMHandler.createProvider(
+                        pca.getLogger(),
+                        perfClient,
+                        RANDOM_TEST_GUID
+                    ))!;
+                } else {
+                    provider = wamProvider;
+                    jest.spyOn(provider, "sendMessage").mockImplementation(
+                        async (wire) => {
+                            sentBindings.push(decodeReqCnf(wire.reqCnf));
+                            return brokerResponse;
+                        }
+                    );
+                }
+                platformAuthInteractionClient = createClient();
+            });
+
+            afterEach(() => {
+                if (originalDOM) {
+                    Object.defineProperty(
+                        navigator,
+                        "platformAuthentication",
+                        originalDOM
+                    );
+                } else {
+                    delete (navigator as any).platformAuthentication;
+                }
+            });
+
+            it.each([
+                ["popup", ApiId.acquireTokenPopup, "L1"],
+                ["popup", ApiId.acquireTokenPopup, "L3"],
+                ["silent", ApiId.acquireTokenSilent_silentFlow, "L1"],
+                ["silent", ApiId.acquireTokenSilent_silentFlow, "L3"],
+                ["ssoSilent", ApiId.ssoSilent, "L1"],
+                ["ssoSilent", ApiId.ssoSilent, "L3"],
+            ])(
+                "preserves %s %s proof and cache behavior (%s)",
+                async (_, apiId, level) => {
+                    if (level === "L1") {
+                        brokerResponse.properties = {
+                            token_type: "DPoP",
+                            binding_attested: "false",
+                            ...{ keyId: "unowned-broker-key" },
+                        };
+                    }
+                    const saveSpy = jest.spyOn(
+                        internalStorage,
+                        "saveCacheRecord"
+                    );
+                    const client = createClient(apiId);
+                    const result = await client.acquireToken(request);
+                    expect(result.dpopProof).toBe(
+                        level === "L3"
+                            ? "unchanged-broker-proof"
+                            : "local-resource-proof"
+                    );
+                    expect(result.tokenType).toBe(
+                        Constants.AuthenticationScheme.DPOP
+                    );
+                    expect(sentBindings).toEqual([
+                        { kid: "local-dpop-key", xms_ksl: "sw" },
+                    ]);
+                    if (level === "L3") {
+                        expect(signSpy).not.toHaveBeenCalled();
+                        expect(publicKeySpy).not.toHaveBeenCalled();
+                        expect(saveSpy).not.toHaveBeenCalled();
+                        expect(removeKeySpy).toHaveBeenCalledWith(
+                            "local-dpop-key",
+                            RANDOM_TEST_GUID
+                        );
+                    } else {
+                        expect(publicKeySpy).toHaveBeenCalledWith(
+                            "local-dpop-key",
+                            RANDOM_TEST_GUID
+                        );
+                        expect(signSpy.mock.calls[0][2]).toBe("local-dpop-key");
+                        expect(saveSpy).toHaveBeenCalledWith(
+                            expect.objectContaining({
+                                accessToken: expect.objectContaining({
+                                    keyId: "local-dpop-key",
+                                }),
+                            }),
+                            RANDOM_TEST_GUID,
+                            false,
+                            apiId,
+                            undefined
+                        );
+                        expect(removeKeySpy).not.toHaveBeenCalled();
+                    }
+                }
+            );
+
+            it("does not cache L1 tokens or retain the key when access-token caching is disabled", async () => {
+                brokerResponse.properties = {
+                    token_type: "DPoP",
+                    binding_attested: "false",
+                };
+                const result = await platformAuthInteractionClient.acquireToken(
+                    {
+                        ...request,
+                        storeInCache: { accessToken: false },
+                    }
+                );
+                expect(result.dpopProof).toBe("local-resource-proof");
+                expect(internalStorage.getTokenKeys().accessToken).toHaveLength(
+                    0
+                );
+                expect(removeKeySpy).toHaveBeenCalledWith(
+                    "local-dpop-key",
+                    RANDOM_TEST_GUID
+                );
+            });
+
+            it("replaces a cached L1 credential without retaining its old key", async () => {
+                const cleanupSpy = jest.spyOn(
+                    internalStorage,
+                    "removeAccessTokenAndTokenBindingKey"
+                );
+                brokerResponse.properties = {
+                    token_type: "DPoP",
+                    binding_attested: "false",
+                };
+                provisionKeySpy
+                    .mockResolvedValueOnce("initial-key")
+                    .mockResolvedValueOnce("replacement-key");
+                await platformAuthInteractionClient.acquireToken(request);
+                // Replacement environment matching requires authority metadata in this cache.
+                const metadata =
+                    browserCacheManager.getAuthorityMetadataByAlias(
+                        "login.microsoftonline.com",
+                        RANDOM_TEST_GUID
+                    );
+                expect(metadata).not.toBeNull();
+                internalStorage.setAuthorityMetadata(
+                    internalStorage.generateAuthorityMetadataCacheKey(
+                        "login.microsoftonline.com"
+                    ),
+                    metadata!,
+                    RANDOM_TEST_GUID
+                );
+                jest.spyOn(
+                    platformAuthInteractionClient as unknown as {
+                        acquireTokensFromCache(): Promise<AuthenticationResult>;
+                    },
+                    "acquireTokensFromCache"
+                ).mockRejectedValueOnce(new Error("refresh required"));
+                await platformAuthInteractionClient.acquireToken(request);
+                const keys = internalStorage.getTokenKeys().accessToken;
+                expect(keys).toHaveLength(1);
+                expect(
+                    internalStorage.getAccessTokenCredential(
+                        keys[0],
+                        RANDOM_TEST_GUID
+                    )?.keyId
+                ).toBe("replacement-key");
+                expect(cleanupSpy).toHaveBeenCalled();
+                expect(removeKeySpy).toHaveBeenCalledWith(
+                    "initial-key",
+                    RANDOM_TEST_GUID
+                );
+            });
+
+            it.each(["L1", "L3"])(
+                "preserves %s redirect key ownership across both phases",
+                async (level) => {
+                    if (level === "L1") {
+                        brokerResponse.properties = {
+                            token_type: "DPoP",
+                            binding_attested: "false",
+                        };
+                    }
+                    provisionKeySpy
+                        .mockResolvedValueOnce("phase-one-key")
+                        .mockResolvedValueOnce("phase-two-key");
+                    jest.spyOn(
+                        NavigationClient.prototype,
+                        "navigateExternal"
+                    ).mockResolvedValue(true);
+                    await platformAuthInteractionClient.acquireTokenRedirect(
+                        request,
+                        perfMeasurement
+                    );
+                    const cached = browserCacheManager.getCachedNativeRequest();
+                    expect(cached?.keyId).toBe(
+                        level === "L1" ? "phase-one-key" : undefined
+                    );
+                    browserCacheManager.setInteractionInProgress(true);
+                    const result =
+                        await platformAuthInteractionClient.handleRedirectPromise();
+                    expect(result?.dpopProof).toBe(
+                        level === "L1"
+                            ? "local-resource-proof"
+                            : "unchanged-broker-proof"
+                    );
+                    expect(sentBindings).toEqual([
+                        { kid: "phase-one-key", xms_ksl: "sw" },
+                        {
+                            kid:
+                                level === "L1"
+                                    ? "phase-one-key"
+                                    : "phase-two-key",
+                            xms_ksl: "sw",
+                        },
+                    ]);
+                    expect(provisionKeySpy).toHaveBeenCalledTimes(
+                        level === "L1" ? 1 : 2
+                    );
+                    if (level === "L3") {
+                        expect(signSpy).not.toHaveBeenCalled();
+                        expect(removeKeySpy).toHaveBeenCalledTimes(2);
+                        expect(
+                            internalStorage.getTokenKeys().accessToken
+                        ).toHaveLength(0);
+                    } else {
+                        expect(removeKeySpy).not.toHaveBeenCalled();
+                    }
+                }
+            );
+
+            it("rejects a redirect binding whose request key is no longer MSAL-owned before another broker call", async () => {
+                brokerResponse.properties = {
+                    token_type: "DPoP",
+                    binding_attested: "false",
+                };
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockResolvedValue(true);
+                await platformAuthInteractionClient.acquireTokenRedirect(
+                    request,
+                    perfMeasurement
+                );
+                jest.spyOn(
+                    // @ts-ignore
+                    platformAuthInteractionClient.tokenBindingKeyManager,
+                    "hasTokenBindingKey"
+                ).mockResolvedValue(false);
+                browserCacheManager.setInteractionInProgress(true);
+                await expect(
+                    platformAuthInteractionClient.handleRedirectPromise()
+                ).rejects.toMatchObject({
+                    errorCode: AuthErrorCodes.unexpectedError,
+                });
+                expect(sentBindings).toHaveLength(1);
+                expect(signSpy).not.toHaveBeenCalled();
+                expect(internalStorage.getTokenKeys().accessToken).toHaveLength(
+                    0
+                );
+            });
+
+            it("rejects malformed redirect outcomes before persisting a request or navigating", async () => {
+                brokerResponse.properties = {
+                    token_type: "dpop",
+                    binding_attested: "true",
+                };
+                const navigateSpy = jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                );
+                const accountSpy = jest.spyOn(
+                    browserCacheManager,
+                    "setAccount"
+                );
+                await expect(
+                    platformAuthInteractionClient.acquireTokenRedirect(
+                        request,
+                        perfMeasurement
+                    )
+                ).rejects.toMatchObject({
+                    errorCode: AuthErrorCodes.unexpectedError,
+                });
+                expect(navigateSpy).not.toHaveBeenCalled();
+                expect(browserCacheManager.getCachedNativeRequest()).toBeNull();
+                expect(accountSpy).not.toHaveBeenCalled();
+                expect(signSpy).not.toHaveBeenCalled();
+                expect(removeKeySpy).toHaveBeenCalledTimes(1);
+            });
+
+            it.each([
+                { token_type: "unknown" },
+                { token_type: "dpop+proof", binding_attested: "true" },
+                { token_type: "dpop", binding_attested: "true" },
+                {
+                    token_type: "dpop",
+                    binding_attested: "false",
+                    DPoP: "contradictory-proof",
+                },
+            ])(
+                "rejects invalid outcomes before account, cache, or proof mutation %p",
+                async (properties) => {
+                    brokerResponse.properties = properties;
+                    const accountSpy = jest.spyOn(
+                        browserCacheManager,
+                        "setAccount"
+                    );
+                    const idTokenSpy = jest.spyOn(
+                        browserCacheManager,
+                        "setIdTokenCredential"
+                    );
+                    const saveSpy = jest.spyOn(
+                        internalStorage,
+                        "saveCacheRecord"
+                    );
+                    await expect(
+                        platformAuthInteractionClient.acquireToken(request)
+                    ).rejects.toMatchObject({
+                        errorCode: AuthErrorCodes.unexpectedError,
+                    });
+                    expect(accountSpy).not.toHaveBeenCalled();
+                    expect(idTokenSpy).not.toHaveBeenCalled();
+                    expect(saveSpy).not.toHaveBeenCalled();
+                    expect(signSpy).not.toHaveBeenCalled();
+                    expect(removeKeySpy).toHaveBeenCalledTimes(1);
+                }
+            );
+        }
+    );
 
     describe("acquireTokenRedirect tests", () => {
         it("acquires token successfully then redirects to start page", (done) => {

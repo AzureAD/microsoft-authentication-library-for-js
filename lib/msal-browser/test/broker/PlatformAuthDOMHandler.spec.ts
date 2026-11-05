@@ -125,6 +125,25 @@ describe("PlatformAuthDOMHandler tests", () => {
             );
         });
 
+        it.each([
+            null,
+            "get-token-and-sign-out",
+            { includes: () => true },
+            ["get-cookies"],
+        ])(
+            "does not enable DPoP for invalid or unrelated capabilities %p",
+            async (contracts) => {
+                getSupportedContractsMock.mockResolvedValue(contracts);
+                await expect(
+                    PlatformAuthDOMHandler.createProvider(
+                        logger,
+                        performanceClient,
+                        TEST_CONFIG.CORRELATION_ID
+                    )
+                ).resolves.toBeUndefined();
+            }
+        );
+
         it("should emit a failed measurement when the DOM API is not available", async () => {
             Object.defineProperty(window.navigator, "platformAuthentication", {
                 value: undefined,
@@ -221,7 +240,7 @@ describe("PlatformAuthDOMHandler tests", () => {
     });
 
     describe("sendMessage and validatePlatformBrokerResponse tests", () => {
-        it("rejects DPoP requests without calling the DOM API", async () => {
+        it("rejects direct DPoP requests before discovery without calling the DOM API", async () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
             ]);
@@ -235,17 +254,16 @@ describe("PlatformAuthDOMHandler tests", () => {
                 windowTitleSubstring: "",
                 tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
             };
-            const platformAuthDOMHandler =
-                await PlatformAuthDOMHandler.createProvider(
-                    logger,
-                    performanceClient,
-                    "test-correlation-id"
-                );
+            const platformAuthDOMHandler = new PlatformAuthDOMHandler(
+                logger,
+                performanceClient,
+                "test-correlation-id"
+            );
 
             await expect(
                 platformAuthDOMHandler?.sendMessage(testRequest)
             ).rejects.toMatchObject({
-                errorCode: "platform_auth_dom_dpop_not_supported",
+                errorCode: AuthErrorCodes.unexpectedError,
             });
             expect(executeGetTokenMock).not.toHaveBeenCalled();
         });
@@ -719,6 +737,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 },
                 extraParameters: {
                     customUserInput: "test-user-input",
+                    bindingPreferenceSent: "must-not-be-sent",
                 },
             };
 
@@ -756,6 +775,9 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(platformDOMRequest).not.toHaveProperty("reqCnf");
             expect(platformDOMRequest.extraParameters).not.toHaveProperty(
                 "reqCnf"
+            );
+            expect(platformDOMRequest.extraParameters).not.toHaveProperty(
+                "bindingPreferenceSent"
             );
         });
     });
@@ -847,7 +869,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                     error: {},
                     properties: {
                         token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
-                        dpop_proof: "test-dpop-proof",
+                        DPoP: "test-dpop-proof",
                         binding_attested: bindingAttested,
                     },
                 };
@@ -896,6 +918,281 @@ describe("PlatformAuthDOMHandler tests", () => {
                         binding_attested: expectedBindingAttested,
                     })
                 );
+            }
+        );
+    });
+
+    describe("DPoP transport boundary", () => {
+        let handler: PlatformAuthDOMHandler;
+        let request: PlatformAuthRequest;
+        let response: Record<string, any>;
+
+        beforeEach(async () => {
+            getSupportedContractsMock.mockResolvedValue([
+                PlatformAuthConstants.PLATFORM_DOM_APIS,
+            ]);
+            handler = (await PlatformAuthDOMHandler.createProvider(
+                logger,
+                performanceClient,
+                TEST_CONFIG.CORRELATION_ID
+            ))!;
+            request = {
+                accountId: "test-id",
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scope: "read openid",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                windowTitleSubstring: "",
+                tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
+                preferBinding: PlatformAuthBindingPreference.ATTESTED,
+                keyId: "owned-request-key",
+                reqCnf: "owned-request-confirmation",
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://example.com/resource",
+                extraParametersNoCache: {
+                    pop_method: "GET",
+                    pop_url: "https://example.com/resource",
+                    bindingPreferenceSent: "must-not-be-sent",
+                },
+            };
+            response = {
+                isSuccess: true,
+                accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                idToken: TEST_TOKENS.IDTOKEN_V1,
+                clientInfo: "test-client-info",
+                account: {
+                    id: "test-id",
+                    userName: "test-user",
+                    properties: {},
+                },
+                scopes: "read openid",
+                expiresIn: 6000,
+                properties: {
+                    token_type: "dpop+proof",
+                    binding_attested: "true",
+                    DPoP: "unchanged-broker-proof",
+                },
+            };
+            executeGetTokenMock.mockImplementation(async () => response);
+        });
+
+        it.each(["L1", "L3"])(
+            "validates unchanged %s properties against the shared outcome contract",
+            async (level) => {
+                if (level === "L1") {
+                    response.properties = {
+                        token_type: "DPoP",
+                        binding_attested: "false",
+                    };
+                }
+                const result = await handler.sendMessage(request);
+                expect(result.properties).toBe(response.properties);
+                expect(result.properties).toEqual(
+                    expect.objectContaining({
+                        token_type: level === "L1" ? "DPoP" : "dpop+proof",
+                        binding_attested: level === "L1" ? "false" : "true",
+                    })
+                );
+                expect(result.properties.DPoP).toBe(
+                    level === "L3" ? "unchanged-broker-proof" : undefined
+                );
+                expect(request.bindingPreferenceSent).toBe(true);
+                const wire = executeGetTokenMock.mock.calls[0][0];
+                expect(wire.preferBinding).toBe(
+                    PlatformAuthBindingPreference.ATTESTED
+                );
+                expect(wire.requestConfirmation).toBe(request.reqCnf);
+                expect(wire.extraParametersNoCache).toEqual({
+                    pop_method: "GET",
+                    pop_url: "https://example.com/resource",
+                });
+                expect(wire).not.toHaveProperty("bindingPreferenceSent");
+                expect(wire.extraParameters).not.toHaveProperty(
+                    "bindingPreferenceSent"
+                );
+            }
+        );
+
+        it.each([
+            { isSuccess: false },
+            { isSuccess: "true" },
+            { accessToken: "" },
+            { account: null },
+            { account: [] },
+            {
+                account: {
+                    id: "test-id",
+                    userName: "test-user",
+                    properties: [],
+                },
+            },
+            {
+                account: {
+                    id: "test-id",
+                    userName: "test-user",
+                    properties: { UID: 123 },
+                },
+            },
+            { state: {} },
+            { expiresIn: "6000" },
+            { expiresIn: 1.5 },
+            { properties: undefined },
+            { properties: null },
+            { properties: [] },
+            { properties: { token_type: "unknown" } },
+            {
+                properties: {
+                    token_type: "dpop+proof",
+                    binding_attested: "true",
+                },
+            },
+            {
+                properties: {
+                    token_type: "dpop+proof",
+                    binding_attested: "true",
+                    DPoP: " ",
+                },
+            },
+            {
+                properties: {
+                    token_type: "dpop+proof",
+                    binding_attested: false,
+                    DPoP: "proof",
+                },
+            },
+            {
+                properties: {
+                    token_type: "dpop+proof",
+                    binding_attested: "false",
+                    DPoP: "proof",
+                },
+            },
+            { properties: { token_type: "dpop", binding_attested: "true" } },
+            {
+                properties: {
+                    token_type: "dpop",
+                    binding_attested: "false",
+                    DPoP: "proof",
+                },
+            },
+            {
+                properties: {
+                    token_type: "dpop+proof",
+                    binding_attested: "true",
+                    dpop_proof: "noncanonical-proof",
+                },
+            },
+            {
+                properties: {
+                    token_type: "dpop+proof",
+                    binding_attested: "true",
+                    DPoP: "broker-proof",
+                    dpop_proof: "conflicting-alias-proof",
+                },
+            },
+            { proofOfPossessionPayload: "legacy-shr" },
+            { DPoP: "conflicting-top-level-proof" },
+            { dpop_proof: "conflicting-top-level-proof" },
+            { token_type: "Bearer" },
+            { binding_attested: false },
+            { error: { code: "BrokerError" } },
+        ])(
+            "rejects malformed or contradictory responses %p",
+            async (overrides) => {
+                Object.assign(response, overrides);
+                await expect(
+                    handler.sendMessage(request)
+                ).rejects.toMatchObject({
+                    errorCode: AuthErrorCodes.unexpectedError,
+                });
+            }
+        );
+
+        it("rejects DPoP outcomes for a Bearer request at the direct-handler boundary", async () => {
+            request.tokenType = Constants.AuthenticationScheme.BEARER;
+            await expect(handler.sendMessage(request)).rejects.toBeInstanceOf(
+                AuthError
+            );
+        });
+
+        it.each([
+            { reqCnf: undefined },
+            { keyId: " " },
+            { keyId: 99 },
+            { reqCnf: {} },
+            { preferBinding: "unknown" },
+        ])(
+            "rejects malformed request bindings before IPC without mutating them %p",
+            async (overrides) => {
+                Object.assign(request, overrides);
+                const original = { ...request };
+                await expect(
+                    handler.sendMessage(request)
+                ).rejects.toBeInstanceOf(AuthError);
+                expect(request).toEqual(original);
+                expect(executeGetTokenMock).not.toHaveBeenCalled();
+            }
+        );
+
+        it.each([null, undefined])(
+            "accepts nullable optional DOM dictionaries and state %p",
+            async (value) => {
+                response.account.properties = value;
+                response.state = value;
+                await expect(
+                    handler.sendMessage(request)
+                ).resolves.toMatchObject({
+                    state: "",
+                    properties: { DPoP: "unchanged-broker-proof" },
+                });
+            }
+        );
+
+        it("does not expose raw DOM exceptions", async () => {
+            executeGetTokenMock.mockRejectedValue(
+                new Error("private-broker-data")
+            );
+            const error = await handler.sendMessage(request).catch((e) => e);
+            expect(error).toBeInstanceOf(AuthError);
+            expect(error.errorCode).toBe(AuthErrorCodes.unexpectedError);
+            expect(JSON.stringify(error)).not.toContain("private-broker-data");
+            expect(error.message).not.toContain("private-broker-data");
+        });
+
+        it.each([
+            ["USER_CANCEL", "user_cancelled"],
+            ["NO_NETWORK", "no_network_connectivity"],
+            ["ACCOUNT_UNAVAILABLE", "native_account_unavailable"],
+            ["USER_INTERACTION_REQUIRED", AuthErrorCodes.unexpectedError],
+            ["PERSISTENT_ERROR", AuthErrorCodes.unexpectedError],
+            ["DISABLED", AuthErrorCodes.unexpectedError],
+        ])(
+            "preserves %s error semantics without retaining broker metadata",
+            async (status, errorCode) => {
+                response = {
+                    isSuccess: false,
+                    error: {
+                        code: "private-broker-data",
+                        description: "private-broker-data",
+                        errorCode: "private-broker-data",
+                        status,
+                        protocolError: "private-broker-data",
+                        properties: { token: "private-broker-data" },
+                    },
+                };
+                const error = await handler
+                    .sendMessage(request)
+                    .catch((e) => e);
+                expect(error.errorCode).toBe(errorCode);
+                expect(JSON.stringify(error)).not.toContain(
+                    "private-broker-data"
+                );
+                expect(error.message).not.toContain("private-broker-data");
+                if (error instanceof NativeAuthError) {
+                    expect(error.ext?.status).toBe(status);
+                    expect(error.ext?.properties).toBeUndefined();
+                }
             }
         );
     });
@@ -1002,10 +1299,7 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(loggerErrorSpy.mock.calls[0][0]).toContain(
                 "'PlatformAuthDOMHandler' - Error stringifying extra parameters"
             );
-            expect(loggerErrorPiiSpy).toHaveBeenCalled();
-            expect(loggerErrorPiiSpy.mock.calls[0][0]).toContain(
-                "'PlatformAuthDOMHandler' - Error stringifying extra parameters"
-            );
+            expect(loggerErrorPiiSpy).not.toHaveBeenCalled();
         });
     });
 });

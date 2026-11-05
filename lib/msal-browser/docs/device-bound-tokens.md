@@ -62,30 +62,32 @@ There are a few things that may behave a little differently when acquiring token
 >
 > -   A Windows build with broker DPoP support. Such builds are not currently available through public Windows releases.
 > -   A Microsoft Entra-joined device configured for platform-broker authentication.
-> -   The Windows Accounts extension.
+> -   Either the Windows Accounts extension or an explicitly enabled Edge Platform Authentication DOM API preview.
 > -   Server-side DPoP support and enablement in the Microsoft Entra token service and target resource.
 >
 > Unless your environment has been explicitly enabled for a coordinated preview, treat platform-broker DPoP as unavailable and do not depend on it for production use. APIs and behavior may change.
 
 #### Availability and provider selection
 
-Within an explicitly enabled preview environment, DPoP broker support is available only through the Windows Accounts extension. When the Platform Authentication DOM API provider is active, MSAL uses the browser-managed DPoP flow instead. Applications use the same DPoP request and response handling in either case; no broker-specific configuration is required.
+Within an explicitly enabled preview environment, DPoP broker support is available through the Windows Accounts extension or the Edge Platform Authentication DOM API. The DOM path additionally requires the configuration described [below](#acquiring-device-bound-tokens-using-dom-api) and `navigator.platformAuthentication.getSupportedContracts("MicrosoftEntra")` must advertise `get-token-and-sign-out`. MSAL does not route DPoP through a DOM handler whose contract has not been discovered. If DOM discovery fails, the existing extension or browser-managed provider selection applies.
+
+MSAL sends the string `preferBinding: "attested"`, maps its request confirmation to the DOM API's `requestConfirmation`, and preserves `pop_method` and `pop_url` in `extraParametersNoCache`. Broker response properties are unchanged between transports: `properties.token_type`, `properties.DPoP`, and `properties.binding_attested` carry the binding outcome. These transport fields are internal; applications continue to use MSAL's DPoP request and result APIs. Contract advertisement alone does not establish that the Windows broker or token service has DPoP enabled.
 
 #### Broker binding outcomes
 
-Through the Windows Accounts extension, MSAL asks the platform broker to use broker-attested binding as a best-effort security improvement. With an L1 outcome, the token is bound to an MSAL-generated browser key and MSAL creates the resource proof locally. With an L3 outcome, the platform broker supplies the resource proof. Token issuance and Conditional Access determine whether the available binding satisfies tenant policy; applications receive and use the resulting DPoP token in the same way regardless of the binding mechanism.
+Through either broker transport, MSAL asks the platform broker to use broker-attested binding as a best-effort security improvement. With an L1 outcome, the token is bound to an MSAL-generated browser key and MSAL creates the resource proof locally. With an L3 outcome, MSAL returns the broker's resource proof unchanged, does not locally sign it, and does not cache the access token or proof. Token issuance and Conditional Access determine whether the available binding satisfies tenant policy; applications receive and use the resulting DPoP token in the same way regardless of the binding mechanism.
 
-MSAL rejects invalid or inconsistent broker responses instead of returning an unbound token. Application-managed DPoP keys are not supported through the Windows Accounts extension.
+MSAL validates both transports against the same L1/L3 outcome contract and rejects missing, malformed, unknown, or contradictory outcomes before updating accounts or token caches. Application-managed DPoP keys are not supported through either broker transport. L1 tokens use only MSAL-owned keys, follow the existing internal cache replacement lifecycle, and respect `storeInCache.accessToken: false` by discarding the candidate key instead of retaining a cached access token.
 
 #### Redirect key persistence
 
-When `acquireTokenRedirect()` uses the Windows Accounts extension, broker interaction occurs while the current application page remains loaded. If the broker returns an L1 outcome, MSAL must retain its generated key across the subsequent application-page navigation used to resume the request through `handleRedirectPromise()`. MSAL therefore verifies that the key is available in [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) before performing that navigation and fails the request if it was not persisted. If the broker returns an L3 outcome, the broker supplies the DPoP proof, so MSAL discards the local candidate key and does not require it to survive the application-page navigation.
+When `acquireTokenRedirect()` uses either broker transport, broker interaction occurs while the current application page remains loaded. If the broker returns an L1 outcome, MSAL must retain its generated key across the subsequent application-page navigation used to resume the request through `handleRedirectPromise()`. MSAL therefore verifies that the key is available in [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) before performing that navigation and fails the request if it was not persisted. If the broker returns an L3 outcome, the broker supplies the DPoP proof, so MSAL discards the local candidate key and does not require it to survive the application-page navigation.
 
 #### Request requirements and limitations
 
 DPoP requests must include the resource method and URI used to build the proof.
 
-Resource-server DPoP nonce forwarding is not yet supported through the Windows Accounts extension. Applications must not pass `pop_nonce` through `extraParameters`; nonce support will use a dedicated API and internal nonce store.
+Resource-server DPoP nonce forwarding is not yet supported through either broker transport. Applications must not pass `pop_nonce` through `extraParameters`; nonce support will use a dedicated API and internal nonce store.
 
 For the complete request shape and proof usage, see [DPoP for PublicClientApplication](./access-token-proof-of-possession.md#dpop-for-publicclientapplication).
 
