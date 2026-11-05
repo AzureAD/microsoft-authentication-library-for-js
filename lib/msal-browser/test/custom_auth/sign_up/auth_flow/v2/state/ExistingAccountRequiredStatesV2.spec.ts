@@ -12,7 +12,7 @@ import { AuthMethodSelectionRequiredStateV2 } from "../../../../../../src/custom
 import { MFAVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
 import { SignInStateTransitionHandlerV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInStateTransitionHandlerV2.js";
 import { AuthenticationFactorV2 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
-import type { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
+import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
     FLOW_CODE_REQUIRED_V2,
     FLOW_COMPLETED_V2,
@@ -21,6 +21,10 @@ import {
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import type { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
+
+jest.mock(
+    "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js"
+);
 
 describe("existing-account sign-up states", () => {
     const correlationId = "test-correlation-id";
@@ -335,14 +339,18 @@ describe("existing-account sign-up states", () => {
     });
 
     it("verifies the existing password without submitting sign-up attributes and allows retry", async () => {
-        flowClient.submitSignInPassword
-            .mockRejectedValueOnce(
-                new CustomAuthApiError(
-                    "invalid_grant",
-                    "The password is incorrect.",
-                    correlationId
-                )
-            )
+        const passwordFlowClient = jest.mocked(
+            FlowInteractionClientV2.prototype
+        );
+        const invalidPasswordError = new CustomAuthApiError(
+            "invalidGrant",
+            "The password is incorrect.",
+            correlationId
+        );
+        invalidPasswordError.innerErrorCode = "invalidUserNameOrPassword";
+
+        passwordFlowClient.submitSignInPassword
+            .mockRejectedValueOnce(invalidPasswordError)
             .mockResolvedValueOnce({
                 type: FLOW_COMPLETED_V2,
                 correlationId,
@@ -350,20 +358,38 @@ describe("existing-account sign-up states", () => {
                     account: { homeAccountId: "uid.utid" },
                 } as unknown as AuthenticationResult,
             });
-        const state = new ExistingAccountPasswordRequiredStateV2(
-            commonParameters
-        );
+        const state = new ExistingAccountPasswordRequiredStateV2({
+            ...commonParameters,
+            flowClient: passwordFlowClient,
+        });
 
         const failed = await state.submitPassword("wrong-password");
         const completed = await state.submitPassword("valid-password");
 
         expect(failed.isFailed()).toBe(true);
+        expect(failed.error?.isInvalidCredentials()).toBe(true);
         expect(completed.isState("completed")).toBe(true);
-        expect(flowClient.submitSignInPassword).toHaveBeenNthCalledWith(2, {
-            correlationId,
-            continuationState,
-            password: "valid-password",
-        });
-        expect(flowClient.submitSignUpAttributes).not.toHaveBeenCalled();
+        expect(passwordFlowClient.submitSignInPassword).toHaveBeenCalledTimes(
+            2
+        );
+        expect(passwordFlowClient.submitSignInPassword).toHaveBeenNthCalledWith(
+            1,
+            {
+                correlationId,
+                continuationState,
+                password: "wrong-password",
+            }
+        );
+        expect(passwordFlowClient.submitSignInPassword).toHaveBeenNthCalledWith(
+            2,
+            {
+                correlationId,
+                continuationState,
+                password: "valid-password",
+            }
+        );
+        expect(
+            passwordFlowClient.submitSignUpAttributes
+        ).not.toHaveBeenCalled();
     });
 });
