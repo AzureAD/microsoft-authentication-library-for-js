@@ -20,6 +20,7 @@ import {
     createClientConfigurationError,
     invokeAsync,
 } from "@azure/msal-common/browser";
+import { prepareCaeCacheRequest } from "./CaeCacheRequest.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { SilentRequest } from "./SilentRequest.js";
@@ -149,7 +150,7 @@ export async function initializeBaseRequest(
     const scopes = [...((request && request.scopes) || [])];
 
     const validatedRequest: BaseAuthRequest = {
-        ...request,
+        ...prepareCaeCacheRequest(request, config),
         correlationId: request.correlationId,
         authority,
         scopes,

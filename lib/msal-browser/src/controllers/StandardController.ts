@@ -101,6 +101,8 @@ import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 import { resolveSilentRequestPreparation } from "../request/SilentRequestHelpers.js";
+import { rejectCaeCacheExperiment } from "../request/CaeCacheRequest.js";
+import { getDiscoveredAuthority } from "../interaction_client/BaseInteractionClient.js";
 
 function preflightCheck(
     initialized: boolean,
@@ -1350,6 +1352,9 @@ export class StandardController implements IController {
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
+        if (this.config.experimental.enableCaeCachePartitioning) {
+            rejectCaeCacheExperiment(correlationId);
+        }
         this.logger.trace("acquireTokenByCode called", correlationId);
         const atbcMeasurement = this.performanceClient.startMeasurement(
             BrowserRootPerformanceEvents.AcquireTokenByCode,
@@ -1758,6 +1763,9 @@ export class StandardController implements IController {
             | PopupRequest
     ): Promise<void> {
         this.logger.verbose("hydrateCache called", result.correlationId);
+        if (this.config.experimental.enableCaeCachePartitioning) {
+            rejectCaeCacheExperiment(result.correlationId);
+        }
 
         // Account gets saved to browser storage regardless of native or not
         const accountEntity =
@@ -2364,19 +2372,27 @@ export class StandardController implements IController {
             );
             this.performanceClient.addFields({ deduped: false }, correlationId);
 
-            const activeRequest = invokeAsync(
-                this.acquireTokenSilentAsync.bind(this),
-                BrowserPerformanceEvents.AcquireTokenSilentAsync,
-                this.logger,
-                this.performanceClient,
-                correlationId
-            )(
-                {
-                    ...preparedRequest.request,
-                    correlationId,
-                },
-                preparedRequest.account
-            );
+            const acquire = (acquisitionRequest: SilentRequest) =>
+                invokeAsync(
+                    this.acquireTokenSilentAsync.bind(this),
+                    BrowserPerformanceEvents.AcquireTokenSilentAsync,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(
+                    {
+                        ...acquisitionRequest,
+                        correlationId,
+                    },
+                    preparedRequest.account
+                );
+            const activeRequest = preparedRequest.request.experimentalCaeCache
+                ? this.prepareCapabilitySilentRequest(
+                      preparedRequest.request,
+                      preparedRequest.account,
+                      correlationId
+                  ).then(acquire)
+                : acquire(preparedRequest.request);
             this.activeSilentTokenRequests.set(
                 preparedRequest.key,
                 activeRequest
@@ -2393,6 +2409,41 @@ export class StandardController implements IController {
             this.performanceClient.addFields({ deduped: true }, correlationId);
             return inProgressRequest;
         }
+    }
+
+    private async prepareCapabilitySilentRequest(
+        request: SilentRequest,
+        account: AccountInfo,
+        correlationId: string
+    ): Promise<SilentRequest> {
+        if (!request.experimentalCaeCache) {
+            return request;
+        }
+        const authority = await getDiscoveredAuthority(
+            this.config,
+            correlationId,
+            this.performanceClient,
+            this.browserStorage,
+            this.logger,
+            request.authority,
+            request.azureCloudOptions,
+            undefined,
+            account
+        );
+        const realm =
+            (await authority.resolveTenantId()) ||
+            account.tenantId.toLowerCase();
+        return this.browserStorage.prepareCapabilityAcquisition(
+            account,
+            {
+                ...request,
+                experimentalCaeCache: {
+                    ...request.experimentalCaeCache,
+                    realm,
+                },
+            },
+            correlationId
+        );
     }
 
     /**
@@ -2544,6 +2595,17 @@ export class StandardController implements IController {
 
         return result
             .then((response) => {
+                if (
+                    !this.browserStorage.isCapabilityAcquisitionCurrent(
+                        account,
+                        silentRequest
+                    )
+                ) {
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.caeTokenRequestInvalidated,
+                        request.correlationId
+                    );
+                }
                 this.eventHandler.emitEvent(
                     EventType.ACQUIRE_TOKEN_SUCCESS,
                     request.correlationId,

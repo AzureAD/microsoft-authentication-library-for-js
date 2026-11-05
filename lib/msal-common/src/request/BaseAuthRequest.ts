@@ -36,6 +36,22 @@ export type BaseAuthRequest = {
      */
     claims?: string;
     /**
+     * Resolved context for the unpublished CAE cache partition experiment.
+     * @internal
+     */
+    experimentalCaeCache?: {
+        capability: "ordinary" | "cp1";
+        hasChallenge: boolean;
+        /** Captured before silent acquisition; changes invalidate older AT writes. */
+        epoch?: string;
+        /** Captured before an interactive request whose returned account may be unknown. */
+        authorizationEpoch?: string;
+        /** Effective authority tenant used for both lookup and invalidation. */
+        realm?: string;
+        /** Normalized resource prefix shared by the requested scopes. */
+        resource?: string;
+    };
+    /**
      * A stringified claims object which will be added to a Signed HTTP Request
      */
     shrClaims?: string;

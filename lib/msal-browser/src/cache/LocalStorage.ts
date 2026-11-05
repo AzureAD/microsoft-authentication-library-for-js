@@ -371,6 +371,24 @@ export class LocalStorage implements IWindowStorage<string> {
         } else {
             this.removeItem(CacheKeys.getTokenKeysCacheKey(this.clientId));
         }
+        const capabilityKeys = getTokenKeys(
+            this.clientId,
+            this,
+            CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
+        );
+        capabilityKeys.accessToken = await this.importArray(
+            capabilityKeys.accessToken,
+            correlationId
+        );
+        const capabilityIndex = CacheKeys.getTokenKeysCacheKey(
+            this.clientId,
+            CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
+        );
+        if (capabilityKeys.accessToken.length) {
+            this.setItem(capabilityIndex, JSON.stringify(capabilityKeys));
+        } else {
+            this.removeItem(capabilityIndex);
+        }
     }
 
     /**

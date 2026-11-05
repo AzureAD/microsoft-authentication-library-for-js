@@ -166,6 +166,7 @@ export class BrowserAuthError extends AuthError {
 declare namespace BrowserAuthErrorCodes {
     export {
         pkceNotCreated,
+        caeTokenRequestInvalidated,
         earJwkEmpty,
         earJweEmpty,
         cryptoNonExistent,
@@ -274,13 +275,15 @@ declare namespace BrowserConfigurationAuthErrorCodes {
     export {
         storageNotSupported,
         stubbedPublicClientApplicationCalled,
-        inMemRedirectUnavailable
+        inMemRedirectUnavailable,
+        experimentalCaeCacheUnsupported
     }
 }
 export { BrowserConfigurationAuthErrorCodes }
 
 // @public
 export type BrowserExperimentalOptions = {
+    enableCaeCachePartitioning?: boolean;
     iframeTimeoutTelemetry?: boolean;
     allowPlatformBrokerWithDOM?: boolean;
 };
@@ -396,6 +399,9 @@ export type CacheOptions = {
     cacheLocation?: BrowserCacheLocation | string;
     cacheRetentionDays?: number;
 };
+
+// @public (undocumented)
+const caeTokenRequestInvalidated = "cae_token_request_invalidated";
 
 // @public
 function cancelPendingBridgeResponse(logger: Logger, correlationId: string): void;
@@ -543,6 +549,9 @@ export const EventType: {
 
 // @public (undocumented)
 export type EventType = (typeof EventType)[keyof typeof EventType];
+
+// @public (undocumented)
+const experimentalCaeCacheUnsupported = "experimental_cae_cache_unsupported";
 
 export { ExternalTokenResponse }
 

@@ -69,6 +69,54 @@ To faciliate efficient token acquisition while maintaining a good UX, MSAL cache
 
 > :bulb: The authorization code is only stored in memory and will be discarded after redeeming it for tokens.
 
+## Unpublished CAE cache experiment
+
+This branch contains a local, default-off experiment, enabled with
+`experimental.enableCaeCachePartitioning: true`. Memory, session and local
+storage are implemented. It is **not a released or product-qualified feature**.
+
+The experiment marks ordinary and CP1 access tokens separately while leaving
+account, ID-token and refresh-token ownership unchanged. It derives the token
+family from the effective outgoing capability: configured `clientCapabilities`
+take precedence over request `claims.access_token.xms_cc`. CP1-only requests can
+reuse their family; additional claims still require renewal. Challenge values do
+not create additional token families. Unmarked access tokens have unknown
+provenance and are not used by the experiment.
+
+Only the non-brokered AAD/EAR web Bearer path is implemented. OIDC, native
+brokers, nested app authentication, hybrid-code acquisition, token hydration/import, attribute tokens,
+resource overrides and extra request parameters are rejected with
+`experimental_cae_cache_unsupported`. Other capability sets are also rejected.
+Capability-marked access tokens use an AT-only version 4 index and key prefix.
+Account, ID-token, refresh-token and ordinary legacy entries remain on version 3;
+their authentication owner is unchanged. Old unmarked ATs are never relabeled
+with an assumed capability. Turning the option off on a fresh instance restores
+ordinary version 3 lookup; old binaries do not discover version 4 ATs through
+their token index. The existing localStorage encryption and expiration rules apply.
+
+An additional-claims silent request invalidates its account/tenant/resource/capability
+family before renewal, without clearing other resources, the other capability or shared authentication.
+An opaque generation in the same storage prevents older silent results from being
+returned or reused after that invalidation. Resource identity comes from the
+normalized scope prefix; requests mixing resource prefixes are rejected. Bare
+Graph scopes and their `https://graph.microsoft.com/` equivalents share a resource
+group.
+Generations do not form an append-only challenge
+cache: old entries are removed and delayed writes are discarded. Force-refresh
+without additional claims retains the normal refresh behavior.
+
+Tenant domains are resolved through OIDC discovery before silent generation capture;
+validated resolutions are cached per authority with the standard metadata lifetime,
+and GUID tenant IDs are normalized. Missing generation records never restore an earlier
+acquisition after logout. Interactive AAD/EAR requests capture their authorization
+lifetime before navigation and bind the returned account only if it is still current.
+
+Synthetic tests cover reload, encrypted storage, binary-reader compatibility,
+EAR decryption and controlled late responses across PCA instances. These are not
+real browser-process or live Entra guarantees. Concurrent interactive flows,
+actual resource-generated challenges, deployment rollback and product integration
+still require qualification before the experiment can be used in a product.
+
 ## Cache persistence during MSAL.js upgrades and rollbacks
 
 Occasionally MSAL.js needs to make changes to the shape of the cached artifacts to support new requirements, features or bug fixes. As often as possible these changes will be made in a backwards compatible way so as to ensure that when an application upgrades to a new version or rolls back to an older one the cache present in a user's browser can still be used. However, this is not always possible and you may end up in a state where multiple copies of the cache exist concurrently, one used by the current version of MSAL.js running and another that was written by the version used prior to the upgrade. This is done to allow applications to gracefully rollback, if needed. In the vast majority of upgrades, MSAL.js will migrate any existing cache into the new format for a seamless upgrade experience. In rare cases, such as the upgrade from v3 to v4, this may not be possible due to security or privacy requirements and this will always result in a major version bump. 

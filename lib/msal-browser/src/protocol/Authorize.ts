@@ -4,6 +4,10 @@
  */
 
 import {
+    prepareCaeCacheRequest,
+    rejectCaeCacheExperiment,
+} from "../request/CaeCacheRequest.js";
+import {
     Authority,
     AuthorizeProtocol,
     ClientConfigurationErrorCodes,
@@ -484,6 +488,9 @@ export async function handleResponsePlatformBroker(
     performanceClient: IPerformanceClient,
     platformAuthProvider?: IPlatformAuthHandler
 ): Promise<AuthenticationResult> {
+    if (config.experimental.enableCaeCachePartitioning) {
+        rejectCaeCacheExperiment(request.correlationId);
+    }
     logger.verbose(
         "Account id found, calling WAM for token",
         request.correlationId
@@ -624,7 +631,7 @@ export async function handleResponseCode(
  * @returns
  */
 export async function handleResponseEAR(
-    request: CommonAuthorizationUrlRequest,
+    originalRequest: CommonAuthorizationUrlRequest,
     response: AuthorizeResponse,
     apiId: ApiId,
     config: BrowserConfiguration,
@@ -636,6 +643,7 @@ export async function handleResponseEAR(
     performanceClient: IPerformanceClient,
     platformAuthProvider?: IPlatformAuthHandler
 ): Promise<AuthenticationResult> {
+    const request = prepareCaeCacheRequest(originalRequest, config);
     // Remove throttle if it exists
     ThrottlingUtils.removeThrottle(
         browserStorage,

@@ -1,5 +1,12 @@
 # MSAL.js errors
 
+### `cae_token_request_invalidated`
+
+A newer claims request or cache lifecycle change invalidated this experimental
+capability-token acquisition. Its result must not be sent to the resource.
+Retry against the current account and claims context. This error does not trigger
+an automatic iframe or interactive sign-in.
+
 ## Auth errors
 
 ### `unexpected_error`
@@ -20,7 +27,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 **Mitigation**:
 
-1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](./caching.md#cached-artifacts).
+1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](../lib/msal-browser/docs/caching.md#cached-artifacts).
 
 ### `cache_error_unknown`
 
@@ -1067,6 +1074,15 @@ const msalConfig = {
 -   A resource was found both directly in the `resource` parameter and in `extraQueryParameters` or `extraParameters`. Please only include the resource in one location. See the MCP documentation for [msal-browser](../lib/msal-browser/docs/mcp.md) or [msal-node](../lib/msal-node/docs/mcp.md).
 
 ## Browser configuration errors
+
+### `experimental_cae_cache_unsupported`
+
+-   The unpublished CAE cache experiment was used outside its supported local
+    test scope. It requires MSAL storage, AAD or EAR, web Bearer requests and only
+    ordinary or CP1 capabilities. OIDC, brokers, nested app auth,
+    hybrid-code acquisition, hydration/import and extended token inputs are not implemented. Disable
+    `experimental.enableCaeCachePartitioning` to restore the normal behavior.
+    See [the experiment's limits](../lib/msal-browser/docs/caching.md#unpublished-cae-cache-experiment).
 
 ### `storage_not_supported`
 

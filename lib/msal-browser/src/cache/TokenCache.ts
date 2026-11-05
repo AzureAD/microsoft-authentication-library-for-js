@@ -45,6 +45,7 @@ import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { BrowserCacheManager } from "./BrowserCacheManager.js";
 import { name, version } from "../packageMetadata.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
+import { rejectCaeCacheExperiment } from "../request/CaeCacheRequest.js";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -69,6 +70,9 @@ export async function loadExternalTokens(
     performanceClient: IPerformanceClient = new StubPerformanceClient()
 ): Promise<AuthenticationResult> {
     BrowserUtils.blockNonBrowserEnvironment();
+    if (config.experimental?.enableCaeCachePartitioning) {
+        rejectCaeCacheExperiment(request.correlationId || "");
+    }
 
     const browserConfig = buildConfiguration(config, true);
 

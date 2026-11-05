@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { rejectCaeCacheExperiment } from "../request/CaeCacheRequest.js";
 import {
     CommonAuthorizationUrlRequest,
     PerformanceCallbackFunction,
@@ -93,6 +94,11 @@ export class NestedAppAuthController implements IController {
     protected currentAccountContext: AccountContext | null;
 
     constructor(operatingContext: NestedAppOperatingContext) {
+        if (
+            operatingContext.getConfig().experimental.enableCaeCachePartitioning
+        ) {
+            rejectCaeCacheExperiment("");
+        }
         this.operatingContext = operatingContext;
         const proxy = this.operatingContext.getBridgeProxy();
         if (proxy !== undefined) {

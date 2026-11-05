@@ -99,7 +99,12 @@ export class SilentFlowClient {
     ): Promise<[AuthenticationResult, CacheOutcome]> {
         let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
 
-        if (request.forceRefresh || !StringUtils.isEmptyObj(request.claims)) {
+        if (
+            request.forceRefresh ||
+            (request.experimentalCaeCache
+                ? request.experimentalCaeCache.hasChallenge
+                : !StringUtils.isEmptyObj(request.claims))
+        ) {
             // Must refresh due to present force_refresh flag.
             this.setCacheOutcome(
                 CacheOutcome.FORCE_REFRESH_OR_CLAIMS,

@@ -111,6 +111,7 @@ export type AccessTokenEntity = CredentialEntity & {
     refreshOn?: string;
     tokenType?: AuthenticationScheme;
     resource?: string;
+    experimentalCaeEpoch?: string;
 };
 
 // @internal (undocumented)
@@ -487,6 +488,7 @@ export class Authority {
     regionDiscoveryMetadata: RegionDiscoveryMetadata;
     static replaceWithRegionalInformation(metadata: OpenIdConfigResponse, azureRegion: string, correlationId: string): OpenIdConfigResponse;
     resolveEndpointsAsync(): Promise<void>;
+    resolveTenantId(): Promise<string | undefined>;
     get selfSignedJwtAudience(): string;
     get tenant(): string;
     get tokenEndpoint(): string;
@@ -704,6 +706,14 @@ export type BaseAuthRequest = {
     scopes: Array<string>;
     authenticationScheme?: AuthenticationScheme;
     claims?: string;
+    experimentalCaeCache?: {
+        capability: "ordinary" | "cp1";
+        hasChallenge: boolean;
+        epoch?: string;
+        authorizationEpoch?: string;
+        realm?: string;
+        resource?: string;
+    };
     shrClaims?: string;
     shrNonce?: string;
     shrOptions?: ShrOptions;
@@ -849,10 +859,12 @@ export abstract class CacheManager implements ICacheManager {
     abstract getThrottlingCache(throttlingCacheKey: string, correlationId: string): ThrottlingEntity | null;
     abstract getTokenKeys(): TokenKeys;
     idTokenKeyMatchesFilter(inputKey: string, filter: CredentialFilter): boolean;
+    protected isAccessTokenWriteCurrent(_credential: AccessTokenEntity): boolean;
     isAppMetadataFOCI(environment: string, correlationId: string): boolean;
     protected isAuthorityMetadata(key: string): boolean;
     // (undocumented)
     protected performanceClient: IPerformanceClient;
+    prepareCapabilityTokenResponse(_token: AccessTokenEntity, _request: BaseAuthRequest): void;
     readAppMetadataFromCache(environment: string, correlationId: string): AppMetadataEntity | null;
     refreshTokenKeyMatchesFilter(inputKey: string, filter: CredentialFilter): boolean;
     removeAccessToken(key: string, correlationId: string): void;
