@@ -247,7 +247,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         try {
             cachedResult = await this.acquireTokensFromCache(
                 this.accountId,
-                nativeRequest
+                nativeRequest,
+                cacheLookupPolicy
             );
         } catch (e) {
             if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
@@ -421,12 +422,26 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * Fetches the tokens from the cache if un-expired
      * @param nativeAccountId
      * @param request
-     * @returns authenticationResult
+     * @param cacheLookupPolicy
+     * @returns Cached result, or undefined when child context or cache policy forbids the lookup.
      */
     protected async acquireTokensFromCache(
         nativeAccountId: string,
-        request: PlatformAuthRequest
-    ): Promise<AuthenticationResult> {
+        request: PlatformAuthRequest,
+        cacheLookupPolicy: CacheLookupPolicy = CacheLookupPolicy.Default
+    ): Promise<AuthenticationResult | undefined> {
+        if (
+            request.extraParameters?.child_client_id ||
+            cacheLookupPolicy === CacheLookupPolicy.RefreshTokenAndNetwork ||
+            cacheLookupPolicy === CacheLookupPolicy.Skip
+        ) {
+            this.logger.verbose(
+                "Native cache lookup bypassed for child context or cache policy",
+                this.correlationId
+            );
+            return undefined;
+        }
+
         if (!nativeAccountId) {
             this.logger.warning(
                 "NativeInteractionClient:acquireTokensFromCache - No nativeAccountId provided",
@@ -845,6 +860,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 storeInCache?.accessToken === false);
         if (shouldRemoveGeneratedDpopKey) {
             await this.resetGeneratedDpopRequestKey(request);
+        }
+
+        // Child responses must not clear or replace the parent's cache.
+        if (request.extraParameters?.child_client_id) {
+            return result;
         }
 
         await invokeAsync(

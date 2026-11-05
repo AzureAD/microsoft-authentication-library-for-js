@@ -24,6 +24,7 @@ import {
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { ApiId, CacheLookupPolicy } from "../../src/utils/BrowserConstants.js";
 import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
+import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient.js";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import {
     ID_TOKEN_CLAIMS,
@@ -249,22 +250,182 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ).mockReturnValue(testAccountEntity);
         });
 
-        it("Tokens found in cache", async () => {
+        it.each([
+            undefined,
+            CacheLookupPolicy.Default,
+            CacheLookupPolicy.AccessToken,
+            CacheLookupPolicy.AccessTokenAndRefreshToken,
+        ])(
+            "Tokens found in cache with policy %s",
+            async (cacheLookupPolicy) => {
+                const response =
+                    await platformAuthInteractionClient.acquireToken(
+                        { scopes: TEST_CONFIG.DEFAULT_SCOPES },
+                        cacheLookupPolicy
+                    );
+                expect(response.accessToken).toEqual(
+                    testAccessTokenEntity.secret
+                );
+                expect(response.idToken).toEqual(TEST_ID_TOKEN.secret);
+                expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+                expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+                expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+                expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
+                expect(response.scopes).toEqual(TEST_CONFIG.DEFAULT_SCOPES);
+                expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
+                expect(response.account).toEqual(TEST_ACCOUNT_INFO);
+                expect(response.tokenType).toEqual(
+                    Constants.AuthenticationScheme.BEARER
+                );
+                expect(response.fromCache).toBe(true);
+                expect(response.fromPlatformBroker).toBe(false);
+            }
+        );
+
+        it.each([
+            CacheLookupPolicy.RefreshTokenAndNetwork,
+            CacheLookupPolicy.Skip,
+        ])(
+            "bypasses a warm native cache with policy %s",
+            async (cacheLookupPolicy) => {
+                const acquireCachedToken = jest.spyOn(
+                    SilentCacheClient.prototype,
+                    "acquireToken"
+                );
+                const sendMessage = jest
+                    .spyOn(
+                        PlatformAuthExtensionHandler.prototype,
+                        "sendMessage"
+                    )
+                    .mockResolvedValue(MOCK_WAM_RESPONSE);
+
+                const result = await platformAuthInteractionClient.acquireToken(
+                    { scopes: TEST_CONFIG.DEFAULT_SCOPES },
+                    cacheLookupPolicy
+                );
+
+                expect(acquireCachedToken).not.toHaveBeenCalled();
+                expect(sendMessage).toHaveBeenCalledTimes(1);
+                expect(result.fromPlatformBroker).toBe(true);
+            }
+        );
+
+        it.each([
+            {
+                name: "embeddedClientId",
+                request: { embeddedClientId: "embedded-client" },
+            },
+            {
+                name: "legacy broker parameters",
+                request: {
+                    extraParameters: {
+                        brk_client_id: TEST_CONFIG.MSAL_CLIENT_ID,
+                        brk_redirect_uri: "https://localhost:30663/redirect",
+                        client_id: "embedded-client",
+                    },
+                },
+            },
+        ])("does not return parent tokens for $name", async ({ request }) => {
+            const acquireCachedToken = jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            );
+            const setAccount = jest.spyOn(browserCacheManager, "setAccount");
+            const removeAccountContext = jest.spyOn(
+                browserCacheManager,
+                "removeAccountContext"
+            );
+            const saveCacheRecord = jest.spyOn(
+                internalStorage,
+                "saveCacheRecord"
+            );
+            const sendMessage = jest
+                .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
+                .mockResolvedValue({
+                    ...MOCK_WAM_RESPONSE,
+                    access_token: "embedded-access-token",
+                    id_token: TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
+                });
+
             const response = await platformAuthInteractionClient.acquireToken({
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                redirectUri: "brk-parent://localhost:30662",
+                ...request,
             });
-            expect(response.accessToken).toEqual(testAccessTokenEntity.secret);
-            expect(response.idToken).toEqual(TEST_ID_TOKEN.secret);
-            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
-            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
-            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
-            expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
-            expect(response.scopes).toEqual(TEST_CONFIG.DEFAULT_SCOPES);
-            expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
-            expect(response.account).toEqual(TEST_ACCOUNT_INFO);
-            expect(response.tokenType).toEqual(
-                Constants.AuthenticationScheme.BEARER
+
+            expect(sendMessage).toHaveBeenCalledTimes(1);
+            expect(sendMessage).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    extraParameters: expect.objectContaining({
+                        child_client_id: "embedded-client",
+                    }),
+                })
             );
+            expect(response.accessToken).toBe("embedded-access-token");
+            expect(response.idToken).toBe(TEST_TOKENS.IDTOKEN_V2_NEWCLAIM);
+            expect(response.idToken).not.toBe(TEST_ID_TOKEN.secret);
+            expect(response.fromPlatformBroker).toBe(true);
+            expect(acquireCachedToken).not.toHaveBeenCalled();
+            expect(setAccount).not.toHaveBeenCalled();
+            expect(removeAccountContext).not.toHaveBeenCalled();
+            expect(saveCacheRecord).not.toHaveBeenCalled();
+        });
+
+        it.each(Object.values(CacheLookupPolicy))(
+            "calls WAM instead of reading the parent cache for a child request with policy %s",
+            async (cacheLookupPolicy) => {
+                const acquireCachedToken = jest.spyOn(
+                    SilentCacheClient.prototype,
+                    "acquireToken"
+                );
+                const sendMessage = jest
+                    .spyOn(
+                        PlatformAuthExtensionHandler.prototype,
+                        "sendMessage"
+                    )
+                    .mockResolvedValue({
+                        ...MOCK_WAM_RESPONSE,
+                        access_token: "embedded-access-token",
+                        id_token: TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
+                    });
+
+                const response =
+                    await platformAuthInteractionClient.acquireToken(
+                        {
+                            scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                            embeddedClientId: "embedded-client",
+                        },
+                        cacheLookupPolicy
+                    );
+
+                expect(acquireCachedToken).not.toHaveBeenCalled();
+                expect(sendMessage).toHaveBeenCalledTimes(1);
+                expect(response.accessToken).toBe("embedded-access-token");
+                expect(response.idToken).toBe(TEST_TOKENS.IDTOKEN_V2_NEWCLAIM);
+                expect(response.fromPlatformBroker).toBe(true);
+            }
+        );
+
+        it("preserves a parent cache-only request's cache error without calling WAM", async () => {
+            const cacheError = new Error("Cache read failed");
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockRejectedValue(cacheError);
+            const sendMessage = jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            );
+
+            await expect(
+                platformAuthInteractionClient.acquireToken(
+                    {
+                        scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    },
+                    CacheLookupPolicy.AccessToken
+                )
+            ).rejects.toBe(cacheError);
+            expect(sendMessage).not.toHaveBeenCalled();
         });
 
         it("removes a generated DPoP key when cache-only acquisition misses", async () => {
@@ -301,6 +462,68 @@ describe("PlatformAuthInteractionClient Tests", () => {
     });
 
     describe("acquireToken Tests", () => {
+        it("keeps parent and child tokens isolated with real SDK caches", async () => {
+            const childResponse: PlatformAuthResponse = {
+                ...MOCK_WAM_RESPONSE,
+                access_token: "embedded-access-token",
+                id_token: TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
+                account: {
+                    ...MOCK_WAM_RESPONSE.account,
+                    id: "embedded-native-account-id",
+                },
+            };
+            const sendMessage = jest
+                .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
+                .mockResolvedValueOnce(MOCK_WAM_RESPONSE)
+                .mockResolvedValueOnce(childResponse);
+            const parentRequest = { scopes: ["User.Read"] };
+
+            const parent = await platformAuthInteractionClient.acquireToken(
+                parentRequest
+            );
+            const cachedParent =
+                await platformAuthInteractionClient.acquireToken(parentRequest);
+            expect(cachedParent.accessToken).toBe(parent.accessToken);
+            expect(cachedParent.idToken).toBe(parent.idToken);
+            expect(cachedParent.fromCache).toBe(true);
+            expect(sendMessage).toHaveBeenCalledTimes(1);
+
+            const child = await platformAuthInteractionClient.acquireToken({
+                ...parentRequest,
+                embeddedClientId: "embedded-client",
+                storeInCache: { idToken: false, accessToken: false },
+            });
+            expect({
+                accessTokenMatchesParent:
+                    child.accessToken === parent.accessToken,
+                idTokenMatchesParent: child.idToken === parent.idToken,
+                brokerCalls: sendMessage.mock.calls.length,
+            }).toEqual({
+                accessTokenMatchesParent: false,
+                idTokenMatchesParent: false,
+                brokerCalls: 2,
+            });
+            expect(child.accessToken).toBe(childResponse.access_token);
+            expect(child.idToken).toBe(childResponse.id_token);
+            expect(child.fromPlatformBroker).toBe(true);
+            expect(sendMessage).toHaveBeenCalledTimes(2);
+            expect(sendMessage.mock.calls[1][0].extraParameters).toEqual(
+                expect.objectContaining({
+                    child_client_id: "embedded-client",
+                })
+            );
+
+            const retainedParent =
+                await platformAuthInteractionClient.acquireToken(parentRequest);
+            expect(retainedParent.accessToken).toBe(parent.accessToken);
+            expect(retainedParent.idToken).toBe(parent.idToken);
+            expect(retainedParent.account?.nativeAccountId).toBe(
+                parent.account?.nativeAccountId
+            );
+            expect(retainedParent.fromCache).toBe(true);
+            expect(sendMessage).toHaveBeenCalledTimes(2);
+        });
+
         it("Extension: acquires token successfully", async () => {
             const addFieldsSpy = jest.spyOn(perfClient, "addFields");
             jest.spyOn(

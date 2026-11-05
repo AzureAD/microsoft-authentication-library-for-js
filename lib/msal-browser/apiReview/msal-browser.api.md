@@ -1076,7 +1076,9 @@ const SsoCapable = "ssoCapable";
 const SsoSilent = "ssoSilent";
 
 // @public
-export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">>;
+export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
+    cacheLookupPolicy?: CacheLookupPolicy;
+};
 
 // @public (undocumented)
 const stateInteractionTypeMismatch = "state_interaction_type_mismatch";

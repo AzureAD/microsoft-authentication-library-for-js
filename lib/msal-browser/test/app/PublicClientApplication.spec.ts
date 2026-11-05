@@ -4684,10 +4684,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.ssoSilent({
                 scopes: ["User.Read"],
                 account: testAccount,
+                cacheLookupPolicy: CacheLookupPolicy.RefreshTokenAndNetwork,
             });
 
             expect(response).toEqual(testTokenResponse);
             expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
+            expect(nativeAcquireTokenSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    cacheLookupPolicy: CacheLookupPolicy.RefreshTokenAndNetwork,
+                }),
+                CacheLookupPolicy.RefreshTokenAndNetwork
+            );
             expect(silentSpy).toHaveBeenCalledTimes(0);
         });
 
