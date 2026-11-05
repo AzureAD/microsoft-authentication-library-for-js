@@ -295,6 +295,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
         ])("bypasses a warm native cache for API %s", async (apiId) => {
             // @ts-ignore
             platformAuthInteractionClient.apiId = apiId;
+            const cacheLookup = jest.spyOn(
+                platformAuthInteractionClient,
+                // @ts-ignore
+                "acquireTokensFromCache"
+            );
             const acquireCachedToken = jest.spyOn(
                 SilentCacheClient.prototype,
                 "acquireToken"
@@ -307,6 +312,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
             });
 
+            expect(cacheLookup).not.toHaveBeenCalled();
             expect(acquireCachedToken).not.toHaveBeenCalled();
             expect(sendMessage).toHaveBeenCalledTimes(1);
             expect(result.accessToken).toBe(MOCK_WAM_RESPONSE.access_token);
