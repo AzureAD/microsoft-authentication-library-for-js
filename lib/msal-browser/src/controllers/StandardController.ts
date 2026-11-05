@@ -1266,8 +1266,7 @@ export class StandardController implements IController {
             });
             result = this.acquireTokenNative(
                 validRequest,
-                ApiId.ssoSilent,
-                this.getNativeAccountId(validRequest)
+                ApiId.ssoSilent
             ).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {

@@ -4709,13 +4709,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(response).toEqual(testTokenResponse);
                 expect(acquireTokenNativeSpy).toHaveBeenCalledWith(
                     expect.objectContaining(request),
-                    ApiId.ssoSilent,
-                    testAccount.nativeAccountId
+                    ApiId.ssoSilent
                 );
                 expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
                 expect(nativeAcquireTokenSpy).toHaveBeenCalledWith(
                     expect.objectContaining(request),
                     undefined
+                );
+                expect(nativeAcquireTokenSpy.mock.contexts[0]).toEqual(
+                    expect.objectContaining({
+                        accountId: testAccount.nativeAccountId,
+                    })
                 );
                 expect(silentSpy).toHaveBeenCalledTimes(0);
             }
