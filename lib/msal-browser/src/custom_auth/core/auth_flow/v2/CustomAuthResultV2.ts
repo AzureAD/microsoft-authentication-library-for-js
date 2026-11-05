@@ -18,8 +18,8 @@ type CreateWithErrorOptions = {
 };
 
 /**
- * Result of a native auth V2 operation. Use {@link CustomAuthResultV2.isState}
- * to narrow the state before accessing its members.
+ * Result of a native auth V2 operation.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class CustomAuthResultV2<
     TState extends AuthFlowStateBase,
@@ -34,8 +34,7 @@ export class CustomAuthResultV2<
     error?: AuthFlowErrorV2;
 
     /**
-     * Narrows the result to a specific state by its `stateType` discriminator.
-     * A successful match makes the state's properties available without a cast.
+     * Checks whether the result matches a state type and narrows its state.
      * @param stateType - The state type to test for.
      * @returns True (and narrows `state`) when the current state matches `stateType`.
      */
@@ -46,8 +45,7 @@ export class CustomAuthResultV2<
     }
 
     /**
-     * Checks whether the result is in the terminal failed state. A failed result
-     * contains the unified V2 flow error.
+     * Checks whether the operation failed.
      * @returns True (and narrows `state`) when the operation failed.
      */
     isFailed(): this is this & {
@@ -57,8 +55,7 @@ export class CustomAuthResultV2<
     }
 
     /**
-     * Creates a failed result from the supplied error. The result uses the
-     * shared {@link FailedStateV2} terminal state and unified V2 flow error.
+     * Creates a failed result from the supplied error.
      * @param error - The error that occurred.
      * @param options - The flow-error context.
      * @returns A failed result carrying the unified V2 flow error.

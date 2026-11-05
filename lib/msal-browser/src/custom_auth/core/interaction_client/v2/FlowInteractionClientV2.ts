@@ -106,10 +106,6 @@ import type { AuthMethodRegistrationRequestV2 } from "../../network_client/custo
 import { InvalidArgumentError } from "../../error/InvalidArgumentError.js";
 import type { ResetPasswordPollResultV2 } from "../../network_client/custom_auth_api/v2/result/ResetPasswordResultsV2.js";
 
-/*
- * Polls up to five times for password-update completion, waiting 1.5 seconds
- * between attempts. The first request runs immediately.
- */
 const POLL_MAX_ATTEMPTS = 5;
 // TODO: Replace this fallback with the server-provided polling interval once available.
 const POLL_INTERVAL_MS = 1500;
@@ -118,8 +114,7 @@ const delay = (ms: number): Promise<void> =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
 /*
- * Drives server-directed Native Auth V2 flows using opaque continuation state
- * and HAL links. Each operation returns only its valid discriminated results.
+ * Drives server-directed Native Auth V2 flows.
  */
 export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     constructor(
@@ -146,8 +141,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Starts sign-in by automatically using a sole supported method or returning
-     * multiple supported methods for user selection.
+     * Starts native auth V2 sign-in.
      */
     async signIn(
         parameters: FlowSignInStartParamsV2
@@ -155,9 +149,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         | FlowMethodSelectionRequiredResultV2
         | FlowPasswordRequiredResultV2
         | FlowSignInCodeRequiredResultV2
-        | FlowMFARequiredResultV2
-        | FlowAuthMethodRegistrationRequiredResultV2
-        | FlowCompletedResultV2
     > {
         const correlationId = parameters.correlationId;
         const context = this.createRequestContext(
@@ -237,19 +228,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             };
         }
 
-        if (parameters.password) {
-            return this.submitSignInPassword({
-                correlationId,
-                continuationState: challengeResult.continuationState,
-                password: parameters.password,
-            });
-        }
-
         return challengeResult;
     }
 
     /*
-     * Starts sign-up and resolves the server-provided attribute-submission transition.
+     * Starts native auth V2 sign-up.
      */
     async signUp(
         parameters: FlowSignUpStartParamsV2
@@ -335,8 +318,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Starts password reset, automatically challenging a sole method or
-     * returning multiple methods for selection.
+     * Starts native auth V2 password reset.
      */
     async resetPassword(
         parameters: FlowStartParamsV2
@@ -454,8 +436,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Requests a one-time code for the selected authentication method. Returns
-     * the continuation state and code metadata needed for verification.
+     * Requests a challenge for the selected authentication method.
      */
     async requestChallenge(
         parameters: FlowChallengeParamsV2
@@ -503,7 +484,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Registers the selected offered method and returns activation metadata.
+     * Registers the selected authentication method.
      */
     async registerAuthMethod(
         parameters: FlowRegisterAuthMethodParamsV2
@@ -545,8 +526,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Activates the registered method and redeems the resulting continuation
-     * for tokens.
+     * Activates the registered authentication method and signs the user in.
      */
     async verifyAuthMethodRegistration(
         parameters: FlowVerifyAuthMethodRegistrationParamsV2
@@ -578,8 +558,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Requests a replacement activation challenge through the server-provided
-     * resend link using the latest continuation token.
+     * Requests a replacement authentication-method activation challenge.
      */
     async resendAuthMethodRegistrationChallenge(
         parameters: FlowChallengeParamsV2
@@ -610,8 +589,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Verifies the submitted one-time code using the server-provided link. The
-     * response determines the next required action.
+     * Verifies the submitted one-time code.
      */
     async submitCode(
         parameters: FlowSubmitCodeParamsV2
@@ -687,8 +665,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Requests a new one-time code using the server-provided resend link.
-     * Returns refreshed continuation state and code metadata.
+     * Requests a replacement one-time code.
      */
     async resendCode(
         parameters: FlowChallengeParamsV2
@@ -755,8 +732,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Submits the new password and polls until the reset completes. The result
-     * contains the continuation state required for explicit sign-in.
+     * Submits the new password and polls for reset completion.
      */
     async submitNewPassword(
         parameters: FlowSubmitNewPasswordParamsV2
@@ -865,7 +841,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Verifies a sign-in password and returns the next sign-in action.
+     * Verifies the sign-in password.
      */
     async submitSignInPassword(
         parameters: FlowSubmitSignInPasswordParamsV2
@@ -884,8 +860,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Redeems the completed flow continuation for tokens. Returns the
-     * authentication result after validating and caching the response.
+     * Signs the user in from a completed flow.
      */
     async signInWithContinuation(
         parameters: FlowSignInWithContinuationParamsV2

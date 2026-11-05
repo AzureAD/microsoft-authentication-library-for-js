@@ -9,20 +9,11 @@ import { FlowContinuationStateV2 } from "../FlowContinuationStateV2.js";
 import { SignUpAttributeV2 } from "../../../network_client/custom_auth_api/v2/result/SignUpResultsV2.js";
 import { AuthenticationMethodRegistrationV2 } from "../../../auth_flow/v2/AuthenticationMethodRegistrationV2.js";
 
-/*
- * Unified outcome envelope returned by V2 interaction-client actions. The L1
- * state layer maps each outcome to its corresponding public state.
- */
-
 interface FlowActionResultBaseV2 {
     type: string;
     correlationId: string;
 }
 
-/*
- * Authentication methods available for user selection. The continuation state
- * is used when requesting a challenge for the selected method.
- */
 export interface FlowMethodSelectionRequiredResultV2
     extends FlowActionResultBaseV2 {
     type: typeof FLOW_METHOD_SELECTION_REQUIRED_V2;
@@ -30,10 +21,6 @@ export interface FlowMethodSelectionRequiredResultV2
     methods: AuthenticationMethodV2[];
 }
 
-/*
- * A one-time code was sent and must be submitted next. `continuationState` carries the token and
- * the `verify`/`resend` hrefs; the remaining fields are display metadata for the app's prompt.
- */
 export interface FlowCodeRequiredResultV2 extends FlowActionResultBaseV2 {
     type: typeof FLOW_CODE_REQUIRED_V2;
     continuationState: FlowContinuationStateV2;
@@ -52,13 +39,11 @@ export interface FlowResetPasswordCodeRequiredResultV2
     method: AuthenticationMethodV2;
 }
 
-// The user's existing password must be submitted next for sign-in.
 export interface FlowPasswordRequiredResultV2 extends FlowActionResultBaseV2 {
     type: typeof FLOW_PASSWORD_REQUIRED_V2;
     continuationState: FlowContinuationStateV2;
 }
 
-// Derived from a sign-up `collectAttributes` response containing a required password.
 export interface FlowSignUpPasswordRequiredResultV2
     extends FlowActionResultBaseV2 {
     type: typeof FLOW_SIGN_UP_PASSWORD_REQUIRED_V2;
@@ -67,14 +52,12 @@ export interface FlowSignUpPasswordRequiredResultV2
     requiredPasswordAttribute: SignUpAttributeV2;
 }
 
-// A registered MFA method must be selected to continue sign-in.
 export interface FlowMFARequiredResultV2 extends FlowActionResultBaseV2 {
     type: typeof FLOW_MFA_REQUIRED_V2;
     continuationState: FlowContinuationStateV2;
     methods: AuthenticationMethodV2[];
 }
 
-// A new password must be submitted next for password reset.
 export interface FlowNewPasswordRequiredResultV2
     extends FlowActionResultBaseV2 {
     type: typeof FLOW_NEW_PASSWORD_REQUIRED_V2;
@@ -87,17 +70,12 @@ export interface FlowAttributesRequiredResultV2 extends FlowActionResultBaseV2 {
     attributes: SignUpAttributeV2[];
 }
 
-/*
- * A flow completed without automatically signing the account in. `continuationState`
- * carries the token to redeem for tokens.
- */
 export interface FlowSignInContinuationRequiredResultV2
     extends FlowActionResultBaseV2 {
     type: typeof FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2;
     continuationState: FlowContinuationStateV2;
 }
 
-// The flow completed and the account is signed in.
 export interface FlowCompletedResultV2 extends FlowActionResultBaseV2 {
     type: typeof FLOW_COMPLETED_V2;
     authenticationResult: AuthenticationResult;
@@ -134,7 +112,6 @@ export type FlowSignUpActionResultV2 =
     | FlowAuthMethodRegistrationRequiredResultV2
     | FlowSignInContinuationRequiredResultV2;
 
-// Result type discriminators.
 export const FLOW_METHOD_SELECTION_REQUIRED_V2 =
     "FlowMethodSelectionRequiredResultV2";
 export const FLOW_CODE_REQUIRED_V2 = "FlowCodeRequiredResultV2";

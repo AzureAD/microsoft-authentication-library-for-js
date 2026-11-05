@@ -426,7 +426,7 @@ describe("FlowInteractionClientV2", () => {
     });
 
     describe("signIn", () => {
-        it("automatically selects the sole supported password method", async () => {
+        it("selects the sole supported password method without submitting a legacy upfront password", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
                 signInHref: "https://endpoint/sign-in",
@@ -454,12 +454,14 @@ describe("FlowInteractionClientV2", () => {
                 type: "password",
             });
 
-            const result = await client.signIn({
+            const inputs = {
                 correlationId,
                 username: "user@contoso.com",
+                password: "legacy-password",
                 scopes: ["User.Read"],
                 claims: '{"access_token":{"acrs":{"value":"c4"}}}',
-            });
+            };
+            const result = await client.signIn(inputs);
 
             expect(apiClient.authorizeChallengeStart).toHaveBeenCalledWith(
                 expect.objectContaining({ correlationId }),
@@ -480,6 +482,7 @@ describe("FlowInteractionClientV2", () => {
                 expect.objectContaining({ correlationId })
             );
             expect(result.type).toBe(FLOW_PASSWORD_REQUIRED_V2);
+            expect(apiClient.verifyChallenge).not.toHaveBeenCalled();
 
             const passwordRequired = result as FlowPasswordRequiredResultV2;
             expect(passwordRequired.continuationState).toEqual({
@@ -600,11 +603,12 @@ describe("FlowInteractionClientV2", () => {
                 ],
             });
 
-            const result = await client.signIn({
+            const inputs = {
                 correlationId,
                 username: "user@contoso.com",
                 password: "initial-password",
-            });
+            };
+            const result = await client.signIn(inputs);
 
             expect(result.type).toBe(FLOW_METHOD_SELECTION_REQUIRED_V2);
             expect(apiClient.requestChallenge).not.toHaveBeenCalled();
@@ -644,11 +648,12 @@ describe("FlowInteractionClientV2", () => {
                 type: "email",
             });
 
-            const result = await client.signIn({
+            const inputs = {
                 correlationId,
                 username: "user@contoso.com",
                 password: "valid-password",
-            });
+            };
+            const result = await client.signIn(inputs);
 
             expect(apiClient.requestChallenge).toHaveBeenCalledWith(
                 "https://endpoint/email/challenge",
@@ -720,7 +725,7 @@ describe("FlowInteractionClientV2", () => {
             expect(apiClient.requestChallenge).not.toHaveBeenCalled();
         });
 
-        it("returns MFA-required after automatically submitting a password", async () => {
+        it("returns MFA-required after explicitly submitting the requested password", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
                 signInHref: "https://endpoint/sign-in",
@@ -756,11 +761,20 @@ describe("FlowInteractionClientV2", () => {
                 ],
             });
 
-            const result = await client.signIn({
+            const startResult = await client.signIn({
                 correlationId,
                 username: "user@contoso.com",
-                password: "valid-password",
                 scopes: ["User.Read"],
+            });
+
+            expect(apiClient.verifyChallenge).not.toHaveBeenCalled();
+            if (startResult.type !== FLOW_PASSWORD_REQUIRED_V2) {
+                throw new Error("Expected a password-required result.");
+            }
+            const result = await client.submitSignInPassword({
+                correlationId,
+                continuationState: startResult.continuationState,
+                password: "valid-password",
             });
 
             expect(result.type).toBe(FLOW_MFA_REQUIRED_V2);
@@ -818,9 +832,16 @@ describe("FlowInteractionClientV2", () => {
                 ],
             });
 
-            const result = await client.signIn({
+            const startResult = await client.signIn({
                 correlationId,
                 username: "user@contoso.com",
+            });
+            if (startResult.type !== FLOW_PASSWORD_REQUIRED_V2) {
+                throw new Error("Expected a password-required result.");
+            }
+            const result = await client.submitSignInPassword({
+                correlationId,
+                continuationState: startResult.continuationState,
                 password: "valid-password",
             });
 
