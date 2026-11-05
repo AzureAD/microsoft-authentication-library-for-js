@@ -659,6 +659,9 @@ export class NestedAppAuthController implements IController {
     async acquireTokenSilent(
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
+        if (silentRequest.invalidateAccessTokenCache) {
+            rejectCaeCacheExperiment(silentRequest.correlationId || "");
+        }
         return this.acquireTokenSilentInternal(silentRequest);
     }
 

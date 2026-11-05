@@ -130,6 +130,23 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             expect(pca.getActiveAccount()).toBeNull();
             done();
         });
+
+        it("rejects explicit invalidation in NAA even when the experiment is disabled", async () => {
+            const cacheLookup = jest.spyOn(
+                CacheManager.prototype,
+                "getAccessToken"
+            );
+            await expect(
+                pca.acquireTokenSilent({
+                    scopes: [NAA_SCOPE],
+                    invalidateAccessTokenCache: true,
+                    correlationId: NAA_CORRELATION_ID,
+                })
+            ).rejects.toMatchObject({
+                errorCode: "experimental_cae_cache_unsupported",
+            });
+            expect(cacheLookup).not.toHaveBeenCalled();
+        });
     });
 
     describe("acquireTokenInteractive tests", () => {
