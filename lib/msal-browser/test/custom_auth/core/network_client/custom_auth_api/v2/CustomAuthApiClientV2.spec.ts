@@ -10,8 +10,8 @@ import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error
 import {
     CONTINUATION_TOKEN_MISSING,
     INVALID_HAL_RESPONSE,
-    NO_AUTHENTICATION_METHODS,
     UNEXPECTED_AUTHENTICATION_FACTOR,
+    NO_AUTHENTICATION_METHODS,
 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { HttpMethod } from "../../../../../../src/custom_auth/core/network_client/http_client/IHttpClient.js";
 import type { PollResponseV2 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/response/ResponsesV2.js";
@@ -427,36 +427,28 @@ describe("CustomAuthApiClientV2", () => {
     });
 
     describe("signUpStart", () => {
-        it("sends only the continuation token and returns the submit-attributes data", async () => {
+        const startResponse = {
+            continuationToken: "ct-start",
+            state: "interactionRequired",
+            action: "verify",
+            id: "email-1",
+            type: "email",
+            hint: "u***@contoso.com",
+            codeLength: 8,
+            _links: {
+                verify: { href: "/tenant/api/v0.1/email/verify" },
+                resend: { href: "/tenant/api/v0.1/email/resend" },
+                self: { href: "/tenant/api/v0.1/email/verify" },
+            },
+        };
+
+        it("sends the continuation token and username and returns the email challenge", async () => {
             const request = {
                 continuationToken: "ct-entry",
+                username: "user@contoso.com",
             };
             mockHttpClient.sendAsync.mockResolvedValueOnce(
-                buildResponse({
-                    continuationToken: "ct-start",
-                    state: "interactionRequired",
-                    action: "collectAttributes",
-                    attributes: [
-                        {
-                            attributeId: "email",
-                            inputType: "text",
-                            required: true,
-                            canChange: true,
-                            label: "Email Address",
-                            regex: "^.*",
-                        },
-                    ],
-                    _links: {
-                        submitAttributes: {
-                            href: "/tenant/api/v0.1/signup/submitattributes",
-                            name: "submitAttributes",
-                        },
-                        self: {
-                            href: "/tenant/api/v0.1/signup/submitattributes",
-                            name: "self",
-                        },
-                    },
-                })
+                buildResponse(startResponse)
             );
 
             const result = await apiClient.signUpStart(
@@ -466,19 +458,13 @@ describe("CustomAuthApiClientV2", () => {
             );
 
             expect(result).toEqual({
+                nextAction: "verify",
                 continuationToken: "ct-start",
-                submitAttributesHref:
-                    "/tenant/api/v0.1/signup/submitattributes",
-                attributes: [
-                    {
-                        attributeId: "email",
-                        inputType: "text",
-                        required: true,
-                        canChange: true,
-                        label: "Email Address",
-                        regex: "^.*",
-                    },
-                ],
+                verifyHref: "/tenant/api/v0.1/email/verify",
+                resendHref: "/tenant/api/v0.1/email/resend",
+                type: "email",
+                hint: "u***@contoso.com",
+                codeLength: 8,
             });
 
             const [startUrl, options] = mockHttpClient.sendAsync.mock.calls[0];
@@ -488,39 +474,528 @@ describe("CustomAuthApiClientV2", () => {
             expect(JSON.parse(options.body)).toEqual(request);
         });
 
-        it("allows the attributes metadata to be omitted", async () => {
+        it.each(["EMAIL", "eMaIl"])(
+            "accepts a case-insensitive %s challenge type",
+            async (type) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({ ...startResponse, type })
+                );
+
+                await expect(
+                    apiClient.signUpStart(
+                        "/tenant/api/v0.1/signup/start",
+                        {
+                            continuationToken: "ct-entry",
+                            username: "user@contoso.com",
+                        },
+                        context
+                    )
+                ).resolves.toMatchObject({
+                    nextAction: "verify",
+                    type,
+                });
+            }
+        );
+
+        it("allows sign-up verification without a resend link", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
-                    continuationToken: "ct-start",
-                    state: "interactionRequired",
-                    action: "collectAttributes",
-                    _links: {
-                        submitAttributes: {
-                            href: "/tenant/api/v0.1/signup/submitattributes",
+                    ...startResponse,
+                    _links: { verify: startResponse._links.verify },
+                })
+            );
+
+            await expect(
+                apiClient.signUpStart(
+                    "/tenant/api/v0.1/signup/start",
+                    {
+                        continuationToken: "ct-entry",
+                        username: "user@contoso.com",
+                    },
+                    context
+                )
+            ).resolves.toMatchObject({
+                nextAction: "verify",
+                verifyHref: startResponse._links.verify.href,
+                resendHref: undefined,
+            });
+        });
+
+        it("allows zero code-length metadata in the start response", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({ ...startResponse, codeLength: 0 })
+            );
+
+            await expect(
+                apiClient.signUpStart(
+                    "/tenant/api/v0.1/signup/start",
+                    {
+                        continuationToken: "ct-entry",
+                        username: "user@contoso.com",
+                    },
+                    context
+                )
+            ).resolves.toMatchObject({
+                nextAction: "verify",
+                codeLength: 0,
+            });
+        });
+
+        it.each([
+            ["email", "/tenant/api/v0.1/email/challenge"],
+            ["password", "/tenant/api/v0.1/password/challenge"],
+        ])(
+            "returns an existing-account %s challenge from signup/start",
+            async (type, challengeHref) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-existing",
+                        state: "interactionRequired",
+                        action: "challenge",
+                        challengeContext: {
+                            authenticationFactor: "singleFactor",
                         },
+                        _embedded: {
+                            methods: [
+                                {
+                                    id: `${type}-1`,
+                                    type,
+                                    _links: {
+                                        challenge: { href: challengeHref },
+                                    },
+                                },
+                            ],
+                        },
+                    })
+                );
+
+                await expect(
+                    apiClient.signUpStart(
+                        "/tenant/api/v0.1/signup/start",
+                        {
+                            continuationToken: "ct-entry",
+                            username: "existing@contoso.com",
+                        },
+                        context
+                    )
+                ).resolves.toEqual({
+                    nextAction: "challenge",
+                    continuationToken: "ct-existing",
+                    authenticationFactor: "singleFactor",
+                    methods: [
+                        {
+                            id: `${type}-1`,
+                            type,
+                            challengeHref,
+                        },
+                    ],
+                });
+            }
+        );
+
+        it("normalizes the same challenge response identically for sign-in and existing-account sign-up", async () => {
+            const response = {
+                continuationToken: "ct-existing",
+                state: "interactionRequired",
+                action: "challenge",
+                challengeContext: { authenticationFactor: "singleFactor" },
+                _embedded: {
+                    methods: ["email", "password"].map((type) => ({
+                        id: `${type}-1`,
+                        type,
+                        _links: {
+                            challenge: { href: `/${type}/challenge` },
+                            verify: { href: `/${type}/verify` },
+                        },
+                    })),
+                },
+            };
+            mockHttpClient.sendAsync
+                .mockResolvedValueOnce(buildResponse(response))
+                .mockResolvedValueOnce(buildResponse(response));
+
+            const signInResult = await apiClient.signInStart(
+                "/tenant/api/v0.1/signin/start",
+                {
+                    continuationToken: "ct-entry",
+                    username: "existing@contoso.com",
+                },
+                context
+            );
+            const signUpResult = await apiClient.signUpStart(
+                "/tenant/api/v0.1/signup/start",
+                {
+                    continuationToken: "ct-entry",
+                    username: "existing@contoso.com",
+                },
+                context
+            );
+
+            expect(signUpResult).toEqual({
+                ...signInResult,
+                nextAction: "challenge",
+            });
+        });
+
+        it.each([
+            {
+                label: "state",
+                state: undefined,
+                id: "email-1",
+                expectedId: "email-1",
+            },
+            {
+                label: "method id",
+                state: "interactionRequired",
+                id: undefined,
+                expectedId: "email",
+            },
+        ])(
+            "accepts a challenge without a $label using shared method resolution",
+            async ({ state, id, expectedId }) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        ...startResponse,
+                        state,
+                        action: "challenge",
+                        challengeContext: {
+                            authenticationFactor: "singleFactor",
+                        },
+                        _embedded: {
+                            methods: [
+                                {
+                                    id,
+                                    type: "email",
+                                    _links: {
+                                        challenge: { href: "/email/challenge" },
+                                    },
+                                },
+                            ],
+                        },
+                    })
+                );
+
+                await expect(
+                    apiClient.signUpStart(
+                        "/tenant/api/v0.1/signup/start",
+                        {
+                            continuationToken: "ct-entry",
+                            username: "existing@contoso.com",
+                        },
+                        context
+                    )
+                ).resolves.toMatchObject({
+                    nextAction: "challenge",
+                    methods: [
+                        {
+                            id: expectedId,
+                            type: "email",
+                            challengeHref: "/email/challenge",
+                        },
+                    ],
+                });
+            }
+        );
+
+        it.each([
+            [
+                "invalid authentication factor",
+                {
+                    continuationToken: "ct-existing",
+                    state: "interactionRequired",
+                    action: "challenge",
+                    challengeContext: {
+                        authenticationFactor: "unknown",
+                    },
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "email-1",
+                                type: "email",
+                                _links: {
+                                    challenge: { href: "/email/challenge" },
+                                },
+                            },
+                        ],
+                    },
+                },
+            ],
+            [
+                "missing challenge link",
+                {
+                    continuationToken: "ct-existing",
+                    state: "interactionRequired",
+                    action: "challenge",
+                    challengeContext: {
+                        authenticationFactor: "singleFactor",
+                    },
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "email-1",
+                                type: "email",
+                                _links: {},
+                            },
+                        ],
+                    },
+                },
+            ],
+        ])(
+            "rejects an existing-account challenge with %s",
+            async (reason, response) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse(response)
+                );
+
+                await expect(
+                    apiClient.signUpStart(
+                        "/tenant/api/v0.1/signup/start",
+                        {
+                            continuationToken: "ct-entry",
+                            username: "existing@contoso.com",
+                        },
+                        context
+                    )
+                ).rejects.toMatchObject({
+                    error:
+                        reason === "invalid authentication factor"
+                            ? UNEXPECTED_AUTHENTICATION_FACTOR
+                            : NO_AUTHENTICATION_METHODS,
+                });
+            }
+        );
+
+        it.each([
+            { label: "absent", embedded: {} },
+            { label: "null", embedded: { _embedded: null } },
+        ])(
+            "rejects an existing-account challenge when embedded methods are $label",
+            async ({ embedded }) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-existing",
+                        state: "interactionRequired",
+                        action: "challenge",
+                        challengeContext: {
+                            authenticationFactor: "singleFactor",
+                        },
+                        ...embedded,
+                    })
+                );
+
+                await expect(
+                    apiClient.signUpStart(
+                        "/tenant/api/v0.1/signup/start",
+                        {
+                            continuationToken: "ct-entry",
+                            username: "existing@contoso.com",
+                        },
+                        context
+                    )
+                ).rejects.toMatchObject({
+                    error: NO_AUTHENTICATION_METHODS,
+                    correlationId: context.correlationId,
+                });
+            }
+        );
+
+        it("rejects an existing-account challenge without a continuation token", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    state: "interactionRequired",
+                    action: "challenge",
+                    challengeContext: {
+                        authenticationFactor: "singleFactor",
+                    },
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "email-1",
+                                type: "email",
+                                _links: {
+                                    challenge: { href: "/email/challenge" },
+                                },
+                            },
+                        ],
                     },
                 })
             );
 
-            const result = await apiClient.signUpStart(
-                "/tenant/api/v0.1/signup/start",
-                { continuationToken: "ct-entry" },
-                context
+            await expect(
+                apiClient.signUpStart(
+                    "/tenant/api/v0.1/signup/start",
+                    {
+                        continuationToken: "ct-entry",
+                        username: "existing@contoso.com",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({ error: CONTINUATION_TOKEN_MISSING });
+        });
+
+        it.each([
+            [
+                "collectAttributes",
+                { ...startResponse, action: "collectAttributes" },
+            ],
+            ["continue", { ...startResponse, action: "continue" }],
+            ["enroll", { ...startResponse, action: "enroll" }],
+            ["unknown action", { ...startResponse, action: "unsupported" }],
+            ["missing action", { ...startResponse, action: undefined }],
+            ["password challenge", { ...startResponse, type: "password" }],
+            ["phone challenge", { ...startResponse, type: "phone" }],
+            ["SMS challenge", { ...startResponse, type: "sms" }],
+            ["missing challenge type", { ...startResponse, type: undefined }],
+            ["null challenge type", { ...startResponse, type: null }],
+            ["numeric challenge type", { ...startResponse, type: 42 }],
+            ["empty challenge type", { ...startResponse, type: "" }],
+            [
+                "missing verify link",
+                {
+                    ...startResponse,
+                    _links: { resend: startResponse._links.resend },
+                },
+            ],
+            [
+                "malformed resend link",
+                {
+                    ...startResponse,
+                    _links: {
+                        verify: startResponse._links.verify,
+                        resend: { href: "" },
+                    },
+                },
+            ],
+        ])("rejects %s in the start response", async (_, response) => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse(response)
             );
 
-            expect("nextAction" in result).toBe(false);
-            if (!("nextAction" in result)) {
-                expect(result.attributes).toBeUndefined();
-            }
+            await expect(
+                apiClient.signUpStart(
+                    "/tenant/api/v0.1/signup/start",
+                    {
+                        continuationToken: "ct-entry",
+                        username: "user@contoso.com",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({ error: INVALID_HAL_RESPONSE });
+        });
+
+        it("rejects a start challenge without a continuation token", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    ...startResponse,
+                    continuationToken: undefined,
+                })
+            );
+            await expect(
+                apiClient.signUpStart(
+                    "/tenant/api/v0.1/signup/start",
+                    {
+                        continuationToken: "ct-entry",
+                        username: "user@contoso.com",
+                    },
+                    context
+                )
+            ).rejects.toMatchObject({ error: CONTINUATION_TOKEN_MISSING });
         });
     });
 
+    describe.each(["verification", "attribute submission"])(
+        "sign-up collection after %s",
+        (operation) => {
+            it("rejects null collection metadata with an API error", async () => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-collection",
+                        action: "collectAttributes",
+                        attributes: null,
+                        _links: {
+                            submitAttributes: {
+                                href: "/signup/submitattributes",
+                            },
+                        },
+                    })
+                );
+
+                const result =
+                    operation === "verification"
+                        ? apiClient.verifyChallenge(
+                              "/signup/verify",
+                              {
+                                  continuationToken: "ct-start",
+                                  otp: "12345678",
+                              },
+                              context
+                          )
+                        : apiClient.submitSignUpAttributes(
+                              "/signup/submitattributes",
+                              {
+                                  continuationToken: "ct-attributes",
+                                  attributes: { city: "Redmond" },
+                              },
+                              context
+                          );
+
+                await expect(result).rejects.toMatchObject({
+                    error: INVALID_HAL_RESPONSE,
+                    correlationId: "corr-1",
+                });
+            });
+
+            it.each(["email", "EMAIL", "eMaIl"])(
+                "rejects a requested %s attribute with an API error",
+                async (attributeId) => {
+                    mockHttpClient.sendAsync.mockResolvedValueOnce(
+                        buildResponse({
+                            continuationToken: "ct-collection",
+                            action: "collectAttributes",
+                            attributes: [{ attributeId, required: true }],
+                            _links: {
+                                submitAttributes: {
+                                    href: "/signup/submitattributes",
+                                },
+                            },
+                        })
+                    );
+
+                    const result =
+                        operation === "verification"
+                            ? apiClient.verifyChallenge(
+                                  "/signup/verify",
+                                  {
+                                      continuationToken: "ct-start",
+                                      otp: "12345678",
+                                  },
+                                  context
+                              )
+                            : apiClient.submitSignUpAttributes(
+                                  "/signup/submitattributes",
+                                  {
+                                      continuationToken: "ct-attributes",
+                                      attributes: { city: "Redmond" },
+                                  },
+                                  context
+                              );
+
+                    await expect(result).rejects.toMatchObject({
+                        error: INVALID_HAL_RESPONSE,
+                        correlationId: "corr-1",
+                        errorDescription:
+                            "Invalid HAL response: email cannot be collected as a sign-up attribute",
+                    });
+                }
+            );
+        }
+    );
+
     describe("submitSignUpAttributes", () => {
-        it("submits attributes and returns the issued email challenge", async () => {
+        it("rejects post-attribute email verification even with valid challenge links", async () => {
             const request = {
                 continuationToken: "ct-start",
                 attributes: {
-                    email: "user@test.com",
                     password: "valid-password",
                     displayName: "Test User",
                 },
@@ -552,27 +1027,15 @@ describe("CustomAuthApiClientV2", () => {
                 })
             );
 
-            const result = await apiClient.submitSignUpAttributes(
-                "/tenant/api/v0.1/signup/submitattributes",
-                request,
-                context
-            );
-
-            expect(result).toEqual({
-                nextAction: "verify",
-                continuationToken: "ct-submit",
-                type: "email",
-                hint: "u***@test.com",
-                codeLength: 8,
-                verifyHref: "/tenant/api/v0.1/signup/verify",
-                resendHref: "/tenant/api/v0.1/signup/resend",
-                attributes: [
-                    {
-                        attributeId: "password",
-                        inputType: "password",
-                        required: true,
-                    },
-                ],
+            await expect(
+                apiClient.submitSignUpAttributes(
+                    "/tenant/api/v0.1/signup/submitattributes",
+                    request,
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                correlationId: context.correlationId,
             });
 
             const [url, options] = mockHttpClient.sendAsync.mock.calls[0];

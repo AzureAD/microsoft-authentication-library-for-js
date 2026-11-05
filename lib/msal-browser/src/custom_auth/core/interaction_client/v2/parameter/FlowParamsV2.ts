@@ -17,14 +17,13 @@ interface FlowParamsBaseV2 {
 
 export interface FlowStartParamsV2 extends FlowParamsBaseV2 {
     username: string;
-    scopes?: string[] | null;
+    scopes?: string[];
     claims?: string;
 }
 
 export type FlowSignInStartParamsV2 = FlowStartParamsV2;
 
 export interface FlowSignUpStartParamsV2 extends FlowStartParamsV2 {
-    password?: string;
     attributes?: UserAccountAttributes;
 }
 
