@@ -8,7 +8,7 @@ import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js
 import { PopupRequest } from "../request/PopupRequest.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
-import { WrapperSKU } from "../utils/BrowserConstants.js";
+import { CacheLookupPolicy, WrapperSKU } from "../utils/BrowserConstants.js";
 import { IPublicClientApplication } from "./IPublicClientApplication.js";
 import { IController } from "../controllers/IController.js";
 import {
@@ -193,13 +193,15 @@ export class PublicClientApplication implements IPublicClientApplication {
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
      *
      * @param request
+     * @param cacheLookupPolicy Controls MSAL's internal token-cache lookup for platform-broker requests only.
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     async acquireTokenPopup(
-        request: PopupRequest
+        request: PopupRequest,
+        cacheLookupPolicy?: CacheLookupPolicy
     ): Promise<AuthenticationResult> {
-        return this.controller.acquireTokenPopup(request);
+        return this.controller.acquireTokenPopup(request, cacheLookupPolicy);
     }
 
     /**
@@ -370,11 +372,15 @@ export class PublicClientApplication implements IPublicClientApplication {
      * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
      * you session on the server still exists.
      * @param request {@link SsoSilentRequest}
+     * @param cacheLookupPolicy Controls MSAL's internal token-cache lookup for platform-broker requests only.
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        return this.controller.ssoSilent(request);
+    ssoSilent(
+        request: SsoSilentRequest,
+        cacheLookupPolicy?: CacheLookupPolicy
+    ): Promise<AuthenticationResult> {
+        return this.controller.ssoSilent(request, cacheLookupPolicy);
     }
 
     /**

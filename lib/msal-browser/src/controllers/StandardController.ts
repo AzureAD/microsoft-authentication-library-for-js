@@ -855,10 +855,14 @@ export class StandardController implements IController {
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
      *
      * @param request
+     * @param cacheLookupPolicy Controls MSAL's internal token-cache lookup for platform-broker requests only.
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+    acquireTokenPopup(
+        request: PopupRequest,
+        cacheLookupPolicy?: CacheLookupPolicy
+    ): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
         const atPopupMeasurement = this.performanceClient.startMeasurement(
             BrowserRootPerformanceEvents.AcquireTokenPopup,
@@ -913,7 +917,9 @@ export class StandardController implements IController {
                     ...request,
                     correlationId,
                 },
-                ApiId.acquireTokenPopup
+                ApiId.acquireTokenPopup,
+                this.getNativeAccountId(request),
+                cacheLookupPolicy
             )
                 .then((response) => {
                     atPopupMeasurement.end(
@@ -1218,10 +1224,14 @@ export class StandardController implements IController {
      * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
      * you session on the server still exists.
      * @param request {@link SsoSilentRequest}
+     * @param cacheLookupPolicy Controls MSAL's internal token-cache lookup for platform-broker requests only.
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
+    async ssoSilent(
+        request: SsoSilentRequest,
+        cacheLookupPolicy?: CacheLookupPolicy
+    ): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
         const validRequest = {
             ...request,
@@ -1268,7 +1278,7 @@ export class StandardController implements IController {
                 validRequest,
                 ApiId.ssoSilent,
                 this.getNativeAccountId(validRequest),
-                validRequest.cacheLookupPolicy
+                cacheLookupPolicy
             ).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof NativeAuthError && isFatalNativeAuthError(e)) {

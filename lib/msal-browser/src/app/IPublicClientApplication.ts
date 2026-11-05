@@ -18,7 +18,7 @@ import {
     BrowserConfigurationAuthErrorCodes,
     createBrowserConfigurationAuthError,
 } from "../error/BrowserConfigurationAuthError.js";
-import { WrapperSKU } from "../utils/BrowserConstants.js";
+import { CacheLookupPolicy, WrapperSKU } from "../utils/BrowserConstants.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest.js";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest.js";
@@ -33,7 +33,10 @@ import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOp
 export interface IPublicClientApplication {
     // TODO: Make request mandatory in the next major version?
     initialize(request?: InitializeApplicationRequest): Promise<void>;
-    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
+    acquireTokenPopup(
+        request: PopupRequest,
+        cacheLookupPolicy?: CacheLookupPolicy
+    ): Promise<AuthenticationResult>;
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
     acquireTokenSilent(
         silentRequest: SilentRequest
@@ -57,7 +60,10 @@ export interface IPublicClientApplication {
     loginRedirect(request?: RedirectRequest): Promise<void>;
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
-    ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
+    ssoSilent(
+        request: SsoSilentRequest,
+        cacheLookupPolicy?: CacheLookupPolicy
+    ): Promise<AuthenticationResult>;
     getLogger(): Logger;
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;

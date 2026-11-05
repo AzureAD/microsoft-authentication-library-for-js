@@ -4654,7 +4654,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
                 const request: SsoSilentRequest = {
                     scopes: ["User.Read"],
-                    cacheLookupPolicy: CacheLookupPolicy.RefreshTokenAndNetwork,
                 };
                 if (accountSource === "account") {
                     request.account = testAccount;
@@ -4705,7 +4704,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     pca.removePerformanceCallback(callbackId);
                 });
 
-                const response = await pca.ssoSilent(request);
+                const response = await pca.ssoSilent(
+                    request,
+                    CacheLookupPolicy.RefreshTokenAndNetwork
+                );
 
                 expect(response).toEqual(testTokenResponse);
                 expect(acquireTokenNativeSpy).toHaveBeenCalledWith(
@@ -4716,10 +4718,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 );
                 expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
                 expect(nativeAcquireTokenSpy).toHaveBeenCalledWith(
-                    expect.objectContaining({
-                        cacheLookupPolicy:
-                            CacheLookupPolicy.RefreshTokenAndNetwork,
-                    }),
+                    expect.objectContaining(request),
                     CacheLookupPolicy.RefreshTokenAndNetwork
                 );
                 expect(silentSpy).toHaveBeenCalledTimes(0);
@@ -9362,6 +9361,126 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(account).toEqual(testAccountInfo1);
             });
         });
+    });
+
+    describe("brokered native access-token isolation", () => {
+        it.each(["popup", "redirect", "sso", "silent"] as const)(
+            "returns the brokered access token for %s without replacing a warm parent token",
+            async (flow) => {
+                const config = {
+                    auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                    system: { allowPlatformBroker: true },
+                };
+                stubExtensionProvider(config);
+                pca = new PublicClientApplication(config);
+                await pca.initialize();
+
+                const nativeCache: BrowserCacheManager =
+                    // @ts-ignore
+                    pca.controller.nativeInternalStorage;
+                const parentResponse = {
+                    access_token: "parent-access-token",
+                    id_token: TEST_TOKENS.IDTOKEN_V2,
+                    scope: "User.Read",
+                    expires_in: 3600,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    account: {
+                        id: BASIC_NATIVE_TEST_ACCOUNT_INFO.nativeAccountId!,
+                        properties: {},
+                        userName: BASIC_NATIVE_TEST_ACCOUNT_INFO.username,
+                    },
+                    properties: {},
+                    state: "",
+                };
+                const sendMessage = jest
+                    .spyOn(
+                        PlatformAuthExtensionHandler.prototype,
+                        "sendMessage"
+                    )
+                    .mockResolvedValueOnce(parentResponse)
+                    .mockResolvedValue({
+                        ...parentResponse,
+                        access_token: "embedded-access-token",
+                    });
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockResolvedValue(true);
+
+                const parent = await pca.acquireTokenSilent({
+                    scopes: ["User.Read"],
+                    account: BASIC_NATIVE_TEST_ACCOUNT_INFO,
+                });
+                if (!parent.account) {
+                    throw new Error(
+                        "Parent acquisition did not return an account"
+                    );
+                }
+                const parentRequest = {
+                    scopes: ["User.Read"],
+                    account: parent.account,
+                    cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+                };
+                const warmParent = await pca.acquireTokenSilent(parentRequest);
+                expect(warmParent.accessToken).toBe("parent-access-token");
+                expect(warmParent.fromCache).toBe(true);
+                expect(sendMessage).toHaveBeenCalledTimes(1);
+
+                const request = {
+                    scopes: ["User.Read"],
+                    account: parent.account,
+                    embeddedClientId: "embedded-client",
+                    redirectUri: "brk-parent://localhost:30662",
+                    storeInCache: { accessToken: false, idToken: false },
+                };
+                let result: AuthenticationResult | null;
+                switch (flow) {
+                    case "popup":
+                        result = await pca.acquireTokenPopup(
+                            request,
+                            CacheLookupPolicy.RefreshTokenAndNetwork
+                        );
+                        break;
+                    case "redirect":
+                        await pca.acquireTokenRedirect(request);
+                        result = await pca.handleRedirectPromise();
+                        break;
+                    case "sso":
+                        result = await pca.ssoSilent(
+                            request,
+                            CacheLookupPolicy.RefreshTokenAndNetwork
+                        );
+                        break;
+                    case "silent":
+                        result = await pca.acquireTokenSilent({
+                            ...request,
+                            cacheLookupPolicy:
+                                CacheLookupPolicy.RefreshTokenAndNetwork,
+                        });
+                        break;
+                }
+
+                expect(result?.accessToken).toBe("embedded-access-token");
+                expect(result?.fromPlatformBroker).toBe(true);
+                const expectedCalls = flow === "redirect" ? 3 : 2;
+                expect(sendMessage).toHaveBeenCalledTimes(expectedCalls);
+                expect(sendMessage.mock.calls[1][0].extraParameters).toEqual(
+                    expect.objectContaining({
+                        child_client_id: "embedded-client",
+                    })
+                );
+
+                const accessTokenKeys = nativeCache.getTokenKeys().accessToken;
+                expect(accessTokenKeys).toHaveLength(1);
+                expect(
+                    nativeCache.getAccessTokenCredential(
+                        accessTokenKeys[0],
+                        RANDOM_TEST_GUID
+                    )?.secret
+                ).toBe("parent-access-token");
+                expect(sendMessage).toHaveBeenCalledTimes(expectedCalls);
+            }
+        );
     });
 
     describe("getNativeAccountId tests", () => {

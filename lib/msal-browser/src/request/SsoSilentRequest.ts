@@ -4,7 +4,6 @@
  */
 
 import { CommonAuthorizationUrlRequest } from "@azure/msal-common/browser";
-import { CacheLookupPolicy } from "../utils/BrowserConstants.js";
 
 /**
  * Request object passed by user to ssoSilent to retrieve a Code from the server (first leg of authorization code grant flow)
@@ -18,10 +17,4 @@ export type SsoSilentRequest = Partial<
         | "codeChallengeMethod"
         | "platformBroker"
     >
-> & {
-    /**
-     * Controls MSAL's internal token cache lookup when using the platform broker.
-     * Does not control the platform broker's own cache or the web-based SSO flow.
-     */
-    cacheLookupPolicy?: CacheLookupPolicy;
-};
+>;
