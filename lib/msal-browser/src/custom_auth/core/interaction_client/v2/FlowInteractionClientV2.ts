@@ -647,30 +647,34 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
 
         if (
             continuationState.scenario ===
-            CustomAuthFlowScenarioV2.PasswordReset
+                CustomAuthFlowScenarioV2.PasswordReset &&
+            parameters.authenticationFactor ===
+                AuthenticationFactorV2.MULTI_FACTOR &&
+            verifyResult.nextAction === ResponseStateV2.CONTINUE
         ) {
-            if (
-                parameters.authenticationFactor ===
-                AuthenticationFactorV2.MULTI_FACTOR
-            ) {
-                if (verifyResult.nextAction === ResponseStateV2.CONTINUE) {
-                    return this.completeSignInAfterVerification(
-                        continuationState,
-                        verifyResult.continuationToken,
-                        correlationId
-                    );
-                }
-            } else if (verifyResult.nextAction === UPDATE_RELATION) {
-                return createFlowNewPasswordRequiredResultV2({
-                    correlationId,
-                    continuationState: {
-                        continuationToken: verifyResult.continuationToken,
-                        scenario: continuationState.scenario,
-                        scopes: continuationState.scopes,
-                        links: { update: verifyResult.updateHref },
-                    },
-                });
-            }
+            return this.completeSignInAfterVerification(
+                continuationState,
+                verifyResult.continuationToken,
+                correlationId
+            );
+        }
+
+        if (
+            continuationState.scenario ===
+                CustomAuthFlowScenarioV2.PasswordReset &&
+            parameters.authenticationFactor !==
+                AuthenticationFactorV2.MULTI_FACTOR &&
+            verifyResult.nextAction === UPDATE_RELATION
+        ) {
+            return createFlowNewPasswordRequiredResultV2({
+                correlationId,
+                continuationState: {
+                    continuationToken: verifyResult.continuationToken,
+                    scenario: continuationState.scenario,
+                    scopes: continuationState.scopes,
+                    links: { update: verifyResult.updateHref },
+                },
+            });
         }
 
         if (continuationState.scenario === CustomAuthFlowScenarioV2.SignIn) {
