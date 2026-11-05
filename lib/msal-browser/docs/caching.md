@@ -98,6 +98,9 @@ current generation's localStorage index, without waiting for a cross-tab broadca
 It discards a decrypted value if the stored entry changed while decryption was
 pending, and rejects an acquisition invalidated during that wait. This does not
 share data across browser storage partitions or enable cache lookup for a bypass.
+Malformed base64 or ciphertext is diagnosed per entry and treated as unavailable
+cache data, so it does not block another scope's cache hit or permitted renewal.
+Unexpected failures and generation invalidation still reject the acquisition.
 
 An additional-claims silent request invalidates its account/tenant/resource/capability
 family before renewal, without clearing other resources, the other capability or shared authentication.

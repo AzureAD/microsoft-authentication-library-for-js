@@ -6,6 +6,7 @@
 import {
     AccountEntityUtils,
     Constants,
+    Logger,
     ProtocolMode,
 } from "@azure/msal-common/browser";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
@@ -1251,6 +1252,120 @@ describe("Unpublished CAE partition prototype", () => {
         expect(cae.accessToken).toBe("cae-shared");
         expect(ordinary.fromCache && cae.fromCache).toBe(true);
         expect(post).toHaveBeenCalledTimes(2);
+    });
+
+    it.each(["a", "AAAA", "!!!!"])(
+        "renews after a missed broadcast contains corrupt encrypted data %s",
+        async (data) => {
+            const post = jest
+                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+                .mockResolvedValueOnce(response("corrupt-cae"))
+                .mockResolvedValueOnce(response("renewed-cae"));
+            const { pca, cache } = await application(
+                true,
+                [],
+                BrowserCacheLocation.LocalStorage
+            );
+            const other = new PublicClientApplication(
+                config(true, [], BrowserCacheLocation.LocalStorage)
+            );
+            await other.initialize();
+            jest.spyOn(
+                BroadcastChannel.prototype,
+                "postMessage"
+            ).mockImplementation(() => {});
+            const diagnostic = jest.spyOn(Logger.prototype, "error");
+            await pca.acquireTokenSilent({ ...request, claims: cp1 });
+            const key = cache.getTokenKeys(
+                CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
+            ).accessToken[0];
+            const encrypted = JSON.parse(window.localStorage.getItem(key)!);
+            window.localStorage.setItem(
+                key,
+                JSON.stringify({ ...encrypted, data })
+            );
+            const result = await other.acquireTokenSilent({
+                ...request,
+                claims: cp1,
+            });
+            expect(result.accessToken).toBe("renewed-cae");
+            expect(result.fromCache).toBe(false);
+            expect(post).toHaveBeenCalledTimes(2);
+            expect(diagnostic).toHaveBeenCalledWith(
+                "Failed to decrypt an indexed cache entry",
+                expect.any(String)
+            );
+        }
+    );
+
+    it("does not let a corrupt sibling scope block an encrypted cache hit", async () => {
+        const post = jest
+            .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+            .mockResolvedValueOnce(response("corrupt-mail", "mail.read"))
+            .mockResolvedValueOnce(response("healthy-user"));
+        const { pca, cache } = await application(
+            true,
+            [],
+            BrowserCacheLocation.LocalStorage
+        );
+        const other = new PublicClientApplication(
+            config(true, [], BrowserCacheLocation.LocalStorage)
+        );
+        await other.initialize();
+        jest.spyOn(
+            BroadcastChannel.prototype,
+            "postMessage"
+        ).mockImplementation(() => {});
+        await pca.acquireTokenSilent({
+            ...request,
+            scopes: ["mail.read"],
+            claims: cp1,
+        });
+        await pca.acquireTokenSilent({ ...request, claims: cp1 });
+        const key = cache.getTokenKeys(
+            CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
+        ).accessToken[0];
+        const encrypted = JSON.parse(window.localStorage.getItem(key)!);
+        window.localStorage.setItem(
+            key,
+            JSON.stringify({ ...encrypted, data: "AAAA" })
+        );
+        const result = await other.acquireTokenSilent({
+            ...request,
+            claims: cp1,
+            cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+        });
+        expect(result.accessToken).toBe("healthy-user");
+        expect(result.fromCache).toBe(true);
+        expect(post).toHaveBeenCalledTimes(2);
+    });
+
+    it("surfaces unexpected read-through failures instead of renewing silently", async () => {
+        const post = jest
+            .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+            .mockResolvedValueOnce(response("cached-cae"));
+        const { pca } = await application(
+            true,
+            [],
+            BrowserCacheLocation.LocalStorage
+        );
+        const other = new PublicClientApplication(
+            config(true, [], BrowserCacheLocation.LocalStorage)
+        );
+        await other.initialize();
+        jest.spyOn(
+            BroadcastChannel.prototype,
+            "postMessage"
+        ).mockImplementation(() => {});
+        await pca.acquireTokenSilent({ ...request, claims: cp1 });
+        const error = new Error("unexpected crypto failure");
+        jest.spyOn(window.crypto.subtle, "decrypt").mockRejectedValueOnce(
+            error
+        );
+        await expect(
+            other.acquireTokenSilent({ ...request, claims: cp1 })
+        ).rejects.toBe(error);
+        expect(post).toHaveBeenCalledTimes(1);
     });
 
     it("does not restore a token invalidated while decrypting a missed broadcast", async () => {

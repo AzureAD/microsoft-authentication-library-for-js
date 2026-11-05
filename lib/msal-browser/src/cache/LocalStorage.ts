@@ -23,6 +23,7 @@ import {
 import { base64DecToArr } from "../encode/Base64Decode.js";
 import { urlEncodeArr } from "../encode/Base64Encode.js";
 import {
+    BrowserAuthError,
     BrowserAuthErrorCodes,
     createBrowserAuthError,
 } from "../error/BrowserAuthError.js";
@@ -188,10 +189,41 @@ export class LocalStorage implements IWindowStorage<string> {
                 .filter((key) => !this.memoryStorage.containsKey(key))
                 .map(async (key) => {
                     const stored = this.getItem(key);
-                    const value = await this.getItemFromEncryptedCache(
-                        key,
-                        correlationId
-                    );
+                    let value: string | null;
+                    try {
+                        value = await this.getItemFromEncryptedCache(
+                            key,
+                            correlationId
+                        );
+                    } catch (error) {
+                        const name =
+                            typeof error === "object" &&
+                            error !== null &&
+                            "name" in error
+                                ? error.name
+                                : undefined;
+                        if (
+                            name !== "OperationError" &&
+                            name !== "DataError" &&
+                            name !== "InvalidCharacterError" &&
+                            !(
+                                error instanceof BrowserAuthError &&
+                                error.errorCode ===
+                                    BrowserAuthErrorCodes.invalidBase64String
+                            )
+                        ) {
+                            throw error;
+                        }
+                        this.logger.error(
+                            "Failed to decrypt an indexed cache entry",
+                            correlationId
+                        );
+                        this.performanceClient.incrementFields(
+                            { encryptedCacheCorruptionCount: 1 },
+                            correlationId
+                        );
+                        return;
+                    }
                     if (value && stored && this.getItem(key) === stored) {
                         this.memoryStorage.setItem(key, value);
                     }
