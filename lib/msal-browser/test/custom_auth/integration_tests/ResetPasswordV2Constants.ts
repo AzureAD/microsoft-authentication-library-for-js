@@ -125,6 +125,46 @@ export const POLL_COMPLETED_RESPONSE = {
     _links: { continue: { href: "/tenant/api/v0.1/continue" } },
 };
 
+export const POLL_MFA_REQUIRED_RESPONSE = {
+    continuationToken: "ct-mfa-selection",
+    state: "interactionRequired",
+    action: "challenge",
+    challengeContext: {
+        authenticationFactor: "multiFactor",
+    },
+    _embedded: {
+        methods: [
+            {
+                id: "email-mfa",
+                type: "email",
+                hint: "u***@contoso.com",
+                _links: {
+                    challenge: {
+                        href: "/tenant/api/v0.1/mfa/email/challenge",
+                    },
+                },
+            },
+        ],
+    },
+};
+
+export const MFA_EMAIL_CHALLENGE_RESPONSE = {
+    continuationToken: "ct-mfa-challenge",
+    action: "verify",
+    codeLength: 6,
+    hint: "u***@contoso.com",
+    type: "email",
+    _links: {
+        verify: { href: "/tenant/api/v0.1/mfa/email/verify" },
+        resend: { href: "/tenant/api/v0.1/mfa/email/resend" },
+    },
+};
+
+export const MFA_VERIFY_RESPONSE = {
+    continuationToken: "ct-mfa-verified",
+    state: "continue",
+};
+
 export const POLL_ENROLL_REQUIRED_RESPONSE = {
     continuationToken: "ct-enroll",
     state: "interactionRequired",

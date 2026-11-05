@@ -177,7 +177,7 @@ export interface PollResponseV2 extends Omit<HalResponseBaseV2, "_links"> {
         poll?: HalLink;
     };
     _embedded?: {
-        methods?: EmbeddedEnrollmentMethodV2[];
+        methods?: (EmbeddedMethodV2 | EmbeddedEnrollmentMethodV2)[];
     };
 }
 
