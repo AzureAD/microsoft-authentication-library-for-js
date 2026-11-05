@@ -114,7 +114,10 @@ export const mockTokenBindingKeyManager: ITokenBindingKeyManager = {
             alg: "RS256",
         };
     },
-    async removeTokenBindingKey(): Promise<void> {
+    async removeTokenBindingKey(
+        _kid: string,
+        _correlationId?: string
+    ): Promise<void> {
         return Promise.resolve();
     },
 };
@@ -203,7 +206,10 @@ export class MockStorageClass extends CacheManager {
     }
 
     // Credentials (idtokens)
-    getIdTokenCredential(key: string): IdTokenEntity | null {
+    getIdTokenCredential(
+        key: string,
+        _correlationId?: string
+    ): IdTokenEntity | null {
         return (this.store[key] as IdTokenEntity) || null;
     }
     async setIdTokenCredential(value: IdTokenEntity): Promise<void> {
@@ -218,7 +224,10 @@ export class MockStorageClass extends CacheManager {
     }
 
     // Credentials (accesstokens)
-    getAccessTokenCredential(key: string): AccessTokenEntity | null {
+    getAccessTokenCredential(
+        key: string,
+        _correlationId?: string
+    ): AccessTokenEntity | null {
         return (this.store[key] as AccessTokenEntity) || null;
     }
     async setAccessTokenCredential(
@@ -238,7 +247,10 @@ export class MockStorageClass extends CacheManager {
     }
 
     // Credentials (accesstokens)
-    getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
+    getRefreshTokenCredential(
+        key: string,
+        _correlationId?: string
+    ): RefreshTokenEntity | null {
         return (this.store[key] as RefreshTokenEntity) || null;
     }
     async setRefreshTokenCredential(value: RefreshTokenEntity): Promise<void> {
@@ -336,7 +348,10 @@ export const mockCrypto = {
             EncodingTypes.UTF8
         ).toString("base64url");
     },
-    async removeTokenBindingKey(keyId: string): Promise<void> {
+    async removeTokenBindingKey(
+        _keyId: string,
+        _correlationId: string
+    ): Promise<void> {
         return Promise.resolve();
     },
     async signTokenBindingJwt(): Promise<string> {

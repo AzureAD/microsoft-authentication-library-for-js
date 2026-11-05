@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 05 Nov 2026 01:03:50 GMT",
+      "version": "16.16.0",
+      "tag": "@azure/msal-common_v16.16.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "a8a81410aa8e8973aae7b200d2ae6efe5d6b5f2f",
+            "comment": "Export the DPoP proof generator from the browser entry point [#8789](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8789)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 27 Oct 2026 18:15:10 GMT",
       "version": "16.15.0",
       "tag": "@azure/msal-common_v16.15.0",
