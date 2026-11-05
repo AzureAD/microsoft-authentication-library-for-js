@@ -5,7 +5,7 @@
 
 import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
 import type { FailedStateV2 } from "../../../../core/auth_flow/v2/state/FailedStateV2.js";
-import type { PasswordRequiredStateV2 } from "../state/PasswordRequiredStateV2.js";
+import type { PasswordRequiredStateV2 } from "../../../../core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import type { AuthMethodSelectionRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import type { CodeRequiredStateV2 } from "../../../../core/auth_flow/v2/state/CodeRequiredStateV2.js";
 

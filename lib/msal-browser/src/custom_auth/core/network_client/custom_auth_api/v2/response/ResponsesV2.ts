@@ -5,6 +5,10 @@
 
 import { OAuthErrorResponseV2, ServerErrorV2 } from "./ErrorResponsesV2.js";
 import { HalLink, HalResource } from "./HalResource.js";
+import {
+    CHALLENGE_RELATION,
+    VERIFY_RELATION,
+} from "../ApiClientConstantsV2.js";
 
 export interface HalResponseBaseV2 extends HalResource {
     continuationToken?: string;
@@ -55,8 +59,9 @@ export interface AuthorizeChallengeEntryResponseV2
 }
 
 interface StartResponseV2 extends Omit<HalResponseBaseV2, "_embedded"> {
-    _embedded?: {
-        methods?: EmbeddedMethodV2[];
+    action: typeof CHALLENGE_RELATION;
+    _embedded: {
+        methods: EmbeddedMethodV2[];
     };
 }
 
@@ -73,13 +78,13 @@ export interface SignUpAttributeResponseV2 {
     confirmationInput?: string;
 }
 
-export interface SignUpStartResponseV2
-    extends Omit<HalResponseBaseV2, "_links"> {
-    attributes?: SignUpAttributeResponseV2[];
-    _links?: {
-        submitAttributes?: HalLink;
-    };
+export interface SignUpStartVerifyResponseV2 extends CodeChallengeResponseV2 {
+    action: typeof VERIFY_RELATION;
 }
+
+export type SignUpStartResponseV2 =
+    | SignUpStartVerifyResponseV2
+    | SignInStartResponseV2;
 
 interface ChallengeResponseBaseV2 extends Omit<HalResponseBaseV2, "_links"> {
     id?: string;

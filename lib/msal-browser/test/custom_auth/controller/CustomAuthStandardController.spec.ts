@@ -5,6 +5,7 @@ import {
     SignInInputs,
     SignInInputsV2,
     SignUpInputs,
+    SignUpInputsV2,
 } from "../../../src/custom_auth/CustomAuthActionInputs.js";
 import { CustomAuthOperatingContext } from "../../../src/custom_auth/operating_context/CustomAuthOperatingContext.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
@@ -25,7 +26,10 @@ import { ResetPasswordCodeRequiredState } from "../../../src/custom_auth/reset_p
 import { ResetPasswordStartResult } from "../../../src/custom_auth/reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 import { CustomAuthApiClientV2 } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
-import { FLOW_PASSWORD_REQUIRED_V2 } from "../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
+import {
+    FLOW_CODE_REQUIRED_V2,
+    FLOW_PASSWORD_REQUIRED_V2,
+} from "../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthFlowScenarioV2 } from "../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 
 jest.mock(
@@ -120,6 +124,53 @@ describe("CustomAuthStandardController", () => {
         expect(Reflect.get(controller["flowClientV2"], "apiClient")).toBe(
             customAuthApiClientV2
         );
+    });
+
+    describe("signUpV2", () => {
+        it("forwards upfront attributes to the flow client", async () => {
+            const attributes = {
+                displayName: "Test User",
+                city: "Redmond",
+            };
+            const inputs: SignUpInputsV2 = {
+                correlationId: "correlation-id",
+                username: "user@contoso.com",
+                attributes,
+            };
+            const signUpSpy = jest
+                .spyOn(controller["flowClientV2"], "signUp")
+                .mockResolvedValue({
+                    type: FLOW_CODE_REQUIRED_V2,
+                    correlationId: "correlation-id",
+                    continuationState: {
+                        continuationToken: "ct-start",
+                        scenario: CustomAuthFlowScenarioV2.SignUp,
+                        scopes: ["openid", "profile", "offline_access"],
+                        links: {
+                            verify: "https://endpoint/signup/verify",
+                        },
+                        signUp: {
+                            purpose: "newAccount",
+                            pendingProfileAttributes: attributes,
+                            submittedAttributeIds: [],
+                        },
+                    },
+                    channel: "email",
+                    sentTo: "u***@contoso.com",
+                    codeLength: 8,
+                });
+
+            const result = await controller.signUpV2(inputs);
+
+            expect(result.isState("codeRequired")).toBe(true);
+            expect(signUpSpy).toHaveBeenCalledWith({
+                correlationId: "correlation-id",
+                username: "user@contoso.com",
+                scopes: undefined,
+                claims: undefined,
+                attributes,
+            });
+        });
     });
 
     describe("signInV2", () => {
