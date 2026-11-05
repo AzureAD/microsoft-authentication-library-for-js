@@ -1,0 +1,30 @@
+:root { color-scheme: light; --ink: #202529; --muted: #58636b; --line: #cbd4d6; --accent: #007f73; --paper: #f7faf9; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; color: var(--ink); background: var(--paper); font: 15px "Bahnschrift", "Segoe UI", sans-serif; letter-spacing: 0; }
+header { display: flex; align-items: center; gap: 16px; padding: 24px 32px; background: #fff; border-bottom: 3px solid var(--accent); }
+.mark { display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 44px; font-size: 24px; color: white; background: var(--accent); }
+h1 { font-size: 24px; margin: 0; font-weight: 600; }
+header p { margin: 5px 0 0; color: var(--muted); }
+#status { margin-left: auto; font-size: 13px; color: var(--accent); text-align: right; }
+main { padding: 24px 32px; max-width: 1200px; margin: auto; }
+section { padding-bottom: 24px; }
+h2 { font-size: 17px; margin: 0 0 18px; font-weight: 600; }
+dl { display: grid; grid-template-columns: 120px minmax(0, 1fr); row-gap: 9px; column-gap: 18px; margin: 0 0 20px; font-size: 14px; }
+dt { color: var(--muted); }
+dd { margin: 0; overflow-wrap: anywhere; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+button { padding: 10px 16px; min-height: 40px; border: 1px solid var(--line); background: white; color: var(--ink); border-radius: 4px; font: inherit; font-size: 14px; cursor: pointer; }
+#interactive { color: white; background: var(--accent); border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: default; }
+button:focus-visible, pre:focus-visible { outline: 3px solid #ae5600; outline-offset: 3px; }
+#outcome { min-height: 24px; margin: 18px 0; overflow-wrap: anywhere; }
+.events { border-top: 1px solid var(--line); padding-top: 22px; }
+.section-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+.section-heading h2 { margin: 0; }
+.section-heading h3 { margin: 0; font-size: 15px; font-weight: 600; }
+#graph-response { height: auto; max-height: 300px; margin: 0; }
+#bridge-request { height: 240px; max-width: 100%; margin-bottom: 0; }
+#bridge-request-region p { color: #934300; }
+pre { background: #edf2f1; border-left: 3px solid #7d9290; padding: 14px; height: 200px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px "Cascadia Mono", Consolas, monospace; }
+@media (max-width: 600px) { header { padding: 18px; flex-wrap: wrap; } h1 { font-size: 21px; } main { padding: 20px 18px; } dl { grid-template-columns: 90px minmax(0, 1fr); column-gap: 10px; } #status { margin-left: 60px; } }

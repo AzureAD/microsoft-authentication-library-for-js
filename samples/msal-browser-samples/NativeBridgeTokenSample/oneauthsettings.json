@@ -1,0 +1,7 @@
+{
+  "applicationId": "com.msal.NativeBridgePOC",
+  "clientId": "f7369ce9-f248-485e-a6a0-c62bb3cac856",
+  "redirectUri": "ms-appx-web://microsoft.aad.brokerplugin/f7369ce9-f248-485e-a6a0-c62bb3cac856",
+  "defaultSignInScope": "https://graph.microsoft.com/User.Read",
+  "testSlice": "ESTS-PUB-EUS-FD000-TEST1-100"
+}

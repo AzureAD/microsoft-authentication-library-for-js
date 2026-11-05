@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Web Bridge POC</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/config.js"></script>
+    <script src="/msal-browser.js"></script>
+    <script type="module" src="/entry.mjs"></script>
+</head>
+<body>
+    <header><span class="mark" aria-hidden="true">W</span><h1>Web Bridge POC</h1><span id="status" role="status">Starting</span></header>
+    <main>
+        <section class="session" aria-label="Host session"><h2>Host Session</h2><p id="account">Signed out</p><div class="actions"><button id="signin" disabled>Sign In Host</button><button id="reset" disabled>Reset Session</button></div><p id="outcome" role="status" aria-live="polite">Starting</p></section>
+        <div role="tablist" aria-label="Embedded applications"><button role="tab" id="tab1" aria-controls="panel1" aria-selected="true">App 1</button><button role="tab" id="tab2" aria-controls="panel2" aria-selected="false" tabindex="-1">App 2</button></div>
+        <section id="panel1" role="tabpanel" aria-labelledby="tab1"></section>
+        <section id="panel2" role="tabpanel" aria-labelledby="tab2" hidden></section>
+    </main>
+</body>
+</html>

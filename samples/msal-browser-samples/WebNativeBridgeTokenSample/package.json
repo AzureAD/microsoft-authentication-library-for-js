@@ -1,0 +1,12 @@
+{
+  "name": "web-native-bridge-token-sample",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "stage": "node scripts/stage.mjs",
+    "start": "node scripts/launch.mjs",
+    "test": "node --test test/*.test.mjs",
+    "test:browser": "node --test test/*.spec.mjs"
+  },
+  "engines": { "node": ">=22" }
+}

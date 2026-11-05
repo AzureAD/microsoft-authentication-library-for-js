@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+  <ItemGroup>
+    <Using Include="System.IO" />
+    <Compile Include="../bridge/adapters/oneauth-webview2-poc/NativeOneAuth.cs" Link="NativeOneAuth.cs" />
+    <EmbeddedResource Include="../../../../lib/msal-bridge/dist/msal-bridge.js" LogicalName="Identity.NativeBridge.msal-bridge.js" />
+    <BridgeJavaScriptBuildInput Include="../../../../lib/msal-bridge/src/**/*.ts;../../../../lib/msal-bridge/package.json;../../../../lib/msal-bridge/rollup.config.mjs;../../../../lib/msal-bridge/tsconfig*.json;../../../../lib/msal-bridge/scripts/declarations.cjs" />
+    <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.90.1" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4258.31" />
+    <Content Include="../web/**" Link="web/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="../appsettings.json" Link="appsettings.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../appsettings.json')" />
+    <Content Include="../oneauthsettings.json" Link="oneauthsettings.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../oneauthsettings.json')" />
+    <Content Include="../brokersettings.json" Link="brokersettings.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('../brokersettings.json')" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(OneAuthAdapterRuntimeDirectory)' != ''">
+    <Content Include="$(OneAuthAdapterRuntimeDirectory)/*.dll" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="BuildBrowserBridge" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'"
+          Inputs="@(BridgeJavaScriptBuildInput)" Outputs="$(MSBuildProjectDirectory)/../../../../lib/msal-bridge/dist/msal-bridge.js">
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)/../../../../lib/msal-bridge" Command="npm run build" />
+    <Error Condition="!Exists('$(MSBuildProjectDirectory)/../../../../lib/msal-bridge/dist/msal-bridge.js')"
+           Text="The JavaScript build must produce dist/msal-bridge.js (auto-installing NestedAppAuthBridge IIFE)." />
+  </Target>
+</Project>

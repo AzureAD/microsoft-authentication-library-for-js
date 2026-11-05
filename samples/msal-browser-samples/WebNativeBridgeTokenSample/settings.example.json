@@ -1,0 +1,13 @@
+{
+  "registrationConfirmed": false,
+  "tenantId": "22222222-2222-4222-8222-222222222222",
+  "host": {
+    "clientId": "33333333-3333-4333-8333-333333333333",
+    "origin": "https://localhost:30663",
+    "redirectUri": "https://localhost:30663/"
+  },
+  "children": [
+    { "active": false, "name": "Inactive app", "clientId": "", "origin": "", "redirectUri": "", "scopes": [] },
+    { "name": "App 2", "clientId": "44444444-4444-4444-8444-444444444444", "origin": "https://localhost:7445", "redirectUri": "brk-multihub://localhost:7445", "scopes": ["User.Read"] }
+  ]
+}
