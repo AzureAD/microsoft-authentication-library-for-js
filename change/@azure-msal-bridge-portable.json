@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Add portable MSAL Bridge package for Nested App Authentication in WKWebView and WebView2 hosts.",
+    "packageName": "@azure/msal-bridge",
+    "email": "spingale@microsoft.com",
+    "dependentChangeType": "patch"
+}

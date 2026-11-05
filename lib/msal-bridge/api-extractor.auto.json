@@ -1,0 +1,5 @@
+{
+    "extends": "./api-extractor.json",
+    "mainEntryPointFilePath": "<projectFolder>/types/autoInstall.d.ts",
+    "apiReport": { "reportFileName": "msal-bridge-auto.api.md" }
+}
