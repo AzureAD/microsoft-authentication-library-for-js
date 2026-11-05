@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793888857013,
+  "lastUpdate": 1793895586402,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24911,6 +24911,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.53%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ydi.w127@gmail.com",
+            "name": "Yongdi Wang",
+            "username": "yongdiw"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "403efbabb9cf9853143c50f4618355015436a739",
+          "message": "Align Native Auth V2 sign-up start with API (#8940)\n\n## Summary\n\nPR1 of the Native Auth V2 sign-up improvements.\n\n- Send username on sign-up start instead of collecting it as a profile\nattribute.\n- Remove upfront password input and stop forwarding upfront profile\nattributes. Password and profile collection happen through the\nsubsequent sign-up states.\n- Require the start response to enter email verification and narrow\n`SignUpStartResultV2` to code-required or failed.\n- Reject case-insensitive `email` attribute keys supplied by the app\nbefore sending a request. Reject server collection metadata requesting\nemail, or malformed sign-up attribute metadata, as\n`invalid_hal_response`.\n- Add focused regression coverage and one Beachball changefile.\n\nCustom attributes such as `username` and `alternateEmail` remain\nsupported. No submitted-attribute history or repeated-collection\nrejection is added. V1 behavior is unchanged.\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCopilot-Session: 98356c16-fd1b-49ee-a94d-78da2f637100\nCopilot-Session: ec2676a3-c236-4854-ba7b-18e37b2a93a5\nCopilot-Session: 6651cb30-936b-452b-8e23-31cad08f0b8a\nCopilot-Session: e40c7153-a639-4358-a5ba-b041d88aea1a\nCopilot-Session: c9919841-191b-4570-a62e-cccb22f641b4",
+          "timestamp": "2026-11-05T16:11:17Z",
+          "tree_id": "9a3c9cc894a6634ce0d0aaa34b75c16f2d6a2ad4",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/403efbabb9cf9853143c50f4618355015436a739"
+        },
+        "date": 1793895582213,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 369933,
+            "range": "±0.65%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 365684,
+            "range": "±0.93%",
+            "unit": "ops/sec",
+            "extra": "223 samples"
           }
         ]
       }
