@@ -140,7 +140,8 @@ export type FlowRequestChallengeResultV2 =
 
 export type FlowSubmitNewPasswordResultV2 =
     | FlowSignInContinuationRequiredResultV2
-    | FlowAuthMethodRegistrationRequiredResultV2;
+    | FlowAuthMethodRegistrationRequiredResultV2
+    | FlowMFARequiredResultV2;
 
 export type FlowSubmitSignInPasswordResultV2 =
     | FlowMFARequiredResultV2

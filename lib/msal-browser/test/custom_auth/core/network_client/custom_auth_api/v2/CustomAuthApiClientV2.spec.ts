@@ -1576,6 +1576,40 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
+        it("rejects enrollment returned while requesting an MFA challenge", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    continuationToken: "ct-enroll",
+                    action: "enroll",
+                    _embedded: {
+                        methods: [
+                            {
+                                type: "phone",
+                                channels: ["sms"],
+                                _links: {
+                                    enroll: {
+                                        href: "/tenant/api/v0.1/enroll/phone",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            await expect(
+                apiClient.requestChallenge(
+                    "/tenant/api/v0.1/mfa/challenge",
+                    { continuationToken: "ct-mfa" },
+                    context
+                )
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                errorDescription:
+                    "Invalid HAL response: challenge returned no known next action",
+            });
+        });
+
         it("rejects risk verification without a riskverify link", async () => {
             mockHttpClient.sendAsync.mockResolvedValueOnce(
                 buildResponse({
@@ -2701,7 +2735,7 @@ describe("CustomAuthApiClientV2", () => {
             ).resolves.toEqual({
                 nextAction: "enroll",
                 continuationToken: "ct-enroll",
-                enrollmentMethods: [
+                methods: [
                     {
                         type: "email",
                         channels: undefined,
@@ -2710,6 +2744,151 @@ describe("CustomAuthApiClientV2", () => {
                 ],
             });
         });
+
+        it.each([
+            [
+                [
+                    {
+                        id: "email-mfa",
+                        type: "email",
+                        hint: "u***@contoso.com",
+                        _links: {
+                            challenge: { href: "/mfa/email/challenge" },
+                        },
+                    },
+                ],
+                [
+                    {
+                        id: "email-mfa",
+                        type: "email",
+                        hint: "u***@contoso.com",
+                        challengeHref: "/mfa/email/challenge",
+                    },
+                ],
+            ],
+            [
+                [
+                    {
+                        id: "email-mfa",
+                        type: "email",
+                        _links: {
+                            challenge: { href: "/mfa/email/challenge" },
+                        },
+                    },
+                    {
+                        id: "sms-mfa",
+                        type: "sms",
+                        _links: {
+                            challenge: { href: "/mfa/sms/challenge" },
+                        },
+                    },
+                ],
+                [
+                    {
+                        id: "email-mfa",
+                        type: "email",
+                        hint: undefined,
+                        challengeHref: "/mfa/email/challenge",
+                    },
+                    {
+                        id: "sms-mfa",
+                        type: "sms",
+                        hint: undefined,
+                        challengeHref: "/mfa/sms/challenge",
+                    },
+                ],
+            ],
+        ])(
+            "maps terminal reset MFA methods without auto-selecting them",
+            async (methods, expectedMethods) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        continuationToken: "ct-mfa",
+                        action: "challenge",
+                        challengeContext: {
+                            authenticationFactor: "multiFactor",
+                        },
+                        _embedded: { methods },
+                    })
+                );
+
+                await expect(
+                    apiClient.poll(
+                        "/tenant/api/v0.1/poll",
+                        { continuationToken: "ct-update" },
+                        context
+                    )
+                ).resolves.toEqual({
+                    nextAction: "challenge",
+                    continuationToken: "ct-mfa",
+                    authenticationFactor: "multiFactor",
+                    methods: expectedMethods,
+                });
+            }
+        );
+
+        it.each([
+            {
+                body: {
+                    continuationToken: "ct-mfa",
+                    action: "challenge",
+                    challengeContext: {},
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "email-mfa",
+                                type: "email",
+                                _links: {
+                                    challenge: {
+                                        href: "/mfa/email/challenge",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                },
+                error: UNEXPECTED_AUTHENTICATION_FACTOR,
+            },
+            {
+                body: {
+                    continuationToken: "ct-mfa",
+                    action: "challenge",
+                    challengeContext: {
+                        authenticationFactor: "multiFactor",
+                    },
+                    _embedded: { methods: [] },
+                },
+                error: NO_AUTHENTICATION_METHODS,
+            },
+            {
+                body: {
+                    continuationToken: "ct-mfa",
+                    action: "challenge",
+                    challengeContext: {
+                        authenticationFactor: "multiFactor",
+                    },
+                    _embedded: {
+                        methods: [{ id: "email-mfa", type: "email" }],
+                    },
+                },
+                error: NO_AUTHENTICATION_METHODS,
+            },
+        ])(
+            "rejects malformed terminal reset MFA response with $error",
+            async ({ body, error }) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse(body)
+                );
+
+                await expect(
+                    apiClient.poll(
+                        "/tenant/api/v0.1/poll",
+                        { continuationToken: "ct-update" },
+                        context
+                    )
+                ).rejects.toMatchObject({ error });
+            }
+        );
 
         it.each<{ body: PollResponseV2; error: string }>([
             {
@@ -2833,7 +3012,7 @@ describe("CustomAuthApiClientV2", () => {
                     nextAction: "continue",
                     pollHref: undefined,
                 });
-                expect(result.pollHref).toBeUndefined();
+                expect(result).not.toHaveProperty("pollHref");
             }
         );
 

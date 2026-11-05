@@ -7,6 +7,7 @@ import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResu
 import type { FailedStateV2 } from "../../../../core/auth_flow/v2/state/FailedStateV2.js";
 import type { AuthMethodRegistrationRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
+import type { AuthMethodSelectionRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 
 /**
  * States returned after submitting a new password.
@@ -15,6 +16,7 @@ import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2
 export type SubmitNewPasswordResultStateV2 =
     | SignInContinuationStateV2
     | AuthMethodRegistrationRequiredStateV2
+    | AuthMethodSelectionRequiredStateV2
     | FailedStateV2;
 
 /**

@@ -11,6 +11,7 @@ import { CustomAuthSilentCacheClient } from "../../../../get_account/interaction
 import type { SignUpStateTransitionHandlerV2 } from "../../../../sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
 import type { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import type { SignInStateTransitionHandlerV2 } from "../../../../sign_in/auth_flow/v2/state/SignInStateTransitionHandlerV2.js";
+import type { ResetPasswordStateTransitionHandlerV2 } from "../../../../reset_password/auth_flow/v2/state/ResetPasswordStateTransitionHandlerV2.js";
 import type { AuthenticationMethodRegistrationV2 } from "../AuthenticationMethodRegistrationV2.js";
 import type { SignUpAttributeV2 } from "../../../network_client/custom_auth_api/v2/result/SignUpResultsV2.js";
 
@@ -26,6 +27,7 @@ export interface AuthMethodSelectionRequiredStateParametersV2
     extends CustomAuthActionRequiredStateParametersV2 {
     methods: readonly AuthenticationMethodV2[];
     authenticationFactor: AuthenticationFactorV2;
+    resetPasswordStateTransitionHandler?: ResetPasswordStateTransitionHandlerV2;
 }
 
 export interface CodeVerificationStateParametersV2
@@ -39,6 +41,7 @@ export interface CodeVerificationStateParametersV2
 export interface CodeRequiredStateParametersV2
     extends CodeVerificationStateParametersV2 {
     signUpStateTransitionHandler?: SignUpStateTransitionHandlerV2;
+    resetPasswordStateTransitionHandler?: ResetPasswordStateTransitionHandlerV2;
 }
 
 export interface PasswordRequiredStateParametersV2
