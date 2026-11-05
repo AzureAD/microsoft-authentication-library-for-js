@@ -31,6 +31,8 @@ import {
     FLOW_PASSWORD_REQUIRED_V2,
 } from "../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthFlowScenarioV2 } from "../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
+import { CustomAuthResultV2 } from "../../../src/custom_auth/core/auth_flow/v2/CustomAuthResultV2.js";
+import { InvalidArgumentError } from "../../../src/custom_auth/core/error/InvalidArgumentError.js";
 
 jest.mock(
     "../../../src/custom_auth/core/network_client/custom_auth_api/CustomAuthApiClient.js",
@@ -171,6 +173,47 @@ describe("CustomAuthStandardController", () => {
                 attributes,
             });
         });
+    });
+
+    describe("V2 username validation", () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it.each(["signInV2", "signUpV2", "resetPasswordV2"] as const)(
+            "%s logs and passes the original username error to result creation",
+            async (operation) => {
+                const loggerSpy = jest.spyOn(controller["logger"], "errorPii");
+                const factorySpy = jest.spyOn(
+                    CustomAuthResultV2,
+                    "createWithError"
+                );
+                const correlationId = "correlation-id";
+
+                const result = await controller[operation]({
+                    username: "",
+                    correlationId,
+                });
+
+                expect(factorySpy).toHaveBeenCalledWith(
+                    expect.any(InvalidArgumentError),
+                    {
+                        scenario: result.scenario,
+                        correlationId,
+                    }
+                );
+                expect(result.error?.errorData).toBe(
+                    factorySpy.mock.calls[0][0]
+                );
+                expect(result.error?.isInvalidUsername()).toBe(true);
+                expect(loggerSpy).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        "Error: invalid_argument: The argument 'inputs.username' is invalid."
+                    ),
+                    correlationId
+                );
+            }
+        );
     });
 
     describe("signInV2", () => {

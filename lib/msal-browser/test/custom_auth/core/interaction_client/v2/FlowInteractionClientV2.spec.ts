@@ -6,7 +6,6 @@
 import { Logger, StubbedNetworkModule } from "@azure/msal-common/browser";
 import { FlowInteractionClientV2 } from "../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import { CustomAuthApiError } from "../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
-import { CustomAuthResultV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthResultV2.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import {
     FLOW_METHOD_SELECTION_REQUIRED_V2,
@@ -1593,31 +1592,28 @@ describe("FlowInteractionClientV2", () => {
         it.each([
             CustomAuthFlowScenarioV2.SignIn,
             CustomAuthFlowScenarioV2.PasswordReset,
-        ])("classifies rejected MFA verification in %s", async (scenario) => {
-            const errorData = apiError("invalidGrant", "invalidOneTimeCode");
-            apiClient.verifyChallenge.mockRejectedValue(errorData);
-
-            const result = await client
-                .submitCode({
-                    correlationId,
-                    continuationState: { ...continuationState, scenario },
-                    authenticationFactor: AuthenticationFactorV2.MULTI_FACTOR,
-                    code: "123456",
-                })
-                .then(
-                    () => {
-                        throw new Error("Expected MFA verification to fail.");
-                    },
-                    (error: unknown) =>
-                        CustomAuthResultV2.createWithError(error, {})
+        ])(
+            "propagates rejected MFA verification unchanged in %s",
+            async (scenario) => {
+                const errorData = apiError(
+                    "invalidGrant",
+                    "invalidOneTimeCode"
                 );
+                apiClient.verifyChallenge.mockRejectedValue(errorData);
 
-            expect(result.error?.isInvalidChallenge()).toBe(true);
-            expect(result.error?.isInvalidCode()).toBe(false);
-            expect(result.error?.errorData).toBe(errorData);
-            expect(result.scenario).toBe(scenario);
-            expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
-        });
+                await expect(
+                    client.submitCode({
+                        correlationId,
+                        continuationState: { ...continuationState, scenario },
+                        authenticationFactor:
+                            AuthenticationFactorV2.MULTI_FACTOR,
+                        code: "123456",
+                    })
+                ).rejects.toBe(errorData);
+
+                expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
+            }
+        );
 
         it("leaves a rejected ordinary sign-in code unchanged", async () => {
             const errorData = apiError("invalidGrant", "invalidOneTimeCode");
@@ -1668,7 +1664,7 @@ describe("FlowInteractionClientV2", () => {
             }
         );
 
-        it("does not mark a downstream token failure as a rejected MFA challenge", async () => {
+        it("propagates a downstream MFA token failure unchanged", async () => {
             const errorData = apiError("invalidGrant", "invalidOneTimeCode");
             apiClient.verifyChallenge.mockResolvedValue({
                 nextAction: "continue",
@@ -4586,34 +4582,30 @@ describe("FlowInteractionClientV2", () => {
             CustomAuthFlowScenarioV2.SignIn,
             CustomAuthFlowScenarioV2.SignUp,
             CustomAuthFlowScenarioV2.PasswordReset,
-        ])("classifies rejected JIT activation in %s", async (scenario) => {
-            const errorData = apiError("invalidGrant", "invalidOneTimeCode");
-            apiClient.activateAuthMethod.mockRejectedValue(errorData);
-
-            const result = await client
-                .verifyAuthMethodRegistration({
-                    correlationId,
-                    continuationState: {
-                        ...continuationState,
-                        scenario,
-                        links: { activate: "/activate/email" },
-                    },
-                    code: "123456",
-                })
-                .then(
-                    () => {
-                        throw new Error("Expected JIT activation to fail.");
-                    },
-                    (error: unknown) =>
-                        CustomAuthResultV2.createWithError(error, {})
+        ])(
+            "propagates rejected JIT activation unchanged in %s",
+            async (scenario) => {
+                const errorData = apiError(
+                    "invalidGrant",
+                    "invalidOneTimeCode"
                 );
+                apiClient.activateAuthMethod.mockRejectedValue(errorData);
 
-            expect(result.error?.isInvalidChallenge()).toBe(true);
-            expect(result.error?.isInvalidCode()).toBe(false);
-            expect(result.error?.errorData).toBe(errorData);
-            expect(result.scenario).toBe(scenario);
-            expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
-        });
+                await expect(
+                    client.verifyAuthMethodRegistration({
+                        correlationId,
+                        continuationState: {
+                            ...continuationState,
+                            scenario,
+                            links: { activate: "/activate/email" },
+                        },
+                        code: "123456",
+                    })
+                ).rejects.toBe(errorData);
+
+                expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
+            }
+        );
 
         it.each([
             {
@@ -4642,7 +4634,7 @@ describe("FlowInteractionClientV2", () => {
             }
         );
 
-        it("does not mark a downstream token failure as a rejected JIT challenge", async () => {
+        it("propagates a downstream JIT token failure unchanged", async () => {
             const errorData = apiError("invalidGrant", "invalidOneTimeCode");
             apiClient.activateAuthMethod.mockResolvedValue({
                 nextAction: "continue",

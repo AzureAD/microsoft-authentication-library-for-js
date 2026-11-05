@@ -10,11 +10,13 @@ import { MsalCustomAuthError } from "../../error/MsalCustomAuthError.js";
 import { UnexpectedError } from "../../error/UnexpectedError.js";
 import { FailedStateV2 } from "./state/FailedStateV2.js";
 import { AuthFlowErrorV2 } from "./error/AuthFlowErrorV2.js";
+import type { AuthFlowErrorContextV2 } from "./error/AuthFlowErrorV2.js";
 import { CustomAuthFlowScenarioV2 } from "./CustomAuthFlowScenarioV2.js";
 
 type CreateWithErrorOptions = {
     scenario?: CustomAuthFlowScenarioV2;
     correlationId?: string;
+    errorContext?: AuthFlowErrorContextV2;
 };
 
 /**
@@ -66,6 +68,7 @@ export class CustomAuthResultV2<
 
     /**
      * Creates a failed result from the supplied error.
+     * Optional error context identifies MFA verification or authentication-method registration.
      * @param error - The error that occurred.
      * @param options - The flow-error context.
      * @returns A failed result carrying the unified V2 flow error.
@@ -80,7 +83,8 @@ export class CustomAuthResultV2<
                 ? error
                 : new AuthFlowErrorV2(
                       CustomAuthResultV2.createErrorData(error, correlationId),
-                      options.scenario ?? CustomAuthFlowScenarioV2.Unknown
+                      options.scenario ?? CustomAuthFlowScenarioV2.Unknown,
+                      options.errorContext
                   );
 
         const result = new CustomAuthResultV2<TState | FailedStateV2, TData>(

@@ -256,7 +256,7 @@ describe("CustomAuthResultV2", () => {
             const error = new AuthFlowErrorV2(
                 errorData,
                 CustomAuthFlowScenarioV2.SignIn,
-                "challenge"
+                "mfaVerification"
             );
 
             const result = CustomAuthResultV2.createWithError(error, {
@@ -272,20 +272,53 @@ describe("CustomAuthResultV2", () => {
             expect(result.error?.scenario).toBe(result.scenario);
         });
 
-        it("preserves local username and input classification", () => {
+        it.each([
+            { errorContext: undefined, invalidChallenge: false },
+            { errorContext: "default", invalidChallenge: false },
+            { errorContext: "mfaVerification", invalidChallenge: true },
+            { errorContext: "authMethodRegistration", invalidChallenge: true },
+        ] as const)(
+            "classifies a raw OTP failure with $errorContext context",
+            ({ errorContext, invalidChallenge }) => {
+                const errorData = new CustomAuthApiError(
+                    "invalidGrant",
+                    "Invalid code.",
+                    correlationId,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    "invalidOneTimeCode"
+                );
+
+                const result = CustomAuthResultV2.createWithError(errorData, {
+                    scenario: CustomAuthFlowScenarioV2.SignIn,
+                    errorContext,
+                });
+
+                expect(result.isFailed()).toBe(true);
+                expect(result.error?.errorData).toBe(errorData);
+                expect(result.error?.isInvalidChallenge()).toBe(
+                    invalidChallenge
+                );
+                expect(result.error?.isInvalidCode()).toBe(!invalidChallenge);
+                expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignIn);
+            }
+        );
+
+        it("classifies local username validation at result creation", () => {
             const errorData = new InvalidArgumentError(
                 "inputs.username",
                 correlationId
             );
-            const error = new AuthFlowErrorV2(
-                errorData,
-                CustomAuthFlowScenarioV2.SignUp,
-                "username"
-            );
 
-            const result = CustomAuthResultV2.createWithError(error, {});
+            const result = CustomAuthResultV2.createWithError(errorData, {
+                scenario: CustomAuthFlowScenarioV2.SignUp,
+            });
 
-            expect(result.error).toBe(error);
             expect(result.error?.errorData).toBe(errorData);
             expect(result.error?.isInvalidUsername()).toBe(true);
             expect(result.error?.isInvalidInput()).toBe(true);

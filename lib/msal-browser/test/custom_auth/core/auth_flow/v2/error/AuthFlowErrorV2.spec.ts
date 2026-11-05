@@ -92,21 +92,23 @@ describe("AuthFlowErrorV2 error mapping", () => {
     });
 
     describe("isInvalidChallenge", () => {
-        it("distinguishes a rejected verification challenge from an ordinary code", () => {
-            const errorData = apiError("invalidGrant", {
-                innerErrorCode: "invalidOneTimeCode",
-            });
-            const error = new AuthFlowErrorV2(
-                errorData,
-                CustomAuthFlowScenarioV2.SignIn,
-                "challenge"
-            );
+        it.each(["mfaVerification", "authMethodRegistration"] as const)(
+            "distinguishes a rejected %s challenge from an ordinary code",
+            (errorContext) => {
+                const errorData = apiError("invalidGrant", {
+                    innerErrorCode: "invalidOneTimeCode",
+                });
+                const error = new AuthFlowErrorV2(
+                    errorData,
+                    CustomAuthFlowScenarioV2.SignIn,
+                    errorContext
+                );
 
-            expect(error.isInvalidChallenge()).toBe(true);
-            expect(error.isInvalidCode()).toBe(false);
-            expect(error.errorData).toBe(errorData);
-            expect(String(error)).toBe(String(errorData));
-        });
+                expect(error.isInvalidChallenge()).toBe(true);
+                expect(error.isInvalidCode()).toBe(false);
+                expect(error.errorData).toBe(errorData);
+            }
+        );
 
         it.each([
             {
@@ -123,7 +125,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
                 const error = new AuthFlowErrorV2(
                     apiError(code, { innerErrorCode }),
                     CustomAuthFlowScenarioV2.SignIn,
-                    "challenge"
+                    "mfaVerification"
                 );
 
                 expect(error.isInvalidChallenge()).toBe(false);
@@ -611,11 +613,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
     describe("isInvalidUsername", () => {
         it("identifies a locally rejected username and retains invalid-input classification", () => {
             const errorData = new InvalidArgumentError("inputs.username");
-            const error = new AuthFlowErrorV2(
-                errorData,
-                CustomAuthFlowScenarioV2.SignIn,
-                "username"
-            );
+            const error = new AuthFlowErrorV2(errorData);
 
             expect(error.isInvalidUsername()).toBe(true);
             expect(error.isInvalidInput()).toBe(true);
@@ -623,9 +621,14 @@ describe("AuthFlowErrorV2 error mapping", () => {
             expect(error.errorData).toBe(errorData);
         });
 
-        it("does not infer username validation from another argument error", () => {
+        it.each([
+            "inputs",
+            "inputs.password",
+            "inputs.claims",
+            "inputs.scopes",
+        ])("does not infer username validation from %s", (argName) => {
             const error = new AuthFlowErrorV2(
-                new InvalidArgumentError("inputs.scopes")
+                new InvalidArgumentError(argName)
             );
 
             expect(error.isInvalidUsername()).toBe(false);

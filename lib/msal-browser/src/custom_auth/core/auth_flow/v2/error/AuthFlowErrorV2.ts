@@ -22,6 +22,11 @@ import {
 import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
 import type { AttributeValidationDetailV2 } from "../../../network_client/custom_auth_api/v2/response/ErrorResponsesV2.js";
 
+export type AuthFlowErrorContextV2 =
+    | "default"
+    | "mfaVerification"
+    | "authMethodRegistration";
+
 /**
  * Error returned by a native authentication V2 operation.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
@@ -32,10 +37,7 @@ export class AuthFlowErrorV2 {
     constructor(
         public errorData: CustomAuthError,
         scenario: CustomAuthFlowScenarioV2 = CustomAuthFlowScenarioV2.Unknown,
-        private readonly classification:
-            | "default"
-            | "challenge"
-            | "username" = "default"
+        private readonly errorContext: AuthFlowErrorContextV2 = "default"
     ) {
         this.scenario = scenario;
     }
@@ -95,8 +97,8 @@ export class AuthFlowErrorV2 {
      */
     isInvalidUsername(): boolean {
         return (
-            this.classification === "username" &&
-            this.errorData instanceof InvalidArgumentError
+            this.errorData instanceof InvalidArgumentError &&
+            this.errorData.argName === "inputs.username"
         );
     }
 
@@ -114,7 +116,7 @@ export class AuthFlowErrorV2 {
      * @returns True when the ordinary one-time code is invalid.
      */
     isInvalidCode(): boolean {
-        return this.classification !== "challenge" && this.isInvalidCodeError();
+        return this.errorContext === "default" && this.isInvalidCodeError();
     }
 
     /**
@@ -123,7 +125,11 @@ export class AuthFlowErrorV2 {
      * @returns True when the verification challenge is invalid.
      */
     isInvalidChallenge(): boolean {
-        return this.classification === "challenge" && this.isInvalidCodeError();
+        return (
+            (this.errorContext === "mfaVerification" ||
+                this.errorContext === "authMethodRegistration") &&
+            this.isInvalidCodeError()
+        );
     }
 
     /**
@@ -150,15 +156,6 @@ export class AuthFlowErrorV2 {
             this.isInvalidPasswordError() ||
             this.isPasswordAttributeValidationError()
         );
-    }
-
-    /**
-     * Returns the original error's diagnostic string representation. Delegating
-     * string conversion preserves existing diagnostic logging.
-     * @returns The underlying error's string representation.
-     */
-    toString(): string {
-        return this.errorData.toString();
     }
 
     private isUserNotFoundError(): boolean {

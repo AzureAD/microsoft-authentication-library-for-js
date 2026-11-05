@@ -5,7 +5,6 @@
 
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
-import { AuthFlowErrorV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
 import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { MFAVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
@@ -42,10 +41,12 @@ describe("MFAVerificationRequiredStateV2", () => {
         resendCode: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
 
-    const buildState = (): MFAVerificationRequiredStateV2 =>
+    const buildState = (
+        logger = getDefaultLogger()
+    ): MFAVerificationRequiredStateV2 =>
         new MFAVerificationRequiredStateV2({
             correlationId,
-            logger: getDefaultLogger(),
+            logger,
             config: {
                 auth: { clientId: "test-client-id" },
                 customAuth: { challengeTypes: ["oob"] },
@@ -129,19 +130,19 @@ describe("MFAVerificationRequiredStateV2", () => {
         expect(result.isState("completed")).toBe(true);
     });
 
-    it("preserves challenge classification in a failed public result", async () => {
+    it("logs the raw rejection and classifies it at the public boundary", async () => {
         const errorData = invalidCodeError();
-        const error = new AuthFlowErrorV2(
-            errorData,
-            CustomAuthFlowScenarioV2.SignIn,
-            "challenge"
+        const logger = getDefaultLogger();
+        const logError = jest.spyOn(logger, "errorPii");
+        flowClient.submitCode.mockRejectedValue(errorData);
+
+        const result = await buildState(logger).submitChallenge("123456");
+
+        expect(logError).toHaveBeenCalledWith(
+            `Failed to submit V2 MFA challenge. Error: '${errorData}'.`,
+            correlationId
         );
-        flowClient.submitCode.mockRejectedValue(error);
-
-        const result = await buildState().submitChallenge("123456");
-
         expect(result.isFailed()).toBe(true);
-        expect(result.error).toBe(error);
         expect(result.error?.errorData).toBe(errorData);
         expect(result.error?.isInvalidChallenge()).toBe(true);
         expect(result.error?.isInvalidCode()).toBe(false);

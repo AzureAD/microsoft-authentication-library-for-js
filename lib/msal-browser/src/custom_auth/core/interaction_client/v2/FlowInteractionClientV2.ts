@@ -63,8 +63,6 @@ import { INavigationClient } from "../../../../navigation/INavigationClient.js";
 import { CustomAuthAuthority } from "../../CustomAuthAuthority.js";
 import { CustomAuthApiClientV2 } from "../../network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { CustomAuthError } from "../../error/CustomAuthError.js";
-import { CustomAuthApiError } from "../../error/CustomAuthApiError.js";
-import { AuthFlowErrorV2 } from "../../auth_flow/v2/error/AuthFlowErrorV2.js";
 import {
     CONTINUATION_LINK_MISSING,
     RESET_PASSWORD_UNSUPPORTED,
@@ -592,24 +590,14 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             "Activating a V2 authentication method.",
             correlationId
         );
-        const result = await this.apiClient
-            .activateAuthMethod(
-                this.requireLink(
-                    correlationId,
-                    continuationState.links.activate
-                ),
-                {
-                    continuationToken: continuationState.continuationToken,
-                    otp: parameters.code,
-                },
-                context
-            )
-            .catch((error: unknown) => {
-                throw this.mapChallengeVerificationError(
-                    error,
-                    continuationState.scenario
-                );
-            });
+        const result = await this.apiClient.activateAuthMethod(
+            this.requireLink(correlationId, continuationState.links.activate),
+            {
+                continuationToken: continuationState.continuationToken,
+                otp: parameters.code,
+            },
+            context
+        );
 
         return this.completeSignInAfterVerification(
             continuationState,
@@ -677,20 +665,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             continuationToken: continuationState.continuationToken,
             otp: parameters.code,
         };
-        const verifyResult = await this.apiClient
-            .verifyChallenge(verifyHref, verifyRequest, context)
-            .catch((error: unknown) => {
-                if (
-                    parameters.authenticationFactor ===
-                    AuthenticationFactorV2.MULTI_FACTOR
-                ) {
-                    throw this.mapChallengeVerificationError(
-                        error,
-                        continuationState.scenario
-                    );
-                }
-                throw error;
-            });
+        const verifyResult = await this.apiClient.verifyChallenge(
+            verifyHref,
+            verifyRequest,
+            context
+        );
 
         if (
             continuationState.scenario ===
@@ -1000,18 +979,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             correlationId,
             authenticationResult,
         });
-    }
-
-    private mapChallengeVerificationError(
-        error: unknown,
-        scenario: CustomAuthFlowScenarioV2
-    ): unknown {
-        if (!(error instanceof CustomAuthApiError)) {
-            return error;
-        }
-
-        const flowError = new AuthFlowErrorV2(error, scenario, "challenge");
-        return flowError.isInvalidChallenge() ? flowError : error;
     }
 
     private async handleSignInVerification(

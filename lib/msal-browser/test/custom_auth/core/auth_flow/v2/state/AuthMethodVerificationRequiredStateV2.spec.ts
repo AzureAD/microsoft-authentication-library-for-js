@@ -5,7 +5,6 @@
 
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
-import { AuthFlowErrorV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
 import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { AuthMethodVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodVerificationRequiredStateV2.js";
@@ -35,10 +34,10 @@ describe("AuthMethodVerificationRequiredStateV2", () => {
         },
     };
 
-    const buildState = () =>
+    const buildState = (logger = getDefaultLogger()) =>
         new AuthMethodVerificationRequiredStateV2({
             correlationId,
-            logger: getDefaultLogger(),
+            logger,
             config: {
                 auth: { clientId: "test-client-id" },
                 customAuth: { challengeTypes: ["oob"] },
@@ -170,7 +169,7 @@ describe("AuthMethodVerificationRequiredStateV2", () => {
         expect(result.state.sentTo).toBe("u***@contoso.com");
     });
 
-    it("preserves challenge classification in a failed public result", async () => {
+    it("logs the raw rejection and classifies it at the public boundary", async () => {
         const errorData = new CustomAuthApiError(
             "invalidGrant",
             "Invalid code.",
@@ -184,17 +183,17 @@ describe("AuthMethodVerificationRequiredStateV2", () => {
             undefined,
             "invalidOneTimeCode"
         );
-        const error = new AuthFlowErrorV2(
-            errorData,
-            CustomAuthFlowScenarioV2.SignIn,
-            "challenge"
+        const logger = getDefaultLogger();
+        const logError = jest.spyOn(logger, "errorPii");
+        flowClient.verifyAuthMethodRegistration.mockRejectedValue(errorData);
+
+        const result = await buildState(logger).submitChallenge("123456");
+
+        expect(logError).toHaveBeenCalledWith(
+            `Failed to submit the V2 authentication-method activation challenge. Error: '${errorData}'.`,
+            correlationId
         );
-        flowClient.verifyAuthMethodRegistration.mockRejectedValue(error);
-
-        const result = await buildState().submitChallenge("123456");
-
         expect(result.isFailed()).toBe(true);
-        expect(result.error).toBe(error);
         expect(result.error?.errorData).toBe(errorData);
         expect(result.error?.isInvalidChallenge()).toBe(true);
         expect(result.error?.isInvalidCode()).toBe(false);
