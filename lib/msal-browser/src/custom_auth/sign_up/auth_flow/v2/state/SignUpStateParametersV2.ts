@@ -16,9 +16,3 @@ export interface AttributesRequiredStateParametersV2
     extends SignUpActionRequiredStateParametersV2 {
     attributes: SignUpAttributeV2[];
 }
-
-export interface SignUpPasswordRequiredStateParametersV2
-    extends SignUpActionRequiredStateParametersV2 {
-    attributes: SignUpAttributeV2[];
-    requiredPasswordAttribute: SignUpAttributeV2;
-}
