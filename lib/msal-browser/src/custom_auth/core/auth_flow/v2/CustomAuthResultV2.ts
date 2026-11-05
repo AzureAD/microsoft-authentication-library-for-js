@@ -57,6 +57,17 @@ export class CustomAuthResultV2<
     }
 
     /**
+     * Checks whether the current state requires a password. A successful match
+     * narrows the result to the password-required member of its state union.
+     * @returns True (and narrows `state`) when a password is required.
+     */
+    isPasswordRequired(): this is this & {
+        state: Extract<TState, { stateType: "passwordRequired" }>;
+    } {
+        return this.state.stateType === "passwordRequired";
+    }
+
+    /**
      * Creates a failed result from the supplied error. The result uses the
      * shared {@link FailedStateV2} terminal state and unified V2 flow error.
      * @param error - The error that occurred.

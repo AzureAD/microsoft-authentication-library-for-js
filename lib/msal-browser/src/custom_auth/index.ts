@@ -272,10 +272,11 @@ export { MFAVerificationRequiredStateV2 } from "./core/auth_flow/v2/state/MFAVer
 export { AuthMethodSelectionRequiredStateV2 } from "./core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 export { AuthMethodRegistrationRequiredStateV2 } from "./core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 export { AuthMethodVerificationRequiredStateV2 } from "./core/auth_flow/v2/state/AuthMethodVerificationRequiredStateV2.js";
-export { PasswordRequiredStateV2 } from "./sign_in/auth_flow/v2/state/PasswordRequiredStateV2.js";
+export { PasswordRequiredStateV2 } from "./core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 export { SignInContinuationStateV2 } from "./sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 export { AttributesRequiredStateV2 } from "./sign_up/auth_flow/v2/state/AttributesRequiredStateV2.js";
-export { SignUpPasswordRequiredStateV2 } from "./sign_up/auth_flow/v2/state/SignUpPasswordRequiredStateV2.js";
+export { ExistingAccountCodeRequiredStateV2 } from "./sign_up/auth_flow/v2/state/ExistingAccountCodeRequiredStateV2.js";
+export { ExistingAccountPasswordRequiredStateV2 } from "./sign_up/auth_flow/v2/state/ExistingAccountPasswordRequiredStateV2.js";
 
 // Native Auth V2 Results
 export {
@@ -321,11 +322,17 @@ export {
 export {
     SubmitPasswordResultV2,
     SubmitPasswordResultStateV2,
-} from "./sign_in/auth_flow/v2/result/SubmitPasswordResultV2.js";
+} from "./core/auth_flow/v2/result/SubmitPasswordResultV2.js";
 export {
     SubmitAttributesResultV2,
     SubmitAttributesResultStateV2,
 } from "./sign_up/auth_flow/v2/result/SubmitAttributesResultV2.js";
+export type {
+    ExistingAccountSubmitCodeResultV2,
+    ExistingAccountSubmitCodeResultStateV2,
+    ExistingAccountSubmitPasswordResultV2,
+    ExistingAccountSubmitPasswordResultStateV2,
+} from "./sign_up/auth_flow/v2/result/ExistingAccountActionResultsV2.js";
 
 // Components from msal_browser
 export { LogLevel } from "@azure/msal-common/browser";
