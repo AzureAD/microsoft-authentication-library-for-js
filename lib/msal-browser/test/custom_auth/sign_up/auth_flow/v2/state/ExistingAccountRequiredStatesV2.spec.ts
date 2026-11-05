@@ -7,12 +7,11 @@ import type { AuthenticationResult } from "../../../../../../src/response/Authen
 import type { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { ExistingAccountCodeRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/ExistingAccountCodeRequiredStateV2.js";
-import { ExistingAccountPasswordRequiredStateV2 } from "../../../../../../src/custom_auth/sign_up/auth_flow/v2/state/ExistingAccountPasswordRequiredStateV2.js";
 import { AuthMethodSelectionRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { MFAVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
 import { SignInStateTransitionHandlerV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInStateTransitionHandlerV2.js";
 import { AuthenticationFactorV2 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
-import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
+import type { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
     FLOW_CODE_REQUIRED_V2,
     FLOW_COMPLETED_V2,
@@ -21,10 +20,6 @@ import {
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import type { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
-
-jest.mock(
-    "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js"
-);
 
 describe("existing-account sign-up states", () => {
     const correlationId = "test-correlation-id";
@@ -339,9 +334,11 @@ describe("existing-account sign-up states", () => {
     });
 
     it("verifies the existing password without submitting sign-up attributes and allows retry", async () => {
-        const passwordFlowClient = jest.mocked(
-            FlowInteractionClientV2.prototype
-        );
+        flowClient.requestChallenge.mockResolvedValueOnce({
+            type: FLOW_PASSWORD_REQUIRED_V2,
+            correlationId,
+            continuationState,
+        });
         const invalidPasswordError = new CustomAuthApiError(
             "invalidGrant",
             "The password is incorrect.",
@@ -349,7 +346,7 @@ describe("existing-account sign-up states", () => {
         );
         invalidPasswordError.innerErrorCode = "invalidUserNameOrPassword";
 
-        passwordFlowClient.submitSignInPassword
+        flowClient.submitSignInPassword
             .mockRejectedValueOnce(invalidPasswordError)
             .mockResolvedValueOnce({
                 type: FLOW_COMPLETED_V2,
@@ -358,10 +355,16 @@ describe("existing-account sign-up states", () => {
                     account: { homeAccountId: "uid.utid" },
                 } as unknown as AuthenticationResult,
             });
-        const state = new ExistingAccountPasswordRequiredStateV2({
+        const selection = new AuthMethodSelectionRequiredStateV2({
             ...commonParameters,
-            flowClient: passwordFlowClient,
+            methods,
+            authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
         });
+        const selected = await selection.selectAuthMethod(methods[1]);
+        if (!selected.isState("existingAccountPasswordRequired")) {
+            throw new Error("Expected existing-account password verification.");
+        }
+        const state = selected.state;
 
         const failed = await state.submitPassword("wrong-password");
         const completed = await state.submitPassword("valid-password");
@@ -369,27 +372,17 @@ describe("existing-account sign-up states", () => {
         expect(failed.isFailed()).toBe(true);
         expect(failed.error?.isInvalidCredentials()).toBe(true);
         expect(completed.isState("completed")).toBe(true);
-        expect(passwordFlowClient.submitSignInPassword).toHaveBeenCalledTimes(
-            2
-        );
-        expect(passwordFlowClient.submitSignInPassword).toHaveBeenNthCalledWith(
-            1,
-            {
-                correlationId,
-                continuationState,
-                password: "wrong-password",
-            }
-        );
-        expect(passwordFlowClient.submitSignInPassword).toHaveBeenNthCalledWith(
-            2,
-            {
-                correlationId,
-                continuationState,
-                password: "valid-password",
-            }
-        );
-        expect(
-            passwordFlowClient.submitSignUpAttributes
-        ).not.toHaveBeenCalled();
+        expect(flowClient.submitSignInPassword).toHaveBeenCalledTimes(2);
+        expect(flowClient.submitSignInPassword).toHaveBeenNthCalledWith(1, {
+            correlationId,
+            continuationState,
+            password: "wrong-password",
+        });
+        expect(flowClient.submitSignInPassword).toHaveBeenNthCalledWith(2, {
+            correlationId,
+            continuationState,
+            password: "valid-password",
+        });
+        expect(flowClient.submitSignUpAttributes).not.toHaveBeenCalled();
     });
 });
