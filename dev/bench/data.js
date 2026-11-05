@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793895586402,
+  "lastUpdate": 1793901724099,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24949,6 +24949,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.93%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ydi.w127@gmail.com",
+            "name": "Yongdi Wang",
+            "username": "yongdiw"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e1616ab81f12aed4b83b9316abb52778d488bc75",
+          "message": "Add Native Auth V2 password reset MFA support (#8963)",
+          "timestamp": "2026-11-05T17:54:14Z",
+          "tree_id": "3076c362c85327614f98eaf23eca4c7bd0713043",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/e1616ab81f12aed4b83b9316abb52778d488bc75"
+        },
+        "date": 1793901720911,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 566867,
+            "range": "±1.52%",
+            "unit": "ops/sec",
+            "extra": "232 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 533717,
+            "range": "±0.87%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
