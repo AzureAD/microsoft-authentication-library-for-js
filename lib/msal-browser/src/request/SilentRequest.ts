@@ -44,6 +44,13 @@ export type SilentRequest = Omit<
      */
     forceRefresh?: boolean;
     /**
+     * Invalidates this account/tenant/resource/capability access-token family
+     * before renewal, including pending acquisitions. Requires the experimental
+     * CAE partition option and cannot be combined with AccessToken-only lookup.
+     * Does not clear accounts, ID tokens or refresh tokens.
+     */
+    invalidateAccessTokenCache?: boolean;
+    /**
      * Enum of different ways the silent token can be retrieved.
      */
     cacheLookupPolicy?: CacheLookupPolicy;

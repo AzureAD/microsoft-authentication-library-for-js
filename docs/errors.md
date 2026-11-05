@@ -1083,6 +1083,8 @@ const msalConfig = {
     hybrid-code acquisition, hydration/import and extended token inputs are not implemented. Disable
     `experimental.enableCaeCachePartitioning` to restore the normal behavior.
     See [the experiment's limits](../lib/msal-browser/docs/caching.md#unpublished-cae-cache-experiment).
+    Explicit `invalidateAccessTokenCache` also requires the experiment and cannot
+    be combined with access-token-only lookup.
 
 ### `storage_not_supported`
 

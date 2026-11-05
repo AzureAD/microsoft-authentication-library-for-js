@@ -709,6 +709,7 @@ export type BaseAuthRequest = {
     experimentalCaeCache?: {
         capability: "ordinary" | "cp1";
         hasChallenge: boolean;
+        invalidate?: boolean;
         epoch?: string;
         authorizationEpoch?: string;
         realm?: string;

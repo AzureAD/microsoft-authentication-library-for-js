@@ -42,6 +42,8 @@ export type BaseAuthRequest = {
     experimentalCaeCache?: {
         capability: "ordinary" | "cp1";
         hasChallenge: boolean;
+        /** Explicit silent-request invalidation, including CP1-only challenges. */
+        invalidate?: boolean;
         /** Captured before silent acquisition; changes invalidate older AT writes. */
         epoch?: string;
         /** Captured before an interactive request whose returned account may be unknown. */

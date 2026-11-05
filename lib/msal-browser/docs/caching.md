@@ -105,6 +105,14 @@ Generations do not form an append-only challenge
 cache: old entries are removed and delayed writes are discarded. Force-refresh
 without additional claims retains the normal refresh behavior.
 
+For a trusted CP1-only challenge or explicit cache bypass, set
+`invalidateAccessTokenCache: true` on `acquireTokenSilent`. This forces renewal and
+invalidates the same account/tenant/resource/capability family, including older
+pending acquisitions, without clearing shared authentication. Identical invalidation
+requests coalesce. The flag requires the experimental option and rejects
+`CacheLookupPolicy.AccessToken`, which cannot perform the required renewal.
+It adds no synthetic claims to the token request.
+
 Tenant domains are resolved through OIDC discovery before silent generation capture;
 validated resolutions are cached per authority with the standard metadata lifetime,
 and GUID tenant IDs are normalized. Missing generation records never restore an earlier

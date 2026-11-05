@@ -14,7 +14,10 @@ import {
     BrowserConfigurationAuthError,
     BrowserConfigurationAuthErrorCodes,
 } from "../error/BrowserConfigurationAuthError.js";
-import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
+import {
+    BrowserCacheLocation,
+    CacheLookupPolicy,
+} from "../utils/BrowserConstants.js";
 
 /**
  * Rejects paths outside the local experiment instead of implying support.
@@ -52,17 +55,28 @@ export function validateCaeCacheConfiguration(
  * Resolves the capability actually sent to the token endpoint.
  * Configured client capabilities take precedence over request xms_cc.
  */
-export function prepareCaeCacheRequest<T extends Partial<BaseAuthRequest>>(
-    request: T,
-    config: BrowserConfiguration
-): T {
+export function prepareCaeCacheRequest<
+    T extends Partial<BaseAuthRequest> & {
+        invalidateAccessTokenCache?: boolean;
+        cacheLookupPolicy?: CacheLookupPolicy;
+    }
+>(request: T, config: BrowserConfiguration): T {
     if (!config.experimental?.enableCaeCachePartitioning) {
+        if (request.invalidateAccessTokenCache) {
+            rejectCaeCacheExperiment(request.correlationId || "");
+        }
         return request.experimentalCaeCache
             ? { ...request, experimentalCaeCache: undefined }
             : request;
     }
 
     const correlationId = request.correlationId || "";
+    if (
+        request.invalidateAccessTokenCache &&
+        request.cacheLookupPolicy === CacheLookupPolicy.AccessToken
+    ) {
+        rejectCaeCacheExperiment(correlationId);
+    }
     validateCaeCacheConfiguration(config);
     if (
         (request.authenticationScheme &&
@@ -140,12 +154,14 @@ export function prepareCaeCacheRequest<T extends Partial<BaseAuthRequest>>(
 
     return {
         ...request,
+        ...(request.invalidateAccessTokenCache ? { forceRefresh: true } : {}),
         authority: request.authority || config.auth.authority,
         scopes: request.scopes ? [...request.scopes] : undefined,
         storeInCache: request.storeInCache
             ? { ...request.storeInCache }
             : undefined,
         experimentalCaeCache: {
+            invalidate: !!request.invalidateAccessTokenCache,
             epoch: request.experimentalCaeCache?.epoch,
             authorizationEpoch:
                 request.experimentalCaeCache?.authorizationEpoch,

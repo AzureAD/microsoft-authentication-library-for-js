@@ -1070,6 +1070,7 @@ export type SilentRequest = Omit<CommonSilentFlowRequest, "authority" | "correla
     account?: AccountInfo;
     correlationId?: string;
     forceRefresh?: boolean;
+    invalidateAccessTokenCache?: boolean;
     cacheLookupPolicy?: CacheLookupPolicy;
     prompt?: string;
     state?: string;

@@ -1082,6 +1082,142 @@ describe("Unpublished CAE partition prototype", () => {
         expect(post).toHaveBeenCalledTimes(3);
     });
 
+    it.each([
+        BrowserCacheLocation.SessionStorage,
+        BrowserCacheLocation.LocalStorage,
+    ])(
+        "explicit CP1-only invalidation survives a failed renewal in %s",
+        async (location) => {
+            const post = jest
+                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+                .mockResolvedValueOnce(response("ordinary"))
+                .mockResolvedValueOnce(response("rejected-cae"))
+                .mockResolvedValueOnce({
+                    status: 400,
+                    headers: {},
+                    body: {
+                        error: "interaction_required",
+                        error_description: "Synthetic denial",
+                    },
+                });
+            const { pca, cache } = await application(true, [], location);
+            await pca.acquireTokenSilent(request);
+            await pca.acquireTokenSilent({ ...request, claims: cp1 });
+            await expect(
+                pca.acquireTokenSilent({
+                    ...request,
+                    claims: cp1,
+                    invalidateAccessTokenCache: true,
+                })
+            ).rejects.toMatchObject({ errorCode: "interaction_required" });
+            await expect(
+                pca.acquireTokenSilent({
+                    ...request,
+                    claims: cp1,
+                    cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+                })
+            ).rejects.toMatchObject({ errorCode: "token_refresh_required" });
+            expect((await pca.acquireTokenSilent(request)).accessToken).toBe(
+                "ordinary"
+            );
+            expect(cache.getTokenKeys().refreshToken).toHaveLength(1);
+            expect(post).toHaveBeenCalledTimes(3);
+            const body = new URLSearchParams(post.mock.calls[2][1]?.body);
+            expect(JSON.parse(body.get("claims")!).access_token).toEqual({
+                xms_cc: { values: ["CP1"] },
+            });
+        }
+    );
+
+    it("explicit CP1-only invalidation fences an older request on another instance", async () => {
+        let release!: (value: ReturnType<typeof response>) => void;
+        const held = new Promise<ReturnType<typeof response>>((resolve) => {
+            release = resolve;
+        });
+        let started!: () => void;
+        const ready = new Promise<void>((resolve) => {
+            started = resolve;
+        });
+        jest.spyOn(FetchClient.prototype, "sendPostRequestAsync")
+            .mockImplementationOnce(() => {
+                started();
+                return held;
+            })
+            .mockResolvedValueOnce(response("replacement"));
+        const { pca } = await application(
+            true,
+            [],
+            BrowserCacheLocation.LocalStorage
+        );
+        const old = pca.acquireTokenSilent({ ...request, claims: cp1 });
+        await ready;
+        const other = new PublicClientApplication(
+            config(true, [], BrowserCacheLocation.LocalStorage)
+        );
+        await other.initialize();
+        await other.acquireTokenSilent({
+            ...request,
+            claims: cp1,
+            invalidateAccessTokenCache: true,
+        });
+        release(response("older"));
+        await expect(old).rejects.toMatchObject({
+            errorCode: "cae_token_request_invalidated",
+        });
+        expect(
+            (await other.acquireTokenSilent({ ...request, claims: cp1 }))
+                .accessToken
+        ).toBe("replacement");
+    });
+
+    it("coalesces identical explicit invalidation requests without repeated epoch changes", async () => {
+        const post = jest
+            .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+            .mockResolvedValueOnce(response("initial"))
+            .mockResolvedValueOnce(response("replacement"));
+        const { pca } = await application();
+        await pca.acquireTokenSilent({ ...request, claims: cp1 });
+        const results = await Promise.all([
+            pca.acquireTokenSilent({
+                ...request,
+                claims: cp1,
+                invalidateAccessTokenCache: true,
+            }),
+            pca.acquireTokenSilent({
+                ...request,
+                claims: cp1,
+                invalidateAccessTokenCache: true,
+            }),
+        ]);
+        expect(results.map((result) => result.accessToken)).toEqual([
+            "replacement",
+            "replacement",
+        ]);
+        expect(post).toHaveBeenCalledTimes(2);
+    });
+
+    it("rejects explicit invalidation when disabled or combined with cache-only lookup", async () => {
+        const disabled = await application(false);
+        await expect(
+            disabled.pca.acquireTokenSilent({
+                ...request,
+                invalidateAccessTokenCache: true,
+            })
+        ).rejects.toMatchObject({
+            errorCode: "experimental_cae_cache_unsupported",
+        });
+        const enabled = await application();
+        await expect(
+            enabled.pca.acquireTokenSilent({
+                ...request,
+                invalidateAccessTokenCache: true,
+                cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+            })
+        ).rejects.toMatchObject({
+            errorCode: "experimental_cae_cache_unsupported",
+        });
+    });
+
     it("rejects unknown capability sets and malformed claims", () => {
         expect(() =>
             prepareCaeCacheRequest(

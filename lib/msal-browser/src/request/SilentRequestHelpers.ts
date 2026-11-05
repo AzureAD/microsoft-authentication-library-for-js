@@ -63,6 +63,12 @@ export function resolveSilentRequestPreparation(
 ): PreparedSilentRequest {
     const { request, account, correlationId, config } = input;
     if (
+        request.invalidateAccessTokenCache &&
+        !config.experimental.enableCaeCachePartitioning
+    ) {
+        rejectCaeCacheExperiment(correlationId);
+    }
+    if (
         config.experimental.enableCaeCachePartitioning &&
         account.nativeAccountId
     ) {

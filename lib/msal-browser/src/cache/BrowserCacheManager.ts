@@ -1719,7 +1719,7 @@ export class BrowserCacheManager extends CacheManager {
             context.resource || ""
         );
         let epoch = this.getOrCreateCapabilityEpoch(key, correlationId);
-        if (context.hasChallenge) {
+        if (context.hasChallenge || context.invalidate) {
             epoch = this.cryptoImpl.createNewGuid();
             this.setItem(key, epoch, correlationId);
             this.setItem(
