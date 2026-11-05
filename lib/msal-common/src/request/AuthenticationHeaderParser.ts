@@ -8,7 +8,10 @@ import {
     ClientConfigurationErrorCodes,
 } from "../error/ClientConfigurationError.js";
 import { HeaderNames } from "../utils/Constants.js";
-import { normalizeResponseHeaders } from "../network/ResponseHeaders.js";
+import {
+    getResponseHeader,
+    normalizeResponseHeaders,
+} from "../network/ResponseHeaders.js";
 
 type WWWAuthenticateChallenges = {
     nonce?: string;
@@ -35,7 +38,10 @@ export class AuthenticationHeaderParser {
      */
     getShrNonce(): string {
         // Attempt to parse nonce from Authentiacation-Info
-        const authenticationInfo = this.headers[HeaderNames.AuthenticationInfo];
+        const authenticationInfo = getResponseHeader(
+            this.headers,
+            HeaderNames.AuthenticationInfo
+        );
         if (authenticationInfo) {
             const authenticationInfoChallenges =
                 this.parseChallenges<AuthenticationInfoChallenges>(
@@ -51,7 +57,10 @@ export class AuthenticationHeaderParser {
         }
 
         // Attempt to parse nonce from WWW-Authenticate
-        const wwwAuthenticate = this.headers[HeaderNames.WWWAuthenticate];
+        const wwwAuthenticate = getResponseHeader(
+            this.headers,
+            HeaderNames.WWWAuthenticate
+        );
         if (wwwAuthenticate) {
             const wwwAuthenticateChallenges =
                 this.parseChallenges<WWWAuthenticateChallenges>(

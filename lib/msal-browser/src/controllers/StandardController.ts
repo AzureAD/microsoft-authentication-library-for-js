@@ -102,7 +102,6 @@ import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 import { resolveSilentRequestPreparation } from "../request/SilentRequestHelpers.js";
-import { ITokenCache, TokenCache } from "../cache/TokenCache.js";
 
 function preflightCheck(
     initialized: boolean,
@@ -2465,9 +2464,11 @@ export class StandardController implements IController {
             this.performanceClient
         );
 
-        const shouldDeduplicate =
-            preparedRequest.request.authenticationScheme !==
-            Constants.AuthenticationScheme.DPOP;
+        const isPlatformDpopRequest =
+            preparedRequest.route === "platform" &&
+            preparedRequest.request.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP;
+        const shouldDeduplicate = !isPlatformDpopRequest;
         const inProgressRequest = shouldDeduplicate
             ? this.activeSilentTokenRequests.get(preparedRequest.key)
             : undefined;
@@ -2476,7 +2477,7 @@ export class StandardController implements IController {
             this.logger.verbose(
                 shouldDeduplicate
                     ? "acquireTokenSilent called for the first time, storing active request"
-                    : "acquireTokenSilent called for DPoP request, starting an independent operation",
+                    : "acquireTokenSilent called for platform DPoP request, starting an independent operation",
                 correlationId
             );
             this.performanceClient.addFields({ deduped: false }, correlationId);

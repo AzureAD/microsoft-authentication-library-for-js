@@ -38,6 +38,7 @@ export type PreparedSilentRequest = {
     key: string;
     request: SilentRequest;
     account: AccountInfo;
+    route: "web" | "platform";
 };
 
 type PlatformSilentRequest = SilentRequest &
@@ -104,6 +105,7 @@ export function prepareWebSilentRequest({
         }),
         request,
         account,
+        route: "web",
     };
 }
 
@@ -124,6 +126,7 @@ export function preparePlatformSilentRequest({
         key: `platform:${getPlatformSilentRequestKey(platformRequest, config)}`,
         request: platformRequest,
         account: platformRequest.account,
+        route: "platform",
     };
 }
 

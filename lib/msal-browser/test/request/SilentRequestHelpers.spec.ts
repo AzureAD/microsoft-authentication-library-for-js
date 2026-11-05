@@ -84,6 +84,7 @@ describe("silent request preparation", () => {
         });
         expect(prepared.request).toBe(input.request);
         expect(prepared.account).toBe(input.account);
+        expect(prepared.route).toBe("web");
         expect(input.request.account).toBeUndefined();
         expect(input.request.correlationId).toBeUndefined();
     });
@@ -204,6 +205,7 @@ describe("silent request preparation", () => {
         expect(prepared.request).not.toBe(input.request);
         expect(prepared.account).not.toBe(input.account);
         expect(prepared.account).toBe(prepared.request.account);
+        expect(prepared.route).toBe("platform");
         expect(prepared.request.scopes).toEqual(input.request.scopes);
         expect(prepared.request.scopes).not.toBe(input.request.scopes);
 
@@ -275,6 +277,7 @@ describe("silent request preparation", () => {
             performanceClient
         );
         expect(prepared.key.startsWith("platform:")).toBe(true);
+        expect(prepared.route).toBe("platform");
         expect(prepared.request).not.toBe(input.request);
         expect(prepared.account).toBe(prepared.request.account);
     });
@@ -293,6 +296,7 @@ describe("silent request preparation", () => {
             performanceClient
         );
         expect(prepared).toEqual(prepareWebSilentRequest(input));
+        expect(prepared.route).toBe("web");
         expect(prepared.request).toBe(input.request);
         expect(prepared.account).toBe(input.account);
     });

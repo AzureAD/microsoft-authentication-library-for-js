@@ -933,6 +933,9 @@ const cannotRemoveEmptyScope = "cannot_remove_empty_scope";
 // @public (undocumented)
 const cannotSetOIDCOptions = "cannot_set_OIDCOptions";
 
+// @internal
+export function canonicalizeDpopResourceServer(resourceRequestUri: unknown, correlationId?: string): string;
+
 // @public (undocumented)
 const CCS_HEADER = "X-AnchorMailbox";
 
@@ -3527,6 +3530,9 @@ const USERNAME = "username";
 
 // @public
 function validateAuthorizationResponse(serverResponse: AuthorizeResponse, requestState: string, correlationId: string): void;
+
+// @internal
+export function validateDpopNonce(nonce: unknown, correlationId?: string): string;
 
 // @public
 function validateUrl(url: string, logger?: Logger, correlationId?: string): void;

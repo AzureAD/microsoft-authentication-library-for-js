@@ -1315,12 +1315,22 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 ? undefined
                 : this.config.auth.clientCapabilities;
 
-        const { scopes, claims, dpopNonce } = request as (
-            | PopupRequest
-            | SsoSilentRequest
-        ) & {
+        const {
+            scopes,
+            claims,
+            dpopNonce: requestDpopNonce,
+        } = request as (PopupRequest | SsoSilentRequest) & {
             dpopNonce?: string;
         };
+        const dpopNonce =
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP &&
+            request.resourceRequestUri
+                ? this.browserStorage.getDpopNonce(
+                      request.resourceRequestUri,
+                      this.correlationId
+                  ) ?? requestDpopNonce
+                : requestDpopNonce;
         const scopeSet = new ScopeSet(
             [...(scopes || []), ...Constants.OIDC_DEFAULT_SCOPES],
             this.correlationId

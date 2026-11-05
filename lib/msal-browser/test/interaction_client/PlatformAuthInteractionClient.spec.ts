@@ -1292,6 +1292,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     internalStorage,
                     "saveCacheRecord"
                 );
+                browserCacheManager.setDpopNonce(
+                    "https://graph.microsoft.com/v1.0/me",
+                    "server-dpop-nonce",
+                    RANDOM_TEST_GUID
+                );
 
                 const response =
                     await platformAuthInteractionClient.acquireToken({
@@ -1302,8 +1307,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         resourceRequestMethod: "POST",
                         resourceRequestUri:
                             "https://graph.microsoft.com/v1.0/me",
-                        // @ts-ignore
-                        dpopNonce: "server-dpop-nonce",
                     });
 
                 expect(response.accessToken).toBe(
@@ -5348,6 +5351,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         it("normalizes proof context as canonical params for DPoP broker requests", async () => {
+            browserCacheManager.setDpopNonce(
+                "https://graph.microsoft.com/v1.0/me",
+                "cached-server-nonce",
+                RANDOM_TEST_GUID
+            );
             const request = {
                 scopes: ["User.Read"],
                 authenticationScheme: Constants.AuthenticationScheme.DPOP,
@@ -5375,7 +5383,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
             expect(nativeRequest.extraParametersNoCache).toEqual({
                 pop_method: "POST",
                 pop_url: "https://graph.microsoft.com/v1.0/me",
-                pop_nonce: "server-nonce",
+                pop_nonce: "cached-server-nonce",
             });
             expect(nativeRequest.tokenType).toBe(
                 PlatformAuthTokenType.DPOP_WITH_PROOF
