@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793853981446,
+  "lastUpdate": 1793888857013,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24873,6 +24873,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.78%",
             "unit": "ops/sec",
             "extra": "223 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ydi.w127@gmail.com",
+            "name": "Yongdi Wang",
+            "username": "yongdiw"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a47ebbf82f00069feb87e732279535017b7276fb",
+          "message": "Native Auth V2: add experimental warnings and remove upfront sign-in passwords (#8960)\n\n## Summary\n\n- Add experimental/non-production warnings to the public Native Auth V2\nsign-in, sign-up, and password-reset APIs.\n- Remove upfront passwords from V2 sign-in inputs and automatic password\nsubmission. Applications submit passwords through the returned\npassword-required state.\n- Narrow sign-in start results to first-factor prompts, method\nselection, or failure; remove unreachable initial completion, JIT, and\nMFA mappings.\n- Preserve explicit credential-submission errors, subsequent JIT/MFA\ntransitions, and V1 behavior.\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCopilot-Session: 0a23085e-17fc-4e8d-932a-255adebcd6be\nCopilot-Session: c9919841-191b-4570-a62e-cccb22f641b4",
+          "timestamp": "2026-11-05T14:19:43Z",
+          "tree_id": "2c9315c0884647b1d8d32089207ab9550f685687",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/a47ebbf82f00069feb87e732279535017b7276fb"
+        },
+        "date": 1793888853236,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 364178,
+            "range": "±0.51%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 373299,
+            "range": "±0.53%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
