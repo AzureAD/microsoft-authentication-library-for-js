@@ -6,10 +6,6 @@
 import { OAuthErrorResponseV2, ServerErrorV2 } from "./ErrorResponsesV2.js";
 import { HalLink, HalResource } from "./HalResource.js";
 
-/*
- * Envelope shared by every JSON HAL response. `correlationId` is not on the HAL body -
- * it is injected by the api-client from the response header; the rest are server body fields.
- */
 export interface HalResponseBaseV2 extends HalResource {
     continuationToken?: string;
     state?: string;
@@ -21,9 +17,6 @@ export interface HalResponseBaseV2 extends HalResource {
     correlationId?: string;
 }
 
-/*
- * A method embedded under `_embedded.methods[]`.
- */
 export interface EmbeddedMethodV2 extends Omit<HalResource, "_links"> {
     id?: string;
     type?: string;
@@ -33,12 +26,6 @@ export interface EmbeddedMethodV2 extends Omit<HalResource, "_links"> {
     };
 }
 
-/*
- * An enrollment option embedded under `_embedded.methods[]`. Enrollment
- * methods intentionally remain distinct from challenge methods because they
- * have no server-issued id and advertise an `enroll` link rather than a
- * `challenge` link.
- */
 export interface EmbeddedEnrollmentMethodV2
     extends Omit<HalResource, "_links"> {
     type?: string;
@@ -55,18 +42,10 @@ export interface EnrollmentRequiredResponseV2
     };
 }
 
-/*
- * Authorize-challenge continuation response containing the authorization code
- * that is redeemed at the token endpoint.
- */
 export interface AuthorizeChallengeContinueResponseV2 {
     code?: string;
 }
 
-/*
- * Authorize-challenge entry response. Success is indicated by a continuation
- * token and flat flow hrefs rather than the HTTP status or HAL links.
- */
 export interface AuthorizeChallengeEntryResponseV2
     extends OAuthErrorResponseV2 {
     continuation_token?: string;
@@ -75,10 +54,6 @@ export interface AuthorizeChallengeEntryResponseV2
     sign_up?: string;
 }
 
-/*
- * Start response containing the available authentication
- * methods. Each method provides the challenge link used after selection.
- */
 interface StartResponseV2 extends Omit<HalResponseBaseV2, "_embedded"> {
     _embedded?: {
         methods?: EmbeddedMethodV2[];
@@ -157,10 +132,6 @@ export interface SignUpSubmitAttributesResponseV2
     };
 }
 
-/*
- * Credential-verification response. For password reset, the `update` relation
- * identifies where the new password is submitted.
- */
 export interface VerifyResponseV2 extends Omit<HalResponseBaseV2, "_links"> {
     id?: string;
     type?: string;
@@ -186,10 +157,6 @@ export interface EnrollmentResponseV2
     };
 }
 
-/*
- * Password-update response for the reset-password flow. The `poll` relation
- * identifies where the client checks for completion.
- */
 export interface UpdatePasswordResponseV2
     extends Omit<HalResponseBaseV2, "_links"> {
     id?: string;
@@ -200,9 +167,6 @@ export interface UpdatePasswordResponseV2
     };
 }
 
-/*
- * Password-reset polling response.
- */
 export interface PollResponseV2 extends Omit<HalResponseBaseV2, "_links"> {
     _links?: {
         poll?: HalLink;
@@ -212,10 +176,6 @@ export interface PollResponseV2 extends Omit<HalResponseBaseV2, "_links"> {
     };
 }
 
-/*
- * Flat OAuth token response containing the standard token fields observed on
- * the wire. Token errors use `OAuthErrorResponseV2`.
- */
 export interface TokenResponseV2 {
     token_type: string;
     expires_in: number;
@@ -227,10 +187,6 @@ export interface TokenResponseV2 {
     ext_expires_in?: number;
 }
 
-/*
- * Parsed envelope produced by the response handler. It carries the typed body
- * together with normalized HTTP metadata and error information.
- */
 export interface ParsedResponseV2<T> {
     statusCode: number;
     correlationId: string;

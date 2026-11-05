@@ -23,8 +23,8 @@ import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
 import type { AttributeValidationDetailV2 } from "../../../network_client/custom_auth_api/v2/response/ErrorResponsesV2.js";
 
 /**
- * Error returned by a native authentication V2 operation. Use its classifiers
- * to handle known failures while retaining raw diagnostics through `errorData`.
+ * Error returned by a native authentication V2 operation.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class AuthFlowErrorV2 {
     readonly scenario: CustomAuthFlowScenarioV2;
@@ -58,16 +58,10 @@ export class AuthFlowErrorV2 {
             : undefined;
     }
 
-    /**
-     * Gets the attribute ids that the service reports as required.
-     */
     get requiredAttributes(): readonly string[] {
         return this.getAttributeIdsByCode("attributeRequired");
     }
 
-    /**
-     * Gets the attribute ids whose submitted values failed validation.
-     */
     get invalidAttributes(): readonly string[] {
         return this.getAttributeIdsByCode("attributeValidationFailed");
     }
@@ -87,10 +81,7 @@ export class AuthFlowErrorV2 {
     }
 
     /**
-     * Checks if the error is due to a caller-supplied argument failing
-     * client-side validation before the request was issued (for example an empty
-     * username, code, or password, or an unknown method id). Use it to prompt the
-     * user to correct the input rather than treating it as a server failure.
+     * Checks whether a caller-supplied argument failed client-side validation.
      * @returns True if the input was invalid, false otherwise.
      */
     isInvalidInput(): boolean {
@@ -110,8 +101,7 @@ export class AuthFlowErrorV2 {
     }
 
     /**
-     * Checks whether the supplied username does not identify an account. Use it
-     * to distinguish a missing account from other request failures.
+     * Checks whether the supplied username does not identify an account.
      * @returns True when the service reports that the user was not found.
      */
     isUserNotFound(): boolean {

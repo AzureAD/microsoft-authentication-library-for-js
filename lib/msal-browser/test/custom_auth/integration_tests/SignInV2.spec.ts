@@ -121,65 +121,53 @@ describe("Sign-in V2", () => {
                 expect(result.data).toBeInstanceOf(CustomAuthAccountData);
             });
 
-            it("IT-SF-02: signInV2(password supplied) -> completed", async () => {
-                (fetch as jest.Mock)
-                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(PASSWORD_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(SIGN_IN_CONTINUE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(TestServerTokenResponse)
-                    );
-
-                const result = await app.signInV2({
-                    username: "user@contoso.com",
-                    password: "valid-password",
-                    scopes: ["User.Read"],
-                });
-
-                expect(result.isState("completed")).toBe(true);
-                expect(result.state).toBeInstanceOf(CompletedStateV2);
-                expect(result.data).toBeInstanceOf(CustomAuthAccountData);
-            });
-
-            it("returns an invalid-password error from automatic password submission", async () => {
-                (fetch as jest.Mock)
-                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(PASSWORD_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(
-                            {
-                                error: {
-                                    code: "invalidGrant",
-                                    message:
-                                        "AADSTS50126: Invalid username or password.",
-                                    innerError: {
-                                        code: "invalidUserNameOrPassword",
-                                    },
-                                },
-                            },
-                            400
+            it.each(["valid-password", "", 42])(
+                "IT-SF-02: ignores legacy upfront password %p until the requested state submits it",
+                async (password) => {
+                    (fetch as jest.Mock)
+                        .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+                        .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                        .mockResolvedValueOnce(
+                            buildResponse(PASSWORD_CHALLENGE_RESPONSE)
                         )
+                        .mockResolvedValueOnce(
+                            buildResponse(SIGN_IN_CONTINUE_RESPONSE)
+                        )
+                        .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                        .mockResolvedValueOnce(
+                            buildResponse(TestServerTokenResponse)
+                        );
+
+                    const inputs = {
+                        username: "user@contoso.com",
+                        password,
+                        scopes: ["User.Read"],
+                    };
+                    const startResult = await app.signInV2(inputs);
+
+                    expect(startResult.isState("passwordRequired")).toBe(true);
+                    expect(startResult.data).toBeUndefined();
+                    expect(fetch).toHaveBeenCalledTimes(3);
+                    expect(
+                        (fetch as jest.Mock).mock.calls.map(
+                            ([, request]) => request.body
+                        )
+                    ).not.toEqual(
+                        expect.arrayContaining([
+                            expect.stringContaining('"password"'),
+                        ])
                     );
-
-                const result = await app.signInV2({
-                    username: "user@contoso.com",
-                    password: "incorrect",
-                });
-
-                expect(result.isFailed()).toBe(true);
-                expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
-                expect(result.error?.isInvalidPassword()).toBe(true);
-                expect(fetch).toHaveBeenCalledTimes(4);
-            });
+                    if (!startResult.isState("passwordRequired")) {
+                        throw new Error("Expected a password-required state.");
+                    }
+                    const result = await startResult.state.submitPassword(
+                        "valid-password"
+                    );
+                    expect(result.isState("completed")).toBe(true);
+                    expect(result.state).toBeInstanceOf(CompletedStateV2);
+                    expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+                }
+            );
 
             it("returns an invalid-password error from PasswordRequiredStateV2", async () => {
                 (fetch as jest.Mock)
@@ -315,6 +303,7 @@ describe("Sign-in V2", () => {
                 expect(startResult.isState("authMethodSelectionRequired")).toBe(
                     true
                 );
+                expect(fetch).toHaveBeenCalledTimes(2);
                 const selectionState =
                     startResult.state as AuthMethodSelectionRequiredStateV2;
                 const passwordMethod = selectionState.methods.find(
@@ -331,6 +320,7 @@ describe("Sign-in V2", () => {
                 );
 
                 expect(passwordResult.isState("passwordRequired")).toBe(true);
+                expect(fetch).toHaveBeenCalledTimes(3);
 
                 const result = await (
                     passwordResult.state as PasswordRequiredStateV2
@@ -360,6 +350,10 @@ describe("Sign-in V2", () => {
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
                 });
+                expect(startResult.isState("authMethodSelectionRequired")).toBe(
+                    true
+                );
+                expect(fetch).toHaveBeenCalledTimes(2);
                 const selectionState =
                     startResult.state as AuthMethodSelectionRequiredStateV2;
                 const emailMethod = selectionState.methods.find(
@@ -375,6 +369,7 @@ describe("Sign-in V2", () => {
 
                 expect(codeResult.isState("codeRequired")).toBe(true);
                 expect(codeResult.state).toBeInstanceOf(CodeRequiredStateV2);
+                expect(fetch).toHaveBeenCalledTimes(3);
 
                 const result = await (
                     codeResult.state as CodeRequiredStateV2
@@ -483,7 +478,7 @@ describe("Sign-in V2", () => {
             });
         });
 
-        it("signInV2(password supplied) -> register email -> completed", async () => {
+        it("signInV2 -> passwordRequired -> register email -> completed", async () => {
             (fetch as jest.Mock)
                 .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
                 .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -502,20 +497,26 @@ describe("Sign-in V2", () => {
 
             const startResult = await app.signInV2({
                 username: "user@contoso.com",
-                password: "valid-password",
                 scopes: ["User.Read"],
             });
-            expect(startResult.isState("authMethodRegistrationRequired")).toBe(
-                true
+            if (!startResult.isState("passwordRequired")) {
+                throw new Error("Expected a password-required state.");
+            }
+            const registrationResult = await startResult.state.submitPassword(
+                "valid-password"
             );
-            if (!startResult.isState("authMethodRegistrationRequired")) {
+            expect(
+                registrationResult.isState("authMethodRegistrationRequired")
+            ).toBe(true);
+            if (!registrationResult.isState("authMethodRegistrationRequired")) {
                 throw new Error("Expected authentication-method registration.");
             }
 
-            const activationResult = await startResult.state.selectAuthMethod(
-                startResult.state.methods[0],
-                "user@contoso.com"
-            );
+            const activationResult =
+                await registrationResult.state.selectAuthMethod(
+                    registrationResult.state.methods[0],
+                    "user@contoso.com"
+                );
             expect(
                 activationResult.isState("authMethodVerificationRequired")
             ).toBe(true);
@@ -932,8 +933,8 @@ describe("Sign-in V2", () => {
             );
         });
 
-        describe("after automatic password submission", () => {
-            it("IT-MFA-06: signInV2(password supplied) -> authMethodSelectionRequired(multiFactor) -> mfaVerificationRequired -> completed", async () => {
+        describe("after requested password submission", () => {
+            it("IT-MFA-06: signInV2 -> passwordRequired -> authMethodSelectionRequired(multiFactor) -> mfaVerificationRequired -> completed", async () => {
                 (fetch as jest.Mock)
                     .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
                     .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -952,10 +953,14 @@ describe("Sign-in V2", () => {
                         buildResponse(TestServerTokenResponse)
                     );
 
-                const mfaSelectionResult = await app.signInV2({
+                const startResult = await app.signInV2({
                     username: "user@contoso.com",
-                    password: "valid-password",
                 });
+                if (!startResult.isState("passwordRequired")) {
+                    throw new Error("Expected a password-required state.");
+                }
+                const mfaSelectionResult =
+                    await startResult.state.submitPassword("valid-password");
 
                 expect(
                     mfaSelectionResult.isState("authMethodSelectionRequired")

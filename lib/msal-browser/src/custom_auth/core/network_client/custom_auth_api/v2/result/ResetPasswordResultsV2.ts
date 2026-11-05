@@ -5,12 +5,6 @@
 
 import type { EnrollmentMethodV2 } from "./BaseResultsV2.js";
 
-/*
- * Reset-password response contracts used by the controller. Shared response
- * contracts are defined in `BaseResultsV2`.
- */
-
-// Result of submitting the new password: where to poll for completion.
 export interface ResetPasswordUpdateResultV2 {
     continuationToken: string;
     pollHref: string;

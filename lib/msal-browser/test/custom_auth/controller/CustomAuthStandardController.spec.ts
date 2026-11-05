@@ -25,7 +25,7 @@ import { ResetPasswordCodeRequiredState } from "../../../src/custom_auth/reset_p
 import { ResetPasswordStartResult } from "../../../src/custom_auth/reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 import { CustomAuthApiClientV2 } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
-import { FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2 } from "../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
+import { FLOW_PASSWORD_REQUIRED_V2 } from "../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthFlowScenarioV2 } from "../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 
 jest.mock(
@@ -171,41 +171,35 @@ describe("CustomAuthStandardController", () => {
             }
         );
 
-        it("returns registration-required when inline password verification requires enrollment", async () => {
-            jest.spyOn(controller["flowClientV2"], "signIn").mockResolvedValue({
-                type: FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
-                correlationId: "correlation-id",
-                continuationState: {
-                    continuationToken: "ct-enroll",
-                    scenario: CustomAuthFlowScenarioV2.SignIn,
-                    scopes: ["openid", "profile", "offline_access"],
-                    links: {},
-                },
-                methods: [
-                    {
-                        type: "phone",
-                        channels: ["sms"],
-                        enrollHref: "/enroll/phone",
+        it("does not forward a legacy upfront password to V2 sign-in", async () => {
+            const signInSpy = jest
+                .spyOn(controller["flowClientV2"], "signIn")
+                .mockResolvedValue({
+                    type: FLOW_PASSWORD_REQUIRED_V2,
+                    correlationId: "correlation-id",
+                    continuationState: {
+                        continuationToken: "ct-enroll",
+                        scenario: CustomAuthFlowScenarioV2.SignIn,
+                        scopes: ["openid", "profile", "offline_access"],
+                        links: {},
                     },
-                ],
-            });
+                });
 
-            const result = await controller.signInV2({
+            const inputs = {
                 correlationId: "correlation-id",
                 username: "user@contoso.com",
                 password: "valid-password",
-            });
+            };
+            const result = await controller.signInV2(inputs);
 
-            expect(result.isState("authMethodRegistrationRequired")).toBe(true);
-            if (result.isState("authMethodRegistrationRequired")) {
-                expect(result.state.methods).toEqual([
-                    {
-                        type: "phone",
-                        channels: ["sms"],
-                        enrollHref: "/enroll/phone",
-                    },
-                ]);
-            }
+            expect(result.isState("passwordRequired")).toBe(true);
+            expect(result.data).toBeUndefined();
+            expect(signInSpy).toHaveBeenCalledWith({
+                correlationId: "correlation-id",
+                username: "user@contoso.com",
+                scopes: undefined,
+                claims: undefined,
+            });
         });
     });
 

@@ -11,6 +11,7 @@ import type { SignUpPasswordRequiredStateV2 } from "../state/SignUpPasswordRequi
 
 /**
  * States returned when native auth V2 sign-up starts.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SignUpStartResultStateV2 =
     | CodeRequiredStateV2
@@ -20,5 +21,6 @@ export type SignUpStartResultStateV2 =
 
 /**
  * Result of starting native auth V2 sign-up.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SignUpStartResultV2 = CustomAuthResultV2<SignUpStartResultStateV2>;
