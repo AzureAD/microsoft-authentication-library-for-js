@@ -35,23 +35,18 @@ import { CustomAuthFlowScenarioV2 } from "../core/auth_flow/v2/CustomAuthFlowSce
 import { SignInStartResultV2 } from "../sign_in/auth_flow/v2/result/SignInStartResultV2.js";
 import { SignUpStartResultV2 } from "../sign_up/auth_flow/v2/result/SignUpStartResultV2.js";
 import {
-    FLOW_COMPLETED_V2,
-    FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_EXISTING_ACCOUNT_CODE_REQUIRED_V2,
     FLOW_EXISTING_ACCOUNT_PASSWORD_REQUIRED_V2,
     FLOW_METHOD_SELECTION_REQUIRED_V2,
-    FLOW_MFA_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
 } from "../core/interaction_client/v2/result/FlowActionResultV2.js";
 import { AuthenticationFactorV2 } from "../core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import { CodeRequiredStateV2 } from "../core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { AuthMethodSelectionRequiredStateV2 } from "../core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
-import { CompletedStateV2 } from "../core/auth_flow/v2/state/CompletedStateV2.js";
 import { SignInStateTransitionHandlerV2 } from "../sign_in/auth_flow/v2/state/SignInStateTransitionHandlerV2.js";
 import { PasswordRequiredStateV2 } from "../core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { SignUpStateTransitionHandlerV2 } from "../sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
-import { AuthMethodRegistrationRequiredStateV2 } from "../core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import { ExistingAccountCodeRequiredStateV2 } from "../sign_up/auth_flow/v2/state/ExistingAccountCodeRequiredStateV2.js";
 import { ExistingAccountPasswordRequiredStateV2 } from "../sign_up/auth_flow/v2/state/ExistingAccountPasswordRequiredStateV2.js";
 import { CustomAuthAuthority } from "../core/CustomAuthAuthority.js";
@@ -772,24 +767,9 @@ export class CustomAuthStandardController
             const result = await this.flowClientV2.signIn({
                 correlationId,
                 username: inputs.username,
-                password: inputs.password,
                 scopes: inputs.scopes,
                 claims: inputs.claims,
             });
-
-            if (result.type === FLOW_COMPLETED_V2) {
-                return new CustomAuthResultV2(
-                    new CompletedStateV2(),
-                    new CustomAuthAccountData(
-                        result.authenticationResult.account,
-                        this.customAuthConfig,
-                        this.cacheClient,
-                        this.logger,
-                        correlationId
-                    ),
-                    CustomAuthFlowScenarioV2.SignIn
-                );
-            }
 
             if (result.type === FLOW_PASSWORD_REQUIRED_V2) {
                 return new CustomAuthResultV2(
@@ -800,22 +780,6 @@ export class CustomAuthStandardController
                         flowClient: this.flowClientV2,
                         continuationState: result.continuationState,
                         cacheClient: this.cacheClient,
-                    }),
-                    undefined,
-                    result.continuationState.scenario
-                );
-            }
-
-            if (result.type === FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new AuthMethodRegistrationRequiredStateV2({
-                        correlationId: result.correlationId,
-                        logger: this.logger,
-                        config: this.customAuthConfig,
-                        flowClient: this.flowClientV2,
-                        continuationState: result.continuationState,
-                        cacheClient: this.cacheClient,
-                        methods: result.methods,
                     }),
                     undefined,
                     result.continuationState.scenario
@@ -857,24 +821,6 @@ export class CustomAuthStandardController
                             AuthenticationFactorV2.SINGLE_FACTOR,
                         signInStateTransitionHandler:
                             this.signInStateTransitionHandlerV2,
-                    }),
-                    undefined,
-                    result.continuationState.scenario
-                );
-            }
-
-            if (result.type === FLOW_MFA_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new AuthMethodSelectionRequiredStateV2({
-                        correlationId: result.correlationId,
-                        logger: this.logger,
-                        config: this.customAuthConfig,
-                        flowClient: this.flowClientV2,
-                        continuationState: result.continuationState,
-                        cacheClient: this.cacheClient,
-                        methods: result.methods,
-                        authenticationFactor:
-                            AuthenticationFactorV2.MULTI_FACTOR,
                     }),
                     undefined,
                     result.continuationState.scenario

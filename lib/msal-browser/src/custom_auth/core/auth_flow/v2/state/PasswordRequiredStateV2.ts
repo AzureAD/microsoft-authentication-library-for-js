@@ -25,8 +25,8 @@ import type { SignUpAttributeV2 } from "../../../network_client/custom_auth_api/
 import type { SubmitAttributesResultV2 } from "../../../../sign_up/auth_flow/v2/result/SubmitAttributesResultV2.js";
 
 /**
- * State returned when sign-in or sign-up requires a password. Submit the
- * password to advance the active flow.
+ * State returned when sign-in or sign-up requires a password.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class PasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<PasswordRequiredStateParametersV2> {
     readonly stateType = "passwordRequired";

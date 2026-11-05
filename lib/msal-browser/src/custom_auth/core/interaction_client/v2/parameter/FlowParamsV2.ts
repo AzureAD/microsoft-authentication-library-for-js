@@ -11,44 +11,33 @@ import type {
 } from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import type { AuthenticationMethodRegistrationV2 } from "../../../auth_flow/v2/AuthenticationMethodRegistrationV2.js";
 
-/*
- * Input parameters for V2 interaction-client actions. Continuing actions carry
- * the opaque state returned by the previous response.
- */
-
 interface FlowParamsBaseV2 {
     correlationId: string;
 }
 
-// Begin a reset for the given account.
 export interface FlowStartParamsV2 extends FlowParamsBaseV2 {
     username: string;
     scopes?: string[];
     claims?: string;
 }
 
-export interface FlowSignInStartParamsV2 extends FlowStartParamsV2 {
-    password?: string;
-}
+export type FlowSignInStartParamsV2 = FlowStartParamsV2;
 
 export interface FlowSignUpStartParamsV2 extends FlowStartParamsV2 {
     attributes?: UserAccountAttributes;
 }
 
-// Request the challenge for the selected method, sending the one-time code to it.
 export interface FlowChallengeParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
     authenticationFactor?: AuthenticationFactorV2;
 }
 
-// Submit the one-time code the user received.
 export interface FlowSubmitCodeParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
     authenticationFactor?: AuthenticationFactorV2;
     code: string;
 }
 
-// Submit the new password once the code has been verified.
 export interface FlowSubmitNewPasswordParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
     newPassword: string;
@@ -64,7 +53,6 @@ export interface FlowSubmitSignUpAttributesParamsV2 extends FlowParamsBaseV2 {
     attributes: UserAccountAttributes;
 }
 
-// Sign the account in by redeeming a completed flow's continuation for tokens.
 export interface FlowSignInWithContinuationParamsV2 extends FlowParamsBaseV2 {
     continuationState: FlowContinuationStateV2;
 }

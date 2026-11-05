@@ -26,15 +26,14 @@ import { ChallengeVerificationStateBaseV2 } from "./ChallengeVerificationStateBa
 import { AuthMethodRegistrationRequiredStateV2 } from "./AuthMethodRegistrationRequiredStateV2.js";
 
 /**
- * State returned when first-factor email authentication requires a one-time
- * code. It allows the app to submit the code or request a replacement.
+ * State returned when first-factor authentication requires a one-time code.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRequiredStateParametersV2> {
     readonly stateType = "codeRequired";
 
     /**
-     * Submits the first-factor email code and advances the active flow. The
-     * result may complete the operation or require another flow-specific step.
+     * Submits the first-factor code.
      * @param code - The code to submit.
      * @returns The result of submitting the first-factor code.
      */
@@ -169,8 +168,7 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
     }
 
     /**
-     * Requests a replacement first-factor email code. The returned state
-     * contains the refreshed challenge metadata.
+     * Requests a replacement first-factor code.
      * @returns The result of requesting a replacement code.
      */
     async resendCode(): Promise<RequestChallengeResultV2> {

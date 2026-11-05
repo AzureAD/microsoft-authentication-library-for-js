@@ -20,12 +20,7 @@ import {
 } from "./ErrorCodesV2.js";
 
 /*
- * Turns a raw HTTP response from a V2 endpoint into a typed, checked envelope, and validates HAL
- * relations. Raw-preserving: the body keeps its HAL `_links`/`_embedded` shape so the api-client
- * navigates typed hrefs directly. Parsing never throws on a non-200 status - every V2 response
- * (including the entry response) carries a meaningful body, so only a non-object body is a hard
- * failure; the wire error is normalized onto the envelope (`error`). Required response values use
- * shared guards after callers read their strongly typed response properties directly.
+ * Parses V2 HTTP responses and validates required response values.
  */
 export class ResponseHandlerV2 {
     constructor(private readonly logger?: Logger) {}
@@ -52,7 +47,6 @@ export class ResponseHandlerV2 {
 
         const isWebFallbackRequired = error?.subError === WEB_REDIRECT_REQUIRED;
 
-        // Surface the header correlation id on the body (HalResponseBaseV2.correlationId).
         json.correlationId = correlationId;
 
         return {
@@ -193,7 +187,6 @@ export class ResponseHandlerV2 {
             );
         }
 
-        // response.json() accepts primitives/arrays; every V2 body must be a JSON object.
         if (typeof json !== "object" || json === null || Array.isArray(json)) {
             this.logger?.error(
                 "V2 response serialization failed: body is not a JSON object",

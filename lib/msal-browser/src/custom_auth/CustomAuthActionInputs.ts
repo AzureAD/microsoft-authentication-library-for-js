@@ -40,14 +40,16 @@ export type SignInWithContinuationTokenInputs = {
 };
 
 /**
- * Inputs for starting native auth V2 sign-in for a username.
- * The input contract is shared with V1, including optional password, scopes, and claims.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
-export type SignInInputsV2 = SignInInputs;
+export type SignInInputsV2 = CustomAuthActionInputs & {
+    username: string;
+    scopes?: Array<string>;
+    claims?: string;
+};
 
 /**
- * Inputs for starting native auth V2 password reset for a username.
- * Optional scopes and claims are carried through the flow to token acquisition.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type ResetPasswordInputsV2 = CustomAuthActionInputs & {
     username: string;
@@ -56,8 +58,7 @@ export type ResetPasswordInputsV2 = CustomAuthActionInputs & {
 };
 
 /**
- * Inputs for starting native auth V2 sign-up with email verification.
- * Submit requested profile attributes through subsequent states; optional scopes and claims are carried through to token acquisition.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SignUpInputsV2 = CustomAuthActionInputs & {
     username: string;

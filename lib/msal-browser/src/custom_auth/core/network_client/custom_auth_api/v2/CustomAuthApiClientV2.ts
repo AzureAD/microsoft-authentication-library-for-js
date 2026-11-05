@@ -80,7 +80,6 @@ import { CustomAuthApiError } from "../../../error/CustomAuthApiError.js";
 
 /*
  * Native Auth V2 network client that follows server-provided HAL links.
- * Flow-specific entry methods reuse shared challenge, verification, and token operations.
  */
 export class CustomAuthApiClientV2 extends BaseApiClientV2 {
     /*
@@ -175,8 +174,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
     }
 
     /*
-     * Submits collected sign-up attributes and returns collection, enrollment,
-     * or sign-in continuation.
+     * Submits the initial sign-up attributes.
      */
     async submitSignUpAttributes(
         submitAttributesHref: string,

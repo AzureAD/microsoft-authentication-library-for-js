@@ -13,7 +13,7 @@ import * as ArgumentValidator from "../../../../core/utils/ArgumentValidator.js"
 
 /**
  * State returned when sign-up requires profile or custom attributes.
- * It exposes the attribute metadata requested by the latest server response.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class AttributesRequiredStateV2 extends AuthFlowActionRequiredStateBase<AttributesRequiredStateParametersV2> {
     readonly stateType = "attributesRequired";

@@ -17,8 +17,8 @@ import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
 import type { AttributeValidationDetailV2 } from "../../../network_client/custom_auth_api/v2/response/ErrorResponsesV2.js";
 
 /**
- * Error returned by a native authentication V2 operation. Use its classifiers
- * to handle known failures while retaining raw diagnostics through `errorData`.
+ * Error returned by a native authentication V2 operation.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class AuthFlowErrorV2 {
     readonly scenario: CustomAuthFlowScenarioV2;
@@ -48,25 +48,16 @@ export class AuthFlowErrorV2 {
             : undefined;
     }
 
-    /**
-     * Gets the attribute ids that the service reports as required.
-     */
     get requiredAttributes(): readonly string[] {
         return this.getAttributeIdsByCode("attributeRequired");
     }
 
-    /**
-     * Gets the attribute ids whose submitted values failed validation.
-     */
     get invalidAttributes(): readonly string[] {
         return this.getAttributeIdsByCode("attributeValidationFailed");
     }
 
     /**
-     * Checks if the error requires the flow to continue in the browser. The
-     * server surfaces this as the `web_redirect_required` OAuth suberror, so a
-     * browser hand-off arrives as a `FailedStateV2` on which this detector
-     * returns true.
+     * Checks whether the flow must continue in the browser.
      * @returns True if the browser is required, false otherwise.
      */
     isBrowserRequired(): boolean {
@@ -74,10 +65,7 @@ export class AuthFlowErrorV2 {
     }
 
     /**
-     * Checks if the error is due to a caller-supplied argument failing
-     * client-side validation before the request was issued (for example an empty
-     * username, code, or password, or an unknown method id). Use it to prompt the
-     * user to correct the input rather than treating it as a server failure.
+     * Checks whether a caller-supplied argument failed client-side validation.
      * @returns True if the input was invalid, false otherwise.
      */
     isInvalidInput(): boolean {
@@ -85,8 +73,7 @@ export class AuthFlowErrorV2 {
     }
 
     /**
-     * Checks whether the service rejected the username parameter. Use it to ask
-     * the user to correct the supplied username.
+     * Checks whether the service rejected the username parameter.
      * @returns True when the username is invalid, otherwise false.
      */
     isInvalidUsername(): boolean {
@@ -94,8 +81,7 @@ export class AuthFlowErrorV2 {
     }
 
     /**
-     * Checks whether the supplied username does not identify an account. Use it
-     * to distinguish a missing account from other request failures.
+     * Checks whether the supplied username does not identify an account.
      * @returns True when the service reports that the user was not found.
      */
     isUserNotFound(): boolean {
@@ -112,8 +98,7 @@ export class AuthFlowErrorV2 {
     }
 
     /**
-     * Checks whether the service rejected a one-time code. Use it to prompt the
-     * user to re-enter the code or request a new one.
+     * Checks whether the service rejected a one-time code.
      * @returns True when the one-time code is invalid, otherwise false.
      */
     isInvalidCode(): boolean {
@@ -121,8 +106,7 @@ export class AuthFlowErrorV2 {
     }
 
     /**
-     * Checks whether a new password violates password policy. It recognizes
-     * both weak-password responses and password-targeted validation details.
+     * Checks whether a new password violates password policy.
      * @returns True when the new password is invalid, otherwise false.
      */
     isInvalidPassword(): boolean {
@@ -134,7 +118,6 @@ export class AuthFlowErrorV2 {
 
     /**
      * Checks whether an account already exists for the supplied identifier.
-     * This can occur at different stages while completing sign-up.
      * @returns True if the account already exists, otherwise false.
      */
     isUserAlreadyExists(): boolean {
@@ -145,7 +128,6 @@ export class AuthFlowErrorV2 {
 
     /**
      * Checks whether the service requires attributes omitted from the request.
-     * Use it to collect the required attributes before resubmitting.
      * @returns True when required attributes are missing, otherwise false.
      */
     isMissingRequiredAttributes(): boolean {

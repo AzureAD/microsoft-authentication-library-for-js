@@ -11,8 +11,8 @@ import type { ExistingAccountPasswordRequiredStateV2 } from "../state/ExistingAc
 import type { AuthMethodSelectionRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 
 /**
- * States returned when native auth V2 sign-up starts. The next state can
- * collect a new-account email code or authenticate an existing account.
+ * States returned when native auth V2 sign-up starts.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SignUpStartResultStateV2 =
     | CodeRequiredStateV2
@@ -22,7 +22,7 @@ export type SignUpStartResultStateV2 =
     | FailedStateV2;
 
 /**
- * Result of starting native auth V2 sign-up. Inspect the state to continue the
- * new-account or existing-account flow.
+ * Result of starting native auth V2 sign-up.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SignUpStartResultV2 = CustomAuthResultV2<SignUpStartResultStateV2>;

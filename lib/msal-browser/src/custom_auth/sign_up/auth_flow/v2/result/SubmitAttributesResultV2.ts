@@ -11,8 +11,8 @@ import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2
 import type { AttributesRequiredStateV2 } from "../state/AttributesRequiredStateV2.js";
 
 /**
- * States returned after submitting sign-up attributes. The flow can request
- * more attributes or a password, require enrollment, or offer sign-in continuation.
+ * States returned after submitting sign-up attributes.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SubmitAttributesResultStateV2 =
     | AttributesRequiredStateV2
@@ -22,8 +22,8 @@ export type SubmitAttributesResultStateV2 =
     | FailedStateV2;
 
 /**
- * Result of submitting sign-up attributes. It identifies the next step or a
- * failure without automatically signing the account in or returning account data.
+ * Result of submitting sign-up attributes.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SubmitAttributesResultV2 = CustomAuthResultV2<
     SubmitAttributesResultStateV2,

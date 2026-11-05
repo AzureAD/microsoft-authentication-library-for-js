@@ -12,8 +12,8 @@ import type { ExistingAccountCodeRequiredStateV2 } from "../../../../sign_up/aut
 import type { ExistingAccountPasswordRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/ExistingAccountPasswordRequiredStateV2.js";
 
 /**
- * The states a request-challenge action can resolve to. Trusted server response
- * context determines whether primary or MFA verification is required.
+ * States returned after requesting an authentication challenge.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type RequestChallengeResultStateV2 =
     | CodeRequiredStateV2
@@ -24,9 +24,8 @@ export type RequestChallengeResultStateV2 =
     | FailedStateV2;
 
 /**
- * Result of requesting a challenge. It wraps one of
- * {@link RequestChallengeResultStateV2} plus, on failure, the unified V2 flow
- * error.
+ * Result of requesting an authentication challenge.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type RequestChallengeResultV2 =
     CustomAuthResultV2<RequestChallengeResultStateV2>;
