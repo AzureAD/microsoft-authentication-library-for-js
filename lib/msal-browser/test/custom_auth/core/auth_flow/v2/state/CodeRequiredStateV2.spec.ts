@@ -153,6 +153,7 @@ describe("CodeRequiredStateV2", () => {
         );
         expect(result.isFailed()).toBe(true);
         expect(result.error?.isInvalidCode()).toBe(true);
+        expect(result.error?.isInvalidChallenge()).toBe(false);
     });
 
     it("submits an empty first-factor code and surfaces the server error", async () => {
@@ -181,6 +182,7 @@ describe("CodeRequiredStateV2", () => {
         );
         expect(result.isFailed()).toBe(true);
         expect(result.error?.isInvalidCode()).toBe(true);
+        expect(result.error?.isInvalidChallenge()).toBe(false);
     });
 
     it("returns method selection after submitting a first-factor code", async () => {

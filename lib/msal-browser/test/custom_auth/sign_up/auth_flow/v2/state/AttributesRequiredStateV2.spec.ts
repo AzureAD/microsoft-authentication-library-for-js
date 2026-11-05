@@ -180,7 +180,6 @@ describe("AttributesRequiredStateV2", () => {
 
         expect(result.isFailed()).toBe(true);
         expect(result.error?.errorData).toBe(errorData);
-        expect(result.error?.isMissingRequiredAttributes()).toBe(true);
         expect(result.error?.requiredAttributes).toEqual(["givenName"]);
         expect(result.error?.invalidAttributes).toEqual([]);
         expect(result.error?.isInvalidPassword()).toBe(false);

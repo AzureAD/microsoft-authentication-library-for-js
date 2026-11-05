@@ -67,18 +67,19 @@ export class CustomAuthResultV2<
         error: unknown,
         options: CreateWithErrorOptions
     ): CustomAuthResultV2<TState | FailedStateV2, TData> {
-        const { scenario = CustomAuthFlowScenarioV2.Unknown, correlationId } =
-            options;
-        const errorData = CustomAuthResultV2.createErrorData(
-            error,
-            correlationId
-        );
-        const flowError = new AuthFlowErrorV2(errorData, scenario);
+        const { correlationId } = options;
+        const flowError =
+            error instanceof AuthFlowErrorV2
+                ? error
+                : new AuthFlowErrorV2(
+                      CustomAuthResultV2.createErrorData(error, correlationId),
+                      options.scenario ?? CustomAuthFlowScenarioV2.Unknown
+                  );
 
         const result = new CustomAuthResultV2<TState | FailedStateV2, TData>(
             new FailedStateV2(),
             undefined,
-            scenario
+            flowError.scenario
         );
         result.error = flowError;
 

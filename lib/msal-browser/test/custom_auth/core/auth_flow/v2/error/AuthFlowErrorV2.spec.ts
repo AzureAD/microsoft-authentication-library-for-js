@@ -36,10 +36,17 @@ describe("AuthFlowErrorV2 error mapping", () => {
         );
 
     const errorWithAttributeValidationDetails = (
-        details: unknown
-    ): AuthFlowErrorV2 => {
-        const errorData = apiError("invalidRequest", {
+        details: unknown,
+        context: {
+            code: string;
+            innerErrorCode?: string;
+        } = {
+            code: "invalidRequest",
             innerErrorCode: "attributeValidationError",
+        }
+    ): AuthFlowErrorV2 => {
+        const errorData = apiError(context.code, {
+            innerErrorCode: context.innerErrorCode,
             message: "Attribute validation failed.",
         });
 
@@ -60,6 +67,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
             );
 
             expect(error.isInvalidCode()).toBe(true);
+            expect(error.isInvalidChallenge()).toBe(false);
         });
 
         it("is false for invalidGrant with inner invalidContinuationToken", () => {
@@ -81,6 +89,112 @@ describe("AuthFlowErrorV2 error mapping", () => {
 
             expect(error.isInvalidCode()).toBe(false);
         });
+    });
+
+    describe("isInvalidChallenge", () => {
+        it("distinguishes a rejected verification challenge from an ordinary code", () => {
+            const errorData = apiError("invalidGrant", {
+                innerErrorCode: "invalidOneTimeCode",
+            });
+            const error = new AuthFlowErrorV2(
+                errorData,
+                CustomAuthFlowScenarioV2.SignIn,
+                "challenge"
+            );
+
+            expect(error.isInvalidChallenge()).toBe(true);
+            expect(error.isInvalidCode()).toBe(false);
+            expect(error.errorData).toBe(errorData);
+            expect(String(error)).toBe(String(errorData));
+        });
+
+        it.each([
+            {
+                code: "invalidRequest",
+                innerErrorCode: "invalidOneTimeCode",
+            },
+            {
+                code: "invalidGrant",
+                innerErrorCode: "invalidContinuationToken",
+            },
+        ])(
+            "does not classify outer $code and inner $innerErrorCode as a challenge",
+            ({ code, innerErrorCode }) => {
+                const error = new AuthFlowErrorV2(
+                    apiError(code, { innerErrorCode }),
+                    CustomAuthFlowScenarioV2.SignIn,
+                    "challenge"
+                );
+
+                expect(error.isInvalidChallenge()).toBe(false);
+            }
+        );
+    });
+
+    describe("isInvalidAttributeError", () => {
+        it.each(["username", "password", "displayName"])(
+            "identifies attribute-validation errors targeting %s",
+            (attributeId) => {
+                const error = errorWithAttributeValidationDetails([
+                    {
+                        attributeIds: [attributeId],
+                        code: "attributeValidationFailed",
+                    },
+                ]);
+
+                expect(error.isInvalidAttributeError()).toBe(true);
+                expect(error.invalidAttributes).toEqual([attributeId]);
+                expect(error.isInvalidUsername()).toBe(false);
+                expect(error.isInvalidInput()).toBe(false);
+            }
+        );
+
+        it("does not require an attributeValidationFailed detail code", () => {
+            const error = errorWithAttributeValidationDetails([
+                {
+                    attributeIds: ["username"],
+                    code: "attributeRequired",
+                },
+            ]);
+
+            expect(error.isInvalidAttributeError()).toBe(true);
+            expect(error.invalidAttributes).toEqual([]);
+            expect(error.requiredAttributes).toEqual(["username"]);
+        });
+
+        it.each([
+            { name: "missing", details: undefined },
+            { name: "empty", details: [] },
+        ])("identifies errors with $name details", ({ details }) => {
+            const error = errorWithAttributeValidationDetails(details);
+
+            expect(error.isInvalidAttributeError()).toBe(true);
+            expect(error.invalidAttributes).toEqual([]);
+        });
+
+        it.each([
+            {
+                code: "invalidGrant",
+                innerErrorCode: "attributeValidationError",
+            },
+            {
+                code: "invalidRequest",
+                innerErrorCode: "differentError",
+            },
+            {
+                code: "invalidRequest",
+                innerErrorCode: undefined,
+            },
+        ])(
+            "rejects outer $code and inner $innerErrorCode",
+            ({ code, innerErrorCode }) => {
+                const error = new AuthFlowErrorV2(
+                    apiError(code, { innerErrorCode })
+                );
+
+                expect(error.isInvalidAttributeError()).toBe(false);
+            }
+        );
     });
 
     describe("isInvalidPassword", () => {
@@ -140,55 +254,74 @@ describe("AuthFlowErrorV2 error mapping", () => {
             }
         );
 
-        it("is true for a password-targeted policy violation", () => {
-            const error = new AuthFlowErrorV2(
-                new CustomAuthApiError(
-                    "invalidRequest",
-                    "Attribute validation failed.",
-                    undefined,
-                    undefined,
-                    "attributeValidationError",
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                        {
-                            attributeIds: ["Password"],
-                            code: "passwordPolicyViolation",
-                            message: "Password does not satisfy policy.",
-                        },
-                    ]
-                )
-            );
+        it.each([
+            "passwordPolicyViolation",
+            "attributeValidationFailed",
+            "unknownDetailCode",
+            undefined,
+        ])(
+            "identifies a password attribute regardless of detail code %s",
+            (code) => {
+                const error = errorWithAttributeValidationDetails([
+                    {
+                        attributeIds: ["displayName"],
+                        code: "attributeValidationFailed",
+                    },
+                    {
+                        attributeIds: ["username", "password"],
+                        code,
+                    },
+                ]);
 
-            expect(error.isInvalidPassword()).toBe(true);
-        });
+                expect(error.isInvalidPassword()).toBe(true);
+            }
+        );
 
         it("is false for a password-policy violation targeting another attribute", () => {
-            const error = new AuthFlowErrorV2(
-                new CustomAuthApiError(
-                    "invalidRequest",
-                    "Attribute validation failed.",
-                    undefined,
-                    undefined,
-                    "attributeValidationError",
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                        {
-                            attributeIds: ["displayName"],
-                            code: "passwordPolicyViolation",
-                            message: "Attribute validation failed.",
-                        },
-                    ]
-                )
-            );
+            const error = errorWithAttributeValidationDetails([
+                {
+                    attributeIds: ["displayName"],
+                    code: "passwordPolicyViolation",
+                    message: "Attribute validation failed.",
+                },
+            ]);
 
             expect(error.isInvalidPassword()).toBe(false);
         });
+
+        it.each([
+            {
+                code: "invalidGrant",
+                innerErrorCode: "attributeValidationError",
+            },
+            {
+                code: "unexpected_error",
+                innerErrorCode: "attributeValidationError",
+            },
+            {
+                code: "invalidRequest",
+                innerErrorCode: "differentError",
+            },
+            {
+                code: "invalidRequest",
+                innerErrorCode: undefined,
+            },
+        ])(
+            "rejects password details for outer $code and inner $innerErrorCode",
+            (context) => {
+                const error = errorWithAttributeValidationDetails(
+                    [
+                        {
+                            attributeIds: ["password"],
+                            code: "passwordPolicyViolation",
+                        },
+                    ],
+                    context
+                );
+
+                expect(error.isInvalidPassword()).toBe(false);
+            }
+        );
 
         it.each([
             [
@@ -217,8 +350,22 @@ describe("AuthFlowErrorV2 error mapping", () => {
                     },
                 ],
             ],
-        ])("is false when a password-policy violation has %s", (_, details) => {
-            const error = errorWithAttributeValidationDetails(details);
+        ])(
+            "is false when password attribute validation has %s",
+            (_, details) => {
+                const error = errorWithAttributeValidationDetails(details);
+
+                expect(error.isInvalidPassword()).toBe(false);
+            }
+        );
+
+        it("requires an exact lowercase password attribute id", () => {
+            const error = errorWithAttributeValidationDetails([
+                {
+                    attributeIds: ["Password"],
+                    code: "passwordPolicyViolation",
+                },
+            ]);
 
             expect(error.isInvalidPassword()).toBe(false);
         });
@@ -226,7 +373,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
         it("ignores malformed entries when a valid password attribute is present", () => {
             const error = errorWithAttributeValidationDetails([
                 {
-                    attributeIds: [null, "Password"],
+                    attributeIds: [null, "password"],
                     code: "passwordPolicyViolation",
                 },
             ]);
@@ -360,14 +507,12 @@ describe("AuthFlowErrorV2 error mapping", () => {
                 })
             );
 
-            expect(error.isInvalidCredentials()).toBe(true);
             expect(error.isInvalidPassword()).toBe(true);
         });
 
-        it("does not identify invalid credentials from the outer code alone", () => {
+        it("does not identify an invalid password from the outer code alone", () => {
             const error = new AuthFlowErrorV2(apiError("invalidGrant"));
 
-            expect(error.isInvalidCredentials()).toBe(false);
             expect(error.isInvalidPassword()).toBe(false);
         });
 
@@ -379,7 +524,6 @@ describe("AuthFlowErrorV2 error mapping", () => {
                 })
             );
 
-            expect(error.isInvalidCredentials()).toBe(false);
             expect(error.isInvalidPassword()).toBe(false);
         });
 
@@ -390,22 +534,20 @@ describe("AuthFlowErrorV2 error mapping", () => {
                 })
             );
 
-            expect(error.isInvalidCredentials()).toBe(false);
             expect(error.isInvalidPassword()).toBe(false);
         });
 
-        it("does not identify another invalidGrant suberror as invalid credentials", () => {
+        it("does not identify another invalidGrant suberror as an invalid password", () => {
             const error = new AuthFlowErrorV2(
                 apiError("invalidGrant", {
                     innerErrorCode: "invalidOneTimeCode",
                 })
             );
 
-            expect(error.isInvalidCredentials()).toBe(false);
             expect(error.isInvalidPassword()).toBe(false);
         });
 
-        it("identifies an invalid username parameter", () => {
+        it("preserves a server username rejection without classifying it as local validation", () => {
             const error = new AuthFlowErrorV2(
                 new CustomAuthApiError(
                     "invalidRequest",
@@ -420,7 +562,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
                 )
             );
 
-            expect(error.isInvalidUsername()).toBe(true);
+            expect(error.isInvalidUsername()).toBe(false);
             expect(error.isUserNotFound()).toBe(false);
             expect(error.correlationId).toBe(
                 "6ed6616b-9580-4d7b-9d91-9dfe75d7bf97"
@@ -467,7 +609,30 @@ describe("AuthFlowErrorV2 error mapping", () => {
     });
 
     describe("isInvalidUsername", () => {
-        it("uses the shared username mapping", () => {
+        it("identifies a locally rejected username and retains invalid-input classification", () => {
+            const errorData = new InvalidArgumentError("inputs.username");
+            const error = new AuthFlowErrorV2(
+                errorData,
+                CustomAuthFlowScenarioV2.SignIn,
+                "username"
+            );
+
+            expect(error.isInvalidUsername()).toBe(true);
+            expect(error.isInvalidInput()).toBe(true);
+            expect(error.isInvalidChallenge()).toBe(false);
+            expect(error.errorData).toBe(errorData);
+        });
+
+        it("does not infer username validation from another argument error", () => {
+            const error = new AuthFlowErrorV2(
+                new InvalidArgumentError("inputs.scopes")
+            );
+
+            expect(error.isInvalidUsername()).toBe(false);
+            expect(error.isInvalidInput()).toBe(true);
+        });
+
+        it("does not classify a server username message as local validation", () => {
             const error = new AuthFlowErrorV2(
                 apiError("invalidRequest", {
                     message:
@@ -475,7 +640,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
                 })
             );
 
-            expect(error.isInvalidUsername()).toBe(true);
+            expect(error.isInvalidUsername()).toBe(false);
         });
 
         it("requires invalidRequest for the username message", () => {
@@ -508,6 +673,19 @@ describe("AuthFlowErrorV2 error mapping", () => {
 
             expect(error.isBrowserRequired()).toBe(false);
         });
+
+        it.each(["invalidGrant", "invalidRequest", ""])(
+            "is false for outer %s with web_redirect_required",
+            (code) => {
+                const error = new AuthFlowErrorV2(
+                    apiError(code, {
+                        subError: "web_redirect_required",
+                    })
+                );
+
+                expect(error.isBrowserRequired()).toBe(false);
+            }
+        );
     });
 
     describe("isInvalidInput", () => {
@@ -532,63 +710,35 @@ describe("AuthFlowErrorV2 error mapping", () => {
         });
     });
 
-    describe("isMissingRequiredAttributes", () => {
-        it("is true for a nested attributeRequired validation detail", () => {
-            const error = new AuthFlowErrorV2(
-                new CustomAuthApiError(
-                    "invalidRequest",
-                    "Attribute validation failed.",
-                    undefined,
-                    undefined,
-                    "attributeValidationError",
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                        {
-                            attributeIds: ["givenName"],
-                            code: "attributeRequired",
-                            message: "This field is required.",
-                        },
-                    ]
-                )
-            );
+    describe("attribute validation diagnostics", () => {
+        it("preserves required ids from a nested attributeRequired validation detail", () => {
+            const error = errorWithAttributeValidationDetails([
+                {
+                    attributeIds: ["givenName"],
+                    code: "attributeRequired",
+                    message: "This field is required.",
+                },
+            ]);
 
-            expect(error.isMissingRequiredAttributes()).toBe(true);
             expect(error.requiredAttributes).toEqual(["givenName"]);
             expect(error.invalidAttributes).toEqual([]);
             expect(error.isInvalidPassword()).toBe(false);
         });
 
-        it("is false for unrelated attribute validation details", () => {
-            const error = new AuthFlowErrorV2(
-                new CustomAuthApiError(
-                    "invalidRequest",
-                    "Attribute validation failed.",
-                    undefined,
-                    undefined,
-                    "attributeValidationError",
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [
-                        {
-                            attributeIds: ["email"],
-                            code: "userAlreadyExists",
-                            message: "The account already exists.",
-                        },
-                        {
-                            attributeIds: ["unsupportedAttribute"],
-                            code: "notSupported",
-                            message: "The attribute is not supported.",
-                        },
-                    ]
-                )
-            );
+        it("preserves unrelated attribute validation details", () => {
+            const error = errorWithAttributeValidationDetails([
+                {
+                    attributeIds: ["email"],
+                    code: "userAlreadyExists",
+                    message: "The account already exists.",
+                },
+                {
+                    attributeIds: ["unsupportedAttribute"],
+                    code: "notSupported",
+                    message: "The attribute is not supported.",
+                },
+            ]);
 
-            expect(error.isMissingRequiredAttributes()).toBe(false);
             expect(error.isInvalidPassword()).toBe(false);
             expect(error.requiredAttributes).toEqual([]);
             expect(error.invalidAttributes).toEqual([]);
@@ -624,7 +774,6 @@ describe("AuthFlowErrorV2 error mapping", () => {
 
             expect(error.requiredAttributes).toEqual(["password", "username"]);
             expect(error.invalidAttributes).toEqual(["givenName", "username"]);
-            expect(error.isMissingRequiredAttributes()).toBe(true);
             expect(error.isInvalidPassword()).toBe(true);
         });
     });

@@ -177,7 +177,6 @@ describe("Sign-in V2", () => {
 
                 expect(result.isFailed()).toBe(true);
                 expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
-                expect(result.error?.isInvalidCredentials()).toBe(true);
                 expect(result.error?.isInvalidPassword()).toBe(true);
                 expect(fetch).toHaveBeenCalledTimes(4);
             });
@@ -214,7 +213,6 @@ describe("Sign-in V2", () => {
 
                 expect(result.isFailed()).toBe(true);
                 expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
-                expect(result.error?.isInvalidCredentials()).toBe(true);
                 expect(result.error?.isInvalidPassword()).toBe(true);
                 expect(fetch).toHaveBeenCalledTimes(4);
             });

@@ -31,6 +31,8 @@ import { ResetPasswordStartResultV2 } from "../core/auth_flow/v2/result/ResetPas
 import { CustomAuthApiClientV2 } from "../core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { FlowInteractionClientV2 } from "../core/interaction_client/v2/FlowInteractionClientV2.js";
 import { CustomAuthResultV2 } from "../core/auth_flow/v2/CustomAuthResultV2.js";
+import { AuthFlowErrorV2 } from "../core/auth_flow/v2/error/AuthFlowErrorV2.js";
+import { InvalidArgumentError } from "../core/error/InvalidArgumentError.js";
 import { CustomAuthFlowScenarioV2 } from "../core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { SignInStartResultV2 } from "../sign_in/auth_flow/v2/result/SignInStartResultV2.js";
 import { SignUpStartResultV2 } from "../sign_up/auth_flow/v2/result/SignUpStartResultV2.js";
@@ -650,9 +652,9 @@ export class CustomAuthStandardController
                 correlationId
             );
 
-            ArgumentValidator.ensureArgumentIsNotEmptyString(
-                "inputs.username",
+            this.ensureUsernameIsValidV2(
                 inputs.username,
+                CustomAuthFlowScenarioV2.PasswordReset,
                 correlationId
             );
             if (inputs.scopes !== undefined && inputs.scopes !== null) {
@@ -743,9 +745,9 @@ export class CustomAuthStandardController
                 inputs,
                 correlationId
             );
-            ArgumentValidator.ensureArgumentIsNotEmptyString(
-                "inputs.username",
+            this.ensureUsernameIsValidV2(
                 inputs.username,
+                CustomAuthFlowScenarioV2.SignIn,
                 correlationId
             );
             if (inputs.scopes !== undefined && inputs.scopes !== null) {
@@ -907,9 +909,9 @@ export class CustomAuthStandardController
                 inputs,
                 correlationId
             );
-            ArgumentValidator.ensureArgumentIsNotEmptyString(
-                "inputs.username",
+            this.ensureUsernameIsValidV2(
                 inputs.username,
+                CustomAuthFlowScenarioV2.SignUp,
                 correlationId
             );
             if (Object.prototype.hasOwnProperty.call(inputs, "password")) {
@@ -1016,6 +1018,25 @@ export class CustomAuthStandardController
                 scenario: CustomAuthFlowScenarioV2.SignUp,
                 correlationId,
             });
+        }
+    }
+
+    private ensureUsernameIsValidV2(
+        username: string | undefined,
+        scenario: CustomAuthFlowScenarioV2,
+        correlationId?: string
+    ): void {
+        try {
+            ArgumentValidator.ensureArgumentIsNotEmptyString(
+                "inputs.username",
+                username,
+                correlationId
+            );
+        } catch (error) {
+            if (error instanceof InvalidArgumentError) {
+                throw new AuthFlowErrorV2(error, scenario, "username");
+            }
+            throw error;
         }
     }
 

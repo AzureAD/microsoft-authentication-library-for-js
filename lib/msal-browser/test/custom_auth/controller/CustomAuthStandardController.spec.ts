@@ -129,6 +129,14 @@ describe("CustomAuthStandardController", () => {
                 inputs: {
                     username: "",
                 } as SignInInputsV2,
+                invalidUsername: true,
+            },
+            {
+                name: "a whitespace-only username",
+                inputs: {
+                    username: " \t\n ",
+                },
+                invalidUsername: true,
             },
             {
                 name: "malformed claims",
@@ -136,6 +144,7 @@ describe("CustomAuthStandardController", () => {
                     username: "user@contoso.com",
                     claims: "not-json",
                 } as SignInInputsV2,
+                invalidUsername: false,
             },
             {
                 name: "malformed scopes",
@@ -143,16 +152,24 @@ describe("CustomAuthStandardController", () => {
                     username: "user@contoso.com",
                     scopes: ["User.Read", 1] as unknown as string[],
                 } as SignInInputsV2,
+                invalidUsername: false,
             },
-        ])("returns invalid input for $name", async ({ inputs }) => {
-            const signInSpy = jest.spyOn(controller["flowClientV2"], "signIn");
+        ])(
+            "returns invalid input for $name",
+            async ({ inputs, invalidUsername }) => {
+                const signInSpy = jest.spyOn(
+                    controller["flowClientV2"],
+                    "signIn"
+                );
 
-            const result = await controller.signInV2(inputs);
+                const result = await controller.signInV2(inputs);
 
-            expect(result.isFailed()).toBe(true);
-            expect(result.error?.isInvalidInput()).toBe(true);
-            expect(signInSpy).not.toHaveBeenCalled();
-        });
+                expect(result.isFailed()).toBe(true);
+                expect(result.error?.isInvalidInput()).toBe(true);
+                expect(result.error?.isInvalidUsername()).toBe(invalidUsername);
+                expect(signInSpy).not.toHaveBeenCalled();
+            }
+        );
 
         it("returns registration-required when inline password verification requires enrollment", async () => {
             jest.spyOn(controller["flowClientV2"], "signIn").mockResolvedValue({
@@ -199,6 +216,14 @@ describe("CustomAuthStandardController", () => {
                 inputs: {
                     username: "",
                 } as ResetPasswordInputsV2,
+                invalidUsername: true,
+            },
+            {
+                name: "a whitespace-only username",
+                inputs: {
+                    username: " \t\n ",
+                },
+                invalidUsername: true,
             },
             {
                 name: "malformed claims",
@@ -206,6 +231,7 @@ describe("CustomAuthStandardController", () => {
                     username: "user@contoso.com",
                     claims: "not-json",
                 } as ResetPasswordInputsV2,
+                invalidUsername: false,
             },
             {
                 name: "malformed scopes",
@@ -213,20 +239,79 @@ describe("CustomAuthStandardController", () => {
                     username: "user@contoso.com",
                     scopes: ["User.Read", false] as unknown as string[],
                 } as ResetPasswordInputsV2,
+                invalidUsername: false,
             },
-        ])("returns invalid input for $name", async ({ inputs }) => {
-            const resetPasswordSpy = jest.spyOn(
-                controller["flowClientV2"],
-                "resetPassword"
-            );
+        ])(
+            "returns invalid input for $name",
+            async ({ inputs, invalidUsername }) => {
+                const resetPasswordSpy = jest.spyOn(
+                    controller["flowClientV2"],
+                    "resetPassword"
+                );
 
-            const result = await controller.resetPasswordV2(inputs);
+                const result = await controller.resetPasswordV2(inputs);
+
+                expect(result.isFailed()).toBe(true);
+                expect(result.error?.isInvalidInput()).toBe(true);
+                expect(result.error?.isInvalidUsername()).toBe(invalidUsername);
+                expect(resetPasswordSpy).not.toHaveBeenCalled();
+            }
+        );
+    });
+
+    describe("signUpV2", () => {
+        it.each([
+            {
+                name: "an empty username",
+                inputs: { username: "" },
+                invalidUsername: true,
+            },
+            {
+                name: "a whitespace-only username",
+                inputs: { username: " \t\n " },
+                invalidUsername: true,
+            },
+            {
+                name: "an empty password",
+                inputs: {
+                    username: "user@contoso.com",
+                    password: "",
+                },
+                invalidUsername: false,
+            },
+        ])(
+            "returns invalid input for $name",
+            async ({ inputs, invalidUsername }) => {
+                const signUpSpy = jest.spyOn(
+                    controller["flowClientV2"],
+                    "signUp"
+                );
+
+                const result = await controller.signUpV2(inputs);
+
+                expect(result.isFailed()).toBe(true);
+                expect(result.error?.isInvalidInput()).toBe(true);
+                expect(result.error?.isInvalidUsername()).toBe(invalidUsername);
+                expect(signUpSpy).not.toHaveBeenCalled();
+            }
+        );
+    });
+
+    it.each([undefined, null])(
+        "classifies a runtime username value of %s as local validation",
+        async (username) => {
+            const inputs = { username: "user@contoso.com" };
+            Object.defineProperty(inputs, "username", { value: username });
+            const signInSpy = jest.spyOn(controller["flowClientV2"], "signIn");
+
+            const result = await controller.signInV2(inputs);
 
             expect(result.isFailed()).toBe(true);
+            expect(result.error?.isInvalidUsername()).toBe(true);
             expect(result.error?.isInvalidInput()).toBe(true);
-            expect(resetPasswordSpy).not.toHaveBeenCalled();
-        });
-    });
+            expect(signInSpy).not.toHaveBeenCalled();
+        }
+    );
 
     describe("signIn", () => {
         it("should return error result if provided username is invalid", async () => {

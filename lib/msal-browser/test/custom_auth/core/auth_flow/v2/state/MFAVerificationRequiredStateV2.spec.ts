@@ -5,6 +5,8 @@
 
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
+import { AuthFlowErrorV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
+import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { MFAVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
@@ -21,6 +23,20 @@ import { AuthenticationFactorV2 } from "../../../../../../src/custom_auth/core/n
 describe("MFAVerificationRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
     const scopes = ["openid", "profile", "offline_access"];
+    const invalidCodeError = () =>
+        new CustomAuthApiError(
+            "invalidGrant",
+            "Invalid code.",
+            correlationId,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            "invalidOneTimeCode"
+        );
     const flowClient = {
         submitCode: jest.fn(),
         resendCode: jest.fn(),
@@ -111,6 +127,35 @@ describe("MFAVerificationRequiredStateV2", () => {
             })
         );
         expect(result.isState("completed")).toBe(true);
+    });
+
+    it("preserves challenge classification in a failed public result", async () => {
+        const errorData = invalidCodeError();
+        const error = new AuthFlowErrorV2(
+            errorData,
+            CustomAuthFlowScenarioV2.SignIn,
+            "challenge"
+        );
+        flowClient.submitCode.mockRejectedValue(error);
+
+        const result = await buildState().submitChallenge("123456");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error).toBe(error);
+        expect(result.error?.errorData).toBe(errorData);
+        expect(result.error?.isInvalidChallenge()).toBe(true);
+        expect(result.error?.isInvalidCode()).toBe(false);
+    });
+
+    it("does not classify a resend failure as a rejected challenge", async () => {
+        const errorData = invalidCodeError();
+        flowClient.resendCode.mockRejectedValue(errorData);
+
+        const result = await buildState().resendChallenge();
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.errorData).toBe(errorData);
+        expect(result.error?.isInvalidChallenge()).toBe(false);
     });
 
     it("fails MFA completion when the account is missing", async () => {

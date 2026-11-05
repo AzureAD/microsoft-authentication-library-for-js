@@ -563,9 +563,6 @@ describe("Sign-up V2 entry", () => {
                     },
                 ],
             });
-            expect(result.error?.isMissingRequiredAttributes()).toBe(
-                missingRequired
-            );
             expect(result.error?.requiredAttributes).toEqual(
                 missingRequired ? [attributeId] : []
             );
@@ -607,7 +604,7 @@ describe("Sign-up V2 entry", () => {
         });
     });
 
-    it("maps an upfront password policy violation to invalid password", async () => {
+    it("maps upfront password attribute validation without a detail code to invalid password", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
             .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -624,7 +621,6 @@ describe("Sign-up V2 entry", () => {
                                 details: [
                                     {
                                         attributeIds: ["password"],
-                                        code: "passwordPolicyViolation",
                                         message:
                                             "The password does not meet the requirements.",
                                     },
@@ -850,7 +846,6 @@ describe("Sign-up V2 entry", () => {
         });
         expect(submitResult.isFailed()).toBe(true);
         expect(submitResult.error).toBeInstanceOf(AuthFlowErrorV2);
-        expect(submitResult.error?.isMissingRequiredAttributes()).toBe(true);
         expect(submitResult.error?.requiredAttributes).toEqual(["jobTitle"]);
         expect(submitResult.error?.invalidAttributes).toEqual(["city"]);
 
