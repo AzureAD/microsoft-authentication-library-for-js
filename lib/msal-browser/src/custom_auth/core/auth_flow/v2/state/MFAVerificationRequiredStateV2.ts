@@ -18,13 +18,13 @@ import { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/
 /**
  * State returned when authentication requires verification of an email or SMS MFA
  * challenge. It allows the app to submit the challenge or request a replacement.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBaseV2<MFAVerificationRequiredStateParametersV2> {
     readonly stateType = "mfaVerificationRequired";
 
     /**
      * Submits the email or SMS challenge as the second authentication factor.
-     * Successful verification completes sign-in.
      * @param challenge - The challenge value to submit.
      * @returns The result of submitting the MFA challenge.
      */
@@ -76,8 +76,7 @@ export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBa
     }
 
     /**
-     * Requests a replacement challenge for the selected MFA method. The
-     * returned state contains the refreshed email or SMS challenge metadata.
+     * Requests a replacement challenge for the selected MFA method.
      * @returns The result of requesting a replacement MFA challenge.
      */
     async resendChallenge(): Promise<MFAResendChallengeResultV2> {

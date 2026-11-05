@@ -25,7 +25,7 @@ export interface OAuthFormRequestV2 {
 
 /*
  * Entry (POST /oauth2/v2.0/authorize-challenge): the flow's front door. OAuth form-encoded
- * and carries only `client_id` (via OAuthFormRequestV2). The response
+ * and carries `client_id` (via OAuthFormRequestV2), with optional scope and claims. The response
  * (`AuthorizeChallengeEntryResponseV2`) returns the seed `continuation_token` and the flat
  * `reset_password`/`sign_in`/`sign_up` hrefs.
  */
@@ -116,10 +116,8 @@ export interface AuthMethodRegistrationVerificationRequestV2
 // Submit a single credential to `/methods/{type}/{id}/verify`.
 /*
  * The credential is a distinct top-level key per method type (never overloaded onto one field):
- * email OTP sends `otp`. This is modelled as a discriminated union so the compiler enforces
- * that exactly one credential is present. Password-based verify is a future extension point:
- * add a `VerifyPasswordRequestV2` member (`password: string`) and include it in the union
- * without touching the OTP member.
+ * OTP verification sends `otp`, and password verification sends `password`.
+ * The union represents the supported credential request shapes.
  */
 type VerifyRequestBaseV2 = ActionRequestBaseV2;
 

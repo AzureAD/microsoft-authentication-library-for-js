@@ -23,6 +23,7 @@ import { AuthMethodRegistrationRequiredStateV2 } from "../../../../core/auth_flo
 /**
  * State returned when the selected sign-in method requires the user's
  * password.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class PasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<PasswordRequiredStateParametersV2> {
     readonly stateType = "passwordRequired";

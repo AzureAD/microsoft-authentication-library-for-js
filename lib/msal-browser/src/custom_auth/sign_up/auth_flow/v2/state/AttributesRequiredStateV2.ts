@@ -11,6 +11,7 @@ import type { AttributesRequiredStateParametersV2 } from "./SignUpStateParameter
 
 /**
  * State returned when sign-up requires profile or custom attributes.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class AttributesRequiredStateV2 extends SignUpAttributesRequiredStateBaseV2<AttributesRequiredStateParametersV2> {
     readonly stateType = "attributesRequired";

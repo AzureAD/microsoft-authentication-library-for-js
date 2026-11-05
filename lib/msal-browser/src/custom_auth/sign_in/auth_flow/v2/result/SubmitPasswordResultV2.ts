@@ -10,12 +10,18 @@ import type { AuthMethodSelectionRequiredStateV2 } from "../../../../core/auth_f
 import type { AuthMethodRegistrationRequiredStateV2 } from "../../../../core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 
+/**
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+ */
 export type SubmitPasswordResultStateV2 =
     | CompletedStateV2
     | AuthMethodSelectionRequiredStateV2
     | AuthMethodRegistrationRequiredStateV2
     | FailedStateV2;
 
+/**
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+ */
 export type SubmitPasswordResultV2 = CustomAuthResultV2<
     SubmitPasswordResultStateV2,
     CustomAuthAccountData | undefined
