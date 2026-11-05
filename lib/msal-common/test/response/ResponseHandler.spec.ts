@@ -1054,7 +1054,7 @@ describe("ResponseHandler.ts", () => {
             expect(signSpy).toHaveBeenCalled();
         });
 
-        it("returns fresh proof for lowercase cached DPoP access token", async () => {
+        it("does not use application extra parameters as a cached DPoP nonce", async () => {
             const hashSpy = jest
                 .spyOn(cryptoInterface, "hashString")
                 .mockResolvedValue(TEST_DPOP_VALUES.ACCESS_TOKEN_ATH);
@@ -1069,6 +1069,9 @@ describe("ResponseHandler.ts", () => {
                 dpopJkt: TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
                 resourceRequestMethod: "GET",
                 resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+                extraParameters: {
+                    pop_nonce: "cached-resource-nonce",
+                },
             };
             const dpopAccessToken: AccessTokenEntity = {
                 homeAccountId: testAccount.homeAccountId,
@@ -1107,6 +1110,7 @@ describe("ResponseHandler.ts", () => {
             expect(result.dpopProof).toBe("cached-dpop-proof");
             expect(hashSpy).toHaveBeenCalledWith(TEST_DPOP_VALUES.ACCESS_TOKEN);
             expect(signSpy).toHaveBeenCalled();
+            expect(signSpy.mock.calls[0][1]).not.toHaveProperty("nonce");
         });
 
         it("throws when DPoP request receives non-DPoP token_type", async () => {

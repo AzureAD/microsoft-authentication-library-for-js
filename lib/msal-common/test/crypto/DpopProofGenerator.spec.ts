@@ -6,6 +6,7 @@
 import {
     DpopProofClaims,
     DpopProofGenerator,
+    normalizeDpopResourceRequestContext,
 } from "../../src/crypto/DpopProofGenerator.js";
 import { ICrypto, JsonWebTokenAlgorithms } from "../../src/crypto/ICrypto.js";
 import { ITokenBindingKeyManager } from "../../src/crypto/ITokenBindingKeyManager.js";
@@ -42,6 +43,23 @@ describe("DpopProofGenerator Unit Tests", () => {
     };
     const dpopSignature = "A".repeat(86);
     const dpopKeyId = "dpop-key-id";
+
+    it("normalizes resource request context without generating proof claims", () => {
+        const createGuidSpy = jest.spyOn(cryptoInterface, "createNewGuid");
+        const nowSpy = jest.spyOn(TimeUtils, "nowSeconds");
+
+        const context = normalizeDpopResourceRequestContext({
+            htm: "post",
+            htu: "https://graph.microsoft.com/v1.0/me?user=alice#profile",
+        });
+
+        expect(context).toEqual({
+            htm: "POST",
+            htu: "https://graph.microsoft.com/v1.0/me",
+        });
+        expect(createGuidSpy).not.toHaveBeenCalled();
+        expect(nowSpy).not.toHaveBeenCalled();
+    });
 
     beforeEach(() => {
         generator = new DpopProofGenerator(
