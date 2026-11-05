@@ -9,8 +9,7 @@ import type { FailedStateV2 } from "../state/FailedStateV2.js";
 import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 
 /**
- * The states an authentication-method verification submission can resolve to.
- * A successful submission completes the authentication flow.
+ * States returned after submitting an authentication-method verification challenge.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type AuthMethodVerificationSubmitChallengeResultStateV2 =
@@ -18,8 +17,7 @@ export type AuthMethodVerificationSubmitChallengeResultStateV2 =
     | FailedStateV2;
 
 /**
- * Result of submitting the authentication-method verification challenge. It
- * includes account data when verification and token completion succeed.
+ * Result of submitting an authentication-method verification challenge.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type AuthMethodVerificationSubmitChallengeResultV2 = CustomAuthResultV2<

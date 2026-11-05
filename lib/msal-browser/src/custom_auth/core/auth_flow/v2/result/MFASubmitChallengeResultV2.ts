@@ -9,15 +9,13 @@ import type { FailedStateV2 } from "../state/FailedStateV2.js";
 import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 
 /**
- * States returned after an app submits an MFA challenge. The operation either
- * completes sign-in or returns a failed state with error details.
+ * States returned after submitting an MFA challenge.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type MFASubmitChallengeResultStateV2 = CompletedStateV2 | FailedStateV2;
 
 /**
- * Result returned after an app submits an MFA challenge. Inspect the state to
- * determine whether sign-in completed or challenge verification failed.
+ * Result of submitting an MFA challenge.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type MFASubmitChallengeResultV2 = CustomAuthResultV2<

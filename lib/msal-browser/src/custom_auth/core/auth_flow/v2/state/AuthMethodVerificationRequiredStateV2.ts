@@ -85,8 +85,7 @@ export class AuthMethodVerificationRequiredStateV2 extends AuthFlowActionRequire
     }
 
     /**
-     * Requests a replacement activation challenge using the retained server
-     * resend link.
+     * Requests a replacement activation challenge for the registered method.
      * @returns Refreshed activation metadata or a failed state.
      */
     async resendChallenge(): Promise<AuthMethodRegistrationChallengeResultV2> {

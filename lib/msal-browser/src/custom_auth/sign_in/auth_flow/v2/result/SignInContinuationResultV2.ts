@@ -9,19 +9,13 @@ import type { FailedStateV2 } from "../../../../core/auth_flow/v2/state/FailedSt
 import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 
 /**
- * The states a V2 continuation sign-in can resolve to. Signing in redeems the
- * flow continuation for tokens, so the terminal
- * `CompletedStateV2` carries `CustomAuthAccountData`. `CompletedStateV2` and the
- * account payload are declared together because they always occur together.
+ * States returned when signing in from a V2 continuation.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SignInContinuationResultStateV2 = CompletedStateV2 | FailedStateV2;
 
 /**
- * Result of signing the user in from a V2 continuation. It wraps one of
- * {@link SignInContinuationResultStateV2} plus the unified V2 flow error on
- * failure and signed-in account data on success. This is the flow's completion
- * point, so a successful result reaches `CompletedStateV2`.
+ * Result of signing the user in from a V2 continuation.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SignInContinuationResultV2 = CustomAuthResultV2<

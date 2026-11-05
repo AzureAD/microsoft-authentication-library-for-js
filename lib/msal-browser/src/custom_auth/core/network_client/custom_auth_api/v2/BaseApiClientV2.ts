@@ -49,7 +49,6 @@ import { AuthorizeChallengeEntryResultV2 } from "./result/BaseResultsV2.js";
 
 /*
  * Shared Native Auth V2 network client for OAuth and HAL requests.
- * Handles serialization, headers, error normalization, and server-provided links.
  */
 export abstract class BaseApiClientV2 {
     private readonly baseRequestUrl: URL;
@@ -100,11 +99,6 @@ export abstract class BaseApiClientV2 {
         const { continuationToken, correlationId, error, body } =
             parsedResponse;
 
-        /*
-         * No token means a genuine server error: surface the normalized server error directly. The
-         * fallback code/message only applies to a malformed response that carries neither a token
-         * nor an error.
-         */
         if (!continuationToken) {
             const apiError = error
                 ? this.toApiError(error, correlationId)

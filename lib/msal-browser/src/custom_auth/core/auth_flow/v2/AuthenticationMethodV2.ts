@@ -5,10 +5,6 @@
 
 /**
  * An authentication method offered by the server during a native auth V2 flow.
- * Each method describes one way the user can prove control of their account
- * (for example an email one-time code), and is surfaced when the flow needs the
- * app to pick a method before a challenge is issued. The app passes the selected
- * method back to the SDK to request a challenge for it.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export interface AuthenticationMethodV2 {

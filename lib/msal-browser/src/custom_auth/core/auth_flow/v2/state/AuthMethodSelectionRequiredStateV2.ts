@@ -24,10 +24,7 @@ import { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/
 import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
 
 /**
- * State returned when the user must select one of several authentication
- * methods before a challenge can be issued. It exposes the list of offered
- * methods and lets the app request a challenge for the chosen one. The flow
- * stays on this state until a challenge is successfully requested.
+ * State returned when the user must select an authentication method.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class AuthMethodSelectionRequiredStateV2 extends AuthFlowActionRequiredStateBase<AuthMethodSelectionRequiredStateParametersV2> {
@@ -40,8 +37,7 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthFlowActionRequiredSt
     }
 
     /**
-     * Selects an authentication method and requests its challenge. The returned
-     * state identifies the credential the application must collect.
+     * Selects an authentication method and requests its challenge.
      * @param method - The method to select, from {@link methods}.
      * @returns The result of selecting the method and requesting its challenge.
      */

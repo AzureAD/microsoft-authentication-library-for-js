@@ -11,18 +11,14 @@ import type { SignInContinuationStateParametersV2 } from "./SignInStateParameter
 import type { SignInContinuationResultV2 } from "../result/SignInContinuationResultV2.js";
 
 /**
- * Shared state returned when a completed V2 flow can sign the user in by
- * redeeming its continuation. Password reset and sign-up can both surface this
- * state without duplicating the token-acquisition behavior.
+ * State returned when a completed V2 flow can sign the user in.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class SignInContinuationStateV2 extends AuthFlowActionRequiredStateBase<SignInContinuationStateParametersV2> {
     readonly stateType = "signInContinuation";
 
     /**
-     * Signs the user in using the continuation established by the completed V2
-     * flow. The result either reaches the completed state with the signed-in
-     * account data or reports why the follow-up sign-in could not complete.
+     * Signs the user in after completing the V2 flow.
      * @returns The result of completing the continuation sign-in.
      */
     async signIn(): Promise<SignInContinuationResultV2> {

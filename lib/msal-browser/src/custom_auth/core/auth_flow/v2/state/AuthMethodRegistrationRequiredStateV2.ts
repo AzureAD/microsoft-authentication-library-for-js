@@ -13,8 +13,7 @@ import { InvalidArgumentError } from "../../../error/InvalidArgumentError.js";
 import { ensureArgumentIsNotEmptyString } from "../../../utils/ArgumentValidator.js";
 
 /**
- * State returned when an authentication method must be registered. Applications
- * select one of the sanitized offered methods and provide its contact value.
+ * State returned when an authentication method must be registered.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class AuthMethodRegistrationRequiredStateV2 extends AuthFlowActionRequiredStateBase<AuthMethodRegistrationRequiredStateParametersV2> {

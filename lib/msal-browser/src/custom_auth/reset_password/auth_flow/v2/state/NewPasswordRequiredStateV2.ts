@@ -17,17 +17,14 @@ import type { NewPasswordRequiredStateParametersV2 } from "./ResetPasswordStateP
 import type { SubmitNewPasswordResultV2 } from "../result/SubmitNewPasswordResultV2.js";
 
 /**
- * State returned when the user must supply a new password to complete the flow.
- * A successful submission can require registration or return a continuation
- * for sign-in.
+ * State returned when password reset requires a new password.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class NewPasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<NewPasswordRequiredStateParametersV2> {
     readonly stateType = "newPasswordRequired";
 
     /**
-     * Submits the new password to complete the reset. Enrollment may be
-     * required before sign-in; a rejected password returns an error.
+     * Submits the new password to complete the reset.
      * @param password - The new password to set.
      * @returns The result of submitting the new password.
      */
