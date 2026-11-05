@@ -1016,6 +1016,72 @@ describe("Unpublished CAE partition prototype", () => {
         expect(post).toHaveBeenCalledTimes(1);
     });
 
+    it("does not reuse an invalidated promise or let its cleanup remove the replacement", async () => {
+        let finishOld!: (value: ReturnType<typeof response>) => void;
+        let finishReplacement!: (value: ReturnType<typeof response>) => void;
+        const oldResponse = new Promise<ReturnType<typeof response>>(
+            (resolve) => {
+                finishOld = resolve;
+            }
+        );
+        const replacementResponse = new Promise<ReturnType<typeof response>>(
+            (resolve) => {
+                finishReplacement = resolve;
+            }
+        );
+        let oldStarted!: () => void;
+        let replacementStarted!: () => void;
+        const oldReady = new Promise<void>((resolve) => {
+            oldStarted = resolve;
+        });
+        const replacementReady = new Promise<void>((resolve) => {
+            replacementStarted = resolve;
+        });
+        const post = jest
+            .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+            .mockImplementationOnce(() => {
+                oldStarted();
+                return oldResponse;
+            })
+            .mockResolvedValueOnce(response("accepted-challenge"))
+            .mockImplementationOnce(() => {
+                replacementStarted();
+                return replacementResponse;
+            });
+        const { pca, cache } = await application();
+        const old = pca.acquireTokenSilent({ ...request, claims: cp1 });
+        await oldReady;
+        await pca.acquireTokenSilent({
+            ...request,
+            claims: JSON.stringify({
+                access_token: {
+                    xms_cc: { values: ["CP1"] },
+                    auth_time: { essential: true },
+                },
+            }),
+        });
+        const cached = await pca.acquireTokenSilent({
+            ...request,
+            claims: cp1,
+        });
+        expect(cached.accessToken).toBe("accepted-challenge");
+        expect(cached.fromCache).toBe(true);
+        for (const key of cache.getTokenKeys(4).accessToken) {
+            cache.removeAccessToken(key, TEST_CONFIG.CORRELATION_ID);
+        }
+        const replacement = pca.acquireTokenSilent({ ...request, claims: cp1 });
+        await replacementReady;
+        finishOld(response("invalidated-original"));
+        await expect(old).rejects.toMatchObject({
+            errorCode: "cae_token_request_invalidated",
+        });
+        const duplicate = pca.acquireTokenSilent({ ...request, claims: cp1 });
+        finishReplacement(response("replacement"));
+        expect((await replacement).accessToken).toBe("replacement");
+        expect((await duplicate).accessToken).toBe("replacement");
+        expect(post).toHaveBeenCalledTimes(3);
+    });
+
     it("rejects unknown capability sets and malformed claims", () => {
         expect(() =>
             prepareCaeCacheRequest(

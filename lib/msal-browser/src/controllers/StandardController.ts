@@ -175,6 +175,13 @@ export class StandardController implements IController {
         string,
         Promise<AuthenticationResult>
     >;
+    private activeCapabilityRequests = new Map<
+        string,
+        {
+            account: AccountInfo;
+            request?: SilentRequest;
+        }
+    >();
 
     // Active Iframe request
     private activeIframeRequest: [Promise<boolean>, string] | undefined;
@@ -2364,16 +2371,29 @@ export class StandardController implements IController {
         const inProgressRequest = this.activeSilentTokenRequests.get(
             preparedRequest.key
         );
+        const inProgressContext = this.activeCapabilityRequests.get(
+            preparedRequest.key
+        );
+        const invalidated =
+            inProgressContext?.request &&
+            !this.browserStorage.isCapabilityAcquisitionCurrent(
+                inProgressContext.account,
+                inProgressContext.request
+            );
 
-        if (typeof inProgressRequest === "undefined") {
+        if (typeof inProgressRequest === "undefined" || invalidated) {
             this.logger.verbose(
                 "acquireTokenSilent called for the first time, storing active request",
                 correlationId
             );
             this.performanceClient.addFields({ deduped: false }, correlationId);
 
-            const acquire = (acquisitionRequest: SilentRequest) =>
-                invokeAsync(
+            const context: { account: AccountInfo; request?: SilentRequest } = {
+                account: preparedRequest.account,
+            };
+            const acquire = (acquisitionRequest: SilentRequest) => {
+                context.request = acquisitionRequest;
+                return invokeAsync(
                     this.acquireTokenSilentAsync.bind(this),
                     BrowserPerformanceEvents.AcquireTokenSilentAsync,
                     this.logger,
@@ -2386,6 +2406,7 @@ export class StandardController implements IController {
                     },
                     preparedRequest.account
                 );
+            };
             const activeRequest = preparedRequest.request.experimentalCaeCache
                 ? this.prepareCapabilitySilentRequest(
                       preparedRequest.request,
@@ -2397,9 +2418,18 @@ export class StandardController implements IController {
                 preparedRequest.key,
                 activeRequest
             );
+            if (preparedRequest.request.experimentalCaeCache) {
+                this.activeCapabilityRequests.set(preparedRequest.key, context);
+            }
 
             return activeRequest.finally(() => {
-                this.activeSilentTokenRequests.delete(preparedRequest.key);
+                if (
+                    this.activeSilentTokenRequests.get(preparedRequest.key) ===
+                    activeRequest
+                ) {
+                    this.activeSilentTokenRequests.delete(preparedRequest.key);
+                    this.activeCapabilityRequests.delete(preparedRequest.key);
+                }
             });
         } else {
             this.logger.verbose(
