@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Tue, 27 Oct 2026 18:15:10 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 05 Nov 2026 01:03:50 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 7.2.0
+
+Thu, 05 Nov 2026 01:03:50 GMT
+
+### Minor changes
+
+- Bump @azure/msal-common to v16.16.0
+
+### Patches
+
+- Bind interactive browser authorization responses to per-request state [#8952](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8952) (undefined)
 
 ## 7.1.2
 
