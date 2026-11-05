@@ -663,7 +663,7 @@ export interface IPublicClientApplication {
     // (undocumented)
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
     // (undocumented)
-    acquireTokenPopup(request: PopupRequest, cacheLookupPolicy?: CacheLookupPolicy): Promise<AuthenticationResult>;
+    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
     // (undocumented)
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
     // (undocumented)
@@ -711,7 +711,7 @@ export interface IPublicClientApplication {
     // (undocumented)
     setNavigationClient(navigationClient: INavigationClient): void;
     // (undocumented)
-    ssoSilent(request: SsoSilentRequest, cacheLookupPolicy?: CacheLookupPolicy): Promise<AuthenticationResult>;
+    ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
 }
 
 // @public
@@ -947,7 +947,7 @@ export { ProtocolMode }
 export class PublicClientApplication implements IPublicClientApplication {
     constructor(configuration: Configuration, controller?: IController);
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
-    acquireTokenPopup(request: PopupRequest, cacheLookupPolicy?: CacheLookupPolicy): Promise<AuthenticationResult>;
+    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
     addEventCallback(callback: EventCallbackFunction, eventTypes?: Array<EventType>): string | null;
@@ -974,7 +974,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     setActiveAccount(account: AccountInfo | null): void;
     setLogger(logger: Logger): void;
     setNavigationClient(navigationClient: INavigationClient): void;
-    ssoSilent(request: SsoSilentRequest, cacheLookupPolicy?: CacheLookupPolicy): Promise<AuthenticationResult>;
+    ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
     // @internal
     protected waitForIframeResponse(iframe: HTMLIFrameElement, request: WaitForIframeRequest): Promise<string>;
     // @internal

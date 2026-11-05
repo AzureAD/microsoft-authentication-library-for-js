@@ -419,11 +419,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Fetches the tokens from the cache if un-expired
+     * Fetches unexpired tokens for acquireTokenSilent when allowed by cache policy.
      * @param nativeAccountId
      * @param request
      * @param cacheLookupPolicy
-     * @returns Cached result, or undefined when cache policy forbids the lookup.
+     * @returns Cached result, or undefined when the API or cache policy bypasses lookup.
      */
     protected async acquireTokensFromCache(
         nativeAccountId: string,
@@ -431,11 +431,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         cacheLookupPolicy: CacheLookupPolicy = CacheLookupPolicy.Default
     ): Promise<AuthenticationResult | undefined> {
         if (
+            this.apiId !== ApiId.acquireTokenSilent_silentFlow ||
             cacheLookupPolicy === CacheLookupPolicy.RefreshTokenAndNetwork ||
             cacheLookupPolicy === CacheLookupPolicy.Skip
         ) {
             this.logger.verbose(
-                "Native cache lookup bypassed for cache policy",
+                "Native cache lookup bypassed for API or cache policy",
                 this.correlationId
             );
             return undefined;

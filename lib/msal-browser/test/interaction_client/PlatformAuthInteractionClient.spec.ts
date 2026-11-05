@@ -228,6 +228,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
     describe("acquireTokensFromInternalCache Tests", () => {
         beforeEach(() => {
+            // @ts-ignore
+            platformAuthInteractionClient.apiId =
+                ApiId.acquireTokenSilent_silentFlow;
             jest.spyOn(
                 CacheManager.prototype,
                 "getBaseAccountInfo"
@@ -281,6 +284,34 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 expect(response.fromPlatformBroker).toBe(false);
             }
         );
+
+        it.each([
+            ApiId.acquireTokenPopup,
+            ApiId.acquireTokenRedirect,
+            ApiId.ssoSilent,
+            ApiId.acquireTokenByCode,
+            ApiId.handleRedirectPromise,
+            ApiId.acquireTokenSilent_authCode,
+        ])("bypasses a warm native cache for API %s", async (apiId) => {
+            // @ts-ignore
+            platformAuthInteractionClient.apiId = apiId;
+            const acquireCachedToken = jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            );
+            const sendMessage = jest
+                .spyOn(PlatformAuthExtensionHandler.prototype, "sendMessage")
+                .mockResolvedValue(MOCK_WAM_RESPONSE);
+
+            const result = await platformAuthInteractionClient.acquireToken({
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+            });
+
+            expect(acquireCachedToken).not.toHaveBeenCalled();
+            expect(sendMessage).toHaveBeenCalledTimes(1);
+            expect(result.accessToken).toBe(MOCK_WAM_RESPONSE.access_token);
+            expect(result.fromPlatformBroker).toBe(true);
+        });
 
         it.each([
             CacheLookupPolicy.RefreshTokenAndNetwork,
@@ -476,6 +507,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
     describe("acquireToken Tests", () => {
         it("keeps brokered access tokens out of the parent cache with real SDK caches", async () => {
+            // @ts-ignore
+            platformAuthInteractionClient.apiId =
+                ApiId.acquireTokenSilent_silentFlow;
             const childResponse: PlatformAuthResponse = {
                 ...MOCK_WAM_RESPONSE,
                 access_token: "embedded-access-token",
@@ -1408,6 +1442,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         it("Extension: replaces only the superseded L1 DPoP credential when caching a refresh", async () => {
+            // @ts-ignore
+            platformAuthInteractionClient.apiId =
+                ApiId.acquireTokenSilent_silentFlow;
             const keyManager =
                 // @ts-ignore
                 platformAuthInteractionClient.tokenBindingKeyManager;
@@ -1510,6 +1547,9 @@ describe("PlatformAuthInteractionClient Tests", () => {
         });
 
         it("Extension: removes the generated DPoP key when cache saving fails before replacement", async () => {
+            // @ts-ignore
+            platformAuthInteractionClient.apiId =
+                ApiId.acquireTokenSilent_silentFlow;
             const keyManager =
                 // @ts-ignore
                 platformAuthInteractionClient.tokenBindingKeyManager;

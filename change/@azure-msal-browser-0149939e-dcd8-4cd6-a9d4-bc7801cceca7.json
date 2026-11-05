@@ -1,6 +1,6 @@
 {
-    "type": "minor",
-    "comment": "Support optional cache-policy arguments for platform-broker popup and SSO requests [#8971](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8971)",
+    "type": "patch",
+    "comment": "Limit native token-cache lookup to acquireTokenSilent and honor silent cache policies [#8971](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8971)",
     "packageName": "@azure/msal-browser",
     "email": "lalima.sharda@gmail.com",
     "dependentChangeType": "patch"

@@ -4704,22 +4704,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     pca.removePerformanceCallback(callbackId);
                 });
 
-                const response = await pca.ssoSilent(
-                    request,
-                    CacheLookupPolicy.RefreshTokenAndNetwork
-                );
+                const response = await pca.ssoSilent(request);
 
                 expect(response).toEqual(testTokenResponse);
                 expect(acquireTokenNativeSpy).toHaveBeenCalledWith(
                     expect.objectContaining(request),
                     ApiId.ssoSilent,
-                    testAccount.nativeAccountId,
-                    CacheLookupPolicy.RefreshTokenAndNetwork
+                    testAccount.nativeAccountId
                 );
                 expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
                 expect(nativeAcquireTokenSpy).toHaveBeenCalledWith(
                     expect.objectContaining(request),
-                    CacheLookupPolicy.RefreshTokenAndNetwork
+                    undefined
                 );
                 expect(silentSpy).toHaveBeenCalledTimes(0);
             }
@@ -9436,20 +9432,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 let result: AuthenticationResult | null;
                 switch (flow) {
                     case "popup":
-                        result = await pca.acquireTokenPopup(
-                            request,
-                            CacheLookupPolicy.RefreshTokenAndNetwork
-                        );
+                        result = await pca.acquireTokenPopup(request);
                         break;
                     case "redirect":
                         await pca.acquireTokenRedirect(request);
                         result = await pca.handleRedirectPromise();
                         break;
                     case "sso":
-                        result = await pca.ssoSilent(
-                            request,
-                            CacheLookupPolicy.RefreshTokenAndNetwork
-                        );
+                        result = await pca.ssoSilent(request);
                         break;
                     case "silent":
                         result = await pca.acquireTokenSilent({
