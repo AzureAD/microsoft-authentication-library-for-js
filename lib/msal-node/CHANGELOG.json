@@ -2,6 +2,28 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Thu, 05 Nov 2026 01:03:50 GMT",
+      "version": "7.2.0",
+      "tag": "@azure/msal-node_v7.2.0",
+      "comments": {
+        "patch": [
+          {
+            "package": "@azure/msal-node",
+            "commit": "a8a81410aa8e8973aae7b200d2ae6efe5d6b5f2f",
+            "comment": "Bind interactive browser authorization responses to per-request state [#8952](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8952)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.16.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 27 Oct 2026 18:15:10 GMT",
       "version": "7.1.2",
       "tag": "@azure/msal-node_v7.1.2",
