@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 27 Oct 2026 18:15:10 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 05 Nov 2026 01:03:50 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.28.0
+
+Thu, 05 Nov 2026 01:03:50 GMT
+
+### Minor changes
+
+- Support Native Auth V2 JIT email and SMS enrollment during sign-in, sign-up, and password reset. [#8927](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8927) (undefined)
+- Implement extension-only WAM DPoP routing outcomes, MSAL-managed request keys, and proof cache policy [#8789](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8789) (hectormmg@microsoft.com)
+- Bump @azure/msal-common to v16.16.0
 
 ## 5.27.0
 
