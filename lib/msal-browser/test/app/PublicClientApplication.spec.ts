@@ -9372,7 +9372,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 ]
             )
         )(
-            "honors parent ID-token cleanup for $flow (brokered: $brokered)",
+            "preserves existing ID tokens for $flow (brokered: $brokered) when storage is disabled",
             async ({ flow, brokered }) => {
                 const config = {
                     auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
@@ -9491,17 +9491,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(retainedAccount?.nativeAccountId).toBe(
                     parent.account.nativeAccountId
                 );
-                expect(retainedAccount?.idToken).toBe(
-                    brokered ? parent.idToken : undefined
+                expect(retainedAccount?.idToken).toBe(parent.idToken);
+                const retainedParent = await pca.acquireTokenSilent(
+                    parentRequest
                 );
-                if (brokered) {
-                    const retainedParent = await pca.acquireTokenSilent(
-                        parentRequest
-                    );
-                    expect(retainedParent.accessToken).toBe(parent.accessToken);
-                    expect(retainedParent.idToken).toBe(parent.idToken);
-                    expect(retainedParent.fromCache).toBe(true);
-                }
+                expect(retainedParent.accessToken).toBe(parent.accessToken);
+                expect(retainedParent.idToken).toBe(parent.idToken);
+                expect(retainedParent.fromCache).toBe(true);
 
                 const accessTokenKeys = nativeCache.getTokenKeys().accessToken;
                 expect(accessTokenKeys).toHaveLength(1);

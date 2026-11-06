@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Limit native token-cache lookup to acquireTokenSilent, honor silent cache policies, and preserve host tokens when processing brokered embedded-app responses [#8971](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8971)",
+    "comment": "Limit native token-cache lookup to acquireTokenSilent, honor silent cache policies, and preserve ID tokens during platform-broker account updates [#8971](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8971)",
     "packageName": "@azure/msal-browser",
     "email": "lalima.sharda@gmail.com",
     "dependentChangeType": "patch"

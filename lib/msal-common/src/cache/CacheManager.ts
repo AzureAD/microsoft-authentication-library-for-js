@@ -1059,7 +1059,6 @@ export abstract class CacheManager implements ICacheManager {
      * @param account
      */
     removeAccount(account: AccountInfo, correlationId: string): void {
-        this.removeAccountContext(account, correlationId);
         const accountKeys = this.getAccountKeys();
         const keyFilter = (key: string): boolean => {
             return (
@@ -1067,6 +1066,12 @@ export abstract class CacheManager implements ICacheManager {
                 key.includes(account.environment)
             );
         };
+        this.getTokenKeys()
+            .idToken.filter(keyFilter)
+            .forEach((key) => {
+                this.removeIdToken(key, correlationId);
+            });
+        this.removeAccountContext(account, correlationId);
         accountKeys.filter(keyFilter).forEach((key) => {
             this.removeItem(key, correlationId);
             this.performanceClient.incrementFields(
@@ -1077,7 +1082,8 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * Removes credentials associated with the provided account
+     * Removes access and refresh tokens associated with the provided account,
+     * preserving the account and its ID tokens.
      * @param account
      */
     removeAccountContext(account: AccountInfo, correlationId: string): void {
@@ -1088,10 +1094,6 @@ export abstract class CacheManager implements ICacheManager {
                 key.includes(account.environment)
             );
         };
-
-        allTokenKeys.idToken.filter(keyFilter).forEach((key) => {
-            this.removeIdToken(key, correlationId);
-        });
 
         allTokenKeys.accessToken.filter(keyFilter).forEach((key) => {
             this.removeAccessToken(key, correlationId);

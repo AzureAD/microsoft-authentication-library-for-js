@@ -9,6 +9,7 @@ import {
     AccountEntity,
     IdTokenEntity,
     AccessTokenEntity,
+    RefreshTokenEntity,
     TimeUtils,
     CacheManager,
     IPerformanceClient,
@@ -419,7 +420,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 RANDOM_TEST_GUID,
                 expect.any(Boolean)
             );
-            expect(removeAccountContext).not.toHaveBeenCalled();
+            expect(removeAccountContext).toHaveBeenCalledTimes(1);
             expect(saveCacheRecord).not.toHaveBeenCalled();
         });
 
@@ -515,33 +516,28 @@ describe("PlatformAuthInteractionClient Tests", () => {
         it.each<{
             name: string;
             extraParameters?: PlatformAuthRequest["extraParameters"];
-            clearsExistingTokens: boolean;
         }>([
             {
                 name: "omitted child context",
                 extraParameters: undefined,
-                clearsExistingTokens: true,
             },
             {
                 name: "empty child client ID",
                 extraParameters: { child_client_id: "" },
-                clearsExistingTokens: true,
             },
             {
                 name: "child redirect URI without a child client ID",
                 extraParameters: {
                     child_redirect_uri: "https://localhost:30662",
                 },
-                clearsExistingTokens: true,
             },
             {
                 name: "normalized child context",
                 extraParameters: { child_client_id: "embedded-client" },
-                clearsExistingTokens: false,
             },
         ])(
-            "honors account-context cleanup for $name with both storage flags disabled",
-            async ({ extraParameters, clearsExistingTokens }) => {
+            "preserves and separately updates ID tokens for $name while clearing web access and refresh tokens",
+            async ({ extraParameters }) => {
                 jest.spyOn(
                     PlatformAuthExtensionHandler.prototype,
                     "sendMessage"
@@ -558,6 +554,38 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 );
                 const idTokenKeys = browserCacheManager.getTokenKeys().idToken;
                 expect(idTokenKeys).toHaveLength(1);
+                const cachedIdToken = browserCacheManager.getIdTokenCredential(
+                    idTokenKeys[0],
+                    RANDOM_TEST_GUID
+                );
+                if (!cachedIdToken) {
+                    throw new Error(
+                        "Parent acquisition did not cache an ID token"
+                    );
+                }
+                const webAccessToken = {
+                    ...testAccessTokenEntity,
+                    homeAccountId: cachedIdToken.homeAccountId,
+                    environment: cachedIdToken.environment,
+                };
+                const webRefreshToken: RefreshTokenEntity = {
+                    homeAccountId: cachedIdToken.homeAccountId,
+                    environment: cachedIdToken.environment,
+                    clientId: cachedIdToken.clientId,
+                    credentialType: Constants.CredentialType.REFRESH_TOKEN,
+                    secret: "cached-web-refresh-token",
+                    lastUpdatedAt: Date.now().toString(),
+                };
+                await browserCacheManager.setAccessTokenCredential(
+                    webAccessToken,
+                    RANDOM_TEST_GUID,
+                    false
+                );
+                await browserCacheManager.setRefreshTokenCredential(
+                    webRefreshToken,
+                    RANDOM_TEST_GUID,
+                    false
+                );
                 const removeAccountContext = jest.spyOn(
                     browserCacheManager,
                     "removeAccountContext"
@@ -579,15 +607,41 @@ describe("PlatformAuthInteractionClient Tests", () => {
 
                 expect(result.idToken).toBe(TEST_TOKENS.IDTOKEN_V2_NEWCLAIM);
                 expect(setAccount).toHaveBeenCalledTimes(1);
-                expect(removeAccountContext).toHaveBeenCalledTimes(
-                    clearsExistingTokens ? 1 : 0
-                );
+                expect(removeAccountContext).toHaveBeenCalledTimes(1);
                 expect(
                     browserCacheManager.getIdTokenCredential(
                         idTokenKeys[0],
                         RANDOM_TEST_GUID
                     )?.secret
-                ).toBe(clearsExistingTokens ? undefined : parent.idToken);
+                ).toBe(parent.idToken);
+                expect(
+                    browserCacheManager.getAccessTokenCredential(
+                        browserCacheManager.generateCredentialKey(
+                            webAccessToken
+                        ),
+                        RANDOM_TEST_GUID
+                    )
+                ).toBeNull();
+                expect(
+                    browserCacheManager.getRefreshTokenCredential(
+                        browserCacheManager.generateCredentialKey(
+                            webRefreshToken
+                        ),
+                        RANDOM_TEST_GUID
+                    )
+                ).toBeNull();
+
+                await platformAuthInteractionClient.acquireToken({
+                    scopes: ["User.Read"],
+                    extraParameters,
+                    storeInCache: { idToken: true, accessToken: false },
+                });
+                expect(
+                    browserCacheManager.getIdTokenCredential(
+                        idTokenKeys[0],
+                        RANDOM_TEST_GUID
+                    )?.secret
+                ).toBe(TEST_TOKENS.IDTOKEN_V2_NEWCLAIM);
             }
         );
 
@@ -1285,9 +1339,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 );
                 expect(removeKeySpy).not.toHaveBeenCalled();
                 expect(provisionKeySpy).toHaveBeenCalledTimes(1);
-                expect(removeAccountContext).toHaveBeenCalledTimes(
-                    embeddedClientId ? 0 : 1
-                );
+                expect(removeAccountContext).toHaveBeenCalledTimes(1);
                 expect(brokerRequest?.extraParameters?.child_client_id).toBe(
                     embeddedClientId
                 );
@@ -1483,9 +1535,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 expect(internalStorage.getTokenKeys().accessToken).toHaveLength(
                     0
                 );
-                expect(removeAccountContext).toHaveBeenCalledTimes(
-                    embeddedClientId ? 0 : 1
-                );
+                expect(removeAccountContext).toHaveBeenCalledTimes(1);
             }
         );
 
