@@ -1,15 +1,19 @@
 import * as path from "path";
 import { spawn, ChildProcess } from "child_process";
 import * as puppeteer from "puppeteer";
+import { InteractionType } from "@azure/msal-browser";
 import {
     Screenshot,
     BrowserCacheUtils,
     createPlatformBrokerProfile,
     launchPlatformBrokerBrowser,
+    observePopupEarRequests,
     PLATFORM_LOGIN_TIMEOUT,
     PlatformBrokerProfile,
     removePlatformBrokerProfile,
-    verifyPlatformBrokerResponse,
+    verifyPlatformBrokerAccount,
+    verifyPlatformBrokerOperation,
+    verifyPlatformBrokerRedirect,
     verifyPlatformBrokerTokenStore,
 } from "e2e-test-utils";
 import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
@@ -124,7 +128,11 @@ describe("EAR + Platform Broker Tests", () => {
         expect(
             await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
         ).toBeGreaterThan(0);
-        await verifyPlatformBrokerResponse(page);
+        const signInResult = await verifyPlatformBrokerRedirect(page);
+        expect(await verifyPlatformBrokerAccount(page)).toEqual({
+            homeAccountId: signInResult.homeAccountId,
+            nativeAccountId: signInResult.nativeAccountId,
+        });
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 
@@ -134,39 +142,33 @@ describe("EAR + Platform Broker Tests", () => {
         );
 
         await page.locator("button#signInButton").click();
-        let popupFlowUtils: AuthenticationFlowTestUtils | undefined;
-        const newPopupWindowPromise = new Promise<puppeteer.Page | null>(
-            (resolve) =>
-                page.once("popup", (popupPage) => {
-                    if (popupPage) {
-                        popupFlowUtils = new AuthenticationFlowTestUtils(
-                            popupPage
-                        );
+        let authorizeRequests = 0;
+        const signInResult = await verifyPlatformBrokerOperation(
+            page,
+            InteractionType.Popup,
+            async () => {
+                authorizeRequests = await observePopupEarRequests(
+                    page,
+                    async () => {
+                        await page.locator("a#signInPopup").click();
+                        await page.waitForSelector("a#viewProfileButton", {
+                            visible: true,
+                            timeout: PLATFORM_LOGIN_TIMEOUT,
+                        });
                     }
-                    resolve(popupPage);
-                })
+                );
+            }
         );
-        await page.locator("a#signInPopup").click();
-
-        const popupPage = await newPopupWindowPromise;
-        if (!popupPage) {
-            throw new Error("Popup window was not opened");
-        }
-
-        // The SSO extension completes the popup sign-in for the Windows account.
-        await page.waitForSelector("a#viewProfileButton", {
-            visible: true,
-            timeout: PLATFORM_LOGIN_TIMEOUT,
-        });
         await screenshot.takeScreenshot(page, "Logged In");
 
-        expect(
-            popupFlowUtils?.getRequestCount("/authorize", "POST")
-        ).toBeGreaterThan(0);
+        expect(authorizeRequests).toBeGreaterThan(0);
         expect(
             await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
         ).toBeGreaterThan(0);
-        await verifyPlatformBrokerResponse(page);
+        expect(await verifyPlatformBrokerAccount(page)).toEqual({
+            homeAccountId: signInResult.homeAccountId,
+            nativeAccountId: signInResult.nativeAccountId,
+        });
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 
@@ -183,22 +185,37 @@ describe("EAR + Platform Broker Tests", () => {
             timeout: PLATFORM_LOGIN_TIMEOUT,
         });
 
-        const decryptCountBefore = await flowUtils.getCryptoOperationCount(
-            EAR_CRYPTO_ALGORITHM
+        const signInResult = await verifyPlatformBrokerRedirect(page);
+        expect(flowUtils.getRequestCount("/authorize", "POST")).toBeGreaterThan(
+            0
         );
-
-        await page.locator("button#ssoSilentButton").click();
-        await page.waitForSelector(
-            'div#silentStatus[data-status="ssoSilent:success"]',
-            { timeout: 30000 }
+        expect(
+            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
+        ).toBeGreaterThan(0);
+        const authorizeCount = flowUtils.getRequestCount("/authorize");
+        const tokenCount = flowUtils.getRequestCount("/token");
+        const silentResult = await verifyPlatformBrokerOperation(
+            page,
+            InteractionType.Silent,
+            async () => {
+                await page.locator("button#ssoSilentButton").click();
+                await page.waitForSelector(
+                    'div#silentStatus[data-status="ssoSilent:success"]',
+                    { timeout: 30000 }
+                );
+            }
         );
         await screenshot.takeScreenshot(page, "ssoSilent completed");
 
-        // Silent EAR authorize re-runs; the platform broker services it again.
-        expect(
-            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
-        ).toBeGreaterThan(decryptCountBefore);
-        await verifyPlatformBrokerResponse(page);
+        // A broker-linked silent call can use native memory without another EAR response.
+        expect(silentResult.nativeAccountId).toBe(signInResult.nativeAccountId);
+        expect(silentResult.homeAccountId).toBe(signInResult.homeAccountId);
+        expect(flowUtils.getRequestCount("/authorize")).toBe(authorizeCount);
+        expect(flowUtils.getRequestCount("/token")).toBe(tokenCount);
+        expect(await verifyPlatformBrokerAccount(page)).toEqual({
+            homeAccountId: signInResult.homeAccountId,
+            nativeAccountId: signInResult.nativeAccountId,
+        });
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 
@@ -215,15 +232,36 @@ describe("EAR + Platform Broker Tests", () => {
             timeout: PLATFORM_LOGIN_TIMEOUT,
         });
 
-        await page.locator("button#acquireTokenSilentButton").click();
-        await page.waitForSelector(
-            'div#silentStatus[data-status="acquireTokenSilent:success"]',
-            { timeout: 30000 }
+        const signInResult = await verifyPlatformBrokerRedirect(page);
+        expect(flowUtils.getRequestCount("/authorize", "POST")).toBeGreaterThan(
+            0
+        );
+        expect(
+            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
+        ).toBeGreaterThan(0);
+        const authorizeCount = flowUtils.getRequestCount("/authorize");
+        const tokenCount = flowUtils.getRequestCount("/token");
+        const silentResult = await verifyPlatformBrokerOperation(
+            page,
+            InteractionType.Silent,
+            async () => {
+                await page.locator("button#acquireTokenSilentButton").click();
+                await page.waitForSelector(
+                    'div#silentStatus[data-status="acquireTokenSilent:success"]',
+                    { timeout: 30000 }
+                );
+            }
         );
         await screenshot.takeScreenshot(page, "acquireTokenSilent completed");
 
-        // Platform accounts renew through the broker, not the EAR RT grant.
-        await verifyPlatformBrokerResponse(page);
+        expect(silentResult.nativeAccountId).toBe(signInResult.nativeAccountId);
+        expect(silentResult.homeAccountId).toBe(signInResult.homeAccountId);
+        expect(flowUtils.getRequestCount("/authorize")).toBe(authorizeCount);
+        expect(flowUtils.getRequestCount("/token")).toBe(tokenCount);
+        expect(await verifyPlatformBrokerAccount(page)).toEqual({
+            homeAccountId: signInResult.homeAccountId,
+            nativeAccountId: signInResult.nativeAccountId,
+        });
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 });

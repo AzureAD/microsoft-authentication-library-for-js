@@ -6,6 +6,7 @@
 import * as path from "path";
 import { spawn, ChildProcess } from "child_process";
 import * as puppeteer from "puppeteer";
+import { InteractionType } from "@azure/msal-browser";
 import {
     BrowserCacheUtils,
     Screenshot,
@@ -15,7 +16,9 @@ import {
     PLATFORM_LOGIN_TIMEOUT,
     PlatformBrokerProfile,
     removePlatformBrokerProfile,
-    verifyPlatformBrokerResponse,
+    verifyPlatformBrokerAccount,
+    verifyPlatformBrokerOperation,
+    verifyPlatformBrokerRedirect,
     verifyPlatformBrokerTokenStore,
 } from "e2e-test-utils";
 
@@ -87,9 +90,16 @@ describe("Platform Broker + Keep Me Signed In Tests", () => {
         });
         await screenshot.takeScreenshot(page, "Initial broker sign-in");
 
-        await verifyPlatformBrokerResponse(page);
+        const signInResult = await verifyPlatformBrokerRedirect(page);
+        const initialAccount = await verifyPlatformBrokerAccount(page);
+        expect(initialAccount).toEqual({
+            homeAccountId: signInResult.homeAccountId,
+            nativeAccountId: signInResult.nativeAccountId,
+        });
         await verifyPlatformBrokerTokenStore(browserCache);
         await verifyKmsiFromResponse(page);
+        const initialAccountKeys = await browserCache.getAccountFromCache();
+        expect(initialAccountKeys).toHaveLength(1);
 
         await browser.close();
         browser = undefined;
@@ -103,10 +113,16 @@ describe("Platform Broker + Keep Me Signed In Tests", () => {
         page.once("popup", () => {
             popupOpened = true;
         });
-        await page.locator("button#ssoSilentButton").click();
-        await page.waitForSelector(
-            'div#silentStatus[data-status="ssoSilent:success"]',
-            { timeout: PLATFORM_LOGIN_TIMEOUT }
+        const silentResult = await verifyPlatformBrokerOperation(
+            page,
+            InteractionType.Silent,
+            async () => {
+                await page.locator("button#ssoSilentButton").click();
+                await page.waitForSelector(
+                    'div#silentStatus[data-status="ssoSilent:success"]',
+                    { timeout: PLATFORM_LOGIN_TIMEOUT }
+                );
+            }
         );
         await page.waitForSelector("a#viewProfileButton", {
             visible: true,
@@ -115,8 +131,15 @@ describe("Platform Broker + Keep Me Signed In Tests", () => {
         await screenshot.takeScreenshot(page, "Silent broker sign-in restored");
 
         expect(popupOpened).toBe(false);
-        await verifyPlatformBrokerResponse(page);
+        expect(silentResult.nativeAccountId).toBe(
+            initialAccount.nativeAccountId
+        );
+        expect(silentResult.homeAccountId).toBe(initialAccount.homeAccountId);
+        expect(await verifyPlatformBrokerAccount(page)).toEqual(initialAccount);
         await verifyPlatformBrokerTokenStore(browserCache);
         await verifyKmsiFromResponse(page);
+        expect(await browserCache.getAccountFromCache()).toEqual(
+            initialAccountKeys
+        );
     }, 300000);
 });
