@@ -794,6 +794,38 @@ describe("Reset password V2 (SSPR)", () => {
         );
     });
 
+    it("surfaces a reset-disabled error when starting password reset", async () => {
+        (fetch as jest.Mock)
+            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse(
+                    {
+                        error: {
+                            code: "invalidRequest",
+                            message:
+                                "AADSTS10040039: You can't reset your own password because password reset isn't turned on for your account.",
+                            innerError: {
+                                code: "passwordResetNotEnabledForUser",
+                            },
+                        },
+                    },
+                    400
+                )
+            );
+
+        const result = await app.resetPasswordV2({
+            username: "user@contoso.com",
+        });
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
+        expect(result.error?.isInvalidPassword()).toBe(false);
+        expect(result.error?.innerErrorCode).toBe(
+            "passwordResetNotEnabledForUser"
+        );
+        expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
     it("surfaces an invalid-code failure while awaiting a valid code", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))

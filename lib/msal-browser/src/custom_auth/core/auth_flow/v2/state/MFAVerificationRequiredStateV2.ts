@@ -71,6 +71,7 @@ export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBa
             return CustomAuthResultV2.createWithError(error, {
                 scenario: continuationState.scenario,
                 correlationId,
+                errorContext: "mfaVerification",
             });
         }
     }

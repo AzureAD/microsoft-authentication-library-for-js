@@ -5,6 +5,7 @@
 
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
+import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { MFAVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
@@ -22,15 +23,31 @@ import { AuthenticationFactorV2 } from "../../../../../../src/custom_auth/core/n
 describe("MFAVerificationRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
     const scopes = ["openid", "profile", "offline_access"];
+    const invalidCodeError = () =>
+        new CustomAuthApiError(
+            "invalidGrant",
+            "Invalid code.",
+            correlationId,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            "invalidOneTimeCode"
+        );
     const flowClient = {
         submitCode: jest.fn(),
         resendCode: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
 
-    const buildState = (): MFAVerificationRequiredStateV2 =>
+    const buildState = (
+        logger = getDefaultLogger()
+    ): MFAVerificationRequiredStateV2 =>
         new MFAVerificationRequiredStateV2({
             correlationId,
-            logger: getDefaultLogger(),
+            logger,
             config: {
                 auth: { clientId: "test-client-id" },
                 customAuth: { challengeTypes: ["oob"] },
@@ -112,6 +129,35 @@ describe("MFAVerificationRequiredStateV2", () => {
             })
         );
         expect(result.isState("completed")).toBe(true);
+    });
+
+    it("logs the raw rejection and classifies it at the public boundary", async () => {
+        const errorData = invalidCodeError();
+        const logger = getDefaultLogger();
+        const logError = jest.spyOn(logger, "errorPii");
+        flowClient.submitCode.mockRejectedValue(errorData);
+
+        const result = await buildState(logger).submitChallenge("123456");
+
+        expect(logError).toHaveBeenCalledWith(
+            `Failed to submit V2 MFA challenge. Error: '${errorData}'.`,
+            correlationId
+        );
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.errorData).toBe(errorData);
+        expect(result.error?.isInvalidChallenge()).toBe(true);
+        expect(result.error?.isInvalidCode()).toBe(false);
+    });
+
+    it("does not classify a resend failure as a rejected challenge", async () => {
+        const errorData = invalidCodeError();
+        flowClient.resendCode.mockRejectedValue(errorData);
+
+        const result = await buildState().resendChallenge();
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.errorData).toBe(errorData);
+        expect(result.error?.isInvalidChallenge()).toBe(false);
     });
 
     it("fails MFA completion when the account is missing", async () => {

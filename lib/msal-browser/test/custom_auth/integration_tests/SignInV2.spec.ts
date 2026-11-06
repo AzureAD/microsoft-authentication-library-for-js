@@ -169,7 +169,7 @@ describe("Sign-in V2", () => {
                 }
             );
 
-            it("returns an invalid-credentials error from PasswordRequiredStateV2", async () => {
+            it("returns an invalid-password error from PasswordRequiredStateV2", async () => {
                 (fetch as jest.Mock)
                     .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
                     .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -201,8 +201,7 @@ describe("Sign-in V2", () => {
 
                 expect(result.isFailed()).toBe(true);
                 expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
-                expect(result.error?.isInvalidCredentials()).toBe(true);
-                expect(result.error?.isInvalidPassword()).toBe(false);
+                expect(result.error?.isInvalidPassword()).toBe(true);
                 expect(fetch).toHaveBeenCalledTimes(4);
             });
         });

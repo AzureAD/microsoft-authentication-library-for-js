@@ -5,6 +5,8 @@
 
 import { Logger, StubbedNetworkModule } from "@azure/msal-common/browser";
 import { FlowInteractionClientV2 } from "../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
+import { CustomAuthApiError } from "../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
+import { CustomAuthFlowScenarioV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import {
     FLOW_METHOD_SELECTION_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
@@ -34,7 +36,6 @@ import { FlowAuthMethodRegistrationRequiredParamsV2 } from "../../../../../src/c
 import { CustomAuthAuthority } from "../../../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { CustomAuthApiClientV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { AuthenticationFactorV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
-import { CustomAuthApiError } from "../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import type { UserAccountAttributes } from "../../../../../src/custom_auth/UserAccountAttributes.js";
 import { RESET_PASSWORD_TIMEOUT } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import {
@@ -97,6 +98,23 @@ describe("FlowInteractionClientV2", () => {
     >;
 
     const correlationId = "corr-123";
+    const apiError = (
+        code: string,
+        innerErrorCode?: string
+    ): CustomAuthApiError =>
+        new CustomAuthApiError(
+            code,
+            "Verification failed.",
+            correlationId,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            innerErrorCode
+        );
 
     beforeEach(() => {
         const clientId = customAuthConfig.auth.clientId;
@@ -1568,6 +1586,103 @@ describe("FlowInteractionClientV2", () => {
             expect((result as FlowCompletedResultV2).authenticationResult).toBe(
                 fakeAuthResult
             );
+        });
+
+        it.each([
+            CustomAuthFlowScenarioV2.SignIn,
+            CustomAuthFlowScenarioV2.PasswordReset,
+        ])(
+            "propagates rejected MFA verification unchanged in %s",
+            async (scenario) => {
+                const errorData = apiError(
+                    "invalidGrant",
+                    "invalidOneTimeCode"
+                );
+                apiClient.verifyChallenge.mockRejectedValue(errorData);
+
+                await expect(
+                    client.submitCode({
+                        correlationId,
+                        continuationState: { ...continuationState, scenario },
+                        authenticationFactor:
+                            AuthenticationFactorV2.MULTI_FACTOR,
+                        code: "123456",
+                    })
+                ).rejects.toBe(errorData);
+
+                expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
+            }
+        );
+
+        it("leaves a rejected ordinary sign-in code unchanged", async () => {
+            const errorData = apiError("invalidGrant", "invalidOneTimeCode");
+            apiClient.verifyChallenge.mockRejectedValue(errorData);
+
+            await expect(
+                client.submitCode({
+                    correlationId,
+                    continuationState: {
+                        ...continuationState,
+                        scenario: CustomAuthFlowScenarioV2.SignIn,
+                    },
+                    code: "123456",
+                })
+            ).rejects.toBe(errorData);
+        });
+
+        it.each([
+            {
+                name: "a different outer code",
+                error: apiError("invalidRequest", "invalidOneTimeCode"),
+            },
+            {
+                name: "a different inner code",
+                error: apiError("invalidGrant", "invalidContinuationToken"),
+            },
+            {
+                name: "a transport failure",
+                error: new Error("Request failed."),
+            },
+        ])(
+            "leaves $name unchanged during MFA verification",
+            async ({ error }) => {
+                apiClient.verifyChallenge.mockRejectedValue(error);
+
+                await expect(
+                    client.submitCode({
+                        correlationId,
+                        continuationState: {
+                            ...continuationState,
+                            scenario: CustomAuthFlowScenarioV2.SignIn,
+                        },
+                        authenticationFactor:
+                            AuthenticationFactorV2.MULTI_FACTOR,
+                        code: "123456",
+                    })
+                ).rejects.toBe(error);
+            }
+        );
+
+        it("propagates a downstream MFA token failure unchanged", async () => {
+            const errorData = apiError("invalidGrant", "invalidOneTimeCode");
+            apiClient.verifyChallenge.mockResolvedValue({
+                nextAction: "continue",
+                continuationToken: "ct-complete",
+            });
+            apiClient.completeWithTokens.mockRejectedValue(errorData);
+
+            await expect(
+                client.submitCode({
+                    correlationId,
+                    continuationState: {
+                        ...continuationState,
+                        scenario: CustomAuthFlowScenarioV2.SignIn,
+                    },
+                    authenticationFactor: AuthenticationFactorV2.MULTI_FACTOR,
+                    code: "123456",
+                })
+            ).rejects.toBe(errorData);
+            expect(apiClient.completeWithTokens).toHaveBeenCalled();
         });
 
         it("verifies a password-reset MFA code and completes sign-in", async () => {
@@ -4671,6 +4786,100 @@ describe("FlowInteractionClientV2", () => {
                 expect(result.type).toBe(FLOW_COMPLETED_V2);
             }
         );
+
+        it.each([
+            CustomAuthFlowScenarioV2.SignIn,
+            CustomAuthFlowScenarioV2.SignUp,
+            CustomAuthFlowScenarioV2.PasswordReset,
+        ])(
+            "propagates rejected JIT activation unchanged in %s",
+            async (scenario) => {
+                const errorData = apiError(
+                    "invalidGrant",
+                    "invalidOneTimeCode"
+                );
+                apiClient.activateAuthMethod.mockRejectedValue(errorData);
+
+                await expect(
+                    client.verifyAuthMethodRegistration({
+                        correlationId,
+                        continuationState: {
+                            ...continuationState,
+                            scenario,
+                            links: { activate: "/activate/email" },
+                        },
+                        code: "123456",
+                    })
+                ).rejects.toBe(errorData);
+
+                expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
+            }
+        );
+
+        it.each([
+            {
+                name: "another API failure",
+                error: apiError("invalidRequest", "invalidOneTimeCode"),
+            },
+            {
+                name: "a transport failure",
+                error: new Error("Request failed."),
+            },
+        ])(
+            "leaves $name unchanged during JIT activation",
+            async ({ error }) => {
+                apiClient.activateAuthMethod.mockRejectedValue(error);
+
+                await expect(
+                    client.verifyAuthMethodRegistration({
+                        correlationId,
+                        continuationState: {
+                            ...continuationState,
+                            links: { activate: "/activate/email" },
+                        },
+                        code: "123456",
+                    })
+                ).rejects.toBe(error);
+            }
+        );
+
+        it("propagates a downstream JIT token failure unchanged", async () => {
+            const errorData = apiError("invalidGrant", "invalidOneTimeCode");
+            apiClient.activateAuthMethod.mockResolvedValue({
+                nextAction: "continue",
+                continuationToken: "ct-complete",
+            });
+            apiClient.completeWithTokens.mockRejectedValue(errorData);
+
+            await expect(
+                client.verifyAuthMethodRegistration({
+                    correlationId,
+                    continuationState: {
+                        ...continuationState,
+                        links: { activate: "/activate/email" },
+                    },
+                    code: "123456",
+                })
+            ).rejects.toBe(errorData);
+            expect(apiClient.completeWithTokens).toHaveBeenCalled();
+        });
+
+        it("does not mark a resend failure as a rejected JIT challenge", async () => {
+            const errorData = apiError("invalidGrant", "invalidOneTimeCode");
+            apiClient.resendAuthMethodRegistrationChallenge.mockRejectedValue(
+                errorData
+            );
+
+            await expect(
+                client.resendAuthMethodRegistrationChallenge({
+                    correlationId,
+                    continuationState: {
+                        ...continuationState,
+                        links: { resend: "/resend/email" },
+                    },
+                })
+            ).rejects.toBe(errorData);
+        });
 
         it("rejects resend without a link before sending a request", async () => {
             await expect(

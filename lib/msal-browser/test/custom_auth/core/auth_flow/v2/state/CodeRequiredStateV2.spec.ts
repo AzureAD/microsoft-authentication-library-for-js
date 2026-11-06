@@ -180,6 +180,7 @@ describe("CodeRequiredStateV2", () => {
         );
         expect(result.isFailed()).toBe(true);
         expect(result.error?.isInvalidCode()).toBe(true);
+        expect(result.error?.isInvalidChallenge()).toBe(false);
     });
 
     it("submits an empty first-factor code and surfaces the server error", async () => {
@@ -208,6 +209,7 @@ describe("CodeRequiredStateV2", () => {
         );
         expect(result.isFailed()).toBe(true);
         expect(result.error?.isInvalidCode()).toBe(true);
+        expect(result.error?.isInvalidChallenge()).toBe(false);
     });
 
     it("returns method selection after submitting a first-factor code", async () => {
@@ -364,33 +366,31 @@ describe("CodeRequiredStateV2", () => {
         expect(result.state).toBeInstanceOf(AttributesRequiredStateV2);
     });
 
-    it("identifies an existing account from a sign-up verification error", async () => {
-        flowClient.submitCode.mockRejectedValue(
-            new CustomAuthApiError(
-                "invalidRequest",
-                "AADSTS1003037: An account may already exist.",
-                correlationId,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                [
-                    {
-                        attributeIds: ["email"],
-                        code: "userAlreadyExists",
-                        message:
-                            "An account with this identifier already exists.",
-                    },
-                ]
-            )
+    it("preserves an unclassified sign-up verification error", async () => {
+        const errorData = new CustomAuthApiError(
+            "invalidRequest",
+            "AADSTS1003037: An account may already exist.",
+            correlationId,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            [
+                {
+                    attributeIds: ["email"],
+                    code: "userAlreadyExists",
+                    message: "An account with this identifier already exists.",
+                },
+            ]
         );
+        flowClient.submitCode.mockRejectedValue(errorData);
 
         const result = await buildSignUpState().submitCode("12345678");
 
         expect(result.isFailed()).toBe(true);
-        expect(result.error?.isUserAlreadyExists()).toBe(true);
+        expect(result.error?.errorData).toBe(errorData);
     });
 
     it("returns password required after verifying a sign-up code", async () => {

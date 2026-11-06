@@ -533,7 +533,7 @@ describe("Sign-up V2 entry", () => {
             expect(failed.scenario).toBe("signUp");
             expect(failed.error?.scenario).toBe("signUp");
             expect(failed.error?.isInvalidCode()).toBe(methodType === "email");
-            expect(failed.error?.isInvalidCredentials()).toBe(
+            expect(failed.error?.isInvalidPassword()).toBe(
                 methodType === "password"
             );
 
@@ -1561,6 +1561,89 @@ describe("Sign-up V2 entry", () => {
         }
     );
 
+    it.each([
+        {
+            code: "userAlreadyExists",
+            attributeId: "email",
+            missingRequired: false,
+        },
+        {
+            code: "attributeRequired",
+            attributeId: "givenName",
+            missingRequired: true,
+        },
+    ])(
+        "preserves $code details from initial attribute submission",
+        async ({ code, attributeId, missingRequired }) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse({
+                        ...PASSWORD_AND_PROFILE_REQUIRED_RESPONSE,
+                        attributes: [
+                            {
+                                attributeId: "givenName",
+                                inputType: "text",
+                                required: true,
+                            },
+                        ],
+                    })
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        {
+                            error: {
+                                code: "invalidRequest",
+                                message:
+                                    "AADSTS1002027: Some of the collected attributes were invalid.",
+                                correlationId: "corr-attributes",
+                                innerError: {
+                                    code: "attributeValidationError",
+                                    details: [
+                                        {
+                                            attributeIds: [attributeId],
+                                            code,
+                                            message:
+                                                "Attribute validation failed.",
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                        400
+                    )
+                );
+
+            const startResult = await app.signUpV2({
+                username: "existing@contoso.com",
+                attributes: { givenName: "Test" },
+            });
+            if (!startResult.isState("codeRequired")) {
+                throw new Error("Expected email verification first.");
+            }
+            const result = await startResult.state.submitCode("12345678");
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.error?.correlationId).toBe("corr-attributes");
+            expect(result.error?.errorData).toMatchObject({
+                error: "invalidRequest",
+                attributeValidationDetails: [
+                    {
+                        attributeIds: [attributeId],
+                        code,
+                        message: "Attribute validation failed.",
+                    },
+                ],
+            });
+            expect(result.error?.requiredAttributes).toEqual(
+                missingRequired ? [attributeId] : []
+            );
+            expect(result.error?.invalidAttributes).toEqual([]);
+            expect(result.error?.isInvalidPassword()).toBe(false);
+        }
+    );
+
     it("surfaces an existing-email error from signup/start", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
@@ -1604,7 +1687,8 @@ describe("Sign-up V2 entry", () => {
                 },
             ],
         });
-        expect(result.error?.isUserAlreadyExists()).toBe(true);
+        expect(result.error?.isInvalidInput()).toBe(false);
+        expect(result.error?.isInvalidUsername()).toBe(false);
     });
 
     it("surfaces a signup/start server error as a general sign-up error", async () => {
@@ -1664,9 +1748,13 @@ describe("Sign-up V2 entry", () => {
                                 details: [
                                     {
                                         attributeIds: ["password"],
-                                        code: "passwordPolicyViolation",
                                         message:
                                             "The password does not meet the requirements.",
+                                    },
+                                    {
+                                        attributeIds: ["givenName", "surname"],
+                                        code: "attributeRequired",
+                                        message: "These fields are required.",
                                     },
                                 ],
                             },
@@ -1693,6 +1781,12 @@ describe("Sign-up V2 entry", () => {
         expect(result.isFailed()).toBe(true);
         expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
         expect(result.error?.isInvalidPassword()).toBe(true);
+        expect(result.error?.isInvalidAttributes()).toBe(false);
+        expect(result.error?.requiredAttributes).toEqual([
+            "givenName",
+            "surname",
+        ]);
+        expect(result.error?.invalidAttributes).toEqual([]);
         expect(result.error?.correlationId).toBe("corr-password-policy");
         expect(JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)).toEqual({
             continuationToken: "ct-password-profile",
@@ -2399,6 +2493,7 @@ describe("Sign-up V2 entry", () => {
         attributes: UserAccountAttributes;
         requiredAttributes: string[];
         invalidAttributes: string[];
+        invalidPassword: boolean;
         details: AttributeValidationDetailV2[];
     }>([
         {
@@ -2406,6 +2501,7 @@ describe("Sign-up V2 entry", () => {
             attributes: { city: "Redmond" },
             requiredAttributes: ["jobTitle"],
             invalidAttributes: ["city"],
+            invalidPassword: false,
             details: [
                 {
                     attributeIds: ["jobTitle"],
@@ -2424,6 +2520,7 @@ describe("Sign-up V2 entry", () => {
             attributes: { givenName: "" },
             requiredAttributes: ["givenName"],
             invalidAttributes: [],
+            invalidPassword: false,
             details: [
                 {
                     attributeIds: ["givenName"],
@@ -2437,6 +2534,7 @@ describe("Sign-up V2 entry", () => {
             attributes: {},
             requiredAttributes: ["password", "username", "givenName"],
             invalidAttributes: [],
+            invalidPassword: true,
             details: [
                 {
                     attributeIds: ["password"],
@@ -2461,6 +2559,7 @@ describe("Sign-up V2 entry", () => {
             attributes,
             requiredAttributes,
             invalidAttributes,
+            invalidPassword,
             details,
         }) => {
             (fetch as jest.Mock)
@@ -2543,8 +2642,11 @@ describe("Sign-up V2 entry", () => {
             expect(submitResult.isState("attributesRequired")).toBe(false);
             expect(submitResult.isPasswordRequired()).toBe(false);
             expect(submitResult.error).toBeInstanceOf(AuthFlowErrorV2);
-            expect(submitResult.error?.isMissingRequiredAttributes()).toBe(
-                true
+            expect(submitResult.error?.isInvalidAttributes()).toBe(
+                !invalidPassword
+            );
+            expect(submitResult.error?.isInvalidPassword()).toBe(
+                invalidPassword
             );
             expect(submitResult.error?.requiredAttributes).toEqual(
                 requiredAttributes
@@ -2891,7 +2993,6 @@ describe("Sign-up V2 entry", () => {
             expect(passwordResult.error?.isInvalidPassword()).toBe(
                 invalidPassword
             );
-            expect(passwordResult.error?.isInvalidCredentials()).toBe(false);
             expect(passwordResult.error?.correlationId).toBe(
                 response.error.correlationId
             );

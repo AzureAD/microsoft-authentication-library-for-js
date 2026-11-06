@@ -80,6 +80,7 @@ export class AuthMethodVerificationRequiredStateV2 extends AuthFlowActionRequire
             return CustomAuthResultV2.createWithError(error, {
                 scenario: continuationState.scenario,
                 correlationId,
+                errorContext: "authMethodRegistration",
             });
         }
     }
