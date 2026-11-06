@@ -4629,67 +4629,101 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 .catch((e) => {});
         });
 
-        it("goes directly to the platform broker if nativeAccountId is present and emits platform telemetry", async () => {
-            const config = {
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-                system: {
-                    allowPlatformBroker: true,
-                },
-                telemetry: {
-                    client: new BrowserPerformanceClient(testAppConfig),
-                },
-            };
-            pca = new PublicClientApplication(config);
+        it.each(["account", "loginHint"])(
+            "goes directly to the platform broker if nativeAccountId is resolved from %s and emits platform telemetry",
+            async (accountSource) => {
+                const config = {
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
+                    system: {
+                        allowPlatformBroker: true,
+                    },
+                    telemetry: {
+                        client: new BrowserPerformanceClient(testAppConfig),
+                    },
+                };
+                pca = new PublicClientApplication(config);
 
-            stubExtensionProvider(config);
-            await pca.initialize();
+                stubExtensionProvider(config);
+                await pca.initialize();
 
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
+                //Implementation of PCA was moved to controller.
+                pca = (pca as any).controller;
 
-            const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
-            const testTokenResponse: AuthenticationResult = {
-                authority: TEST_CONFIG.validAuthority,
-                uniqueId: testAccount.localAccountId,
-                tenantId: testAccount.tenantId,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                idToken: "test-idToken",
-                idTokenClaims: {},
-                accessToken: "test-accessToken",
-                fromCache: false,
-                correlationId: RANDOM_TEST_GUID,
-                expiresOn: TestTimeUtils.nowDateWithOffset(3600),
-                account: testAccount,
-                tokenType: Constants.AuthenticationScheme.BEARER,
-                fromPlatformBroker: true,
-            };
+                const testAccount = BASIC_NATIVE_TEST_ACCOUNT_INFO;
+                const request: SsoSilentRequest = {
+                    scopes: ["User.Read"],
+                };
+                if (accountSource === "account") {
+                    request.account = testAccount;
+                } else {
+                    request.loginHint = testAccount.username;
+                    jest.spyOn(
+                        StandardController.prototype,
+                        "getAccount"
+                    ).mockReturnValue(testAccount);
+                }
+                const testTokenResponse: AuthenticationResult = {
+                    authority: TEST_CONFIG.validAuthority,
+                    uniqueId: testAccount.localAccountId,
+                    tenantId: testAccount.tenantId,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    idToken: "test-idToken",
+                    idTokenClaims: {},
+                    accessToken: "test-accessToken",
+                    fromCache: false,
+                    correlationId: RANDOM_TEST_GUID,
+                    expiresOn: TestTimeUtils.nowDateWithOffset(3600),
+                    account: testAccount,
+                    tokenType: Constants.AuthenticationScheme.BEARER,
+                    fromPlatformBroker: true,
+                };
 
-            const nativeAcquireTokenSpy: jest.SpyInstance = jest
-                .spyOn(PlatformAuthInteractionClient.prototype, "acquireToken")
-                .mockResolvedValue(testTokenResponse);
-            const silentSpy: jest.SpyInstance = jest
-                .spyOn(SilentIframeClient.prototype, "acquireToken")
-                .mockResolvedValue(testTokenResponse);
+                const acquireTokenNativeSpy = jest.spyOn(
+                    StandardController.prototype,
+                    "acquireTokenNative"
+                );
+                const nativeAcquireTokenSpy: jest.SpyInstance = jest
+                    .spyOn(
+                        PlatformAuthInteractionClient.prototype,
+                        "acquireToken"
+                    )
+                    .mockResolvedValue(testTokenResponse);
+                const silentSpy: jest.SpyInstance = jest
+                    .spyOn(SilentIframeClient.prototype, "acquireToken")
+                    .mockResolvedValue(testTokenResponse);
 
-            // Add performance callback
-            const callbackId = pca.addPerformanceCallback((events) => {
-                expect(events[0].isNativeBroker).toBe(true);
-                expect(events[0].isPlatformBrokerRequest).toBe(true);
-                expect(events[0].isPlatformAuthorizeRequest).toBe(undefined);
-                pca.removePerformanceCallback(callbackId);
-            });
+                // Add performance callback
+                const callbackId = pca.addPerformanceCallback((events) => {
+                    expect(events[0].isNativeBroker).toBe(true);
+                    expect(events[0].isPlatformBrokerRequest).toBe(true);
+                    expect(events[0].isPlatformAuthorizeRequest).toBe(
+                        undefined
+                    );
+                    pca.removePerformanceCallback(callbackId);
+                });
 
-            const response = await pca.ssoSilent({
-                scopes: ["User.Read"],
-                account: testAccount,
-            });
+                const response = await pca.ssoSilent(request);
 
-            expect(response).toEqual(testTokenResponse);
-            expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
-            expect(silentSpy).toHaveBeenCalledTimes(0);
-        });
+                expect(response).toEqual(testTokenResponse);
+                expect(acquireTokenNativeSpy).toHaveBeenCalledWith(
+                    expect.objectContaining(request),
+                    ApiId.ssoSilent
+                );
+                expect(nativeAcquireTokenSpy).toHaveBeenCalledTimes(1);
+                expect(nativeAcquireTokenSpy).toHaveBeenCalledWith(
+                    expect.objectContaining(request),
+                    undefined
+                );
+                expect(nativeAcquireTokenSpy.mock.contexts[0]).toEqual(
+                    expect.objectContaining({
+                        accountId: testAccount.nativeAccountId,
+                    })
+                );
+                expect(silentSpy).toHaveBeenCalledTimes(0);
+            }
+        );
 
         it("falls back to web flow if platform broker call fails due to fatal error and emits platform telemetry", async () => {
             const config = {
@@ -9327,6 +9361,155 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(account).toEqual(testAccountInfo1);
             });
         });
+    });
+
+    describe("brokered native token isolation", () => {
+        it.each(
+            (["popup", "redirect", "sso", "silent"] as const).flatMap(
+                (flow) => [
+                    { flow, brokered: true },
+                    { flow, brokered: false },
+                ]
+            )
+        )(
+            "preserves existing ID tokens for $flow (brokered: $brokered) when storage is disabled",
+            async ({ flow, brokered }) => {
+                const config = {
+                    auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                    system: { allowPlatformBroker: true },
+                };
+                stubExtensionProvider(config);
+                pca = new PublicClientApplication(config);
+                await pca.initialize();
+
+                const nativeCache: BrowserCacheManager =
+                    // @ts-ignore
+                    pca.controller.nativeInternalStorage;
+                const parentResponse = {
+                    access_token: "parent-access-token",
+                    id_token: TEST_TOKENS.IDTOKEN_V2,
+                    scope: "User.Read",
+                    expires_in: 3600,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    account: {
+                        id: BASIC_NATIVE_TEST_ACCOUNT_INFO.nativeAccountId!,
+                        properties: {},
+                        userName: BASIC_NATIVE_TEST_ACCOUNT_INFO.username,
+                    },
+                    properties: {},
+                    state: "",
+                };
+                const sendMessage = jest
+                    .spyOn(
+                        PlatformAuthExtensionHandler.prototype,
+                        "sendMessage"
+                    )
+                    .mockResolvedValueOnce(parentResponse)
+                    .mockResolvedValue({
+                        ...parentResponse,
+                        access_token: "requested-access-token",
+                        id_token: TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
+                    });
+                jest.spyOn(
+                    NavigationClient.prototype,
+                    "navigateExternal"
+                ).mockResolvedValue(true);
+
+                const parent = await pca.acquireTokenSilent({
+                    scopes: ["User.Read"],
+                    account: BASIC_NATIVE_TEST_ACCOUNT_INFO,
+                });
+                if (!parent.account) {
+                    throw new Error(
+                        "Parent acquisition did not return an account"
+                    );
+                }
+                const parentRequest = {
+                    scopes: ["User.Read"],
+                    account: parent.account,
+                    cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+                };
+                const warmParent = await pca.acquireTokenSilent(parentRequest);
+                expect(warmParent.accessToken).toBe("parent-access-token");
+                expect(warmParent.idToken).toBe(parent.idToken);
+                expect(warmParent.fromCache).toBe(true);
+                expect(sendMessage).toHaveBeenCalledTimes(1);
+                expect(
+                    pca.getAccount({
+                        homeAccountId: parent.account.homeAccountId,
+                    })?.idToken
+                ).toBe(parent.idToken);
+
+                const request = {
+                    scopes: ["User.Read"],
+                    account: parent.account,
+                    ...(brokered
+                        ? { embeddedClientId: "embedded-client" }
+                        : {}),
+                    redirectUri: "brk-parent://localhost:30662",
+                    storeInCache: { accessToken: false, idToken: false },
+                };
+                let result: AuthenticationResult | null;
+                switch (flow) {
+                    case "popup":
+                        result = await pca.acquireTokenPopup(request);
+                        break;
+                    case "redirect":
+                        await pca.acquireTokenRedirect(request);
+                        result = await pca.handleRedirectPromise();
+                        break;
+                    case "sso":
+                        result = await pca.ssoSilent(request);
+                        break;
+                    case "silent":
+                        result = await pca.acquireTokenSilent({
+                            ...request,
+                            cacheLookupPolicy:
+                                CacheLookupPolicy.RefreshTokenAndNetwork,
+                        });
+                        break;
+                }
+
+                expect(result?.accessToken).toBe("requested-access-token");
+                expect(result?.idToken).toBe(TEST_TOKENS.IDTOKEN_V2_NEWCLAIM);
+                expect(result?.fromPlatformBroker).toBe(true);
+                const expectedCalls = flow === "redirect" ? 3 : 2;
+                expect(sendMessage).toHaveBeenCalledTimes(expectedCalls);
+                if (brokered) {
+                    expect(
+                        sendMessage.mock.calls[1][0].extraParameters
+                    ).toEqual(
+                        expect.objectContaining({
+                            child_client_id: "embedded-client",
+                        })
+                    );
+                }
+
+                const retainedAccount = pca.getAccount({
+                    homeAccountId: parent.account.homeAccountId,
+                });
+                expect(retainedAccount?.nativeAccountId).toBe(
+                    parent.account.nativeAccountId
+                );
+                expect(retainedAccount?.idToken).toBe(parent.idToken);
+                const retainedParent = await pca.acquireTokenSilent(
+                    parentRequest
+                );
+                expect(retainedParent.accessToken).toBe(parent.accessToken);
+                expect(retainedParent.idToken).toBe(parent.idToken);
+                expect(retainedParent.fromCache).toBe(true);
+
+                const accessTokenKeys = nativeCache.getTokenKeys().accessToken;
+                expect(accessTokenKeys).toHaveLength(1);
+                expect(
+                    nativeCache.getAccessTokenCredential(
+                        accessTokenKeys[0],
+                        RANDOM_TEST_GUID
+                    )?.secret
+                ).toBe("parent-access-token");
+                expect(sendMessage).toHaveBeenCalledTimes(expectedCalls);
+            }
+        );
     });
 
     describe("getNativeAccountId tests", () => {
