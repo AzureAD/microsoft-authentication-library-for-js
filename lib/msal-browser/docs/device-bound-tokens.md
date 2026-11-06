@@ -55,7 +55,7 @@ There are a few things that may behave a little differently when acquiring token
 
 For platform-broker requests, only `acquireTokenSilent` checks MSAL's internal access-token cache, according to `cacheLookupPolicy` in its request. `RefreshTokenAndNetwork` and `Skip` bypass that lookup and call the platform broker. Popup, SSO, redirect, and authorization-code exchange flows call the platform broker without looking up cached tokens first. The platform broker may still return a token from its own cache. Web-based and nested-app authentication flows are unchanged.
 
-For brokered embedded-app `acquireTokenSilent` requests, the host must use `RefreshTokenAndNetwork` or `Skip` to bypass its internal access-token cache. For all brokered flows, use `storeInCache: { accessToken: false }` to avoid storing the embedded app's access token in the host's cache. Account and ID-token caching follow the normal response-handling path; `storeInCache.idToken` can control ID-token storage independently.
+For brokered embedded-app `acquireTokenSilent` requests, the host must use `RefreshTokenAndNetwork` or `Skip` to bypass its internal access-token cache. Brokered embedded-app responses update the shared account without clearing the host's existing token context. Token writes still follow `storeInCache`: use `{ accessToken: false, idToken: false }` to prevent embedded-app tokens from overwriting the host's tokens. Requests made for the host itself retain normal token cleanup behavior, even when both storage flags are `false`.
 
 ### DPoP with the platform broker
 

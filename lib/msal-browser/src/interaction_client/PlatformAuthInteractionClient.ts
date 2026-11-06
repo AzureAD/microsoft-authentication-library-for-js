@@ -853,6 +853,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         );
 
         const isL3DpopResponse = dpopBrokerOutcome === "L3";
+        const clearExistingTokens =
+            !isL3DpopResponse && !request.extraParameters?.child_client_id;
         // cache accounts and tokens in the appropriate storage
         const shouldRemoveGeneratedDpopKey =
             isL3DpopResponse ||
@@ -868,7 +870,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )(baseAccount, AuthToken.isKmsi(idTokenClaims), !isL3DpopResponse);
+        )(baseAccount, AuthToken.isKmsi(idTokenClaims), clearExistingTokens);
         await invokeAsync(
             this.cacheNativeTokens.bind(this),
             BrowserPerformanceEvents.PlatformAuthCacheNativeTokens,

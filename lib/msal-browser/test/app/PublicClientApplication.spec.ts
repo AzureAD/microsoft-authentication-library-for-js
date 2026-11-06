@@ -9363,10 +9363,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
-    describe("brokered native access-token isolation", () => {
-        it.each(["popup", "redirect", "sso", "silent"] as const)(
-            "returns the brokered access token for %s without replacing a warm parent token",
-            async (flow) => {
+    describe("brokered native token isolation", () => {
+        it.each(
+            (["popup", "redirect", "sso", "silent"] as const).flatMap(
+                (flow) => [
+                    { flow, brokered: true },
+                    { flow, brokered: false },
+                ]
+            )
+        )(
+            "honors parent ID-token cleanup for $flow (brokered: $brokered)",
+            async ({ flow, brokered }) => {
                 const config = {
                     auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
                     system: { allowPlatformBroker: true },
@@ -9400,7 +9407,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .mockResolvedValueOnce(parentResponse)
                     .mockResolvedValue({
                         ...parentResponse,
-                        access_token: "embedded-access-token",
+                        access_token: "requested-access-token",
+                        id_token: TEST_TOKENS.IDTOKEN_V2_NEWCLAIM,
                     });
                 jest.spyOn(
                     NavigationClient.prototype,
@@ -9423,13 +9431,21 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 const warmParent = await pca.acquireTokenSilent(parentRequest);
                 expect(warmParent.accessToken).toBe("parent-access-token");
+                expect(warmParent.idToken).toBe(parent.idToken);
                 expect(warmParent.fromCache).toBe(true);
                 expect(sendMessage).toHaveBeenCalledTimes(1);
+                expect(
+                    pca.getAccount({
+                        homeAccountId: parent.account.homeAccountId,
+                    })?.idToken
+                ).toBe(parent.idToken);
 
                 const request = {
                     scopes: ["User.Read"],
                     account: parent.account,
-                    embeddedClientId: "embedded-client",
+                    ...(brokered
+                        ? { embeddedClientId: "embedded-client" }
+                        : {}),
                     redirectUri: "brk-parent://localhost:30662",
                     storeInCache: { accessToken: false, idToken: false },
                 };
@@ -9454,15 +9470,38 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         break;
                 }
 
-                expect(result?.accessToken).toBe("embedded-access-token");
+                expect(result?.accessToken).toBe("requested-access-token");
+                expect(result?.idToken).toBe(TEST_TOKENS.IDTOKEN_V2_NEWCLAIM);
                 expect(result?.fromPlatformBroker).toBe(true);
                 const expectedCalls = flow === "redirect" ? 3 : 2;
                 expect(sendMessage).toHaveBeenCalledTimes(expectedCalls);
-                expect(sendMessage.mock.calls[1][0].extraParameters).toEqual(
-                    expect.objectContaining({
-                        child_client_id: "embedded-client",
-                    })
+                if (brokered) {
+                    expect(
+                        sendMessage.mock.calls[1][0].extraParameters
+                    ).toEqual(
+                        expect.objectContaining({
+                            child_client_id: "embedded-client",
+                        })
+                    );
+                }
+
+                const retainedAccount = pca.getAccount({
+                    homeAccountId: parent.account.homeAccountId,
+                });
+                expect(retainedAccount?.nativeAccountId).toBe(
+                    parent.account.nativeAccountId
                 );
+                expect(retainedAccount?.idToken).toBe(
+                    brokered ? parent.idToken : undefined
+                );
+                if (brokered) {
+                    const retainedParent = await pca.acquireTokenSilent(
+                        parentRequest
+                    );
+                    expect(retainedParent.accessToken).toBe(parent.accessToken);
+                    expect(retainedParent.idToken).toBe(parent.idToken);
+                    expect(retainedParent.fromCache).toBe(true);
+                }
 
                 const accessTokenKeys = nativeCache.getTokenKeys().accessToken;
                 expect(accessTokenKeys).toHaveLength(1);
