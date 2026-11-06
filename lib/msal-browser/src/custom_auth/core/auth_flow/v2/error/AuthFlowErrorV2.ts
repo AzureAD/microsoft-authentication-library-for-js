@@ -69,10 +69,7 @@ export class AuthFlowErrorV2 {
     }
 
     /**
-     * Checks if the error requires the flow to continue in the browser. The
-     * server surfaces this as `invalid_grant` with the `web_redirect_required`
-     * OAuth suberror, so a browser hand-off arrives as a `FailedStateV2` on which
-     * this detector returns true.
+     * Checks whether the flow must continue in the browser.
      * @returns True if the browser is required, false otherwise.
      */
     isBrowserRequired(): boolean {
@@ -91,8 +88,7 @@ export class AuthFlowErrorV2 {
     }
 
     /**
-     * Checks whether the supplied username failed local validation. Local username
-     * failures also satisfy `isInvalidInput()`, unlike server attribute errors.
+     * Checks whether the supplied username failed local validation.
      * @returns True when local username validation failed.
      */
     isInvalidUsername(): boolean {
@@ -111,9 +107,8 @@ export class AuthFlowErrorV2 {
     }
 
     /**
-     * Checks whether the service rejected an ordinary one-time code. MFA and
-     * registration verification failures are identified by `isInvalidChallenge()`.
-     * @returns True when the ordinary one-time code is invalid.
+     * Checks whether the service rejected a one-time code.
+     * @returns True when the one-time code is invalid, otherwise false.
      */
     isInvalidCode(): boolean {
         return this.errorContext === "default" && this.isInvalidCodeError();
@@ -121,7 +116,6 @@ export class AuthFlowErrorV2 {
 
     /**
      * Checks whether the service rejected an MFA or registration challenge.
-     * Use it to distinguish challenge verification from ordinary code verification.
      * @returns True when the verification challenge is invalid.
      */
     isInvalidChallenge(): boolean {
@@ -133,21 +127,32 @@ export class AuthFlowErrorV2 {
     }
 
     /**
-     * Checks whether the service reports an attribute-validation error. It applies
-     * to all collected attributes, independently of the validation details.
-     * @returns True when the service reports an attribute-validation error.
+     * Checks whether the service rejected non-password attributes.
+     * Password-targeted validation is reported only by isInvalidPassword().
+     * @returns True when at least one non-password attribute is invalid.
      */
-    isInvalidAttributeError(): boolean {
-        return (
-            this.errorData.error === "invalidRequest" &&
-            this.innerErrorCode === ATTRIBUTE_VALIDATION_ERROR
-        );
+    isInvalidAttributes(): boolean {
+        if (
+            !this.isAttributeValidationError() ||
+            this.isPasswordAttributeValidationError()
+        ) {
+            return false;
+        }
+
+        const attributeIds = this.getAttributeValidationDetails()
+            .flatMap((detail) =>
+                Array.isArray(detail.attributeIds) ? detail.attributeIds : []
+            )
+            .filter(
+                (attributeId): attributeId is string =>
+                    typeof attributeId === "string"
+            );
+
+        return attributeIds.some((attributeId) => attributeId.length > 0);
     }
 
     /**
-     * Checks whether the service rejected a supplied password. It recognizes
-     * incorrect sign-in credentials, password-policy failures, and
-     * password-targeted validation details.
+     * Checks whether the service rejected a supplied password.
      * @returns True when the supplied password is invalid, otherwise false.
      */
     isInvalidPassword(): boolean {
@@ -155,6 +160,13 @@ export class AuthFlowErrorV2 {
             this.isPasswordIncorrectError() ||
             this.isInvalidPasswordError() ||
             this.isPasswordAttributeValidationError()
+        );
+    }
+
+    private isAttributeValidationError(): boolean {
+        return (
+            this.errorData.error === "invalidRequest" &&
+            this.innerErrorCode === ATTRIBUTE_VALIDATION_ERROR
         );
     }
 
@@ -187,7 +199,7 @@ export class AuthFlowErrorV2 {
     }
 
     private isPasswordAttributeValidationError(): boolean {
-        if (!this.isInvalidAttributeError()) {
+        if (!this.isAttributeValidationError()) {
             return false;
         }
 

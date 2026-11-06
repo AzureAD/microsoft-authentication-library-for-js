@@ -133,8 +133,8 @@ describe("AuthFlowErrorV2 error mapping", () => {
         );
     });
 
-    describe("isInvalidAttributeError", () => {
-        it.each(["username", "password", "displayName"])(
+    describe("isInvalidAttributes", () => {
+        it.each(["username", "displayName"])(
             "identifies attribute-validation errors targeting %s",
             (attributeId) => {
                 const error = errorWithAttributeValidationDetails([
@@ -144,7 +144,8 @@ describe("AuthFlowErrorV2 error mapping", () => {
                     },
                 ]);
 
-                expect(error.isInvalidAttributeError()).toBe(true);
+                expect(error.isInvalidAttributes()).toBe(true);
+                expect(error.isInvalidPassword()).toBe(false);
                 expect(error.invalidAttributes).toEqual([attributeId]);
                 expect(error.isInvalidUsername()).toBe(false);
                 expect(error.isInvalidInput()).toBe(false);
@@ -159,7 +160,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
                 },
             ]);
 
-            expect(error.isInvalidAttributeError()).toBe(true);
+            expect(error.isInvalidAttributes()).toBe(true);
             expect(error.invalidAttributes).toEqual([]);
             expect(error.requiredAttributes).toEqual(["username"]);
         });
@@ -167,12 +168,18 @@ describe("AuthFlowErrorV2 error mapping", () => {
         it.each([
             { name: "missing", details: undefined },
             { name: "empty", details: [] },
-        ])("identifies errors with $name details", ({ details }) => {
-            const error = errorWithAttributeValidationDetails(details);
+            { name: "empty IDs", details: [{ attributeIds: [] }] },
+            { name: "empty string IDs", details: [{ attributeIds: [""] }] },
+            { name: "non-string IDs", details: [{ attributeIds: [null, 42] }] },
+        ])(
+            "does not classify errors with no usable attribute IDs ($name)",
+            ({ details }) => {
+                const error = errorWithAttributeValidationDetails(details);
 
-            expect(error.isInvalidAttributeError()).toBe(true);
-            expect(error.invalidAttributes).toEqual([]);
-        });
+                expect(error.isInvalidAttributes()).toBe(false);
+                expect(error.invalidAttributes).toEqual([]);
+            }
+        );
 
         it.each([
             {
@@ -194,7 +201,66 @@ describe("AuthFlowErrorV2 error mapping", () => {
                     apiError(code, { innerErrorCode })
                 );
 
-                expect(error.isInvalidAttributeError()).toBe(false);
+                expect(error.isInvalidAttributes()).toBe(false);
+            }
+        );
+
+        it.each([
+            {
+                name: "one detail",
+                details: [
+                    {
+                        attributeIds: ["password", "displayName"],
+                        code: "attributeValidationFailed",
+                    },
+                ],
+            },
+            {
+                name: "separate details",
+                details: [
+                    {
+                        attributeIds: ["password"],
+                        code: "unknownDetailCode",
+                    },
+                    {
+                        attributeIds: ["displayName"],
+                        code: "attributeValidationFailed",
+                    },
+                ],
+            },
+            {
+                name: "required profile attributes before an invalid password",
+                details: [
+                    {
+                        attributeIds: ["givenName", "surname"],
+                        code: "attributeRequired",
+                    },
+                    {
+                        attributeIds: ["password"],
+                        code: "passwordPolicyViolation",
+                    },
+                ],
+            },
+            {
+                name: "required profile attributes after an invalid password",
+                details: [
+                    {
+                        attributeIds: ["password"],
+                        code: "passwordPolicyViolation",
+                    },
+                    {
+                        attributeIds: ["givenName", "surname"],
+                        code: "attributeRequired",
+                    },
+                ],
+            },
+        ])(
+            "prioritizes password validation over non-password attributes from $name",
+            ({ details }) => {
+                const error = errorWithAttributeValidationDetails(details);
+
+                expect(error.isInvalidAttributes()).toBe(false);
+                expect(error.isInvalidPassword()).toBe(true);
             }
         );
     });
@@ -259,6 +325,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
         it.each([
             "passwordPolicyViolation",
             "attributeValidationFailed",
+            "attributeRequired",
             "unknownDetailCode",
             undefined,
         ])(
@@ -266,16 +333,16 @@ describe("AuthFlowErrorV2 error mapping", () => {
             (code) => {
                 const error = errorWithAttributeValidationDetails([
                     {
-                        attributeIds: ["displayName"],
-                        code: "attributeValidationFailed",
-                    },
-                    {
-                        attributeIds: ["username", "password"],
+                        attributeIds: ["password"],
                         code,
                     },
                 ]);
 
                 expect(error.isInvalidPassword()).toBe(true);
+                expect(error.isInvalidAttributes()).toBe(false);
+                expect(error.invalidAttributes).toEqual(
+                    code === "attributeValidationFailed" ? ["password"] : []
+                );
             }
         );
 
@@ -322,6 +389,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
                 );
 
                 expect(error.isInvalidPassword()).toBe(false);
+                expect(error.isInvalidAttributes()).toBe(false);
             }
         );
 
@@ -370,6 +438,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
             ]);
 
             expect(error.isInvalidPassword()).toBe(false);
+            expect(error.isInvalidAttributes()).toBe(true);
         });
 
         it("ignores malformed entries when a valid password attribute is present", () => {
@@ -381,6 +450,7 @@ describe("AuthFlowErrorV2 error mapping", () => {
             ]);
 
             expect(error.isInvalidPassword()).toBe(true);
+            expect(error.isInvalidAttributes()).toBe(false);
         });
     });
 

@@ -75,7 +75,7 @@ describe("CustomAuthResultV2", () => {
         expect(typeof result.error.isUserNotFound).toBe("function");
         expect(typeof result.error.isInvalidCode).toBe("function");
         expect(typeof result.error.isInvalidChallenge).toBe("function");
-        expect(typeof result.error.isInvalidAttributeError).toBe("function");
+        expect(typeof result.error.isInvalidAttributes).toBe("function");
         expect(typeof result.error.isInvalidPassword).toBe("function");
     };
 
@@ -230,7 +230,7 @@ describe("CustomAuthResultV2", () => {
 
             expect(result.isFailed()).toBe(true);
             expect(result.error?.errorData).toBe(error);
-            expect(result.error?.isInvalidAttributeError()).toBe(true);
+            expect(result.error?.isInvalidAttributes()).toBe(true);
             expect(result.error?.invalidAttributes).toEqual(["username"]);
             expect(result.error?.innerErrorCode).toBe(
                 "attributeValidationError"

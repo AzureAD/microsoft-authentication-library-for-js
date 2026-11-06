@@ -1751,6 +1751,11 @@ describe("Sign-up V2 entry", () => {
                                         message:
                                             "The password does not meet the requirements.",
                                     },
+                                    {
+                                        attributeIds: ["givenName", "surname"],
+                                        code: "attributeRequired",
+                                        message: "These fields are required.",
+                                    },
                                 ],
                             },
                         },
@@ -1776,6 +1781,12 @@ describe("Sign-up V2 entry", () => {
         expect(result.isFailed()).toBe(true);
         expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
         expect(result.error?.isInvalidPassword()).toBe(true);
+        expect(result.error?.isInvalidAttributes()).toBe(false);
+        expect(result.error?.requiredAttributes).toEqual([
+            "givenName",
+            "surname",
+        ]);
+        expect(result.error?.invalidAttributes).toEqual([]);
         expect(result.error?.correlationId).toBe("corr-password-policy");
         expect(JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)).toEqual({
             continuationToken: "ct-password-profile",
@@ -2482,6 +2493,7 @@ describe("Sign-up V2 entry", () => {
         attributes: UserAccountAttributes;
         requiredAttributes: string[];
         invalidAttributes: string[];
+        invalidPassword: boolean;
         details: AttributeValidationDetailV2[];
     }>([
         {
@@ -2489,6 +2501,7 @@ describe("Sign-up V2 entry", () => {
             attributes: { city: "Redmond" },
             requiredAttributes: ["jobTitle"],
             invalidAttributes: ["city"],
+            invalidPassword: false,
             details: [
                 {
                     attributeIds: ["jobTitle"],
@@ -2507,6 +2520,7 @@ describe("Sign-up V2 entry", () => {
             attributes: { givenName: "" },
             requiredAttributes: ["givenName"],
             invalidAttributes: [],
+            invalidPassword: false,
             details: [
                 {
                     attributeIds: ["givenName"],
@@ -2520,6 +2534,7 @@ describe("Sign-up V2 entry", () => {
             attributes: {},
             requiredAttributes: ["password", "username", "givenName"],
             invalidAttributes: [],
+            invalidPassword: true,
             details: [
                 {
                     attributeIds: ["password"],
@@ -2544,6 +2559,7 @@ describe("Sign-up V2 entry", () => {
             attributes,
             requiredAttributes,
             invalidAttributes,
+            invalidPassword,
             details,
         }) => {
             (fetch as jest.Mock)
@@ -2626,7 +2642,12 @@ describe("Sign-up V2 entry", () => {
             expect(submitResult.isState("attributesRequired")).toBe(false);
             expect(submitResult.isPasswordRequired()).toBe(false);
             expect(submitResult.error).toBeInstanceOf(AuthFlowErrorV2);
-            expect(submitResult.error?.isInvalidAttributeError()).toBe(true);
+            expect(submitResult.error?.isInvalidAttributes()).toBe(
+                !invalidPassword
+            );
+            expect(submitResult.error?.isInvalidPassword()).toBe(
+                invalidPassword
+            );
             expect(submitResult.error?.requiredAttributes).toEqual(
                 requiredAttributes
             );
