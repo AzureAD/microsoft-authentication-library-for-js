@@ -2632,10 +2632,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
 
             expect(logoutUri).toBe(
-                `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
-                    "{tenant}",
-                    "common"
-                )}?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`
+                `https://login.microsoftonline.com/common/oauth21/2026-08/logout?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`
             );
         });
 
@@ -2728,16 +2725,13 @@ describe("AuthorizationCodeClient unit tests", () => {
                 state: "test_state",
             });
 
-            const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
-                "{tenant}",
-                "common"
-            )}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(
-                TEST_URIS.TEST_LOGOUT_URI
-            )}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(
-                RANDOM_TEST_GUID
-            )}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint&${
-                AADServerParamKeys.STATE
-            }=test_state`;
+            const testLogoutUriWithParams = `https://login.microsoftonline.com/common/oauth21/2026-08/logout?${
+                AADServerParamKeys.POST_LOGOUT_URI
+            }=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${
+                AADServerParamKeys.CLIENT_REQUEST_ID
+            }=${encodeURIComponent(RANDOM_TEST_GUID)}&${
+                AADServerParamKeys.ID_TOKEN_HINT
+            }=id_token_hint&${AADServerParamKeys.STATE}=test_state`;
             expect(logoutUri).toBe(testLogoutUriWithParams);
         });
 
@@ -2747,13 +2741,15 @@ describe("AuthorizationCodeClient unit tests", () => {
                 <any>"getEndpointMetadataFromHardcodedValues"
             ).mockReturnValue({
                 token_endpoint:
-                    "https://login.windows.net/common/oauth2/v2.0/token?param1=value1",
-                issuer: "https://login.windows.net/{tenantid}/v2.0",
+                    "https://login.windows.net/common/oauth21/2026-08/token?param1=value1",
+                issuer: "https://login.windows.net/{tenantid}/oauth21/2026-08",
+                jwks_uri:
+                    "https://login.windows.net/common/oauth21/2026-08/keys",
                 userinfo_endpoint: "https://graph.microsoft.com/oidc/userinfo",
                 authorization_endpoint:
-                    "https://login.windows.net/common/oauth2/v2.0/authorize?param1=value1",
+                    "https://login.windows.net/common/oauth21/2026-08/authorize?param1=value1",
                 end_session_endpoint:
-                    "https://login.windows.net/common/oauth2/v2.0/logout?param1=value1",
+                    "https://login.windows.net/common/oauth21/2026-08/logout?param1=value1",
             });
             const config: ClientConfiguration =
                 await ClientTestUtils.createTestClientConfiguration();
@@ -2772,7 +2768,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 },
             });
 
-            const testLogoutUriWithParams = `https://login.windows.net/common/oauth2/v2.0/logout?param1=value1&${
+            const testLogoutUriWithParams = `https://login.windows.net/common/oauth21/2026-08/logout?param1=value1&${
                 AADServerParamKeys.POST_LOGOUT_URI
             }=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${
                 AADServerParamKeys.CLIENT_REQUEST_ID

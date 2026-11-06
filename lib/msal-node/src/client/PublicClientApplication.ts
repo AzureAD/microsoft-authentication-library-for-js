@@ -12,7 +12,6 @@ import {
     AuthenticationResult,
     AuthError,
     Constants as CommonConstants,
-    ServerError,
     NativeRequest,
     NativeSignOutRequest,
     AccountInfo,
@@ -25,6 +24,7 @@ import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
     ProtocolUtils,
+    AuthorizeProtocol,
 } from "@azure/msal-common/node";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
@@ -123,7 +123,7 @@ export class PublicClientApplication
         );
         try {
             const discoveredAuthority = await this.createAuthority(
-                validRequest.authority,
+                validRequest.authority || this.config.auth.authority,
                 validRequest.correlationId,
                 undefined,
                 request.azureCloudOptions
@@ -251,9 +251,14 @@ export class PublicClientApplication
             const validRequest: AuthorizationUrlRequest = {
                 ...remainingProperties,
                 correlationId: correlationId,
+                authority:
+                    remainingProperties.authority || this.config.auth.authority,
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
                 redirectUri: redirectUri,
                 responseMode: CommonConstants.ResponseMode.FORM_POST,
+                state:
+                    remainingProperties.state ||
+                    this.cryptoProvider.createNewGuid(),
                 codeChallenge: challenge,
                 codeChallengeMethod:
                     CommonConstants.CodeChallengeMethodValues.S256,
@@ -261,40 +266,39 @@ export class PublicClientApplication
             };
 
             const authCodeUrl = await this.getAuthCodeUrl(validRequest);
+            const discoveredAuthority = await this.createAuthority(
+                validRequest.authority || this.config.auth.authority,
+                correlationId,
+                undefined,
+                request.azureCloudOptions
+            );
+            const expectedIssuer =
+                AuthorizeProtocol.getAuthorizationResponseIssuer(
+                    discoveredAuthority
+                );
             await openBrowser(authCodeUrl);
             await authCodeListener;
             if (authCodeListenerError) {
                 throw authCodeListenerError;
             }
 
-            this.validateState(
-                state,
-                authCodeResponse.state || "",
-                correlationId
-            );
-
-            if (authCodeResponse.error) {
-                throw new ServerError(
-                    authCodeResponse.error,
+            const authCodePayload =
+                AuthorizeProtocol.getAuthorizationCodePayload(
+                    authCodeResponse,
+                    state,
                     correlationId,
-                    authCodeResponse.error_description,
-                    authCodeResponse.suberror
+                    expectedIssuer
                 );
-            } else if (!authCodeResponse.code) {
-                throw NodeAuthError.createNoAuthCodeInResponseError(
-                    correlationId
-                );
-            }
 
             const clientInfo = authCodeResponse.client_info;
             const tokenRequest: AuthorizationCodeRequest = {
-                code: authCodeResponse.code,
+                code: authCodePayload.code,
                 codeVerifier: verifier,
                 clientInfo: clientInfo || "",
                 ...validRequest,
                 state: remainingProperties.state,
             };
-            return await this.acquireTokenByCode(tokenRequest); // Await this so the server doesn't close prematurely
+            return await this.acquireTokenByCode(tokenRequest, authCodePayload); // Await this so the server doesn't close prematurely
         } finally {
             loopbackClient.closeServer();
         }

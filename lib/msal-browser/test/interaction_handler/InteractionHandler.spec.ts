@@ -47,6 +47,7 @@ import { TestStorageManager } from "../cache/TestStorageManager.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
 import { TestTimeUtils } from "msal-test-utils";
+import { getAuthorizationResponseMetadata } from "../../src/webBrokerBridge/AuthorizationResponseMetadata.js";
 
 class TestInteractionHandler extends InteractionHandler {
     constructor(
@@ -343,6 +344,48 @@ describe("InteractionHandler.ts Unit Tests", () => {
     });
 
     describe("handleCodeResponse()", () => {
+        it("retains validated authorization response metadata outside the public result shape", async () => {
+            const expectedIssuer =
+                "https://login.microsoftonline.com/common/oauth21/2026-08";
+            const testCodeResponse = {
+                code: "authcode",
+                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                iss: expectedIssuer,
+            };
+            const testTokenResponse = {
+                correlationId: RANDOM_TEST_GUID,
+            } as AuthenticationResult;
+            jest.spyOn(
+                AuthorizationCodeClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue(testTokenResponse);
+            const interactionHandler = new TestInteractionHandler(
+                authCodeModule,
+                browserStorage
+            );
+
+            const tokenResponse = await interactionHandler.handleCodeResponse(
+                testCodeResponse,
+                {
+                    authority: TEST_CONFIG.validAuthority,
+                    scopes: ["User.Read"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: "/",
+                    responseMode: "fragment",
+                    nonce: TEST_CONFIG.CORRELATION_ID,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    expectedIssuer,
+                },
+                ApiId.acquireTokenRedirect
+            );
+
+            expect(getAuthorizationResponseMetadata(tokenResponse)).toEqual({
+                issuer: expectedIssuer,
+                expectedIssuer,
+            });
+            expect(Object.keys(tokenResponse)).toEqual(["correlationId"]);
+        });
+
         it("successfully adds login_hint as CCS credential to auth code request", async () => {
             const idTokenClaims = {
                 ver: "2.0",

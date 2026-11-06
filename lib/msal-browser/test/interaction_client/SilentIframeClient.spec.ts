@@ -19,6 +19,7 @@ import {
     validEarJWK,
     getTestAuthenticationResult,
     validEarJWE,
+    TEST_AUTHORIZATION_RESPONSE_ISSUER,
 } from "../utils/StringConstants.js";
 import {
     AccountInfo,
@@ -1711,7 +1712,11 @@ describe("SilentIframeClient", () => {
                     .spyOn(SilentHandler, "initiateEarRequest")
                     .mockImplementation(async (frame) => {
                         broadcastBridgeResponse(
-                            `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
+                            `#code=validCode&state=${
+                                TEST_STATE_VALUES.TEST_STATE_SILENT
+                            }&iss=${encodeURIComponent(
+                                TEST_AUTHORIZATION_RESPONSE_ISSUER
+                            )}`
                         );
                         return frame;
                     });
@@ -1908,7 +1913,11 @@ describe("SilentIframeClient", () => {
                     BrowserUtils,
                     "waitForBridgeResponse"
                 ).mockResolvedValue(
-                    `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
+                    `#ear_jwe=${validEarJWE}&state=${
+                        TEST_STATE_VALUES.TEST_STATE_SILENT
+                    }&iss=${encodeURIComponent(
+                        TEST_AUTHORIZATION_RESPONSE_ISSUER
+                    )}`
                 );
             });
 
@@ -2077,7 +2086,11 @@ describe("SilentIframeClient", () => {
                     BrowserUtils,
                     "waitForBridgeResponse"
                 ).mockResolvedValue(
-                    `#code=validCode&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
+                    `#code=validCode&state=${
+                        TEST_STATE_VALUES.TEST_STATE_SILENT
+                    }&iss=${encodeURIComponent(
+                        TEST_AUTHORIZATION_RESPONSE_ISSUER
+                    )}`
                 );
                 const handleResponseCodeSpy = jest
                     .spyOn(AuthorizeProtocol, "handleResponseCode")
@@ -2230,7 +2243,9 @@ describe("SilentIframeClient", () => {
             ).mockResolvedValue(testNavUrl);
             // Return response without code
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
-                `#state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
+                `#state=${
+                    TEST_STATE_VALUES.TEST_STATE_SILENT
+                }&iss=${encodeURIComponent(TEST_AUTHORIZATION_RESPONSE_ISSUER)}`
             );
             jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,

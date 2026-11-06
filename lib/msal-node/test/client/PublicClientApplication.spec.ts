@@ -85,6 +85,8 @@ import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
 );
+const TEST_AUTHORIZATION_RESPONSE_ISSUER =
+    "https://login.microsoftonline.com/common/oauth21/2026-08";
 
 jest.mock("../../src/client/DeviceCodeClient");
 jest.mock("../../src/client/ClientCredentialClient");
@@ -1909,6 +1911,7 @@ describe("PublicClientApplication", () => {
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
                 state: "123",
+                iss: TEST_AUTHORIZATION_RESPONSE_ISSUER,
             };
 
             jest.spyOn(
@@ -1930,6 +1933,7 @@ describe("PublicClientApplication", () => {
             const request: InteractiveRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 openBrowser: openBrowser,
+                state: "123",
             };
 
             const MockAuthorizationCodeClient =
@@ -1966,6 +1970,51 @@ describe("PublicClientApplication", () => {
             expect(getAuthCodeUrlSpy).toHaveBeenCalledTimes(1);
         });
 
+        test.each([
+            [undefined, ClientAuthErrorCodes.issuerNotFound],
+            [
+                "https://login.microsoftonline.com/organizations/oauth21/2026-08",
+                ClientAuthErrorCodes.issuerMismatch,
+            ],
+        ])(
+            "acquireTokenInteractive rejects an invalid response issuer before code redemption",
+            async (issuer, expectedErrorCode) => {
+                const authApp = new PublicClientApplication(appConfig);
+                jest.spyOn(
+                    LoopbackClient.prototype,
+                    "listenForAuthCode"
+                ).mockResolvedValue({
+                    code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                    state: "123",
+                    iss: issuer,
+                });
+                jest.spyOn(
+                    LoopbackClient.prototype,
+                    "getRedirectUri"
+                ).mockReturnValue(TEST_CONSTANTS.REDIRECT_URI);
+                jest.spyOn(
+                    LoopbackClient.prototype,
+                    "closeServer"
+                ).mockImplementation(() => {});
+                jest.spyOn(authApp, "getAuthCodeUrl").mockResolvedValue(
+                    TEST_CONSTANTS.AUTH_CODE_URL
+                );
+                const acquireTokenByCodeSpy = jest.spyOn(
+                    authApp,
+                    "acquireTokenByCode"
+                );
+
+                await expect(
+                    authApp.acquireTokenInteractive({
+                        scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                        openBrowser: async () => {},
+                        state: "123",
+                    })
+                ).rejects.toMatchObject({ errorCode: expectedErrorCode });
+                expect(acquireTokenByCodeSpy).not.toHaveBeenCalled();
+            }
+        );
+
         test("acquireTokenInteractive - rejects legacy responseMode of query", async () => {
             const authApp = new PublicClientApplication(appConfig);
             const openBrowser = jest.fn();
@@ -1997,6 +2046,7 @@ describe("PublicClientApplication", () => {
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
                 state: "123",
+                iss: TEST_AUTHORIZATION_RESPONSE_ISSUER,
             };
 
             jest.spyOn(
@@ -2019,6 +2069,7 @@ describe("PublicClientApplication", () => {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 openBrowser: openBrowser,
                 responseMode: CommonConstants.ResponseMode.FORM_POST,
+                state: "123",
             };
 
             const MockAuthorizationCodeClient =
@@ -2328,6 +2379,7 @@ describe("PublicClientApplication", () => {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 redirectUri: "http://localhost:3000/redirect",
                 openBrowser: jest.fn(),
+                state: "123",
             };
 
             await expect(
@@ -2381,6 +2433,7 @@ describe("PublicClientApplication", () => {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 redirectUri: "http://localhost:3000/redirect",
                 openBrowser: jest.fn(),
+                state: "123",
             };
 
             jest.spyOn(
@@ -2389,7 +2442,8 @@ describe("PublicClientApplication", () => {
             ).mockImplementation(async (state) => ({
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
                 state,
-            }));
+                iss: TEST_AUTHORIZATION_RESPONSE_ISSUER,
+            });
 
             jest.spyOn(
                 LoopbackClient.prototype,
@@ -2601,10 +2655,7 @@ describe("PublicClientApplication", () => {
         const url = await authApp.getAuthCodeUrl(request);
         expect(
             url.startsWith(
-                DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
-                    "{tenant}",
-                    "common"
-                )
+                "https://login.microsoftonline.com/common/oauth21/2026-08/authorize"
             )
         ).toBe(true);
         expect(url).toContain(appConfig.auth.clientId);
@@ -3241,6 +3292,7 @@ describe("MCP flow tests", () => {
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
                 state: "123",
+                iss: TEST_AUTHORIZATION_RESPONSE_ISSUER,
             };
             jest.spyOn(
                 LoopbackClient.prototype,
@@ -3261,6 +3313,7 @@ describe("MCP flow tests", () => {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 openBrowser: async () => {},
                 resource: "https://resource.example.com",
+                state: "123",
             };
             const MockAuthorizationCodeClient =
                 getMsalCommonAutoMock().AuthorizationCodeClient;
@@ -3311,6 +3364,7 @@ describe("MCP flow tests", () => {
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
                 state: "123",
+                iss: TEST_AUTHORIZATION_RESPONSE_ISSUER,
             };
             jest.spyOn(
                 LoopbackClient.prototype,
@@ -3331,6 +3385,7 @@ describe("MCP flow tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 openBrowser: async () => {},
                 resource: "https://resource.example.com",
+                state: "123",
             };
             jest.spyOn(
                 AuthorizeProtocol,

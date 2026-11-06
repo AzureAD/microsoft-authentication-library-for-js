@@ -428,6 +428,11 @@ export type PerformanceEvent = {
     authorityEndpointSource?: string;
 
     /**
+     * Opaque, non-PII OAuth client profile selected for the request.
+     */
+    clientProfile?: string;
+
+    /**
      * Number of accounts removed during cache cleanup
      */
     accountsRemoved?: number;

@@ -233,6 +233,10 @@ export class SilentIframeClient extends StandardInteractionClient {
                 requestExtraQueryParameters: request.extraQueryParameters,
                 account: request.account,
             });
+            request.expectedIssuer =
+                AuthorizeProtocol.getAuthorizationResponseIssuer(
+                    authClient.authority
+                );
 
             return await invokeAsync(
                 this.silentTokenHelper.bind(this),
@@ -510,7 +514,10 @@ export class SilentIframeClient extends StandardInteractionClient {
         AuthorizeProtocol.validateAuthorizationResponse(
             serverParams,
             silentRequest.state,
-            correlationId
+            correlationId,
+            AuthorizeProtocol.getAuthorizationResponseIssuer(
+                authClient.authority
+            )
         );
 
         // Verify a valid authorization code is present

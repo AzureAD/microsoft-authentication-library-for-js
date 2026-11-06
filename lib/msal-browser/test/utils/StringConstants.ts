@@ -26,6 +26,11 @@ import {
  */
 export const NUM_TESTS = 100;
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
+export const TEST_AUTHORIZATION_RESPONSE_ISSUER =
+    "https://login.microsoftonline.com/common/oauth21/2026-08";
+const ENCODED_TEST_AUTHORIZATION_RESPONSE_ISSUER = encodeURIComponent(
+    TEST_AUTHORIZATION_RESPONSE_ISSUER
+);
 
 // Test URIs
 export const TEST_URIS = {
@@ -37,11 +42,11 @@ export const TEST_URIS = {
     TEST_ALTERNATE_REDIR_URI: "https://localhost:8081/index2.html",
     TEST_LOGOUT_URI: "https://localhost:8081/logout.html",
     TEST_AUTH_ENDPT:
-        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+        "https://login.microsoftonline.com/common/oauth21/2026-08/authorize",
     TEST_END_SESSION_ENDPOINT:
-        "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
+        "https://login.microsoftonline.com/common/oauth21/2026-08/logout",
     TEST_AUTH_ENDPT_WITH_PARAMS:
-        "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2",
+        "https://login.microsoftonline.com/common/oauth21/2026-08/authorize?param1=value1&param2=value2",
     TEST_AZURE_CHINA_INSTANCE: "https://login.chinacloudapi.cn/",
     TEST_AZURE_GERMANY_INSTANCE: "https://login.microsoftonline.de/",
     TEST_AZURE_USGOV_INSTANCE: "https://login.microsoftonline.us/",
@@ -215,9 +220,9 @@ export const TEST_STATE_VALUES = {
 export const TEST_HASHES = {
     TEST_SUCCESS_ID_TOKEN_HASH: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
     TEST_SUCCESS_ACCESS_TOKEN_HASH: `#access_token=${TEST_TOKENS.ACCESS_TOKEN}&id_token=${TEST_TOKENS.IDTOKEN_V2}&scope=test&expiresIn=${TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
-    TEST_SUCCESS_CODE_HASH_REDIRECT: `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
-    TEST_SUCCESS_CODE_HASH_POPUP: `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`,
-    TEST_SUCCESS_CODE_HASH_SILENT: `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`,
+    TEST_SUCCESS_CODE_HASH_REDIRECT: `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&iss=${ENCODED_TEST_AUTHORIZATION_RESPONSE_ISSUER}`,
+    TEST_SUCCESS_CODE_HASH_POPUP: `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&iss=${ENCODED_TEST_AUTHORIZATION_RESPONSE_ISSUER}`,
+    TEST_SUCCESS_CODE_HASH_SILENT: `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}&iss=${ENCODED_TEST_AUTHORIZATION_RESPONSE_ISSUER}`,
     TEST_ERROR_HASH: `#error=error_code&error_description=msal+error+description&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
     TEST_INTERACTION_REQ_ERROR_HASH1: `#error=interaction_required&error_description=msal+error+description&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
     TEST_INTERACTION_REQ_ERROR_HASH2: `#error=interaction_required&error_description=msal+error+description+interaction_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
@@ -227,9 +232,9 @@ export const TEST_HASHES = {
     TEST_CONSENT_REQ_ERROR_HASH2: `#error=consent_required&error_description=msal+error+description+consent_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
     TEST_SUCCESS_HASH_NO_STATE: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`,
     TEST_SUCCESS_HASH_STATE_NO_META: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.ENCODED_LIB_STATE}`,
-    TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP: `#accountId=test-nativeAccountId&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`,
-    TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT: `#accountId=test-nativeAccountId&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
-    TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT: `#accountId=test-nativeAccountId&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`,
+    TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP: `#accountId=test-nativeAccountId&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}&iss=${ENCODED_TEST_AUTHORIZATION_RESPONSE_ISSUER}`,
+    TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT: `#accountId=test-nativeAccountId&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}&iss=${ENCODED_TEST_AUTHORIZATION_RESPONSE_ISSUER}`,
+    TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT: `#accountId=test-nativeAccountId&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}&iss=${ENCODED_TEST_AUTHORIZATION_RESPONSE_ISSUER}`,
 };
 
 // Test Crypto Values
@@ -290,14 +295,14 @@ export const DEFAULT_OPENID_CONFIG_RESPONSE: NetworkResponse<unknown> = {
     status: 200,
     body: {
         token_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/token",
         token_endpoint_auth_methods_supported: [
             "client_secret_post",
             "private_key_jwt",
             "client_secret_basic",
         ],
         jwks_uri:
-            "https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/keys",
         response_modes_supported: ["query", "fragment", "form_post"],
         subject_types_supported: ["pairwise"],
         id_token_signing_alg_values_supported: ["RS256"],
@@ -308,15 +313,15 @@ export const DEFAULT_OPENID_CONFIG_RESPONSE: NetworkResponse<unknown> = {
             "id_token token",
         ],
         scopes_supported: ["openid", "profile", "email", "offline_access"],
-        issuer: "https://login.microsoftonline.com/{tenant}/v2.0",
+        issuer: "https://login.microsoftonline.com/{tenant}/oauth21/2026-08",
         request_uri_parameter_supported: false,
         userinfo_endpoint: "https://graph.microsoft.com/oidc/userinfo",
         authorization_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/authorize",
         http_logout_supported: true,
         frontchannel_logout_supported: true,
         end_session_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/logout",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/logout",
         claims_supported: [
             "sub",
             "iss",
@@ -420,7 +425,7 @@ export const TEST_TOKEN_RESPONSE: NetworkResponse<ServerAuthorizationTokenRespon
         status: 200,
     };
 
-export const testNavUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${encodeURIComponent(
+export const testNavUrl = `https://login.microsoftonline.com/common/oauth21/2026-08/authorize?client_id=${encodeURIComponent(
     `${TEST_CONFIG.MSAL_CLIENT_ID}`
 )}&scope=user.read%20openid%20profile%20offline_access&redirect_uri=https%3A%2F%2Flocalhost%3A8081%2Findex.html&client-request-id=${encodeURIComponent(
     `${RANDOM_TEST_GUID}`
@@ -440,7 +445,7 @@ export function verifyUrl(
     scopes.push("openid", "profile", "offline_access"); // Add default scopes
     expect(
         url.startsWith(
-            "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?"
+            "https://login.microsoftonline.com/common/oauth21/2026-08/authorize?"
         )
     ).toBe(true);
     expect(
