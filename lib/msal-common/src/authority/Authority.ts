@@ -21,6 +21,7 @@ import {
     getCloudDiscoveryMetadataFromHardcodedValues,
     getCloudDiscoveryMetadataFromNetworkResponse,
     InstanceDiscoveryMetadataAliases,
+    OAUTH21_CLIENT_PROFILE,
 } from "./AuthorityMetadata.js";
 import {
     createClientConfigurationError,
@@ -386,6 +387,14 @@ export class Authority {
         ) {
             return `${this.canonicalAuthority}.well-known/openid-configuration`;
         }
+
+        if (
+            this.protocolMode === ProtocolMode.AAD &&
+            this.isAliasOfKnownMicrosoftAuthority(canonicalAuthorityHost)
+        ) {
+            return `${this.canonicalAuthority}${OAUTH21_CLIENT_PROFILE}/.well-known/openid-configuration`;
+        }
+
         return `${this.canonicalAuthority}v2.0/.well-known/openid-configuration`;
     }
 
@@ -428,6 +437,11 @@ export class Authority {
             {
                 cloudDiscoverySource: cloudDiscoverySource,
                 authorityEndpointSource: endpointSource,
+                clientProfile: this.authorizationEndpoint.includes(
+                    `/${OAUTH21_CLIENT_PROFILE}/`
+                )
+                    ? OAUTH21_CLIENT_PROFILE
+                    : undefined,
             },
             this.correlationId
         );
@@ -554,6 +568,8 @@ export class Authority {
             this.correlationId
         )();
         if (metadata) {
+            this.validateEndpointProfile(metadata);
+
             // Validate the issuer returned by the OIDC discovery document.
             this.validateIssuer(metadata.issuer);
 
@@ -602,6 +618,7 @@ export class Authority {
         );
         const configMetadata = this.getEndpointMetadataFromConfig();
         if (configMetadata) {
+            this.validateEndpointProfile(configMetadata);
             this.logger.verbose(
                 "Found endpoint metadata in authority configuration",
                 this.correlationId
@@ -623,6 +640,7 @@ export class Authority {
 
         const hardcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
         if (hardcodedMetadata) {
+            this.validateEndpointProfile(hardcodedMetadata);
             CacheHelpers.updateAuthorityEndpointMetadata(
                 metadataEntity,
                 hardcodedMetadata,
@@ -647,6 +665,7 @@ export class Authority {
             metadataEntity.endpointsFromNetwork &&
             !metadataEntityExpired
         ) {
+            this.validateEndpointProfile(metadataEntity);
             // No need to update
             this.logger.verbose("Found endpoint metadata in the cache.", "");
             return { source: Constants.AuthorityMetadataSource.CACHE };
@@ -655,6 +674,38 @@ export class Authority {
         }
 
         return null;
+    }
+
+    private validateEndpointProfile(metadata: OpenIdConfigResponse): void {
+        if (
+            this.protocolMode !== ProtocolMode.AAD ||
+            this.authorityType !== AuthorityType.Default ||
+            !this.isAliasOfKnownMicrosoftAuthority(this.hostnameAndPort)
+        ) {
+            return;
+        }
+
+        const profilePath = `/${OAUTH21_CLIENT_PROFILE}`;
+        const requiredEndpoints = [
+            metadata.authorization_endpoint,
+            metadata.token_endpoint,
+            metadata.issuer,
+            metadata.jwks_uri,
+        ];
+        const hasProfileEndpoints = requiredEndpoints.every((endpoint) =>
+            endpoint.includes(profilePath)
+        );
+        const hasProfileLogoutEndpoint =
+            !metadata.end_session_endpoint ||
+            metadata.end_session_endpoint.includes(profilePath);
+
+        if (!hasProfileEndpoints || !hasProfileLogoutEndpoint) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.openIdConfigError,
+                this.defaultOpenIdConfigurationEndpoint,
+                this.correlationId
+            );
+        }
     }
 
     /**
@@ -1017,7 +1068,12 @@ export class Authority {
      * @param hasHardcodedMetadata boolean
      */
     private async getCloudDiscoveryMetadataFromNetwork(): Promise<CloudDiscoveryMetadata | null> {
-        const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
+        const authorizePath = this.isAliasOfKnownMicrosoftAuthority(
+            this.hostnameAndPort
+        )
+            ? `${OAUTH21_CLIENT_PROFILE}/authorize`
+            : "oauth2/v2.0/authorize";
+        const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}${authorizePath}`;
         const options: ImdsOptions = {};
 
         /*

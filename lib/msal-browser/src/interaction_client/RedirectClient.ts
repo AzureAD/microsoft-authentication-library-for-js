@@ -20,6 +20,7 @@ import {
     InProgressPerformanceEvent,
     CommonAuthorizationUrlRequest,
     ProtocolUtils,
+    AuthorizeProtocol,
     ITokenBindingKeyManager,
 } from "@azure/msal-common/browser";
 import {
@@ -263,7 +264,10 @@ export class RedirectClient extends StandardInteractionClient {
                 pkceCodes.verifier
             );
             if (redirectRequest.httpMethod === Constants.HttpMethod.POST) {
-                return await this.executeCodeFlowWithPost(redirectRequest);
+                return await this.executeCodeFlowWithPost(
+                    redirectRequest,
+                    pkceCodes.verifier
+                );
             } else {
                 // Initialize the client
                 const authClient: AuthorizationCodeClient = await invokeAsync(
@@ -280,6 +284,15 @@ export class RedirectClient extends StandardInteractionClient {
                         redirectRequest.extraQueryParameters,
                     account: redirectRequest.account,
                 });
+                redirectRequest.expectedIssuer =
+                    AuthorizeProtocol.getAuthorizationResponseIssuer(
+                        authClient.authority
+                    );
+                this.browserStorage.cacheAuthorizeRequest(
+                    redirectRequest,
+                    this.correlationId,
+                    pkceCodes.verifier
+                );
 
                 // Create acquire token url.
                 const navigateUrl = await invokeAsync(
@@ -427,7 +440,8 @@ export class RedirectClient extends StandardInteractionClient {
      * @param request
      */
     async executeCodeFlowWithPost(
-        request: CommonAuthorizationUrlRequest
+        request: CommonAuthorizationUrlRequest,
+        codeVerifier: string
     ): Promise<void> {
         const correlationId = request.correlationId;
         // Get the frame handle for the silent request
@@ -445,7 +459,16 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger
         );
 
-        this.browserStorage.cacheAuthorizeRequest(request, this.correlationId);
+        request.expectedIssuer =
+            AuthorizeProtocol.getAuthorizationResponseIssuer(
+                discoveredAuthority
+            );
+
+        this.browserStorage.cacheAuthorizeRequest(
+            request,
+            this.correlationId,
+            codeVerifier
+        );
 
         const form = await Authorize.getCodeForm(
             document,

@@ -72,9 +72,21 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   State not found.
 
+### `issuer_not_found`
+
+-   The authorization response did not contain the required issuer parameter.
+
+### `issuer_mismatch`
+
+-   The authorization response issuer did not match the issuer bound to the request.
+
 ### `unsupported_cca_instance_aware`
 
 -   ConfidentialClientApplication does not support instance-aware configuration or authorization requests.
+
+### `unsupported_grant_type`
+
+-   The selected authorization server profile does not support the requested grant type.
 
 ### `nonce_mismatch`
 

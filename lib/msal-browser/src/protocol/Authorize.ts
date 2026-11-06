@@ -585,6 +585,14 @@ export async function handleResponseCode(
     // Instrument clientdata telemetry fields from the authorize response
     instrumentClientData(response, request.correlationId, performanceClient);
 
+    AuthorizeProtocol.validateAuthorizationResponse(
+        response,
+        request.state,
+        request.correlationId,
+        request.expectedIssuer
+    );
+    logger.info("iss validation successful", request.correlationId);
+
     if (response.accountId) {
         return invokeAsync(
             handleResponsePlatformBroker,
@@ -677,7 +685,8 @@ export async function handleResponseEAR(
     AuthorizeProtocol.validateAuthorizationResponse(
         response,
         request.state,
-        request.correlationId
+        request.correlationId,
+        request.expectedIssuer
     );
 
     if (!response.ear_jwe) {

@@ -16,6 +16,8 @@ type RawMetadata = {
     instanceDiscoveryMetadata: CloudInstanceDiscoveryResponse;
 };
 
+export const OAUTH21_CLIENT_PROFILE = "oauth21/2026-08";
+
 // Build endpoint metadata dynamically to avoid string duplication
 const endpointHosts: Array<{ host: string; issuerHost?: string }> = [
     { host: "login.microsoftonline.com" },
@@ -31,11 +33,11 @@ function buildOpenIdConfig(
     issuerHost: string
 ): OpenIdConfigResponse {
     return {
-        token_endpoint: `https://${host}/{tenantid}/oauth2/v2.0/token`,
-        jwks_uri: `https://${host}/{tenantid}/discovery/v2.0/keys`,
-        issuer: `https://${issuerHost}/{tenantid}/v2.0`,
-        authorization_endpoint: `https://${host}/{tenantid}/oauth2/v2.0/authorize`,
-        end_session_endpoint: `https://${host}/{tenantid}/oauth2/v2.0/logout`,
+        token_endpoint: `https://${host}/{tenantid}/${OAUTH21_CLIENT_PROFILE}/token`,
+        jwks_uri: `https://${host}/{tenantid}/${OAUTH21_CLIENT_PROFILE}/keys`,
+        issuer: `https://${issuerHost}/{tenantid}/${OAUTH21_CLIENT_PROFILE}`,
+        authorization_endpoint: `https://${host}/{tenantid}/${OAUTH21_CLIENT_PROFILE}/authorize`,
+        end_session_endpoint: `https://${host}/{tenantid}/${OAUTH21_CLIENT_PROFILE}/logout`,
     };
 }
 
