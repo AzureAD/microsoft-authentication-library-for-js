@@ -5,23 +5,27 @@
 
 import { CustomAuthBrowserConfiguration } from "../../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthFlowScenarioV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
+import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
 import { AuthMethodVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodVerificationRequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
     FLOW_AUTH_METHOD_VERIFICATION_REQUIRED_V2,
     FLOW_COMPLETED_V2,
+    FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthAccountData } from "../../../../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import type { AuthenticationResult } from "../../../../../../src/response/AuthenticationResult.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
+import { SignInContinuationStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 
 describe("AuthMethodVerificationRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
     const flowClient = {
         verifyAuthMethodRegistration: jest.fn(),
         resendAuthMethodRegistrationChallenge: jest.fn(),
+        signInWithContinuation: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
     const continuationState = {
         continuationToken: "ct-activate",
@@ -33,17 +37,20 @@ describe("AuthMethodVerificationRequiredStateV2", () => {
         },
     };
 
-    const buildState = () =>
+    const buildState = (
+        logger = getDefaultLogger(),
+        scenario: CustomAuthFlowScenarioV2 = CustomAuthFlowScenarioV2.SignIn
+    ) =>
         new AuthMethodVerificationRequiredStateV2({
             correlationId,
-            logger: getDefaultLogger(),
+            logger,
             config: {
                 auth: { clientId: "test-client-id" },
                 customAuth: { challengeTypes: ["oob"] },
             } as unknown as CustomAuthBrowserConfiguration,
             flowClient,
             cacheClient: {} as CustomAuthSilentCacheClient,
-            continuationState,
+            continuationState: { ...continuationState, scenario },
             type: "email",
             sentTo: "u***@contoso.com",
             codeLength: 6,
@@ -89,6 +96,45 @@ describe("AuthMethodVerificationRequiredStateV2", () => {
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
     });
 
+    it.each([
+        CustomAuthFlowScenarioV2.SignUp,
+        CustomAuthFlowScenarioV2.PasswordReset,
+    ])(
+        "returns a sign-in continuation after %s activation without signing in",
+        async (scenario) => {
+            const nextContinuationState = {
+                ...continuationState,
+                scenario,
+                continuationToken: "ct-activated",
+                links: {},
+            };
+            flowClient.verifyAuthMethodRegistration.mockResolvedValue({
+                type: FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
+                correlationId,
+                continuationState: nextContinuationState,
+            });
+
+            const result = await buildState(
+                getDefaultLogger(),
+                scenario
+            ).submitChallenge("123456");
+
+            expect(result.isState("signInContinuation")).toBe(true);
+            expect(result.state).toBeInstanceOf(SignInContinuationStateV2);
+            expect(result.scenario).toBe(scenario);
+            expect(result.data).toBeUndefined();
+            if (result.isState("signInContinuation")) {
+                expect(
+                    result.state["stateParameters"].continuationState
+                ).toEqual(nextContinuationState);
+                expect(result.state["stateParameters"].correlationId).toBe(
+                    correlationId
+                );
+            }
+            expect(flowClient.signInWithContinuation).not.toHaveBeenCalled();
+        }
+    );
+
     it("rejects a null activation challenge", async () => {
         const result = await buildState().submitChallenge(
             null as unknown as string
@@ -96,6 +142,7 @@ describe("AuthMethodVerificationRequiredStateV2", () => {
 
         expect(result.isFailed()).toBe(true);
         expect(result.error?.isInvalidInput()).toBe(true);
+        expect(result.error?.isInvalidChallenge()).toBe(false);
         expect(flowClient.verifyAuthMethodRegistration).not.toHaveBeenCalled();
     });
 
@@ -165,6 +212,36 @@ describe("AuthMethodVerificationRequiredStateV2", () => {
             throw new Error("Expected a replacement activation challenge.");
         }
         expect(result.state.sentTo).toBe("u***@contoso.com");
+    });
+
+    it("logs the raw rejection and classifies it at the public boundary", async () => {
+        const errorData = new CustomAuthApiError(
+            "invalidGrant",
+            "Invalid code.",
+            correlationId,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            "invalidOneTimeCode"
+        );
+        const logger = getDefaultLogger();
+        const logError = jest.spyOn(logger, "errorPii");
+        flowClient.verifyAuthMethodRegistration.mockRejectedValue(errorData);
+
+        const result = await buildState(logger).submitChallenge("123456");
+
+        expect(logError).toHaveBeenCalledWith(
+            `Failed to submit the V2 authentication-method activation challenge. Error: '${errorData}'.`,
+            correlationId
+        );
+        expect(result.isFailed()).toBe(true);
+        expect(result.error?.errorData).toBe(errorData);
+        expect(result.error?.isInvalidChallenge()).toBe(true);
+        expect(result.error?.isInvalidCode()).toBe(false);
     });
 
     it("wraps activation failures", async () => {

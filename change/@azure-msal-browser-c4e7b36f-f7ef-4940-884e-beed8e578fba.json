@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Defer Native Auth V2 sign-in after reset MFA and sign-up/reset JIT [#8973](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8973)",
+  "packageName": "@azure/msal-browser",
+  "email": "yongdiwang@microsoft.com",
+  "dependentChangeType": "patch"
+}
