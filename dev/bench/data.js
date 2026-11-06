@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793901724099,
+  "lastUpdate": 1793968724765,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -24987,6 +24987,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.87%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ydi.w127@gmail.com",
+            "name": "Yongdi Wang",
+            "username": "yongdiw"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9b79aa4642e5731a852467d6d44e7905ade1f375",
+          "message": "Fix Native Auth V2 error classification (#8961)\n\n## Summary\n\nCorrect the public Native Auth V2 error classifiers without changing V1\nbehavior or adding new flow states.\n\n- Classify missing accounts using `invalidRequest` plus `userNotFound`,\nwithout the message-only AADSTS50034 fallback.\n- Include incorrect sign-in credentials and all six supported\nreset-password policy subcodes in `isInvalidPassword()`, and use named\nconstants for password-policy codes.\n- Add `isPasswordResetNotEnabled()` for `invalidRequest` plus\n`passwordResetNotEnabledForUser`, distinct from invalid-password\nfailures.\n- Remove the obsolete V2 `isUserAlreadyExists()` helper while preserving\nrequired/invalid profile-attribute diagnostics.\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCopilot-Session: 98356c16-fd1b-49ee-a94d-78da2f637100\nCopilot-Session: c9919841-191b-4570-a62e-cccb22f641b4\nCopilot-Session: 8bc6a3d6-1f43-41f3-b067-69313f470741",
+          "timestamp": "2026-11-06T12:30:10Z",
+          "tree_id": "7c5dd7a9a3e7be59e752be56aa387149c42d4b3e",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/9b79aa4642e5731a852467d6d44e7905ade1f375"
+        },
+        "date": 1793968720700,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 374191,
+            "range": "±0.66%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 364200,
+            "range": "±0.92%",
+            "unit": "ops/sec",
+            "extra": "215 samples"
           }
         ]
       }
