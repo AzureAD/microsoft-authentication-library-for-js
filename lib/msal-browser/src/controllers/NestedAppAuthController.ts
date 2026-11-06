@@ -32,6 +32,7 @@ import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
+import type { CaeCacheContext } from "../cache/CaeCacheContext.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import {
     WrapperSKU,
@@ -659,7 +660,10 @@ export class NestedAppAuthController implements IController {
     async acquireTokenSilent(
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
-        if (silentRequest.invalidateAccessTokenCache) {
+        if (
+            silentRequest.invalidateAccessTokenCache ||
+            silentRequest.caeCacheContext !== undefined
+        ) {
             rejectCaeCacheExperiment(silentRequest.correlationId || "");
         }
         return this.acquireTokenSilentInternal(silentRequest);
@@ -869,6 +873,11 @@ export class NestedAppAuthController implements IController {
         throw NestedAppAuthError.createUnsupportedError(
             logoutRequest?.correlationId
         );
+    }
+
+    /** Nested-app flows do not support the experimental cache context. */
+    async createCaeCacheContext(): Promise<CaeCacheContext> {
+        rejectCaeCacheExperiment("");
     }
 
     async hydrateCache(

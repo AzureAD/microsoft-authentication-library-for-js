@@ -22,6 +22,7 @@ import {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     ICrypto,
     IdTokenEntity,
+    invoke,
     invokeAsync,
     IPerformanceClient,
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
@@ -57,6 +58,7 @@ import {
     apiIdToName,
 } from "../utils/BrowserConstants.js";
 import * as CacheKeys from "./CacheKeys.js";
+import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { LocalStorage } from "./LocalStorage.js";
 import { SessionStorage } from "./SessionStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
@@ -1701,6 +1703,75 @@ export class BrowserCacheManager extends CacheManager {
         this.setTokenKeys(tokenKeys, correlationId);
     }
 
+    /** Captures a cache-context lifetime without requiring an account or token. */
+    getCapabilityContextEpoch(id: string, correlationId: string): string {
+        return this.getOrCreateCapabilityEpoch(
+            this.capabilityContextKey(id),
+            correlationId
+        );
+    }
+
+    private capabilityContextKey(id: string): string {
+        return `msal.cae.context|${JSON.stringify([this.clientId, id])}`;
+    }
+
+    private isCapabilityContextCurrent(id?: string, epoch?: string): boolean {
+        return (
+            !id ||
+            (!!epoch &&
+                this.browserStorage.getItem(this.capabilityContextKey(id)) ===
+                    epoch)
+        );
+    }
+
+    /** Fences first, then removes only the retired lifetime's CP1 tokens and generations. */
+    resetCapabilityContext(id: string): void {
+        const correlationId = this.cryptoImpl.createNewGuid();
+        return invoke(
+            () => {
+                const key = this.capabilityContextKey(id);
+                const epoch = this.browserStorage.getItem(key);
+                this.browserStorage.removeItem(key);
+                if (!epoch) {
+                    return;
+                }
+                const prefix = `${epoch}.`;
+                const keys = this.getTokenKeys(
+                    CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
+                ).accessToken.filter((tokenKey) =>
+                    tokenKey
+                        .slice(
+                            tokenKey.lastIndexOf(
+                                CacheKeys.CACHE_KEY_SEPARATOR
+                            ) + 1
+                        )
+                        .startsWith(prefix)
+                );
+                keys.forEach((tokenKey) =>
+                    this.browserStorage.removeItem(tokenKey)
+                );
+                this.removeAccessTokenKeys(keys, correlationId);
+                const metadataPrefix = `msal.cae.epoch|[${JSON.stringify(
+                    this.clientId
+                )},`;
+                this.browserStorage.getKeys().forEach((metadataKey) => {
+                    if (
+                        metadataKey.startsWith(metadataPrefix) &&
+                        this.browserStorage
+                            .getItem(metadataKey)
+                            ?.startsWith(prefix)
+                    ) {
+                        this.browserStorage.removeItem(metadataKey);
+                    }
+                });
+            },
+            BrowserRootPerformanceEvents.ResetCaeCacheContext,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
+    }
+
     /** Captures or advances a bounded account/tenant/capability invalidation generation. */
     prepareCapabilityAcquisition(
         account: AccountInfo,
@@ -1711,40 +1782,48 @@ export class BrowserCacheManager extends CacheManager {
         if (!context) {
             return request;
         }
+        if (
+            !this.isCapabilityContextCurrent(
+                context.contextId,
+                context.contextEpoch
+            )
+        ) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.caeTokenRequestInvalidated,
+                correlationId
+            );
+        }
         const realm = (context.realm || account.tenantId).toLowerCase();
         const key = this.capabilityEpochKey(
             account.homeAccountId,
             account.environment,
             realm,
             context.capability,
-            context.resource || ""
+            context.resource || "",
+            context.contextId,
+            context.contextEpoch
         );
-        let epoch = this.getOrCreateCapabilityEpoch(key, correlationId);
+        const prefix = context.contextEpoch ? `${context.contextEpoch}.` : "";
+        let epoch = this.getOrCreateCapabilityEpoch(key, correlationId, prefix);
         if (context.hasChallenge || context.invalidate) {
-            epoch = this.cryptoImpl.createNewGuid();
+            const previousEpoch = epoch;
+            epoch = `${prefix}${this.cryptoImpl.createNewGuid()}`;
             this.setItem(key, epoch, correlationId);
-            this.setItem(
-                this.capabilityAuthorizationKey(),
-                this.cryptoImpl.createNewGuid(),
-                correlationId
-            );
+            if (!context.contextId) {
+                this.setItem(
+                    this.capabilityAuthorizationKey(),
+                    this.cryptoImpl.createNewGuid(),
+                    correlationId
+                );
+            }
             // Resource-family invalidation also covers overlapping and superset scope requests.
             for (const tokenKey of this.getTokenKeys(
                 CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
             ).accessToken) {
-                const raw = this.browserStorage.getUserData(tokenKey);
-                const token = this.validateAndParseJson(raw || "");
                 if (
-                    token &&
-                    CacheHelpers.isAccessTokenEntity(token) &&
-                    token.homeAccountId === account.homeAccountId &&
-                    token.environment === account.environment &&
-                    token.realm.toLowerCase() === realm &&
-                    (token.additionalCacheKeyComponents
-                        ?.experimental_cae_resource || "") ===
-                        (context.resource || "") &&
-                    token.additionalCacheKeyComponents
-                        ?.experimental_cae_capability === context.capability
+                    tokenKey.endsWith(
+                        `${CacheKeys.CACHE_KEY_SEPARATOR}${previousEpoch}`
+                    )
                 ) {
                     this.browserStorage.removeItem(tokenKey);
                     this.removeAccessTokenKeys([tokenKey], correlationId);
@@ -1793,14 +1872,20 @@ export class BrowserCacheManager extends CacheManager {
         const context = request.experimentalCaeCache;
         return (
             !context ||
-            (!!context.epoch &&
+            (this.isCapabilityContextCurrent(
+                context.contextId,
+                context.contextEpoch
+            ) &&
+                !!context.epoch &&
                 this.browserStorage.getItem(
                     this.capabilityEpochKey(
                         account.homeAccountId,
                         account.environment,
                         context.realm || account.tenantId,
                         context.capability,
-                        context.resource || ""
+                        context.resource || "",
+                        context.contextId,
+                        context.contextEpoch
                     )
                 ) === context.epoch)
         );
@@ -1811,7 +1896,9 @@ export class BrowserCacheManager extends CacheManager {
         environment: string,
         realm: string,
         capability: string,
-        resource: string
+        resource: string,
+        contextId?: string,
+        contextEpoch?: string
     ): string {
         return `msal.cae.epoch|${JSON.stringify([
             this.clientId,
@@ -1820,15 +1907,22 @@ export class BrowserCacheManager extends CacheManager {
             realm.toLowerCase(),
             capability,
             resource,
+            ...(contextId ? [contextId, contextEpoch] : []),
         ])}`;
     }
 
     private isCapabilityTokenCurrent(token: AccessTokenEntity): boolean {
         const capability =
             token.additionalCacheKeyComponents?.experimental_cae_capability;
+        const contextId =
+            token.additionalCacheKeyComponents?.experimental_cae_context;
+        const contextEpoch = contextId
+            ? token.experimentalCaeEpoch?.split(".")[0]
+            : undefined;
         return (
             !capability ||
-            (!!token.experimentalCaeEpoch &&
+            (this.isCapabilityContextCurrent(contextId, contextEpoch) &&
+                !!token.experimentalCaeEpoch &&
                 this.browserStorage.getItem(
                     this.capabilityEpochKey(
                         token.homeAccountId,
@@ -1836,7 +1930,9 @@ export class BrowserCacheManager extends CacheManager {
                         token.realm,
                         capability,
                         token.additionalCacheKeyComponents
-                            ?.experimental_cae_resource || ""
+                            ?.experimental_cae_resource || "",
+                        contextId,
+                        contextEpoch
                     )
                 ) === token.experimentalCaeEpoch)
         );
@@ -1852,13 +1948,14 @@ export class BrowserCacheManager extends CacheManager {
 
     private getOrCreateCapabilityEpoch(
         key: string,
-        correlationId: string
+        correlationId: string,
+        prefix = ""
     ): string {
         const existing = this.browserStorage.getItem(key);
         if (existing) {
             return existing;
         }
-        const epoch = this.cryptoImpl.createNewGuid();
+        const epoch = `${prefix}${this.cryptoImpl.createNewGuid()}`;
         this.setItem(key, epoch, correlationId);
         return epoch;
     }

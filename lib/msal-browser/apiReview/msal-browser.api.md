@@ -313,6 +313,8 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
 declare namespace BrowserRootPerformanceEvents {
     export {
         AcquireTokenSilent,
+        CreateCaeCacheContext,
+        ResetCaeCacheContext,
         AcquireTokenByCode,
         AcquireTokenPopup,
         AcquireTokenPreRedirect,
@@ -400,6 +402,13 @@ export type CacheOptions = {
     cacheRetentionDays?: number;
 };
 
+// @public
+export interface CaeCacheContext {
+    acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult>;
+    reset(): Promise<void>;
+    retire(): Promise<void>;
+}
+
 // @public (undocumented)
 const caeTokenRequestInvalidated = "cae_token_request_invalidated";
 
@@ -434,6 +443,9 @@ export type Configuration = {
     experimental?: BrowserExperimentalOptions;
     telemetry?: BrowserTelemetryOptions;
 };
+
+// @public
+const CreateCaeCacheContext = "createCaeCacheContext";
 
 // @public
 function createGuid(): string;
@@ -683,6 +695,7 @@ export interface IPublicClientApplication {
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     // (undocumented)
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
+    createCaeCacheContext?(stableContextId: string): Promise<CaeCacheContext>;
     // (undocumented)
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
     // (undocumented)
@@ -965,6 +978,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
     // (undocumented)
     protected controller: IController;
+    createCaeCacheContext(stableContextId: string): Promise<CaeCacheContext>;
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
     getActiveAccount(): AccountInfo | null;
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
@@ -1008,6 +1022,9 @@ export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "respo
 
 // @public
 function replaceHash(url: string): void;
+
+// @public
+const ResetCaeCacheContext = "resetCaeCacheContext";
 
 // @public (undocumented)
 export const ResponseMode: {
@@ -1065,6 +1082,7 @@ const silentPromptValueError = "silent_prompt_value_error";
 
 // @public
 export type SilentRequest = Omit<CommonSilentFlowRequest, "authority" | "correlationId" | "forceRefresh" | "account"> & {
+    caeCacheContext?: CaeCacheContext;
     redirectUri?: string;
     extraQueryParameters?: StringDict;
     authority?: string;

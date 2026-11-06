@@ -12,6 +12,7 @@ import {
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
+import type { CaeCacheContext } from "../cache/CaeCacheContext.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import {
@@ -33,6 +34,8 @@ import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOp
 export interface IPublicClientApplication {
     // TODO: Make request mandatory in the next major version?
     initialize(request?: InitializeApplicationRequest): Promise<void>;
+    /** Creates an experimental CP1 cache context without a new authentication owner. */
+    createCaeCacheContext?(stableContextId: string): Promise<CaeCacheContext>;
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
     acquireTokenSilent(
@@ -78,6 +81,13 @@ export interface IPublicClientApplication {
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
+    createCaeCacheContext: () =>
+        Promise.reject(
+            createBrowserConfigurationAuthError(
+                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
+                ""
+            )
+        ),
     initialize: () => {
         return Promise.reject(
             createBrowserConfigurationAuthError(

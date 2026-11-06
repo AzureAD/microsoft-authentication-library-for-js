@@ -26,6 +26,8 @@ import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
+import type { CaeCacheContext } from "../cache/CaeCacheContext.js";
+import { rejectCaeCacheExperiment } from "../request/CaeCacheRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { WrapperSKU } from "../utils/BrowserConstants.js";
@@ -58,6 +60,12 @@ import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOp
  *
  */
 export class UnknownOperatingContextController implements IController {
+    /** Cache contexts require an initialized supported browser controller. */
+    async createCaeCacheContext(): Promise<CaeCacheContext> {
+        blockNonBrowserEnvironment();
+        blockAPICallsBeforeInitialize(this.initialized);
+        rejectCaeCacheExperiment("");
+    }
     // OperatingContext
     protected readonly operatingContext: UnknownOperatingContext;
 

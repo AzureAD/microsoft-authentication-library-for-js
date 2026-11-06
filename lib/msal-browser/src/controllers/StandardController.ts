@@ -102,6 +102,11 @@ import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOp
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 import { resolveSilentRequestPreparation } from "../request/SilentRequestHelpers.js";
 import { rejectCaeCacheExperiment } from "../request/CaeCacheRequest.js";
+import {
+    CaeCacheContext,
+    createCaeCacheContextHandle,
+    captureCaeCacheContext,
+} from "../cache/CaeCacheContext.js";
 import { getDiscoveredAuthority } from "../interaction_client/BaseInteractionClient.js";
 
 function preflightCheck(
@@ -2277,6 +2282,36 @@ export class StandardController implements IController {
         });
     }
 
+    /** Creates a CP1-only context on this initialized, non-brokered owner. */
+    async createCaeCacheContext(
+        stableContextId: string
+    ): Promise<CaeCacheContext> {
+        const correlationId = this.getRequestCorrelationId();
+        return invokeAsync(
+            async () => {
+                BrowserUtils.blockNonBrowserEnvironment();
+                BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
+                if (
+                    !this.config.experimental.enableCaeCachePartitioning ||
+                    typeof stableContextId !== "string" ||
+                    !stableContextId.trim()
+                ) {
+                    rejectCaeCacheExperiment(correlationId);
+                }
+                const id = await this.browserCrypto.hashString(stableContextId);
+                return createCaeCacheContextHandle(
+                    this.browserStorage,
+                    id,
+                    this.acquireTokenSilent.bind(this)
+                );
+            },
+            BrowserRootPerformanceEvents.CreateCaeCacheContext,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
+    }
+
     /**
      * Silently acquire an access token for a given set of scopes. Returns currently processing promise if parallel requests are made.
      *
@@ -2356,9 +2391,29 @@ export class StandardController implements IController {
         account: AccountInfo,
         correlationId: string
     ): Promise<AuthenticationResult> {
+        let contextRequest = request;
+        if (request.caeCacheContext !== undefined) {
+            if (!this.config.experimental.enableCaeCachePartitioning) {
+                rejectCaeCacheExperiment(correlationId);
+            }
+            const context = captureCaeCacheContext(
+                request.caeCacheContext,
+                this.browserStorage,
+                correlationId
+            );
+            contextRequest = {
+                ...request,
+                caeCacheContext: undefined,
+                experimentalCaeCache: {
+                    capability: "cp1",
+                    hasChallenge: false,
+                    ...context,
+                },
+            };
+        }
         const preparedRequest = resolveSilentRequestPreparation(
             {
-                request,
+                request: contextRequest,
                 account,
                 correlationId,
                 config: this.config,

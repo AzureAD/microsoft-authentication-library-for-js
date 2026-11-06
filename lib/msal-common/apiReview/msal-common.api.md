@@ -714,6 +714,8 @@ export type BaseAuthRequest = {
         authorizationEpoch?: string;
         realm?: string;
         resource?: string;
+        contextId?: string;
+        contextEpoch?: string;
     };
     shrClaims?: string;
     shrNonce?: string;

@@ -133,6 +133,44 @@ real browser-process or live Entra guarantees. Concurrent interactive flows,
 actual resource-generated challenges, deployment rollback and product integration
 still require qualification before the experiment can be used in a product.
 
+### Experimental configured CAE contexts
+
+An initialized experimental owner can create a CP1-only cache context before
+sign-in. This does not create another PCA or another authentication owner:
+
+```javascript
+const context = await pca.createCaeCacheContext("stable-application-context");
+const result = await context.acquireTokenSilent({
+    account,
+    scopes: ["User.Read"],
+    claims: JSON.stringify({ access_token: { xms_cc: { values: ["CP1"] } } })
+});
+await context.reset(); // Clear CP1 state; this handle remains usable.
+await context.retire(); // Clear CP1 state and permanently retire this handle.
+```
+
+Choose an explicit stable identifier for the application's authentication
+configuration, not a new identifier per request or a raw claims/challenge value.
+MSAL hashes the identifier once. Equal identifiers share their CP1 namespace
+within the same client and storage; different identifiers remain independent.
+Ordinary acquisitions and bootstrap stay on `pca`. The context forwards the
+silent request through that same public owner, including subclass behavior.
+
+`reset` and `retire` invalidate the context lifetime synchronously, before their
+returned promise settles. They clear its CP1 tokens and generation metadata
+without clearing accounts, ID tokens, refresh tokens or other contexts.
+`reset` is nonterminal; `retire` permanently rejects further use of that handle
+and is idempotent. Creating the same identifier after retirement gives a fresh
+usable context. Late old responses and repeated old-handle retirement cannot
+overwrite or clear its replacement.
+
+Use `invalidateAccessTokenCache: true` on a context acquisition for an individual
+trusted challenge or cache bypass; it remains resource-scoped. Do not replace
+resource-scoped recovery with `reset`. Creation and reset are observable through
+the `createCaeCacheContext` and `resetCaeCacheContext` performance events without
+including the supplied identifier. These APIs remain experimental and inherit
+the non-brokered AAD/EAR restrictions above.
+
 ## Cache persistence during MSAL.js upgrades and rollbacks
 
 Occasionally MSAL.js needs to make changes to the shape of the cached artifacts to support new requirements, features or bug fixes. As often as possible these changes will be made in a backwards compatible way so as to ensure that when an application upgrades to a new version or rolls back to an older one the cache present in a user's browser can still be used. However, this is not always possible and you may end up in a state where multiple copies of the cache exist concurrently, one used by the current version of MSAL.js running and another that was written by the version used prior to the upgrade. This is done to allow applications to gracefully rollback, if needed. In the vast majority of upgrades, MSAL.js will migrate any existing cache into the new format for a seamless upgrade experience. In rare cases, such as the upgrade from v3 to v4, this may not be possible due to security or privacy requirements and this will always result in a major version bump. 

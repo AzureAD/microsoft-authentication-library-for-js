@@ -9,6 +9,7 @@ import {
     StringDict,
 } from "@azure/msal-common/browser";
 import { CacheLookupPolicy } from "../utils/BrowserConstants.js";
+import type { CaeCacheContext } from "../cache/CaeCacheContext.js";
 
 /**
  * SilentRequest: Request object passed by user to retrieve tokens from the
@@ -19,6 +20,8 @@ export type SilentRequest = Omit<
     CommonSilentFlowRequest,
     "authority" | "correlationId" | "forceRefresh" | "account"
 > & {
+    /** @internal Set by the SDK context handle, not a caller-supplied cache identifier. */
+    caeCacheContext?: CaeCacheContext;
     /**
      * The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal. Only used for cases where refresh token is expired.
      */

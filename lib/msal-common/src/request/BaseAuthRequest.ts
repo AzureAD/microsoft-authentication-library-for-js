@@ -52,6 +52,10 @@ export type BaseAuthRequest = {
         realm?: string;
         /** Normalized resource prefix shared by the requested scopes. */
         resource?: string;
+        /** Hashed explicit cache-context identity, never a claims value. */
+        contextId?: string;
+        /** Context lifetime captured before asynchronous work. */
+        contextEpoch?: string;
     };
     /**
      * A stringified claims object which will be added to a Signed HTTP Request

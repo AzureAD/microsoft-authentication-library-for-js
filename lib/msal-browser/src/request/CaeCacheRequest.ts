@@ -103,6 +103,12 @@ export function prepareCaeCacheRequest<
     const xmsCc = isRecord(access) ? access.xms_cc : undefined;
     const values = isRecord(xmsCc) ? xmsCc.values : undefined;
     if (
+        request.experimentalCaeCache?.contextId &&
+        (!Array.isArray(values) || !values.length)
+    ) {
+        rejectCaeCacheExperiment(correlationId);
+    }
+    if (
         (xmsCc !== undefined && !isRecord(xmsCc)) ||
         (values !== undefined &&
             (!Array.isArray(values) ||
@@ -166,6 +172,8 @@ export function prepareCaeCacheRequest<
             authorizationEpoch:
                 request.experimentalCaeCache?.authorizationEpoch,
             realm: request.experimentalCaeCache?.realm,
+            contextId: request.experimentalCaeCache?.contextId,
+            contextEpoch: request.experimentalCaeCache?.contextEpoch,
             resource: resources.values().next().value || "",
             capability:
                 Array.isArray(values) && values.length ? "cp1" : "ordinary",

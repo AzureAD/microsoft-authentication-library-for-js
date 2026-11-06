@@ -318,6 +318,12 @@ export class ResponseHandler {
                           request.experimentalCaeCache.capability,
                       experimental_cae_resource:
                           request.experimentalCaeCache.resource || "",
+                      ...(request.experimentalCaeCache.contextId
+                          ? {
+                                experimental_cae_context:
+                                    request.experimentalCaeCache.contextId,
+                            }
+                          : {}),
                   }
                 : additionalCacheKeyComponents) ??
             (attributeTokenPartition

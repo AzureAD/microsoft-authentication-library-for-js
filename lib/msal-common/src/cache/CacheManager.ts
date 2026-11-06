@@ -1404,6 +1404,12 @@ export abstract class CacheManager implements ICacheManager {
                           request.experimentalCaeCache.capability,
                       experimental_cae_resource:
                           request.experimentalCaeCache.resource || "",
+                      ...(request.experimentalCaeCache.contextId
+                          ? {
+                                experimental_cae_context:
+                                    request.experimentalCaeCache.contextId,
+                            }
+                          : {}),
                   }
                 : attributeTokenPartition
                 ? {
