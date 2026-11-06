@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793968724765,
+  "lastUpdate": 1793984245991,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -25025,6 +25025,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.92%",
             "unit": "ops/sec",
             "extra": "215 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "ydi.w127@gmail.com",
+            "name": "Yongdi Wang",
+            "username": "yongdiw"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ae1799040be163c5538423485d691f416b96fc32",
+          "message": "Defer sign-in after reset MFA and sign-up/reset JIT (#8973)\n\n## Summary\n\nRequire the application's explicit signIn() call after MFA during SSPR\nand JIT after sign-up or SSPR, while preserving automatic completion for\nordinary sign-in.\n\n- Return `SignInContinuationStateV2` without acquiring tokens or caching\nan account in the affected post-flow paths.\n- Preserve the continuation token, scenario, scopes, and correlation ID\nuntil the application calls `state.signIn()`.\n- Extend public challenge-result types and add/update unit and\nintegration coverage.\n\nAligns with the explicit continuation behavior in\nhttps://github.com/AzureAD/microsoft-authentication-library-for-objc/pull/3156.\n\n## Validation\n\n- Dependency-ordered Common and Browser build.\n- Full Browser suite: 130 suites passed, 3071 tests passed.\n- TypeScript, lint, formatting, and API Extractor checks passed. Lint\nreports two existing unrelated warnings.\n- Browser patch changefile linked to this PR added; Beachball check\npassed.\n\n## Compatibility\n\nApplications must handle the continuation state returned by the affected\nMFA/JIT challenge submissions and explicitly call `state.signIn()` to\nacquire tokens. Sample-app updates are a separate follow-up and are not\nincluded here.\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCopilot-Session: 8bc6a3d6-1f43-41f3-b067-69313f470741",
+          "timestamp": "2026-11-06T16:49:23Z",
+          "tree_id": "e52007c391775f5fa4e28950be286a2d31d09f75",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/ae1799040be163c5538423485d691f416b96fc32"
+        },
+        "date": 1793984242314,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 460788,
+            "range": "±0.74%",
+            "unit": "ops/sec",
+            "extra": "237 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 466372,
+            "range": "±0.86%",
+            "unit": "ops/sec",
+            "extra": "229 samples"
           }
         ]
       }
