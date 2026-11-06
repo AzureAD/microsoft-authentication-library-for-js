@@ -70,14 +70,10 @@ export type NativeResponseProperties = {
 };
 
 /**
- * DPoP response values returned through the platform DOM API properties map.
+ * Broker properties passed through unchanged by the platform DOM API.
  */
 export type PlatformDOMResponseProperties = NativeResponseProperties &
-    Record<string, string> & {
-        token_type?: string;
-        dpop_proof?: string;
-        binding_attested?: string;
-    };
+    Record<string, string>;
 
 /**
  * The native token broker can optionally include additional information about operations it performs. If that data is returned, MSAL.js will include the following properties in the telemetry it collects.

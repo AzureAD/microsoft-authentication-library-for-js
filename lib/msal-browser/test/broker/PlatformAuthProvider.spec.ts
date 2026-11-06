@@ -324,7 +324,7 @@ describe("PlatformAuthProvider tests", () => {
             expect(result).toBe(false);
         });
 
-        it("returns false for DPoP when the DOM provider is active", () => {
+        it("returns false for DPoP when the DOM contract has not been discovered", () => {
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
                 logger,
@@ -337,6 +337,37 @@ describe("PlatformAuthProvider tests", () => {
                 Constants.AuthenticationScheme.DPOP
             );
             expect(result).toBe(false);
+        });
+
+        it("routes DPoP through DOM only after the required contract is advertised", async () => {
+            const getSupportedContracts = jest
+                .fn()
+                .mockResolvedValue([PlatformAuthConstants.PLATFORM_DOM_APIS]);
+            Object.defineProperty(navigator, "platformAuthentication", {
+                configurable: true,
+                value: { getSupportedContracts },
+            });
+            try {
+                const provider = await PlatformAuthDOMHandler.createProvider(
+                    logger,
+                    performanceClient,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+                expect(
+                    PlatformAuthProvider.isPlatformAuthAllowed(
+                        config,
+                        logger,
+                        TEST_CONFIG.CORRELATION_ID,
+                        provider,
+                        Constants.AuthenticationScheme.DPOP
+                    )
+                ).toBe(true);
+                expect(getSupportedContracts).toHaveBeenCalledWith(
+                    PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID
+                );
+            } finally {
+                delete (navigator as any).platformAuthentication;
+            }
         });
 
         it("returns true for DPoP when the extension provider is active", () => {
