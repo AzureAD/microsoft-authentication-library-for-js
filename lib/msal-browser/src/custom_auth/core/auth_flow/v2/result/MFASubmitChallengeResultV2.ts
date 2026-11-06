@@ -10,8 +10,7 @@ import type { CustomAuthAccountData } from "../../../../get_account/auth_flow/Cu
 import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 
 /**
- * States returned after submitting an MFA challenge. Password-reset flows
- * require an explicit sign-in call after verification.
+ * States returned after submitting an MFA challenge.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type MFASubmitChallengeResultStateV2 =
@@ -20,8 +19,7 @@ export type MFASubmitChallengeResultStateV2 =
     | FailedStateV2;
 
 /**
- * Result of submitting an MFA challenge. Account data is returned only when
- * sign-in completes.
+ * Result of submitting an MFA challenge.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type MFASubmitChallengeResultV2 = CustomAuthResultV2<

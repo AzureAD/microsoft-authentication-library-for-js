@@ -11,7 +11,6 @@ import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2
 
 /**
  * States returned after submitting an authentication-method verification challenge.
- * Sign-up and password-reset flows require an explicit sign-in call after activation.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type AuthMethodVerificationSubmitChallengeResultStateV2 =
@@ -21,7 +20,6 @@ export type AuthMethodVerificationSubmitChallengeResultStateV2 =
 
 /**
  * Result of submitting an authentication-method verification challenge.
- * Account data is returned only when sign-in completes.
  * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type AuthMethodVerificationSubmitChallengeResultV2 = CustomAuthResultV2<

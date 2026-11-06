@@ -29,7 +29,6 @@ export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBa
 
     /**
      * Submits the email or SMS challenge as the second authentication factor.
-     * Password-reset completion returns a continuation state for the app to sign in.
      * @param challenge - The challenge value to submit.
      * @returns The result of submitting the MFA challenge.
      */
