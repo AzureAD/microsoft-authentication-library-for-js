@@ -362,21 +362,6 @@ export function validateAuthorizationResponse(
               );
     }
 
-    if (expectedIssuer) {
-        if (!serverResponse.iss) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.issuerNotFound,
-                correlationId
-            );
-        }
-
-        if (serverResponse.iss !== expectedIssuer) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.issuerMismatch,
-                correlationId
-            );
-        }
-    }
     let decodedServerResponseState: string;
     let decodedRequestState: string;
 
@@ -405,7 +390,25 @@ export function validateAuthorizationResponse(
             ClientAuthErrorCodes.stateMismatch,
             correlationId
         );
-    }    // Check for error
+    }
+
+    if (expectedIssuer) {
+        if (!serverResponse.iss) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.issuerNotFound,
+                correlationId
+            );
+        }
+
+        if (serverResponse.iss !== expectedIssuer) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.issuerMismatch,
+                correlationId
+            );
+        }
+    }
+
+    // Check for error
     if (
         serverResponse.error ||
         serverResponse.error_description ||

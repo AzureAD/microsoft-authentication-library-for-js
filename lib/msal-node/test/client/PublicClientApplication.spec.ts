@@ -1580,6 +1580,7 @@ describe("PublicClientApplication", () => {
                                 new URLSearchParams({
                                     code: TEST_CONSTANTS.AUTHORIZATION_CODE,
                                     state,
+                                    iss: TEST_AUTHORIZATION_RESPONSE_ISSUER,
                                     client_info:
                                         TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                                 })
@@ -1603,6 +1604,12 @@ describe("PublicClientApplication", () => {
                         codeVerifier: expect.any(String),
                         codeChallenge: expect.any(String),
                         codeChallengeMethod: "S256",
+                    }),
+                    expect.objectContaining({
+                        code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                        client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                        iss: TEST_AUTHORIZATION_RESPONSE_ISSUER,
+                        state: userState,
                     })
                 );
                 expect(closeServer).toHaveBeenCalledTimes(2);
@@ -1643,7 +1650,9 @@ describe("PublicClientApplication", () => {
                         correlationId: "test-correlation",
                     })
                 ).rejects.toMatchObject({
-                    errorCode: ClientAuthErrorCodes.stateMismatch,
+                    errorCode: response.state
+                        ? ClientAuthErrorCodes.stateMismatch
+                        : ClientAuthErrorCodes.stateNotFound,
                     correlationId: "test-correlation",
                 });
                 expect(exchange).not.toHaveBeenCalled();
@@ -1680,6 +1689,7 @@ describe("PublicClientApplication", () => {
                                     error: "access_denied",
                                     error_description: "user_cancelled",
                                     state: parameters.get("state") || "",
+                                    iss: TEST_AUTHORIZATION_RESPONSE_ISSUER,
                                 })
                             )
                         ).toBe(200);
@@ -1920,11 +1930,11 @@ describe("PublicClientApplication", () => {
                 jest.spyOn(
                     LoopbackClient.prototype,
                     "listenForAuthCode"
-                ).mockResolvedValue({
+                ).mockImplementation(async (state) => ({
                     code: TEST_CONSTANTS.AUTHORIZATION_CODE,
-                    state: "123",
+                    state,
                     iss: issuer,
-                });
+                }));
                 jest.spyOn(
                     LoopbackClient.prototype,
                     "getRedirectUri"
@@ -2380,7 +2390,7 @@ describe("PublicClientApplication", () => {
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
                 state,
                 iss: TEST_AUTHORIZATION_RESPONSE_ISSUER,
-            });
+            }));
 
             jest.spyOn(
                 LoopbackClient.prototype,

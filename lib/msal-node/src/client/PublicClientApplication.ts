@@ -256,9 +256,6 @@ export class PublicClientApplication
                 scopes: request.scopes || CommonConstants.OIDC_DEFAULT_SCOPES,
                 redirectUri: redirectUri,
                 responseMode: CommonConstants.ResponseMode.FORM_POST,
-                state:
-                    remainingProperties.state ||
-                    this.cryptoProvider.createNewGuid(),
                 codeChallenge: challenge,
                 codeChallengeMethod:
                     CommonConstants.CodeChallengeMethodValues.S256,
@@ -298,7 +295,10 @@ export class PublicClientApplication
                 ...validRequest,
                 state: remainingProperties.state,
             };
-            return await this.acquireTokenByCode(tokenRequest, authCodePayload); // Await this so the server doesn't close prematurely
+            return await this.acquireTokenByCode(tokenRequest, {
+                ...authCodePayload,
+                state: remainingProperties.state,
+            }); // Await this so the server doesn't close prematurely
         } finally {
             loopbackClient.closeServer();
         }
