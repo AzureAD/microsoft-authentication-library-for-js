@@ -68,17 +68,14 @@ const MFA_STEP_API_IDS_V2: Partial<Record<FlowStepV2, number>> = {
     resendCode: MFA_V2_RESEND_CHALLENGE,
 };
 
-/**
- * Resolves the telemetry API ID for a flow step. MFA challenge operations use
- * distinct IDs when the sign-in caller identifies the second factor.
- */
 export function getPublicApiIdV2(
     scenario: CustomAuthFlowScenarioV2,
     step: FlowStepV2,
     authenticationFactor?: AuthenticationFactorV2
 ): number | undefined {
     if (
-        scenario === CustomAuthFlowScenarioV2.SignIn &&
+        (scenario === CustomAuthFlowScenarioV2.SignIn ||
+            scenario === CustomAuthFlowScenarioV2.PasswordReset) &&
         authenticationFactor === AuthenticationFactorV2.MULTI_FACTOR
     ) {
         return (

@@ -10,6 +10,7 @@ import { CompletedStateV2 } from "../../../../../../src/custom_auth/core/auth_fl
 import { MFAVerificationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
 import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import {
+    FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_COMPLETED_V2,
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
@@ -173,6 +174,31 @@ describe("MFAVerificationRequiredStateV2", () => {
         expect(result.isFailed()).toBe(true);
         expect(result.data).toBeUndefined();
         expect(result.error).toBeDefined();
+    });
+
+    it("rejects enrollment after MFA verification without returning account data", async () => {
+        flowClient.submitCode.mockResolvedValue({
+            type: FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-enroll",
+                scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                scopes,
+                links: {},
+            },
+            methods: [
+                {
+                    type: "email",
+                    enrollHref: "/enroll/email",
+                },
+            ],
+        });
+
+        const result = await buildState().submitChallenge("123456");
+
+        expect(result.isFailed()).toBe(true);
+        expect(result.error).toBeDefined();
+        expect(result.data).toBeUndefined();
     });
 
     it("resends an MFA challenge and remains in MFA verification", async () => {

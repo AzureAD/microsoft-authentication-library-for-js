@@ -45,6 +45,7 @@ import { AuthenticationFactorV2 } from "../core/network_client/custom_auth_api/v
 import { CodeRequiredStateV2 } from "../core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { AuthMethodSelectionRequiredStateV2 } from "../core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { SignInStateTransitionHandlerV2 } from "../sign_in/auth_flow/v2/state/SignInStateTransitionHandlerV2.js";
+import { ResetPasswordStateTransitionHandlerV2 } from "../reset_password/auth_flow/v2/state/ResetPasswordStateTransitionHandlerV2.js";
 import { PasswordRequiredStateV2 } from "../core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { SignUpStateTransitionHandlerV2 } from "../sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
 import { ExistingAccountCodeRequiredStateV2 } from "../sign_up/auth_flow/v2/state/ExistingAccountCodeRequiredStateV2.js";
@@ -106,6 +107,8 @@ export class CustomAuthStandardController
         new SignUpStateTransitionHandlerV2();
     private readonly signInStateTransitionHandlerV2 =
         new SignInStateTransitionHandlerV2();
+    private readonly resetPasswordStateTransitionHandlerV2 =
+        new ResetPasswordStateTransitionHandlerV2();
 
     /*
      * Constructor for CustomAuthStandardController.
@@ -688,6 +691,8 @@ export class CustomAuthStandardController
                         flowClient: this.flowClientV2,
                         continuationState: result.continuationState,
                         cacheClient: this.cacheClient,
+                        resetPasswordStateTransitionHandler:
+                            this.resetPasswordStateTransitionHandlerV2,
                         method: result.method,
                         sentTo: result.sentTo,
                         channel: result.channel,
@@ -708,6 +713,8 @@ export class CustomAuthStandardController
                     cacheClient: this.cacheClient,
                     methods: result.methods,
                     authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
+                    resetPasswordStateTransitionHandler:
+                        this.resetPasswordStateTransitionHandlerV2,
                 }),
                 undefined,
                 result.continuationState.scenario
