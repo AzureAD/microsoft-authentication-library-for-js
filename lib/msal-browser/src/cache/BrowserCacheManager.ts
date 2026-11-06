@@ -1705,14 +1705,27 @@ export class BrowserCacheManager extends CacheManager {
 
     /** Captures a cache-context lifetime without requiring an account or token. */
     getCapabilityContextEpoch(id: string, correlationId: string): string {
-        return this.getOrCreateCapabilityEpoch(
-            this.capabilityContextKey(id),
+        const key = this.capabilityContextKey(id);
+        const current = this.browserStorage.getItem(key);
+        if (current && this.isCapabilityContextCurrent(id, current)) {
+            return current;
+        }
+        const epoch = this.cryptoImpl.createNewGuid();
+        this.setItem(
+            this.capabilityContextActiveKey(id, epoch),
+            "1",
             correlationId
         );
+        this.setItem(key, epoch, correlationId);
+        return epoch;
     }
 
     private capabilityContextKey(id: string): string {
         return `msal.cae.context|${JSON.stringify([this.clientId, id])}`;
+    }
+
+    private capabilityContextActiveKey(id: string, epoch: string): string {
+        return `msal.cae.active|${JSON.stringify([this.clientId, id, epoch])}`;
     }
 
     private isCapabilityContextCurrent(id?: string, epoch?: string): boolean {
@@ -1720,21 +1733,27 @@ export class BrowserCacheManager extends CacheManager {
             !id ||
             (!!epoch &&
                 this.browserStorage.getItem(this.capabilityContextKey(id)) ===
-                    epoch)
+                    epoch &&
+                this.browserStorage.getItem(
+                    this.capabilityContextActiveKey(id, epoch)
+                ) === "1")
         );
     }
 
     /** Fences first, then removes only the retired lifetime's CP1 tokens and generations. */
-    resetCapabilityContext(id: string): void {
+    resetCapabilityContext(id: string, expectedEpoch?: string): void {
         const correlationId = this.cryptoImpl.createNewGuid();
         return invoke(
             () => {
                 const key = this.capabilityContextKey(id);
-                const epoch = this.browserStorage.getItem(key);
-                this.browserStorage.removeItem(key);
+                const epoch = expectedEpoch || this.browserStorage.getItem(key);
                 if (!epoch) {
                     return;
                 }
+                // Revoke a lifetime, never a mutable pointer that another handle may replace.
+                this.browserStorage.removeItem(
+                    this.capabilityContextActiveKey(id, epoch)
+                );
                 const prefix = `${epoch}.`;
                 const keys = this.getTokenKeys(
                     CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION

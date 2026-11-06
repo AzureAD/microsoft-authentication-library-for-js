@@ -25,6 +25,7 @@ export interface CaeCacheContext {
 type ContextState = {
     storage: BrowserCacheManager;
     id: string;
+    epoch: string;
     retired: boolean;
 };
 
@@ -36,7 +37,12 @@ export function createCaeCacheContextHandle(
     id: string,
     acquire: (request: SilentRequest) => Promise<AuthenticationResult>
 ): CaeCacheContext {
-    const state: ContextState = { storage, id, retired: false };
+    const state: ContextState = {
+        storage,
+        id,
+        epoch: storage.getCapabilityContextEpoch(id, ""),
+        retired: false,
+    };
     let retirement: Promise<void> | undefined;
     const handle: CaeCacheContext = Object.freeze({
         acquireTokenSilent: (request: SilentRequest) =>
@@ -49,6 +55,9 @@ export function createCaeCacheContextHandle(
                 );
             }
             storage.resetCapabilityContext(id);
+            if (!state.retired) {
+                state.epoch = storage.getCapabilityContextEpoch(id, "");
+            }
         },
         retire: () => {
             if (!retirement) {
@@ -60,7 +69,7 @@ export function createCaeCacheContextHandle(
                 });
                 state.retired = true;
                 try {
-                    storage.resetCapabilityContext(id);
+                    storage.resetCapabilityContext(id, state.epoch);
                     resolve();
                 } catch (error) {
                     reject(error);
@@ -89,11 +98,9 @@ export function captureCaeCacheContext(
             correlationId
         );
     }
+    state.epoch = storage.getCapabilityContextEpoch(state.id, correlationId);
     return {
         contextId: state.id,
-        contextEpoch: storage.getCapabilityContextEpoch(
-            state.id,
-            correlationId
-        ),
+        contextEpoch: state.epoch,
     };
 }

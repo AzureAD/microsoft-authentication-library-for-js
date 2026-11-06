@@ -391,15 +391,22 @@ describe("Experimental CAE cache contexts", () => {
         );
         for (let index = 0; index < 5; index++) {
             const context = await owner.createCaeCacheContext(
-                `workspace-${index}`
+                "stable-workspace"
             );
             await context.acquireTokenSilent(request);
             await context.retire();
             expect(
-                Object.keys(window.sessionStorage).filter((key) =>
-                    key.startsWith("msal.cae.")
+                Object.keys(window.sessionStorage).filter(
+                    (key) =>
+                        key.startsWith("msal.cae.") &&
+                        !key.startsWith("msal.cae.context|")
                 )
             ).toHaveLength(0);
+            expect(
+                Object.keys(window.sessionStorage).filter((key) =>
+                    key.startsWith("msal.cae.context|")
+                )
+            ).toHaveLength(1);
             expect(cache.getTokenKeys().accessToken).toHaveLength(0);
         }
         expect(cache.getTokenKeys().refreshToken).toHaveLength(1);
@@ -422,6 +429,42 @@ describe("Experimental CAE cache contexts", () => {
         await retirement;
         expect(reentrant).toBe(retirement);
     });
+
+    it.each(Object.values(BrowserCacheLocation))(
+        "does not let a different stale handle retire a newer lifetime in %s",
+        async (location) => {
+            const post = jest
+                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+                .mockResolvedValueOnce(response("old"))
+                .mockResolvedValueOnce(response("new"));
+            const { owner } = await application(location);
+            const other =
+                location === BrowserCacheLocation.MemoryStorage
+                    ? owner
+                    : new PublicClientApplication(configuration(location));
+            if (other !== owner) {
+                await other.initialize();
+            }
+            const stale = await other.createCaeCacheContext("workspace-a");
+            const old = await owner.createCaeCacheContext("workspace-a");
+            await old.acquireTokenSilent(request);
+            await old.retire();
+            const current = await owner.createCaeCacheContext("workspace-a");
+            expect(
+                (await current.acquireTokenSilent(request)).accessToken
+            ).toBe("new");
+            await stale.retire();
+            expect(
+                (
+                    await current.acquireTokenSilent({
+                        ...request,
+                        cacheLookupPolicy: CacheLookupPolicy.AccessToken,
+                    })
+                ).accessToken
+            ).toBe("new");
+            expect(post).toHaveBeenCalledTimes(2);
+        }
+    );
 
     it("fences before authority discovery finishes and does not start renewal", async () => {
         const post = jest.spyOn(FetchClient.prototype, "sendPostRequestAsync");

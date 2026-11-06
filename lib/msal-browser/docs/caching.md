@@ -159,10 +159,17 @@ silent request through that same public owner, including subclass behavior.
 `reset` and `retire` invalidate the context lifetime synchronously, before their
 returned promise settles. They clear its CP1 tokens and generation metadata
 without clearing accounts, ID tokens, refresh tokens or other contexts.
+One small lifetime pointer remains per stable identifier; active-lifetime markers,
+tokens and resource generations are removed on retirement. Lifetimes do not
+accumulate with repeated reset or retirement of the same identifier.
 `reset` is nonterminal; `retire` permanently rejects further use of that handle
 and is idempotent. Creating the same identifier after retirement gives a fresh
 usable context. Late old responses and repeated old-handle retirement cannot
 overwrite or clear its replacement.
+Retirement targets the last lifetime observed by that handle, so delayed
+retirement of a different old handle does not clear a newer replacement.
+An active handle joins the current lifetime when it next acquires a token;
+an explicit `reset` still invalidates the current namespace.
 
 Use `invalidateAccessTokenCache: true` on a context acquisition for an individual
 trusted challenge or cache bypass; it remains resource-scoped. Do not replace
