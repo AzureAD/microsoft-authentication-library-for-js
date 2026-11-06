@@ -10,6 +10,14 @@ import {
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants.js";
 import { base64Encode, urlEncodeArr } from "../encode/Base64Encode.js";
 import { base64Decode, base64DecToArr } from "../encode/Base64Decode.js";
+import {
+    AuthError,
+    invokeAsync,
+    IPerformanceClient,
+    Logger,
+} from "@azure/msal-common/browser";
+import { AsymmetricEarSubErrors } from "../error/AsymmetricEarSubErrors.js";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 
 /**
  * This file defines functions used by the browser library to perform cryptography operations such as
@@ -27,6 +35,10 @@ const HKDF = "HKDF";
 const S256_HASH_ALG = "SHA-256";
 // JWK values used by browser-internal WebCrypto helpers.
 const JSON_WEB_KEY_CURVE_P256 = "P-256";
+const ECDH_P384_ALGORITHM: EcKeyGenParams = {
+    name: "ECDH",
+    namedCurve: "P-384",
+};
 const JSON_WEB_KEY_TYPE_EC = "EC";
 const JSON_WEB_KEY_TYPE_RSA = "RSA";
 const MISSING_JWK_KTY_SUBERROR = "missing_jwk_kty";
@@ -261,6 +273,357 @@ export async function generateEarKey(): Promise<string> {
     };
 
     return base64Encode(JSON.stringify(jwk));
+}
+
+/**
+ * Local asymmetric EAR key material, separate from serializable request metadata.
+ * @internal
+ */
+export type AsymmetricEarKey = {
+    privateJwk: JsonWebKey;
+    publicJwk: JsonWebKey;
+};
+
+/**
+ * Generates P-384 ECDH keys for request-scoped private sessionStorage and public wire metadata.
+ * @internal
+ */
+export async function generateAsymmetricEarKey(): Promise<AsymmetricEarKey> {
+    const keyPair = await generateKeyPair(
+        true,
+        ["deriveBits"],
+        ECDH_P384_ALGORITHM
+    );
+    const publicJwk = await exportJwk(keyPair.publicKey);
+    const privateJwk = await exportJwk(keyPair.privateKey);
+
+    return {
+        privateJwk,
+        publicJwk,
+    };
+}
+
+/**
+ * Restores a private EAR key as non-exportable. The serialized sessionStorage copy remains exportable.
+ * @internal
+ */
+export async function importAsymmetricEarKey(
+    privateJwk: JsonWebKey,
+    correlationId = ""
+): Promise<CryptoKey> {
+    if (
+        privateJwk?.kty !== "EC" ||
+        privateJwk.crv !== "P-384" ||
+        !privateJwk.d
+    ) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.asymmetricEarKeyError,
+            correlationId,
+            AsymmetricEarSubErrors.InvalidPrivateKey
+        );
+    }
+    try {
+        return await importJwk(
+            privateJwk,
+            false,
+            ["deriveBits"],
+            ECDH_P384_ALGORITHM
+        );
+    } catch {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.asymmetricEarKeyError,
+            correlationId,
+            AsymmetricEarSubErrors.PrivateKeyImportFailed
+        );
+    }
+}
+
+/**
+ * Encodes the EAR client party information with a fresh 192-bit nonce.
+ * @internal
+ */
+export function generateAsymmetricEarApv(publicJwk: JsonWebKey): string {
+    const point = new Uint8Array(
+        concatEarBytes(
+            new Uint8Array([4]),
+            decodeEarBase64Url(publicJwk.x || ""),
+            decodeEarBase64Url(publicJwk.y || "")
+        )
+    );
+    if (point.length !== 97) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.asymmetricEarKeyError,
+            "",
+            AsymmetricEarSubErrors.InvalidPublicKeyCoordinates
+        );
+    }
+    const nonce = new Uint8Array(24);
+    window.crypto.getRandomValues(nonce);
+    return urlEncodeArr(
+        new Uint8Array(
+            concatEarBytes(
+                lengthPrefixEarBytes(new TextEncoder().encode("EarClient")),
+                lengthPrefixEarBytes(point),
+                lengthPrefixEarBytes(nonce)
+            )
+        )
+    );
+}
+
+/**
+ * Authenticates and decrypts direct ECDH-ES/P-384/A256GCM using JOSE Concat KDF.
+ * Party information is used byte-for-byte; the service need not echo the request APV.
+ * @internal
+ */
+export async function decryptAsymmetricEarResponse(
+    privateJwk: JsonWebKey,
+    apv: string,
+    earJwe: string,
+    requestApv = apv,
+    telemetry?: {
+        logger: Logger;
+        performanceClient: IPerformanceClient;
+        correlationId: string;
+    }
+): Promise<string> {
+    const correlationId = telemetry?.correlationId || "";
+    const measure = <T>(
+        eventName: string,
+        operation: () => Promise<T>
+    ): Promise<T> =>
+        telemetry
+            ? invokeAsync(
+                  operation,
+                  eventName,
+                  telemetry.logger,
+                  telemetry.performanceClient,
+                  correlationId
+              )()
+            : operation();
+    if (apv !== requestApv) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.asymmetricEarKeyError,
+            correlationId,
+            AsymmetricEarSubErrors.RequestApvMismatch
+        );
+    }
+    const parts = earJwe.split(".");
+    if (parts.length !== 5 || parts[1] !== "") {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            correlationId,
+            AsymmetricEarSubErrors.InvalidJweFormatOrHeader
+        );
+    }
+    let header: {
+        alg: string;
+        enc: string;
+        crit?: unknown;
+        zip?: unknown;
+        apv?: string;
+        apu: string;
+        epk: {
+            kty: string;
+            crv: string;
+            x: string;
+            y: string;
+            d?: string;
+        };
+    };
+    try {
+        header = JSON.parse(
+            new TextDecoder("utf-8", { fatal: true }).decode(
+                decodeEarBase64Url(parts[0], correlationId)
+            )
+        );
+    } catch {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            correlationId,
+            AsymmetricEarSubErrors.InvalidJweFormatOrHeader
+        );
+    }
+    if (
+        !header ||
+        header.alg !== "ECDH-ES" ||
+        header.enc !== "A256GCM" ||
+        header.crit !== undefined ||
+        header.zip !== undefined ||
+        header.epk?.kty !== "EC" ||
+        header.epk.crv !== "P-384" ||
+        header.epk.d !== undefined ||
+        (header.apv !== undefined && header.apv !== apv)
+    ) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            correlationId,
+            AsymmetricEarSubErrors.InvalidJweFormatOrHeader
+        );
+    }
+    const x = decodeEarBase64Url(header.epk.x, correlationId);
+    const y = decodeEarBase64Url(header.epk.y, correlationId);
+    const apuBytes = decodeEarBase64Url(header.apu, correlationId);
+    const apvBytes = decodeEarBase64Url(apv, correlationId);
+    const iv = decodeEarBase64Url(parts[2], correlationId);
+    const ciphertext = decodeEarBase64Url(parts[3], correlationId);
+    const tag = decodeEarBase64Url(parts[4], correlationId);
+    if (
+        x.length !== 48 ||
+        y.length !== 48 ||
+        iv.length !== 12 ||
+        tag.length !== 16
+    ) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            correlationId,
+            AsymmetricEarSubErrors.InvalidJweFormatOrHeader
+        );
+    }
+
+    let key: CryptoKey;
+    try {
+        const privateKey = await measure(
+            BrowserPerformanceEvents.ImportAsymmetricEarKey,
+            () => importAsymmetricEarKey(privateJwk, correlationId)
+        );
+        const publicKey = await measure(
+            BrowserPerformanceEvents.ImportAsymmetricEarPublicKey,
+            () =>
+                importJwk(
+                    {
+                        kty: "EC",
+                        crv: "P-384",
+                        x: header.epk.x,
+                        y: header.epk.y,
+                    },
+                    false,
+                    [],
+                    ECDH_P384_ALGORITHM
+                )
+        );
+        const secret = new Uint8Array(
+            await measure(
+                BrowserPerformanceEvents.DeriveAsymmetricEarSecret,
+                () =>
+                    window.crypto.subtle.deriveBits(
+                        { name: "ECDH", public: publicKey },
+                        privateKey,
+                        384
+                    )
+            )
+        );
+        // RFC 7518 section 4.6.2: one SHA-256 round produces the 256-bit content key.
+        const input = new Uint8Array(
+            concatEarBytes(
+                earUint32(1),
+                secret,
+                lengthPrefixEarBytes(new TextEncoder().encode("A256GCM")),
+                lengthPrefixEarBytes(apuBytes),
+                lengthPrefixEarBytes(apvBytes),
+                earUint32(256)
+            )
+        );
+        let derivedKey: ArrayBuffer;
+        try {
+            derivedKey = await measure(
+                BrowserPerformanceEvents.AsymmetricEarConcatKdf,
+                () => window.crypto.subtle.digest(S256_HASH_ALG, input)
+            );
+        } finally {
+            secret.fill(0);
+            input.fill(0);
+        }
+        try {
+            key = await measure(
+                BrowserPerformanceEvents.ImportAsymmetricEarContentKey,
+                () =>
+                    window.crypto.subtle.importKey(
+                        RAW,
+                        derivedKey,
+                        AES_GCM,
+                        false,
+                        [DECRYPT]
+                    )
+            );
+        } finally {
+            new Uint8Array(derivedKey).fill(0);
+        }
+    } catch (error) {
+        if (error instanceof AuthError) {
+            throw error;
+        }
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            correlationId,
+            AsymmetricEarSubErrors.ContentEncryptionKeyDerivationFailed
+        );
+    }
+    try {
+        const plaintext = await measure(
+            BrowserPerformanceEvents.DecryptAsymmetricEarResponse,
+            () =>
+                window.crypto.subtle.decrypt(
+                    {
+                        name: AES_GCM,
+                        iv,
+                        tagLength: 128,
+                        additionalData: new TextEncoder().encode(parts[0]),
+                    },
+                    key,
+                    concatEarBytes(ciphertext, tag)
+                )
+        );
+        return new TextDecoder("utf-8", { fatal: true }).decode(plaintext);
+    } catch {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            correlationId,
+            AsymmetricEarSubErrors.JweDecryptionFailed
+        );
+    }
+}
+
+/** Decodes canonical, unpadded JOSE base64url for asymmetric EAR only. */
+function decodeEarBase64Url(value: string, correlationId = ""): Uint8Array {
+    // Match the unpadded base64url alphabet only: letters, digits, '-' and '_'.
+    if (typeof value !== "string" || !/^[A-Za-z0-9_-]+$/.test(value)) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            correlationId,
+            AsymmetricEarSubErrors.InvalidJweFormatOrHeader
+        );
+    }
+    const bytes = new Uint8Array(base64DecToArr(value));
+    if (urlEncodeArr(bytes) !== value) {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            correlationId,
+            AsymmetricEarSubErrors.InvalidJweFormatOrHeader
+        );
+    }
+    return bytes;
+}
+
+function earUint32(value: number): Uint8Array {
+    const bytes = new Uint8Array(4);
+    new DataView(bytes.buffer).setUint32(0, value);
+    return bytes;
+}
+
+function concatEarBytes(...parts: Uint8Array[]): ArrayBuffer {
+    const bytes = new Uint8Array(
+        parts.reduce((length, part) => length + part.length, 0)
+    );
+    let offset = 0;
+    for (const part of parts) {
+        bytes.set(part, offset);
+        offset += part.length;
+    }
+    return bytes.buffer;
+}
+
+function lengthPrefixEarBytes(bytes: Uint8Array): Uint8Array {
+    return new Uint8Array(concatEarBytes(earUint32(bytes.length), bytes));
 }
 
 /**

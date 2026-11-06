@@ -58,7 +58,7 @@ import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
-import { generateEarKey } from "../crypto/BrowserCrypto.js";
+import { AsymmetricEarSubErrors } from "../error/AsymmetricEarSubErrors.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
     clearCacheOnLogout,
@@ -346,13 +346,6 @@ export class RedirectClient extends StandardInteractionClient {
             account
         );
 
-        const earJwk = await invokeAsync(
-            generateEarKey,
-            BrowserPerformanceEvents.GenerateEarKey,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )();
         const pkceCodes = await invokeAsync(
             generatePkceCodes,
             BrowserPerformanceEvents.GeneratePkceCodes,
@@ -367,12 +360,17 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        const redirectRequest = {
-            ...request,
-            earJwk: earJwk,
-            codeChallenge: pkceCodes.challenge,
-            ...tokenBindingParams,
-        };
+        const redirectRequest = await Authorize.initializeEarRequest(
+            this.config,
+            {
+                ...request,
+                codeChallenge: pkceCodes.challenge,
+                ...tokenBindingParams,
+            },
+            this.browserStorage,
+            this.logger,
+            this.performanceClient
+        );
 
         try {
             if (
@@ -391,6 +389,26 @@ export class RedirectClient extends StandardInteractionClient {
                 this.correlationId,
                 pkceCodes.verifier
             );
+            if (redirectRequest.asymmetricEar) {
+                const [cachedRequest, cachedVerifier] =
+                    this.browserStorage.getCachedRequest(this.correlationId);
+                const cachedContext = cachedRequest.asymmetricEar;
+                if (
+                    cachedContext?.version !== 1 ||
+                    cachedContext.keyId !==
+                        redirectRequest.asymmetricEar.keyId ||
+                    cachedContext.apv !== redirectRequest.asymmetricEar.apv ||
+                    cachedRequest.earJwk !== redirectRequest.earJwk ||
+                    cachedVerifier !== pkceCodes.verifier
+                ) {
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.asymmetricEarKeyError,
+                        correlationId,
+                        AsymmetricEarSubErrors.RequestPersistenceFailed
+                    );
+                }
+            }
+
             const form = await Authorize.getEARForm(
                 document,
                 this.config,
@@ -411,14 +429,15 @@ export class RedirectClient extends StandardInteractionClient {
                     );
                 }, this.config.system.redirectNavigationTimeout);
             });
-        } catch (e) {
+        } catch (error) {
+            this.browserStorage.resetRequestCache(correlationId);
             await removeTokenBindingKeyOnFailure(
                 redirectRequest,
                 this.tokenBindingKeyManager,
                 this.logger,
                 this.performanceClient
             );
-            throw e;
+            throw error;
         }
     }
 
@@ -840,7 +859,6 @@ export class RedirectClient extends StandardInteractionClient {
     /**
      * Redirects window to given URL.
      * @param urlNavigate
-     * @param onRedirectNavigateRequest - onRedirectNavigate callback provided on the request
      */
     async initiateAuthRequest(requestUrl: string): Promise<void> {
         this.logger.verbose(

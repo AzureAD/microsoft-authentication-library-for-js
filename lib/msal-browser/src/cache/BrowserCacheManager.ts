@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { AsymmetricEarSubErrors } from "../error/AsymmetricEarSubErrors.js";
 import {
     AccessTokenEntity,
     AccountEntity,
@@ -22,6 +23,7 @@ import {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     ICrypto,
     IdTokenEntity,
+    invoke,
     invokeAsync,
     IPerformanceClient,
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
@@ -76,8 +78,24 @@ import { clearHash } from "../utils/BrowserUtils.js";
 import { version } from "../packageMetadata.js";
 import { removeElementFromArray } from "../utils/Helpers.js";
 import { EncryptedData, isEncrypted } from "./EncryptedData.js";
+import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 
 type KmsiMap = { [homeAccountId: string]: boolean };
+
+/**
+ * Private request context, never part of serializable authorization parameters.
+ * @internal
+ */
+export type AsymmetricEarKeyContext = {
+    privateJwk: JsonWebKey;
+    apv: string;
+};
+
+type AsymmetricEarKeyRecord = AsymmetricEarKeyContext & {
+    version: 1;
+    alg: "ECDH-ES";
+    correlationId?: string;
+};
 
 /**
  * Reason an old-schema cache entry was removed during migration.
@@ -2215,6 +2233,7 @@ export class BrowserCacheManager extends CacheManager {
             correlationId
         );
 
+        this.removeAsymmetricEarKeys(correlationId);
         this.removeTemporaryItem(
             this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS)
         );
@@ -2231,6 +2250,64 @@ export class BrowserCacheManager extends CacheManager {
             this.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST)
         );
         this.setInteractionInProgress(false, undefined);
+    }
+
+    /**
+     * Removes private EAR context for a completed request without resetting another interaction.
+     * @internal
+     */
+    removeAsymmetricEarKeys(correlationId: string): void {
+        try {
+            const prefix = this.generateCacheKey(
+                `${TemporaryCacheKeys.ASYMMETRIC_EAR_KEY}.`
+            );
+            for (const key of this.temporaryCacheStorage.getKeys()) {
+                if (key.startsWith(prefix)) {
+                    const record = JSON.parse(
+                        this.temporaryCacheStorage.getItem(key) || "null"
+                    );
+                    if (record?.correlationId === correlationId) {
+                        this.removeAsymmetricEarKey(
+                            key.substring(prefix.length),
+                            correlationId
+                        );
+                    }
+                }
+            }
+            const encodedRequest = this.getTemporaryCache(
+                TemporaryCacheKeys.REQUEST_PARAMS,
+                correlationId,
+                true
+            );
+            const request: CommonAuthorizationUrlRequest | undefined =
+                encodedRequest
+                    ? JSON.parse(base64Decode(encodedRequest))
+                    : undefined;
+            if (
+                request?.correlationId === correlationId &&
+                request.asymmetricEar?.keyId
+            ) {
+                const record = JSON.parse(
+                    this.temporaryCacheStorage.getItem(
+                        this.getAsymmetricEarCacheKey(
+                            request.asymmetricEar.keyId,
+                            correlationId
+                        )
+                    ) || "null"
+                );
+                if (record && record.correlationId === undefined) {
+                    this.removeAsymmetricEarKey(
+                        request.asymmetricEar.keyId,
+                        correlationId
+                    );
+                }
+            }
+        } catch {
+            this.logger.warning(
+                "Unable to clean up the cached asymmetric EAR request context.",
+                correlationId
+            );
+        }
     }
 
     cacheAuthorizeRequest(
@@ -2258,6 +2335,165 @@ export class BrowserCacheManager extends CacheManager {
                 true
             );
         }
+    }
+
+    /**
+     * Persists private EAR context separately from public request metadata and verifies recovery.
+     * @internal
+     */
+    cacheAsymmetricEarKey(
+        keyId: string,
+        context: AsymmetricEarKeyContext,
+        correlationId: string
+    ): void {
+        invoke(
+            () => {
+                const key = this.getAsymmetricEarCacheKey(keyId, correlationId);
+                const record: AsymmetricEarKeyRecord = {
+                    version: 1,
+                    alg: "ECDH-ES",
+                    correlationId,
+                    privateJwk: context.privateJwk,
+                    apv: context.apv,
+                };
+                if (!isAsymmetricEarKeyRecord(record)) {
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.asymmetricEarKeyError,
+                        correlationId,
+                        AsymmetricEarSubErrors.InvalidPrivateKeyContext
+                    );
+                }
+                let existing: string | null;
+                try {
+                    existing = this.temporaryCacheStorage.getItem(key);
+                } catch {
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.asymmetricEarKeyError,
+                        correlationId,
+                        AsymmetricEarSubErrors.PrivateKeyReadFailed
+                    );
+                }
+                if (existing !== null) {
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.asymmetricEarKeyError,
+                        correlationId,
+                        AsymmetricEarSubErrors.PrivateKeyIdAlreadyInUse
+                    );
+                }
+                try {
+                    const value = JSON.stringify(record);
+                    this.temporaryCacheStorage.setItem(key, value);
+                    if (this.temporaryCacheStorage.getItem(key) !== value) {
+                        throw createBrowserAuthError(
+                            BrowserAuthErrorCodes.asymmetricEarKeyError,
+                            correlationId,
+                            AsymmetricEarSubErrors.PrivateKeyPersistenceFailed
+                        );
+                    }
+                } catch {
+                    try {
+                        this.temporaryCacheStorage.removeItem(key);
+                    } catch {
+                        // Cleanup may also fail when the browser blocks storage.
+                    }
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.asymmetricEarKeyError,
+                        correlationId,
+                        AsymmetricEarSubErrors.PrivateKeyPersistenceFailed
+                    );
+                }
+            },
+            BrowserPerformanceEvents.BrowserCacheManagerCacheAsymmetricEarKey,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
+    }
+
+    /**
+     * Retrieves only the private context matching the local request key reference.
+     * @internal
+     */
+    getAsymmetricEarKey(
+        keyId: string,
+        correlationId: string
+    ): AsymmetricEarKeyContext {
+        return invoke(
+            () => {
+                const key = this.getAsymmetricEarCacheKey(keyId, correlationId);
+                let record: unknown;
+                try {
+                    const value = this.temporaryCacheStorage.getItem(key);
+                    record = value ? JSON.parse(value) : null;
+                } catch {
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.asymmetricEarKeyError,
+                        correlationId,
+                        AsymmetricEarSubErrors.PrivateKeyReadFailed
+                    );
+                }
+                if (!isAsymmetricEarKeyRecord(record)) {
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.asymmetricEarKeyError,
+                        correlationId,
+                        AsymmetricEarSubErrors.PrivateKeyContextMissingOrInvalid
+                    );
+                }
+                return { privateJwk: record.privateJwk, apv: record.apv };
+            },
+            BrowserPerformanceEvents.BrowserCacheManagerGetAsymmetricEarKey,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
+    }
+
+    /**
+     * Removes the matching private request context without touching other active requests.
+     * @internal
+     */
+    removeAsymmetricEarKey(keyId: string, correlationId: string): void {
+        invoke(
+            () => {
+                const key = this.getAsymmetricEarCacheKey(keyId, correlationId);
+                try {
+                    this.temporaryCacheStorage.removeItem(key);
+                } catch {
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.asymmetricEarKeyError,
+                        correlationId,
+                        AsymmetricEarSubErrors.PrivateKeyRemovalFailed
+                    );
+                }
+            },
+            BrowserPerformanceEvents.BrowserCacheManagerRemoveAsymmetricEarKey,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
+    }
+
+    private getAsymmetricEarCacheKey(
+        keyId: string,
+        correlationId: string
+    ): string {
+        if (!(this.temporaryCacheStorage instanceof SessionStorage)) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.asymmetricEarKeyError,
+                correlationId,
+                AsymmetricEarSubErrors.SessionStorageUnavailable
+            );
+        }
+        if (!keyId) {
+            throw createBrowserAuthError(
+                BrowserAuthErrorCodes.asymmetricEarKeyError,
+                correlationId,
+                AsymmetricEarSubErrors.PrivateKeyIdMissing
+            );
+        }
+        return this.generateCacheKey(
+            `${TemporaryCacheKeys.ASYMMETRIC_EAR_KEY}.${keyId}`
+        );
     }
 
     /**
@@ -2571,6 +2807,33 @@ function getStorageImplementation(
     }
 
     return new MemoryStorage();
+}
+
+/**
+ * Validates the additive, versioned private EAR record without logging its contents.
+ */
+function isAsymmetricEarKeyRecord(
+    value: unknown
+): value is AsymmetricEarKeyRecord {
+    if (!value || typeof value !== "object") {
+        return false;
+    }
+    const record = value as AsymmetricEarKeyRecord;
+    const jwk = record.privateJwk;
+    return (
+        record.version === 1 &&
+        record.alg === "ECDH-ES" &&
+        typeof record.apv === "string" &&
+        record.apv.length > 0 &&
+        jwk?.kty === "EC" &&
+        jwk.crv === "P-384" &&
+        typeof jwk.x === "string" &&
+        jwk.x.length > 0 &&
+        typeof jwk.y === "string" &&
+        jwk.y.length > 0 &&
+        typeof jwk.d === "string" &&
+        jwk.d.length > 0
+    );
 }
 
 export const DEFAULT_BROWSER_CACHE_MANAGER = (

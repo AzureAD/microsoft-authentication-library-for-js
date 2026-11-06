@@ -27,7 +27,6 @@ const EAR_START_CMD = "npm run start:ear:e2e";
 const EXPRESS_SAMPLE_ROOT = path.join(__dirname, "..");
 
 // ?ear=true forces EAR protocol (see earConfig.js).
-const EAR_QUERY_STRING = "?ear=true";
 const EAR_CACHE_LOCATION = "sessionStorage";
 const EAR_SCOPES = ["User.Read"];
 const EAR_ORIGIN = `https://localhost:${EAR_PORT}`;
@@ -51,7 +50,15 @@ async function performRedirectLogin(
     await screenshot.takeScreenshot(page, "Logged In");
 }
 
-describe("EAR Tests", () => {
+describe.each([
+    { mode: "symmetric", method: "POST", query: "?ear=true", algorithm: "dir" },
+    {
+        mode: "asymmetric",
+        method: "POST",
+        query: "?ear=true&asymmetricEar=true",
+        algorithm: "ECDH-ES",
+    },
+])("EAR Tests ($mode, $method)", ({ mode, method, query, algorithm }) => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -60,6 +67,22 @@ describe("EAR Tests", () => {
     let BrowserCache: BrowserCacheUtils;
     let flowUtils: AuthenticationFlowTestUtils;
     let earServerProcess: ChildProcess;
+
+    const assertEarRequests = (flow: AuthenticationFlowTestUtils) => {
+        const requests = flow.getEarRequests();
+        expect(requests.length).toBeGreaterThan(0);
+        for (const request of requests) {
+            expect(request).toEqual(
+                expect.objectContaining({
+                    method,
+                    algorithm,
+                    ...(mode === "asymmetric"
+                        ? { curve: "P-384", hasApv: true, hasPrivateKey: false }
+                        : { hasPrivateKey: true }),
+                })
+            );
+        }
+    };
 
     beforeAll(async () => {
         // Dedicated EAR HTTPS server; spawn directly and inherit stdio so
@@ -99,7 +122,7 @@ describe("EAR Tests", () => {
     });
 
     afterAll(async () => {
-        await browser.close();
+        await browser?.close();
         // Kill the EAR server, then await the wrapper exit so no async output
         // races jest teardown.
         await serverUtils.killServer(EAR_PORT);
@@ -124,22 +147,29 @@ describe("EAR Tests", () => {
             EAR_ORIGIN,
             EAR_CRYPTO_ALGORITHM
         );
-        await page.goto(`https://localhost:${EAR_PORT}/${EAR_QUERY_STRING}`, {
+        await page.goto(`https://localhost:${EAR_PORT}/${query}`, {
             timeout: 10000,
         });
         await flowUtils.assertCryptoOperationSpyInstalled(EAR_CRYPTO_ALGORITHM);
     });
 
     afterEach(async () => {
-        await page.evaluate(() => window.sessionStorage.clear());
-        await page.evaluate(() => window.localStorage.clear());
-        await page.close();
-        await context.close();
+        try {
+            const remainingPrivateContexts = await page.evaluate(
+                () =>
+                    Object.keys(window.sessionStorage).filter((key) =>
+                        key.includes(".request.asymmetric-ear.")
+                    ).length
+            );
+            expect(remainingPrivateContexts).toBe(0);
+        } finally {
+            await context?.close();
+        }
     });
 
     it("Performs EAR loginRedirect", async () => {
         const screenshot = new Screenshot(
-            `${SCREENSHOT_BASE_FOLDER_NAME}/earRedirectBaseCase`
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${mode}-${method}/earRedirectBaseCase`
         );
         await screenshot.takeScreenshot(page, "Page loaded");
 
@@ -156,9 +186,11 @@ describe("EAR Tests", () => {
         });
         await screenshot.takeScreenshot(page, "Logged In");
 
-        expect(flowUtils.getRequestCount("/authorize", "POST")).toBeGreaterThan(
+        expect(flowUtils.getRequestCount("/authorize", method)).toBeGreaterThan(
             0
         );
+        assertEarRequests(flowUtils);
+        expect(flowUtils.getRequestCount("/token", "POST")).toBe(0);
         // MSAL decrypted the EAR response (ear_jwe), not an auth-code fallback.
         expect(
             await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
@@ -169,7 +201,7 @@ describe("EAR Tests", () => {
 
     it("Performs EAR loginPopup", async () => {
         const screenshot = new Screenshot(
-            `${SCREENSHOT_BASE_FOLDER_NAME}/earPopupBaseCase`
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${mode}-${method}/earPopupBaseCase`
         );
         await screenshot.takeScreenshot(page, "Page loaded");
 
@@ -203,10 +235,12 @@ describe("EAR Tests", () => {
         });
         await screenshot.takeScreenshot(page, "Logged In");
 
-        // POST /authorize -> EAR flow was used, not auth-code GET.
         expect(
-            popupFlowUtils?.getRequestCount("/authorize", "POST")
+            popupFlowUtils?.getRequestCount("/authorize", method)
         ).toBeGreaterThan(0);
+        expect(popupFlowUtils).toBeDefined();
+        assertEarRequests(popupFlowUtils!);
+        expect(flowUtils.getRequestCount("/token", "POST")).toBe(0);
         // MSAL decrypted the EAR response (ear_jwe) in this window.
         expect(
             await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
@@ -217,7 +251,7 @@ describe("EAR Tests", () => {
 
     it("Performs EAR ssoSilent", async () => {
         const screenshot = new Screenshot(
-            `${SCREENSHOT_BASE_FOLDER_NAME}/earSsoSilentBaseCase`
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${mode}-${method}/earSsoSilentBaseCase`
         );
         await screenshot.takeScreenshot(page, "Page loaded");
 
@@ -226,11 +260,12 @@ describe("EAR Tests", () => {
 
         const authorizeCountBefore = flowUtils.getRequestCount(
             "/authorize",
-            "POST"
+            method
         );
         const decryptCountBefore = await flowUtils.getCryptoOperationCount(
             EAR_CRYPTO_ALGORITHM
         );
+        const earRequestsBefore = flowUtils.getEarRequests().length;
 
         await page.locator("button#ssoSilentButton").click();
         await page.waitForSelector(
@@ -241,21 +276,25 @@ describe("EAR Tests", () => {
         );
         await screenshot.takeScreenshot(page, "ssoSilent completed");
 
-        // Silent EAR authorize used POST /authorize (not an auth-code GET).
-        expect(flowUtils.getRequestCount("/authorize", "POST")).toBeGreaterThan(
+        expect(flowUtils.getRequestCount("/authorize", method)).toBeGreaterThan(
             authorizeCountBefore
         );
         // A new ear_jwe was decrypted during the silent authorize.
         expect(
             await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
         ).toBeGreaterThan(decryptCountBefore);
+        expect(flowUtils.getEarRequests().length).toBeGreaterThan(
+            earRequestsBefore
+        );
+        assertEarRequests(flowUtils);
+        expect(flowUtils.getRequestCount("/token", "POST")).toBe(0);
         // Token store still holds a full EAR token set after the silent renewal.
         await BrowserCache.verifyTokenStore({ scopes: EAR_SCOPES });
     });
 
     it("Performs EAR acquireTokenSilent", async () => {
         const screenshot = new Screenshot(
-            `${SCREENSHOT_BASE_FOLDER_NAME}/earAcquireTokenSilentBaseCase`
+            `${SCREENSHOT_BASE_FOLDER_NAME}/${mode}-${method}/earAcquireTokenSilentBaseCase`
         );
         await screenshot.takeScreenshot(page, "Page loaded");
 
@@ -265,13 +304,13 @@ describe("EAR Tests", () => {
         // acquireTokenSilent(forceRefresh) renews the AT from the cached RT via
         // /token POST; no new /authorize or decrypt.
         const tokenCountBefore = flowUtils.getRequestCount("/token", "POST");
-        const authorizeCountBefore = flowUtils.getRequestCount(
-            "/authorize",
-            "POST"
-        );
+        expect(tokenCountBefore).toBe(0);
+        assertEarRequests(flowUtils);
+        const authorizeCountBefore = flowUtils.getRequestCount("/authorize");
         const decryptCountBefore = await flowUtils.getCryptoOperationCount(
             EAR_CRYPTO_ALGORITHM
         );
+        expect(decryptCountBefore).toBeGreaterThan(0);
 
         await page.locator("button#acquireTokenSilentButton").click();
         await page.waitForSelector(
@@ -285,7 +324,7 @@ describe("EAR Tests", () => {
             tokenCountBefore
         );
         // No new EAR authorize and no new decrypt: the RT grant was used, not EAR.
-        expect(flowUtils.getRequestCount("/authorize", "POST")).toBe(
+        expect(flowUtils.getRequestCount("/authorize")).toBe(
             authorizeCountBefore
         );
         expect(
