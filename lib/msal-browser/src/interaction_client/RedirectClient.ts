@@ -58,7 +58,7 @@ import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
-import type { EarRequest } from "../request/EarRequest.js";
+import { AsymmetricEarSubErrors } from "../error/AsymmetricEarSubErrors.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
     clearCacheOnLogout,
@@ -371,9 +371,6 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        if (!redirectRequest) {
-            return this.executeCodeFlow(request);
-        }
 
         try {
             if (
@@ -387,45 +384,29 @@ export class RedirectClient extends StandardInteractionClient {
                     this.correlationId
                 );
             }
-            try {
-                this.browserStorage.cacheAuthorizeRequest(
-                    redirectRequest,
-                    this.correlationId,
-                    pkceCodes.verifier
-                );
-                if (redirectRequest.asymmetricEar) {
-                    const [cachedRequest, cachedVerifier] =
-                        this.browserStorage.getCachedRequest(
-                            this.correlationId
-                        );
-                    const cachedContext = (cachedRequest as EarRequest)
-                        .asymmetricEar;
-                    if (
-                        cachedContext?.version !== 1 ||
-                        cachedContext.keyId !==
-                            redirectRequest.asymmetricEar.keyId ||
-                        cachedContext.apv !==
-                            redirectRequest.asymmetricEar.apv ||
-                        cachedRequest.earJwk !== redirectRequest.earJwk ||
-                        cachedVerifier !== pkceCodes.verifier
-                    ) {
-                        throw createBrowserAuthError(
-                            BrowserAuthErrorCodes.asymmetricEarKeyError,
-                            correlationId,
-                            "persist_request"
-                        );
-                    }
-                }
-            } catch (error) {
-                Authorize.cleanEarRequest(redirectRequest, this.browserStorage);
-                if (redirectRequest.asymmetricEar) {
-                    this.logger.warning(
-                        "Asymmetric EAR request persistence failed; using authorization code + PKCE.",
-                        correlationId
+            this.browserStorage.cacheAuthorizeRequest(
+                redirectRequest,
+                this.correlationId,
+                pkceCodes.verifier
+            );
+            if (redirectRequest.asymmetricEar) {
+                const [cachedRequest, cachedVerifier] =
+                    this.browserStorage.getCachedRequest(this.correlationId);
+                const cachedContext = cachedRequest.asymmetricEar;
+                if (
+                    cachedContext?.version !== 1 ||
+                    cachedContext.keyId !==
+                        redirectRequest.asymmetricEar.keyId ||
+                    cachedContext.apv !== redirectRequest.asymmetricEar.apv ||
+                    cachedRequest.earJwk !== redirectRequest.earJwk ||
+                    cachedVerifier !== pkceCodes.verifier
+                ) {
+                    throw createBrowserAuthError(
+                        BrowserAuthErrorCodes.asymmetricEarKeyError,
+                        correlationId,
+                        AsymmetricEarSubErrors.RequestPersistenceFailed
                     );
-                    return this.executeCodeFlow(request);
                 }
-                throw error;
             }
 
             const form = await Authorize.getEARForm(
@@ -449,7 +430,7 @@ export class RedirectClient extends StandardInteractionClient {
                 }, this.config.system.redirectNavigationTimeout);
             });
         } catch (error) {
-            Authorize.cleanEarRequest(redirectRequest, this.browserStorage);
+            this.browserStorage.resetRequestCache(correlationId);
             await removeTokenBindingKeyOnFailure(
                 redirectRequest,
                 this.tokenBindingKeyManager,

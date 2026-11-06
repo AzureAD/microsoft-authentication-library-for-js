@@ -23,6 +23,8 @@ import {
     generateKeyPairSync,
     randomBytes,
 } from "crypto";
+import { Logger, StubPerformanceClient } from "@azure/msal-common/browser";
+import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 
 describe("BrowserCrypto Tests", () => {
     describe("decryptAsymmetricEarResponse", () => {
@@ -102,6 +104,86 @@ describe("BrowserCrypto Tests", () => {
             expect(
                 await decryptAsymmetricEarResponse(client.privateJwk, apv, jwe)
             ).toBe(plaintext);
+        });
+
+        it("Measures each asymmetric response crypto operation with the request correlation ID", async () => {
+            const performanceClient = new StubPerformanceClient();
+            const logger = new Logger({});
+            const correlationId = "asymmetric-crypto-correlation";
+            const measurementSpy = jest.spyOn(
+                performanceClient,
+                "startMeasurement"
+            );
+            await expect(
+                decryptAsymmetricEarResponse(client.privateJwk, apv, jwe, apv, {
+                    logger,
+                    performanceClient,
+                    correlationId,
+                })
+            ).resolves.toBe(plaintext);
+            for (const event of [
+                BrowserPerformanceEvents.ImportAsymmetricEarKey,
+                BrowserPerformanceEvents.ImportAsymmetricEarPublicKey,
+                BrowserPerformanceEvents.DeriveAsymmetricEarSecret,
+                BrowserPerformanceEvents.AsymmetricEarConcatKdf,
+                BrowserPerformanceEvents.ImportAsymmetricEarContentKey,
+                BrowserPerformanceEvents.DecryptAsymmetricEarResponse,
+            ]) {
+                expect(measurementSpy).toHaveBeenCalledWith(
+                    event,
+                    correlationId
+                );
+            }
+        });
+
+        it("Records a correlated crypto failure and preserves the private-key import error", async () => {
+            const performanceClient = new StubPerformanceClient();
+            const logger = new Logger({});
+            const correlationId = "asymmetric-crypto-failure-correlation";
+            const measurement = performanceClient.startMeasurement(
+                BrowserPerformanceEvents.ImportAsymmetricEarKey,
+                correlationId
+            );
+            const endSpy = jest.spyOn(measurement, "end");
+            const measurementSpy = jest
+                .spyOn(performanceClient, "startMeasurement")
+                .mockReturnValue(measurement);
+
+            const error = await decryptAsymmetricEarResponse(
+                { ...client.privateJwk, d: "AA" },
+                apv,
+                jwe,
+                apv,
+                { logger, performanceClient, correlationId }
+            ).catch((error) => error);
+
+            expect(error).toBeInstanceOf(BrowserAuthError);
+            expect(error).toMatchObject({
+                errorCode: BrowserAuthErrorCodes.asymmetricEarKeyError,
+                subError: "private_key_import_failed",
+                correlationId,
+            });
+            expect(measurementSpy).toHaveBeenCalledTimes(1);
+            expect(measurementSpy).toHaveBeenCalledWith(
+                BrowserPerformanceEvents.ImportAsymmetricEarKey,
+                correlationId
+            );
+            expect(endSpy).toHaveBeenCalledTimes(1);
+            expect(endSpy).toHaveBeenCalledWith({ success: false }, error);
+        });
+
+        it("Rejects mismatched request and stored APV before key derivation", async () => {
+            await expect(
+                decryptAsymmetricEarResponse(
+                    client.privateJwk,
+                    apv,
+                    jwe,
+                    "another-request"
+                )
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.asymmetricEarKeyError,
+                subError: "request_apv_mismatch",
+            });
         });
 
         it("Rejects another request's key or APV without returning plaintext", async () => {

@@ -560,9 +560,6 @@ export class PopupClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        if (!popupRequest) {
-            return this.executeCodeFlow(request, popupParams, pkce);
-        }
         try {
             const popupWindow = await this.openPostFormPopup(
                 popupRequest,
@@ -670,7 +667,7 @@ export class PopupClient extends StandardInteractionClient {
             );
             throw e;
         } finally {
-            Authorize.cleanEarRequest(popupRequest, this.browserStorage);
+            this.browserStorage.removeAsymmetricEarKeys(correlationId);
         }
     }
 

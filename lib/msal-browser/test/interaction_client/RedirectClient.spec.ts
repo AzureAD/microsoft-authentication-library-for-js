@@ -239,6 +239,78 @@ describe("RedirectClient", () => {
         });
 
         describe("authorization key persistence", () => {
+            it.each(["setup", "request-persistence"])(
+                "does not orphan or reprovision DPoP keys after asymmetric EAR %s failure",
+                async (failure) => {
+                    pca.getConfiguration().experimental.enableAsymmetricEar =
+                        true;
+                    const manager = (redirectClient as any)
+                        .tokenBindingKeyManager;
+                    const provision = jest
+                        .spyOn(manager, "provisionTokenBindingKey")
+                        .mockResolvedValue("owned-dpop-jkt");
+                    jest.spyOn(
+                        manager,
+                        "isTokenBindingKeyPersisted"
+                    ).mockResolvedValue(true);
+                    const remove = jest
+                        .spyOn(manager, "removeTokenBindingKey")
+                        .mockResolvedValue(undefined);
+                    if (failure === "setup") {
+                        jest.spyOn(
+                            browserStorage,
+                            "cacheAsymmetricEarKey"
+                        ).mockImplementation(() => {
+                            throw new Error("private key storage unavailable");
+                        });
+                    } else {
+                        jest.spyOn(
+                            browserStorage,
+                            "cacheAuthorizeRequest"
+                        ).mockImplementation(() => {});
+                    }
+                    const terminalError = new Error("navigation cancelled");
+                    const form = jest
+                        .spyOn(AuthorizeProtocol, "getEARForm")
+                        .mockRejectedValue(terminalError);
+                    const restart = jest.spyOn(
+                        redirectClient,
+                        "executeCodeFlow"
+                    );
+                    await expect(
+                        redirectClient.executeEarFlow({
+                            ...testRequest,
+                            authenticationScheme:
+                                Constants.AuthenticationScheme.DPOP,
+                        })
+                    ).rejects.toBeDefined();
+
+                    expect(provision).toHaveBeenCalledTimes(1);
+                    expect(restart).not.toHaveBeenCalled();
+                    expect(remove).toHaveBeenCalledWith(
+                        "owned-dpop-jkt",
+                        testRequest.correlationId
+                    );
+                    if (failure === "setup") {
+                        expect(form.mock.calls[0][3]).toEqual(
+                            expect.objectContaining({
+                                dpopJkt: "owned-dpop-jkt",
+                                codeChallenge: expect.any(String),
+                                earJwk: undefined,
+                                asymmetricEar: undefined,
+                            })
+                        );
+                    } else {
+                        expect(form).not.toHaveBeenCalled();
+                    }
+                    expect(
+                        Object.keys(window.sessionStorage).filter((key) =>
+                            key.includes(".request.asymmetric-ear.")
+                        )
+                    ).toHaveLength(0);
+                }
+            );
+
             it.each(["code", "ear", "asymmetric-ear"])(
                 "does not navigate when an owned DPoP key is not persisted (%s)",
                 async (flow) => {
@@ -3757,7 +3829,7 @@ describe("RedirectClient", () => {
             expect(earFormSpy).toHaveBeenCalled();
         });
 
-        it("Uses PKCE before navigation if asymmetric request metadata was not persisted", async () => {
+        it("Rejects before navigation if asymmetric request metadata was not persisted", async () => {
             pca.getConfiguration().experimental.enableAsymmetricEar = true;
             jest.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
                 "Mozilla/5.0 Chrome/137.0.0.0 Safari/537.36"
@@ -3772,8 +3844,10 @@ describe("RedirectClient", () => {
             const formSpy = jest
                 .spyOn(HTMLFormElement.prototype, "submit")
                 .mockImplementation();
-            await pca.acquireTokenRedirect({ scopes: ["openid"] });
-            expect(fallback).toHaveBeenCalled();
+            await expect(
+                pca.acquireTokenRedirect({ scopes: ["openid"] })
+            ).rejects.toBeDefined();
+            expect(fallback).not.toHaveBeenCalled();
             expect(formSpy).not.toHaveBeenCalled();
             expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
             expect(

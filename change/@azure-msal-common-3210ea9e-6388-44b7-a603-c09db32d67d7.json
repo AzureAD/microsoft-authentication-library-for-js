@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Support asymmetric EAR request metadata [#8970](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8970)",
+    "packageName": "@azure/msal-common",
+    "email": "shylasummers@microsoft.com",
+    "dependentChangeType": "patch"
+}

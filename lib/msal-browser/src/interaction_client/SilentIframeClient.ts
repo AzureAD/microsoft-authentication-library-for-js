@@ -321,9 +321,6 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        if (!silentRequest) {
-            return this.executeCodeFlow(request);
-        }
 
         try {
             // Create the iframe, register the response listener, then navigate, so the listener is active before the iframe can respond.
@@ -451,7 +448,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                 );
             }
         } finally {
-            Authorize.cleanEarRequest(silentRequest, this.browserStorage);
+            this.browserStorage.removeAsymmetricEarKeys(correlationId);
         }
     }
 

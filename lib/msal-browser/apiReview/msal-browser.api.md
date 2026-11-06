@@ -905,7 +905,7 @@ export type PopupPosition = {
 const popupRelayUnsupportedFlow = "popup_relay_unsupported_flow";
 
 // @public
-export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
+export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "asymmetricEar" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
     popupWindowParent?: Window;
@@ -996,7 +996,7 @@ const redirectInIframe = "redirect_in_iframe";
 function redirectPreflightCheck(initialized: boolean, config: BrowserConfiguration): void;
 
 // @public
-export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
+export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "asymmetricEar" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
     scopes: Array<string>;
     redirectStartPage?: string;
 };
@@ -1081,7 +1081,7 @@ const SsoCapable = "ssoCapable";
 const SsoSilent = "ssoSilent";
 
 // @public
-export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">>;
+export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "earJwk" | "asymmetricEar" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">>;
 
 // @public (undocumented)
 const stateInteractionTypeMismatch = "state_interaction_type_mismatch";

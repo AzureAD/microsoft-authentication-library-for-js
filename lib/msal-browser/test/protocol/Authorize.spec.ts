@@ -155,7 +155,7 @@ describe("Authorize Protocol Tests", () => {
                     expect(JSON.stringify(form)).not.toContain(
                         context.privateJwk.d
                     );
-                    Authorize.cleanEarRequest(request!, cacheManager);
+                    cacheManager.resetRequestCache(request!.correlationId);
                     expect(() =>
                         cacheManager.getAsymmetricEarKey(
                             request!.asymmetricEar!.keyId,
@@ -178,15 +178,45 @@ describe("Authorize Protocol Tests", () => {
                         BrowserCrypto,
                         "generateEarKey"
                     );
-                    expect(
-                        await Authorize.initializeEarRequest(
-                            asymmetricConfig,
-                            { ...validRequest, platformBroker },
-                            cacheManager,
-                            logger,
-                            performanceClient
-                        )
-                    ).toBeNull();
+                    const preparedRequest = {
+                        ...validRequest,
+                        platformBroker,
+                        codeChallenge: "prepared-pkce-challenge",
+                        authenticationScheme:
+                            Constants.AuthenticationScheme.DPOP,
+                        dpopJkt: "prepared-dpop-jkt",
+                        popupOriginCheckDone: true,
+                    };
+                    const request = await Authorize.initializeEarRequest(
+                        asymmetricConfig,
+                        preparedRequest,
+                        cacheManager,
+                        logger,
+                        performanceClient
+                    );
+                    expect(request).toEqual({
+                        ...preparedRequest,
+                        earJwk: undefined,
+                        asymmetricEar: undefined,
+                    });
+                    const form = await Authorize.getEARFormData(
+                        asymmetricConfig,
+                        authority,
+                        request,
+                        logger,
+                        performanceClient
+                    );
+                    expect(form.fields.response_type).toBe("code");
+                    expect(form.fields.code_challenge).toBe(
+                        preparedRequest.codeChallenge
+                    );
+                    expect(form.fields.ear_jwk).toBeUndefined();
+                    expect(form.fields.ear_jwe_crypto).toBeUndefined();
+                    if (!platformBroker) {
+                        expect(form.fields.dpop_jkt).toBe(
+                            preparedRequest.dpopJkt
+                        );
+                    }
                     expect(symmetricSpy).not.toHaveBeenCalled();
                 }
             );
@@ -260,7 +290,13 @@ describe("Authorize Protocol Tests", () => {
                 expect(asymmetricSpy).toHaveBeenCalledWith(
                     context.privateJwk,
                     context.apv,
-                    validEarJWE
+                    validEarJWE,
+                    request!.asymmetricEar!.apv,
+                    {
+                        logger,
+                        performanceClient,
+                        correlationId: validRequest.correlationId,
+                    }
                 );
                 expect(symmetricSpy).not.toHaveBeenCalled();
                 expect(platformBrokerSpy).toHaveBeenCalledWith(
@@ -270,7 +306,7 @@ describe("Authorize Protocol Tests", () => {
                     JSON.stringify(platformBrokerSpy.mock.calls)
                 ).not.toContain(context.privateJwk.d);
                 expect(result).toEqual(getTestAuthenticationResult());
-                Authorize.cleanEarRequest(request!, cacheManager);
+                cacheManager.resetRequestCache(request!.correlationId);
             });
 
             it.each([1, 2])(
@@ -317,7 +353,7 @@ describe("Authorize Protocol Tests", () => {
                     expect(result).toEqual(getTestAuthenticationResult());
                     expect(asymmetricSpy).toHaveBeenCalled();
                     expect(symmetricSpy).not.toHaveBeenCalled();
-                    Authorize.cleanEarRequest(request!, cacheManager);
+                    cacheManager.resetRequestCache(request!.correlationId);
                 }
             );
 
@@ -332,7 +368,7 @@ describe("Authorize Protocol Tests", () => {
                         performanceClient
                     );
                     if (failure === "missing") {
-                        Authorize.cleanEarRequest(request!, cacheManager);
+                        cacheManager.resetRequestCache(request!.correlationId);
                     } else {
                         request!.asymmetricEar!.apv = "another-request";
                     }
@@ -361,32 +397,31 @@ describe("Authorize Protocol Tests", () => {
                                 : "request_apv_mismatch",
                     });
                     expect(symmetricSpy).not.toHaveBeenCalled();
-                    Authorize.cleanEarRequest(request!, cacheManager);
+                    cacheManager.resetRequestCache(request!.correlationId);
                 }
             );
         });
 
         describe("getEARForm tests", () => {
-            it("Throws if earJwk is empty", async () => {
+            it("Builds a code form when EAR setup did not provide a key", async () => {
                 const { earJwk, ...request }: CommonAuthorizationUrlRequest =
                     validRequest;
 
-                try {
-                    await Authorize.getEARForm(
-                        document,
-                        config,
-                        authority,
-                        request,
-                        logger,
-                        performanceClient
-                    );
-                    throw "Unexpected! Should throw";
-                } catch (e) {
-                    expect(e).toBeInstanceOf(BrowserAuthError);
-                    expect((e as BrowserAuthError).errorCode).toBe(
-                        BrowserAuthErrorCodes.earJwkEmpty
-                    );
-                }
+                const form = await Authorize.getEARForm(
+                    document,
+                    config,
+                    authority,
+                    request,
+                    logger,
+                    performanceClient
+                );
+                expect(form.method).toBe("post");
+                expect(
+                    form.querySelector<HTMLInputElement>(
+                        'input[name="response_type"]'
+                    )?.value
+                ).toBe("code");
+                expect(form.querySelector('input[name="ear_jwk"]')).toBeNull();
             });
 
             it("Returns HTMLFormElement", async () => {

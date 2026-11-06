@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import type { EarRequest } from "../request/EarRequest.js";
+import { AsymmetricEarSubErrors } from "../error/AsymmetricEarSubErrors.js";
 import {
     AccessTokenEntity,
     AccountEntity,
@@ -94,6 +94,7 @@ export type AsymmetricEarKeyContext = {
 type AsymmetricEarKeyRecord = AsymmetricEarKeyContext & {
     version: 1;
     alg: "ECDH-ES";
+    correlationId?: string;
 };
 
 /**
@@ -2232,28 +2233,7 @@ export class BrowserCacheManager extends CacheManager {
             correlationId
         );
 
-        try {
-            const encodedRequest = this.getTemporaryCache(
-                TemporaryCacheKeys.REQUEST_PARAMS,
-                correlationId,
-                true
-            );
-            const request: EarRequest | undefined = encodedRequest
-                ? JSON.parse(base64Decode(encodedRequest))
-                : undefined;
-            if (request?.asymmetricEar?.keyId) {
-                this.removeAsymmetricEarKey(
-                    request.asymmetricEar.keyId,
-                    correlationId
-                );
-            }
-        } catch {
-            this.logger.warning(
-                "Unable to clean up the cached asymmetric EAR request context.",
-                correlationId
-            );
-        }
-
+        this.removeAsymmetricEarKeys(correlationId);
         this.removeTemporaryItem(
             this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS)
         );
@@ -2270,6 +2250,64 @@ export class BrowserCacheManager extends CacheManager {
             this.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST)
         );
         this.setInteractionInProgress(false, undefined);
+    }
+
+    /**
+     * Removes private EAR context for a completed request without resetting another interaction.
+     * @internal
+     */
+    removeAsymmetricEarKeys(correlationId: string): void {
+        try {
+            const prefix = this.generateCacheKey(
+                `${TemporaryCacheKeys.ASYMMETRIC_EAR_KEY}.`
+            );
+            for (const key of this.temporaryCacheStorage.getKeys()) {
+                if (key.startsWith(prefix)) {
+                    const record = JSON.parse(
+                        this.temporaryCacheStorage.getItem(key) || "null"
+                    );
+                    if (record?.correlationId === correlationId) {
+                        this.removeAsymmetricEarKey(
+                            key.substring(prefix.length),
+                            correlationId
+                        );
+                    }
+                }
+            }
+            const encodedRequest = this.getTemporaryCache(
+                TemporaryCacheKeys.REQUEST_PARAMS,
+                correlationId,
+                true
+            );
+            const request: CommonAuthorizationUrlRequest | undefined =
+                encodedRequest
+                    ? JSON.parse(base64Decode(encodedRequest))
+                    : undefined;
+            if (
+                request?.correlationId === correlationId &&
+                request.asymmetricEar?.keyId
+            ) {
+                const record = JSON.parse(
+                    this.temporaryCacheStorage.getItem(
+                        this.getAsymmetricEarCacheKey(
+                            request.asymmetricEar.keyId,
+                            correlationId
+                        )
+                    ) || "null"
+                );
+                if (record && record.correlationId === undefined) {
+                    this.removeAsymmetricEarKey(
+                        request.asymmetricEar.keyId,
+                        correlationId
+                    );
+                }
+            }
+        } catch {
+            this.logger.warning(
+                "Unable to clean up the cached asymmetric EAR request context.",
+                correlationId
+            );
+        }
     }
 
     cacheAuthorizeRequest(
@@ -2314,6 +2352,7 @@ export class BrowserCacheManager extends CacheManager {
                 const record: AsymmetricEarKeyRecord = {
                     version: 1,
                     alg: "ECDH-ES",
+                    correlationId,
                     privateJwk: context.privateJwk,
                     apv: context.apv,
                 };
@@ -2321,7 +2360,7 @@ export class BrowserCacheManager extends CacheManager {
                     throw createBrowserAuthError(
                         BrowserAuthErrorCodes.asymmetricEarKeyError,
                         correlationId,
-                        "invalid_private_key_context"
+                        AsymmetricEarSubErrors.InvalidPrivateKeyContext
                     );
                 }
                 let existing: string | null;
@@ -2331,21 +2370,25 @@ export class BrowserCacheManager extends CacheManager {
                     throw createBrowserAuthError(
                         BrowserAuthErrorCodes.asymmetricEarKeyError,
                         correlationId,
-                        "private_key_read_failed"
+                        AsymmetricEarSubErrors.PrivateKeyReadFailed
                     );
                 }
                 if (existing !== null) {
                     throw createBrowserAuthError(
                         BrowserAuthErrorCodes.asymmetricEarKeyError,
                         correlationId,
-                        "private_key_id_already_in_use"
+                        AsymmetricEarSubErrors.PrivateKeyIdAlreadyInUse
                     );
                 }
                 try {
                     const value = JSON.stringify(record);
                     this.temporaryCacheStorage.setItem(key, value);
                     if (this.temporaryCacheStorage.getItem(key) !== value) {
-                        throw new Error();
+                        throw createBrowserAuthError(
+                            BrowserAuthErrorCodes.asymmetricEarKeyError,
+                            correlationId,
+                            AsymmetricEarSubErrors.PrivateKeyPersistenceFailed
+                        );
                     }
                 } catch {
                     try {
@@ -2356,7 +2399,7 @@ export class BrowserCacheManager extends CacheManager {
                     throw createBrowserAuthError(
                         BrowserAuthErrorCodes.asymmetricEarKeyError,
                         correlationId,
-                        "private_key_persistence_failed"
+                        AsymmetricEarSubErrors.PrivateKeyPersistenceFailed
                     );
                 }
             },
@@ -2386,14 +2429,14 @@ export class BrowserCacheManager extends CacheManager {
                     throw createBrowserAuthError(
                         BrowserAuthErrorCodes.asymmetricEarKeyError,
                         correlationId,
-                        "private_key_read_failed"
+                        AsymmetricEarSubErrors.PrivateKeyReadFailed
                     );
                 }
                 if (!isAsymmetricEarKeyRecord(record)) {
                     throw createBrowserAuthError(
                         BrowserAuthErrorCodes.asymmetricEarKeyError,
                         correlationId,
-                        "private_key_context_missing_or_invalid"
+                        AsymmetricEarSubErrors.PrivateKeyContextMissingOrInvalid
                     );
                 }
                 return { privateJwk: record.privateJwk, apv: record.apv };
@@ -2419,7 +2462,7 @@ export class BrowserCacheManager extends CacheManager {
                     throw createBrowserAuthError(
                         BrowserAuthErrorCodes.asymmetricEarKeyError,
                         correlationId,
-                        "private_key_removal_failed"
+                        AsymmetricEarSubErrors.PrivateKeyRemovalFailed
                     );
                 }
             },
@@ -2438,14 +2481,14 @@ export class BrowserCacheManager extends CacheManager {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.asymmetricEarKeyError,
                 correlationId,
-                "session_storage_unavailable"
+                AsymmetricEarSubErrors.SessionStorageUnavailable
             );
         }
         if (!keyId) {
             throw createBrowserAuthError(
                 BrowserAuthErrorCodes.asymmetricEarKeyError,
                 correlationId,
-                "private_key_id_missing"
+                AsymmetricEarSubErrors.PrivateKeyIdMissing
             );
         }
         return this.generateCacheKey(

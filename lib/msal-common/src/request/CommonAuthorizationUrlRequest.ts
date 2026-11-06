@@ -28,6 +28,15 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
      */
     earJwk?: string;
     /**
+     * Public asymmetric EAR metadata retained across navigation. Contains no private key material.
+     * @internal
+     */
+    asymmetricEar?: {
+        version: 1;
+        keyId: string;
+        apv: string;
+    };
+    /**
      * Used to secure authorization code grant via Proof of Key for Code Exchange (PKCE). For more information, see the PKCE RCF:https://tools.ietf.org/html/rfc7636
      */
     codeChallenge?: string;

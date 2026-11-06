@@ -200,10 +200,50 @@ describe("BrowserCacheManager tests", () => {
             );
         });
 
-        it("Existing redirect cleanup removes only the private record referenced by the cached request", () => {
+        it("Request cleanup removes private context without requiring persisted request parameters", () => {
             const context = { privateJwk, apv: "request-context" };
             cache.cacheAsymmetricEarKey(keyId, context, correlationId);
-            cache.cacheAsymmetricEarKey("other-key", context, correlationId);
+            cache.cacheAsymmetricEarKey(
+                "other-key",
+                context,
+                "other-correlation-id"
+            );
+            cache.resetRequestCache(correlationId);
+            expect(() =>
+                cache.getAsymmetricEarKey(keyId, correlationId)
+            ).toThrow();
+            expect(
+                cache.getAsymmetricEarKey("other-key", "other-correlation-id")
+            ).toEqual(context);
+        });
+
+        it("Popup and silent private-key cleanup does not reset another active interaction", () => {
+            const context = { privateJwk, apv: "request-context" };
+            cache.cacheAsymmetricEarKey(keyId, context, correlationId);
+            cache.setInteractionInProgress(true);
+            cache.removeAsymmetricEarKeys(correlationId);
+            expect(cache.isInteractionInProgress(true)).toBe(true);
+            expect(() =>
+                cache.getAsymmetricEarKey(keyId, correlationId)
+            ).toThrow();
+        });
+
+        it("Existing redirect cleanup removes legacy private records referenced by the cached request", () => {
+            const context = { privateJwk, apv: "request-context" };
+            cache.cacheAsymmetricEarKey(keyId, context, correlationId);
+            const legacyRecord = JSON.parse(
+                window.sessionStorage.getItem(storageKey)!
+            );
+            delete legacyRecord.correlationId;
+            window.sessionStorage.setItem(
+                storageKey,
+                JSON.stringify(legacyRecord)
+            );
+            cache.cacheAsymmetricEarKey(
+                "other-key",
+                context,
+                "other-correlation-id"
+            );
             cache.cacheAuthorizeRequest(
                 {
                     authority: TEST_CONFIG.validAuthority,
@@ -214,7 +254,7 @@ describe("BrowserCacheManager tests", () => {
                     state: "state",
                     responseMode: Constants.ResponseMode.FRAGMENT,
                     asymmetricEar: { version: 1, keyId, apv: context.apv },
-                } as import("../../src/request/EarRequest.js").EarRequest,
+                },
                 correlationId
             );
 
@@ -224,7 +264,7 @@ describe("BrowserCacheManager tests", () => {
                 cache.getAsymmetricEarKey(keyId, correlationId)
             ).toThrow();
             expect(
-                cache.getAsymmetricEarKey("other-key", correlationId)
+                cache.getAsymmetricEarKey("other-key", "other-correlation-id")
             ).toEqual(context);
         });
 
