@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Update Angular build tooling dependencies",
+    "packageName": "@azure/msal-angular",
+    "email": "spingale@microsoft.com",
+    "dependentChangeType": "patch"
+}
