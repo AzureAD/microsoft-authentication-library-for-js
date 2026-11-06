@@ -1685,7 +1685,7 @@ describe("FlowInteractionClientV2", () => {
             expect(apiClient.completeWithTokens).toHaveBeenCalled();
         });
 
-        it("verifies a password-reset MFA code and completes sign-in", async () => {
+        it("verifies a password-reset MFA code and waits for explicit sign-in", async () => {
             const tokenResponse = {
                 token_type: "Bearer",
                 expires_in: 3600,
@@ -1703,14 +1703,16 @@ describe("FlowInteractionClientV2", () => {
                 continuationToken: "ct-mfa-verify",
             });
             apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
-            jest.spyOn(
-                client as unknown as {
-                    handleTokenResponse: (
-                        ...args: unknown[]
-                    ) => Promise<unknown>;
-                },
-                "handleTokenResponse"
-            ).mockResolvedValue(fakeAuthResult);
+            const tokenHandler = jest
+                .spyOn(
+                    client as unknown as {
+                        handleTokenResponse: (
+                            ...args: unknown[]
+                        ) => Promise<unknown>;
+                    },
+                    "handleTokenResponse"
+                )
+                .mockResolvedValue(fakeAuthResult);
 
             const result = await client.submitCode({
                 correlationId,
@@ -1724,12 +1726,39 @@ describe("FlowInteractionClientV2", () => {
             });
 
             expect(result).toMatchObject({
+                type: FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
+                correlationId,
+                continuationState: {
+                    continuationToken: "ct-mfa-verify",
+                    scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                    scopes: continuationState.scopes,
+                    links: {},
+                },
+            });
+            expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
+            expect(tokenHandler).not.toHaveBeenCalled();
+            if (result.type !== FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2) {
+                throw new Error("Expected sign-in continuation.");
+            }
+
+            const completed = await client.signInWithContinuation({
+                correlationId,
+                continuationState: result.continuationState,
+            });
+
+            expect(completed).toMatchObject({
                 type: FLOW_COMPLETED_V2,
                 authenticationResult: fakeAuthResult,
             });
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
                 { continuationToken: "ct-mfa-verify" },
                 expect.objectContaining({ correlationId })
+            );
+            expect(tokenHandler).toHaveBeenCalledWith(
+                tokenResponse,
+                continuationState.scopes,
+                correlationId,
+                expect.any(Number)
             );
         });
 
@@ -4784,6 +4813,43 @@ describe("FlowInteractionClientV2", () => {
                     expect.objectContaining({ correlationId })
                 );
                 expect(result.type).toBe(FLOW_COMPLETED_V2);
+            }
+        );
+
+        it.each([
+            CustomAuthFlowScenarioV2.SignUp,
+            CustomAuthFlowScenarioV2.PasswordReset,
+        ])(
+            "waits for explicit sign-in after JIT activation in %s",
+            async (scenario) => {
+                apiClient.activateAuthMethod.mockResolvedValue({
+                    nextAction: "continue",
+                    continuationToken: "ct-activated",
+                });
+                const signIn = jest.spyOn(client, "signInWithContinuation");
+
+                const result = await client.verifyAuthMethodRegistration({
+                    correlationId,
+                    continuationState: {
+                        ...continuationState,
+                        scenario,
+                        links: { activate: "/activate/email" },
+                    },
+                    code: "123456",
+                });
+
+                expect(result).toEqual({
+                    type: FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
+                    correlationId,
+                    continuationState: {
+                        ...continuationState,
+                        scenario,
+                        continuationToken: "ct-activated",
+                        links: {},
+                    },
+                });
+                expect(signIn).not.toHaveBeenCalled();
+                expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
             }
         );
 

@@ -12,17 +12,20 @@ import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/
 import {
     FLOW_AUTH_METHOD_VERIFICATION_REQUIRED_V2,
     FLOW_COMPLETED_V2,
+    FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthAccountData } from "../../../../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import type { AuthenticationResult } from "../../../../../../src/response/AuthenticationResult.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
+import { SignInContinuationStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 
 describe("AuthMethodVerificationRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
     const flowClient = {
         verifyAuthMethodRegistration: jest.fn(),
         resendAuthMethodRegistrationChallenge: jest.fn(),
+        signInWithContinuation: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
     const continuationState = {
         continuationToken: "ct-activate",
@@ -34,7 +37,10 @@ describe("AuthMethodVerificationRequiredStateV2", () => {
         },
     };
 
-    const buildState = (logger = getDefaultLogger()) =>
+    const buildState = (
+        logger = getDefaultLogger(),
+        scenario: CustomAuthFlowScenarioV2 = CustomAuthFlowScenarioV2.SignIn
+    ) =>
         new AuthMethodVerificationRequiredStateV2({
             correlationId,
             logger,
@@ -44,7 +50,7 @@ describe("AuthMethodVerificationRequiredStateV2", () => {
             } as unknown as CustomAuthBrowserConfiguration,
             flowClient,
             cacheClient: {} as CustomAuthSilentCacheClient,
-            continuationState,
+            continuationState: { ...continuationState, scenario },
             type: "email",
             sentTo: "u***@contoso.com",
             codeLength: 6,
@@ -89,6 +95,45 @@ describe("AuthMethodVerificationRequiredStateV2", () => {
         expect(result.state).toBeInstanceOf(CompletedStateV2);
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
     });
+
+    it.each([
+        CustomAuthFlowScenarioV2.SignUp,
+        CustomAuthFlowScenarioV2.PasswordReset,
+    ])(
+        "returns a sign-in continuation after %s activation without signing in",
+        async (scenario) => {
+            const nextContinuationState = {
+                ...continuationState,
+                scenario,
+                continuationToken: "ct-activated",
+                links: {},
+            };
+            flowClient.verifyAuthMethodRegistration.mockResolvedValue({
+                type: FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
+                correlationId,
+                continuationState: nextContinuationState,
+            });
+
+            const result = await buildState(
+                getDefaultLogger(),
+                scenario
+            ).submitChallenge("123456");
+
+            expect(result.isState("signInContinuation")).toBe(true);
+            expect(result.state).toBeInstanceOf(SignInContinuationStateV2);
+            expect(result.scenario).toBe(scenario);
+            expect(result.data).toBeUndefined();
+            if (result.isState("signInContinuation")) {
+                expect(
+                    result.state["stateParameters"].continuationState
+                ).toEqual(nextContinuationState);
+                expect(result.state["stateParameters"].correlationId).toBe(
+                    correlationId
+                );
+            }
+            expect(flowClient.signInWithContinuation).not.toHaveBeenCalled();
+        }
+    );
 
     it("rejects a null activation challenge", async () => {
         const result = await buildState().submitChallenge(

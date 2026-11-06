@@ -9,7 +9,11 @@ import type { MFASubmitChallengeResultV2 } from "../result/MFASubmitChallengeRes
 import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
 import { CompletedStateV2 } from "./CompletedStateV2.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
-import { FLOW_COMPLETED_V2 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
+import {
+    FLOW_COMPLETED_V2,
+    FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
+} from "../../../interaction_client/v2/result/FlowActionResultV2.js";
+import { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { ChallengeVerificationStateBaseV2 } from "./ChallengeVerificationStateBaseV2.js";
@@ -40,6 +44,21 @@ export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBa
                 challenge,
                 AuthenticationFactorV2.MULTI_FACTOR
             );
+
+            if (result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new SignInContinuationStateV2({
+                        correlationId: result.correlationId,
+                        logger,
+                        config: this.stateParameters.config,
+                        flowClient: this.stateParameters.flowClient,
+                        continuationState: result.continuationState,
+                        cacheClient: this.stateParameters.cacheClient,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
 
             if (result.type !== FLOW_COMPLETED_V2) {
                 throw new CustomAuthError(

@@ -293,7 +293,17 @@ describe("Reset password V2 (SSPR)", () => {
                 throw new Error("Expected method activation.");
             }
 
-            const completed = await activation.state.submitChallenge("123456");
+            const continuation = await activation.state.submitChallenge(
+                "123456"
+            );
+            expect(continuation.data).toBeUndefined();
+            expect(continuation.scenario).toBe("passwordReset");
+            expect(app.getAllAccounts()).toHaveLength(0);
+            expect(fetch).toHaveBeenCalledTimes(enrollCallIndex + 2);
+            if (!continuation.isState("signInContinuation")) {
+                throw new Error("Expected explicit sign-in after activation.");
+            }
+            const completed = await continuation.state.signIn();
             expect(completed.isState("completed")).toBe(true);
             expect(completed.data).toBeInstanceOf(CustomAuthAccountData);
             expect(fetch).toHaveBeenCalledTimes(enrollCallIndex + 4);
@@ -317,7 +327,7 @@ describe("Reset password V2 (SSPR)", () => {
     );
 
     it.each([false, true])(
-        "completes password reset MFA with automatic sign-in (in-progress poll: %s)",
+        "completes password reset MFA with explicit sign-in (in-progress poll: %s)",
         async (pollInProgress) => {
             (fetch as jest.Mock)
                 .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
@@ -385,7 +395,17 @@ describe("Reset password V2 (SSPR)", () => {
                 throw new Error("Expected reset MFA verification.");
             }
 
-            const completed = await challenge.state.submitChallenge("654321");
+            const continuation = await challenge.state.submitChallenge(
+                "654321"
+            );
+            expect(continuation.data).toBeUndefined();
+            expect(continuation.scenario).toBe("passwordReset");
+            expect(app.getAllAccounts()).toHaveLength(0);
+            expect(fetch).toHaveBeenCalledTimes(pollInProgress ? 9 : 8);
+            if (!continuation.isState("signInContinuation")) {
+                throw new Error("Expected explicit sign-in after MFA.");
+            }
+            const completed = await continuation.state.signIn();
             expect(completed.isState("completed")).toBe(true);
             expect(completed.data).toBeInstanceOf(CustomAuthAccountData);
             expect(completed.data?.getAccount()?.idToken).toBe(
@@ -451,7 +471,14 @@ describe("Reset password V2 (SSPR)", () => {
         expect(resent.state.codeLength).toBe(8);
         expect(resent.state.sentTo).toBe("r***@contoso.com");
         expect(app.getAllAccounts()).toHaveLength(0);
-        const completed = await resent.state.submitChallenge("12345678");
+        const continuation = await resent.state.submitChallenge("12345678");
+        expect(continuation.data).toBeUndefined();
+        expect(app.getAllAccounts()).toHaveLength(0);
+        expect(fetch).toHaveBeenCalledTimes(9);
+        if (!continuation.isState("signInContinuation")) {
+            throw new Error("Expected explicit sign-in after MFA resend.");
+        }
+        const completed = await continuation.state.signIn();
         expect(completed.isState("completed")).toBe(true);
         expect(completed.data).toBeInstanceOf(CustomAuthAccountData);
 
@@ -578,7 +605,17 @@ describe("Reset password V2 (SSPR)", () => {
             if (!challenge.isState("mfaVerificationRequired")) {
                 throw new Error("Expected reset MFA verification.");
             }
-            const result = await challenge.state.submitChallenge("654321");
+            const verification = await challenge.state.submitChallenge(
+                "654321"
+            );
+            if (rejectToken) {
+                expect(verification.isState("signInContinuation")).toBe(true);
+                expect(app.getAllAccounts()).toHaveLength(0);
+                expect(fetch).toHaveBeenCalledTimes(8);
+            }
+            const result = verification.isState("signInContinuation")
+                ? await verification.state.signIn()
+                : verification;
             expect(result.isFailed()).toBe(true);
             expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
             expect(result.data).toBeUndefined();

@@ -44,6 +44,7 @@ import type {
     FlowCodeRequiredResultV2,
     FlowExistingAccountChallengeResultV2,
     FlowCompletedResultV2,
+    FlowSignInContinuationRequiredResultV2,
     FlowSignInStartResultV2,
     FlowSignUpStartResultV2,
     FlowResetPasswordStartResultV2,
@@ -575,11 +576,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     /*
-     * Activates the registered authentication method and signs the user in.
+     * Activates the registered authentication method.
      */
     async verifyAuthMethodRegistration(
         parameters: FlowVerifyAuthMethodRegistrationParamsV2
-    ): Promise<FlowCompletedResultV2> {
+    ): Promise<FlowCompletedResultV2 | FlowSignInContinuationRequiredResultV2> {
         const { continuationState, correlationId } = parameters;
 
         const context = this.createRequestContext(
@@ -598,6 +599,21 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             },
             context
         );
+
+        if (
+            continuationState.scenario === CustomAuthFlowScenarioV2.SignUp ||
+            continuationState.scenario ===
+                CustomAuthFlowScenarioV2.PasswordReset
+        ) {
+            return createFlowSignInContinuationRequiredResultV2({
+                correlationId,
+                continuationState: {
+                    ...continuationState,
+                    continuationToken: result.continuationToken,
+                    links: {},
+                },
+            });
+        }
 
         return this.completeSignInAfterVerification(
             continuationState,
@@ -678,11 +694,14 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 AuthenticationFactorV2.MULTI_FACTOR &&
             verifyResult.nextAction === ResponseStateV2.CONTINUE
         ) {
-            return this.completeSignInAfterVerification(
-                continuationState,
-                verifyResult.continuationToken,
-                correlationId
-            );
+            return createFlowSignInContinuationRequiredResultV2({
+                correlationId,
+                continuationState: {
+                    ...continuationState,
+                    continuationToken: verifyResult.continuationToken,
+                    links: {},
+                },
+            });
         }
 
         if (
