@@ -36,7 +36,6 @@ export class AuthMethodVerificationRequiredStateV2 extends AuthFlowActionRequire
 
     /**
      * Submits the activation challenge for the registered method.
-     * Sign-up and password-reset completion return a continuation state for the app to sign in.
      * @param challenge - The activation challenge to submit.
      * @returns A sign-in continuation, completed authentication result, or failed state.
      */
