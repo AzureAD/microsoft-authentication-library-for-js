@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793984245991,
+  "lastUpdate": 1793994132371,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -25063,6 +25063,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.86%",
             "unit": "ops/sec",
             "extra": "229 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lalima.sharda@gmail.com",
+            "name": "Lalima Sharda",
+            "username": "lalimasharda"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1fbbf4f613f95e6cea31eb6c337d3fad183aa12d",
+          "message": "Fix native token-cache isolation for brokered child requests (#8971)\n\n## Summary\n\n- Only `acquireTokenSilent` may look up tokens in MSAL's native\naccess-token cache, according to its existing request policy.\n`RefreshTokenAndNetwork` and `Skip` bypass that lookup, without a\nchild-specific bypass.\n- Popup, SSO, redirect, and code-exchange paths call the platform broker\nwithout first looking up cached tokens. `acquireToken` checks the\nexisting API ID before invoking the cache helper; the helper itself only\nhandles cache policy.\n- Keep public API signatures unchanged: no extra popup/SSO parameters or\nSSO request properties.\n- Move ID-token deletion from `CacheManager.removeAccountContext` to\n`removeAccount`. Native account updates clear cached web access/refresh\ntokens but preserve ID tokens, without a child-client gate. Returned ID\ntokens are cached separately according to `storeInCache.idToken`; full\naccount removal still deletes ID tokens.\n- Add real-cache public-API regressions for popup, redirect, SSO, and\nsilent flows. Both direct host and brokered child requests preserve\nexisting ID tokens when storage is disabled and allow a subsequent\ncache-only host acquisition.\n- Verify separate ID-token replacement, browser access/refresh-token\ncleanup with omitted/empty/normalized child metadata, and modern/legacy\nbroker parameters. Common regressions verify multi-tenant ID-token\npreservation versus full removal and isolation of unrelated\naccounts/clouds. L1 key retention/removal and the existing L3 cleanup\nexception remain covered.\n- Add six warm-cache cases proving non-ATSilent API IDs never invoke the\ncache helper. These assertions fail with the API guard inside the helper\nand pass when it guards the call in `acquireToken`. Preserve coverage\nfor ATSilent policy-controlled lookup with and without child context,\noriginal cache-only errors, normal account/ID-token caching, and DPoP\ncleanup.\n\nFor embedded-app ATSilent requests, the host must request\n`RefreshTokenAndNetwork` or `Skip` to avoid reading its own access\ntoken. All embedded-app flows use `storeInCache: { accessToken: false,\nidToken: false }` to prevent replacing the host's tokens. ID-token\npreservation during account updates is independent of child metadata and\ndoes not override token-write directives.\n\nWeb and nested-app flows retain their existing behavior. The change does\nnot alter cache keys or persisted schemas, or control WAM's own cache.\n\n## Validation\n\nFull common unit suite: 49 suites, 1,441 tests passed. Full browser unit\nsuite: 130 suites, 3,106 tests passed, 3 skipped, 2 todo. Node\ntoken-cache suite: 12 tests passed.\n\nBuild, lint (existing warnings), formatting, API Extractor, and\nBeachball checks passed.\n\nRun in both `lib/msal-common` and `lib/msal-browser`:\n\n```text\nnpm run build:all\nnpm run lint\nnpm test -- --runInBand --coverage=false\nnpm run format:check\nnpm run apiExtractor\n```\n\nCreated using Forge `create-pr`.\n\n```text\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: bug\nagent-tool: copilot-cli\nagent-model: gpt-6.1-sol\nwork-item: n/a\n<!-- END pr-telemetry -->\n```\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCo-authored-by: Thomas Norling <thomas.norling@microsoft.com>\nCopilot-Session: 5658d65f-95f9-423e-a319-46c8ecb27d00",
+          "timestamp": "2026-11-06T19:33:12Z",
+          "tree_id": "1bab7e892ad7b7c2be86cf6317ea604627162b67",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/1fbbf4f613f95e6cea31eb6c337d3fad183aa12d"
+        },
+        "date": 1793994128641,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 392669,
+            "range": "±0.82%",
+            "unit": "ops/sec",
+            "extra": "235 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 363350,
+            "range": "±1.13%",
+            "unit": "ops/sec",
+            "extra": "212 samples"
           }
         ]
       }
