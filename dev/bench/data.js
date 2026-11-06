@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793994132371,
+  "lastUpdate": 1793999198256,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -25101,6 +25101,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.13%",
             "unit": "ops/sec",
             "extra": "212 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "sampada.iithawk@gmail.com",
+            "name": "Sampada",
+            "username": "PingaleSampada"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f0dfcc496b0837f4756b3f54ff6a9827fab8e391",
+          "message": "Update Azure Identity in E2E tooling (#8972)\n\n## Summary\n\nUpdate the private E2E utility's `@azure/identity` dependency from\n`^4.13.1` to `^4.14.1` and synchronize its dependency resolution.\n\n- Identity 4.13.1 depends on MSAL Node 5.x; Identity 4.14.0 still\ndepends on 6.x. Identity 4.14.1 declares MSAL Node `^7.1.0`, the updated\ndependency range.\n- The standalone utility lockfile now resolves MSAL Node 7.2.0.\n- Synchronize the root workspace lockfile and standalone utility\nlockfile.\n- No shipped library source, public API, CI configuration, or supported\nlibrary Node-version matrix changes.\n\n## Local Validation\n\nValidated using Node 22.23.4 / npm 10.9.9:\n\n- Clean root and standalone utility installs with `--ignore-scripts`.\n- Builds, lint, and format checks for Common, Node, Browser, React, and\nAngular.\n- API Extractor checks for packages with that script; Angular has no API\nExtractor script.\n- 5,140 passing core tests across those five packages.\n- Root and standalone utility browser smoke checks and credential-client\ninitialization smoke checks (no live token acquisition).\n- Beachball check, manifest/lockfile consistency assertions, and `git\ndiff --check`.\n\n## Hosted Validation\n\nHosted checks are complete with no failures or pending checks. The\nretried MSAL Browser 1P-3P E2E Tests (1716652), MSAL JS Build (1716654),\nand MSAL JS 3P E2E Tests (1716655), including NativeAuthSample, passed.\nLocal validation limitations remain documented below.\n\n- Native Extensions validation is incomplete locally: x64/ia32 DPAPI\nbuilds succeeded, but Windows ARM64 compilation is blocked by the\nmissing local ARM64 MSVC toolchain. Five DPAPI tests remained failing\nlocally. This compiler limitation was not introduced by the dependency\nupgrade.\n- Credentialed E2E tests were not run locally because lab credentials\nwere unavailable.\n- Node 20 compatibility of the updated test tooling has not been\nvalidated. Identity 4.14.1 declares Node >=22; however, the old\nstandalone utility lockfile already included Azure Core dependencies\nrequiring Node >=22. An engine warning alone does not establish a\nruntime/test regression. Preserve existing CI coverage and investigate\nactual failures.\n- Confirm relevant hosted jobs execute; a skipped job is not validation.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-ide\ntype: security\nagent-tool: copilot-chat\nagent-model: n/a\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\nCo-authored-by: Sampada <spingale@microsoft.com>",
+          "timestamp": "2026-11-06T12:59:01-08:00",
+          "tree_id": "9eef91f945d18473e047b78e2e4d1df0759d4f5d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/f0dfcc496b0837f4756b3f54ff6a9827fab8e391"
+        },
+        "date": 1793999193769,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 488981,
+            "range": "±1.06%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 487442,
+            "range": "±1.05%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
           }
         ]
       }
