@@ -1164,9 +1164,10 @@ export class BrowserCacheManager extends CacheManager {
                         throw cacheError;
                     }
                     // When cache quota is exceeded, start removing access tokens until we can successfully set the item
-                    this.removeAccessToken(
+                    await this.removeAccessTokenAndTokenBindingKey(
                         accessTokenKeys[i],
                         correlationId,
+                        undefined,
                         false // Don't save token keys yet, do it at the end
                     );
                 } else {
@@ -1395,6 +1396,23 @@ export class BrowserCacheManager extends CacheManager {
         updateTokenKeys: boolean = true
     ): void {
         super.removeAccessToken(key, correlationId);
+        updateTokenKeys && this.removeAccessTokenKeys([key], correlationId);
+    }
+
+    /**
+     * Removes an access token and awaits token-binding key cleanup.
+     */
+    async removeAccessTokenAndTokenBindingKey(
+        key: string,
+        correlationId: string,
+        preservedKeyId?: string,
+        updateTokenKeys: boolean = true
+    ): Promise<void> {
+        await super.removeAccessTokenAndTokenBindingKey(
+            key,
+            correlationId,
+            preservedKeyId
+        );
         updateTokenKeys && this.removeAccessTokenKeys([key], correlationId);
     }
 
@@ -1711,12 +1729,14 @@ export class BrowserCacheManager extends CacheManager {
             return current;
         }
         const epoch = this.cryptoImpl.createNewGuid();
-        this.setItem(
-            this.capabilityContextActiveKey(id, epoch),
-            "1",
-            correlationId
-        );
-        this.setItem(key, epoch, correlationId);
+        const activeKey = this.capabilityContextActiveKey(id, epoch);
+        this.setItem(activeKey, "1", correlationId);
+        try {
+            this.setItem(key, epoch, correlationId);
+        } catch (error) {
+            this.browserStorage.removeItem(activeKey);
+            throw error;
+        }
         return epoch;
     }
 

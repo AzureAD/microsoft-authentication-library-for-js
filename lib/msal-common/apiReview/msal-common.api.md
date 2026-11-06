@@ -871,6 +871,7 @@ export abstract class CacheManager implements ICacheManager {
     readAppMetadataFromCache(environment: string, correlationId: string): AppMetadataEntity | null;
     refreshTokenKeyMatchesFilter(inputKey: string, filter: CredentialFilter): boolean;
     removeAccessToken(key: string, correlationId: string): void;
+    removeAccessTokenAndTokenBindingKey(key: string, correlationId: string, preservedKeyId?: string): Promise<void>;
     removeAccount(account: AccountInfo, correlationId: string): void;
     removeAccountContext(account: AccountInfo, correlationId: string): void;
     removeAllAccounts(correlationId: string): void;
@@ -1562,6 +1563,22 @@ const DPOP_JKT = "dpop_jkt";
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";
 
+// @internal
+export class DpopProofGenerator {
+    constructor(cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager);
+    buildResourceProofClaims(params: DpopResourceProofParams, correlationId?: string): DpopProofClaims;
+    buildTokenProofClaims(params: DpopTokenProofParams, correlationId?: string): DpopProofClaims;
+    generateJkt(correlationId?: string): Promise<string>;
+    generateResourceProof(params: GenerateDpopResourceProofParams, keyId: string, correlationId?: string): Promise<string>;
+    generateTokenProof(params: DpopTokenProofParams, keyId: string, correlationId?: string): Promise<string>;
+}
+
+// @internal
+export type DpopResourceRequestContext = {
+    htu: string;
+    htm: string;
+};
+
 // @public (undocumented)
 const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
 
@@ -2086,6 +2103,8 @@ function isTokenExpired(expiresOn: string, offset: number): boolean;
 // @internal
 export interface ITokenBindingKeyManager {
     getTokenBindingPublicKeyJwk(kid: string, correlationId: string): Promise<PublicJsonWebKey>;
+    hasTokenBindingKey?(kid: string, correlationId: string): Promise<boolean>;
+    isTokenBindingKeyPersisted?(kid: string, correlationId: string): Promise<boolean>;
     provisionTokenBindingKey(request: TokenBindingKeyProvisioningParameters): Promise<string>;
     removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
 }
@@ -2316,6 +2335,9 @@ const nonceMismatch = "nonce_mismatch";
 
 // @public (undocumented)
 const noNetworkConnectivity = "no_network_connectivity";
+
+// @internal
+export function normalizeDpopResourceRequestContext(context: DpopResourceRequestContext, correlationId?: string): DpopResourceRequestContext;
 
 // @public
 function normalizeUrlForComparison(url: string, logger?: Logger, correlationId?: string): string;
@@ -3520,7 +3542,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.15.0";
+export const version = "16.16.0";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;

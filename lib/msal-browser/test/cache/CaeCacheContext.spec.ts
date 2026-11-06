@@ -101,6 +101,46 @@ describe("Experimental CAE cache contexts", () => {
         window.sessionStorage.clear();
     });
 
+    it("rolls back an active marker when publishing its pointer fails", async () => {
+        const { owner } = await application(
+            BrowserCacheLocation.SessionStorage,
+            false
+        );
+        const setItem = Storage.prototype.setItem;
+        const write = jest
+            .spyOn(Storage.prototype, "setItem")
+            .mockImplementation(function (this: Storage, key, value) {
+                if (key.startsWith("msal.cae.context|")) {
+                    throw new DOMException(
+                        "Synthetic quota limit",
+                        "QuotaExceededError"
+                    );
+                }
+                setItem.call(this, key, value);
+            });
+        await expect(
+            owner.createCaeCacheContext("stable-workspace")
+        ).rejects.toThrow();
+        expect(
+            Object.keys(window.sessionStorage).filter((key) =>
+                key.startsWith("msal.cae.")
+            )
+        ).toHaveLength(0);
+        write.mockRestore();
+        const context = await owner.createCaeCacheContext("stable-workspace");
+        await context.retire();
+        expect(
+            Object.keys(window.sessionStorage).filter((key) =>
+                key.startsWith("msal.cae.active|")
+            )
+        ).toHaveLength(0);
+        expect(
+            Object.keys(window.sessionStorage).filter((key) =>
+                key.startsWith("msal.cae.context|")
+            )
+        ).toHaveLength(1);
+    });
+
     it("creates before sign-in and rejects disabled or empty contexts", async () => {
         const { owner } = await application(
             BrowserCacheLocation.MemoryStorage,

@@ -30,6 +30,7 @@ import {
     ServerAuthorizationTokenResponse,
     Constants,
     AADServerParamKeys,
+    ITokenBindingKeyManager,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -49,6 +50,7 @@ import { EventHandler } from "../event/EventHandler.js";
 import { decryptEarResponse } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
+import { removeTokenBindingKeyOnFailure } from "../request/RequestHelpers.js";
 
 /**
  * Parsed representation of the clientdata response parameter from the /authorize endpoint.
@@ -212,6 +214,7 @@ async function getStandardParameters(
 
     if (
         request.authenticationScheme === Constants.AuthenticationScheme.DPOP &&
+        !request.platformBroker &&
         request.dpopJkt
     ) {
         parameters.set(AADServerParamKeys.DPOP_JKT, request.dpopJkt);
@@ -486,7 +489,11 @@ export async function handleResponsePlatformBroker(
     eventHandler: EventHandler,
     logger: Logger,
     performanceClient: IPerformanceClient,
-    platformAuthProvider?: IPlatformAuthHandler
+    platformAuthProvider?: IPlatformAuthHandler,
+    tokenBindingKeyManager: ITokenBindingKeyManager = new TokenBindingKeyManager(
+        logger,
+        performanceClient
+    )
 ): Promise<AuthenticationResult> {
     if (config.experimental.enableCaeCachePartitioning) {
         rejectCaeCacheExperiment(request.correlationId);
@@ -515,24 +522,35 @@ export async function handleResponsePlatformBroker(
         platformAuthProvider,
         accountId,
         nativeStorage,
-        request.correlationId
+        request.correlationId,
+        tokenBindingKeyManager
     );
     const { userRequestState } = ProtocolUtils.parseRequestState(
         browserCrypto.base64Decode,
         request.state,
         request.correlationId
     );
-    return invokeAsync(
-        nativeInteractionClient.acquireToken.bind(nativeInteractionClient),
-        BrowserPerformanceEvents.NativeInteractionClientAcquireToken,
-        logger,
-        performanceClient,
-        request.correlationId
-    )({
-        ...request,
-        state: userRequestState,
-        prompt: undefined, // Server should handle the prompt, ideally native broker can do this part silently
-    });
+    try {
+        return await invokeAsync(
+            nativeInteractionClient.acquireToken.bind(nativeInteractionClient),
+            BrowserPerformanceEvents.NativeInteractionClientAcquireToken,
+            logger,
+            performanceClient,
+            request.correlationId
+        )({
+            ...request,
+            state: userRequestState,
+            prompt: undefined, // Server should handle the prompt, ideally native broker can do this part silently
+        });
+    } catch (e) {
+        await removeTokenBindingKeyOnFailure(
+            request,
+            tokenBindingKeyManager,
+            logger,
+            performanceClient
+        );
+        throw e;
+    }
 }
 
 /**
@@ -558,7 +576,11 @@ export async function handleResponseCode(
     eventHandler: EventHandler,
     logger: Logger,
     performanceClient: IPerformanceClient,
-    platformAuthProvider?: IPlatformAuthHandler
+    platformAuthProvider?: IPlatformAuthHandler,
+    tokenBindingKeyManager: ITokenBindingKeyManager = new TokenBindingKeyManager(
+        logger,
+        performanceClient
+    )
 ): Promise<AuthenticationResult> {
     // Remove throttle if it exists
     ThrottlingUtils.removeThrottle(
@@ -587,7 +609,8 @@ export async function handleResponseCode(
             eventHandler,
             logger,
             performanceClient,
-            platformAuthProvider
+            platformAuthProvider,
+            tokenBindingKeyManager
         );
     }
     const authCodeRequest: CommonAuthorizationCodeRequest = {
@@ -641,7 +664,11 @@ export async function handleResponseEAR(
     eventHandler: EventHandler,
     logger: Logger,
     performanceClient: IPerformanceClient,
-    platformAuthProvider?: IPlatformAuthHandler
+    platformAuthProvider?: IPlatformAuthHandler,
+    tokenBindingKeyManager: ITokenBindingKeyManager = new TokenBindingKeyManager(
+        logger,
+        performanceClient
+    )
 ): Promise<AuthenticationResult> {
     const request = prepareCaeCacheRequest(originalRequest, config);
     // Remove throttle if it exists
@@ -702,7 +729,8 @@ export async function handleResponseEAR(
             eventHandler,
             logger,
             performanceClient,
-            platformAuthProvider
+            platformAuthProvider,
+            tokenBindingKeyManager
         );
     }
 
@@ -714,7 +742,7 @@ export async function handleResponseEAR(
         performanceClient,
         null,
         null,
-        new TokenBindingKeyManager(logger, performanceClient)
+        tokenBindingKeyManager
     );
 
     // Validate response. This function throws a server error if an error is returned by the server.
