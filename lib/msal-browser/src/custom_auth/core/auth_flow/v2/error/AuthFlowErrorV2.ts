@@ -8,13 +8,24 @@ import { CustomAuthApiError } from "../../../error/CustomAuthApiError.js";
 import { InvalidArgumentError } from "../../../error/InvalidArgumentError.js";
 import { WEB_REDIRECT_REQUIRED } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import {
+    ATTRIBUTE_VALIDATION_ERROR,
     INVALID_ONE_TIME_CODE,
     INVALID_USERNAME_OR_PASSWORD,
+    PASSWORD_BANNED,
+    PASSWORD_IS_INVALID,
+    PASSWORD_RECENTLY_USED,
+    PASSWORD_TOO_LONG,
+    PASSWORD_TOO_SHORT,
     PASSWORD_TOO_WEAK,
     USER_NOT_FOUND,
 } from "./AuthFlowErrorSubcodesV2.js";
 import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
 import type { AttributeValidationDetailV2 } from "../../../network_client/custom_auth_api/v2/response/ErrorResponsesV2.js";
+
+export type AuthFlowErrorContextV2 =
+    | "default"
+    | "mfaVerification"
+    | "authMethodRegistration";
 
 /**
  * Error returned by a native authentication V2 operation.
@@ -25,7 +36,8 @@ export class AuthFlowErrorV2 {
 
     constructor(
         public errorData: CustomAuthError,
-        scenario: CustomAuthFlowScenarioV2 = CustomAuthFlowScenarioV2.Unknown
+        scenario: CustomAuthFlowScenarioV2 = CustomAuthFlowScenarioV2.Unknown,
+        private readonly errorContext: AuthFlowErrorContextV2 = "default"
     ) {
         this.scenario = scenario;
     }
@@ -61,7 +73,10 @@ export class AuthFlowErrorV2 {
      * @returns True if the browser is required, false otherwise.
      */
     isBrowserRequired(): boolean {
-        return this.errorData.subError === WEB_REDIRECT_REQUIRED;
+        return (
+            this.errorData.error === "invalid_grant" &&
+            this.errorData.subError === WEB_REDIRECT_REQUIRED
+        );
     }
 
     /**
@@ -73,11 +88,14 @@ export class AuthFlowErrorV2 {
     }
 
     /**
-     * Checks whether the service rejected the username parameter.
-     * @returns True when the username is invalid, otherwise false.
+     * Checks whether the supplied username failed local validation.
+     * @returns True when local username validation failed.
      */
     isInvalidUsername(): boolean {
-        return this.isUserInvalidError();
+        return (
+            this.errorData instanceof InvalidArgumentError &&
+            this.errorData.argName === "inputs.username"
+        );
     }
 
     /**
@@ -89,67 +107,73 @@ export class AuthFlowErrorV2 {
     }
 
     /**
-     * Checks whether the service rejected the supplied sign-in credentials. This
-     * classifier does not identify new-password policy failures.
-     * @returns True when the username or password is incorrect.
-     */
-    isInvalidCredentials(): boolean {
-        return this.isPasswordIncorrectError();
-    }
-
-    /**
      * Checks whether the service rejected a one-time code.
      * @returns True when the one-time code is invalid, otherwise false.
      */
     isInvalidCode(): boolean {
-        return this.isInvalidCodeError();
+        return this.errorContext === "default" && this.isInvalidCodeError();
     }
 
     /**
-     * Checks whether a new password violates password policy.
-     * @returns True when the new password is invalid, otherwise false.
+     * Checks whether the service rejected an MFA or registration challenge.
+     * @returns True when the verification challenge is invalid.
+     */
+    isInvalidChallenge(): boolean {
+        return (
+            (this.errorContext === "mfaVerification" ||
+                this.errorContext === "authMethodRegistration") &&
+            this.isInvalidCodeError()
+        );
+    }
+
+    /**
+     * Checks whether the service rejected non-password attributes.
+     * Password-targeted validation is reported only by isInvalidPassword().
+     * @returns True when at least one non-password attribute is invalid.
+     */
+    isInvalidAttributes(): boolean {
+        if (
+            !this.isAttributeValidationError() ||
+            this.isPasswordAttributeValidationError()
+        ) {
+            return false;
+        }
+
+        const attributeIds = this.getAttributeValidationDetails()
+            .flatMap((detail) =>
+                Array.isArray(detail.attributeIds) ? detail.attributeIds : []
+            )
+            .filter(
+                (attributeId): attributeId is string =>
+                    typeof attributeId === "string"
+            );
+
+        return attributeIds.some((attributeId) => attributeId.length > 0);
+    }
+
+    /**
+     * Checks whether the service rejected a supplied password.
+     * @returns True when the supplied password is invalid, otherwise false.
      */
     isInvalidPassword(): boolean {
         return (
+            this.isPasswordIncorrectError() ||
             this.isInvalidPasswordError() ||
-            this.isPasswordPolicyViolationError()
+            this.isPasswordAttributeValidationError()
         );
     }
 
-    /**
-     * Checks whether an account already exists for the supplied identifier.
-     * @returns True if the account already exists, otherwise false.
-     */
-    isUserAlreadyExists(): boolean {
-        return this.getAttributeValidationDetails().some(
-            (detail) => detail.code === "userAlreadyExists"
+    private isAttributeValidationError(): boolean {
+        return (
+            this.errorData.error === "invalidRequest" &&
+            this.innerErrorCode === ATTRIBUTE_VALIDATION_ERROR
         );
-    }
-
-    /**
-     * Checks whether the service requires attributes omitted from the request.
-     * @returns True when required attributes are missing, otherwise false.
-     */
-    isMissingRequiredAttributes(): boolean {
-        return this.requiredAttributes.length > 0;
     }
 
     private isUserNotFoundError(): boolean {
         return (
             this.errorData.error === "invalidRequest" &&
-            (this.innerErrorCode === USER_NOT_FOUND ||
-                this.errorData.errorDescription?.includes("AADSTS50034") ===
-                    true)
-        );
-    }
-
-    private isUserInvalidError(): boolean {
-        return (
-            this.errorData.error === "invalidRequest" &&
-            this.errorData.errorDescription?.includes("AADSTS90100") === true &&
-            this.errorData.errorDescription
-                .toLowerCase()
-                .includes("username parameter")
+            this.innerErrorCode === USER_NOT_FOUND
         );
     }
 
@@ -161,24 +185,29 @@ export class AuthFlowErrorV2 {
     }
 
     private isInvalidPasswordError(): boolean {
+        const innerErrorCode = this.innerErrorCode;
+
         return (
             this.errorData.error === "invalidRequest" &&
-            this.innerErrorCode === PASSWORD_TOO_WEAK
+            (innerErrorCode === PASSWORD_TOO_WEAK ||
+                innerErrorCode === PASSWORD_TOO_SHORT ||
+                innerErrorCode === PASSWORD_TOO_LONG ||
+                innerErrorCode === PASSWORD_IS_INVALID ||
+                innerErrorCode === PASSWORD_RECENTLY_USED ||
+                innerErrorCode === PASSWORD_BANNED)
         );
     }
 
-    private isPasswordPolicyViolationError(): boolean {
+    private isPasswordAttributeValidationError(): boolean {
+        if (!this.isAttributeValidationError()) {
+            return false;
+        }
+
         return this.getAttributeValidationDetails().some((detail) => {
             const attributeIds: unknown = detail.attributeIds;
 
             return (
-                detail.code === "passwordPolicyViolation" &&
-                Array.isArray(attributeIds) &&
-                attributeIds.some(
-                    (attributeId: unknown) =>
-                        typeof attributeId === "string" &&
-                        attributeId.toLowerCase() === "password"
-                )
+                Array.isArray(attributeIds) && attributeIds.includes("password")
             );
         });
     }
