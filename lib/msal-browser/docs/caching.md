@@ -157,7 +157,9 @@ Ordinary acquisitions and bootstrap stay on `pca`. The context forwards the
 silent request through that same public owner, including subclass behavior.
 
 `reset` and `retire` invalidate the context lifetime synchronously, before their
-returned promise settles. They clear its CP1 tokens and generation metadata
+returned promise settles, in the calling context's storage view. This is not
+an atomic cross-process cutover: other tabs observe changes through browser
+storage synchronization. They clear its CP1 tokens and generation metadata
 without clearing accounts, ID tokens, refresh tokens or other contexts.
 One small lifetime pointer remains per stable identifier; active-lifetime markers,
 tokens and resource generations are removed on retirement. Lifetimes do not
