@@ -798,7 +798,16 @@ describe("Sign-up V2 entry", () => {
             ).toEqual({
                 purpose: "existingAccount",
             });
-            const completed = await activation.state.submitChallenge("123456");
+            const continuation = await activation.state.submitChallenge(
+                "123456"
+            );
+            expect(continuation.data).toBeUndefined();
+            expect(app.getAllAccounts()).toHaveLength(0);
+            expect(fetch).toHaveBeenCalledTimes(6);
+            if (!continuation.isState("signInContinuation")) {
+                throw new Error("Expected explicit sign-in after activation.");
+            }
+            const completed = await continuation.state.signIn();
 
             expect(completed.isState("completed")).toBe(true);
             expect(completed.scenario).toBe("signUp");
@@ -1350,9 +1359,16 @@ describe("Sign-up V2 entry", () => {
         if (!activationResult.isState("authMethodVerificationRequired")) {
             throw new Error("Expected activation challenge.");
         }
-        const completedResult = await activationResult.state.submitChallenge(
+        const continuationResult = await activationResult.state.submitChallenge(
             "123456"
         );
+        expect(continuationResult.data).toBeUndefined();
+        expect(app.getAllAccounts()).toHaveLength(0);
+        expect(fetch).toHaveBeenCalledTimes(6);
+        if (!continuationResult.isState("signInContinuation")) {
+            throw new Error("Expected explicit sign-in after activation.");
+        }
+        const completedResult = await continuationResult.state.signIn();
 
         expect(completedResult.isState("completed")).toBe(true);
         const requests = (fetch as jest.Mock).mock.calls;
@@ -1404,9 +1420,16 @@ describe("Sign-up V2 entry", () => {
             throw new Error("Expected activation challenge.");
         }
 
-        const completedResult = await activationResult.state.submitChallenge(
+        const continuationResult = await activationResult.state.submitChallenge(
             "123456"
         );
+        expect(continuationResult.data).toBeUndefined();
+        expect(app.getAllAccounts()).toHaveLength(0);
+        expect(fetch).toHaveBeenCalledTimes(5);
+        if (!continuationResult.isState("signInContinuation")) {
+            throw new Error("Expected explicit sign-in after activation.");
+        }
+        const completedResult = await continuationResult.state.signIn();
         expect(completedResult.isState("completed")).toBe(true);
         expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);
         expect(fetch).toHaveBeenCalledTimes(7);
@@ -1526,8 +1549,17 @@ describe("Sign-up V2 entry", () => {
             if (!activationResult.isState("authMethodVerificationRequired")) {
                 throw new Error("Expected activation challenge.");
             }
-            const completedResult =
+            const continuationResult =
                 await activationResult.state.submitChallenge("123456");
+            expect(continuationResult.data).toBeUndefined();
+            expect(app.getAllAccounts()).toHaveLength(0);
+            expect(fetch).toHaveBeenCalledTimes(
+                submission === "password" ? 7 : 6
+            );
+            if (!continuationResult.isState("signInContinuation")) {
+                throw new Error("Expected explicit sign-in after activation.");
+            }
+            const completedResult = await continuationResult.state.signIn();
 
             expect(completedResult.isState("completed")).toBe(true);
             expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);

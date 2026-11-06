@@ -13,12 +13,14 @@ import {
     FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
     FLOW_COMPLETED_V2,
+    FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthAccountData } from "../../../../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import type { AuthenticationResult } from "../../../../../../src/response/AuthenticationResult.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
 import { AuthenticationFactorV2 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
+import { SignInContinuationStateV2 } from "../../../../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 
 describe("MFAVerificationRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
@@ -40,10 +42,12 @@ describe("MFAVerificationRequiredStateV2", () => {
     const flowClient = {
         submitCode: jest.fn(),
         resendCode: jest.fn(),
+        signInWithContinuation: jest.fn(),
     } as unknown as jest.Mocked<FlowInteractionClientV2>;
 
     const buildState = (
-        logger = getDefaultLogger()
+        logger = getDefaultLogger(),
+        scenario: CustomAuthFlowScenarioV2 = CustomAuthFlowScenarioV2.SignIn
     ): MFAVerificationRequiredStateV2 =>
         new MFAVerificationRequiredStateV2({
             correlationId,
@@ -56,7 +60,7 @@ describe("MFAVerificationRequiredStateV2", () => {
             cacheClient: {} as CustomAuthSilentCacheClient,
             continuationState: {
                 continuationToken: "ct-mfa-challenge",
-                scenario: CustomAuthFlowScenarioV2.SignIn,
+                scenario,
                 scopes,
                 links: {
                     verify: "/mfa/verify",
@@ -108,6 +112,39 @@ describe("MFAVerificationRequiredStateV2", () => {
         expect(result.isState("completed")).toBe(true);
         expect(result.state).toBeInstanceOf(CompletedStateV2);
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+    });
+
+    it("returns a sign-in continuation after password-reset MFA without signing in", async () => {
+        const continuationState = {
+            continuationToken: "ct-reset-mfa-verified",
+            scenario: CustomAuthFlowScenarioV2.PasswordReset,
+            scopes,
+            links: {},
+        };
+        flowClient.submitCode.mockResolvedValue({
+            type: FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
+            correlationId,
+            continuationState,
+        });
+
+        const result = await buildState(
+            getDefaultLogger(),
+            CustomAuthFlowScenarioV2.PasswordReset
+        ).submitChallenge("123456");
+
+        expect(result.isState("signInContinuation")).toBe(true);
+        expect(result.state).toBeInstanceOf(SignInContinuationStateV2);
+        expect(result.scenario).toBe(CustomAuthFlowScenarioV2.PasswordReset);
+        expect(result.data).toBeUndefined();
+        if (result.isState("signInContinuation")) {
+            expect(result.state["stateParameters"].continuationState).toEqual(
+                continuationState
+            );
+            expect(result.state["stateParameters"].correlationId).toBe(
+                correlationId
+            );
+        }
+        expect(flowClient.signInWithContinuation).not.toHaveBeenCalled();
     });
 
     it("submits a wrong-length MFA challenge and surfaces the server result", async () => {
