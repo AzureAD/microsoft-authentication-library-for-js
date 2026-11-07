@@ -86,4 +86,9 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
      * @internal
      */
     popupOriginCheckDone?: boolean;
+    /**
+     * Trusted authorization server issuer bound to this transaction.
+     * @internal
+     */
+    expectedIssuer?: string;
 };

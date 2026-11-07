@@ -19,6 +19,7 @@ import {
     PkceCodes,
     CommonAuthorizationUrlRequest,
     ProtocolUtils,
+    AuthorizeProtocol,
     Authority,
     ITokenBindingKeyManager,
 } from "@azure/msal-common/browser";
@@ -383,6 +384,10 @@ export class PopupClient extends StandardInteractionClient {
                 requestExtraQueryParameters: popupRequest.extraQueryParameters,
                 account: popupRequest.account,
             });
+            popupRequest.expectedIssuer =
+                AuthorizeProtocol.getAuthorizationResponseIssuer(
+                    authClient.authority
+                );
 
             if (popupRequest.httpMethod === Constants.HttpMethod.POST) {
                 return await this.executeCodeFlowWithPost(
@@ -680,23 +685,9 @@ export class PopupClient extends StandardInteractionClient {
     ): Promise<AuthenticationResult> {
         const correlationId = request.correlationId;
         // Get the frame handle for the silent request
-        const discoveredAuthority = await invokeAsync(
-            getDiscoveredAuthority,
-            BrowserPerformanceEvents.StandardInteractionClientGetDiscoveredAuthority,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )(
-            this.config,
-            this.correlationId,
-            this.performanceClient,
-            this.browserStorage,
-            this.logger
-        );
-
         const popupWindow = await this.openPostFormPopup(
             request,
-            discoveredAuthority,
+            authClient.authority,
             popupParams,
             correlationId,
             false

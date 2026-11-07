@@ -58,6 +58,35 @@ const authorityOptions: AuthorityOptions = {
     authorityMetadata: "",
 };
 
+const hardcodedProfileMetadata =
+    authorityMetadata.EndpointMetadata[Constants.DEFAULT_AUTHORITY_HOST];
+const PROFILE_OPENID_CONFIG = {
+    ...hardcodedProfileMetadata,
+    authorization_endpoint:
+        hardcodedProfileMetadata.authorization_endpoint.replace(
+            "{tenantid}",
+            "{tenant}"
+        ),
+    token_endpoint: hardcodedProfileMetadata.token_endpoint.replace(
+        "{tenantid}",
+        "{tenant}"
+    ),
+    end_session_endpoint:
+        hardcodedProfileMetadata.end_session_endpoint?.replace(
+            "{tenantid}",
+            "{tenant}"
+        ),
+    issuer: hardcodedProfileMetadata.issuer.replace("{tenantid}", "{tenant}"),
+    jwks_uri: hardcodedProfileMetadata.jwks_uri.replace(
+        "{tenantid}",
+        "{tenant}"
+    ),
+};
+const PROFILE_OPENID_CONFIG_RESPONSE = {
+    ...DEFAULT_OPENID_CONFIG_RESPONSE,
+    body: PROFILE_OPENID_CONFIG,
+};
+
 const loggerOptions = {
     loggerCallback: (): void => {},
     piiLoggingEnabled: true,
@@ -66,13 +95,11 @@ const loggerOptions = {
 const logger = new Logger(loggerOptions);
 
 const authorityMetadataCacheValue: AuthorityMetadataEntity = {
-    authorization_endpoint:
-        DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint,
-    token_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint,
-    end_session_endpoint:
-        DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint,
-    issuer: DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer,
-    jwks_uri: DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri,
+    authorization_endpoint: PROFILE_OPENID_CONFIG.authorization_endpoint,
+    token_endpoint: PROFILE_OPENID_CONFIG.token_endpoint,
+    end_session_endpoint: PROFILE_OPENID_CONFIG.end_session_endpoint,
+    issuer: PROFILE_OPENID_CONFIG.issuer,
+    jwks_uri: PROFILE_OPENID_CONFIG.jwks_uri,
     endpointsFromNetwork: true,
     aliases: DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0].aliases,
     preferred_cache:
@@ -313,7 +340,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
             it("Returns authorization_endpoint of tenantDiscoveryResponse", () => {
                 expect(authority.authorizationEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.authorization_endpoint.replace(
                         "{tenant}",
                         "common"
                     )
@@ -322,7 +349,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
             it("Returns token_endpoint of tenantDiscoveryResponse", () => {
                 expect(authority.tokenEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.token_endpoint.replace(
                         "{tenant}",
                         "common"
                     )
@@ -331,7 +358,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
             it("Returns end_session_endpoint of tenantDiscoveryResponse", () => {
                 expect(authority.endSessionEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.end_session_endpoint!.replace(
                         "{tenant}",
                         "common"
                     )
@@ -340,19 +367,13 @@ describe("Authority.ts Class Unit Tests", () => {
 
             it("Returns issuer of tenantDiscoveryResponse for selfSignedJwtAudience", () => {
                 expect(authority.selfSignedJwtAudience).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
-                        "{tenant}",
-                        "common"
-                    )
+                    PROFILE_OPENID_CONFIG.issuer.replace("{tenant}", "common")
                 );
             });
 
             it("Returns jwks_uri of tenantDiscoveryResponse", () => {
                 expect(authority.jwksUri).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri.replace(
-                        "{tenant}",
-                        "common"
-                    )
+                    PROFILE_OPENID_CONFIG.jwks_uri.replace("{tenant}", "common")
                 );
             });
 
@@ -479,7 +500,7 @@ describe("Authority.ts Class Unit Tests", () => {
             const newTenant = "1d56e21e-b696-410b-83a0-bc2d775d0b39";
             const tenantDomain = "tenant.domain.onmicrosoft.com";
             const newTenantDomain = "new.tenant.domain.onmicrosoft.com";
-            const response = { ...DEFAULT_OPENID_CONFIG_RESPONSE.body };
+            const response = { ...PROFILE_OPENID_CONFIG };
             const b2cResponse = { ...B2C_OPENID_CONFIG_RESPONSE.body };
             for (const [key, value] of Object.entries(response)) {
                 if (typeof response[key] === "string") {
@@ -660,9 +681,7 @@ describe("Authority.ts Class Unit Tests", () => {
         };
 
         it("discovery endpoint metadata is updated with regional information when the region is provided", async () => {
-            const deepCopyOpenIdResponse = JSON.parse(
-                JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE)
-            );
+            const profileOpenIdResponse = { body: PROFILE_OPENID_CONFIG };
             networkInterface.sendGetRequestAsync = (
                 url: string,
                 options?: NetworkRequestOptions
@@ -685,7 +704,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
             expect(authority.discoveryComplete()).toBe(true);
             expect(authority.authorizationEndpoint).toEqual(
-                `${deepCopyOpenIdResponse.body.authorization_endpoint
+                `${profileOpenIdResponse.body.authorization_endpoint
                     .replace("{tenant}", "common")
                     .replace(
                         "login.microsoftonline.com",
@@ -693,7 +712,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     )}/`
             );
             expect(authority.tokenEndpoint).toEqual(
-                `${deepCopyOpenIdResponse.body.token_endpoint
+                `${profileOpenIdResponse.body.token_endpoint
                     .replace("{tenant}", "common")
                     .replace(
                         "login.microsoftonline.com",
@@ -701,8 +720,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     )}/`
             );
             expect(authority.endSessionEndpoint).toEqual(
-                `${deepCopyOpenIdResponse.body.end_session_endpoint
-                    .replace("{tenant}", "common")
+                `${profileOpenIdResponse.body
+                    .end_session_endpoint!.replace("{tenant}", "common")
                     .replace(
                         "login.microsoftonline.com",
                         "westus2.login.microsoft.com"
@@ -711,9 +730,7 @@ describe("Authority.ts Class Unit Tests", () => {
         });
 
         it("region provided by the user overrides the region auto-discovered", async () => {
-            const deepCopyOpenIdResponse = JSON.parse(
-                JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE)
-            );
+            const profileOpenIdResponse = { body: PROFILE_OPENID_CONFIG };
             networkInterface.sendGetRequestAsync = (
                 url: string,
                 options?: NetworkRequestOptions
@@ -742,7 +759,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
             expect(authority.discoveryComplete()).toBe(true);
             expect(authority.authorizationEndpoint).toEqual(
-                `${deepCopyOpenIdResponse.body.authorization_endpoint
+                `${profileOpenIdResponse.body.authorization_endpoint
                     .replace("{tenant}", "common")
                     .replace(
                         "login.microsoftonline.com",
@@ -750,7 +767,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     )}/`
             );
             expect(authority.tokenEndpoint).toEqual(
-                `${deepCopyOpenIdResponse.body.token_endpoint
+                `${profileOpenIdResponse.body.token_endpoint
                     .replace("{tenant}", "common")
                     .replace(
                         "login.microsoftonline.com",
@@ -758,8 +775,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     )}/`
             );
             expect(authority.endSessionEndpoint).toEqual(
-                `${deepCopyOpenIdResponse.body.end_session_endpoint
-                    .replace("{tenant}", "common")
+                `${profileOpenIdResponse.body
+                    .end_session_endpoint!.replace("{tenant}", "common")
                     .replace(
                         "login.microsoftonline.com",
                         "westus2.login.microsoft.com"
@@ -768,9 +785,7 @@ describe("Authority.ts Class Unit Tests", () => {
         });
 
         it("region is not auto-discovered if a region is provided by the user", async () => {
-            const deepCopyOpenIdResponse = JSON.parse(
-                JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE)
-            );
+            const profileOpenIdResponse = { body: PROFILE_OPENID_CONFIG };
             networkInterface.sendGetRequestAsync = (
                 url: string,
                 options?: NetworkRequestOptions
@@ -806,7 +821,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
             expect(authority.discoveryComplete()).toBe(true);
             expect(authority.authorizationEndpoint).toEqual(
-                `${deepCopyOpenIdResponse.body.authorization_endpoint
+                `${profileOpenIdResponse.body.authorization_endpoint
                     .replace("{tenant}", "common")
                     .replace(
                         "login.microsoftonline.com",
@@ -814,7 +829,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     )}/`
             );
             expect(authority.tokenEndpoint).toEqual(
-                `${deepCopyOpenIdResponse.body.token_endpoint
+                `${profileOpenIdResponse.body.token_endpoint
                     .replace("{tenant}", "common")
                     .replace(
                         "login.microsoftonline.com",
@@ -822,8 +837,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     )}/`
             );
             expect(authority.endSessionEndpoint).toEqual(
-                `${deepCopyOpenIdResponse.body.end_session_endpoint
-                    .replace("{tenant}", "common")
+                `${profileOpenIdResponse.body
+                    .end_session_endpoint!.replace("{tenant}", "common")
                     .replace(
                         "login.microsoftonline.com",
                         "westus2.login.microsoft.com"
@@ -832,9 +847,7 @@ describe("Authority.ts Class Unit Tests", () => {
         });
 
         it("auto discovered region only used when the user provides the AUTO_DISCOVER flag", async () => {
-            const deepCopyOpenIdResponse = JSON.parse(
-                JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE)
-            );
+            const profileOpenIdResponse = { body: PROFILE_OPENID_CONFIG };
             networkInterface.sendGetRequestAsync = (
                 url: string,
                 options?: NetworkRequestOptions
@@ -863,7 +876,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
             expect(authority.discoveryComplete()).toBe(true);
             expect(authority.authorizationEndpoint).toEqual(
-                `${deepCopyOpenIdResponse.body.authorization_endpoint
+                `${profileOpenIdResponse.body.authorization_endpoint
                     .replace("{tenant}", "common")
                     .replace(
                         "login.microsoftonline.com",
@@ -871,7 +884,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     )}/`
             );
             expect(authority.tokenEndpoint).toEqual(
-                `${deepCopyOpenIdResponse.body.token_endpoint
+                `${profileOpenIdResponse.body.token_endpoint
                     .replace("{tenant}", "common")
                     .replace(
                         "login.microsoftonline.com",
@@ -879,8 +892,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     )}/`
             );
             expect(authority.endSessionEndpoint).toEqual(
-                `${deepCopyOpenIdResponse.body.end_session_endpoint
-                    .replace("{tenant}", "common")
+                `${profileOpenIdResponse.body
+                    .end_session_endpoint!.replace("{tenant}", "common")
                     .replace(
                         "login.microsoftonline.com",
                         "centralus.login.microsoft.com"
@@ -889,9 +902,7 @@ describe("Authority.ts Class Unit Tests", () => {
         });
 
         it("fallbacks to the global endpoint when the user provides the AUTO_DISCOVER flag but no region is detected", async () => {
-            const deepCopyOpenIdResponse = JSON.parse(
-                JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE)
-            );
+            const profileOpenIdResponse = { body: PROFILE_OPENID_CONFIG };
             networkInterface.sendGetRequestAsync = (
                 url: string,
                 options?: NetworkRequestOptions
@@ -920,19 +931,19 @@ describe("Authority.ts Class Unit Tests", () => {
 
             expect(authority.discoveryComplete()).toBe(true);
             expect(authority.authorizationEndpoint).toEqual(
-                deepCopyOpenIdResponse.body.authorization_endpoint.replace(
+                profileOpenIdResponse.body.authorization_endpoint.replace(
                     "{tenant}",
                     "common"
                 )
             );
             expect(authority.tokenEndpoint).toEqual(
-                deepCopyOpenIdResponse.body.token_endpoint.replace(
+                profileOpenIdResponse.body.token_endpoint.replace(
                     "{tenant}",
                     "common"
                 )
             );
             expect(authority.endSessionEndpoint).toEqual(
-                deepCopyOpenIdResponse.body.end_session_endpoint.replace(
+                profileOpenIdResponse.body.end_session_endpoint!.replace(
                     "{tenant}",
                     "common"
                 )
@@ -1217,9 +1228,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     protocolMode: ProtocolMode.AAD,
                     knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
                     cloudDiscoveryMetadata: "",
-                    authorityMetadata: JSON.stringify(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body
-                    ),
+                    authorityMetadata: JSON.stringify(PROFILE_OPENID_CONFIG),
                 };
                 authority = new Authority(
                     Constants.DEFAULT_AUTHORITY,
@@ -1234,13 +1243,13 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 expect(authority.discoveryComplete()).toBe(true);
                 expect(authority.authorizationEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.authorization_endpoint.replace(
                         "{tenant}",
                         "common"
                     )
                 );
                 expect(authority.tokenEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.token_endpoint.replace(
                         "{tenant}",
                         "common"
                     )
@@ -1249,16 +1258,13 @@ describe("Authority.ts Class Unit Tests", () => {
                     authority.tokenEndpoint.replace("/token", "/devicecode")
                 );
                 expect(authority.endSessionEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.end_session_endpoint?.replace(
                         "{tenant}",
                         "common"
                     )
                 );
                 expect(authority.selfSignedJwtAudience).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
-                        "{tenant}",
-                        "common"
-                    )
+                    PROFILE_OPENID_CONFIG.issuer.replace("{tenant}", "common")
                 );
 
                 // Test that the metadata is cached
@@ -1269,20 +1275,19 @@ describe("Authority.ts Class Unit Tests", () => {
                     throw Error("Cached AuthorityMetadata should not be null!");
                 } else {
                     expect(cachedAuthorityMetadata.authorization_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body
-                            .authorization_endpoint
+                        PROFILE_OPENID_CONFIG.authorization_endpoint
                     );
                     expect(cachedAuthorityMetadata.token_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint
+                        PROFILE_OPENID_CONFIG.token_endpoint
                     );
                     expect(cachedAuthorityMetadata.end_session_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint
+                        PROFILE_OPENID_CONFIG.end_session_endpoint
                     );
                     expect(cachedAuthorityMetadata.issuer).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer
+                        PROFILE_OPENID_CONFIG.issuer
                     );
                     expect(cachedAuthorityMetadata.jwks_uri).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri
+                        PROFILE_OPENID_CONFIG.jwks_uri
                     );
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(
                         false
@@ -1293,6 +1298,32 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(
                     getEndpointMetadataFromHarcodedValuesSpy
                 ).not.toHaveBeenCalled();
+                expect(
+                    getEndpointMetadataFromNetworkSpy
+                ).not.toHaveBeenCalled();
+            });
+
+            it("Rejects OAuth 2.0 endpoint metadata from config for trusted authorities", async () => {
+                authority = new Authority(
+                    Constants.DEFAULT_AUTHORITY,
+                    networkInterface,
+                    mockStorage,
+                    {
+                        ...authorityOptions,
+                        authorityMetadata: JSON.stringify(
+                            DEFAULT_OPENID_CONFIG_RESPONSE.body
+                        ),
+                    },
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
+                );
+
+                await expect(
+                    authority.resolveEndpointsAsync()
+                ).rejects.toMatchObject({
+                    errorCode: ClientAuthErrorCodes.openIdConfigError,
+                });
                 expect(
                     getEndpointMetadataFromNetworkSpy
                 ).not.toHaveBeenCalled();
@@ -1327,7 +1358,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
             it("Throws error if authority does not contain end_session_endpoint but calls logout", async () => {
                 const authorityJson = {
-                    ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                    ...PROFILE_OPENID_CONFIG,
                     end_session_endpoint: undefined,
                 };
 
@@ -1385,13 +1416,13 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 expect(authority.discoveryComplete()).toBe(true);
                 expect(authority.authorizationEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.authorization_endpoint.replace(
                         "{tenant}",
                         "common"
                     )
                 );
                 expect(authority.tokenEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.token_endpoint.replace(
                         "{tenant}",
                         "common"
                     )
@@ -1400,16 +1431,13 @@ describe("Authority.ts Class Unit Tests", () => {
                     authority.tokenEndpoint.replace("/token", "/devicecode")
                 );
                 expect(authority.endSessionEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.end_session_endpoint!.replace(
                         "{tenant}",
                         "common"
                     )
                 );
                 expect(authority.selfSignedJwtAudience).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
-                        "{tenant}",
-                        "common"
-                    )
+                    PROFILE_OPENID_CONFIG.issuer.replace("{tenant}", "common")
                 );
 
                 expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
@@ -1464,13 +1492,13 @@ describe("Authority.ts Class Unit Tests", () => {
                         "login.partner.microsoftonline.cn"
                     );
                     expect(authority.authorizationEndpoint).toBe(
-                        "https://login.partner.microsoftonline.cn/common/oauth2/v2.0/authorize"
+                        "https://login.partner.microsoftonline.cn/common/oauth21/2026-08/authorize"
                     );
                     expect(authority.tokenEndpoint).toBe(
-                        "https://login.partner.microsoftonline.cn/common/oauth2/v2.0/token"
+                        "https://login.partner.microsoftonline.cn/common/oauth21/2026-08/token"
                     );
                     expect(authority.selfSignedJwtAudience).toBe(
-                        "https://login.partner.microsoftonline.cn/common/v2.0"
+                        "https://login.partner.microsoftonline.cn/common/oauth21/2026-08"
                     );
                     expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
                     expect(
@@ -1505,13 +1533,13 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 expect(authority.discoveryComplete()).toBe(true);
                 expect(authority.authorizationEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.authorization_endpoint.replace(
                         "{tenant}",
                         tenantId
                     )
                 );
                 expect(authority.tokenEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.token_endpoint.replace(
                         "{tenant}",
                         tenantId
                     )
@@ -1520,16 +1548,13 @@ describe("Authority.ts Class Unit Tests", () => {
                     authority.tokenEndpoint.replace("/token", "/devicecode")
                 );
                 expect(authority.endSessionEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.end_session_endpoint!.replace(
                         "{tenant}",
                         tenantId
                     )
                 );
                 expect(authority.selfSignedJwtAudience).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
-                        "{tenant}",
-                        tenantId
-                    )
+                    PROFILE_OPENID_CONFIG.issuer.replace("{tenant}", tenantId)
                 );
 
                 expect(getEndpointMetadataFromConfigSpy).toHaveBeenCalled();
@@ -1555,17 +1580,17 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 const expectedHardcodedRegionalValues = {
                     authorization_endpoint:
-                        "https://westus2.login.microsoft.com/common/oauth2/v2.0/authorize/",
+                        "https://westus2.login.microsoft.com/common/oauth21/2026-08/authorize/",
                     canonical_authority:
                         "https://login.microsoftonline.com/common/",
                     end_session_endpoint:
-                        "https://westus2.login.microsoft.com/common/oauth2/v2.0/logout/",
+                        "https://westus2.login.microsoft.com/common/oauth21/2026-08/logout/",
                     endpointsFromNetwork: false,
-                    issuer: "https://login.microsoftonline.com/{tenantid}/v2.0",
+                    issuer: "https://login.microsoftonline.com/{tenantid}/oauth21/2026-08",
                     jwks_uri:
-                        "https://login.microsoftonline.com/common/discovery/v2.0/keys",
+                        "https://login.microsoftonline.com/common/oauth21/2026-08/keys",
                     token_endpoint:
-                        "https://westus2.login.microsoft.com/common/oauth2/v2.0/token/",
+                        "https://westus2.login.microsoft.com/common/oauth21/2026-08/token/",
                 };
 
                 networkInterface.sendGetRequestAsync = (
@@ -1641,13 +1666,13 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 expect(authority.discoveryComplete()).toBe(true);
                 expect(authority.authorizationEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.authorization_endpoint.replace(
                         "{tenant}",
                         "common"
                     )
                 );
                 expect(authority.tokenEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.token_endpoint.replace(
                         "{tenant}",
                         "common"
                     )
@@ -1656,16 +1681,13 @@ describe("Authority.ts Class Unit Tests", () => {
                     authority.tokenEndpoint.replace("/token", "/devicecode")
                 );
                 expect(authority.endSessionEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.end_session_endpoint?.replace(
                         "{tenant}",
                         "common"
                     )
                 );
                 expect(authority.selfSignedJwtAudience).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
-                        "{tenant}",
-                        "common"
-                    )
+                    PROFILE_OPENID_CONFIG.issuer.replace("{tenant}", "common")
                 );
 
                 // Test that the metadata is cached
@@ -1675,20 +1697,19 @@ describe("Authority.ts Class Unit Tests", () => {
                     throw Error("Cached AuthorityMetadata should not be null!");
                 } else {
                     expect(cachedAuthorityMetadata.authorization_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body
-                            .authorization_endpoint
+                        PROFILE_OPENID_CONFIG.authorization_endpoint
                     );
                     expect(cachedAuthorityMetadata.token_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint
+                        PROFILE_OPENID_CONFIG.token_endpoint
                     );
                     expect(cachedAuthorityMetadata.end_session_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint
+                        PROFILE_OPENID_CONFIG.end_session_endpoint
                     );
                     expect(cachedAuthorityMetadata.issuer).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer
+                        PROFILE_OPENID_CONFIG.issuer
                     );
                     expect(cachedAuthorityMetadata.jwks_uri).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri
+                        PROFILE_OPENID_CONFIG.jwks_uri
                     );
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(
                         true
@@ -1699,6 +1720,43 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(
                     getEndpointMetadataFromHarcodedValuesSpy
                 ).toHaveBeenCalled();
+                expect(
+                    getEndpointMetadataFromNetworkSpy
+                ).not.toHaveBeenCalled();
+            });
+
+            it("Rejects cached OAuth 2.0 endpoint metadata for trusted authorities", async () => {
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                mockStorage.setAuthorityMetadata(key, {
+                    ...authorityMetadataCacheValue,
+                    authorization_endpoint:
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body
+                            .authorization_endpoint,
+                    token_endpoint:
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint,
+                    end_session_endpoint:
+                        DEFAULT_OPENID_CONFIG_RESPONSE.body
+                            .end_session_endpoint,
+                    issuer: DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer,
+                    jwks_uri: DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri,
+                });
+                getEndpointMetadataFromHarcodedValuesSpy.mockReturnValue(null);
+
+                authority = new Authority(
+                    Constants.DEFAULT_AUTHORITY,
+                    networkInterface,
+                    mockStorage,
+                    authorityOptions,
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
+                );
+
+                await expect(
+                    authority.resolveEndpointsAsync()
+                ).rejects.toMatchObject({
+                    errorCode: ClientAuthErrorCodes.openIdConfigError,
+                });
                 expect(
                     getEndpointMetadataFromNetworkSpy
                 ).not.toHaveBeenCalled();
@@ -1715,7 +1773,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     url: string,
                     options?: NetworkRequestOptions
                 ): any => {
-                    return DEFAULT_OPENID_CONFIG_RESPONSE;
+                    return PROFILE_OPENID_CONFIG_RESPONSE;
                 };
                 authority = new Authority(
                     Constants.DEFAULT_AUTHORITY,
@@ -1734,13 +1792,13 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 expect(authority.discoveryComplete()).toBe(true);
                 expect(authority.authorizationEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.authorization_endpoint.replace(
                         "{tenant}",
                         "common"
                     )
                 );
                 expect(authority.tokenEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.token_endpoint.replace(
                         "{tenant}",
                         "common"
                     )
@@ -1749,16 +1807,13 @@ describe("Authority.ts Class Unit Tests", () => {
                     authority.tokenEndpoint.replace("/token", "/devicecode")
                 );
                 expect(authority.endSessionEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.end_session_endpoint?.replace(
                         "{tenant}",
                         "common"
                     )
                 );
                 expect(authority.selfSignedJwtAudience).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
-                        "{tenant}",
-                        "common"
-                    )
+                    PROFILE_OPENID_CONFIG.issuer.replace("{tenant}", "common")
                 );
 
                 // Test that the metadata is cached
@@ -1768,20 +1823,19 @@ describe("Authority.ts Class Unit Tests", () => {
                     throw Error("Cached AuthorityMetadata should not be null!");
                 } else {
                     expect(cachedAuthorityMetadata.authorization_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body
-                            .authorization_endpoint
+                        PROFILE_OPENID_CONFIG.authorization_endpoint
                     );
                     expect(cachedAuthorityMetadata.token_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint
+                        PROFILE_OPENID_CONFIG.token_endpoint
                     );
                     expect(cachedAuthorityMetadata.end_session_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint
+                        PROFILE_OPENID_CONFIG.end_session_endpoint
                     );
                     expect(cachedAuthorityMetadata.issuer).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer
+                        PROFILE_OPENID_CONFIG.issuer
                     );
                     expect(cachedAuthorityMetadata.jwks_uri).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri
+                        PROFILE_OPENID_CONFIG.jwks_uri
                     );
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(
                         true
@@ -1800,7 +1854,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     url: string,
                     options?: NetworkRequestOptions
                 ): any => {
-                    return DEFAULT_OPENID_CONFIG_RESPONSE;
+                    return PROFILE_OPENID_CONFIG_RESPONSE;
                 };
                 authority = new Authority(
                     Constants.DEFAULT_AUTHORITY,
@@ -1817,13 +1871,13 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 expect(authority.discoveryComplete()).toBe(true);
                 expect(authority.authorizationEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.authorization_endpoint.replace(
                         "{tenant}",
                         "common"
                     )
                 );
                 expect(authority.tokenEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.token_endpoint.replace(
                         "{tenant}",
                         "common"
                     )
@@ -1832,16 +1886,13 @@ describe("Authority.ts Class Unit Tests", () => {
                     authority.tokenEndpoint.replace("/token", "/devicecode")
                 );
                 expect(authority.endSessionEndpoint).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(
+                    PROFILE_OPENID_CONFIG.end_session_endpoint?.replace(
                         "{tenant}",
                         "common"
                     )
                 );
                 expect(authority.selfSignedJwtAudience).toBe(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace(
-                        "{tenant}",
-                        "common"
-                    )
+                    PROFILE_OPENID_CONFIG.issuer.replace("{tenant}", "common")
                 );
 
                 // Test that the metadata is cached
@@ -1852,20 +1903,19 @@ describe("Authority.ts Class Unit Tests", () => {
                     throw Error("Cached AuthorityMetadata should not be null!");
                 } else {
                     expect(cachedAuthorityMetadata.authorization_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body
-                            .authorization_endpoint
+                        PROFILE_OPENID_CONFIG.authorization_endpoint
                     );
                     expect(cachedAuthorityMetadata.token_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint
+                        PROFILE_OPENID_CONFIG.token_endpoint
                     );
                     expect(cachedAuthorityMetadata.end_session_endpoint).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint
+                        PROFILE_OPENID_CONFIG.end_session_endpoint
                     );
                     expect(cachedAuthorityMetadata.issuer).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer
+                        PROFILE_OPENID_CONFIG.issuer
                     );
                     expect(cachedAuthorityMetadata.jwks_uri).toBe(
-                        DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri
+                        PROFILE_OPENID_CONFIG.jwks_uri
                     );
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(
                         true
@@ -1877,6 +1927,27 @@ describe("Authority.ts Class Unit Tests", () => {
                     getEndpointMetadataFromHarcodedValuesSpy
                 ).toHaveBeenCalled();
                 expect(getEndpointMetadataFromNetworkSpy).toHaveBeenCalled();
+            });
+
+            it("Rejects OAuth 2.0 endpoint metadata from network for trusted authorities", async () => {
+                networkInterface.sendGetRequestAsync = (): any =>
+                    DEFAULT_OPENID_CONFIG_RESPONSE;
+                getEndpointMetadataFromHarcodedValuesSpy.mockReturnValue(null);
+                authority = new Authority(
+                    Constants.DEFAULT_AUTHORITY,
+                    networkInterface,
+                    mockStorage,
+                    authorityOptions,
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID,
+                    new StubPerformanceClient()
+                );
+
+                await expect(
+                    authority.resolveEndpointsAsync()
+                ).rejects.toMatchObject({
+                    errorCode: ClientAuthErrorCodes.openIdConfigError,
+                });
             });
 
             it("Throws error if openid-configuration network call fails", (done) => {
@@ -1966,8 +2037,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     );
 
                     const authorityJson = {
-                        ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
-                        issuer: "https://malicious.attacker.com/tenant/v2.0",
+                        ...PROFILE_OPENID_CONFIG,
+                        issuer: `https://malicious.attacker.com/tenant/${authorityMetadata.OAUTH21_CLIENT_PROFILE}`,
                     };
 
                     const configAuthority = new Authority(
@@ -2362,7 +2433,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     url: string,
                     options?: NetworkRequestOptions
                 ): any => {
-                    return DEFAULT_OPENID_CONFIG_RESPONSE;
+                    return PROFILE_OPENID_CONFIG_RESPONSE;
                 };
                 authority = new Authority(
                     Constants.DEFAULT_AUTHORITY,
@@ -2430,7 +2501,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     url: string,
                     options?: NetworkRequestOptions
                 ): any => {
-                    return DEFAULT_OPENID_CONFIG_RESPONSE;
+                    return PROFILE_OPENID_CONFIG_RESPONSE;
                 };
 
                 authority = new Authority(
@@ -2480,7 +2551,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     url: string,
                     options?: NetworkRequestOptions
                 ): any => {
-                    return DEFAULT_OPENID_CONFIG_RESPONSE;
+                    return PROFILE_OPENID_CONFIG_RESPONSE;
                 };
 
                 authority = new Authority(
@@ -2578,7 +2649,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         url: string,
                         options?: NetworkRequestOptions
                     ): any => {
-                        return DEFAULT_OPENID_CONFIG_RESPONSE;
+                        return PROFILE_OPENID_CONFIG_RESPONSE;
                     };
 
                     authority = new Authority(
@@ -2629,7 +2700,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         url: string,
                         options?: NetworkRequestOptions
                     ): any => {
-                        return DEFAULT_OPENID_CONFIG_RESPONSE;
+                        return PROFILE_OPENID_CONFIG_RESPONSE;
                     };
 
                     authority = new Authority(
@@ -2781,7 +2852,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         if (url.includes("discovery/instance")) {
                             return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                         } else {
-                            return DEFAULT_OPENID_CONFIG_RESPONSE;
+                            return PROFILE_OPENID_CONFIG_RESPONSE;
                         }
                     };
 
@@ -2834,7 +2905,7 @@ describe("Authority.ts Class Unit Tests", () => {
                         if (url.includes("discovery/instance")) {
                             return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                         } else {
-                            return DEFAULT_OPENID_CONFIG_RESPONSE;
+                            return PROFILE_OPENID_CONFIG_RESPONSE;
                         }
                     };
 

@@ -13,6 +13,7 @@ import { AccountInfo } from "../account/AccountInfo.js";
 import { Logger } from "../logger/Logger.js";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo.js";
 import { Authority } from "../authority/Authority.js";
+import { OAUTH21_CLIENT_PROFILE } from "../authority/AuthorityMetadata.js";
 import { mapToQueryString } from "../utils/UrlUtils.js";
 import { UrlString } from "../url/UrlString.js";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload.js";
@@ -26,6 +27,17 @@ import {
     isInteractionRequiredError,
 } from "../error/InteractionRequiredAuthError.js";
 import { ServerError } from "../error/ServerError.js";
+
+/** @internal */
+export function getAuthorizationResponseIssuer(
+    authority: Authority
+): string | undefined {
+    return authority.authorizationEndpoint.includes(
+        `/${OAUTH21_CLIENT_PROFILE}/`
+    )
+        ? authority.selfSignedJwtAudience
+        : undefined;
+}
 
 /**
  * Returns map of parameters that are applicable to all calls to /authorize whether using PKCE or EAR
@@ -302,10 +314,16 @@ export function getAuthorizeUrl(
 export function getAuthorizationCodePayload(
     serverParams: AuthorizeResponse,
     cachedState: string,
-    correlationId: string
+    correlationId: string,
+    expectedIssuer?: string
 ): AuthorizationCodePayload {
     // Get code response
-    validateAuthorizationResponse(serverParams, cachedState, correlationId);
+    validateAuthorizationResponse(
+        serverParams,
+        cachedState,
+        correlationId,
+        expectedIssuer
+    );
 
     // throw when there is no auth code in the response
     if (!serverParams.code) {
@@ -327,7 +345,8 @@ export function getAuthorizationCodePayload(
 export function validateAuthorizationResponse(
     serverResponse: AuthorizeResponse,
     requestState: string,
-    correlationId: string
+    correlationId: string,
+    expectedIssuer?: string
 ): void {
     if (!serverResponse.state || !requestState) {
         throw serverResponse.state
@@ -371,6 +390,22 @@ export function validateAuthorizationResponse(
             ClientAuthErrorCodes.stateMismatch,
             correlationId
         );
+    }
+
+    if (expectedIssuer) {
+        if (!serverResponse.iss) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.issuerNotFound,
+                correlationId
+            );
+        }
+
+        if (serverResponse.iss !== expectedIssuer) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.issuerMismatch,
+                correlationId
+            );
+        }
     }
 
     // Check for error

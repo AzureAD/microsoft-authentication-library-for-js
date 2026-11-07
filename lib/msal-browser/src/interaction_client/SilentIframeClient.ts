@@ -234,6 +234,10 @@ export class SilentIframeClient extends StandardInteractionClient {
                 requestExtraQueryParameters: request.extraQueryParameters,
                 account: request.account,
             });
+            request.expectedIssuer =
+                AuthorizeProtocol.getAuthorizationResponseIssuer(
+                    authClient.authority
+                );
 
             return await invokeAsync(
                 this.silentTokenHelper.bind(this),
@@ -323,6 +327,10 @@ export class SilentIframeClient extends StandardInteractionClient {
             ...request,
             earJwk: earJwk,
             codeChallenge: pkceCodes.challenge,
+            expectedIssuer:
+                AuthorizeProtocol.getAuthorizationResponseIssuer(
+                    discoveredAuthority
+                ),
         };
 
         // Create the iframe, register the response listener, then navigate, so the listener is active before the iframe can respond.
@@ -514,7 +522,10 @@ export class SilentIframeClient extends StandardInteractionClient {
         AuthorizeProtocol.validateAuthorizationResponse(
             serverParams,
             silentRequest.state,
-            correlationId
+            correlationId,
+            AuthorizeProtocol.getAuthorizationResponseIssuer(
+                authClient.authority
+            )
         );
 
         // Verify a valid authorization code is present

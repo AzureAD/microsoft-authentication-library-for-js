@@ -26,6 +26,7 @@ import {
     BrowserAuthErrorCodes,
 } from "../error/BrowserAuthError.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
+import { setAuthorizationResponseMetadata } from "../webBrokerBridge/AuthorizationResponseMetadata.js";
 
 /**
  * Abstract class which defines operations for a browser interaction handling class.
@@ -65,7 +66,8 @@ export class InteractionHandler {
             authCodeResponse = AuthorizeProtocol.getAuthorizationCodePayload(
                 response,
                 request.state,
-                request.correlationId
+                request.correlationId,
+                request.expectedIssuer
             );
         } catch (e) {
             if (
@@ -82,13 +84,19 @@ export class InteractionHandler {
             }
         }
 
-        return invokeAsync(
+        const tokenResponse = await invokeAsync(
             this.handleCodeResponseFromServer.bind(this),
             PerformanceEvents.HandleCodeResponseFromServer,
             this.logger,
             this.performanceClient,
             request.correlationId
         )(authCodeResponse, request, apiId);
+        setAuthorizationResponseMetadata(
+            tokenResponse,
+            response.iss,
+            request.expectedIssuer
+        );
+        return tokenResponse;
     }
 
     /**
