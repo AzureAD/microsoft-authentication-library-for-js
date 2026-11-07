@@ -67,27 +67,6 @@ export type AuthResponseHandlers = {
 export class PublicClientApplication implements IPublicClientApplication {
     protected controller: IController;
 
-    /** Creates an experimental CP1 cache namespace; initialization, but not sign-in, is required. */
-    async createCaeCacheContext(
-        stableContextId: string
-    ): Promise<CaeCacheContext> {
-        if (!this.controller.createCaeCacheContext) {
-            rejectCaeCacheExperiment("");
-        }
-        const context = await this.controller.createCaeCacheContext(
-            stableContextId
-        );
-        return Object.freeze({
-            acquireTokenSilent: (request: SilentRequest) =>
-                this.acquireTokenSilent({
-                    ...request,
-                    caeCacheContext: context,
-                }),
-            reset: () => context.reset(),
-            retire: () => context.retire(),
-        });
-    }
-
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -453,6 +432,31 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     getConfiguration(): BrowserConfiguration {
         return this.controller.getConfiguration();
+    }
+
+    /**
+     * Creates an experimental CP1 cache context on the existing authentication owner.
+     * Requires initialization, but not sign-in.
+     * @param stableContextId - Stable identifier for the cache context.
+     */
+    async createCaeCacheContext(
+        stableContextId: string
+    ): Promise<CaeCacheContext> {
+        if (!this.controller.createCaeCacheContext) {
+            rejectCaeCacheExperiment("");
+        }
+        const context = await this.controller.createCaeCacheContext(
+            stableContextId
+        );
+        return Object.freeze({
+            acquireTokenSilent: (request: SilentRequest) =>
+                this.acquireTokenSilent({
+                    ...request,
+                    caeCacheContext: context,
+                }),
+            reset: () => context.reset(),
+            retire: () => context.retire(),
+        });
     }
 
     /**

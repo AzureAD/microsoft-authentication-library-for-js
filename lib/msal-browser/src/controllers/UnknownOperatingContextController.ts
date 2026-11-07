@@ -60,12 +60,6 @@ import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOp
  *
  */
 export class UnknownOperatingContextController implements IController {
-    /** Cache contexts require an initialized supported browser controller. */
-    async createCaeCacheContext(): Promise<CaeCacheContext> {
-        blockNonBrowserEnvironment();
-        blockAPICallsBeforeInitialize(this.initialized);
-        rejectCaeCacheExperiment("");
-    }
     // OperatingContext
     protected readonly operatingContext: UnknownOperatingContext;
 
@@ -291,6 +285,15 @@ export class UnknownOperatingContextController implements IController {
     }
     getConfiguration(): BrowserConfiguration {
         return this.config;
+    }
+
+    /**
+     * Cache contexts require an initialized supported browser controller.
+     */
+    async createCaeCacheContext(): Promise<CaeCacheContext> {
+        blockNonBrowserEnvironment();
+        blockAPICallsBeforeInitialize(this.initialized);
+        rejectCaeCacheExperiment("");
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

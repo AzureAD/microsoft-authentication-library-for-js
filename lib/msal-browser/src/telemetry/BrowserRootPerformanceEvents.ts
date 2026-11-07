@@ -8,10 +8,6 @@
  * Used to silently acquire a new access token (from the cache or the network).
  */
 export const AcquireTokenSilent = "acquireTokenSilent";
-/** Hashes and creates an experimental CP1 cache context without authenticating. */
-export const CreateCaeCacheContext = "createCaeCacheContext";
-/** Fences and clears a CP1 cache context without clearing shared authentication. */
-export const ResetCaeCacheContext = "resetCaeCacheContext";
 /**
  * acquireTokenByCode API (msal-browser and msal-node).
  * Used to acquire tokens by trading an authorization code against the token endpoint.
@@ -43,6 +39,14 @@ export const SsoSilent = "ssoSilent";
 export const InitializeClientApplication = "initializeClientApplication";
 // Update cache storage
 export const LocalStorageUpdated = "localStorageUpdated";
+/**
+ * Hashes and creates an experimental CP1 cache context without authenticating.
+ */
+export const CreateCaeCacheContext = "createCaeCacheContext";
+/**
+ * Fences and clears a CP1 cache context without clearing shared authentication.
+ */
+export const ResetCaeCacheContext = "resetCaeCacheContext";
 // Load external tokens
 export const LoadExternalTokens = "loadExternalTokens";
 /**

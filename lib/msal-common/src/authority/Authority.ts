@@ -210,89 +210,6 @@ export class Authority {
     }
 
     /**
-     * Resolves a named tenant from its discovered authorization endpoint without
-     * replacing the GUID with the caller's domain-name authority.
-     * @internal
-     */
-    public async resolveTenantId(): Promise<string | undefined> {
-        const guid =
-            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        const tenant = this.tenant.toLowerCase();
-        if (guid.test(tenant)) {
-            return tenant;
-        }
-        if (Authority.reservedTenantDomains.has(tenant)) {
-            return undefined;
-        }
-        const resolutionKey =
-            this.cacheManager.generateAuthorityMetadataCacheKey(
-                `tenant-resolution:${this.canonicalAuthority}`,
-                this.correlationId
-            );
-        const cachedResolution = this.cacheManager.getAuthorityMetadata(
-            resolutionKey,
-            this.correlationId
-        );
-        if (
-            cachedResolution &&
-            cachedResolution.canonical_authority === this.canonicalAuthority &&
-            cachedResolution.expiresAt > Math.floor(Date.now() / 1000)
-        ) {
-            const cachedTenant = new UrlString(
-                cachedResolution.authorization_endpoint,
-                this.correlationId
-            ).getUrlComponents().PathSegments[0];
-            if (guid.test(cachedTenant)) {
-                return cachedTenant.toLowerCase();
-            }
-        }
-        let resolutionMetadata = this.metadata;
-        let discovered =
-            this.metadata &&
-            new UrlString(
-                this.metadata.authorization_endpoint,
-                this.correlationId
-            ).getUrlComponents().PathSegments[0];
-        if (!discovered || !guid.test(discovered)) {
-            const metadata = await this.getEndpointMetadataFromNetwork();
-            if (!metadata) {
-                throw createClientAuthError(
-                    ClientAuthErrorCodes.endpointResolutionError,
-                    this.correlationId
-                );
-            }
-            this.validateIssuer(metadata.issuer);
-            resolutionMetadata = { ...this.metadata };
-            CacheHelpers.updateAuthorityEndpointMetadata(
-                resolutionMetadata,
-                metadata,
-                true
-            );
-            discovered = new UrlString(
-                metadata.authorization_endpoint,
-                this.correlationId
-            ).getUrlComponents().PathSegments[0];
-        }
-        if (!guid.test(discovered)) {
-            throw createClientAuthError(
-                ClientAuthErrorCodes.endpointResolutionError,
-                this.correlationId
-            );
-        }
-        this.cacheManager.setAuthorityMetadata(
-            resolutionKey,
-            {
-                ...resolutionMetadata,
-                aliases: [],
-                canonical_authority: this.canonicalAuthority,
-                expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
-            },
-            this.correlationId
-        );
-        return discovered.toLowerCase();
-    }
-
-    /**
      * OAuth /authorize endpoint for requests
      */
     public get authorizationEndpoint(): string {
@@ -514,6 +431,89 @@ export class Authority {
             },
             this.correlationId
         );
+    }
+
+    /**
+     * Resolves a named tenant from its discovered authorization endpoint without
+     * replacing the GUID with the caller's domain-name authority.
+     * @internal
+     */
+    public async resolveTenantId(): Promise<string | undefined> {
+        const guid =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const tenant = this.tenant.toLowerCase();
+        if (guid.test(tenant)) {
+            return tenant;
+        }
+        if (Authority.reservedTenantDomains.has(tenant)) {
+            return undefined;
+        }
+        const resolutionKey =
+            this.cacheManager.generateAuthorityMetadataCacheKey(
+                `tenant-resolution:${this.canonicalAuthority}`,
+                this.correlationId
+            );
+        const cachedResolution = this.cacheManager.getAuthorityMetadata(
+            resolutionKey,
+            this.correlationId
+        );
+        if (
+            cachedResolution &&
+            cachedResolution.canonical_authority === this.canonicalAuthority &&
+            cachedResolution.expiresAt > Math.floor(Date.now() / 1000)
+        ) {
+            const cachedTenant = new UrlString(
+                cachedResolution.authorization_endpoint,
+                this.correlationId
+            ).getUrlComponents().PathSegments[0];
+            if (guid.test(cachedTenant)) {
+                return cachedTenant.toLowerCase();
+            }
+        }
+        let resolutionMetadata = this.metadata;
+        let discovered =
+            this.metadata &&
+            new UrlString(
+                this.metadata.authorization_endpoint,
+                this.correlationId
+            ).getUrlComponents().PathSegments[0];
+        if (!discovered || !guid.test(discovered)) {
+            const metadata = await this.getEndpointMetadataFromNetwork();
+            if (!metadata) {
+                throw createClientAuthError(
+                    ClientAuthErrorCodes.endpointResolutionError,
+                    this.correlationId
+                );
+            }
+            this.validateIssuer(metadata.issuer);
+            resolutionMetadata = { ...this.metadata };
+            CacheHelpers.updateAuthorityEndpointMetadata(
+                resolutionMetadata,
+                metadata,
+                true
+            );
+            discovered = new UrlString(
+                metadata.authorization_endpoint,
+                this.correlationId
+            ).getUrlComponents().PathSegments[0];
+        }
+        if (!guid.test(discovered)) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.endpointResolutionError,
+                this.correlationId
+            );
+        }
+        this.cacheManager.setAuthorityMetadata(
+            resolutionKey,
+            {
+                ...resolutionMetadata,
+                aliases: [],
+                canonical_authority: this.canonicalAuthority,
+                expiresAt: CacheHelpers.generateAuthorityMetadataExpiresAt(),
+            },
+            this.correlationId
+        );
+        return discovered.toLowerCase();
     }
 
     /**

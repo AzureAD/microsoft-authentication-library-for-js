@@ -20,8 +20,6 @@ export type SilentRequest = Omit<
     CommonSilentFlowRequest,
     "authority" | "correlationId" | "forceRefresh" | "account"
 > & {
-    /** @internal Set by the SDK context handle, not a caller-supplied cache identifier. */
-    caeCacheContext?: CaeCacheContext;
     /**
      * The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal. Only used for cases where refresh token is expired.
      */
@@ -57,6 +55,11 @@ export type SilentRequest = Omit<
      * Enum of different ways the silent token can be retrieved.
      */
     cacheLookupPolicy?: CacheLookupPolicy;
+    /**
+     * Set by the SDK context handle, not a caller-supplied cache identifier.
+     * @internal
+     */
+    caeCacheContext?: CaeCacheContext;
     /**
      * Indicates the type of user interaction that is required.
      *          login: will force the user to enter their credentials on that request, negating single-sign on

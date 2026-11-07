@@ -1707,6 +1707,39 @@ export class StandardController implements IController {
     }
 
     /**
+     * Creates a CP1-only cache context on this initialized, non-brokered owner.
+     * @param stableContextId - Stable identifier for the cache context.
+     */
+    async createCaeCacheContext(
+        stableContextId: string
+    ): Promise<CaeCacheContext> {
+        const correlationId = this.getRequestCorrelationId();
+        return invokeAsync(
+            async () => {
+                BrowserUtils.blockNonBrowserEnvironment();
+                BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
+                if (
+                    !this.config.experimental.enableCaeCachePartitioning ||
+                    typeof stableContextId !== "string" ||
+                    !stableContextId.trim()
+                ) {
+                    rejectCaeCacheExperiment(correlationId);
+                }
+                const id = await this.browserCrypto.hashString(stableContextId);
+                return createCaeCacheContextHandle(
+                    this.browserStorage,
+                    id,
+                    this.acquireTokenSilent.bind(this)
+                );
+            },
+            BrowserRootPerformanceEvents.CreateCaeCacheContext,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
+    }
+
+    /**
      * Creates a cache interaction client to clear broswer cache.
      * @param logoutRequest
      */
@@ -2367,36 +2400,6 @@ export class StandardController implements IController {
             correlationId,
             ...(request || DEFAULT_REQUEST),
         });
-    }
-
-    /** Creates a CP1-only context on this initialized, non-brokered owner. */
-    async createCaeCacheContext(
-        stableContextId: string
-    ): Promise<CaeCacheContext> {
-        const correlationId = this.getRequestCorrelationId();
-        return invokeAsync(
-            async () => {
-                BrowserUtils.blockNonBrowserEnvironment();
-                BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-                if (
-                    !this.config.experimental.enableCaeCachePartitioning ||
-                    typeof stableContextId !== "string" ||
-                    !stableContextId.trim()
-                ) {
-                    rejectCaeCacheExperiment(correlationId);
-                }
-                const id = await this.browserCrypto.hashString(stableContextId);
-                return createCaeCacheContextHandle(
-                    this.browserStorage,
-                    id,
-                    this.acquireTokenSilent.bind(this)
-                );
-            },
-            BrowserRootPerformanceEvents.CreateCaeCacheContext,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )();
     }
 
     /**

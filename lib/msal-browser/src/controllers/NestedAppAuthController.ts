@@ -868,16 +868,18 @@ export class NestedAppAuthController implements IController {
         throw NestedAppAuthError.createUnsupportedError();
     }
 
+    /**
+     * Nested-app flows do not support the experimental cache context.
+     */
+    async createCaeCacheContext(): Promise<CaeCacheContext> {
+        rejectCaeCacheExperiment("");
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async clearCache(logoutRequest?: ClearCacheRequest): Promise<void> {
         throw NestedAppAuthError.createUnsupportedError(
             logoutRequest?.correlationId
         );
-    }
-
-    /** Nested-app flows do not support the experimental cache context. */
-    async createCaeCacheContext(): Promise<CaeCacheContext> {
-        rejectCaeCacheExperiment("");
     }
 
     async hydrateCache(

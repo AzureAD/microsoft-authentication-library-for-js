@@ -313,8 +313,6 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
 declare namespace BrowserRootPerformanceEvents {
     export {
         AcquireTokenSilent,
-        CreateCaeCacheContext,
-        ResetCaeCacheContext,
         AcquireTokenByCode,
         AcquireTokenPopup,
         AcquireTokenPreRedirect,
@@ -322,6 +320,8 @@ declare namespace BrowserRootPerformanceEvents {
         SsoSilent,
         InitializeClientApplication,
         LocalStorageUpdated,
+        CreateCaeCacheContext,
+        ResetCaeCacheContext,
         LoadExternalTokens,
         SsoCapable,
         WaitForBridgeLateResponse
@@ -1082,7 +1082,6 @@ const silentPromptValueError = "silent_prompt_value_error";
 
 // @public
 export type SilentRequest = Omit<CommonSilentFlowRequest, "authority" | "correlationId" | "forceRefresh" | "account"> & {
-    caeCacheContext?: CaeCacheContext;
     redirectUri?: string;
     extraQueryParameters?: StringDict;
     authority?: string;
@@ -1091,6 +1090,7 @@ export type SilentRequest = Omit<CommonSilentFlowRequest, "authority" | "correla
     forceRefresh?: boolean;
     invalidateAccessTokenCache?: boolean;
     cacheLookupPolicy?: CacheLookupPolicy;
+    caeCacheContext?: CaeCacheContext;
     prompt?: string;
     state?: string;
 };
