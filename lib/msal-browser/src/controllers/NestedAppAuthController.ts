@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { rejectCaeCacheExperiment } from "../request/CaeCacheRequest.js";
 import {
     CommonAuthorizationUrlRequest,
     PerformanceCallbackFunction,
@@ -31,6 +32,7 @@ import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
+import type { CaeCacheContext } from "../cache/CaeCacheContext.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import {
     WrapperSKU,
@@ -93,6 +95,11 @@ export class NestedAppAuthController implements IController {
     protected currentAccountContext: AccountContext | null;
 
     constructor(operatingContext: NestedAppOperatingContext) {
+        if (
+            operatingContext.getConfig().experimental.enableCaeCachePartitioning
+        ) {
+            rejectCaeCacheExperiment("");
+        }
         this.operatingContext = operatingContext;
         const proxy = this.operatingContext.getBridgeProxy();
         if (proxy !== undefined) {
@@ -653,6 +660,12 @@ export class NestedAppAuthController implements IController {
     async acquireTokenSilent(
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
+        if (
+            silentRequest.invalidateAccessTokenCache ||
+            silentRequest.caeCacheContext !== undefined
+        ) {
+            rejectCaeCacheExperiment(silentRequest.correlationId || "");
+        }
         return this.acquireTokenSilentInternal(silentRequest);
     }
 
@@ -853,6 +866,13 @@ export class NestedAppAuthController implements IController {
     getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>> {
         // Accessor stub with no request context
         throw NestedAppAuthError.createUnsupportedError();
+    }
+
+    /**
+     * Nested-app flows do not support the experimental cache context.
+     */
+    async createCaeCacheContext(): Promise<CaeCacheContext> {
+        rejectCaeCacheExperiment("");
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

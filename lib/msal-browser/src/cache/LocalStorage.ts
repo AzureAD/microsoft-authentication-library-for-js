@@ -23,6 +23,7 @@ import {
 import { base64DecToArr } from "../encode/Base64Decode.js";
 import { urlEncodeArr } from "../encode/Base64Encode.js";
 import {
+    BrowserAuthError,
     BrowserAuthErrorCodes,
     createBrowserAuthError,
 } from "../error/BrowserAuthError.js";
@@ -176,6 +177,58 @@ export class LocalStorage implements IWindowStorage<string> {
             );
         }
         return this.memoryStorage.getItem(key);
+    }
+
+    /** Imports newly indexed entries without waiting for another tab's broadcast. */
+    async importMissingUserData(
+        keys: string[],
+        correlationId: string
+    ): Promise<void> {
+        await Promise.all(
+            keys
+                .filter((key) => !this.memoryStorage.containsKey(key))
+                .map(async (key) => {
+                    const stored = this.getItem(key);
+                    let value: string | null;
+                    try {
+                        value = await this.getItemFromEncryptedCache(
+                            key,
+                            correlationId
+                        );
+                    } catch (error) {
+                        const name =
+                            typeof error === "object" &&
+                            error !== null &&
+                            "name" in error
+                                ? error.name
+                                : undefined;
+                        if (
+                            name !== "OperationError" &&
+                            name !== "DataError" &&
+                            name !== "InvalidCharacterError" &&
+                            !(
+                                error instanceof BrowserAuthError &&
+                                error.errorCode ===
+                                    BrowserAuthErrorCodes.invalidBase64String
+                            )
+                        ) {
+                            throw error;
+                        }
+                        this.logger.error(
+                            "Failed to decrypt an indexed cache entry",
+                            correlationId
+                        );
+                        this.performanceClient.incrementFields(
+                            { encryptedCacheCorruptionCount: 1 },
+                            correlationId
+                        );
+                        return;
+                    }
+                    if (value && stored && this.getItem(key) === stored) {
+                        this.memoryStorage.setItem(key, value);
+                    }
+                })
+        );
     }
 
     async decryptData(
@@ -370,6 +423,24 @@ export class LocalStorage implements IWindowStorage<string> {
             );
         } else {
             this.removeItem(CacheKeys.getTokenKeysCacheKey(this.clientId));
+        }
+        const capabilityKeys = getTokenKeys(
+            this.clientId,
+            this,
+            CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
+        );
+        capabilityKeys.accessToken = await this.importArray(
+            capabilityKeys.accessToken,
+            correlationId
+        );
+        const capabilityIndex = CacheKeys.getTokenKeysCacheKey(
+            this.clientId,
+            CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
+        );
+        if (capabilityKeys.accessToken.length) {
+            this.setItem(capabilityIndex, JSON.stringify(capabilityKeys));
+        } else {
+            this.removeItem(capabilityIndex);
         }
     }
 

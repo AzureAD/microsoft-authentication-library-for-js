@@ -704,6 +704,9 @@ export abstract class CacheManager implements ICacheManager {
                 JSON.stringify(credential.additionalCacheKeyComponents)
             );
         }
+        if (!this.isAccessTokenWriteCurrent(credential)) {
+            return;
+        }
         const accessTokenFilter: CredentialFilter = {
             clientId: credential.clientId,
             credentialType: credential.credentialType,
@@ -711,6 +714,10 @@ export abstract class CacheManager implements ICacheManager {
             homeAccountId: credential.homeAccountId,
             realm: credential.realm,
             tokenType: credential.tokenType,
+            additionalCacheKeyComponents: credential
+                .additionalCacheKeyComponents?.experimental_cae_capability
+                ? credential.additionalCacheKeyComponents
+                : undefined,
         };
 
         const tokenKeys = this.getTokenKeys();
@@ -734,6 +741,9 @@ export abstract class CacheManager implements ICacheManager {
 
             if (
                 tokenEntity &&
+                (!credential.experimentalCaeEpoch ||
+                    tokenEntity.experimentalCaeEpoch ===
+                        credential.experimentalCaeEpoch) &&
                 this.credentialMatchesFilter(
                     tokenEntity,
                     accessTokenFilter,
@@ -762,6 +772,24 @@ export abstract class CacheManager implements ICacheManager {
             kmsi,
             additionalCacheKeyHash
         );
+    }
+
+    /** Platform cache hook for invalidation checks immediately before overlap eviction. */
+    protected isAccessTokenWriteCurrent(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _credential: AccessTokenEntity
+    ): boolean {
+        return true;
+    }
+
+    /** Platform cache hook to bind a returned token to its acquisition generation. */
+    prepareCapabilityTokenResponse(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _token: AccessTokenEntity,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _request: BaseAuthRequest
+    ): void {
+        // Browser storage binds generations; other platforms do not enable this experiment.
     }
 
     /**
@@ -1443,17 +1471,34 @@ export abstract class CacheManager implements ICacheManager {
         const attributeTokenPartition = CacheHelpers.serializeAttributeTokens(
             request.attributeTokens
         );
-        const additionalCacheKeyComponents = attributeTokenPartition
-            ? {
-                  attribute_tokens: attributeTokenPartition,
-              }
-            : undefined;
+        const additionalCacheKeyComponents: Record<string, string> | undefined =
+            request.experimentalCaeCache
+                ? {
+                      experimental_cae_capability:
+                          request.experimentalCaeCache.capability,
+                      experimental_cae_resource:
+                          request.experimentalCaeCache.resource || "",
+                      ...(request.experimentalCaeCache.contextId
+                          ? {
+                                experimental_cae_context:
+                                    request.experimentalCaeCache.contextId,
+                            }
+                          : {}),
+                  }
+                : attributeTokenPartition
+                ? {
+                      attribute_tokens: attributeTokenPartition,
+                  }
+                : undefined;
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
             credentialType: credentialType,
             clientId: this.clientId,
-            realm: targetRealm || account.tenantId,
+            realm:
+                request.experimentalCaeCache?.realm ||
+                targetRealm ||
+                account.tenantId,
             target: scopes,
             tokenType: authScheme,
             keyId:

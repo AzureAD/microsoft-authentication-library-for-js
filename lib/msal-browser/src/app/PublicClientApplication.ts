@@ -38,6 +38,8 @@ import { NestedAppOperatingContext } from "../operatingcontext/NestedAppOperatin
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { EventType } from "../event/EventType.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
+import type { CaeCacheContext } from "../cache/CaeCacheContext.js";
+import { rejectCaeCacheExperiment } from "../request/CaeCacheRequest.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 import { waitForBridgeResponse } from "../utils/BrowserUtils.js";
 import { monitorPopupForHash } from "../utils/PopupMonitor.js";
@@ -430,6 +432,31 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     getConfiguration(): BrowserConfiguration {
         return this.controller.getConfiguration();
+    }
+
+    /**
+     * Creates an experimental CP1 cache context on the existing authentication owner.
+     * Requires initialization, but not sign-in.
+     * @param stableContextId - Stable identifier for the cache context.
+     */
+    async createCaeCacheContext(
+        stableContextId: string
+    ): Promise<CaeCacheContext> {
+        if (!this.controller.createCaeCacheContext) {
+            rejectCaeCacheExperiment("");
+        }
+        const context = await this.controller.createCaeCacheContext(
+            stableContextId
+        );
+        return Object.freeze({
+            acquireTokenSilent: (request: SilentRequest) =>
+                this.acquireTokenSilent({
+                    ...request,
+                    caeCacheContext: context,
+                }),
+            reset: () => context.reset(),
+            retire: () => context.retire(),
+        });
     }
 
     /**

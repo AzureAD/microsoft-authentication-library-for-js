@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Add bounded capability/resource partitions and invalidation hooks for access-token caching. [#8975](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8975)",
+  "packageName": "@azure/msal-common",
+  "dependentChangeType": "patch"
+}

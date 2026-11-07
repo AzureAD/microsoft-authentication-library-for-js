@@ -177,6 +177,51 @@ describe("CacheManager.ts test cases", () => {
             expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.BEARER);
         });
 
+        it("does not evict an overlapping token from another experimental generation", async () => {
+            const current = CacheHelpers.createAccessTokenEntity(
+                TEST_ACCOUNT_INFO.homeAccountId,
+                TEST_ACCOUNT_INFO.environment,
+                "current-generation-token",
+                CACHE_MOCKS.MOCK_CLIENT_ID,
+                TEST_CONFIG.MSAL_TENANT_ID,
+                "epoch.read epoch.write",
+                TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
+                TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
+                mockCrypto.base64Decode,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            current.additionalCacheKeyComponents = {
+                experimental_cae_capability: "cp1",
+                experimental_cae_resource: "",
+            };
+            current.experimentalCaeEpoch = "current";
+            const hash = TEST_CRYPTO_VALUES.TEST_SHA256_HASH;
+            await mockCache.cacheManager.setAccessTokenCredential(
+                current,
+                TEST_CONFIG.CORRELATION_ID,
+                false,
+                hash
+            );
+            await mockCache.cacheManager.saveCacheRecord(
+                {
+                    accessToken: {
+                        ...current,
+                        target: "epoch.read",
+                        secret: "older-generation-token",
+                        experimentalCaeEpoch: "older",
+                    },
+                },
+                TEST_CONFIG.CORRELATION_ID,
+                false,
+                0
+            );
+            expect(
+                mockCache.cacheManager.getAccessTokenCredential(
+                    generateCredentialKey(current, hash)
+                )?.secret
+            ).toBe("current-generation-token");
+        });
+
         it("does not save accessToken if storeInCache.accessToken = false", async () => {
             const at = CacheHelpers.createAccessTokenEntity(
                 TEST_ACCOUNT_INFO.homeAccountId,

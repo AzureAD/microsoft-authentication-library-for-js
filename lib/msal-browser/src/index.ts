@@ -67,6 +67,7 @@ export { ClearCacheRequest } from "./request/ClearCacheRequest.js";
 export { InitializeApplicationRequest } from "./request/InitializeApplicationRequest.js";
 export { HandleRedirectPromiseOptions } from "./request/HandleRedirectPromiseOptions.js";
 // Cache
+export type { CaeCacheContext } from "./cache/CaeCacheContext.js";
 export { LoadTokenOptions } from "./cache/TokenCache.js";
 export { loadExternalTokens } from "./cache/TokenCache.js";
 

@@ -20,6 +20,10 @@ import type { BrowserConfiguration } from "../config/Configuration.js";
 import { CacheLookupPolicy } from "../utils/BrowserConstants.js";
 import type { SilentRequest } from "./SilentRequest.js";
 import type { SsoSilentRequest } from "./SsoSilentRequest.js";
+import {
+    prepareCaeCacheRequest,
+    rejectCaeCacheExperiment,
+} from "./CaeCacheRequest.js";
 
 /**
  * Request context used by flow-specific silent request preparers.
@@ -56,6 +60,18 @@ export function resolveSilentRequestPreparation(
     performanceClient: IPerformanceClient
 ): PreparedSilentRequest {
     const { request, account, correlationId, config } = input;
+    if (
+        request.invalidateAccessTokenCache &&
+        !config.experimental.enableCaeCachePartitioning
+    ) {
+        rejectCaeCacheExperiment(correlationId);
+    }
+    if (
+        config.experimental.enableCaeCachePartitioning &&
+        account.nativeAccountId
+    ) {
+        rejectCaeCacheExperiment(correlationId);
+    }
     const prepareRequest =
         account.nativeAccountId &&
         isPlatformAuthAllowed(
@@ -76,11 +92,12 @@ export function resolveSilentRequestPreparation(
  * Extends the web thumbprint with silent-flow options while preserving caller-owned references.
  */
 export function prepareWebSilentRequest({
-    request,
+    request: callerRequest,
     account,
     correlationId,
     config,
 }: SilentRequestPreparationInput): PreparedSilentRequest {
+    const request = prepareCaeCacheRequest(callerRequest, config);
     const thumbprint = getRequestThumbprint(
         config.auth.clientId,
         {
@@ -101,6 +118,18 @@ export function prepareWebSilentRequest({
             extraQueryParameters: canonicalizeStringDict(
                 request.extraQueryParameters
             ),
+            ...(request.experimentalCaeCache
+                ? {
+                      experimentalCaeCache: request.experimentalCaeCache,
+                      storeInCache: {
+                          accessToken:
+                              request.storeInCache?.accessToken !== false,
+                          idToken: request.storeInCache?.idToken !== false,
+                          refreshToken:
+                              request.storeInCache?.refreshToken !== false,
+                      },
+                  }
+                : {}),
         }),
         request,
         account,
