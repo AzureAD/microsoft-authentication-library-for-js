@@ -170,6 +170,82 @@ describe("ResponseHandler.ts", () => {
         jest.restoreAllMocks();
     });
 
+    describe("age-assurance target validation", () => {
+        const request: BaseAuthRequest = {
+            authority: testAuthority.canonicalAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: ["openid"],
+            claims: JSON.stringify({
+                id_token: { xms_agvs: { additionalProperties: ["target-mc"] } },
+            }),
+        };
+
+        it("rejects a network mismatch before creating or saving cache records", async () => {
+            const handler = new ResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+            const generate = jest.spyOn(
+                AccountEntityUtils,
+                "generateHomeAccountId"
+            );
+            const save = jest.spyOn(testCacheManager, "saveCacheRecord");
+            await expect(
+                handler.handleServerTokenResponse(
+                    AUTHENTICATION_RESULT.body,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    request,
+                    0
+                )
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.ageAssuranceTargetMismatch,
+            });
+            expect(generate).not.toHaveBeenCalled();
+            expect(save).not.toHaveBeenCalled();
+        });
+
+        it.each([true, false])(
+            "validates result construction (fromCache=%s)",
+            async (fromCache) => {
+                await expect(
+                    ResponseHandler.generateAuthenticationResult(
+                        cryptoInterface,
+                        testAuthority,
+                        {},
+                        fromCache,
+                        request,
+                        stubPerformanceClient,
+                        { idTokenClaims: ID_TOKEN_CLAIMS }
+                    )
+                ).rejects.toMatchObject({
+                    errorCode: ClientAuthErrorCodes.ageAssuranceTargetMismatch,
+                });
+                const idTokenClaims = {
+                    ...ID_TOKEN_CLAIMS,
+                    xms_agvt: "-MC",
+                    xms_agvs: 0,
+                };
+                await expect(
+                    ResponseHandler.generateAuthenticationResult(
+                        cryptoInterface,
+                        testAuthority,
+                        {},
+                        fromCache,
+                        request,
+                        stubPerformanceClient,
+                        { idTokenClaims }
+                    )
+                ).resolves.toMatchObject({ idTokenClaims });
+            }
+        );
+    });
+
     describe("nonce validation", () => {
         const testRequest: BaseAuthRequest = {
             authority: testAuthority.canonicalAuthority,

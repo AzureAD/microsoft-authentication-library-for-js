@@ -101,6 +101,38 @@ describe("NestedAppAuthAdapter tests", () => {
     });
 
     describe("to AuthenticationResult from TokenResponse tests", () => {
+        it("preserves ID-token target claims and rejects a missing bridge receipt", () => {
+            const claims = {
+                id_token: {
+                    xms_agvs: {
+                        essential: true,
+                        additionalProperties: [
+                            "interrupt-if-not-verified",
+                            "target-mc",
+                        ],
+                    },
+                },
+            };
+            const request = nestedAppAuthAdapter.toNaaTokenRequest({
+                ...POPUP_REQUEST,
+                claims: JSON.stringify(claims),
+            });
+            expect(JSON.parse(request.claims!).id_token.xms_agvs).toEqual(
+                claims.id_token.xms_agvs
+            );
+            expect(() =>
+                nestedAppAuthAdapter.fromNaaTokenResponse(
+                    request,
+                    SILENT_TOKEN_RESPONSE,
+                    0
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    errorCode: ClientAuthErrorCodes.ageAssuranceTargetMismatch,
+                })
+            );
+        });
+
         it("TokenResponse to AuthenticationResult", () => {
             const result: AuthenticationResult =
                 nestedAppAuthAdapter.fromNaaTokenResponse(

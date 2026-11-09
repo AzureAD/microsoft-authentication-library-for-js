@@ -228,6 +228,32 @@ describe("PlatformAuthInteractionClient Tests", () => {
     });
 
     describe("acquireTokensFromInternalCache Tests", () => {
+        it("rejects a missing broker receipt before saving tokens", async () => {
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockResolvedValue(MOCK_WAM_RESPONSE);
+            const save = jest.spyOn(internalStorage, "saveCacheRecord");
+            await expect(
+                platformAuthInteractionClient.acquireToken(
+                    {
+                        scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                        claims: JSON.stringify({
+                            id_token: {
+                                xms_agvs: {
+                                    additionalProperties: ["target-mc"],
+                                },
+                            },
+                        }),
+                    },
+                    CacheLookupPolicy.Skip
+                )
+            ).rejects.toMatchObject({
+                errorCode: "age_assurance_target_mismatch",
+            });
+            expect(save).not.toHaveBeenCalled();
+        });
+
         beforeEach(() => {
             // @ts-ignore
             platformAuthInteractionClient.apiId =

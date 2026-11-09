@@ -40,6 +40,7 @@ import {
     AccountEntityUtils,
     ClientConfigurationErrorCodes,
     ProtocolUtils,
+    INativeBrokerPlugin,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -218,6 +219,28 @@ describe("PublicClientApplication", () => {
         const authApp = new PublicClientApplication(appConfig);
         const result = await authApp.acquireTokenByDeviceCode(request);
         expect(result).toEqual(fakeAuthResult);
+    });
+
+    test("device-code acquisition retains its claims when the caller mutates the request", async () => {
+        const claims = JSON.stringify({
+            id_token: { xms_agvs: { additionalProperties: ["target-mc"] } },
+        });
+        const request: DeviceCodeRequest = {
+            deviceCodeCallback: jest.fn(),
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            claims,
+        };
+        jest.spyOn(
+            DeviceCodeClient.prototype,
+            "acquireToken"
+        ).mockImplementation(async (operationRequest) => {
+            request.claims = undefined;
+            expect(operationRequest.claims).toBe(claims);
+            return mockAuthenticationResult;
+        });
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenByDeviceCode(request);
     });
 
     test("acquireTokenByCode", async () => {
@@ -1125,6 +1148,89 @@ describe("PublicClientApplication", () => {
             expect(response.account).toEqual(
                 mockNativeAuthenticationResult.account
             );
+        });
+
+        test.each(["silent", "interactive"])(
+            "validates %s broker target receipts",
+            async (flow) => {
+                const plugin = new MockNativeBrokerPlugin();
+                const authApp = new PublicClientApplication({
+                    ...appConfig,
+                    broker: { nativeBrokerPlugin: plugin },
+                });
+                const request = {
+                    account: mockNativeAccountInfo,
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    claims: JSON.stringify({
+                        id_token: {
+                            xms_agvs: { additionalProperties: ["target-mc"] },
+                        },
+                    }),
+                    openBrowser: jest.fn(),
+                };
+                const acquire = () =>
+                    flow === "silent"
+                        ? authApp.acquireTokenSilent(request)
+                        : authApp.acquireTokenInteractive(request);
+                await expect(acquire()).rejects.toMatchObject({
+                    errorCode: ClientAuthErrorCodes.ageAssuranceTargetMismatch,
+                });
+                const result = {
+                    ...mockNativeAuthenticationResult,
+                    idTokenClaims: { xms_agvt: "-MC", xms_agvs: 0 },
+                };
+                jest.spyOn(
+                    plugin,
+                    flow === "silent"
+                        ? "acquireTokenSilent"
+                        : "acquireTokenInteractive"
+                ).mockResolvedValue(result);
+                await expect(acquire()).resolves.toMatchObject({
+                    idTokenClaims: result.idTokenClaims,
+                    accessToken: result.accessToken,
+                });
+            }
+        );
+
+        test("binds concurrent broker receipts to snapshots of each request", async () => {
+            const plugin: INativeBrokerPlugin = new MockNativeBrokerPlugin();
+            const authApp = new PublicClientApplication({
+                ...appConfig,
+                broker: { nativeBrokerPlugin: plugin },
+            });
+            const mcClaims = JSON.stringify({
+                id_token: { xms_agvs: { additionalProperties: ["target-mc"] } },
+            });
+            const smClaims = JSON.stringify({
+                id_token: { xms_agvs: { additionalProperties: ["target-sm"] } },
+            });
+            const broker = jest
+                .spyOn(plugin, "acquireTokenSilent")
+                .mockImplementation(async (request) => {
+                    await Promise.resolve();
+                    return {
+                        ...mockNativeAuthenticationResult,
+                        idTokenClaims: {
+                            xms_agvt:
+                                request.claims === mcClaims ? "+mc" : "-sm",
+                        },
+                    };
+                });
+            const request: SilentFlowRequest = {
+                account: mockNativeAccountInfo,
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                claims: mcClaims,
+            };
+            const first = authApp.acquireTokenSilent(request);
+            request.claims = smClaims;
+            const second = authApp.acquireTokenSilent(request);
+            request.claims = undefined;
+            const results = await Promise.all([first, second]);
+            expect(broker).toHaveBeenCalledTimes(2);
+            expect(results.map((result) => result.idTokenClaims)).toEqual([
+                { xms_agvt: "+mc" },
+                { xms_agvt: "-sm" },
+            ]);
         });
 
         test("acquireTokenSilent sends extra telemetry to NativeBrokerPlugin", async () => {

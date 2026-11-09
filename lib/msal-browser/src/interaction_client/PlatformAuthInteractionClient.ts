@@ -42,6 +42,7 @@ import {
     invokeAsync,
     normalizeDpopResourceRequestContext,
     updateAccountTenantProfileData,
+    validateAgeAssuranceTargets,
 } from "@azure/msal-common/browser";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
@@ -771,6 +772,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const idTokenClaims = AuthToken.extractTokenClaims(
             response.id_token,
             base64Decode,
+            this.correlationId
+        );
+        validateAgeAssuranceTargets(
+            request.claims,
+            idTokenClaims,
             this.correlationId
         );
 

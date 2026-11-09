@@ -25,6 +25,7 @@ import {
     createClientConfigurationError,
     ClientConfigurationErrorCodes,
     ProtocolUtils,
+    validateAgeAssuranceTargets,
 } from "@azure/msal-common/node";
 import { Configuration } from "../config/Configuration.js";
 import { ClientApplication } from "./ClientApplication.js";
@@ -113,10 +114,10 @@ export class PublicClientApplication
             request.correlationId || ""
         );
         enforceResourceParameter(this.config.auth.isMcp, request);
-        const validRequest: CommonDeviceCodeRequest = Object.assign(
-            request,
-            await this.initializeBaseRequest(request)
-        );
+        const validRequest: CommonDeviceCodeRequest = {
+            ...request,
+            ...(await this.initializeBaseRequest(request)),
+        };
         const serverTelemetryManager = this.initializeServerTelemetryManager(
             ApiId.acquireTokenByDeviceCode,
             validRequest.correlationId
@@ -183,10 +184,17 @@ export class PublicClientApplication
                 },
                 accountId: remainingProperties.account?.nativeAccountId,
             };
-            return this.nativeBrokerPlugin.acquireTokenInteractive(
-                brokerRequest,
-                windowHandle
+            const result =
+                await this.nativeBrokerPlugin.acquireTokenInteractive(
+                    brokerRequest,
+                    windowHandle
+                );
+            validateAgeAssuranceTargets(
+                brokerRequest.claims,
+                result.idTokenClaims,
+                correlationId
             );
+            return result;
         }
 
         if (request.redirectUri) {
@@ -339,7 +347,17 @@ export class PublicClientApplication
                 this.logger,
                 silentRequestKey,
                 correlationId,
-                () => nativeBrokerPlugin.acquireTokenSilent(brokerRequest)
+                async () => {
+                    const result = await nativeBrokerPlugin.acquireTokenSilent(
+                        brokerRequest
+                    );
+                    validateAgeAssuranceTargets(
+                        brokerRequest.claims,
+                        result.idTokenClaims,
+                        correlationId
+                    );
+                    return result;
+                }
             );
         }
 

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Validate explicitly requested ID-token age-assurance targets before cache writes and successful results",
+  "packageName": "@azure/msal-node",
+  "email": "mohaibrahim@microsoft.com",
+  "dependentChangeType": "patch"
+}
