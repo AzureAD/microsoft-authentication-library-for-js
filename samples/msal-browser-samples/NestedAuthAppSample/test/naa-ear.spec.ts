@@ -29,6 +29,7 @@ const WEB_HOST_TOKEN_STORE = {
     refreshTokens: 1,
 };
 const ACQUIRE_TOKEN_SILENT = NAA_KMSI_TOKEN_APIS[0];
+const SILENT_NAA_APIS = NAA_KMSI_TOKEN_APIS.filter((api) => api.silent);
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { HOST_APP_PORT, NESTED_APP_PORT } = require("../sampleConfig.cjs") as {
@@ -153,19 +154,23 @@ describe("Nested App Authentication + KMSI + EAR", () => {
             initialHostResult.account.homeAccountId
         );
 
-        const decryptCountBeforeRestore = await getEarDecryptCount(hostPage);
-        const restoredNestedFrame = await acquireNestedKmsiToken(
-            {
-                hostPage,
-                initialHostResult,
-                fromPlatformBroker: false,
-                nestedClientId: NESTED_APP_CLIENT_ID,
-            },
-            ACQUIRE_TOKEN_SILENT
-        );
-        expect(
-            await getTotalEarDecryptCount(hostPage, restoredNestedFrame)
-        ).toBe(decryptCountBeforeRestore);
+        for (const api of SILENT_NAA_APIS) {
+            const decryptCountBeforeRestore = await getEarDecryptCount(
+                hostPage
+            );
+            const restoredNestedFrame = await acquireNestedKmsiToken(
+                {
+                    hostPage,
+                    initialHostResult,
+                    fromPlatformBroker: false,
+                    nestedClientId: NESTED_APP_CLIENT_ID,
+                },
+                api
+            );
+            expect(
+                await getTotalEarDecryptCount(hostPage, restoredNestedFrame)
+            ).toBe(decryptCountBeforeRestore);
+        }
         await screenshot.takeScreenshot(
             hostPage,
             "Nested KMSI EAR session restored"
