@@ -5,6 +5,7 @@
 
 import {
     Logger,
+    AuthError,
     createAuthError,
     AuthErrorCodes,
     IPerformanceClient,
@@ -14,6 +15,7 @@ import {
 } from "@azure/msal-common/browser";
 import {
     DOMExtraParameters,
+    PlatformAuthBindingPreference,
     PlatformAuthRequest,
     PlatformAuthTokenType,
     PlatformDOMTokenRequest,
@@ -23,18 +25,31 @@ import {
     PlatformAuthResponse,
     PlatformDOMTokenResponse,
 } from "./PlatformAuthResponse.js";
-import { createNativeAuthError } from "../../error/NativeAuthError.js";
-import { createBrowserAuthError } from "../../error/BrowserAuthError.js";
+import {
+    createNativeAuthError,
+    NativeAuthErrorCodes,
+} from "../../error/NativeAuthError.js";
+import * as NativeStatusCodes from "./NativeStatusCodes.js";
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
+import {
+    isDpopBrokerTokenType,
+    validateDpopBrokerOutcome,
+} from "./PlatformAuthDpop.js";
 
-const PLATFORM_AUTH_DOM_DPOP_NOT_SUPPORTED =
-    "platform_auth_dom_dpop_not_supported";
+const DOM_DPOP_ERROR_CODES = new Set<string>([
+    ...Object.values(NativeAuthErrorCodes),
+    "NoSupport",
+    "BadState",
+    "OSError",
+    "BrokerError",
+]);
 
 export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     protected logger: Logger;
     protected performanceClient: IPerformanceClient;
     protected readonly correlationId: string;
+    private dpopSupported = false;
     platformAuthType: string;
 
     constructor(
@@ -91,9 +106,11 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 performanceClient,
                 correlationId
             )(PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID)) as string[];
-            const contractSupported = supportedContracts?.includes(
-                PlatformAuthConstants.PLATFORM_DOM_APIS
-            );
+            const contractSupported =
+                Array.isArray(supportedContracts) &&
+                supportedContracts.includes(
+                    PlatformAuthConstants.PLATFORM_DOM_APIS
+                );
             if (contractSupported) {
                 logger.trace(
                     "Platform auth api available in DOM",
@@ -109,11 +126,13 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
                 });
-                return new PlatformAuthDOMHandler(
+                const provider = new PlatformAuthDOMHandler(
                     logger,
                     performanceClient,
                     correlationId
                 );
+                provider.dpopSupported = true;
+                return provider;
             }
             createProviderMeasurement.add({
                 platformAuthProviderAvailable: false,
@@ -153,6 +172,13 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     }
 
     /**
+     * Whether discovery advertised the contract required for DOM DPoP.
+     */
+    isDpopSupported(): boolean {
+        return this.dpopSupported;
+    }
+
+    /**
      * Send token request to platform broker via browser DOM API
      * @param request
      * @returns
@@ -174,13 +200,29 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         );
 
         try {
+            const isDpopRequest = isDpopBrokerTokenType(request.tokenType);
+            if (isDpopRequest && !this.dpopSupported) {
+                throw createAuthError(
+                    AuthErrorCodes.unexpectedError,
+                    correlationId,
+                    "Platform authentication DOM contract is unavailable."
+                );
+            }
             if (
-                request.tokenType?.trim().toLowerCase() ===
-                PlatformAuthTokenType.DPOP_WITH_PROOF
+                isDpopRequest &&
+                (request.tokenType !== PlatformAuthTokenType.DPOP_WITH_PROOF ||
+                    typeof request.keyId !== "string" ||
+                    !request.keyId.trim() ||
+                    typeof request.reqCnf !== "string" ||
+                    !request.reqCnf.trim() ||
+                    (request.preferBinding !== undefined &&
+                        request.preferBinding !==
+                            PlatformAuthBindingPreference.ATTESTED))
             ) {
-                throw createBrowserAuthError(
-                    PLATFORM_AUTH_DOM_DPOP_NOT_SUPPORTED,
-                    correlationId
+                throw createAuthError(
+                    AuthErrorCodes.unexpectedError,
+                    correlationId,
+                    "DPoP request key binding is incomplete."
                 );
             }
             const platformDOMRequest = invoke(
@@ -190,6 +232,10 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 this.performanceClient,
                 correlationId
             )(request);
+            if (isDpopRequest) {
+                request.bindingPreferenceSent =
+                    platformDOMRequest.preferBinding !== undefined;
+            }
             const response: object =
                 // @ts-ignore
                 await window.navigator.platformAuthentication.executeGetToken(
@@ -197,7 +243,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 );
             const validatedResponse = this.validatePlatformBrokerResponse(
                 response,
-                correlationId
+                correlationId,
+                request
             );
             sendMessageMeasurement.end({
                 success: true,
@@ -205,6 +252,15 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             });
             return validatedResponse;
         } catch (e) {
+            const error =
+                isDpopBrokerTokenType(request.tokenType) &&
+                !(e instanceof AuthError)
+                    ? createAuthError(
+                          AuthErrorCodes.unexpectedError,
+                          correlationId,
+                          "Platform authentication DOM request failed."
+                      )
+                    : e;
             this.logger.error(
                 `'${this.platformAuthType}' - executeGetToken DOM API error`,
                 correlationId
@@ -214,9 +270,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                     success: false,
                     platformAuthProviderType: this.platformAuthType,
                 },
-                e
+                error
             );
-            throw e;
+            throw error;
         }
     }
 
@@ -251,6 +307,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             remainingProperties,
             requestCorrelationId
         );
+        const isDpopRequest = isDpopBrokerTokenType(request.tokenType);
         const platformDOMRequest: PlatformDOMTokenRequest = {
             accountId: accountId,
             brokerId: this.getExtensionId(),
@@ -268,15 +325,27 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             preferBinding: preferBinding,
             enclave: enclave,
             requestConfirmation: reqCnf,
-            extraParametersNoCache,
+            extraParametersNoCache: extraParametersNoCache && {
+                ...extraParametersNoCache,
+            },
         };
+        delete platformDOMRequest.extraParameters?.bindingPreferenceSent;
+        delete platformDOMRequest.extraParametersNoCache?.bindingPreferenceSent;
+        if (isDpopRequest) {
+            delete platformDOMRequest.extraParameters?.reqCnf;
+            delete platformDOMRequest.extraParameters?.requestConfirmation;
+            delete platformDOMRequest.extraParameters?.preferBinding;
+            delete platformDOMRequest.extraParameters?.signPopToken;
+            delete platformDOMRequest.extraParameters?.keyId;
+        }
 
         return platformDOMRequest;
     }
 
     private validatePlatformBrokerResponse(
         response: object,
-        correlationId: string
+        correlationId: string,
+        request?: PlatformAuthRequest
     ): PlatformAuthResponse {
         const validationMeasurement = this.performanceClient.startMeasurement(
             BrowserPerformanceEvents.PlatformAuthDOMValidateResponse,
@@ -299,7 +368,10 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             response &&
             Object.prototype.hasOwnProperty.call(response, "isSuccess")
         ) {
-            if (isValid) {
+            if (
+                isValid &&
+                (response as PlatformDOMTokenResponse).isSuccess === true
+            ) {
                 this.logger.trace(
                     `'${this.platformAuthType}' - platform broker returned successful and valid response`,
                     correlationId
@@ -310,6 +382,14 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                             response as PlatformDOMTokenResponse,
                             correlationId
                         );
+                    if (request) {
+                        this.validateDpopResponse(
+                            response as PlatformDOMTokenResponse,
+                            validatedResponse,
+                            request,
+                            correlationId
+                        );
+                    }
                     validationMeasurement.end({
                         success: true,
                         platformAuthProviderType: this.platformAuthType,
@@ -338,23 +418,53 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                         `'${this.platformAuthType}' - platform broker returned error response`,
                         correlationId
                     );
+                    const isDpopRequest = isDpopBrokerTokenType(
+                        request?.tokenType
+                    );
+                    const nativeError = errorResponse.error;
+                    const code =
+                        isDpopRequest &&
+                        !DOM_DPOP_ERROR_CODES.has(nativeError.code)
+                            ? AuthErrorCodes.unexpectedError
+                            : nativeError.code;
+                    const status =
+                        isDpopRequest &&
+                        nativeError.status !== "THROTTLED" &&
+                        !Object.values(NativeStatusCodes).some(
+                            (value) => value === nativeError.status
+                        )
+                            ? undefined
+                            : nativeError.status;
+                    const numericError = Number(nativeError.errorCode);
                     const nativeAuthError = createNativeAuthError(
-                        errorResponse.error.code,
+                        code,
                         correlationId,
-                        errorResponse.error.description,
+                        isDpopRequest ? undefined : nativeError.description,
                         {
-                            error: parseInt(errorResponse.error.errorCode),
-                            protocol_error: errorResponse.error.protocolError,
-                            status: errorResponse.error.status,
-                            properties: errorResponse.error.properties,
+                            error: isDpopRequest
+                                ? Number.isInteger(numericError) &&
+                                  numericError >= -2147483648 &&
+                                  numericError <= 2147483647
+                                    ? numericError
+                                    : undefined
+                                : parseInt(nativeError.errorCode),
+                            protocol_error: isDpopRequest
+                                ? undefined
+                                : nativeError.protocolError,
+                            status,
+                            properties: isDpopRequest
+                                ? undefined
+                                : nativeError.properties,
                         }
                     );
                     validationMeasurement.end(
                         {
                             success: false,
                             platformAuthProviderType: this.platformAuthType,
-                            brokerErrorName: errorResponse.error.code,
-                            brokerErrorCode: errorResponse.error.errorCode,
+                            brokerErrorName: code,
+                            brokerErrorCode: isDpopRequest
+                                ? undefined
+                                : nativeError.errorCode,
                         },
                         nativeAuthError
                     );
@@ -377,6 +487,79 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         throw error;
     }
 
+    /**
+     * Validates DOM response shape before applying the shared broker outcome contract.
+     */
+    private validateDpopResponse(
+        response: PlatformDOMTokenResponse,
+        normalizedResponse: PlatformAuthResponse,
+        request: PlatformAuthRequest,
+        correlationId: string
+    ): void {
+        const properties = response.properties;
+        const rawResponse = response as unknown as Record<string, unknown>;
+        const isDpopResponse =
+            isDpopBrokerTokenType(properties?.token_type) ||
+            properties?.dpop_proof !== undefined ||
+            properties?.DPoP !== undefined ||
+            properties?.binding_attested !== undefined;
+        if (isDpopBrokerTokenType(request.tokenType) || isDpopResponse) {
+            if (
+                (properties !== undefined &&
+                    (!properties ||
+                        typeof properties !== "object" ||
+                        Array.isArray(properties))) ||
+                response.error?.code ||
+                typeof response.accessToken !== "string" ||
+                !response.accessToken.trim() ||
+                typeof response.idToken !== "string" ||
+                !response.idToken.trim() ||
+                typeof response.clientInfo !== "string" ||
+                !response.clientInfo.trim() ||
+                typeof response.scopes !== "string" ||
+                !response.scopes.trim() ||
+                !Number.isSafeInteger(response.expiresIn) ||
+                response.expiresIn < 0 ||
+                !response.account ||
+                typeof response.account !== "object" ||
+                Array.isArray(response.account) ||
+                typeof response.account.id !== "string" ||
+                !response.account.id.trim() ||
+                typeof response.account.userName !== "string" ||
+                (response.account.properties !== undefined &&
+                    response.account.properties !== null &&
+                    (typeof response.account.properties !== "object" ||
+                        Array.isArray(response.account.properties) ||
+                        Object.values(response.account.properties).some(
+                            (value) => typeof value !== "string"
+                        ))) ||
+                (response.state !== undefined &&
+                    response.state !== null &&
+                    typeof response.state !== "string") ||
+                (response.extendedLifetimeToken !== undefined &&
+                    typeof response.extendedLifetimeToken !== "boolean") ||
+                properties?.dpop_proof !== undefined ||
+                response.proofOfPossessionPayload !== undefined ||
+                rawResponse.token_type !== undefined ||
+                rawResponse.DPoP !== undefined ||
+                rawResponse.dpop_proof !== undefined ||
+                rawResponse.binding_attested !== undefined
+            ) {
+                throw createAuthError(
+                    AuthErrorCodes.unexpectedError,
+                    correlationId,
+                    "Conflicting DPoP DOM response."
+                );
+            }
+        }
+        validateDpopBrokerOutcome(
+            normalizedResponse,
+            request,
+            correlationId,
+            this.performanceClient
+        );
+    }
+
     private getCorrelationId(correlationId?: string): string {
         return correlationId || this.correlationId;
     }
@@ -391,7 +574,10 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         );
         const responseProperties = response.properties || {};
         const bindingAttested = this.parseDOMBoolean(
-            responseProperties.binding_attested,
+            isDpopBrokerTokenType(responseProperties.token_type) &&
+                typeof responseProperties.binding_attested === "string"
+                ? responseProperties.binding_attested.trim().toLowerCase()
+                : responseProperties.binding_attested,
             "binding_attested",
             correlationId
         );
@@ -407,7 +593,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             extendedLifetimeToken: response.extendedLifetimeToken ?? false,
             shr: response.proofOfPossessionPayload,
             token_type: responseProperties.token_type,
-            DPoP: responseProperties.dpop_proof,
+            DPoP: responseProperties.DPoP,
             binding_attested: bindingAttested,
         };
 
@@ -454,10 +640,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         } catch (e) {
             this.logger.error(
                 `'${this.platformAuthType}' - Error stringifying extra parameters`,
-                correlationId
-            );
-            this.logger.errorPii(
-                `'${this.platformAuthType}' - Error stringifying extra parameters: '${e}'`,
                 correlationId
             );
             return {};

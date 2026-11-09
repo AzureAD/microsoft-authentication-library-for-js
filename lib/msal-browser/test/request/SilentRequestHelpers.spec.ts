@@ -263,7 +263,7 @@ describe("silent request preparation", () => {
         expect(prepared.account).toBe(prepared.request.account);
     });
 
-    it("keeps web preparation for DPoP when the DOM provider is active", () => {
+    it("keeps web preparation for DPoP when the DOM contract has not been discovered", () => {
         input.request.authenticationScheme =
             Constants.AuthenticationScheme.DPOP;
         const prepared = resolveSilentRequestPreparation(
@@ -279,6 +279,36 @@ describe("silent request preparation", () => {
         expect(prepared).toEqual(prepareWebSilentRequest(input));
         expect(prepared.request).toBe(input.request);
         expect(prepared.account).toBe(input.account);
+    });
+
+    it("selects broker DPoP preparation when DOM advertises the required contract", async () => {
+        Object.defineProperty(navigator, "platformAuthentication", {
+            configurable: true,
+            value: {
+                getSupportedContracts: jest
+                    .fn()
+                    .mockResolvedValue(["get-token-and-sign-out"]),
+            },
+        });
+        try {
+            const domProvider = await PlatformAuthDOMHandler.createProvider(
+                logger,
+                performanceClient,
+                "test-correlation-id"
+            );
+            input.request.authenticationScheme =
+                Constants.AuthenticationScheme.DPOP;
+            const prepared = resolveSilentRequestPreparation(
+                input,
+                domProvider,
+                logger,
+                performanceClient
+            );
+            expect(prepared.key.startsWith("platform:")).toBe(true);
+            expect(prepared.request).not.toBe(input.request);
+        } finally {
+            delete (navigator as any).platformAuthentication;
+        }
     });
 
     it("keeps web preparation for unsupported broker scheme SSH", () => {
