@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Thu, 05 Nov 2026 01:03:50 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 06 Nov 2026 23:13:15 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.16.1
+
+Fri, 06 Nov 2026 23:13:15 GMT
+
+### Patches
+
+- Preserve ID tokens during account-context cleanup and remove them on full account removal [#8971](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8971) (lalima.sharda@gmail.com)
 
 ## 16.16.0
 

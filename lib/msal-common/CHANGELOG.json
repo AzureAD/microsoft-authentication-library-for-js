@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Fri, 06 Nov 2026 23:13:15 GMT",
+      "version": "16.16.1",
+      "tag": "@azure/msal-common_v16.16.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalima.sharda@gmail.com",
+            "package": "@azure/msal-common",
+            "commit": "f0dfcc496b0837f4756b3f54ff6a9827fab8e391",
+            "comment": "Preserve ID tokens during account-context cleanup and remove them on full account removal [#8971](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8971)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 05 Nov 2026 01:03:50 GMT",
       "version": "16.16.0",
       "tag": "@azure/msal-common_v16.16.0",
