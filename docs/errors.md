@@ -1093,6 +1093,12 @@ const msalConfig = {
     See [the experiment's limits](../lib/msal-browser/docs/caching.md#unpublished-cae-cache-experiment).
     Explicit `invalidateAccessTokenCache` also requires the experiment and cannot
     be combined with access-token-only lookup.
+    Common response handling and cache lookup reject experimental CAE requests
+    with nonempty attribute-token or additional cache-key components rather than
+    discarding those components. Node client-credential and on-behalf-of requests
+    also reject this combination before cache lookup or token acquisition.
+    This does not enable CAE cache partitioning in Node or change ordinary
+    attribute-token, FMI, or client-claims caching.
 
 ### `storage_not_supported`
 

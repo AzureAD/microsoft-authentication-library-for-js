@@ -83,6 +83,13 @@ reuse their family; additional claims still require renewal. Challenge values do
 not create additional token families. Unmarked access tokens have unknown
 provenance and are not used by the experiment.
 
+The experiment does not compose with attribute-token or other caller-provided
+cache-key components. Common response handling and lookup reject these
+combinations with `experimental_cae_cache_unsupported`, including callers that
+bypass browser request preparation. Empty component objects and empty
+attribute-token arrays do not add a partition. Existing nonexperimental cache
+components and internally generated CAE credential components are unchanged.
+
 Only the non-brokered AAD/EAR web Bearer path is implemented. OIDC, native
 brokers, nested app authentication, hybrid-code acquisition, token hydration/import, attribute tokens,
 resource overrides and extra request parameters are rejected with

@@ -55,6 +55,62 @@ describe("OnBehalfOfClient claimsFromClient tests", () => {
         jest.restoreAllMocks();
     });
 
+    describe("experimental CAE cache components", () => {
+        it.each([
+            { claimsFromClient: NSP_CLAIMS },
+            { attributeTokens: ["alpha"] },
+        ])(
+            "rejects conflicting request %j before cache lookup or network fallback",
+            async (overrides) => {
+                const client = new OnBehalfOfClient(config);
+                const request = { ...baseRequest(), ...overrides };
+                await client.acquireToken(request);
+                const storage = config.storageInterface!;
+                const before = storage
+                    .getTokenKeys()
+                    .accessToken.map((key) =>
+                        storage.getAccessTokenCredential(
+                            key,
+                            request.correlationId
+                        )
+                    );
+                const read = jest.spyOn(storage, "getAccessTokensByFilter");
+                const save = jest.spyOn(storage, "saveCacheRecord");
+                createTokenRequestBodySpy.mockClear();
+
+                for (const skipCache of [false, true]) {
+                    await expect(
+                        client.acquireToken({
+                            ...request,
+                            skipCache,
+                            experimentalCaeCache: {
+                                capability: "cp1",
+                                hasChallenge: false,
+                            },
+                        })
+                    ).rejects.toMatchObject({
+                        name: "ClientConfigurationError",
+                        errorCode: "experimental_cae_cache_unsupported",
+                        correlationId: request.correlationId,
+                    });
+                }
+                expect(read).not.toHaveBeenCalled();
+                expect(save).not.toHaveBeenCalled();
+                expect(createTokenRequestBodySpy).not.toHaveBeenCalled();
+                expect(
+                    storage
+                        .getTokenKeys()
+                        .accessToken.map((key) =>
+                            storage.getAccessTokenCredential(
+                                key,
+                                request.correlationId
+                            )
+                        )
+                ).toEqual(before);
+            }
+        );
+    });
+
     describe("Body injection", () => {
         it("merges claimsFromClient into the claims body parameter", async () => {
             const client = new OnBehalfOfClient(config);

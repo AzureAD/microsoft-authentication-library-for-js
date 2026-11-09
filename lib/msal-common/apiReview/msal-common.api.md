@@ -820,7 +820,8 @@ declare namespace CacheHelpers {
         updateAuthorityEndpointMetadata,
         updateCloudDiscoveryMetadata,
         isAuthorityMetadataExpired,
-        serializeAttributeTokens
+        serializeAttributeTokens,
+        validateCaeCacheKeyComponents
     }
 }
 export { CacheHelpers }
@@ -1143,7 +1144,8 @@ declare namespace ClientConfigurationErrorCodes {
         invalidDpopHtm,
         invalidDpopHtu,
         invalidDpopNonce,
-        dpopMissingResourceContext
+        dpopMissingResourceContext,
+        experimentalCaeCacheUnsupported
     }
 }
 export { ClientConfigurationErrorCodes }
@@ -1624,6 +1626,9 @@ const ERROR_DESCRIPTION = "error_description";
 
 // @internal
 function executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>, thumbprint: RequestThumbprint, correlationId: string, cacheManager: CacheManager, networkClient: INetworkModule, logger: Logger, performanceClient: IPerformanceClient, serverTelemetryManager: ServerTelemetryManager | null): Promise<NetworkResponse<ServerAuthorizationTokenResponse>>;
+
+// @public (undocumented)
+const experimentalCaeCacheUnsupported = "experimental_cae_cache_unsupported";
 
 // @public (undocumented)
 const EXPIRES_IN = "expires_in";
@@ -3531,6 +3536,9 @@ const USERNAME = "username";
 
 // @public
 function validateAuthorizationResponse(serverResponse: AuthorizeResponse, requestState: string, correlationId: string): void;
+
+// @public
+function validateCaeCacheKeyComponents(request: BaseAuthRequest, additionalCacheKeyComponents?: Record<string, string>): void;
 
 // @public
 function validateUrl(url: string, logger?: Logger, correlationId?: string): void;

@@ -11,6 +11,7 @@ import {
     AuthenticationResult,
     Authority,
     AuthToken,
+    CacheHelpers,
     ClientAuthErrorCodes,
     ClientConfiguration,
     createClientAuthError,
@@ -79,6 +80,11 @@ export class OnBehalfOfClient extends BaseClient {
                 client_claims: request.claimsFromClient,
             };
         }
+
+        CacheHelpers.validateCaeCacheKeyComponents(
+            request,
+            additionalCacheKeyComponents
+        );
 
         if (request.skipCache || !StringUtils.isEmptyObj(request.claims)) {
             return this.executeTokenRequest(

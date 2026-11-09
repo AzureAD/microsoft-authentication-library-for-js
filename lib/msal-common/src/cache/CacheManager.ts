@@ -1442,6 +1442,7 @@ export abstract class CacheManager implements ICacheManager {
         tokenKeys?: TokenKeys,
         targetRealm?: string
     ): AccessTokenEntity | null {
+        CacheHelpers.validateCaeCacheKeyComponents(request);
         const correlationId = request.correlationId;
         this.commonLogger.trace(
             "CacheManager - getAccessToken called",

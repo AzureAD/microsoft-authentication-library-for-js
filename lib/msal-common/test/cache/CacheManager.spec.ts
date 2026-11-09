@@ -103,6 +103,93 @@ describe("CacheManager.ts test cases", () => {
         jest.useRealTimers();
     });
 
+    describe("experimental CAE cache components", () => {
+        it.each([{ attributeTokens: ["alpha"] }, { attributeTokens: [""] }])(
+            "rejects conflicting attribute tokens $attributeTokens before cache lookup",
+            ({ attributeTokens }) => {
+                const before = JSON.stringify(mockCache.cacheManager.store);
+                const read = jest.spyOn(mockCache.cacheManager, "getTokenKeys");
+                expect(() =>
+                    mockCache.cacheManager.getAccessToken(TEST_ACCOUNT_INFO, {
+                        authority: TEST_CONFIG.validAuthority,
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        scopes: ["User.Read"],
+                        attributeTokens,
+                        experimentalCaeCache: {
+                            capability: "cp1",
+                            hasChallenge: false,
+                        },
+                    })
+                ).toThrow(
+                    expect.objectContaining({
+                        name: "ClientConfigurationError",
+                        errorCode: "experimental_cae_cache_unsupported",
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                    })
+                );
+                expect(read).not.toHaveBeenCalled();
+                expect(JSON.stringify(mockCache.cacheManager.store)).toBe(
+                    before
+                );
+            }
+        );
+
+        it.each([false, true])(
+            "reads and preserves matching stored components with CAE=%s",
+            async (experimental) => {
+                const components: Record<string, string> = experimental
+                    ? {
+                          experimental_cae_capability: "cp1",
+                          experimental_cae_resource: "",
+                      }
+                    : { attribute_tokens: "alpha" };
+                const token = CacheHelpers.createAccessTokenEntity(
+                    TEST_ACCOUNT_INFO.homeAccountId,
+                    TEST_ACCOUNT_INFO.environment,
+                    "partitioned-token",
+                    CACHE_MOCKS.MOCK_CLIENT_ID,
+                    TEST_ACCOUNT_INFO.tenantId,
+                    "User.Read",
+                    TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
+                    TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
+                    mockCrypto.base64Decode,
+                    TEST_CONFIG.CORRELATION_ID,
+                    undefined,
+                    AuthenticationScheme.BEARER,
+                    undefined,
+                    undefined,
+                    components
+                );
+                await mockCache.cacheManager.saveCacheRecord(
+                    { accessToken: token },
+                    TEST_CONFIG.CORRELATION_ID,
+                    false,
+                    0
+                );
+                const before = JSON.stringify(mockCache.cacheManager.store);
+                const actual = mockCache.cacheManager.getAccessToken(
+                    TEST_ACCOUNT_INFO,
+                    {
+                        authority: TEST_CONFIG.validAuthority,
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        scopes: ["User.Read"],
+                        attributeTokens: experimental ? [] : ["alpha"],
+                        experimentalCaeCache: experimental
+                            ? { capability: "cp1", hasChallenge: false }
+                            : undefined,
+                    }
+                );
+                expect(actual?.secret).toBe("partitioned-token");
+                expect(actual?.additionalCacheKeyComponents).toEqual(
+                    components
+                );
+                expect(JSON.stringify(mockCache.cacheManager.store)).toBe(
+                    before
+                );
+            }
+        );
+    });
+
     describe("saveCacheRecord tests", () => {
         it("save account", async () => {
             const ac: AccountEntity = {

@@ -45,6 +45,151 @@ describe("ClientCredentialClient FMI tests", () => {
         jest.restoreAllMocks();
     });
 
+    describe("experimental CAE cache components", () => {
+        it.each([
+            { fmiPath: "agent-a" },
+            { claimsFromClient: '{"client":"claim"}' },
+            { attributeTokens: ["alpha"] },
+        ])(
+            "rejects conflicting request %j without reading or changing the cache",
+            async (overrides) => {
+                const client = new ClientCredentialClient(config);
+                const request: CommonClientCredentialRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                    ...overrides,
+                };
+                await client.acquireToken(request);
+                const storage = config.storageInterface!;
+                const before = storage
+                    .getTokenKeys()
+                    .accessToken.map((key) =>
+                        storage.getAccessTokenCredential(
+                            key,
+                            request.correlationId
+                        )
+                    );
+                const save = jest.spyOn(storage, "saveCacheRecord");
+                const read = jest.spyOn(storage, "getAccessTokensByFilter");
+                createTokenRequestBodySpy.mockClear();
+
+                for (const skipCache of [false, true]) {
+                    await expect(
+                        client.acquireToken({
+                            ...request,
+                            skipCache,
+                            experimentalCaeCache: {
+                                capability: "cp1",
+                                hasChallenge: false,
+                            },
+                        })
+                    ).rejects.toMatchObject({
+                        name: "ClientConfigurationError",
+                        errorCode: "experimental_cae_cache_unsupported",
+                        correlationId: request.correlationId,
+                    });
+                }
+                expect(read).not.toHaveBeenCalled();
+                expect(save).not.toHaveBeenCalled();
+                expect(createTokenRequestBodySpy).not.toHaveBeenCalled();
+                expect(
+                    storage
+                        .getTokenKeys()
+                        .accessToken.map((key) =>
+                            storage.getAccessTokenCredential(
+                                key,
+                                request.correlationId
+                            )
+                        )
+                ).toEqual(before);
+            }
+        );
+
+        it.each([
+            { fmiPath: "agent-a" },
+            { claimsFromClient: '{"client":"claim"}' },
+        ])(
+            "rejects request-derived components %j on direct cached-result lookup",
+            async (overrides) => {
+                const client = new ClientCredentialClient(config);
+                const request: CommonClientCredentialRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                };
+                const ordinary = await client.acquireToken(request);
+                const read = jest.spyOn(
+                    config.storageInterface!,
+                    "getAccessTokensByFilter"
+                );
+                const save = jest.spyOn(
+                    config.storageInterface!,
+                    "saveCacheRecord"
+                );
+                for (const components of [undefined, {}]) {
+                    await expect(
+                        client.getCachedAuthenticationResult(
+                            {
+                                ...request,
+                                ...overrides,
+                                experimentalCaeCache: {
+                                    capability: "cp1",
+                                    hasChallenge: false,
+                                },
+                            },
+                            config,
+                            config.cryptoInterface!,
+                            client.authority,
+                            config.storageInterface!,
+                            undefined,
+                            components
+                        )
+                    ).rejects.toMatchObject({
+                        name: "ClientConfigurationError",
+                        errorCode: "experimental_cae_cache_unsupported",
+                    });
+                }
+                expect(read).not.toHaveBeenCalled();
+                expect(save).not.toHaveBeenCalled();
+                const result = await client.acquireToken(request);
+                expect(result?.fromCache).toBe(true);
+                expect(result?.accessToken).toBe(ordinary?.accessToken);
+            }
+        );
+
+        it("rejects conflicting components on direct cached-result lookup", async () => {
+            const client = new ClientCredentialClient(config);
+            const read = jest.spyOn(
+                config.storageInterface!,
+                "getAccessTokensByFilter"
+            );
+            await expect(
+                client.getCachedAuthenticationResult(
+                    {
+                        authority: TEST_CONFIG.validAuthority,
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                        experimentalCaeCache: {
+                            capability: "cp1",
+                            hasChallenge: false,
+                        },
+                    },
+                    config,
+                    config.cryptoInterface!,
+                    client.authority,
+                    config.storageInterface!,
+                    undefined,
+                    { fmi_path: "agent-a" }
+                )
+            ).rejects.toMatchObject({
+                name: "ClientConfigurationError",
+                errorCode: "experimental_cae_cache_unsupported",
+            });
+            expect(read).not.toHaveBeenCalled();
+        });
+    });
+
     describe("Body injection", () => {
         it("includes fmi_path in token request body when fmiPath is set", async () => {
             const client = new ClientCredentialClient(config);

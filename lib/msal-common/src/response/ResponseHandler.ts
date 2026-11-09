@@ -211,6 +211,10 @@ export class ResponseHandler {
         serverRequestId?: string,
         additionalCacheKeyComponents?: Record<string, string>
     ): Promise<AuthenticationResult> {
+        CacheHelpers.validateCaeCacheKeyComponents(
+            request,
+            additionalCacheKeyComponents
+        );
         // create an idToken object (not entity)
         let idTokenClaims: TokenClaims | undefined;
         if (serverTokenResponse.id_token) {

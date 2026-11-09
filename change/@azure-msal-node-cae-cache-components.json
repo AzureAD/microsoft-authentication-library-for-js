@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Reject unsupported experimental CAE context combined with independent cache components before client-credential or on-behalf-of acquisition. [#8975](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8975)",
+  "packageName": "@azure/msal-node",
+  "dependentChangeType": "patch"
+}
