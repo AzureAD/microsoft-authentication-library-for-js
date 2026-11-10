@@ -10,6 +10,7 @@ import { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/core/
 import { AuthMethodRegistrationRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.js";
 import {
     FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
+    FLOW_MFA_REQUIRED_V2,
     FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
@@ -17,6 +18,7 @@ import { SignInContinuationStateV2 } from "../../../../../../src/custom_auth/sig
 import { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { NewPasswordRequiredStateV2 } from "../../../../../../src/custom_auth/reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
+import { AuthMethodSelectionRequiredStateV2 } from "../../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 
 describe("NewPasswordRequiredStateV2", () => {
     const correlationId = "test-correlation-id";
@@ -92,6 +94,37 @@ describe("NewPasswordRequiredStateV2", () => {
 
         expect(result.isFailed()).toBe(false);
         expect(result.state).toBeInstanceOf(SignInContinuationStateV2);
+        expect(result.scenario).toBe(CustomAuthFlowScenarioV2.PasswordReset);
+    });
+
+    it("exposes reset MFA selection without a sign-in handler or auto-challenging a sole method", async () => {
+        flowClient.submitNewPassword.mockResolvedValue({
+            type: FLOW_MFA_REQUIRED_V2,
+            correlationId,
+            continuationState: {
+                continuationToken: "ct-mfa",
+                scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                scopes: ["openid"],
+                links: {},
+            },
+            methods: [
+                {
+                    id: "email-mfa",
+                    type: "email",
+                    hint: "u***@contoso.com",
+                    challengeHref: "/mfa/email/challenge",
+                },
+            ],
+        });
+
+        const result = await buildState().submitNewPassword("new-password");
+
+        expect(result.isState("authMethodSelectionRequired")).toBe(true);
+        expect(result.state).toBeInstanceOf(AuthMethodSelectionRequiredStateV2);
+        if (result.isState("authMethodSelectionRequired")) {
+            expect(result.state.methods).toHaveLength(1);
+            expect(result.state.methods[0].id).toBe("email-mfa");
+        }
         expect(result.scenario).toBe(CustomAuthFlowScenarioV2.PasswordReset);
     });
 
