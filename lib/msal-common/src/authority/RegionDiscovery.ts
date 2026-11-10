@@ -15,16 +15,20 @@ import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.j
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { Logger } from "../logger/Logger.js";
 
+// Starts with an ASCII letter; remaining characters are ASCII letters, digits, or hyphens.
 const REGION_NAME_PATTERN = /^[a-z][a-z0-9-]*$/i;
+// A region becomes a DNS label, limited to 63 octets by RFC 1035 section 2.3.4.
+const MAX_REGION_NAME_LENGTH = 63;
 
 /**
  * Whether a region can safely be used as a single DNS label.
  */
-export function isValidRegion(region: string): boolean {
+export function isValidRegion(region: unknown): boolean {
     return (
         typeof region === "string" &&
-        region.length <= 63 &&
+        region.length <= MAX_REGION_NAME_LENGTH &&
         REGION_NAME_PATTERN.test(region) &&
+        // Keep the trailing-hyphen rule explicit rather than complicating the pattern.
         !region.endsWith("-")
     );
 }

@@ -11,6 +11,7 @@ import { StringUtils } from "../utils/StringUtils.js";
 import { IUri } from "./IUri.js";
 import * as Constants from "../utils/Constants.js";
 
+// Matches ASCII controls, space, DEL, backslash, or the userinfo separator (@).
 const UNSAFE_AUTHORITY = /[\x00-\x20\x7f\\@]/;
 const DEFAULT_PORTS: Record<string, string> = {
     "https:": ":443",
@@ -188,10 +189,14 @@ export class UrlString {
         const host = urlComponents.HostNameAndPort?.toLowerCase();
         const schemeAndAuthority = `${urlComponents.Protocol}//${host}`;
         const defaultPort = DEFAULT_PORTS[parsedUrl.protocol] ?? "";
+        /*
+         * Cross-check the original host; reparsing parsedUrl would hide parser differences.
+         * URL has validated IPv6 syntax, so only bracketed hosts need a normalization comparison.
+         */
         const hostMatches =
             host === parsedUrl.host ||
             host === `${parsedUrl.host}${defaultPort}` ||
-            (/^\[[0-9a-f:.]+\](?::[0-9]+)?$/i.test(host ?? "") &&
+            (host?.startsWith("[") &&
                 new URL(`${urlComponents.Protocol}//${host}`).host ===
                     parsedUrl.host);
 

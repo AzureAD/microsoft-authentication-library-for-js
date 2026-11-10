@@ -90,6 +90,10 @@ describe("UrlString.ts Class Unit Tests", () => {
         "https://exam\tple.ciamlogin.com/common",
         "https://exam\nple.ciamlogin.com/common",
         "https://example.com .ciamlogin.com/common",
+        "https://%65xample.com/common",
+        "https://[::1]@example.com/common",
+        "https://[::1]\\.ciamlogin.com/common",
+        "https://[not-ipv6]/common",
         "\thttps://example.com/common",
         "https://example.com\\.ciamlogin.com/common?path=c:\\docs#/intro",
     ])("rejects ambiguous authority %p before extracting its host", (url) => {
@@ -115,6 +119,7 @@ describe("UrlString.ts Class Unit Tests", () => {
         ["http://api.example:80/resource", "api.example:80"],
         ["https://api.example:443/resource", "api.example:443"],
         ["https://api.example:8443/resource", "api.example:8443"],
+        ["https://[0:0:0:0:0:0:0:1]:3000/resource", "[0:0:0:0:0:0:0:1]:3000"],
         ["custom://api.example/resource", "api.example"],
     ])("preserves the original host and port in %p", (url, host) => {
         expect(new UrlString(url, "").getUrlComponents().HostNameAndPort).toBe(

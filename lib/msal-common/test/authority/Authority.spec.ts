@@ -42,7 +42,10 @@ import {
     TimeUtils,
     UrlString,
 } from "../../src/index.js";
-import { RegionDiscovery } from "../../src/authority/RegionDiscovery.js";
+import {
+    RegionDiscovery,
+    isValidRegion,
+} from "../../src/authority/RegionDiscovery.js";
 import { RegionDiscoveryMetadata } from "../../src/authority/RegionDiscoveryMetadata.js";
 import { InstanceDiscoveryMetadata } from "../../src/authority/AuthorityMetadata.js";
 import * as authorityMetadata from "../../src/authority/AuthorityMetadata.js";
@@ -952,6 +955,42 @@ describe("Authority.ts Class Unit Tests", () => {
             ): Promise<T> => Promise.resolve(getImpl(url, options) as T),
             sendPostRequestAsync: <T>(): Promise<T> => Promise.resolve({} as T),
         });
+
+        it.each([undefined, null, true, 123, {}, ["westus2"]])(
+            "rejects a non-string region %p without coercion",
+            (region) => {
+                expect(isValidRegion(region)).toBe(false);
+            }
+        );
+
+        it.each([true, 123, {}, ["westus2"]])(
+            "discards a non-string IMDS location %p",
+            async (location) => {
+                const networkInterface = buildNetworkInterface(() => ({
+                    status: Constants.HTTP_SUCCESS,
+                    body: { location },
+                }));
+                const regionDiscovery = new RegionDiscovery(
+                    networkInterface,
+                    logger,
+                    new StubPerformanceClient(),
+                    correlationId
+                );
+                const metadata: RegionDiscoveryMetadata = {};
+                const warningSpy = jest.spyOn(logger, "warning");
+
+                await expect(
+                    regionDiscovery.detectRegion(undefined, metadata)
+                ).resolves.toBeNull();
+                expect(metadata.region_source).toBe(
+                    Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION
+                );
+                expect(warningSpy).toHaveBeenCalledWith(
+                    "Region discovery returned an invalid region. Using the global authority.",
+                    correlationId
+                );
+            }
+        );
 
         it.each([
             { source: "environment", expectedCalls: 0 },
