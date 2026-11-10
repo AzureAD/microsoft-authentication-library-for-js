@@ -520,6 +520,71 @@ describe("RedirectClient", () => {
                 });
         });
 
+        it.each([
+            { instanceAware: false, override: "true" },
+            { instanceAware: true, override: "false" },
+        ])(
+            "honors redirect instance_aware=$override over config instanceAware=$instanceAware during code redemption",
+            async ({ instanceAware, override }) => {
+                pca.getConfiguration().auth.instanceAware = instanceAware;
+                const cloudHost = "login.microsoftonline.us";
+                const expectedHost =
+                    override === "true"
+                        ? cloudHost
+                        : "login.microsoftonline.com";
+                jest.spyOn(
+                    FetchClient.prototype,
+                    "sendGetRequestAsync"
+                ).mockImplementation((url): any => {
+                    if (url.includes("discovery/instance")) {
+                        return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                    } else if (
+                        url.includes(".well-known/openid-configuration")
+                    ) {
+                        return DEFAULT_OPENID_CONFIG_RESPONSE;
+                    }
+                });
+                const sendPostRequestSpy = jest
+                    .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+                    .mockResolvedValue({
+                        headers: {},
+                        status: 200,
+                        body: {
+                            token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                            scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                            expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                            access_token: TEST_TOKENS.ACCESS_TOKEN,
+                            refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                            id_token: TEST_TOKENS.IDTOKEN_V2,
+                        },
+                    });
+                browserStorage.setInteractionInProgress(true);
+
+                const result = await redirectClient.handleRedirectPromise(
+                    {
+                        ...testRequest,
+                        extraQueryParameters: { instance_aware: override },
+                    },
+                    TEST_CONFIG.TEST_VERIFIER,
+                    rootMeasurement,
+                    {
+                        hash: `${TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT}&cloud_instance_host_name=${cloudHost}`,
+                        navigateToLoginRequestUrl: false,
+                    }
+                );
+
+                expect(sendPostRequestSpy).toHaveBeenCalledTimes(1);
+                const [tokenEndpoint, tokenRequest] =
+                    sendPostRequestSpy.mock.calls[0];
+                const tokenUrl = new URL(tokenEndpoint);
+                expect(tokenUrl.hostname).toBe(expectedHost);
+                expect(tokenUrl.pathname).toBe("/common/oauth2/v2.0/token");
+                expect(tokenRequest?.body).toContain("code=thisIsATestCode");
+                expect(result?.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
+                expect(new URL(result!.authority).hostname).toBe(expectedHost);
+            }
+        );
+
         it("gets hash from cache and processes response", async () => {
             window.sessionStorage.setItem(
                 `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
