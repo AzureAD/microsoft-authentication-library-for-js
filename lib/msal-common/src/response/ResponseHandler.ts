@@ -320,14 +320,6 @@ export class ResponseHandler {
                 ? {
                       experimental_cae_capability:
                           request.experimentalCaeCache.capability,
-                      experimental_cae_resource:
-                          request.experimentalCaeCache.resource || "",
-                      ...(request.experimentalCaeCache.contextId
-                          ? {
-                                experimental_cae_context:
-                                    request.experimentalCaeCache.contextId,
-                            }
-                          : {}),
                   }
                 : additionalCacheKeyComponents) ??
             (attributeTokenPartition
@@ -346,12 +338,6 @@ export class ResponseHandler {
             authCodePayload,
             cacheKeyComponents
         );
-        if (cacheRecord.accessToken && request.experimentalCaeCache) {
-            this.cacheStorage.prepareCapabilityTokenResponse(
-                cacheRecord.accessToken,
-                request
-            );
-        }
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {

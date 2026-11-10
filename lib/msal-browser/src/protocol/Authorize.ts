@@ -6,7 +6,8 @@
 import {
     prepareCaeCacheRequest,
     rejectCaeCacheExperiment,
-} from "../request/CaeCacheRequest.js";
+    removeTokenBindingKeyOnFailure,
+} from "../request/RequestHelpers.js";
 import {
     Authority,
     AuthorizeProtocol,
@@ -50,7 +51,6 @@ import { EventHandler } from "../event/EventHandler.js";
 import { decryptEarResponse } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
-import { removeTokenBindingKeyOnFailure } from "../request/RequestHelpers.js";
 
 /**
  * Parsed representation of the clientdata response parameter from the /authorize endpoint.

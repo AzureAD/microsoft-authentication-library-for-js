@@ -189,7 +189,8 @@ describe.each([
         expect(ordinary.accessToken).toBe("ordinary-ear");
         expect(cae.accessToken).toBe("recovery-ear");
         expect(ordinary.fromCache && cae.fromCache).toBe(true);
-        expect(cache.getTokenKeys(4).accessToken).toHaveLength(2);
+        expect(cache.getTokenKeys(3).accessToken).toHaveLength(2);
+        expect(cache.getTokenKeys(4).accessToken).toHaveLength(0);
         expect(cache.getTokenKeys(3).refreshToken).toHaveLength(1);
     });
 });

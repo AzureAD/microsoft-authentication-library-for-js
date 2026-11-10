@@ -22,7 +22,6 @@ import {
     DEFAULT_CRYPTO_IMPLEMENTATION,
     ICrypto,
     IdTokenEntity,
-    invoke,
     invokeAsync,
     IPerformanceClient,
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
@@ -41,7 +40,6 @@ import {
     AuthToken,
     getTenantIdFromIdTokenClaims,
     buildTenantProfile,
-    BaseAuthRequest,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -50,7 +48,6 @@ import {
 } from "../error/BrowserAuthError.js";
 import {
     BrowserCacheLocation,
-    CacheLookupPolicy,
     InMemoryCacheKeys,
     INTERACTION_TYPE,
     TemporaryCacheKeys,
@@ -58,7 +55,6 @@ import {
     apiIdToName,
 } from "../utils/BrowserConstants.js";
 import * as CacheKeys from "./CacheKeys.js";
-import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
 import { LocalStorage } from "./LocalStorage.js";
 import { SessionStorage } from "./SessionStorage.js";
 import { MemoryStorage } from "./MemoryStorage.js";
@@ -656,11 +652,7 @@ export class BrowserCacheManager extends CacheManager {
             correlationId,
             credentialSchema
         );
-        this.setTokenKeys(
-            currentCredentialKeys,
-            correlationId,
-            CacheKeys.CREDENTIAL_SCHEMA_VERSION
-        );
+        this.setTokenKeys(currentCredentialKeys, correlationId);
         this.setAccountKeys(currentAccountKeys, correlationId);
     }
 
@@ -790,11 +782,7 @@ export class BrowserCacheManager extends CacheManager {
             correlationId,
             credentialSchema
         );
-        this.setTokenKeys(
-            currentCredentialKeys,
-            correlationId,
-            CacheKeys.CREDENTIAL_SCHEMA_VERSION
-        );
+        this.setTokenKeys(currentCredentialKeys, correlationId);
     }
 
     /**
@@ -925,11 +913,7 @@ export class BrowserCacheManager extends CacheManager {
             correlationId,
             credentialSchema
         );
-        this.setTokenKeys(
-            currentCredentialKeys,
-            correlationId,
-            CacheKeys.CREDENTIAL_SCHEMA_VERSION
-        );
+        this.setTokenKeys(currentCredentialKeys, correlationId);
     }
 
     /**
@@ -985,7 +969,7 @@ export class BrowserCacheManager extends CacheManager {
      */
     setItem(key: string, value: string, correlationId: string): void {
         const tokenKeysCount = new Array(
-            CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION + 1
+            CacheKeys.CREDENTIAL_SCHEMA_VERSION + 1
         ).fill(0); // Array mapping schema version to number of token keys stored for that version
         const accessTokenKeys: Array<string> = []; // Flat map of all access token keys stored, ordered by schema version
         const maxRetries = 20;
@@ -997,8 +981,7 @@ export class BrowserCacheManager extends CacheManager {
                     // If any tokens were removed in order to store this item update the token keys array with the tokens removed
                     for (
                         let schemaVersion = 0;
-                        schemaVersion <=
-                        CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION;
+                        schemaVersion <= CacheKeys.CREDENTIAL_SCHEMA_VERSION;
                         schemaVersion++
                     ) {
                         // Get the sum of all previous token counts to use as start index for this schema version
@@ -1038,8 +1021,7 @@ export class BrowserCacheManager extends CacheManager {
                         // If we are currently trying to set the token keys, use the value we're trying to set
                         for (
                             let i = 0;
-                            i <=
-                            CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION;
+                            i <= CacheKeys.CREDENTIAL_SCHEMA_VERSION;
                             i++
                         ) {
                             if (
@@ -1091,7 +1073,7 @@ export class BrowserCacheManager extends CacheManager {
         kmsi: boolean
     ): Promise<void> {
         const tokenKeysCount = new Array(
-            CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION + 1
+            CacheKeys.CREDENTIAL_SCHEMA_VERSION + 1
         ).fill(0); // Array mapping schema version to number of token keys stored for that version
         const accessTokenKeys: Array<string> = []; // Flat map of all access token keys stored, ordered by schema version
         const maxRetries = 20;
@@ -1109,8 +1091,7 @@ export class BrowserCacheManager extends CacheManager {
                     // If any tokens were removed in order to store this item update the token keys array with the tokens removed
                     for (
                         let schemaVersion = 0;
-                        schemaVersion <=
-                        CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION;
+                        schemaVersion <= CacheKeys.CREDENTIAL_SCHEMA_VERSION;
                         schemaVersion++
                     ) {
                         // Get the sum of all previous token counts to use as start index for this schema version
@@ -1150,8 +1131,7 @@ export class BrowserCacheManager extends CacheManager {
                         // If we are currently trying to set the token keys, use the value we're trying to set
                         for (
                             let i = 0;
-                            i <=
-                            CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION;
+                            i <= CacheKeys.CREDENTIAL_SCHEMA_VERSION;
                             i++
                         ) {
                             const tokenKeys = this.getTokenKeys(i).accessToken;
@@ -1425,7 +1405,7 @@ export class BrowserCacheManager extends CacheManager {
     removeAccessTokenKeys(
         keys: Array<string>,
         correlationId: string,
-        schemaVersion?: number
+        schemaVersion: number = CacheKeys.CREDENTIAL_SCHEMA_VERSION
     ): void {
         this.logger.trace("removeAccessTokenKey called", correlationId);
         const tokenKeys = this.getTokenKeys(schemaVersion);
@@ -1470,22 +1450,10 @@ export class BrowserCacheManager extends CacheManager {
      * Gets the keys for the cached tokens associated with this clientId
      * @returns
      */
-    getTokenKeys(schemaVersion?: number): TokenKeys {
-        const tokenKeys = getTokenKeys(
-            this.clientId,
-            this.browserStorage,
-            schemaVersion
-        );
-        if (schemaVersion === undefined) {
-            tokenKeys.accessToken.push(
-                ...getTokenKeys(
-                    this.clientId,
-                    this.browserStorage,
-                    CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
-                ).accessToken
-            );
-        }
-        return tokenKeys;
+    getTokenKeys(
+        schemaVersion: number = CacheKeys.CREDENTIAL_SCHEMA_VERSION
+    ): TokenKeys {
+        return getTokenKeys(this.clientId, this.browserStorage, schemaVersion);
     }
 
     /**
@@ -1497,33 +1465,8 @@ export class BrowserCacheManager extends CacheManager {
     setTokenKeys(
         tokenKeys: TokenKeys,
         correlationId: string,
-        schemaVersion?: number
+        schemaVersion: number = CacheKeys.CREDENTIAL_SCHEMA_VERSION
     ): void {
-        if (schemaVersion === undefined) {
-            const prefix = `${CacheKeys.PREFIX}.${CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION}${CacheKeys.CACHE_KEY_SEPARATOR}`;
-            this.setTokenKeys(
-                {
-                    idToken: [],
-                    refreshToken: [],
-                    accessToken: tokenKeys.accessToken.filter((key) =>
-                        key.startsWith(prefix)
-                    ),
-                },
-                correlationId,
-                CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
-            );
-            this.setTokenKeys(
-                {
-                    ...tokenKeys,
-                    accessToken: tokenKeys.accessToken.filter(
-                        (key) => !key.startsWith(prefix)
-                    ),
-                },
-                correlationId,
-                CacheKeys.CREDENTIAL_SCHEMA_VERSION
-            );
-            return;
-        }
         if (
             tokenKeys.idToken.length === 0 &&
             tokenKeys.accessToken.length === 0 &&
@@ -1627,15 +1570,7 @@ export class BrowserCacheManager extends CacheManager {
                 "BrowserCacheManager.getAccessTokenCredential: called, no cache hit",
                 correlationId
             );
-            // Another localStorage instance may have indexed a token before its broadcast arrives.
-            if (
-                !accessTokenKey.startsWith(
-                    `msal.${CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION}|`
-                ) ||
-                !this.browserStorage.getItem(accessTokenKey)
-            ) {
-                this.removeAccessTokenKeys([accessTokenKey], correlationId);
-            }
+            this.removeAccessTokenKeys([accessTokenKey], correlationId);
             return null;
         }
         const parsedAccessToken = this.validateAndParseJson(value);
@@ -1645,13 +1580,6 @@ export class BrowserCacheManager extends CacheManager {
         ) {
             this.logger.trace(
                 "BrowserCacheManager.getAccessTokenCredential: called, no cache hit",
-                correlationId
-            );
-            return null;
-        }
-        if (!this.isCapabilityTokenCurrent(parsedAccessToken)) {
-            this.logger.info(
-                "Ignoring an access token invalidated by a later claims request",
                 correlationId
             );
             return null;
@@ -1674,13 +1602,6 @@ export class BrowserCacheManager extends CacheManager {
         kmsi: boolean,
         additionalCacheKeyHash?: string
     ): Promise<void> {
-        if (!this.isCapabilityTokenCurrent(accessToken)) {
-            this.logger.info(
-                "Not caching an access token from an invalidated acquisition",
-                correlationId
-            );
-            return;
-        }
         this.logger.trace(
             "BrowserCacheManager.setAccessTokenCredential called",
             correlationId
@@ -1700,14 +1621,6 @@ export class BrowserCacheManager extends CacheManager {
             kmsi
         );
 
-        if (!this.isCapabilityTokenCurrent(accessToken)) {
-            this.browserStorage.removeItem(accessTokenKey);
-            this.logger.info(
-                "Removed a token whose acquisition was invalidated during storage",
-                correlationId
-            );
-            return;
-        }
         const tokenKeys = this.getTokenKeys();
         const index = tokenKeys.accessToken.indexOf(accessTokenKey);
         if (index !== -1) {
@@ -1719,340 +1632,6 @@ export class BrowserCacheManager extends CacheManager {
         );
         tokenKeys.accessToken.push(accessTokenKey);
         this.setTokenKeys(tokenKeys, correlationId);
-    }
-
-    /** Captures a cache-context lifetime without requiring an account or token. */
-    getCapabilityContextEpoch(id: string, correlationId: string): string {
-        const key = this.capabilityContextKey(id);
-        const current = this.browserStorage.getItem(key);
-        if (current && this.isCapabilityContextCurrent(id, current)) {
-            return current;
-        }
-        const epoch = this.cryptoImpl.createNewGuid();
-        const activeKey = this.capabilityContextActiveKey(id, epoch);
-        this.setItem(activeKey, "1", correlationId);
-        try {
-            this.setItem(key, epoch, correlationId);
-        } catch (error) {
-            this.browserStorage.removeItem(activeKey);
-            throw error;
-        }
-        return epoch;
-    }
-
-    private capabilityContextKey(id: string): string {
-        return `msal.cae.context|${JSON.stringify([this.clientId, id])}`;
-    }
-
-    private capabilityContextActiveKey(id: string, epoch: string): string {
-        return `msal.cae.active|${JSON.stringify([this.clientId, id, epoch])}`;
-    }
-
-    private isCapabilityContextCurrent(id?: string, epoch?: string): boolean {
-        return (
-            !id ||
-            (!!epoch &&
-                this.browserStorage.getItem(this.capabilityContextKey(id)) ===
-                    epoch &&
-                this.browserStorage.getItem(
-                    this.capabilityContextActiveKey(id, epoch)
-                ) === "1")
-        );
-    }
-
-    /** Fences first, then removes only the retired lifetime's CP1 tokens and generations. */
-    resetCapabilityContext(id: string, expectedEpoch?: string): void {
-        const correlationId = this.cryptoImpl.createNewGuid();
-        return invoke(
-            () => {
-                const key = this.capabilityContextKey(id);
-                const epoch = expectedEpoch || this.browserStorage.getItem(key);
-                if (!epoch) {
-                    return;
-                }
-                // Revoke a lifetime, never a mutable pointer that another handle may replace.
-                this.browserStorage.removeItem(
-                    this.capabilityContextActiveKey(id, epoch)
-                );
-                const prefix = `${epoch}.`;
-                const keys = this.getTokenKeys(
-                    CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
-                ).accessToken.filter((tokenKey) =>
-                    tokenKey
-                        .slice(
-                            tokenKey.lastIndexOf(
-                                CacheKeys.CACHE_KEY_SEPARATOR
-                            ) + 1
-                        )
-                        .startsWith(prefix)
-                );
-                keys.forEach((tokenKey) =>
-                    this.browserStorage.removeItem(tokenKey)
-                );
-                this.removeAccessTokenKeys(keys, correlationId);
-                const metadataPrefix = `msal.cae.epoch|[${JSON.stringify(
-                    this.clientId
-                )},`;
-                this.browserStorage.getKeys().forEach((metadataKey) => {
-                    if (
-                        metadataKey.startsWith(metadataPrefix) &&
-                        this.browserStorage
-                            .getItem(metadataKey)
-                            ?.startsWith(prefix)
-                    ) {
-                        this.browserStorage.removeItem(metadataKey);
-                    }
-                });
-            },
-            BrowserRootPerformanceEvents.ResetCaeCacheContext,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )();
-    }
-
-    /** Captures or advances a bounded account/tenant/capability invalidation generation. */
-    prepareCapabilityAcquisition(
-        account: AccountInfo,
-        request: SilentRequest,
-        correlationId: string
-    ): SilentRequest {
-        const context = request.experimentalCaeCache;
-        if (!context) {
-            return request;
-        }
-        if (
-            !this.isCapabilityContextCurrent(
-                context.contextId,
-                context.contextEpoch
-            )
-        ) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.caeTokenRequestInvalidated,
-                correlationId
-            );
-        }
-        const realm = (context.realm || account.tenantId).toLowerCase();
-        const key = this.capabilityEpochKey(
-            account.homeAccountId,
-            account.environment,
-            realm,
-            context.capability,
-            context.resource || "",
-            context.contextId,
-            context.contextEpoch
-        );
-        const prefix = context.contextEpoch ? `${context.contextEpoch}.` : "";
-        let epoch = this.getOrCreateCapabilityEpoch(key, correlationId, prefix);
-        if (context.hasChallenge || context.invalidate) {
-            const previousEpoch = epoch;
-            epoch = `${prefix}${this.cryptoImpl.createNewGuid()}`;
-            this.setItem(key, epoch, correlationId);
-            if (!context.contextId) {
-                this.setItem(
-                    this.capabilityAuthorizationKey(),
-                    this.cryptoImpl.createNewGuid(),
-                    correlationId
-                );
-            }
-            // Resource-family invalidation also covers overlapping and superset scope requests.
-            for (const tokenKey of this.getTokenKeys(
-                CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
-            ).accessToken) {
-                if (
-                    tokenKey.endsWith(
-                        `${CacheKeys.CACHE_KEY_SEPARATOR}${previousEpoch}`
-                    )
-                ) {
-                    this.browserStorage.removeItem(tokenKey);
-                    this.removeAccessTokenKeys([tokenKey], correlationId);
-                }
-            }
-        }
-        return {
-            ...request,
-            experimentalCaeCache: { ...context, epoch, realm },
-        };
-    }
-
-    /** Loads this generation's indexed tokens before deciding that a refresh is required. */
-    async importCapabilityTokens(
-        request: SilentRequest,
-        correlationId: string
-    ): Promise<void> {
-        const epoch = request.experimentalCaeCache?.epoch;
-        const policy = request.cacheLookupPolicy ?? CacheLookupPolicy.Default;
-        if (
-            request.forceRefresh ||
-            request.experimentalCaeCache?.hasChallenge ||
-            (policy !== CacheLookupPolicy.Default &&
-                policy !== CacheLookupPolicy.AccessToken &&
-                policy !== CacheLookupPolicy.AccessTokenAndRefreshToken)
-        ) {
-            return;
-        }
-        if (epoch && this.browserStorage instanceof LocalStorage) {
-            await this.browserStorage.importMissingUserData(
-                this.getTokenKeys(
-                    CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
-                ).accessToken.filter((key) =>
-                    key.endsWith(`${CacheKeys.CACHE_KEY_SEPARATOR}${epoch}`)
-                ),
-                correlationId
-            );
-        }
-    }
-
-    /** Checks a silent result against invalidations from this instance or another tab. */
-    isCapabilityAcquisitionCurrent(
-        account: AccountInfo,
-        request: SilentRequest
-    ): boolean {
-        const context = request.experimentalCaeCache;
-        return (
-            !context ||
-            (this.isCapabilityContextCurrent(
-                context.contextId,
-                context.contextEpoch
-            ) &&
-                !!context.epoch &&
-                this.browserStorage.getItem(
-                    this.capabilityEpochKey(
-                        account.homeAccountId,
-                        account.environment,
-                        context.realm || account.tenantId,
-                        context.capability,
-                        context.resource || "",
-                        context.contextId,
-                        context.contextEpoch
-                    )
-                ) === context.epoch)
-        );
-    }
-
-    private capabilityEpochKey(
-        homeAccountId: string,
-        environment: string,
-        realm: string,
-        capability: string,
-        resource: string,
-        contextId?: string,
-        contextEpoch?: string
-    ): string {
-        return `msal.cae.epoch|${JSON.stringify([
-            this.clientId,
-            homeAccountId,
-            environment,
-            realm.toLowerCase(),
-            capability,
-            resource,
-            ...(contextId ? [contextId, contextEpoch] : []),
-        ])}`;
-    }
-
-    private isCapabilityTokenCurrent(token: AccessTokenEntity): boolean {
-        const capability =
-            token.additionalCacheKeyComponents?.experimental_cae_capability;
-        const contextId =
-            token.additionalCacheKeyComponents?.experimental_cae_context;
-        const contextEpoch = contextId
-            ? token.experimentalCaeEpoch?.split(".")[0]
-            : undefined;
-        return (
-            !capability ||
-            (this.isCapabilityContextCurrent(contextId, contextEpoch) &&
-                !!token.experimentalCaeEpoch &&
-                this.browserStorage.getItem(
-                    this.capabilityEpochKey(
-                        token.homeAccountId,
-                        token.environment,
-                        token.realm,
-                        capability,
-                        token.additionalCacheKeyComponents
-                            ?.experimental_cae_resource || "",
-                        contextId,
-                        contextEpoch
-                    )
-                ) === token.experimentalCaeEpoch)
-        );
-    }
-
-    protected isAccessTokenWriteCurrent(token: AccessTokenEntity): boolean {
-        return this.isCapabilityTokenCurrent(token);
-    }
-
-    private capabilityAuthorizationKey(): string {
-        return `msal.cae.authorization|${this.clientId}`;
-    }
-
-    private getOrCreateCapabilityEpoch(
-        key: string,
-        correlationId: string,
-        prefix = ""
-    ): string {
-        const existing = this.browserStorage.getItem(key);
-        if (existing) {
-            return existing;
-        }
-        const epoch = `${prefix}${this.cryptoImpl.createNewGuid()}`;
-        this.setItem(key, epoch, correlationId);
-        return epoch;
-    }
-
-    /** Captures interactive lifetime before navigation, even when the account is not known yet. */
-    prepareCapabilityAuthorization(
-        request: CommonAuthorizationUrlRequest
-    ): CommonAuthorizationUrlRequest {
-        if (
-            !request.experimentalCaeCache ||
-            request.experimentalCaeCache.epoch
-        ) {
-            return request;
-        }
-        return {
-            ...request,
-            experimentalCaeCache: {
-                ...request.experimentalCaeCache,
-                authorizationEpoch: this.getOrCreateCapabilityEpoch(
-                    this.capabilityAuthorizationKey(),
-                    request.correlationId
-                ),
-            },
-        };
-    }
-
-    prepareCapabilityTokenResponse(
-        token: AccessTokenEntity,
-        request: BaseAuthRequest
-    ): void {
-        const context = request.experimentalCaeCache;
-        if (!context) {
-            return;
-        }
-        if (context.epoch) {
-            token.experimentalCaeEpoch = context.epoch;
-        } else if (
-            context.authorizationEpoch &&
-            this.browserStorage.getItem(this.capabilityAuthorizationKey()) ===
-                context.authorizationEpoch
-        ) {
-            token.experimentalCaeEpoch = this.getOrCreateCapabilityEpoch(
-                this.capabilityEpochKey(
-                    token.homeAccountId,
-                    token.environment,
-                    token.realm,
-                    context.capability,
-                    context.resource || ""
-                ),
-                request.correlationId
-            );
-        }
-        if (!this.isCapabilityTokenCurrent(token)) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.caeTokenRequestInvalidated,
-                request.correlationId
-            );
-        }
     }
 
     /**
@@ -2587,12 +2166,7 @@ export class BrowserCacheManager extends CacheManager {
                 ? credential.tokenType.toLowerCase()
                 : "";
         const credentialKey = [
-            `${CacheKeys.PREFIX}.${
-                credential.additionalCacheKeyComponents
-                    ?.experimental_cae_capability
-                    ? CacheKeys.CAPABILITY_ACCESS_TOKEN_SCHEMA_VERSION
-                    : CacheKeys.CREDENTIAL_SCHEMA_VERSION
-            }`,
+            `${CacheKeys.PREFIX}.${CacheKeys.CREDENTIAL_SCHEMA_VERSION}`,
             credential.homeAccountId,
             credential.environment,
             credential.credentialType,
@@ -2609,13 +2183,6 @@ export class BrowserCacheManager extends CacheManager {
             additionalCacheKeyHash
         ) {
             credentialKey.push(additionalCacheKeyHash);
-        }
-        if (
-            credential.additionalCacheKeyComponents
-                ?.experimental_cae_capability &&
-            CacheHelpers.isAccessTokenEntity(credential)
-        ) {
-            credentialKey.push(credential.experimentalCaeEpoch || "0");
         }
 
         return credentialKey.join(CacheKeys.CACHE_KEY_SEPARATOR).toLowerCase();
@@ -2947,13 +2514,8 @@ export class BrowserCacheManager extends CacheManager {
         storeInCache?: StoreInCache
     ): Promise<void> {
         try {
-            const currentRecord =
-                cacheRecord.accessToken &&
-                !this.isCapabilityTokenCurrent(cacheRecord.accessToken)
-                    ? { ...cacheRecord, accessToken: undefined }
-                    : cacheRecord;
             await super.saveCacheRecord(
-                currentRecord,
+                cacheRecord,
                 correlationId,
                 kmsi,
                 apiId,

@@ -9,7 +9,6 @@ import {
     StringDict,
 } from "@azure/msal-common/browser";
 import { CacheLookupPolicy } from "../utils/BrowserConstants.js";
-import type { CaeCacheContext } from "../cache/CaeCacheContext.js";
 
 /**
  * SilentRequest: Request object passed by user to retrieve tokens from the
@@ -45,21 +44,9 @@ export type SilentRequest = Omit<
      */
     forceRefresh?: boolean;
     /**
-     * Invalidates this account/tenant/resource/capability access-token family
-     * before renewal, including pending acquisitions. Requires the experimental
-     * CAE partition option and cannot be combined with AccessToken-only lookup.
-     * Does not clear accounts, ID tokens or refresh tokens.
-     */
-    invalidateAccessTokenCache?: boolean;
-    /**
      * Enum of different ways the silent token can be retrieved.
      */
     cacheLookupPolicy?: CacheLookupPolicy;
-    /**
-     * Set by the SDK context handle, not a caller-supplied cache identifier.
-     * @internal
-     */
-    caeCacheContext?: CaeCacheContext;
     /**
      * Indicates the type of user interaction that is required.
      *          login: will force the user to enter their credentials on that request, negating single-sign on

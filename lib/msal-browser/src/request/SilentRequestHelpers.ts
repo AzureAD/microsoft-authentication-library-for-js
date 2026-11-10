@@ -23,7 +23,7 @@ import type { SsoSilentRequest } from "./SsoSilentRequest.js";
 import {
     prepareCaeCacheRequest,
     rejectCaeCacheExperiment,
-} from "./CaeCacheRequest.js";
+} from "./RequestHelpers.js";
 
 /**
  * Request context used by flow-specific silent request preparers.
@@ -60,12 +60,6 @@ export function resolveSilentRequestPreparation(
     performanceClient: IPerformanceClient
 ): PreparedSilentRequest {
     const { request, account, correlationId, config } = input;
-    if (
-        request.invalidateAccessTokenCache &&
-        !config.experimental.enableCaeCachePartitioning
-    ) {
-        rejectCaeCacheExperiment(correlationId);
-    }
     if (
         config.experimental.enableCaeCachePartitioning &&
         account.nativeAccountId

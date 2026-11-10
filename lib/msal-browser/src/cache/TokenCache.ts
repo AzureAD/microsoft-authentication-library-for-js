@@ -45,7 +45,7 @@ import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { BrowserCacheManager } from "./BrowserCacheManager.js";
 import { name, version } from "../packageMetadata.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
-import { rejectCaeCacheExperiment } from "../request/CaeCacheRequest.js";
+import { rejectCaeCacheExperiment } from "../request/RequestHelpers.js";
 
 export type LoadTokenOptions = {
     clientInfo?: string;

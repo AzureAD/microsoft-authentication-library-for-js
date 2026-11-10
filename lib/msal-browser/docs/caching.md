@@ -71,121 +71,62 @@ To faciliate efficient token acquisition while maintaining a good UX, MSAL cache
 
 ## Unpublished CAE cache experiment
 
-This branch contains a local, default-off experiment, enabled with
-`experimental.enableCaeCachePartitioning: true`. Memory, session and local
-storage are implemented. It is **not a released or product-qualified feature**.
+This branch contains a default-off experiment enabled with
+`experimental.enableCaeCachePartitioning: true`. It is not a released feature.
 
-The experiment marks ordinary and CP1 access tokens separately while leaving
-account, ID-token and refresh-token ownership unchanged. It derives the token
-family from the effective outgoing capability: configured `clientCapabilities`
-take precedence over request `claims.access_token.xms_cc`. CP1-only requests can
-reuse their family; additional claims still require renewal. Challenge values do
-not create additional token families. Unmarked access tokens have unknown
-provenance and are not used by the experiment.
+The existing cache stores ordinary and CP1 access tokens separately using
+`additionalCacheKeyComponents.experimental_cae_capability`. Account, ID-token
+and refresh-token ownership, credential schema, token indexes, encryption,
+migration and quota handling are unchanged. No separate cache/context object or
+generation metadata is created.
 
-The experiment does not compose with attribute-token or other caller-provided
-cache-key components. Common response handling and lookup reject these
-combinations with `experimental_cae_cache_unsupported`, including callers that
-bypass browser request preparation. Empty component objects and empty
-attribute-token arrays do not add a partition. Existing nonexperimental cache
-components and internally generated CAE credential components are unchanged.
-
-Only the non-brokered AAD/EAR web Bearer path is implemented. OIDC, native
-brokers, nested app authentication, hybrid-code acquisition, token hydration/import, attribute tokens,
-resource overrides and extra request parameters are rejected with
-`experimental_cae_cache_unsupported`. Other capability sets are also rejected.
-Capability-marked access tokens use an AT-only version 4 index and key prefix.
-Account, ID-token, refresh-token and ordinary legacy entries remain on version 3;
-their authentication owner is unchanged. Old unmarked ATs are never relabeled
-with an assumed capability. Turning the option off on a fresh instance restores
-ordinary version 3 lookup; old binaries do not discover version 4 ATs through
-their token index. The existing localStorage encryption and expiration rules apply.
-Before a cache lookup, the experiment imports missing encrypted tokens from its
-current generation's localStorage index, without waiting for a cross-tab broadcast.
-It discards a decrypted value if the stored entry changed while decryption was
-pending, and rejects an acquisition invalidated during that wait. This does not
-share data across browser storage partitions or enable cache lookup for a bypass.
-Malformed base64 or ciphertext is diagnosed per entry and treated as unavailable
-cache data, so it does not block another scope's cache hit or permitted renewal.
-Unexpected failures and generation invalidation still reject the acquisition.
-
-An additional-claims silent request invalidates its account/tenant/resource/capability
-family before renewal, without clearing other resources, the other capability or shared authentication.
-An opaque generation in the same storage prevents older silent results from being
-returned or reused after that invalidation. Resource identity comes from the
-normalized scope prefix; requests mixing resource prefixes are rejected. Bare
-Graph scopes and their `https://graph.microsoft.com/` equivalents share a resource
-group.
-Generations do not form an append-only challenge
-cache: old entries are removed and delayed writes are discarded. Force-refresh
-without additional claims retains the normal refresh behavior.
-
-For a trusted CP1-only challenge or explicit cache bypass, set
-`invalidateAccessTokenCache: true` on `acquireTokenSilent`. This forces renewal and
-invalidates the same account/tenant/resource/capability family, including older
-pending acquisitions, without clearing shared authentication. Identical invalidation
-requests coalesce. The flag requires the experimental option and rejects
-`CacheLookupPolicy.AccessToken`, which cannot perform the required renewal.
-It adds no synthetic claims to the token request.
-
-Tenant domains are resolved through OIDC discovery before silent generation capture;
-validated resolutions are cached per authority with the standard metadata lifetime,
-and GUID tenant IDs are normalized. Missing generation records never restore an earlier
-acquisition after logout. Interactive AAD/EAR requests capture their authorization
-lifetime before navigation and bind the returned account only if it is still current.
-
-Synthetic tests cover reload, encrypted storage, binary-reader compatibility,
-EAR decryption and controlled late responses across PCA instances. These are not
-real browser-process or live Entra guarantees. Concurrent interactive flows,
-actual resource-generated challenges, deployment rollback and product integration
-still require qualification before the experiment can be used in a product.
-
-### Experimental configured CAE contexts
-
-An initialized experimental owner can create a CP1-only cache context before
-sign-in. This does not create another PCA or another authentication owner:
+For mixed callers, leave global `auth.clientCapabilities` unset and specify CP1
+on the request. Configured capabilities otherwise override the request's
+`xms_cc`. The marker describes the advertised capability, not a decoded claim
+from the resource's access token.
 
 ```javascript
-const context = await pca.createCaeCacheContext("stable-application-context");
-const result = await context.acquireTokenSilent({
+const pca = new PublicClientApplication({
+    auth: { clientId: "<your-client-id>" },
+    cache: { cacheLocation: "localStorage" },
+    system: { allowPlatformBroker: false },
+    experimental: { enableCaeCachePartitioning: true }
+});
+await pca.initialize();
+// Use the account from the existing sign-in flow.
+const ordinary = await pca.acquireTokenSilent({ account, scopes: ["User.Read"] });
+const cp1 = await pca.acquireTokenSilent({
     account,
     scopes: ["User.Read"],
     claims: JSON.stringify({ access_token: { xms_cc: { values: ["CP1"] } } })
 });
-await context.reset(); // Clear CP1 state; this handle remains usable.
-await context.retire(); // Clear CP1 state and permanently retire this handle.
 ```
 
-Choose an explicit stable identifier for the application's authentication
-configuration, not a new identifier per request or a raw claims/challenge value.
-MSAL hashes the identifier once. Equal identifiers share their CP1 namespace
-within the same client and storage; different identifiers remain independent.
-Ordinary acquisitions and bootstrap stay on `pca`. The context forwards the
-silent request through that same public owner, including subclass behavior.
+CP1-only claims allow cache reuse. Other claims and `forceRefresh` still require
+renewal. Lookup and overlapping-scope replacement match the same capability.
+Different challenges replace tokens within that family instead of creating
+persistent partitions per claims string. Existing scope/account diversity can
+still produce multiple entries; this is not a global two-token limit.
 
-`reset` and `retire` invalidate the context lifetime synchronously, before their
-returned promise settles, in the calling context's storage view. This is not
-an atomic cross-process cutover: other tabs observe changes through browser
-storage synchronization. They clear its CP1 tokens and generation metadata
-without clearing accounts, ID tokens, refresh tokens or other contexts.
-One small lifetime pointer remains per stable identifier; active-lifetime markers,
-tokens and resource generations are removed on retirement. Lifetimes do not
-accumulate with repeated reset or retirement of the same identifier.
-`reset` is nonterminal; `retire` permanently rejects further use of that handle
-and is idempotent. Creating the same identifier after retirement gives a fresh
-usable context. Late old responses and repeated old-handle retirement cannot
-overwrite or clear its replacement.
-Retirement targets the last lifetime observed by that handle, so delayed
-retirement of a different old handle does not clear a newer replacement.
-An active handle joins the current lifetime when it next acquires a token;
-an explicit `reset` still invalidates the current namespace.
+Unmarked access tokens have unknown provenance and are not used by the enabled
+experiment. They are retained for legacy/flag-off readers, not relabeled or
+deleted in a one-time purge. Later unmarked writes remain ineligible too.
+Existing shared authentication can renew the requested family, subject to normal
+interaction-required behavior. Older readers must honor component matching or
+use an older schema namespace; key shape alone is not downgrade qualification.
+Rollback cannot supply mixed-capability guarantees missing from an older SDK.
 
-Use `invalidateAccessTokenCache: true` on a context acquisition for an individual
-trusted challenge or cache bypass; it remains resource-scoped. Do not replace
-resource-scoped recovery with `reset`. Creation and reset are observable through
-the `createCaeCacheContext` and `resetCaeCacheContext` performance events without
-including the supplied identifier. These APIs remain experimental and inherit
-the non-brokered AAD/EAR restrictions above.
+Only non-brokered AAD/EAR web bearer requests are implemented. OIDC, brokers,
+nested app authentication, hybrid-code acquisition, hydration/import, attribute
+tokens, resource overrides and extra request parameters are rejected with
+`experimental_cae_cache_unsupported`. Common and Node boundaries reject
+conflicting nonempty components instead of silently dropping them. This does
+not add Node CAE support or change ordinary component handling.
+
+The experiment preserves ordinary refresh and browser synchronization semantics.
+It does not revoke earlier in-flight results, create resource-wide invalidation
+barriers, or guarantee immediate cross-tab replacement reuse. The earlier
+prototype's strict immediate-reuse failure remains a qualification limit.
 
 ## Cache persistence during MSAL.js upgrades and rollbacks
 

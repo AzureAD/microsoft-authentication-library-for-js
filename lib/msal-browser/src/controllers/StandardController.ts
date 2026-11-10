@@ -89,7 +89,10 @@ import { IController } from "./IController.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
-import { initializeSilentRequest } from "../request/RequestHelpers.js";
+import {
+    initializeSilentRequest,
+    rejectCaeCacheExperiment,
+} from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import {
@@ -101,13 +104,6 @@ import { collectInstanceStats } from "../utils/MsalFrameStatsUtils.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
 import { resolveSilentRequestPreparation } from "../request/SilentRequestHelpers.js";
-import { rejectCaeCacheExperiment } from "../request/CaeCacheRequest.js";
-import {
-    CaeCacheContext,
-    createCaeCacheContextHandle,
-    captureCaeCacheContext,
-} from "../cache/CaeCacheContext.js";
-import { getDiscoveredAuthority } from "../interaction_client/BaseInteractionClient.js";
 
 function preflightCheck(
     initialized: boolean,
@@ -180,13 +176,6 @@ export class StandardController implements IController {
         string,
         Promise<AuthenticationResult>
     >;
-    private activeCapabilityRequests = new Map<
-        string,
-        {
-            account: AccountInfo;
-            request?: SilentRequest;
-        }
-    >();
 
     // Active Iframe request
     private activeIframeRequest: [Promise<boolean>, string] | undefined;
@@ -1707,39 +1696,6 @@ export class StandardController implements IController {
     }
 
     /**
-     * Creates a CP1-only cache context on this initialized, non-brokered owner.
-     * @param stableContextId - Stable identifier for the cache context.
-     */
-    async createCaeCacheContext(
-        stableContextId: string
-    ): Promise<CaeCacheContext> {
-        const correlationId = this.getRequestCorrelationId();
-        return invokeAsync(
-            async () => {
-                BrowserUtils.blockNonBrowserEnvironment();
-                BrowserUtils.blockAPICallsBeforeInitialize(this.initialized);
-                if (
-                    !this.config.experimental.enableCaeCachePartitioning ||
-                    typeof stableContextId !== "string" ||
-                    !stableContextId.trim()
-                ) {
-                    rejectCaeCacheExperiment(correlationId);
-                }
-                const id = await this.browserCrypto.hashString(stableContextId);
-                return createCaeCacheContextHandle(
-                    this.browserStorage,
-                    id,
-                    this.acquireTokenSilent.bind(this)
-                );
-            },
-            BrowserRootPerformanceEvents.CreateCaeCacheContext,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )();
-    }
-
-    /**
      * Creates a cache interaction client to clear broswer cache.
      * @param logoutRequest
      */
@@ -2481,29 +2437,9 @@ export class StandardController implements IController {
         account: AccountInfo,
         correlationId: string
     ): Promise<AuthenticationResult> {
-        let contextRequest = request;
-        if (request.caeCacheContext !== undefined) {
-            if (!this.config.experimental.enableCaeCachePartitioning) {
-                rejectCaeCacheExperiment(correlationId);
-            }
-            const context = captureCaeCacheContext(
-                request.caeCacheContext,
-                this.browserStorage,
-                correlationId
-            );
-            contextRequest = {
-                ...request,
-                caeCacheContext: undefined,
-                experimentalCaeCache: {
-                    capability: "cp1",
-                    hasChallenge: false,
-                    ...context,
-                },
-            };
-        }
         const preparedRequest = resolveSilentRequestPreparation(
             {
-                request: contextRequest,
+                request,
                 account,
                 correlationId,
                 config: this.config,
@@ -2519,17 +2455,8 @@ export class StandardController implements IController {
         const inProgressRequest = shouldDeduplicate
             ? this.activeSilentTokenRequests.get(preparedRequest.key)
             : undefined;
-        const inProgressContext = this.activeCapabilityRequests.get(
-            preparedRequest.key
-        );
-        const invalidated =
-            inProgressContext?.request &&
-            !this.browserStorage.isCapabilityAcquisitionCurrent(
-                inProgressContext.account,
-                inProgressContext.request
-            );
 
-        if (typeof inProgressRequest === "undefined" || invalidated) {
+        if (typeof inProgressRequest === "undefined") {
             this.logger.verbose(
                 shouldDeduplicate
                     ? "acquireTokenSilent called for the first time, storing active request"
@@ -2538,54 +2465,19 @@ export class StandardController implements IController {
             );
             this.performanceClient.addFields({ deduped: false }, correlationId);
 
-            const context: { account: AccountInfo; request?: SilentRequest } = {
-                account: preparedRequest.account,
-            };
-            const acquire = (acquisitionRequest: SilentRequest) => {
-                context.request = acquisitionRequest;
-                const run = () => {
-                    if (
-                        acquisitionRequest.experimentalCaeCache &&
-                        !this.browserStorage.isCapabilityAcquisitionCurrent(
-                            preparedRequest.account,
-                            acquisitionRequest
-                        )
-                    ) {
-                        throw createBrowserAuthError(
-                            BrowserAuthErrorCodes.caeTokenRequestInvalidated,
-                            correlationId
-                        );
-                    }
-                    return invokeAsync(
-                        this.acquireTokenSilentAsync.bind(this),
-                        BrowserPerformanceEvents.AcquireTokenSilentAsync,
-                        this.logger,
-                        this.performanceClient,
-                        correlationId
-                    )(
-                        {
-                            ...acquisitionRequest,
-                            correlationId,
-                        },
-                        preparedRequest.account
-                    );
-                };
-                return acquisitionRequest.experimentalCaeCache
-                    ? this.browserStorage
-                          .importCapabilityTokens(
-                              acquisitionRequest,
-                              correlationId
-                          )
-                          .then(run)
-                    : run();
-            };
-            const activeRequest = preparedRequest.request.experimentalCaeCache
-                ? this.prepareCapabilitySilentRequest(
-                      preparedRequest.request,
-                      preparedRequest.account,
-                      correlationId
-                  ).then(acquire)
-                : acquire(preparedRequest.request);
+            const activeRequest = invokeAsync(
+                this.acquireTokenSilentAsync.bind(this),
+                BrowserPerformanceEvents.AcquireTokenSilentAsync,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                {
+                    ...preparedRequest.request,
+                    correlationId,
+                },
+                preparedRequest.account
+            );
             if (!shouldDeduplicate) {
                 return activeRequest;
             }
@@ -2594,18 +2486,9 @@ export class StandardController implements IController {
                 preparedRequest.key,
                 activeRequest
             );
-            if (preparedRequest.request.experimentalCaeCache) {
-                this.activeCapabilityRequests.set(preparedRequest.key, context);
-            }
 
             return activeRequest.finally(() => {
-                if (
-                    this.activeSilentTokenRequests.get(preparedRequest.key) ===
-                    activeRequest
-                ) {
-                    this.activeSilentTokenRequests.delete(preparedRequest.key);
-                    this.activeCapabilityRequests.delete(preparedRequest.key);
-                }
+                this.activeSilentTokenRequests.delete(preparedRequest.key);
             });
         } else {
             this.logger.verbose(
@@ -2615,41 +2498,6 @@ export class StandardController implements IController {
             this.performanceClient.addFields({ deduped: true }, correlationId);
             return inProgressRequest;
         }
-    }
-
-    private async prepareCapabilitySilentRequest(
-        request: SilentRequest,
-        account: AccountInfo,
-        correlationId: string
-    ): Promise<SilentRequest> {
-        if (!request.experimentalCaeCache) {
-            return request;
-        }
-        const authority = await getDiscoveredAuthority(
-            this.config,
-            correlationId,
-            this.performanceClient,
-            this.browserStorage,
-            this.logger,
-            request.authority,
-            request.azureCloudOptions,
-            undefined,
-            account
-        );
-        const realm =
-            (await authority.resolveTenantId()) ||
-            account.tenantId.toLowerCase();
-        return this.browserStorage.prepareCapabilityAcquisition(
-            account,
-            {
-                ...request,
-                experimentalCaeCache: {
-                    ...request.experimentalCaeCache,
-                    realm,
-                },
-            },
-            correlationId
-        );
     }
 
     /**
@@ -2801,17 +2649,6 @@ export class StandardController implements IController {
 
         return result
             .then((response) => {
-                if (
-                    !this.browserStorage.isCapabilityAcquisitionCurrent(
-                        account,
-                        silentRequest
-                    )
-                ) {
-                    throw createBrowserAuthError(
-                        BrowserAuthErrorCodes.caeTokenRequestInvalidated,
-                        request.correlationId
-                    );
-                }
                 this.eventHandler.emitEvent(
                     EventType.ACQUIRE_TOKEN_SUCCESS,
                     request.correlationId,

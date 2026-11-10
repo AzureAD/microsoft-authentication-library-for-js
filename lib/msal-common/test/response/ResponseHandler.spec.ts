@@ -178,7 +178,6 @@ describe("ResponseHandler.ts", () => {
             experimentalCaeCache: {
                 capability: "cp1",
                 hasChallenge: false,
-                resource: "",
             },
         };
         const cases: Array<{
@@ -205,10 +204,6 @@ describe("ResponseHandler.ts", () => {
                 storage.store = { "existing-entry": "preserved" };
                 const before = JSON.stringify(storage.store);
                 const save = jest.spyOn(storage, "saveCacheRecord");
-                const prepare = jest.spyOn(
-                    storage,
-                    "prepareCapabilityTokenResponse"
-                );
                 const response = {
                     ...testServerTokenResponse.body,
                     token_type: AuthenticationScheme.BEARER,
@@ -244,7 +239,6 @@ describe("ResponseHandler.ts", () => {
                     correlationId: request.correlationId,
                 });
                 expect(save).not.toHaveBeenCalled();
-                expect(prepare).not.toHaveBeenCalled();
                 expect(JSON.stringify(storage.store)).toBe(before);
                 expect(response).toEqual(originalResponse);
             }
@@ -278,7 +272,6 @@ describe("ResponseHandler.ts", () => {
                 attributeTokens: [],
                 expected: {
                     experimental_cae_capability: "cp1",
-                    experimental_cae_resource: "",
                 },
             },
         ])(

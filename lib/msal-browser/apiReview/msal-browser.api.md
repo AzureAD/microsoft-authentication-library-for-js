@@ -166,7 +166,6 @@ export class BrowserAuthError extends AuthError {
 declare namespace BrowserAuthErrorCodes {
     export {
         pkceNotCreated,
-        caeTokenRequestInvalidated,
         earJwkEmpty,
         earJweEmpty,
         cryptoNonExistent,
@@ -320,8 +319,6 @@ declare namespace BrowserRootPerformanceEvents {
         SsoSilent,
         InitializeClientApplication,
         LocalStorageUpdated,
-        CreateCaeCacheContext,
-        ResetCaeCacheContext,
         LoadExternalTokens,
         SsoCapable,
         WaitForBridgeLateResponse
@@ -403,16 +400,6 @@ export type CacheOptions = {
 };
 
 // @public
-export interface CaeCacheContext {
-    acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult>;
-    reset(): Promise<void>;
-    retire(): Promise<void>;
-}
-
-// @public (undocumented)
-const caeTokenRequestInvalidated = "cae_token_request_invalidated";
-
-// @public
 function cancelPendingBridgeResponse(logger: Logger, correlationId: string): void;
 
 // @public
@@ -443,9 +430,6 @@ export type Configuration = {
     experimental?: BrowserExperimentalOptions;
     telemetry?: BrowserTelemetryOptions;
 };
-
-// @public
-const CreateCaeCacheContext = "createCaeCacheContext";
 
 // @public
 function createGuid(): string;
@@ -695,7 +679,6 @@ export interface IPublicClientApplication {
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     // (undocumented)
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
-    createCaeCacheContext?(stableContextId: string): Promise<CaeCacheContext>;
     // (undocumented)
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
     // (undocumented)
@@ -797,7 +780,6 @@ export class LocalStorage implements IWindowStorage<string> {
     getKeys(): string[];
     // (undocumented)
     getUserData(key: string): string | null;
-    importMissingUserData(keys: string[], correlationId: string): Promise<void>;
     // (undocumented)
     initialize(correlationId: string): Promise<void>;
     // (undocumented)
@@ -978,7 +960,6 @@ export class PublicClientApplication implements IPublicClientApplication {
     clearCache(logoutRequest?: ClearCacheRequest): Promise<void>;
     // (undocumented)
     protected controller: IController;
-    createCaeCacheContext(stableContextId: string): Promise<CaeCacheContext>;
     getAccount(accountFilter: AccountFilter): AccountInfo | null;
     getActiveAccount(): AccountInfo | null;
     getAllAccounts(accountFilter?: AccountFilter): AccountInfo[];
@@ -1022,9 +1003,6 @@ export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "respo
 
 // @public
 function replaceHash(url: string): void;
-
-// @public
-const ResetCaeCacheContext = "resetCaeCacheContext";
 
 // @public (undocumented)
 export const ResponseMode: {
@@ -1088,9 +1066,7 @@ export type SilentRequest = Omit<CommonSilentFlowRequest, "authority" | "correla
     account?: AccountInfo;
     correlationId?: string;
     forceRefresh?: boolean;
-    invalidateAccessTokenCache?: boolean;
     cacheLookupPolicy?: CacheLookupPolicy;
-    caeCacheContext?: CaeCacheContext;
     prompt?: string;
     state?: string;
 };

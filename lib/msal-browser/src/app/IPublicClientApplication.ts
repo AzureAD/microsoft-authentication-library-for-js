@@ -12,7 +12,6 @@ import {
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SilentRequest } from "../request/SilentRequest.js";
-import type { CaeCacheContext } from "../cache/CaeCacheContext.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import {
@@ -67,10 +66,6 @@ export interface IPublicClientApplication {
     setNavigationClient(navigationClient: INavigationClient): void;
     /** @internal */
     getConfiguration(): BrowserConfiguration;
-    /**
-     * Creates an experimental CP1 cache context without a new authentication owner.
-     */
-    createCaeCacheContext?(stableContextId: string): Promise<CaeCacheContext>;
     hydrateCache(
         result: AuthenticationResult,
         request:
@@ -214,14 +209,6 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         throw createBrowserConfigurationAuthError(
             BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
             ""
-        );
-    },
-    createCaeCacheContext: () => {
-        return Promise.reject(
-            createBrowserConfigurationAuthError(
-                BrowserConfigurationAuthErrorCodes.stubbedPublicClientApplicationCalled,
-                ""
-            )
         );
     },
     hydrateCache: () => {

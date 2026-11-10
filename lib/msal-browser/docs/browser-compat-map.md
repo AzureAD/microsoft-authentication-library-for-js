@@ -16,17 +16,6 @@ This document catalogs browser Web APIs that MSAL Browser depends on, their role
 | `document.cookie` | Encryption key for localStorage cache | None — cache cannot be decrypted without it |
 
 **MSAL-specific restrictions:**
-- The unpublished CAE partition experiment uses the configured storage for a
-  versioned access-token index and synchronous invalidation generations. It uses
-  the existing storage adapters and encryption; it adds no new browser API.
-  Before cache lookup it decrypts missing indexed tokens without waiting for
-  `BroadcastChannel` delivery, rechecking stored values and invalidation after
-  the asynchronous read. This does not cross browser storage partitions.
-  Session storage does not coordinate separate tabs. LocalStorage generation
-  checks do not establish atomic multi-process cutover or immediate cross-tab
-  reuse. The [Web Storage standard](https://html.spec.whatwg.org/multipage/webstorage.html#introduction-16)
-  leaves inter-agent-cluster synchronization undefined; passing browser samples
-  do not establish every cross-process schedule.
 - Safari PB: `sessionStorage.setItem()` immediately before `location.replace()` may lose data — affects redirect bridge (`handleRedirectPromise` returns `null`)
 - Safari ITP: 7-day cap on script-writable `localStorage`/cookies — tokens evicted without user interaction
 - Firefox PB: `indexedDB.open()` throws `SecurityError` — PoP/DPoP key storage falls back to memory

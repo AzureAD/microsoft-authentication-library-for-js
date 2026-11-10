@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add default-off versioned CAE token caching with persistent storage, EAR and invalidation checks. [#8975](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8975)",
+  "comment": "Add default-off ordinary/CP1 access-token partitioning using existing cache components and CP1-only cache reuse. [#8975](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8975)",
   "packageName": "@azure/msal-browser",
   "dependentChangeType": "patch"
 }

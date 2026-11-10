@@ -395,7 +395,7 @@ export async function initializeAuthorizationRequest(
 
     // Skip active account lookup if either login hint or session id is set
     if (request.loginHint || request.sid) {
-        return browserStorage.prepareCapabilityAuthorization(validatedRequest);
+        return validatedRequest;
     }
 
     const account =
@@ -409,5 +409,5 @@ export async function initializeAuthorizationRequest(
         validatedRequest.account = account;
     }
 
-    return browserStorage.prepareCapabilityAuthorization(validatedRequest);
+    return validatedRequest;
 }

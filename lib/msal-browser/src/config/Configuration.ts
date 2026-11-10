@@ -28,7 +28,6 @@ import { INavigationClient } from "../navigation/INavigationClient.js";
 import { NavigationClient } from "../navigation/NavigationClient.js";
 import { FetchClient } from "../network/FetchClient.js";
 import { name, version } from "../packageMetadata.js";
-import { validateCaeCacheConfiguration } from "../request/CaeCacheRequest.js";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -480,6 +479,18 @@ export function buildConfiguration(
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
 
-    validateCaeCacheConfiguration(overlayedConfig);
+    if (
+        overlayedConfig.experimental.enableCaeCachePartitioning &&
+        ((overlayedConfig.system.protocolMode !== ProtocolMode.AAD &&
+            overlayedConfig.system.protocolMode !== ProtocolMode.EAR) ||
+            overlayedConfig.system.allowPlatformBroker ||
+            overlayedConfig.experimental.allowPlatformBrokerWithDOM ||
+            overlayedConfig.auth.isMcp)
+    ) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.experimentalCaeCacheUnsupported,
+            ""
+        );
+    }
     return overlayedConfig;
 }

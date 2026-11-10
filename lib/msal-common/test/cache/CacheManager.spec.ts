@@ -140,7 +140,6 @@ describe("CacheManager.ts test cases", () => {
                 const components: Record<string, string> = experimental
                     ? {
                           experimental_cae_capability: "cp1",
-                          experimental_cae_resource: "",
                       }
                     : { attribute_tokens: "alpha" };
                 const token = CacheHelpers.createAccessTokenEntity(
@@ -264,7 +263,7 @@ describe("CacheManager.ts test cases", () => {
             expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.BEARER);
         });
 
-        it("does not evict an overlapping token from another experimental generation", async () => {
+        it("replaces overlapping tokens within the same capability family", async () => {
             const current = CacheHelpers.createAccessTokenEntity(
                 TEST_ACCOUNT_INFO.homeAccountId,
                 TEST_ACCOUNT_INFO.environment,
@@ -279,9 +278,7 @@ describe("CacheManager.ts test cases", () => {
             );
             current.additionalCacheKeyComponents = {
                 experimental_cae_capability: "cp1",
-                experimental_cae_resource: "",
             };
-            current.experimentalCaeEpoch = "current";
             const hash = TEST_CRYPTO_VALUES.TEST_SHA256_HASH;
             await mockCache.cacheManager.setAccessTokenCredential(
                 current,
@@ -295,7 +292,6 @@ describe("CacheManager.ts test cases", () => {
                         ...current,
                         target: "epoch.read",
                         secret: "older-generation-token",
-                        experimentalCaeEpoch: "older",
                     },
                 },
                 TEST_CONFIG.CORRELATION_ID,
@@ -305,8 +301,8 @@ describe("CacheManager.ts test cases", () => {
             expect(
                 mockCache.cacheManager.getAccessTokenCredential(
                     generateCredentialKey(current, hash)
-                )?.secret
-            ).toBe("current-generation-token");
+                )
+            ).toBeNull();
         });
 
         it("does not save accessToken if storeInCache.accessToken = false", async () => {

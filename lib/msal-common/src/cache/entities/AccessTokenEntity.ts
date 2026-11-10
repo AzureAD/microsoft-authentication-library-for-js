@@ -26,6 +26,4 @@ export type AccessTokenEntity = CredentialEntity & {
     tokenType?: AuthenticationScheme;
     /** Matches the resource passed into the request for MCP flows */
     resource?: string;
-    /** Invalidation generation for versioned capability-partitioned access tokens. */
-    experimentalCaeEpoch?: string;
 };

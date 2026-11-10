@@ -1,12 +1,5 @@
 # MSAL.js errors
 
-### `cae_token_request_invalidated`
-
-A newer claims request or cache lifecycle change invalidated this experimental
-capability-token acquisition. Its result must not be sent to the resource.
-Retry against the current account and claims context. This error does not trigger
-an automatic iframe or interactive sign-in.
-
 ## Auth errors
 
 ### `unexpected_error`
@@ -1091,8 +1084,6 @@ const msalConfig = {
     hybrid-code acquisition, hydration/import and extended token inputs are not implemented. Disable
     `experimental.enableCaeCachePartitioning` to restore the normal behavior.
     See [the experiment's limits](../lib/msal-browser/docs/caching.md#unpublished-cae-cache-experiment).
-    Explicit `invalidateAccessTokenCache` also requires the experiment and cannot
-    be combined with access-token-only lookup.
     Common response handling and cache lookup reject experimental CAE requests
     with nonempty attribute-token or additional cache-key components rather than
     discarding those components. Node client-credential and on-behalf-of requests

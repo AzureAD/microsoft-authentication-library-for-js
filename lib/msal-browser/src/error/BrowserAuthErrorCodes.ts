@@ -4,7 +4,6 @@
  */
 
 export const pkceNotCreated = "pkce_not_created";
-export const caeTokenRequestInvalidated = "cae_token_request_invalidated";
 export const earJwkEmpty = "ear_jwk_empty";
 export const earJweEmpty = "ear_jwe_empty";
 export const cryptoNonExistent = "crypto_nonexistent";
