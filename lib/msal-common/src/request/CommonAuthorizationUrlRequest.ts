@@ -6,6 +6,7 @@
 import { ResponseMode } from "../utils/Constants.js";
 import { BaseAuthRequest } from "./BaseAuthRequest.js";
 import { AccountInfo } from "../account/AccountInfo.js";
+import { PublicJsonWebKey } from "../crypto/PublicJsonWebKey.js";
 
 /**
  * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)
@@ -28,12 +29,11 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
      */
     earJwk?: string;
     /**
-     * Public asymmetric EAR metadata retained across navigation. Contains no private key material.
+     * Private asymmetric EAR context. Retained in memory except for cached redirect requests.
      * @internal
      */
     asymmetricEar?: {
-        version: 1;
-        keyId: string;
+        privateJwk: PublicJsonWebKey & { d?: string };
         apv: string;
     };
     /**

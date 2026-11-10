@@ -14,7 +14,6 @@ import {
     PLATFORM_LOGIN_TIMEOUT,
     PlatformBrokerProfile,
     removePlatformBrokerProfile,
-    verifyPlatformBrokerResponse,
     verifyPlatformBrokerTokenStore,
 } from "e2e-test-utils";
 import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
@@ -44,15 +43,13 @@ const EAR_CRYPTO_ALGORITHM = "AES-GCM";
 describe.each([
     {
         mode: "symmetric",
-        query: "?ear=true&platformBroker=true",
         algorithm: "dir",
     },
     {
         mode: "asymmetric",
-        query: "?ear=true&platformBroker=true&asymmetricEar=true",
         algorithm: "ECDH-ES",
     },
-])("EAR + Platform Broker Tests ($mode)", ({ mode, query, algorithm }) => {
+])("EAR + Platform Broker Tests ($mode)", ({ mode, algorithm }) => {
     let browser: puppeteer.Browser;
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
@@ -75,10 +72,94 @@ describe.each([
         if (loginPrompt) {
             await enterCredentials(authPage, screenshot, username, accountPwd);
         }
-        await page.waitForSelector("a#viewProfileButton", {
-            visible: true,
+    };
+
+    const configurePlayground = async () => {
+        await page.waitForSelector("#msalConfig", {
             timeout: PLATFORM_LOGIN_TIMEOUT,
         });
+        await page.evaluate(
+            ({ origin, asymmetric, loginHint }) => {
+                (
+                    document.getElementById("msalConfig") as HTMLTextAreaElement
+                ).value = JSON.stringify({
+                    auth: {
+                        clientId: "9f33d0de-fdfd-431b-a565-af47c697a4c4",
+                        authority:
+                            "https://login.microsoftonline.com/c7cef333-42af-492c-afb0-21f74a661133",
+                        redirectUri: `${origin}/redirect`,
+                    },
+                    cache: { cacheLocation: "sessionStorage" },
+                    system: { protocolMode: "EAR", allowPlatformBroker: true },
+                    experimental: { enableAsymmetricEar: asymmetric },
+                });
+                (
+                    document.getElementById(
+                        "tokenRequest"
+                    ) as HTMLTextAreaElement
+                ).value = JSON.stringify({ scopes: ["User.Read"], loginHint });
+            },
+            {
+                origin: EAR_ORIGIN,
+                asymmetric: mode === "asymmetric",
+                loginHint: username,
+            }
+        );
+        await page.locator("button#applyConfig").click();
+        await page.waitForFunction(
+            () => {
+                const text =
+                    document.getElementById("responseContent")?.textContent ||
+                    "";
+                return (
+                    text.includes("MSAL instance created and initialized") ||
+                    text.includes("Redirect response received")
+                );
+            },
+            { timeout: PLATFORM_LOGIN_TIMEOUT }
+        );
+    };
+
+    const assertPlatformBrokerResponse = async (api: string) => {
+        await page.waitForFunction(
+            (expectedApi) => {
+                const text =
+                    document.getElementById("responseContent")?.textContent ||
+                    "";
+                return (
+                    text.includes(`"api": "${expectedApi}"`) &&
+                    (text.includes('"result"') ||
+                        text.includes('"response"') ||
+                        text.includes('"error"'))
+                );
+            },
+            { timeout: PLATFORM_LOGIN_TIMEOUT },
+            api
+        );
+        const response = JSON.parse(
+            await page.$eval(
+                "#responseContent",
+                (element) => element.textContent || ""
+            )
+        );
+        expect(response.error).toBeUndefined();
+        const result = response.result || response.response;
+        expect(result?.fromPlatformBroker).toBe(true);
+        expect(result?.account?.nativeAccountId).toBeTruthy();
+        expect(result?.accessToken).toBeTruthy();
+    };
+
+    const signInRedirect = async (screenshot: Screenshot) => {
+        await page.locator("button#btnAcquireTokenRedirect").click();
+        await completeSignIn(page, screenshot);
+        await page.waitForFunction(
+            () => window.location.pathname === "/playground",
+            {
+                timeout: PLATFORM_LOGIN_TIMEOUT,
+            }
+        );
+        await configurePlayground();
+        await assertPlatformBrokerResponse("acquireTokenRedirect");
     };
 
     const assertEarRequests = (flow: AuthenticationFlowTestUtils) => {
@@ -154,14 +235,10 @@ describe.each([
             EAR_ORIGIN,
             EAR_CRYPTO_ALGORITHM
         );
-        await page.goto(`https://localhost:${EAR_PORT}/${query}`, {
+        await page.goto(`${EAR_ORIGIN}/playground`, {
             timeout: 10000,
         });
-        await page.evaluate(
-            `import("/js/authConfig.js").then(({ loginRequest }) => {
-                loginRequest.loginHint = ${JSON.stringify(username)};
-            })`
-        );
+        await configurePlayground();
         await flowUtils.assertCryptoOperationSpyInstalled(EAR_CRYPTO_ALGORITHM);
     });
 
@@ -173,7 +250,7 @@ describe.each([
             const remainingPrivateContexts = await page.evaluate(
                 () =>
                     Object.keys(window.sessionStorage).filter((key) =>
-                        key.includes(".request.asymmetric-ear.")
+                        key.endsWith(".request.params")
                     ).length
             );
             expect(remainingPrivateContexts).toBe(0);
@@ -184,14 +261,12 @@ describe.each([
         }
     });
 
-    it("Performs EAR + platform broker loginRedirect", async () => {
+    it("Performs EAR + platform broker acquireTokenRedirect", async () => {
         const screenshot = new Screenshot(
             `${SCREENSHOT_BASE_FOLDER_NAME}/${mode}/earPlatformRedirect`
         );
 
-        await page.locator("button#signInButton").click();
-        await page.locator("a#signInRedirect").click();
-        await completeSignIn(page, screenshot);
+        await signInRedirect(screenshot);
         await screenshot.takeScreenshot(page, "Logged In");
 
         // EAR still POSTs /authorize; ear_jwe is decrypted to extract accountId.
@@ -202,16 +277,14 @@ describe.each([
         expect(
             await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
         ).toBeGreaterThan(0);
-        await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 
-    it("Performs EAR + platform broker loginPopup", async () => {
+    it("Performs EAR + platform broker acquireTokenPopup", async () => {
         const screenshot = new Screenshot(
             `${SCREENSHOT_BASE_FOLDER_NAME}/${mode}/earPlatformPopup`
         );
 
-        await page.locator("button#signInButton").click();
         let popupFlowUtils: AuthenticationFlowTestUtils | undefined;
         const newPopupWindowPromise = new Promise<puppeteer.Page | null>(
             (resolve) =>
@@ -224,7 +297,7 @@ describe.each([
                     resolve(popupPage);
                 })
         );
-        await page.locator("a#signInPopup").click();
+        await page.locator("button#btnAcquireTokenPopup").click();
 
         const popupPage = await newPopupWindowPromise;
         if (!popupPage) {
@@ -232,6 +305,7 @@ describe.each([
         }
 
         await completeSignIn(popupPage, screenshot);
+        await assertPlatformBrokerResponse("acquireTokenPopup");
         await screenshot.takeScreenshot(page, "Logged In");
 
         expect(
@@ -241,7 +315,6 @@ describe.each([
         expect(
             await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
         ).toBeGreaterThan(0);
-        await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 
@@ -251,20 +324,15 @@ describe.each([
         );
 
         // Seed an interactive login to establish the account/session.
-        await page.locator("button#signInButton").click();
-        await page.locator("a#signInRedirect").click();
-        await completeSignIn(page, screenshot);
+        await signInRedirect(screenshot);
 
         const decryptCountBefore = await flowUtils.getCryptoOperationCount(
             EAR_CRYPTO_ALGORITHM
         );
         const authorizeCountBefore = flowUtils.getEarRequests().length;
 
-        await page.locator("button#ssoSilentButton").click();
-        await page.waitForSelector(
-            'div#silentStatus[data-status="ssoSilent:success"]',
-            { timeout: 30000 }
-        );
+        await page.locator("button#btnSsoSilent").click();
+        await assertPlatformBrokerResponse("ssoSilent");
         await screenshot.takeScreenshot(page, "ssoSilent completed");
 
         // Silent EAR authorize re-runs; the platform broker services it again.
@@ -275,7 +343,6 @@ describe.each([
             authorizeCountBefore
         );
         assertEarRequests(flowUtils);
-        await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 
@@ -285,20 +352,14 @@ describe.each([
         );
 
         // Seed an interactive login.
-        await page.locator("button#signInButton").click();
-        await page.locator("a#signInRedirect").click();
-        await completeSignIn(page, screenshot);
+        await signInRedirect(screenshot);
 
-        await page.locator("button#acquireTokenSilentButton").click();
-        await page.waitForSelector(
-            'div#silentStatus[data-status="acquireTokenSilent:success"]',
-            { timeout: 30000 }
-        );
+        await page.locator("button#btnAcquireTokenSilent").click();
+        await assertPlatformBrokerResponse("acquireTokenSilent");
         await screenshot.takeScreenshot(page, "acquireTokenSilent completed");
 
         // Platform accounts renew through the broker, not the EAR RT grant.
         assertEarRequests(flowUtils);
-        await verifyPlatformBrokerResponse(page);
         await verifyPlatformBrokerTokenStore(BrowserCache);
     });
 });

@@ -44,7 +44,6 @@ import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { PlatformAuthInteractionClient } from "../interaction_client/PlatformAuthInteractionClient.js";
 import { EventHandler } from "../event/EventHandler.js";
 import {
-    createNewGuid,
     decryptAsymmetricEarResponse,
     decryptEarResponse,
     generateAsymmetricEarApv,
@@ -317,7 +316,6 @@ function getAuthorizeFormAction(
 export async function initializeEarRequest(
     config: BrowserConfiguration,
     request: CommonAuthorizationUrlRequest,
-    browserStorage: BrowserCacheManager,
     logger: Logger,
     performanceClient: IPerformanceClient
 ): Promise<CommonAuthorizationUrlRequest> {
@@ -335,34 +333,20 @@ export async function initializeEarRequest(
             asymmetricEar: undefined,
         };
     }
-    try {
-        const { privateJwk, publicJwk } = await invokeAsync(
-            generateAsymmetricEarKey,
-            BrowserPerformanceEvents.GenerateAsymmetricEarKey,
-            logger,
-            performanceClient,
-            request.correlationId
-        )();
-        const apv = generateAsymmetricEarApv(publicJwk);
-        const keyId = createNewGuid();
-        const earJwk = base64Encode(JSON.stringify(publicJwk));
-        browserStorage.cacheAsymmetricEarKey(
-            keyId,
-            { privateJwk, apv },
-            request.correlationId
-        );
-        return {
-            ...request,
-            earJwk,
-            asymmetricEar: { version: 1, keyId, apv },
-        };
-    } catch {
-        logger.warning(
-            "Asymmetric EAR setup failed; using authorization code + PKCE.",
-            request.correlationId
-        );
-        return { ...request, earJwk: undefined, asymmetricEar: undefined };
-    }
+    const { privateJwk, publicJwk } = await invokeAsync(
+        generateAsymmetricEarKey,
+        BrowserPerformanceEvents.GenerateAsymmetricEarKey,
+        logger,
+        performanceClient,
+        request.correlationId
+    )();
+    const apv = generateAsymmetricEarApv(publicJwk);
+    const earJwk = base64Encode(JSON.stringify(publicJwk));
+    return {
+        ...request,
+        earJwk,
+        asymmetricEar: { privateJwk, apv },
+    };
 }
 
 /**
@@ -376,12 +360,9 @@ export async function getEARFormData(
     performanceClient: IPerformanceClient
 ): Promise<AuthorizeFormData> {
     if (!request.earJwk) {
-        return getCodeFormData(
-            config,
-            authority,
-            request,
-            logger,
-            performanceClient
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.earJwkEmpty,
+            request.correlationId
         );
     }
 
@@ -602,6 +583,12 @@ export async function handleResponsePlatformBroker(
         request.state,
         request.correlationId
     );
+    const brokerRequest = {
+        ...request,
+        state: userRequestState,
+        prompt: undefined, // Server should handle the prompt, ideally native broker can do this part silently
+    };
+    delete brokerRequest.asymmetricEar;
     try {
         return await invokeAsync(
             nativeInteractionClient.acquireToken.bind(nativeInteractionClient),
@@ -609,11 +596,7 @@ export async function handleResponsePlatformBroker(
             logger,
             performanceClient,
             request.correlationId
-        )({
-            ...request,
-            state: userRequestState,
-            prompt: undefined, // Server should handle the prompt, ideally native broker can do this part silently
-        });
+        )(brokerRequest);
     } catch (e) {
         await removeTokenBindingKeyOnFailure(
             request,
@@ -775,10 +758,6 @@ export async function handleResponseEAR(
 
     let plaintext: string;
     if (request.asymmetricEar) {
-        const context = browserStorage.getAsymmetricEarKey(
-            request.asymmetricEar.keyId,
-            request.correlationId
-        );
         plaintext = await invokeAsync(
             decryptAsymmetricEarResponse,
             BrowserPerformanceEvents.DecryptEarResponse,
@@ -786,8 +765,8 @@ export async function handleResponseEAR(
             performanceClient,
             request.correlationId
         )(
-            context.privateJwk,
-            context.apv,
+            request.asymmetricEar.privateJwk,
+            request.asymmetricEar.apv,
             response.ear_jwe,
             request.asymmetricEar.apv,
             { logger, performanceClient, correlationId: request.correlationId }

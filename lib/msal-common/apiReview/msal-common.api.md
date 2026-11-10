@@ -1184,8 +1184,9 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     account?: AccountInfo;
     earJwk?: string;
     asymmetricEar?: {
-        version: 1;
-        keyId: string;
+        privateJwk: PublicJsonWebKey & {
+            d?: string;
+        };
         apv: string;
     };
     codeChallenge?: string;

@@ -209,12 +209,6 @@ export const AsymmetricEarConcatKdf = "asymmetricEarConcatKdf";
 export const ImportAsymmetricEarContentKey = "importAsymmetricEarContentKey";
 export const DecryptAsymmetricEarResponse = "decryptAsymmetricEarResponse";
 export const DecryptEarResponse = "decryptEarResponse";
-export const BrowserCacheManagerCacheAsymmetricEarKey =
-    "browserCacheManagerCacheAsymmetricEarKey";
-export const BrowserCacheManagerGetAsymmetricEarKey =
-    "browserCacheManagerGetAsymmetricEarKey";
-export const BrowserCacheManagerRemoveAsymmetricEarKey =
-    "browserCacheManagerRemoveAsymmetricEarKey";
 
 export const LoadAccount = "loadAccount";
 export const LoadIdToken = "loadIdToken";

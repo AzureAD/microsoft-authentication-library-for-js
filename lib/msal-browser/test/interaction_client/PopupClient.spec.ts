@@ -806,6 +806,52 @@ describe("PopupClient", () => {
             );
         });
 
+        it("propagates asymmetric EAR setup failure and removes the generated DPoP key without posting a form", async () => {
+            (popupClient as any).config.experimental.enableAsymmetricEar = true;
+            const error = new Error("P-384 unavailable");
+            jest.spyOn(
+                BrowserCrypto,
+                "generateAsymmetricEarKey"
+            ).mockRejectedValue(error);
+            const manager = (popupClient as any).tokenBindingKeyManager;
+            jest.spyOn(manager, "provisionTokenBindingKey").mockResolvedValue(
+                "test-dpop-jkt"
+            );
+            const remove = jest
+                .spyOn(manager, "removeTokenBindingKey")
+                .mockResolvedValue(undefined);
+            const form = jest.spyOn(AuthorizeProtocol, "getEARForm");
+            const codeFlow = jest.spyOn(popupClient, "executeCodeFlow");
+
+            await expect(
+                popupClient.executeEarFlow(
+                    {
+                        authority: TEST_CONFIG.validAuthority,
+                        redirectUri: TEST_URIS.TEST_REDIR_URI,
+                        scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        responseMode: Constants.ResponseMode.FRAGMENT,
+                        nonce: ID_TOKEN_CLAIMS.nonce,
+                        state: TEST_STATE_VALUES.TEST_STATE_POPUP,
+                        authenticationScheme:
+                            Constants.AuthenticationScheme.DPOP,
+                    },
+                    {
+                        popupName: "test-popup",
+                        popupWindowAttributes: {},
+                        popupWindowParent: window,
+                    }
+                )
+            ).rejects.toBe(error);
+
+            expect(remove).toHaveBeenCalledWith(
+                "test-dpop-jkt",
+                TEST_CONFIG.CORRELATION_ID
+            );
+            expect(form).not.toHaveBeenCalled();
+            expect(codeFlow).not.toHaveBeenCalled();
+        });
+
         it("throws hash_empty_error if popup returns to redirectUri without a hash", (done) => {
             jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockResolvedValue(
                 ""
@@ -1206,7 +1252,7 @@ describe("PopupClient", () => {
                 { response: "code", httpMethod: Constants.HttpMethod.POST },
                 { response: "cancel", httpMethod: Constants.HttpMethod.POST },
             ])(
-                "Cleans the asymmetric $httpMethod popup context after $response",
+                "Keeps asymmetric $httpMethod popup keys in memory for $response",
                 async ({ response, httpMethod }) => {
                     pca.getConfiguration().experimental.enableAsymmetricEar =
                         true;
@@ -1227,9 +1273,12 @@ describe("PopupClient", () => {
                             expect(
                                 Object.keys(window.sessionStorage).filter(
                                     (key) =>
+                                        key.endsWith(
+                                            TemporaryCacheKeys.REQUEST_PARAMS
+                                        ) ||
                                         key.includes(".request.asymmetric-ear.")
                                 )
-                            ).toHaveLength(1);
+                            ).toHaveLength(0);
                         });
                     const responseSpy = jest.spyOn(
                         BrowserUtils,
@@ -1252,14 +1301,21 @@ describe("PopupClient", () => {
                             response === "ear"
                                 ? "handleResponseEAR"
                                 : "handleResponseCode"
-                        ).mockImplementation(async () => {
+                        ).mockImplementation(async (...args) => {
+                            const request = args[0];
                             await Promise.resolve();
+                            expect(
+                                request.asymmetricEar?.privateJwk.d
+                            ).toBeDefined();
                             expect(
                                 Object.keys(window.sessionStorage).filter(
                                     (key) =>
+                                        key.endsWith(
+                                            TemporaryCacheKeys.REQUEST_PARAMS
+                                        ) ||
                                         key.includes(".request.asymmetric-ear.")
                                 )
-                            ).toHaveLength(1);
+                            ).toHaveLength(0);
                             return getTestAuthenticationResult();
                         });
                     }
@@ -1278,8 +1334,11 @@ describe("PopupClient", () => {
                     expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
                     expect(formSpy).toHaveBeenCalled();
                     expect(
-                        Object.keys(window.sessionStorage).filter((key) =>
-                            key.includes(".request.asymmetric-ear.")
+                        Object.keys(window.sessionStorage).filter(
+                            (key) =>
+                                key.endsWith(
+                                    TemporaryCacheKeys.REQUEST_PARAMS
+                                ) || key.includes(".request.asymmetric-ear.")
                         )
                     ).toHaveLength(0);
                 }

@@ -58,7 +58,6 @@ import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
-import { AsymmetricEarSubErrors } from "../error/AsymmetricEarSubErrors.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
     clearCacheOnLogout,
@@ -360,19 +359,19 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        const redirectRequest = await Authorize.initializeEarRequest(
-            this.config,
-            {
-                ...request,
-                codeChallenge: pkceCodes.challenge,
-                ...tokenBindingParams,
-            },
-            this.browserStorage,
-            this.logger,
-            this.performanceClient
-        );
+        let redirectRequest: CommonAuthorizationUrlRequest = {
+            ...request,
+            codeChallenge: pkceCodes.challenge,
+            ...tokenBindingParams,
+        };
 
         try {
+            redirectRequest = await Authorize.initializeEarRequest(
+                this.config,
+                redirectRequest,
+                this.logger,
+                this.performanceClient
+            );
             if (
                 !(await isTokenBindingKeyPersistedForRedirect(
                     redirectRequest,
@@ -389,26 +388,6 @@ export class RedirectClient extends StandardInteractionClient {
                 this.correlationId,
                 pkceCodes.verifier
             );
-            if (redirectRequest.asymmetricEar) {
-                const [cachedRequest, cachedVerifier] =
-                    this.browserStorage.getCachedRequest(this.correlationId);
-                const cachedContext = cachedRequest.asymmetricEar;
-                if (
-                    cachedContext?.version !== 1 ||
-                    cachedContext.keyId !==
-                        redirectRequest.asymmetricEar.keyId ||
-                    cachedContext.apv !== redirectRequest.asymmetricEar.apv ||
-                    cachedRequest.earJwk !== redirectRequest.earJwk ||
-                    cachedVerifier !== pkceCodes.verifier
-                ) {
-                    throw createBrowserAuthError(
-                        BrowserAuthErrorCodes.asymmetricEarKeyError,
-                        correlationId,
-                        AsymmetricEarSubErrors.RequestPersistenceFailed
-                    );
-                }
-            }
-
             const form = await Authorize.getEARForm(
                 document,
                 this.config,

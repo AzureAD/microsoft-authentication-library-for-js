@@ -51,6 +51,7 @@ import {
     ApiId,
     BrowserConstants,
     InteractionType,
+    TemporaryCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
@@ -1904,7 +1905,7 @@ describe("SilentIframeClient", () => {
                 { response: "code", httpMethod: Constants.HttpMethod.POST },
                 { response: "timeout", httpMethod: Constants.HttpMethod.POST },
             ])(
-                "Cleans the asymmetric $httpMethod iframe context after $response",
+                "Keeps asymmetric $httpMethod iframe keys in memory for $response",
                 async ({ response, httpMethod }) => {
                     pca.getConfiguration().experimental.enableAsymmetricEar =
                         true;
@@ -1920,10 +1921,14 @@ describe("SilentIframeClient", () => {
                         "initiateEarRequest"
                     ).mockImplementation(async () => {
                         expect(
-                            Object.keys(window.sessionStorage).filter((key) =>
-                                key.includes(".request.asymmetric-ear.")
+                            Object.keys(window.sessionStorage).filter(
+                                (key) =>
+                                    key.endsWith(
+                                        TemporaryCacheKeys.REQUEST_PARAMS
+                                    ) ||
+                                    key.includes(".request.asymmetric-ear.")
                             )
-                        ).toHaveLength(1);
+                        ).toHaveLength(0);
                         return document.createElement("iframe");
                     });
                     const responseSpy = jest.spyOn(
@@ -1947,14 +1952,21 @@ describe("SilentIframeClient", () => {
                             response === "ear"
                                 ? "handleResponseEAR"
                                 : "handleResponseCode"
-                        ).mockImplementation(async () => {
+                        ).mockImplementation(async (...args) => {
+                            const request = args[0];
                             await Promise.resolve();
+                            expect(
+                                request.asymmetricEar?.privateJwk.d
+                            ).toBeDefined();
                             expect(
                                 Object.keys(window.sessionStorage).filter(
                                     (key) =>
+                                        key.endsWith(
+                                            TemporaryCacheKeys.REQUEST_PARAMS
+                                        ) ||
                                         key.includes(".request.asymmetric-ear.")
                                 )
-                            ).toHaveLength(1);
+                            ).toHaveLength(0);
                             return getTestAuthenticationResult();
                         });
                     }
@@ -1971,8 +1983,11 @@ describe("SilentIframeClient", () => {
                     }
                     expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
                     expect(
-                        Object.keys(window.sessionStorage).filter((key) =>
-                            key.includes(".request.asymmetric-ear.")
+                        Object.keys(window.sessionStorage).filter(
+                            (key) =>
+                                key.endsWith(
+                                    TemporaryCacheKeys.REQUEST_PARAMS
+                                ) || key.includes(".request.asymmetric-ear.")
                         )
                     ).toHaveLength(0);
                 }

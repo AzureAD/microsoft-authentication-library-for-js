@@ -317,138 +317,133 @@ export class SilentIframeClient extends StandardInteractionClient {
                 ...request,
                 codeChallenge: pkceCodes.challenge,
             },
-            this.browserStorage,
             this.logger,
             this.performanceClient
         );
 
+        // Create the iframe, register the response listener, then navigate, so the listener is active before the iframe can respond.
+        const iframe = createHiddenIframe();
+
+        const responseType = this.config.auth.OIDCOptions.responseMode;
+        let responseString: string;
         try {
-            // Create the iframe, register the response listener, then navigate, so the listener is active before the iframe can respond.
-            const iframe = createHiddenIframe();
-
-            const responseType = this.config.auth.OIDCOptions.responseMode;
-            let responseString: string;
-            try {
-                const responsePromise = invokeAsync(
-                    this.waitForIframeResponse.bind(this),
-                    BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
-                    this.logger,
-                    this.performanceClient,
-                    correlationId
-                )(iframe, request);
-                responsePromise.catch(() => {
-                    /*
-                     * If navigation below throws before responsePromise is awaited,
-                     * the listener still rejects on timeout. Swallow it here so it
-                     * does not surface as an unhandled rejection; the navigation
-                     * error is propagated instead.
-                     */
-                });
-
-                await invokeAsync(
-                    initiateEarRequest,
-                    BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
-                    this.logger,
-                    this.performanceClient,
-                    correlationId
-                )(
-                    iframe,
-                    this.config,
-                    discoveredAuthority,
-                    silentRequest,
-                    this.logger,
-                    this.performanceClient
-                );
-
-                responseString = await responsePromise;
-            } finally {
-                invoke(
-                    removeHiddenIframe,
-                    BrowserPerformanceEvents.RemoveHiddenIframe,
-                    this.logger,
-                    this.performanceClient,
-                    correlationId
-                )(iframe);
-            }
-
-            const serverParams = invoke(
-                ResponseHandler.deserializeResponse,
-                BrowserPerformanceEvents.DeserializeResponse,
+            const responsePromise = invokeAsync(
+                this.waitForIframeResponse.bind(this),
+                BrowserPerformanceEvents.SilentHandlerMonitorIframeForHash,
                 this.logger,
                 this.performanceClient,
                 correlationId
-            )(responseString, responseType, this.logger, this.correlationId);
+            )(iframe, request);
+            responsePromise.catch(() => {
+                /*
+                 * If navigation below throws before responsePromise is awaited,
+                 * the listener still rejects on timeout. Swallow it here so it
+                 * does not surface as an unhandled rejection; the navigation
+                 * error is propagated instead.
+                 */
+            });
 
-            if (!serverParams.ear_jwe && serverParams.code) {
-                // If server doesn't support EAR, they may fallback to auth code flow instead
-                const authClient = await invokeAsync(
-                    this.createAuthCodeClient.bind(this),
-                    BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
-                    this.logger,
-                    this.performanceClient,
-                    correlationId
-                )({
-                    serverTelemetryManager: initializeServerTelemetryManager(
-                        this.apiId,
-                        this.config.auth.clientId,
-                        correlationId,
-                        this.browserStorage,
-                        this.logger,
-                        undefined,
-                        this.config.system.serverTelemetryEnabled
-                    ),
-                    requestAuthority: request.authority,
-                    requestAzureCloudOptions: request.azureCloudOptions,
-                    requestExtraQueryParameters: request.extraQueryParameters,
-                    account: request.account,
-                    authority: discoveredAuthority,
-                });
+            await invokeAsync(
+                initiateEarRequest,
+                BrowserPerformanceEvents.SilentHandlerInitiateAuthRequest,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                iframe,
+                this.config,
+                discoveredAuthority,
+                silentRequest,
+                this.logger,
+                this.performanceClient
+            );
 
-                return await invokeAsync(
-                    Authorize.handleResponseCode,
-                    BrowserPerformanceEvents.HandleResponseCode,
-                    this.logger,
-                    this.performanceClient,
-                    correlationId
-                )(
-                    silentRequest,
-                    serverParams,
-                    pkceCodes.verifier,
-                    this.apiId,
-                    this.config,
-                    authClient,
-                    this.browserStorage,
-                    this.nativeStorage,
-                    this.eventHandler,
-                    this.logger,
-                    this.performanceClient,
-                    this.platformAuthProvider,
-                    this.tokenBindingKeyManager
-                );
-            } else {
-                return await invokeAsync(
-                    Authorize.handleResponseEAR,
-                    BrowserPerformanceEvents.HandleResponseEar,
-                    this.logger,
-                    this.performanceClient,
-                    correlationId
-                )(
-                    silentRequest,
-                    serverParams,
-                    this.apiId,
-                    this.config,
-                    discoveredAuthority,
-                    this.browserStorage,
-                    this.nativeStorage,
-                    this.eventHandler,
-                    this.logger,
-                    this.performanceClient,
-                    this.platformAuthProvider,
-                    this.tokenBindingKeyManager
-                );
-            }
+            responseString = await responsePromise;
         } finally {
-            this.browserStorage.removeAsymmetricEarKeys(correlationId);
+            invoke(
+                removeHiddenIframe,
+                BrowserPerformanceEvents.RemoveHiddenIframe,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(iframe);
+        }
+
+        const serverParams = invoke(
+            ResponseHandler.deserializeResponse,
+            BrowserPerformanceEvents.DeserializeResponse,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )(responseString, responseType, this.logger, this.correlationId);
+
+        if (!serverParams.ear_jwe && serverParams.code) {
+            // If server doesn't support EAR, they may fallback to auth code flow instead
+            const authClient = await invokeAsync(
+                this.createAuthCodeClient.bind(this),
+                BrowserPerformanceEvents.StandardInteractionClientCreateAuthCodeClient,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )({
+                serverTelemetryManager: initializeServerTelemetryManager(
+                    this.apiId,
+                    this.config.auth.clientId,
+                    correlationId,
+                    this.browserStorage,
+                    this.logger,
+                    undefined,
+                    this.config.system.serverTelemetryEnabled
+                ),
+                requestAuthority: request.authority,
+                requestAzureCloudOptions: request.azureCloudOptions,
+                requestExtraQueryParameters: request.extraQueryParameters,
+                account: request.account,
+                authority: discoveredAuthority,
+            });
+
+            return invokeAsync(
+                Authorize.handleResponseCode,
+                BrowserPerformanceEvents.HandleResponseCode,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                silentRequest,
+                serverParams,
+                pkceCodes.verifier,
+                this.apiId,
+                this.config,
+                authClient,
+                this.browserStorage,
+                this.nativeStorage,
+                this.eventHandler,
+                this.logger,
+                this.performanceClient,
+                this.platformAuthProvider,
+                this.tokenBindingKeyManager
+            );
+        } else {
+            return invokeAsync(
+                Authorize.handleResponseEAR,
+                BrowserPerformanceEvents.HandleResponseEar,
+                this.logger,
+                this.performanceClient,
+                correlationId
+            )(
+                silentRequest,
+                serverParams,
+                this.apiId,
+                this.config,
+                discoveredAuthority,
+                this.browserStorage,
+                this.nativeStorage,
+                this.eventHandler,
+                this.logger,
+                this.performanceClient,
+                this.platformAuthProvider,
+                this.tokenBindingKeyManager
+            );
         }
     }
 

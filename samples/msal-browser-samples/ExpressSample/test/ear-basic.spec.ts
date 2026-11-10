@@ -158,7 +158,7 @@ describe.each([
             const remainingPrivateContexts = await page.evaluate(
                 () =>
                     Object.keys(window.sessionStorage).filter((key) =>
-                        key.includes(".request.asymmetric-ear.")
+                        key.endsWith(".request.params")
                     ).length
             );
             expect(remainingPrivateContexts).toBe(0);

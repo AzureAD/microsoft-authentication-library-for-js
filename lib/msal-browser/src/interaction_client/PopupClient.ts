@@ -546,21 +546,21 @@ export class PopupClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        const popupRequest = await Authorize.initializeEarRequest(
-            this.config,
-            {
-                ...request,
-                codeChallenge: pkce.challenge,
-                ...tokenBindingParams,
-                popupOriginCheckDone: this.getPopupOriginCheckDone(
-                    popupParams.popupWindowParent
-                ),
-            },
-            this.browserStorage,
-            this.logger,
-            this.performanceClient
-        );
+        let popupRequest: CommonAuthorizationUrlRequest = {
+            ...request,
+            codeChallenge: pkce.challenge,
+            ...tokenBindingParams,
+            popupOriginCheckDone: this.getPopupOriginCheckDone(
+                popupParams.popupWindowParent
+            ),
+        };
         try {
+            popupRequest = await Authorize.initializeEarRequest(
+                this.config,
+                popupRequest,
+                this.logger,
+                this.performanceClient
+            );
             const popupWindow = await this.openPostFormPopup(
                 popupRequest,
                 discoveredAuthority,
@@ -666,8 +666,6 @@ export class PopupClient extends StandardInteractionClient {
                 this.performanceClient
             );
             throw e;
-        } finally {
-            this.browserStorage.removeAsymmetricEarKeys(correlationId);
         }
     }
 

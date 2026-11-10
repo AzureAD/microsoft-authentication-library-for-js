@@ -58,6 +58,7 @@ import {
     InteractionType,
 } from "../../src/utils/BrowserConstants.js";
 import { base64Encode } from "../../src/encode/Base64Encode.js";
+import { base64Decode } from "../../src/encode/Base64Decode.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import {
     createBrowserAuthError,
@@ -256,18 +257,23 @@ describe("RedirectClient", () => {
                     const remove = jest
                         .spyOn(manager, "removeTokenBindingKey")
                         .mockResolvedValue(undefined);
+                    const error = new Error(
+                        failure === "setup"
+                            ? "P-384 unavailable"
+                            : "request storage unavailable"
+                    );
                     if (failure === "setup") {
                         jest.spyOn(
-                            browserStorage,
-                            "cacheAsymmetricEarKey"
-                        ).mockImplementation(() => {
-                            throw new Error("private key storage unavailable");
-                        });
+                            BrowserCrypto,
+                            "generateAsymmetricEarKey"
+                        ).mockRejectedValue(error);
                     } else {
                         jest.spyOn(
                             browserStorage,
                             "cacheAuthorizeRequest"
-                        ).mockImplementation(() => {});
+                        ).mockImplementation(() => {
+                            throw error;
+                        });
                     }
                     const terminalError = new Error("navigation cancelled");
                     const form = jest
@@ -283,7 +289,7 @@ describe("RedirectClient", () => {
                             authenticationScheme:
                                 Constants.AuthenticationScheme.DPOP,
                         })
-                    ).rejects.toBeDefined();
+                    ).rejects.toBe(error);
 
                     expect(provision).toHaveBeenCalledTimes(1);
                     expect(restart).not.toHaveBeenCalled();
@@ -291,21 +297,10 @@ describe("RedirectClient", () => {
                         "owned-dpop-jkt",
                         testRequest.correlationId
                     );
-                    if (failure === "setup") {
-                        expect(form.mock.calls[0][3]).toEqual(
-                            expect.objectContaining({
-                                dpopJkt: "owned-dpop-jkt",
-                                codeChallenge: expect.any(String),
-                                earJwk: undefined,
-                                asymmetricEar: undefined,
-                            })
-                        );
-                    } else {
-                        expect(form).not.toHaveBeenCalled();
-                    }
+                    expect(form).not.toHaveBeenCalled();
                     expect(
                         Object.keys(window.sessionStorage).filter((key) =>
-                            key.includes(".request.asymmetric-ear.")
+                            key.endsWith(TemporaryCacheKeys.REQUEST_PARAMS)
                         )
                     ).toHaveLength(0);
                 }
@@ -3829,7 +3824,7 @@ describe("RedirectClient", () => {
             expect(earFormSpy).toHaveBeenCalled();
         });
 
-        it("Rejects before navigation if asymmetric request metadata was not persisted", async () => {
+        it("Rejects before navigation if caching the asymmetric redirect request throws", async () => {
             pca.getConfiguration().experimental.enableAsymmetricEar = true;
             jest.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
                 "Mozilla/5.0 Chrome/137.0.0.0 Safari/537.36"
@@ -3837,7 +3832,9 @@ describe("RedirectClient", () => {
             jest.spyOn(
                 BrowserCacheManager.prototype,
                 "cacheAuthorizeRequest"
-            ).mockImplementation(() => {});
+            ).mockImplementation(() => {
+                throw new Error("request storage unavailable");
+            });
             const fallback = jest
                 .spyOn(RedirectClient.prototype, "executeCodeFlow")
                 .mockResolvedValue();
@@ -3852,7 +3849,7 @@ describe("RedirectClient", () => {
             expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
             expect(
                 Object.keys(window.sessionStorage).filter((key) =>
-                    key.includes(".request.asymmetric-ear.")
+                    key.endsWith(TemporaryCacheKeys.REQUEST_PARAMS)
                 )
             ).toHaveLength(0);
         });
@@ -3880,7 +3877,7 @@ describe("RedirectClient", () => {
             expect(formSpy).not.toHaveBeenCalled();
             expect(
                 Object.keys(window.sessionStorage).filter((key) =>
-                    key.includes(".request.asymmetric-ear.")
+                    key.endsWith(TemporaryCacheKeys.REQUEST_PARAMS)
                 )
             ).toHaveLength(0);
         });
@@ -3893,11 +3890,17 @@ describe("RedirectClient", () => {
             const formSpy = jest
                 .spyOn(HTMLFormElement.prototype, "submit")
                 .mockImplementation(() => {
-                    expect(
-                        Object.keys(window.sessionStorage).filter((key) =>
-                            key.includes(".request.asymmetric-ear.")
-                        )
-                    ).toHaveLength(1);
+                    const encodedRequest = window.sessionStorage.getItem(
+                        `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`
+                    )!;
+                    const request = JSON.parse(base64Decode(encodedRequest));
+                    expect(request.asymmetricEar?.privateJwk).toEqual(
+                        expect.objectContaining({
+                            kty: "EC",
+                            crv: "P-384",
+                            d: expect.any(String),
+                        })
+                    );
                 });
             await expect(
                 pca.acquireTokenRedirect({ scopes: ["openid"] })
@@ -3908,7 +3911,7 @@ describe("RedirectClient", () => {
             expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
             expect(
                 Object.keys(window.sessionStorage).filter((key) =>
-                    key.includes(".request.asymmetric-ear.")
+                    key.endsWith(TemporaryCacheKeys.REQUEST_PARAMS)
                 )
             ).toHaveLength(0);
         });
