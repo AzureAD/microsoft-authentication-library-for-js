@@ -6,25 +6,29 @@
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
 import type { MFAVerificationRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { MFASubmitChallengeResultV2 } from "../result/MFASubmitChallengeResultV2.js";
-import type { MFAResendChallengeResultV2 } from "../result/MFAResendChallengeResultV2.js";
+import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
 import { CompletedStateV2 } from "./CompletedStateV2.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
-import { FLOW_COMPLETED_V2 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
+import {
+    FLOW_COMPLETED_V2,
+    FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2,
+} from "../../../interaction_client/v2/result/FlowActionResultV2.js";
+import { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { ChallengeVerificationStateBaseV2 } from "./ChallengeVerificationStateBaseV2.js";
 import { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 
 /**
- * State returned when sign-in requires verification of an email or SMS MFA
+ * State returned when authentication requires verification of an email or SMS MFA
  * challenge. It allows the app to submit the challenge or request a replacement.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBaseV2<MFAVerificationRequiredStateParametersV2> {
     readonly stateType = "mfaVerificationRequired";
 
     /**
      * Submits the email or SMS challenge as the second authentication factor.
-     * Successful verification completes sign-in.
      * @param challenge - The challenge value to submit.
      * @returns The result of submitting the MFA challenge.
      */
@@ -40,6 +44,21 @@ export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBa
                 challenge,
                 AuthenticationFactorV2.MULTI_FACTOR
             );
+
+            if (result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new SignInContinuationStateV2({
+                        correlationId: result.correlationId,
+                        logger,
+                        config: this.stateParameters.config,
+                        flowClient: this.stateParameters.flowClient,
+                        continuationState: result.continuationState,
+                        cacheClient: this.stateParameters.cacheClient,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
 
             if (result.type !== FLOW_COMPLETED_V2) {
                 throw new CustomAuthError(
@@ -71,16 +90,16 @@ export class MFAVerificationRequiredStateV2 extends ChallengeVerificationStateBa
             return CustomAuthResultV2.createWithError(error, {
                 scenario: continuationState.scenario,
                 correlationId,
+                errorContext: "mfaVerification",
             });
         }
     }
 
     /**
-     * Requests a replacement challenge for the selected MFA method. The
-     * returned state contains the refreshed email or SMS challenge metadata.
+     * Requests a replacement challenge for the selected MFA method.
      * @returns The result of requesting a replacement MFA challenge.
      */
-    async resendChallenge(): Promise<MFAResendChallengeResultV2> {
+    async resendChallenge(): Promise<RequestChallengeResultV2> {
         const { correlationId, logger, continuationState } =
             this.stateParameters;
 

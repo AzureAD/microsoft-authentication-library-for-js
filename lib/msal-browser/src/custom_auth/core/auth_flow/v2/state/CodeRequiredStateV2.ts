@@ -4,10 +4,9 @@
  */
 
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import { NewPasswordRequiredStateV2 } from "../../../../reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import type { CodeRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { VerifyChallengeResultV2 } from "../result/VerifyChallengeResultV2.js";
-import type { ResendCodeResultV2 } from "../result/ResendCodeResultV2.js";
+import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
 import { CompletedStateV2 } from "./CompletedStateV2.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import {
@@ -26,15 +25,14 @@ import { ChallengeVerificationStateBaseV2 } from "./ChallengeVerificationStateBa
 import { AuthMethodRegistrationRequiredStateV2 } from "./AuthMethodRegistrationRequiredStateV2.js";
 
 /**
- * State returned when first-factor email authentication requires a one-time
- * code. It allows the app to submit the code or request a replacement.
+ * State returned when first-factor authentication requires a one-time code.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRequiredStateParametersV2> {
     readonly stateType = "codeRequired";
 
     /**
-     * Submits the first-factor email code and advances the active flow. The
-     * result may complete the operation or require another flow-specific step.
+     * Submits the first-factor code.
      * @param code - The code to submit.
      * @returns The result of submitting the first-factor code.
      */
@@ -48,17 +46,19 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
             const resultType: string = result.type;
 
             if (result.type === FLOW_NEW_PASSWORD_REQUIRED_V2) {
-                return new CustomAuthResultV2(
-                    new NewPasswordRequiredStateV2({
-                        correlationId: result.correlationId,
-                        logger,
-                        config: this.stateParameters.config,
-                        flowClient: this.stateParameters.flowClient,
-                        continuationState: result.continuationState,
-                        cacheClient: this.stateParameters.cacheClient,
-                    }),
-                    undefined,
-                    result.continuationState.scenario
+                const resetPasswordStateTransitionHandler =
+                    this.stateParameters.resetPasswordStateTransitionHandler;
+                if (!resetPasswordStateTransitionHandler) {
+                    throw new CustomAuthError(
+                        UNSUPPORTED_FLOW_TRANSITION,
+                        "Password-reset state transition handler is missing.",
+                        correlationId
+                    );
+                }
+
+                return resetPasswordStateTransitionHandler.handleNewPasswordRequired(
+                    result,
+                    this.stateParameters
                 );
             }
 
@@ -76,10 +76,14 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
                     );
                 }
 
-                return signUpStateTransitionHandler.handleVerification(result, {
-                    ...this.stateParameters,
-                    signUpStateTransitionHandler,
-                });
+                return signUpStateTransitionHandler.handleAttributeSubmission(
+                    result,
+                    {
+                        ...this.stateParameters,
+                        signUpStateTransitionHandler,
+                    },
+                    "attribute"
+                );
             }
 
             if (result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2) {
@@ -165,11 +169,10 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
     }
 
     /**
-     * Requests a replacement first-factor email code. The returned state
-     * contains the refreshed challenge metadata.
+     * Requests a replacement first-factor code.
      * @returns The result of requesting a replacement code.
      */
-    async resendCode(): Promise<ResendCodeResultV2> {
+    async resendCode(): Promise<RequestChallengeResultV2> {
         const { correlationId, logger, continuationState } =
             this.stateParameters;
 
@@ -189,6 +192,9 @@ export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRe
                         this.stateParameters.signUpStateTransitionHandler,
                     signInStateTransitionHandler:
                         this.stateParameters.signInStateTransitionHandler,
+                    resetPasswordStateTransitionHandler:
+                        this.stateParameters
+                            .resetPasswordStateTransitionHandler,
                     method: this.method,
                     sentTo: result.sentTo,
                     channel: result.channel,

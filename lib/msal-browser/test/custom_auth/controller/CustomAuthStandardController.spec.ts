@@ -5,6 +5,7 @@ import {
     SignInInputs,
     SignInInputsV2,
     SignUpInputs,
+    SignUpInputsV2,
 } from "../../../src/custom_auth/CustomAuthActionInputs.js";
 import { CustomAuthOperatingContext } from "../../../src/custom_auth/operating_context/CustomAuthOperatingContext.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
@@ -25,8 +26,13 @@ import { ResetPasswordCodeRequiredState } from "../../../src/custom_auth/reset_p
 import { ResetPasswordStartResult } from "../../../src/custom_auth/reset_password/auth_flow/result/ResetPasswordStartResult.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 import { CustomAuthApiClientV2 } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
-import { FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2 } from "../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
+import {
+    FLOW_CODE_REQUIRED_V2,
+    FLOW_PASSWORD_REQUIRED_V2,
+} from "../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthFlowScenarioV2 } from "../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
+import { CustomAuthResultV2 } from "../../../src/custom_auth/core/auth_flow/v2/CustomAuthResultV2.js";
+import { InvalidArgumentError } from "../../../src/custom_auth/core/error/InvalidArgumentError.js";
 
 jest.mock(
     "../../../src/custom_auth/core/network_client/custom_auth_api/CustomAuthApiClient.js",
@@ -122,6 +128,94 @@ describe("CustomAuthStandardController", () => {
         );
     });
 
+    describe("signUpV2", () => {
+        it("forwards upfront attributes to the flow client", async () => {
+            const attributes = {
+                displayName: "Test User",
+                city: "Redmond",
+            };
+            const inputs: SignUpInputsV2 = {
+                correlationId: "correlation-id",
+                username: "user@contoso.com",
+                attributes,
+            };
+            const signUpSpy = jest
+                .spyOn(controller["flowClientV2"], "signUp")
+                .mockResolvedValue({
+                    type: FLOW_CODE_REQUIRED_V2,
+                    correlationId: "correlation-id",
+                    continuationState: {
+                        continuationToken: "ct-start",
+                        scenario: CustomAuthFlowScenarioV2.SignUp,
+                        scopes: ["openid", "profile", "offline_access"],
+                        links: {
+                            verify: "https://endpoint/signup/verify",
+                        },
+                        signUp: {
+                            purpose: "newAccount",
+                            pendingProfileAttributes: attributes,
+                            submittedAttributeIds: [],
+                        },
+                    },
+                    channel: "email",
+                    sentTo: "u***@contoso.com",
+                    codeLength: 8,
+                });
+
+            const result = await controller.signUpV2(inputs);
+
+            expect(result.isState("codeRequired")).toBe(true);
+            expect(signUpSpy).toHaveBeenCalledWith({
+                correlationId: "correlation-id",
+                username: "user@contoso.com",
+                scopes: undefined,
+                claims: undefined,
+                attributes,
+            });
+        });
+    });
+
+    describe("V2 username validation", () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it.each(["signInV2", "signUpV2", "resetPasswordV2"] as const)(
+            "%s logs and passes the original username error to result creation",
+            async (operation) => {
+                const loggerSpy = jest.spyOn(controller["logger"], "errorPii");
+                const factorySpy = jest.spyOn(
+                    CustomAuthResultV2,
+                    "createWithError"
+                );
+                const correlationId = "correlation-id";
+
+                const result = await controller[operation]({
+                    username: "",
+                    correlationId,
+                });
+
+                expect(factorySpy).toHaveBeenCalledWith(
+                    expect.any(InvalidArgumentError),
+                    {
+                        scenario: result.scenario,
+                        correlationId,
+                    }
+                );
+                expect(result.error?.errorData).toBe(
+                    factorySpy.mock.calls[0][0]
+                );
+                expect(result.error?.isInvalidUsername()).toBe(true);
+                expect(loggerSpy).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        "Error: invalid_argument: The argument 'inputs.username' is invalid."
+                    ),
+                    correlationId
+                );
+            }
+        );
+    });
+
     describe("signInV2", () => {
         it.each([
             {
@@ -129,6 +223,14 @@ describe("CustomAuthStandardController", () => {
                 inputs: {
                     username: "",
                 } as SignInInputsV2,
+                invalidUsername: true,
+            },
+            {
+                name: "a whitespace-only username",
+                inputs: {
+                    username: " \t\n ",
+                },
+                invalidUsername: true,
             },
             {
                 name: "malformed claims",
@@ -136,6 +238,7 @@ describe("CustomAuthStandardController", () => {
                     username: "user@contoso.com",
                     claims: "not-json",
                 } as SignInInputsV2,
+                invalidUsername: false,
             },
             {
                 name: "malformed scopes",
@@ -143,52 +246,54 @@ describe("CustomAuthStandardController", () => {
                     username: "user@contoso.com",
                     scopes: ["User.Read", 1] as unknown as string[],
                 } as SignInInputsV2,
+                invalidUsername: false,
             },
-        ])("returns invalid input for $name", async ({ inputs }) => {
-            const signInSpy = jest.spyOn(controller["flowClientV2"], "signIn");
+        ])(
+            "returns invalid input for $name",
+            async ({ inputs, invalidUsername }) => {
+                const signInSpy = jest.spyOn(
+                    controller["flowClientV2"],
+                    "signIn"
+                );
 
-            const result = await controller.signInV2(inputs);
+                const result = await controller.signInV2(inputs);
 
-            expect(result.isFailed()).toBe(true);
-            expect(result.error?.isInvalidInput()).toBe(true);
-            expect(signInSpy).not.toHaveBeenCalled();
-        });
+                expect(result.isFailed()).toBe(true);
+                expect(result.error?.isInvalidInput()).toBe(true);
+                expect(result.error?.isInvalidUsername()).toBe(invalidUsername);
+                expect(signInSpy).not.toHaveBeenCalled();
+            }
+        );
 
-        it("returns registration-required when inline password verification requires enrollment", async () => {
-            jest.spyOn(controller["flowClientV2"], "signIn").mockResolvedValue({
-                type: FLOW_AUTH_METHOD_REGISTRATION_REQUIRED_V2,
-                correlationId: "correlation-id",
-                continuationState: {
-                    continuationToken: "ct-enroll",
-                    scenario: CustomAuthFlowScenarioV2.SignIn,
-                    scopes: ["openid", "profile", "offline_access"],
-                    links: {},
-                },
-                methods: [
-                    {
-                        type: "phone",
-                        channels: ["sms"],
-                        enrollHref: "/enroll/phone",
+        it("does not forward a legacy upfront password to V2 sign-in", async () => {
+            const signInSpy = jest
+                .spyOn(controller["flowClientV2"], "signIn")
+                .mockResolvedValue({
+                    type: FLOW_PASSWORD_REQUIRED_V2,
+                    correlationId: "correlation-id",
+                    continuationState: {
+                        continuationToken: "ct-enroll",
+                        scenario: CustomAuthFlowScenarioV2.SignIn,
+                        scopes: ["openid", "profile", "offline_access"],
+                        links: {},
                     },
-                ],
-            });
+                });
 
-            const result = await controller.signInV2({
+            const inputs = {
                 correlationId: "correlation-id",
                 username: "user@contoso.com",
                 password: "valid-password",
-            });
+            };
+            const result = await controller.signInV2(inputs);
 
-            expect(result.isState("authMethodRegistrationRequired")).toBe(true);
-            if (result.isState("authMethodRegistrationRequired")) {
-                expect(result.state.methods).toEqual([
-                    {
-                        type: "phone",
-                        channels: ["sms"],
-                        enrollHref: "/enroll/phone",
-                    },
-                ]);
-            }
+            expect(result.isState("passwordRequired")).toBe(true);
+            expect(result.data).toBeUndefined();
+            expect(signInSpy).toHaveBeenCalledWith({
+                correlationId: "correlation-id",
+                username: "user@contoso.com",
+                scopes: undefined,
+                claims: undefined,
+            });
         });
     });
 
@@ -199,6 +304,14 @@ describe("CustomAuthStandardController", () => {
                 inputs: {
                     username: "",
                 } as ResetPasswordInputsV2,
+                invalidUsername: true,
+            },
+            {
+                name: "a whitespace-only username",
+                inputs: {
+                    username: " \t\n ",
+                },
+                invalidUsername: true,
             },
             {
                 name: "malformed claims",
@@ -206,6 +319,7 @@ describe("CustomAuthStandardController", () => {
                     username: "user@contoso.com",
                     claims: "not-json",
                 } as ResetPasswordInputsV2,
+                invalidUsername: false,
             },
             {
                 name: "malformed scopes",
@@ -213,20 +327,71 @@ describe("CustomAuthStandardController", () => {
                     username: "user@contoso.com",
                     scopes: ["User.Read", false] as unknown as string[],
                 } as ResetPasswordInputsV2,
+                invalidUsername: false,
             },
-        ])("returns invalid input for $name", async ({ inputs }) => {
-            const resetPasswordSpy = jest.spyOn(
-                controller["flowClientV2"],
-                "resetPassword"
-            );
+        ])(
+            "returns invalid input for $name",
+            async ({ inputs, invalidUsername }) => {
+                const resetPasswordSpy = jest.spyOn(
+                    controller["flowClientV2"],
+                    "resetPassword"
+                );
 
-            const result = await controller.resetPasswordV2(inputs);
+                const result = await controller.resetPasswordV2(inputs);
+
+                expect(result.isFailed()).toBe(true);
+                expect(result.error?.isInvalidInput()).toBe(true);
+                expect(result.error?.isInvalidUsername()).toBe(invalidUsername);
+                expect(resetPasswordSpy).not.toHaveBeenCalled();
+            }
+        );
+    });
+
+    describe("signUpV2", () => {
+        it.each([
+            {
+                name: "an empty username",
+                inputs: { username: "" },
+                invalidUsername: true,
+            },
+            {
+                name: "a whitespace-only username",
+                inputs: { username: " \t\n " },
+                invalidUsername: true,
+            },
+        ])(
+            "returns invalid input for $name",
+            async ({ inputs, invalidUsername }) => {
+                const signUpSpy = jest.spyOn(
+                    controller["flowClientV2"],
+                    "signUp"
+                );
+
+                const result = await controller.signUpV2(inputs);
+
+                expect(result.isFailed()).toBe(true);
+                expect(result.error?.isInvalidInput()).toBe(true);
+                expect(result.error?.isInvalidUsername()).toBe(invalidUsername);
+                expect(signUpSpy).not.toHaveBeenCalled();
+            }
+        );
+    });
+
+    it.each([undefined, null])(
+        "classifies a runtime username value of %s as local validation",
+        async (username) => {
+            const inputs = { username: "user@contoso.com" };
+            Object.defineProperty(inputs, "username", { value: username });
+            const signInSpy = jest.spyOn(controller["flowClientV2"], "signIn");
+
+            const result = await controller.signInV2(inputs);
 
             expect(result.isFailed()).toBe(true);
+            expect(result.error?.isInvalidUsername()).toBe(true);
             expect(result.error?.isInvalidInput()).toBe(true);
-            expect(resetPasswordSpy).not.toHaveBeenCalled();
-        });
-    });
+            expect(signInSpy).not.toHaveBeenCalled();
+        }
+    );
 
     describe("signIn", () => {
         it("should return error result if provided username is invalid", async () => {
