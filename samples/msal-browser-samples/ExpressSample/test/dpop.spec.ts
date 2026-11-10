@@ -19,6 +19,8 @@ const SCREENSHOT_BASE_FOLDER_NAME = path.join(
 const CLIENT_ID = "0845a021-afdf-4126-abdd-099c5e6948e1";
 const AUTHORITY = "https://login.microsoftonline.com/common";
 const DPOP_RESOURCE_URI = "https://localhost:45471/WeatherForecast/DPoP";
+const GRAPH_RESOURCE_URI = "https://graph.microsoft.com/v1.0/me";
+const STALE_DPOP_NONCE = "msal-e2e-intentionally-stale-nonce";
 // Temporary, remove when feature is GA
 const DPOP_ESTS_DC = "ESTS-PUB-WUS3-FD000-TEST1-100";
 const PLAYGROUND_RESPONSE_TIMEOUT_MS = 60000;
@@ -48,6 +50,19 @@ type PlaygroundResponse = {
         tokenType?: string;
     };
     message?: string;
+};
+
+type DpopResult = {
+    accessToken: string;
+    dpopProof: string;
+    fromCache?: boolean;
+    tokenType: string;
+};
+
+type DpopResourceResponse = {
+    status: number;
+    dpopNonce: string | null;
+    wwwAuthenticate: string;
 };
 
 async function getPlaygroundPageState(page: puppeteer.Page): Promise<string> {
@@ -117,13 +132,17 @@ function createPlaygroundConfig(port: number, redirectPath = "/redirect") {
     };
 }
 
-function createDpopRequest(loginHint?: string) {
+function createDpopRequest(
+    loginHint?: string,
+    resourceRequestUri = DPOP_RESOURCE_URI,
+    resourceRequestMethod = "GET"
+) {
     return {
         scopes: ["User.Read"],
         ...(loginHint ? { loginHint } : {}),
         authenticationScheme: "DPoP",
-        resourceRequestMethod: "GET",
-        resourceRequestUri: DPOP_RESOURCE_URI,
+        resourceRequestMethod,
+        resourceRequestUri,
         extraQueryParameters: {
             dc: DPOP_ESTS_DC,
         },
@@ -134,7 +153,9 @@ async function populatePlayground(
     page: puppeteer.Page,
     port: number,
     loginHint?: string,
-    redirectPath?: string
+    redirectPath?: string,
+    resourceRequestUri?: string,
+    resourceRequestMethod?: string
 ): Promise<void> {
     await waitForPlaygroundControls(page);
     await page.evaluate(
@@ -155,7 +176,11 @@ async function populatePlayground(
         },
         {
             config: createPlaygroundConfig(port, redirectPath),
-            request: createDpopRequest(loginHint),
+            request: createDpopRequest(
+                loginHint,
+                resourceRequestUri,
+                resourceRequestMethod
+            ),
         }
     );
 }
@@ -179,7 +204,9 @@ async function loadAndConfigurePlayground(
     port: number,
     screenshot: Screenshot,
     loginHint?: string,
-    redirectPath?: string
+    redirectPath?: string,
+    resourceRequestUri?: string,
+    resourceRequestMethod?: string
 ): Promise<void> {
     await page.goto(`http://localhost:${port}/playground`, {
         timeout: 10000,
@@ -188,7 +215,14 @@ async function loadAndConfigurePlayground(
     await switchToVersion("local", page, screenshot);
     await waitForPlaygroundControls(page);
 
-    await populatePlayground(page, port, loginHint, redirectPath);
+    await populatePlayground(
+        page,
+        port,
+        loginHint,
+        redirectPath,
+        resourceRequestUri,
+        resourceRequestMethod
+    );
     await screenshot.takeScreenshot(page, "DPoP request populated");
 
     await applyPlaygroundConfiguration(page);
@@ -247,6 +281,129 @@ function assertDpopResult(response: PlaygroundResponse): void {
     expect(result?.accessToken).toBeTruthy();
     expect(result?.dpopProof).toBeTruthy();
     expect(result?.tokenType).toBe("DPoP");
+}
+
+function getDpopResult(response: PlaygroundResponse): DpopResult {
+    const result = response.result || response.response;
+    if (
+        !result?.accessToken ||
+        !result.dpopProof ||
+        result.tokenType !== "DPoP"
+    ) {
+        throw new Error("Expected a complete DPoP authentication result");
+    }
+
+    return {
+        accessToken: result.accessToken,
+        dpopProof: result.dpopProof,
+        fromCache: response.result?.fromCache,
+        tokenType: result.tokenType,
+    };
+}
+
+async function loadDpopNonce(
+    page: puppeteer.Page,
+    resourceRequestUri: string,
+    nonce: string
+): Promise<void> {
+    const bridgeName = "__msalE2eLoadDpopNonce";
+    const hasBridge = await page.evaluate(
+        (name) => typeof window[name as keyof Window] === "function",
+        bridgeName
+    );
+
+    if (!hasBridge) {
+        await page.addScriptTag({
+            type: "module",
+            content: `
+                import { loadDpopNonce } from "/js/playground.js";
+                window.${bridgeName} = loadDpopNonce;
+            `,
+        });
+        await page.waitForFunction(
+            (name) => typeof window[name as keyof Window] === "function",
+            {},
+            bridgeName
+        );
+    }
+
+    await page.evaluate(
+        ({ name, uri, value }) => {
+            const loader = window[name as keyof Window] as unknown as
+                | ((
+                      resourceRequestUri: string,
+                      nonce: string
+                  ) => Promise<void>)
+                | undefined;
+            if (!loader) {
+                throw new Error("DPoP nonce test bridge is not available");
+            }
+
+            return loader(uri, value);
+        },
+        {
+            name: bridgeName,
+            uri: resourceRequestUri,
+            value: nonce,
+        }
+    );
+}
+
+async function callDpopResource(
+    resourceRequestUri: string,
+    result: DpopResult
+): Promise<DpopResourceResponse> {
+    const response = await fetch(resourceRequestUri, {
+        method: "GET",
+        headers: {
+            Authorization: `DPoP ${result.accessToken}`,
+            DPoP: result.dpopProof,
+        },
+    });
+    const resourceResponse = {
+        status: response.status,
+        dpopNonce: response.headers.get("dpop-nonce"),
+        wwwAuthenticate: response.headers.get("www-authenticate") || "",
+    };
+    await response.body?.cancel();
+
+    return resourceResponse;
+}
+
+async function acquireTokenSilent(
+    page: puppeteer.Page
+): Promise<PlaygroundResponse> {
+    await page.click("button#btnAcquireTokenSilent");
+    return readPlaygroundResponse(page, "acquireTokenSilent");
+}
+
+async function challengeGraphForNonce(
+    page: puppeteer.Page,
+    screenshot: Screenshot,
+    username: string,
+    accountPwd: string
+): Promise<string> {
+    await loadDpopNonce(page, GRAPH_RESOURCE_URI, STALE_DPOP_NONCE);
+    const popupResponse = await acquireTokenPopup(
+        page,
+        screenshot,
+        username,
+        accountPwd
+    );
+    assertDpopResult(popupResponse);
+
+    const challenge = await callDpopResource(
+        GRAPH_RESOURCE_URI,
+        getDpopResult(popupResponse)
+    );
+    expect(challenge.status).toBe(401);
+    expect(challenge.wwwAuthenticate).toContain("DPoP");
+    expect(challenge.wwwAuthenticate).toContain('error="use_dpop_nonce"');
+    if (!challenge.dpopNonce) {
+        throw new Error("Graph did not return a DPoP nonce");
+    }
+
+    return challenge.dpopNonce;
 }
 
 async function assertDpopAccessTokenCached(
@@ -416,6 +573,88 @@ describe("ExpressSample DPoP tests", () => {
             );
             assertDpopResult(ssoSilentResponse);
             await assertDpopAccessTokenCached(browserCache);
+        });
+    });
+
+    describe("Microsoft Graph resource server", () => {
+        let context: puppeteer.BrowserContext;
+        let page: puppeteer.Page;
+        let screenshot: Screenshot;
+
+        beforeEach(async () => {
+            context = await browser.createBrowserContext();
+            page = await context.newPage();
+            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/graph`);
+            await loadAndConfigurePlayground(
+                page,
+                port,
+                screenshot,
+                undefined,
+                undefined,
+                GRAPH_RESOURCE_URI
+            );
+        });
+
+        afterEach(async () => {
+            await page.close();
+            await context.close();
+        });
+
+        it("retries a nonce challenge with a fresh DPoP proof", async () => {
+            const nonce = await challengeGraphForNonce(
+                page,
+                screenshot,
+                username,
+                accountPwd
+            );
+            await loadDpopNonce(page, GRAPH_RESOURCE_URI, nonce);
+
+            const silentResponse = await acquireTokenSilent(page);
+            assertDpopResult(silentResponse);
+            expect(silentResponse.result?.fromCache).toBe(true);
+
+            const retry = await callDpopResource(
+                GRAPH_RESOURCE_URI,
+                getDpopResult(silentResponse)
+            );
+            expect(retry.status).toBe(200);
+            expect(retry.wwwAuthenticate).toBe("");
+            expect(retry.dpopNonce).toBeTruthy();
+        });
+
+        it("rejects a DPoP proof bound to a different HTTP method", async () => {
+            const nonce = await challengeGraphForNonce(
+                page,
+                screenshot,
+                username,
+                accountPwd
+            );
+            await loadDpopNonce(page, GRAPH_RESOURCE_URI, nonce);
+            await populatePlayground(
+                page,
+                port,
+                undefined,
+                undefined,
+                GRAPH_RESOURCE_URI,
+                "POST"
+            );
+
+            const silentResponse = await acquireTokenSilent(page);
+            assertDpopResult(silentResponse);
+            expect(silentResponse.result?.fromCache).toBe(true);
+
+            const rejection = await callDpopResource(
+                GRAPH_RESOURCE_URI,
+                getDpopResult(silentResponse)
+            );
+            expect(rejection.status).toBe(401);
+            expect(rejection.wwwAuthenticate).toContain("DPoP");
+            expect(rejection.wwwAuthenticate).toContain(
+                'error="invalid_token"'
+            );
+            expect(rejection.wwwAuthenticate).toContain(
+                'error_description="The DPoP proof is invalid."'
+            );
         });
     });
 
