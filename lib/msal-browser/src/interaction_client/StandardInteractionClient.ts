@@ -284,6 +284,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
                 clientCapabilities: this.config.auth.clientCapabilities,
+                instanceAware: this.config.auth.instanceAware,
                 redirectUri: this.config.auth.redirectUri,
                 isMcp: this.config.auth.isMcp,
             },
