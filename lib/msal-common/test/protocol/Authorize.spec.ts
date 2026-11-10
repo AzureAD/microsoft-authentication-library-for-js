@@ -1783,26 +1783,59 @@ describe("Authorize Protocol Tests", () => {
             }
         });
 
-        it("throws invalid state error", (done) => {
-            const testServerCodeResponse: AuthorizeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-            };
+        const validState = `${TEST_STATE_VALUES.URI_ENCODED_LIB_STATE}|<span>untrusted-state</span>`;
+        const malformedState = `${validState}%zz`;
 
-            try {
-                AuthorizeProtocol.validateAuthorizationResponse(
-                    testServerCodeResponse,
-                    "dummy-state-%20%%%30%%%%%40",
-                    ""
+        it.each([
+            {
+                name: "malformed response state",
+                response: { code: "testCode", state: malformedState },
+                cachedState: validState,
+            },
+            {
+                name: "malformed response state on an error response",
+                response: {
+                    error: "access_denied",
+                    error_description: "Request denied",
+                    state: malformedState,
+                },
+                cachedState: validState,
+            },
+            {
+                name: "malformed cached state",
+                response: { code: "testCode", state: validState },
+                cachedState: malformedState,
+            },
+            {
+                name: "matching malformed response and cached states",
+                response: { code: "testCode", state: malformedState },
+                cachedState: malformedState,
+            },
+        ])(
+            "throws invalid_state without reflecting state for $name",
+            ({ response, cachedState }) => {
+                const expectedError = new ClientAuthError(
+                    ClientAuthErrorCodes.invalidState,
+                    RANDOM_TEST_GUID
                 );
-            } catch (e) {
-                expect(e).toBeInstanceOf(ClientAuthError);
-                const err = e as ClientAuthError;
-                expect(err.errorCode).toBe(ClientAuthErrorCodes.invalidState);
-                done();
+                const validateResponse = () =>
+                    AuthorizeProtocol.validateAuthorizationResponse(
+                        response,
+                        cachedState,
+                        RANDOM_TEST_GUID
+                    );
+
+                expect(validateResponse).toThrow(ClientAuthError);
+                expect(validateResponse).toThrow(
+                    expect.objectContaining({
+                        errorCode: ClientAuthErrorCodes.invalidState,
+                        correlationId: RANDOM_TEST_GUID,
+                        message: expectedError.message,
+                        errorMessage: expectedError.errorMessage,
+                    })
+                );
             }
-        });
+        );
 
         it("throws ServerError and parser error no", (done) => {
             const testServerCodeResponse: AuthorizeResponse = {

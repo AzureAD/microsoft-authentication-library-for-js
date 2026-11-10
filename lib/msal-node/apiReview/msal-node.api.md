@@ -566,6 +566,6 @@ export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest
 export { ValidCacheType }
 
 // @public (undocumented)
-export const version = "7.1.2";
+export const version = "7.2.1";
 
 ```

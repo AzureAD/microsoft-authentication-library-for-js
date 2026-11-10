@@ -2,6 +2,83 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Fri, 06 Nov 2026 23:13:15 GMT",
+      "version": "5.29.0",
+      "tag": "@azure/msal-browser_v5.29.0",
+      "comments": {
+        "patch": [
+          {
+            "package": "@azure/msal-browser",
+            "commit": "f0dfcc496b0837f4756b3f54ff6a9827fab8e391",
+            "comment": "Correct Native Auth V2 browser, user-not-found, password, and local-username error classification, add general attribute and MFA/JIT challenge classifiers, and remove obsolete error helpers. [#8961](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8961)"
+          },
+          {
+            "author": "lalima.sharda@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "f0dfcc496b0837f4756b3f54ff6a9827fab8e391",
+            "comment": "Limit native token-cache lookup to acquireTokenSilent, honor silent cache policies, and preserve ID tokens during platform-broker account updates [#8971](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8971)"
+          },
+          {
+            "author": "yongdiwang@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "f0dfcc496b0837f4756b3f54ff6a9827fab8e391",
+            "comment": "Defer Native Auth V2 sign-in after reset MFA and sign-up/reset JIT [#8973](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8973)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "",
+            "package": "@azure/msal-browser",
+            "commit": "f0dfcc496b0837f4756b3f54ff6a9827fab8e391",
+            "comment": "Mark Native Auth V2 entry APIs as experimental and require sign-in passwords to be submitted through the requested password state. [#8960](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8960)"
+          },
+          {
+            "package": "@azure/msal-browser",
+            "commit": "f0dfcc496b0837f4756b3f54ff6a9827fab8e391",
+            "comment": "Align Native Auth V2 sign-up start with the API. [#8940](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8940) Simplify V2 inputs and resend results. [#8941](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8941) Share V2 password state and results between sign-in and sign-up, validating retained profile attributes before password collection. [#8942](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8942) Support server-directed, multi-step V2 sign-up attribute and password collection. [#8943](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8943)"
+          },
+          {
+            "author": "ydi.w127@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "f0dfcc496b0837f4756b3f54ff6a9827fab8e391",
+            "comment": "Support server-directed MFA after Native Auth V2 password reset, including automatic sign-in after MFA."
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.16.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 05 Nov 2026 01:03:50 GMT",
+      "version": "5.28.0",
+      "tag": "@azure/msal-browser_v5.28.0",
+      "comments": {
+        "minor": [
+          {
+            "package": "@azure/msal-browser",
+            "commit": "a8a81410aa8e8973aae7b200d2ae6efe5d6b5f2f",
+            "comment": "Support Native Auth V2 JIT email and SMS enrollment during sign-in, sign-up, and password reset. [#8927](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8927)"
+          },
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a8a81410aa8e8973aae7b200d2ae6efe5d6b5f2f",
+            "comment": "Implement extension-only WAM DPoP routing outcomes, MSAL-managed request keys, and proof cache policy [#8789](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8789)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.16.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 27 Oct 2026 18:15:10 GMT",
       "version": "5.27.0",
       "tag": "@azure/msal-browser_v5.27.0",
