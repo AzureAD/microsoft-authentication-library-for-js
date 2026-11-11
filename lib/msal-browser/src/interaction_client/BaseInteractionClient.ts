@@ -256,7 +256,7 @@ export async function clearCacheOnLogout(
     correlationId: string,
     account?: AccountInfo | null
 ): Promise<void> {
-    browserStorage.clearDpopNonces(correlationId);
+    browserStorage.clearDpopNonces();
     if (account) {
         // Clear given account.
         try {

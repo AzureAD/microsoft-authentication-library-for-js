@@ -235,4 +235,4 @@ if (response.status === 401 && nonce) {
 }
 ```
 
-`loadDpopNonce` stores the value for the resource origin so MSAL can include it in the next proof. It does not issue the resource request. Treat nonce values as opaque and do not persist them. This simplified example assumes a `401` with `DPoP-Nonce` is a nonce challenge; applications that need stricter challenge handling can also verify `WWW-Authenticate` contains the DPoP `use_dpop_nonce` error before retrying.
+`loadDpopNonce` stores the value for the resource origin in PCA-local memory so MSAL can include it in the next proof. It does not issue the resource request. Reloading or navigating away from the page discards the nonce, and the resource server can challenge the application again after it returns. Treat nonce values as opaque and do not persist them. This simplified example assumes a `401` with `DPoP-Nonce` is a nonce challenge; applications that need stricter challenge handling can also verify `WWW-Authenticate` contains the DPoP `use_dpop_nonce` error before retrying.

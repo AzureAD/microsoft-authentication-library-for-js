@@ -100,7 +100,7 @@ await pca.initialize();
 - Keys used to encrypt proof of possession (PoP) tokens and DPoP token-binding keys are stored using a combination of [IndexedDB API](https://developer.mozilla.org/docs/Web/API/IndexedDB_API) and memory storage. For more information, please refer to [access-token-proof-of-possession](./access-token-proof-of-possession.md#pop-key-management).
 - DPoP support in MSAL Browser is currently in development and is not fully rolled out or ready for production use. APIs and behavior may change; use this feature only for evaluation and testing.
 - DPoP access tokens are cached as authentication-scheme access tokens partitioned by `tokenType=dpop` and the request's DPoP key thumbprint. DPoP proof JWTs are not cached; MSAL signs a fresh proof on each successful acquisition and treats a cached DPoP access token as a cache miss if the matching local key is unavailable. When MSAL removes a cached PoP or DPoP access token, it also removes the associated token-binding key.
-- Resource-server DPoP nonces loaded through `loadDpopNonce` are held in memory by the `PublicClientApplication`. Redirect flows may use a temporary, one-time handoff in the current tab's session storage; normal cache clearing and logout remove this nonce state.
+- Resource-server DPoP nonces loaded through `loadDpopNonce` are held in memory by the `PublicClientApplication`. Reloading or navigating away from the page discards this state; normal cache clearing and logout also remove it.
 
 ## More information
 
