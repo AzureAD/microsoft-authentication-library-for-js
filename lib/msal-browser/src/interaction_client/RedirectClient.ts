@@ -143,6 +143,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.platformAuthProvider,
             request.authenticationScheme
         );
+
         let rejectBackButtonCancellation!: (reason?: unknown) => void;
         const backButtonCancellation = new Promise<never>((_, reject) => {
             rejectBackButtonCancellation = reject;

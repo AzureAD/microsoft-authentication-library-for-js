@@ -44,7 +44,6 @@ export type PreparedSilentRequest = {
 type PlatformSilentRequest = SilentRequest &
     Pick<SsoSilentRequest, "nonce" | "loginHint"> & {
         account: AccountInfo;
-        dpopNonce?: string;
     };
 
 /**
@@ -168,7 +167,6 @@ function getPlatformSilentRequestKey(
         loginHint: request.loginHint,
         popKid: request.popKid,
         shrNonce: request.shrNonce,
-        dpopNonce: request.dpopNonce,
         skipBrokerClaims: request.embeddedClientId
             ? !!request.skipBrokerClaims
             : undefined,

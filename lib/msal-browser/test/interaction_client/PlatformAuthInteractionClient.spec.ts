@@ -5362,7 +5362,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 resourceRequestMethod: "post",
                 resourceRequestUri:
                     "https://graph.microsoft.com/v1.0/me?user=alice#profile",
-                dpopNonce: "server-nonce",
                 extraParametersNoCache: {
                     custom_no_cache: "ignored",
                     pop_method: "DELETE",
@@ -5370,7 +5369,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     pop_nonce: "incorrect-nonce",
                 },
             } as PopupRequest & {
-                dpopNonce: string;
                 extraParametersNoCache: NonNullable<
                     PlatformAuthRequest["extraParametersNoCache"]
                 >;

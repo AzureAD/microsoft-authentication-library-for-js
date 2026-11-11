@@ -1315,13 +1315,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 ? undefined
                 : this.config.auth.clientCapabilities;
 
-        const {
-            scopes,
-            claims,
-            dpopNonce: requestDpopNonce,
-        } = request as (PopupRequest | SsoSilentRequest) & {
-            dpopNonce?: string;
-        };
+        const { scopes, claims } = request;
         const dpopNonce =
             request.authenticationScheme ===
                 Constants.AuthenticationScheme.DPOP &&
@@ -1329,8 +1323,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 ? this.browserStorage.getDpopNonce(
                       request.resourceRequestUri,
                       this.correlationId
-                  ) ?? requestDpopNonce
-                : requestDpopNonce;
+                  )
+                : undefined;
         const scopeSet = new ScopeSet(
             [...(scopes || []), ...Constants.OIDC_DEFAULT_SCOPES],
             this.correlationId

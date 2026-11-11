@@ -269,6 +269,7 @@ export class StandardController implements IController {
                   undefined,
                   this.tokenBindingKeyManager
               );
+
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
             cacheLocation: BrowserCacheLocation.MemoryStorage,

@@ -973,6 +973,7 @@ describe("ResponseHandler.ts", () => {
                     }
                 }
             );
+
             const responseHandler = new ResponseHandler(
                 "this-is-a-client-id",
                 testCacheManager,
