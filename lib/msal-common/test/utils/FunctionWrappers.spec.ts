@@ -2,6 +2,8 @@ import {
     AuthError,
     IPerformanceClient,
     Logger,
+    LogLevel,
+    ServerError,
     StubPerformanceClient,
     invoke,
     invokeAsync,
@@ -93,7 +95,68 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testCorrelationId"
             );
             expect(end).toHaveBeenCalledWith({ success: false }, error);
-            expect(loggerSpy).toHaveBeenCalledTimes(3);
+            expect(loggerSpy).toHaveBeenCalledTimes(2);
+        });
+
+        it.each([false, true])(
+            "does not log exception contents when PII logging is %s",
+            (piiLoggingEnabled) => {
+                const messages: string[] = [];
+                const testLogger = new Logger({
+                    logLevel: LogLevel.Trace,
+                    piiLoggingEnabled,
+                    loggerCallback: (_level, message) => messages.push(message),
+                });
+                const error = Object.assign(
+                    new ServerError(
+                        "invalid_grant",
+                        "synthetic-user@example.invalid"
+                    ),
+                    {
+                        accessToken: "synthetic-access-token",
+                        details: { privateKey: "synthetic-private-key" },
+                    }
+                );
+
+                expect(() =>
+                    invoke(
+                        () => {
+                            throw error;
+                        },
+                        "testEventName",
+                        testLogger,
+                        perfClient,
+                        "testCorrelationId"
+                    )()
+                ).toThrow(error);
+                expect(messages).toEqual(
+                    expect.arrayContaining([
+                        expect.stringContaining(
+                            "Error occurred in 'testEventName'"
+                        ),
+                    ])
+                );
+                expect(messages.join("\n")).not.toContain("synthetic-");
+            }
+        );
+
+        it("does not serialize thrown errors", () => {
+            const error = Object.assign(new Error("Call Failed"), {
+                toJSON: jest.fn().mockReturnValue("synthetic-access-token"),
+            });
+
+            expect(() =>
+                invoke(
+                    () => {
+                        throw error;
+                    },
+                    "testEventName",
+                    logger,
+                    perfClient,
+                    "testCorrelationId"
+                )()
+            ).toThrow(error);
+            expect(error.toJSON).not.toHaveBeenCalled();
         });
     });
 
@@ -180,7 +243,64 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testCorrelationId"
             );
             expect(end).toHaveBeenCalledWith({ success: false }, error);
-            expect(loggerSpy).toHaveBeenCalledTimes(3);
+            expect(loggerSpy).toHaveBeenCalledTimes(2);
+        });
+
+        it.each([false, true])(
+            "does not log exception contents when PII logging is %s",
+            async (piiLoggingEnabled) => {
+                const messages: string[] = [];
+                const testLogger = new Logger({
+                    logLevel: LogLevel.Trace,
+                    piiLoggingEnabled,
+                    loggerCallback: (_level, message) => messages.push(message),
+                });
+                const error = Object.assign(
+                    new ServerError(
+                        "invalid_grant",
+                        "synthetic-user@example.invalid"
+                    ),
+                    {
+                        accessToken: "synthetic-access-token",
+                        details: { privateKey: "synthetic-private-key" },
+                    }
+                );
+
+                await expect(
+                    invokeAsync(
+                        () => Promise.reject(error),
+                        "testEventName",
+                        testLogger,
+                        perfClient,
+                        "testCorrelationId"
+                    )()
+                ).rejects.toBe(error);
+                expect(messages).toEqual(
+                    expect.arrayContaining([
+                        expect.stringContaining(
+                            "Error occurred in 'testEventName'"
+                        ),
+                    ])
+                );
+                expect(messages.join("\n")).not.toContain("synthetic-");
+            }
+        );
+
+        it("does not serialize rejected errors", async () => {
+            const error = Object.assign(new Error("Call Failed"), {
+                toJSON: jest.fn().mockReturnValue("synthetic-access-token"),
+            });
+
+            await expect(
+                invokeAsync(
+                    () => Promise.reject(error),
+                    "testEventName",
+                    logger,
+                    perfClient,
+                    "testCorrelationId"
+                )()
+            ).rejects.toBe(error);
+            expect(error.toJSON).not.toHaveBeenCalled();
         });
     });
 });
