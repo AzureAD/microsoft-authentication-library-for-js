@@ -28,6 +28,7 @@ type AuthenticationInfoChallenges = {
 export class AuthenticationHeaderParser {
     private headers: Record<string, string>;
 
+    /** Captures a case-insensitive snapshot of the response headers. */
     constructor(headers: Record<string, string>) {
         this.headers = normalizeResponseHeaders(headers);
     }
