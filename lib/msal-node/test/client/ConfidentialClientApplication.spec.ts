@@ -674,6 +674,22 @@ describe("ConfidentialClientApplication", () => {
                 checkRegion(sendPostRequestAsyncSpy.mock.lastCall[0], region);
             });
 
+            test.each(["example.com\\", "example.com@", "westus/other"])(
+                "does not send credentials for invalid configured region %p",
+                async (azureRegion) => {
+                    await expect(
+                        client.acquireTokenByClientCredential({
+                            ...request,
+                            azureRegion,
+                            skipCache: true,
+                        })
+                    ).rejects.toMatchObject({
+                        errorCode: "endpoints_resolution_error",
+                    });
+                    expect(sendPostRequestAsyncSpy).not.toHaveBeenCalled();
+                }
+            );
+
             test('region is not passed in through the request, the MSAL_FORCE_REGION environment variable is set to "DisableMsalForceRegion"', async () => {
                 const authResult = (await client.acquireTokenByClientCredential(
                     { ...request, azureRegion: "DisableMsalForceRegion" }

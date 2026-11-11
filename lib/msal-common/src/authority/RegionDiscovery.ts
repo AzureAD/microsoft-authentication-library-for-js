@@ -15,6 +15,24 @@ import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.j
 import { invokeAsync } from "../utils/FunctionWrappers.js";
 import { Logger } from "../logger/Logger.js";
 
+// Starts with an ASCII letter; remaining characters are ASCII letters, digits, or hyphens.
+const REGION_NAME_PATTERN = /^[a-z][a-z0-9-]*$/i;
+// A region becomes a DNS label, limited to 63 octets by RFC 1035 section 2.3.4.
+const MAX_REGION_NAME_LENGTH = 63;
+
+/**
+ * Whether a region can safely be used as a single DNS label.
+ */
+export function isValidRegion(region: unknown): boolean {
+    return (
+        typeof region === "string" &&
+        region.length <= MAX_REGION_NAME_LENGTH &&
+        REGION_NAME_PATTERN.test(region) &&
+        // Keep the trailing-hyphen rule explicit rather than complicating the pattern.
+        !region.endsWith("-")
+    );
+}
+
 export class RegionDiscovery {
     // Network interface to make requests with.
     protected networkInterface: INetworkModule;
@@ -125,13 +143,20 @@ export class RegionDiscovery {
                 Constants.RegionDiscoverySources.ENVIRONMENT_VARIABLE;
         }
 
-        // If no region was auto detected from the environment or from the IMDS endpoint, mark the attempt as a FAILED_AUTO_DETECTION
-        if (!autodetectedRegionName) {
+        // Untrusted discovery values must be a single DNS label before becoming a host prefix.
+        if (!autodetectedRegionName || !isValidRegion(autodetectedRegionName)) {
+            if (autodetectedRegionName) {
+                this.logger.warning(
+                    "Region discovery returned an invalid region. Using the global authority.",
+                    this.correlationId
+                );
+            }
             regionDiscoveryMetadata.region_source =
                 Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION;
+            return null;
         }
 
-        return autodetectedRegionName || null;
+        return autodetectedRegionName;
     }
 
     /**
