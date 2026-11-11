@@ -2465,13 +2465,10 @@ export class StandardController implements IController {
             this.performanceClient
         );
 
-        const isPlatformDpopRequest =
-            preparedRequest.route === "platform" &&
-            preparedRequest.request.authenticationScheme ===
-                Constants.AuthenticationScheme.DPOP;
-        const shouldDeduplicate = !isPlatformDpopRequest;
+        const requestKey = preparedRequest.key;
+        const shouldDeduplicate = requestKey !== undefined;
         const inProgressRequest = shouldDeduplicate
-            ? this.activeSilentTokenRequests.get(preparedRequest.key)
+            ? this.activeSilentTokenRequests.get(requestKey)
             : undefined;
 
         if (typeof inProgressRequest === "undefined") {
@@ -2496,17 +2493,14 @@ export class StandardController implements IController {
                 },
                 preparedRequest.account
             );
-            if (!shouldDeduplicate) {
+            if (requestKey === undefined) {
                 return activeRequest;
             }
 
-            this.activeSilentTokenRequests.set(
-                preparedRequest.key,
-                activeRequest
-            );
+            this.activeSilentTokenRequests.set(requestKey, activeRequest);
 
             return activeRequest.finally(() => {
-                this.activeSilentTokenRequests.delete(preparedRequest.key);
+                this.activeSilentTokenRequests.delete(requestKey);
             });
         } else {
             this.logger.verbose(
