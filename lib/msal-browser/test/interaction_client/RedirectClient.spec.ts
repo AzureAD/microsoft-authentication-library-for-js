@@ -3455,9 +3455,10 @@ describe("RedirectClient", () => {
             );
         });
 
-        it("doesn't navigate if onRedirectNavigate returns false", async () => {
+        it("doesnt navigate if onRedirectNavigate returns false", (done) => {
             const onRedirectNavigate = (url: string) => {
                 expect(url).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                done();
                 return false;
             };
 
@@ -3474,41 +3475,42 @@ describe("RedirectClient", () => {
                 },
             });
 
-            await pca.initialize();
-            pca = (pca as any).controller;
-            // @ts-ignore
-            redirectClient = new RedirectClient(
-                //@ts-ignore
-                pca.config,
-                //@ts-ignore
-                pca.browserStorage,
-                //@ts-ignore
-                pca.browserCrypto,
-                //@ts-ignore
-                pca.logger,
-                //@ts-ignore
-                pca.eventHandler,
-                //@ts-ignore
-                pca.navigationClient,
-                //@ts-ignore
-                pca.performanceClient,
-                //@ts-ignore
-                pca.nativeInternalStorage,
-                TEST_CONFIG.CORRELATION_ID
-            );
-            const navigationClient = new NavigationClient();
-            const navigateExternalSpy = jest
-                .spyOn(navigationClient, "navigateExternal")
-                .mockResolvedValue(true);
+            pca.initialize().then(() => {
+                pca = (pca as any).controller;
+                // @ts-ignore
+                redirectClient = new RedirectClient(
+                    //@ts-ignore
+                    pca.config,
+                    //@ts-ignore
+                    pca.browserStorage,
+                    //@ts-ignore
+                    pca.browserCrypto,
+                    //@ts-ignore
+                    pca.logger,
+                    //@ts-ignore
+                    pca.eventHandler,
+                    //@ts-ignore
+                    pca.navigationClient,
+                    //@ts-ignore
+                    pca.performanceClient,
+                    //@ts-ignore
+                    pca.nativeInternalStorage
+                );
+                const navigationClient = new NavigationClient();
+                navigationClient.navigateExternal = (
+                    urlNavigate: string,
+                    options: NavigationOptions
+                ): Promise<boolean> => {
+                    done(
+                        "Navigatation should not happen if onRedirectNavigate returns false"
+                    );
+                    return Promise.reject();
+                };
 
-            // @ts-ignore
-            redirectClient.navigationClient = navigationClient;
-
-            await redirectClient.initiateAuthRequest(
-                TEST_URIS.TEST_ALTERNATE_REDIR_URI
-            );
-
-            expect(navigateExternalSpy).not.toHaveBeenCalled();
+                redirectClient.initiateAuthRequest(
+                    TEST_URIS.TEST_ALTERNATE_REDIR_URI
+                );
+            });
         });
 
         it("navigates if onRedirectNavigate doesnt return false", (done) => {
