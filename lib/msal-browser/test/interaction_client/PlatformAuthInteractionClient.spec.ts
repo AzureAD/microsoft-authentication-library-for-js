@@ -21,6 +21,7 @@ import {
     DpopProofGenerator,
     PerformanceEvent,
     PopTokenGenerator,
+    ResponseHandler,
 } from "@azure/msal-common";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { ApiId, CacheLookupPolicy } from "../../src/utils/BrowserConstants.js";
@@ -1031,6 +1032,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 expect(response.tokenType).toBe(
                     Constants.AuthenticationScheme.DPOP
                 );
+                expect(ResponseHandler.hasDpopKeyId(response)).toBe(false);
                 expect(signSpy).not.toHaveBeenCalled();
                 expect(saveCacheRecordSpy).not.toHaveBeenCalled();
                 expect(removeAccountContextSpy).not.toHaveBeenCalled();
@@ -1440,6 +1442,7 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 });
 
                 expect(response.dpopProof).toBe("local-dpop-proof");
+                expect(ResponseHandler.hasDpopKeyId(response)).toBe(true);
                 expect(signSpy).toHaveBeenCalledTimes(1);
                 expect(saveCacheRecordSpy).toHaveBeenCalledWith(
                     expect.objectContaining({
@@ -1520,17 +1523,21 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     },
                 });
 
-                await platformAuthInteractionClient.acquireToken({
-                    scopes: ["User.Read"],
-                    embeddedClientId,
-                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
-                    resourceRequestMethod: "POST",
-                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
-                    storeInCache: {
-                        accessToken: false,
-                    },
-                });
+                const response =
+                    await platformAuthInteractionClient.acquireToken({
+                        scopes: ["User.Read"],
+                        embeddedClientId,
+                        authenticationScheme:
+                            Constants.AuthenticationScheme.DPOP,
+                        resourceRequestMethod: "POST",
+                        resourceRequestUri:
+                            "https://graph.microsoft.com/v1.0/me",
+                        storeInCache: {
+                            accessToken: false,
+                        },
+                    });
 
+                expect(ResponseHandler.hasDpopKeyId(response)).toBe(false);
                 expect(removeKeySpy).toHaveBeenCalledWith(
                     "uncached-dpop-key",
                     RANDOM_TEST_GUID

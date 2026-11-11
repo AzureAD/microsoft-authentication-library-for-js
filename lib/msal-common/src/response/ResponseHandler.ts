@@ -818,13 +818,32 @@ export class ResponseHandler {
         };
 
         if (isDpopAccessToken && cacheRecord.accessToken?.keyId) {
-            dpopKeyIdByAuthenticationResult.set(
+            ResponseHandler.setDpopKeyId(
                 authenticationResult,
                 cacheRecord.accessToken.keyId
             );
         }
 
         return authenticationResult;
+    }
+
+    /**
+     * Retains an MSAL-owned DPoP key for fresh proofs on deduplicated calls.
+     * @internal
+     */
+    static setDpopKeyId(
+        authenticationResult: AuthenticationResult,
+        keyId: string
+    ): void {
+        dpopKeyIdByAuthenticationResult.set(authenticationResult, keyId);
+    }
+
+    /**
+     * Returns whether MSAL can generate another proof for this result.
+     * @internal
+     */
+    static hasDpopKeyId(authenticationResult: AuthenticationResult): boolean {
+        return dpopKeyIdByAuthenticationResult.has(authenticationResult);
     }
 
     /**

@@ -2966,6 +2966,8 @@ export class ResponseHandler {
     static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, options?: GenerateAuthenticationResultOptions): Promise<AuthenticationResult>;
     static generateDpopResourceProof(cryptoObj: ICrypto, authenticationResult: AuthenticationResult, request: BaseAuthRequest, performanceClient: IPerformanceClient, options?: Pick<GenerateAuthenticationResultOptions, "tokenBindingKeyManager" | "dpopNonceProvider">): Promise<string>;
     handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
+    static hasDpopKeyId(authenticationResult: AuthenticationResult): boolean;
+    static setDpopKeyId(authenticationResult: AuthenticationResult, keyId: string): void;
     validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse, correlationId: string, refreshAccessToken?: boolean): void;
 }
 

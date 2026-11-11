@@ -27,6 +27,7 @@ import {
     PerformanceEvents,
     PopTokenGenerator,
     RequestParameterBuilder,
+    ResponseHandler,
     ScopeSet,
     ServerTelemetryManager,
     SignedHttpRequestParameters,
@@ -858,6 +859,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             isL3DpopResponse ||
             (this.isDpopBrokerRequest(request) &&
                 storeInCache?.accessToken === false);
+        if (
+            dpopBrokerOutcome === "L1" &&
+            !shouldRemoveGeneratedDpopKey &&
+            request.keyId
+        ) {
+            ResponseHandler.setDpopKeyId(result, request.keyId);
+        }
         if (shouldRemoveGeneratedDpopKey) {
             await this.resetGeneratedDpopRequestKey(request);
         }

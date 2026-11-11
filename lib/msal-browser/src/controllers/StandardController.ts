@@ -2516,6 +2516,25 @@ export class StandardController implements IController {
                 return result;
             }
 
+            if (
+                result.fromPlatformBroker &&
+                !ResponseHandler.hasDpopKeyId(result)
+            ) {
+                return invokeAsync(
+                    this.acquireTokenSilentAsync.bind(this),
+                    BrowserPerformanceEvents.AcquireTokenSilentAsync,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(
+                    {
+                        ...preparedRequest.request,
+                        correlationId,
+                    },
+                    result.account || preparedRequest.account
+                );
+            }
+
             const dpopProof = await ResponseHandler.generateDpopResourceProof(
                 this.browserCrypto,
                 result,
