@@ -64,7 +64,14 @@ export type GenerateAuthenticationResultOptions = {
     dpopNonceProvider?: IDpopNonceProvider;
 };
 
-const dpopKeyIds = new WeakMap<AuthenticationResult, string>();
+/*
+ * Retains the signing key for fresh proofs on deduplicated calls without
+ * exposing it on the public AuthenticationResult.
+ */
+const dpopKeyIdByAuthenticationResult = new WeakMap<
+    AuthenticationResult,
+    string
+>();
 
 function getDpopNonceForRequest(
     dpopNonceProvider: IDpopNonceProvider | undefined,
@@ -811,7 +818,10 @@ export class ResponseHandler {
         };
 
         if (isDpopAccessToken && cacheRecord.accessToken?.keyId) {
-            dpopKeyIds.set(authenticationResult, cacheRecord.accessToken.keyId);
+            dpopKeyIdByAuthenticationResult.set(
+                authenticationResult,
+                cacheRecord.accessToken.keyId
+            );
         }
 
         return authenticationResult;
@@ -831,7 +841,7 @@ export class ResponseHandler {
             "tokenBindingKeyManager" | "dpopNonceProvider"
         > = {}
     ): Promise<string> {
-        const keyId = dpopKeyIds.get(authenticationResult);
+        const keyId = dpopKeyIdByAuthenticationResult.get(authenticationResult);
         if (!keyId) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.keyIdMissing,
