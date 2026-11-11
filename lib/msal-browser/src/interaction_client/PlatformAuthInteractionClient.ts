@@ -159,7 +159,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             performanceClient,
             correlationId,
             provider,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            browserStorage
         );
 
         const extensionName = this.platformAuthProvider.getExtensionName();

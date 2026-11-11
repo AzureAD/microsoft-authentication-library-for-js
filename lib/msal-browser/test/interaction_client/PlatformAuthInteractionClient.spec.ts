@@ -458,6 +458,32 @@ describe("PlatformAuthInteractionClient Tests", () => {
             }
         );
 
+        it("uses PCA nonce storage separately from native token storage", () => {
+            const resourceRequestUri = "https://graph.microsoft.com/v1.0/me";
+            browserCacheManager.setDpopNonce(
+                resourceRequestUri,
+                "resource-nonce"
+            );
+            const silentCacheClient = (
+                platformAuthInteractionClient as unknown as {
+                    silentCacheClient: {
+                        browserStorage: BrowserCacheManager;
+                        dpopNonceProvider: BrowserCacheManager;
+                    };
+                }
+            ).silentCacheClient;
+
+            expect(silentCacheClient.browserStorage).toBe(internalStorage);
+            expect(silentCacheClient.dpopNonceProvider).toBe(
+                browserCacheManager
+            );
+            expect(
+                silentCacheClient.dpopNonceProvider.getDpopNonce(
+                    resourceRequestUri
+                )
+            ).toBe("resource-nonce");
+        });
+
         it("preserves a parent cache-only request's cache error without calling WAM", async () => {
             const cacheError = new Error("Cache read failed");
             jest.spyOn(

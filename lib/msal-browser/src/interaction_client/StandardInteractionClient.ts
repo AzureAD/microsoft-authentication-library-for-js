@@ -304,7 +304,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             },
             cryptoInterface: this.browserCrypto,
             tokenBindingKeyManager: this.tokenBindingKeyManager,
-            dpopNonceProvider: this.browserStorage,
+            dpopNonceProvider: this.dpopNonceProvider,
             networkInterface: this.networkClient,
             storageInterface: this.browserStorage,
             serverTelemetryManager: serverTelemetryManager,
