@@ -230,6 +230,10 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   DPoP HTTP target URI (`htu`) must be an HTTPS URL without userinfo.
 
+### `invalid_dpop_nonce`
+
+-   DPoP nonce values must be non-empty strings when supplied. Non-empty values are treated as opaque and replayed unchanged.
+
 ### `dpop_missing_resource_context`
 
 -   DPoP token requests must include both `resourceRequestMethod` and `resourceRequestUri`.

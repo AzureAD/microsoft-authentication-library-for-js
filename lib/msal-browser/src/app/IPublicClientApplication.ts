@@ -78,8 +78,9 @@ export interface IPublicClientApplication {
     /**
      * Stores an opaque resource-server DPoP nonce for subsequent proofs to the
      * normalized HTTPS origin derived from the resource request URI.
-     * The nonce is stored and replayed unchanged. Invalid resource URIs and
-     * unsupported operating contexts reject the operation.
+     * Non-empty nonce values are stored and replayed unchanged. Invalid
+     * resource URIs, empty nonces, and unsupported operating contexts reject
+     * the operation.
      */
     loadDpopNonce(resourceRequestUri: string, dpopNonce: string): Promise<void>;
 }

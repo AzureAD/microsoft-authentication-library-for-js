@@ -12,6 +12,7 @@ import {
 } from "../error/ClientConfigurationError.js";
 import { JoseHeader } from "./JoseHeader.js";
 import type { PublicJsonWebKey } from "./PublicJsonWebKey.js";
+import { validateDpopNonce } from "./DpopNonceUtils.js";
 
 /**
  * RFC 9449 DPoP proof JWT payload claims.
@@ -195,7 +196,7 @@ export class DpopProofGenerator {
             iat: TimeUtils.nowSeconds(),
         };
         if (params.nonce !== undefined) {
-            claims.nonce = params.nonce;
+            claims.nonce = validateDpopNonce(params.nonce, correlationId);
         }
         return claims;
     }
@@ -238,7 +239,7 @@ export class DpopProofGenerator {
             iat: TimeUtils.nowSeconds(),
         };
         if (params.nonce !== undefined) {
-            claims.nonce = params.nonce;
+            claims.nonce = validateDpopNonce(params.nonce, correlationId);
         }
         return claims;
     }

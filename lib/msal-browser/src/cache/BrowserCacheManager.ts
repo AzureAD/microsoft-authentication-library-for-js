@@ -42,6 +42,7 @@ import {
     getTenantIdFromIdTokenClaims,
     buildTenantProfile,
     canonicalizeDpopResourceServer,
+    validateDpopNonce,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -1908,10 +1909,11 @@ export class BrowserCacheManager
             resourceRequestUri,
             correlationId
         );
+        const validatedNonce = validateDpopNonce(dpopNonce, correlationId);
 
         // Reinsert replacements so eviction remains oldest-write ordered.
         this.dpopNonces.delete(resourceServer);
-        this.dpopNonces.set(resourceServer, dpopNonce);
+        this.dpopNonces.set(resourceServer, validatedNonce);
 
         if (this.dpopNonces.size > MAX_RESOURCE_SERVER_NONCES) {
             const oldestResourceServer = this.dpopNonces.keys().next().value;

@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { Logger, StubPerformanceClient } from "@azure/msal-common/browser";
+import {
+    ClientConfigurationErrorCodes,
+    Logger,
+    StubPerformanceClient,
+} from "@azure/msal-common/browser";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
@@ -80,6 +84,25 @@ describe("BrowserCacheManager DPoP nonce state", () => {
         expect(
             cacheManager.getDpopNonce("https://api.contoso.com/resource")
         ).toBe(opaqueNonce);
+    });
+
+    it("rejects an empty nonce without mutating existing state", () => {
+        const cacheManager = createCacheManager();
+        cacheManager.setDpopNonce(
+            "https://api.contoso.com/resource",
+            "nonce-1"
+        );
+
+        expect(() =>
+            cacheManager.setDpopNonce("https://api.contoso.com/resource", "")
+        ).toThrow(
+            expect.objectContaining({
+                errorCode: ClientConfigurationErrorCodes.invalidDpopNonce,
+            })
+        );
+        expect(
+            cacheManager.getDpopNonce("https://api.contoso.com/resource")
+        ).toBe("nonce-1");
     });
 
     it("evicts the oldest write after reaching 50 origins", () => {

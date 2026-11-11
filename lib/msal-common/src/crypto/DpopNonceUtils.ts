@@ -9,6 +9,25 @@ import {
 } from "../error/ClientConfigurationError.js";
 
 /**
+ * Validates that a DPoP nonce is a non-empty string and returns the opaque
+ * value unchanged.
+ * @internal
+ */
+export function validateDpopNonce(
+    nonce: unknown,
+    correlationId: string = ""
+): string {
+    if (typeof nonce !== "string" || nonce.length === 0) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidDpopNonce,
+            correlationId
+        );
+    }
+
+    return nonce;
+}
+
+/**
  * Returns the normalized HTTPS origin used to scope a resource-server nonce.
  * @internal
  */

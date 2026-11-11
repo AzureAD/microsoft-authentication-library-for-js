@@ -164,6 +164,23 @@ describe("DpopProofGenerator Unit Tests", () => {
             expect(claims.nonce).toBe(nonce);
         });
 
+        it("rejects an empty token nonce", () => {
+            expect(() =>
+                generator.buildTokenProofClaims(
+                    {
+                        tokenEndpoint:
+                            "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
+                        nonce: "",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    errorCode: ClientConfigurationErrorCodes.invalidDpopNonce,
+                })
+            );
+        });
+
         it("omits nonce from token proof when not provided", () => {
             const tokenEndpoint =
                 "https://login.microsoftonline.com/tenant/oauth2/v2.0/token";
@@ -358,6 +375,24 @@ describe("DpopProofGenerator Unit Tests", () => {
             );
 
             expect(claims.nonce).toBe("resource-nonce-xyz");
+        });
+
+        it("rejects an empty resource nonce", () => {
+            expect(() =>
+                generator.buildResourceProofClaims(
+                    {
+                        htu: "https://graph.microsoft.com/v1.0/me",
+                        htm: "GET",
+                        ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                        nonce: "",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    errorCode: ClientConfigurationErrorCodes.invalidDpopNonce,
+                })
+            );
         });
 
         it("omits nonce from resource proof when not provided", () => {

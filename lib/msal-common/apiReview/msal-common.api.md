@@ -1131,6 +1131,7 @@ declare namespace ClientConfigurationErrorCodes {
         invalidResponseMode,
         invalidDpopHtm,
         invalidDpopHtu,
+        invalidDpopNonce,
         dpopMissingResourceContext
     }
 }
@@ -1980,6 +1981,9 @@ const invalidDpopHtm = "invalid_dpop_htm";
 
 // @public (undocumented)
 const invalidDpopHtu = "invalid_dpop_htu";
+
+// @public (undocumented)
+const invalidDpopNonce = "invalid_dpop_nonce";
 
 // @public (undocumented)
 const invalidPlatformBrokerConfiguration = "invalid_platform_broker_configuration";
@@ -3526,6 +3530,9 @@ const USERNAME = "username";
 
 // @public
 function validateAuthorizationResponse(serverResponse: AuthorizeResponse, requestState: string, correlationId: string): void;
+
+// @internal
+export function validateDpopNonce(nonce: unknown, correlationId?: string): string;
 
 // @public
 function validateUrl(url: string, logger?: Logger, correlationId?: string): void;
