@@ -68,6 +68,7 @@ describe("FunctionWrappers Unit Tests", () => {
                     return inProgressMeasurement;
                 });
             const loggerSpy = jest.spyOn(logger, "trace");
+            const piiLoggerSpy = jest.spyOn(logger, "tracePii");
 
             const error = new AuthError("Failure", "Call Failed");
 
@@ -96,26 +97,27 @@ describe("FunctionWrappers Unit Tests", () => {
             );
             expect(end).toHaveBeenCalledWith({ success: false }, error);
             expect(loggerSpy).toHaveBeenCalledTimes(2);
+            expect(piiLoggerSpy).toHaveBeenCalledWith(
+                JSON.stringify(error),
+                "testCorrelationId"
+            );
         });
 
         it.each([false, true])(
-            "does not log exception contents when PII logging is %s",
+            "respects the PII logging setting (%s) for exception contents",
             (piiLoggingEnabled) => {
-                const messages: string[] = [];
+                const messages: { message: string; containsPii: boolean }[] =
+                    [];
                 const testLogger = new Logger({
                     logLevel: LogLevel.Trace,
                     piiLoggingEnabled,
-                    loggerCallback: (_level, message) => messages.push(message),
+                    loggerCallback: (_level, message, containsPii) =>
+                        messages.push({ message, containsPii }),
                 });
-                const error = Object.assign(
-                    new ServerError(
-                        "invalid_grant",
-                        "synthetic-user@example.invalid"
-                    ),
-                    {
-                        accessToken: "synthetic-access-token",
-                        details: { privateKey: "synthetic-private-key" },
-                    }
+                const error = new ServerError(
+                    "invalid_grant",
+                    "testCorrelationId",
+                    "synthetic-user@example.invalid"
                 );
 
                 expect(() =>
@@ -131,18 +133,39 @@ describe("FunctionWrappers Unit Tests", () => {
                 ).toThrow(error);
                 expect(messages).toEqual(
                     expect.arrayContaining([
-                        expect.stringContaining(
-                            "Error occurred in 'testEventName'"
-                        ),
+                        {
+                            message: expect.stringContaining(
+                                "Error occurred in 'testEventName'"
+                            ),
+                            containsPii: false,
+                        },
                     ])
                 );
-                expect(messages.join("\n")).not.toContain("synthetic-");
+                expect(
+                    messages.filter(({ message }) =>
+                        message.includes("synthetic-user@example.invalid")
+                    )
+                ).toEqual(
+                    piiLoggingEnabled
+                        ? [
+                              {
+                                  message: expect.stringContaining(
+                                      JSON.stringify(error)
+                                  ),
+                                  containsPii: true,
+                              },
+                          ]
+                        : []
+                );
             }
         );
 
-        it("does not serialize thrown errors", () => {
+        it("preserves the original error when serialization fails", () => {
+            const loggerSpy = jest.spyOn(logger, "trace");
             const error = Object.assign(new Error("Call Failed"), {
-                toJSON: jest.fn().mockReturnValue("synthetic-access-token"),
+                toJSON: () => {
+                    throw new Error("Serialization failed");
+                },
             });
 
             expect(() =>
@@ -156,7 +179,10 @@ describe("FunctionWrappers Unit Tests", () => {
                     "testCorrelationId"
                 )()
             ).toThrow(error);
-            expect(error.toJSON).not.toHaveBeenCalled();
+            expect(loggerSpy).toHaveBeenCalledWith(
+                "Unable to print error message.",
+                "testCorrelationId"
+            );
         });
     });
 
@@ -214,6 +240,7 @@ describe("FunctionWrappers Unit Tests", () => {
                     return inProgressMeasurement;
                 });
             const loggerSpy = jest.spyOn(logger, "trace");
+            const piiLoggerSpy = jest.spyOn(logger, "tracePii");
 
             const error = new AuthError("Failure", "Call Failed");
 
@@ -244,26 +271,27 @@ describe("FunctionWrappers Unit Tests", () => {
             );
             expect(end).toHaveBeenCalledWith({ success: false }, error);
             expect(loggerSpy).toHaveBeenCalledTimes(2);
+            expect(piiLoggerSpy).toHaveBeenCalledWith(
+                JSON.stringify(error),
+                "testCorrelationId"
+            );
         });
 
         it.each([false, true])(
-            "does not log exception contents when PII logging is %s",
+            "respects the PII logging setting (%s) for exception contents",
             async (piiLoggingEnabled) => {
-                const messages: string[] = [];
+                const messages: { message: string; containsPii: boolean }[] =
+                    [];
                 const testLogger = new Logger({
                     logLevel: LogLevel.Trace,
                     piiLoggingEnabled,
-                    loggerCallback: (_level, message) => messages.push(message),
+                    loggerCallback: (_level, message, containsPii) =>
+                        messages.push({ message, containsPii }),
                 });
-                const error = Object.assign(
-                    new ServerError(
-                        "invalid_grant",
-                        "synthetic-user@example.invalid"
-                    ),
-                    {
-                        accessToken: "synthetic-access-token",
-                        details: { privateKey: "synthetic-private-key" },
-                    }
+                const error = new ServerError(
+                    "invalid_grant",
+                    "testCorrelationId",
+                    "synthetic-user@example.invalid"
                 );
 
                 await expect(
@@ -277,18 +305,39 @@ describe("FunctionWrappers Unit Tests", () => {
                 ).rejects.toBe(error);
                 expect(messages).toEqual(
                     expect.arrayContaining([
-                        expect.stringContaining(
-                            "Error occurred in 'testEventName'"
-                        ),
+                        {
+                            message: expect.stringContaining(
+                                "Error occurred in 'testEventName'"
+                            ),
+                            containsPii: false,
+                        },
                     ])
                 );
-                expect(messages.join("\n")).not.toContain("synthetic-");
+                expect(
+                    messages.filter(({ message }) =>
+                        message.includes("synthetic-user@example.invalid")
+                    )
+                ).toEqual(
+                    piiLoggingEnabled
+                        ? [
+                              {
+                                  message: expect.stringContaining(
+                                      JSON.stringify(error)
+                                  ),
+                                  containsPii: true,
+                              },
+                          ]
+                        : []
+                );
             }
         );
 
-        it("does not serialize rejected errors", async () => {
+        it("preserves the original error when serialization fails", async () => {
+            const loggerSpy = jest.spyOn(logger, "trace");
             const error = Object.assign(new Error("Call Failed"), {
-                toJSON: jest.fn().mockReturnValue("synthetic-access-token"),
+                toJSON: () => {
+                    throw new Error("Serialization failed");
+                },
             });
 
             await expect(
@@ -300,7 +349,10 @@ describe("FunctionWrappers Unit Tests", () => {
                     "testCorrelationId"
                 )()
             ).rejects.toBe(error);
-            expect(error.toJSON).not.toHaveBeenCalled();
+            expect(loggerSpy).toHaveBeenCalledWith(
+                "Unable to print error message.",
+                "testCorrelationId"
+            );
         });
     });
 });
