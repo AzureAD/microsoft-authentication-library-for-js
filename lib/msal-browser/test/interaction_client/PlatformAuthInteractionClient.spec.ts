@@ -229,6 +229,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
     });
 
     describe("acquireTokensFromInternalCache Tests", () => {
+        let getAccessTokenSpy: jest.SpyInstance;
+
         beforeEach(() => {
             // @ts-ignore
             platformAuthInteractionClient.apiId =
@@ -238,10 +240,11 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 "getBaseAccountInfo"
             ).mockReturnValue(TEST_ACCOUNT_INFO);
 
-            jest.spyOn(
+            getAccessTokenSpy = jest.spyOn(
                 CacheManager.prototype,
                 "getAccessToken"
-            ).mockReturnValue(testAccessTokenEntity);
+            );
+            getAccessTokenSpy.mockReturnValue(testAccessTokenEntity);
             jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue(
                 TEST_ID_TOKEN
             );
@@ -482,6 +485,80 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     resourceRequestUri
                 )
             ).toBe("resource-nonce");
+        });
+
+        it("uses the PCA nonce when generating a proof for a cached native DPoP token", async () => {
+            const resourceRequestUri = "https://graph.microsoft.com/v1.0/me";
+            const keyId = "cached-native-dpop-key";
+            getAccessTokenSpy.mockReturnValue({
+                ...testAccessTokenEntity,
+                credentialType:
+                    Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME,
+                tokenType: Constants.AuthenticationScheme.DPOP,
+                keyId,
+            });
+            browserCacheManager.setDpopNonce(
+                resourceRequestUri,
+                "resource-nonce"
+            );
+            const keyManager = (
+                platformAuthInteractionClient as unknown as {
+                    tokenBindingKeyManager: {
+                        getTokenBindingPublicKeyJwk: (
+                            keyId: string,
+                            correlationId: string
+                        ) => Promise<JsonWebKey>;
+                    };
+                }
+            ).tokenBindingKeyManager;
+            jest.spyOn(
+                keyManager,
+                "getTokenBindingPublicKeyJwk"
+            ).mockResolvedValue({
+                kty: "EC",
+                crv: "P-256",
+                x: "test-x",
+                y: "test-y",
+            });
+            jest.spyOn(
+                // @ts-ignore
+                platformAuthInteractionClient.browserCrypto,
+                "hashString"
+            ).mockResolvedValue("access-token-hash");
+            const signSpy = jest
+                .spyOn(
+                    // @ts-ignore
+                    platformAuthInteractionClient.browserCrypto,
+                    "signTokenBindingJwt"
+                )
+                .mockResolvedValue("cached-native-dpop-proof");
+            const sendMessage = jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            );
+
+            const response = await platformAuthInteractionClient.acquireToken(
+                {
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    resourceRequestMethod: "GET",
+                    resourceRequestUri,
+                },
+                CacheLookupPolicy.AccessToken
+            );
+
+            expect(response.dpopProof).toBe("cached-native-dpop-proof");
+            expect(response.fromCache).toBe(true);
+            expect(sendMessage).not.toHaveBeenCalled();
+            expect(signSpy).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.objectContaining({
+                    nonce: "resource-nonce",
+                    ath: "access-token-hash",
+                }),
+                keyId,
+                RANDOM_TEST_GUID
+            );
         });
 
         it("preserves a parent cache-only request's cache error without calling WAM", async () => {
