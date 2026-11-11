@@ -12,7 +12,6 @@ import {
 } from "../error/ClientConfigurationError.js";
 import { JoseHeader } from "./JoseHeader.js";
 import type { PublicJsonWebKey } from "./PublicJsonWebKey.js";
-import { validateDpopNonce } from "./DpopNonceUtils.js";
 
 /**
  * RFC 9449 DPoP proof JWT payload claims.
@@ -189,9 +188,6 @@ export class DpopProofGenerator {
         params: DpopTokenProofParams,
         correlationId: string = ""
     ): DpopProofClaims {
-        if (params.nonce !== undefined) {
-            validateDpopNonce(params.nonce, correlationId);
-        }
         const claims: DpopProofClaims = {
             jti: this.cryptoUtils.createNewGuid(),
             htm: "POST",
@@ -230,9 +226,6 @@ export class DpopProofGenerator {
         params: DpopResourceProofParams,
         correlationId: string = ""
     ): DpopProofClaims {
-        if (params.nonce !== undefined) {
-            validateDpopNonce(params.nonce, correlationId);
-        }
         const resourceContext = normalizeDpopResourceRequestContext(
             params,
             correlationId

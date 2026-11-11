@@ -152,10 +152,10 @@ describe("DpopProofGenerator Unit Tests", () => {
             expect(claims.jti.length).toBeGreaterThan(0);
         });
 
-        it("includes optional nonce in token proof when provided", () => {
+        it("preserves an optional opaque nonce in the token proof", () => {
             const tokenEndpoint =
                 "https://login.microsoftonline.com/tenant/oauth2/v2.0/token";
-            const nonce = "server-nonce-abc123";
+            const nonce = `\u0000${"\u00e9".repeat(1025)} " \\`;
             const claims = generator.buildTokenProofClaims(
                 { tokenEndpoint, nonce },
                 ""

@@ -3,11 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    ClientConfigurationErrorCodes,
-    Logger,
-    StubPerformanceClient,
-} from "@azure/msal-common/browser";
+import { Logger, StubPerformanceClient } from "@azure/msal-common/browser";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants.js";
 import { CryptoOps } from "../../src/crypto/CryptoOps.js";
@@ -72,35 +68,18 @@ describe("BrowserCacheManager DPoP nonce state", () => {
         ).toBe("nonce-2");
     });
 
-    it("does not mutate existing state when validation fails", () => {
+    it("stores and returns an opaque nonce unchanged", () => {
         const cacheManager = createCacheManager();
+        const opaqueNonce = `\u0000${"\u00e9".repeat(1025)} " \\`;
+
         cacheManager.setDpopNonce(
             "https://api.contoso.com/resource",
-            "nonce-1"
-        );
-
-        expect(() =>
-            cacheManager.setDpopNonce(
-                "https://api.contoso.com/resource",
-                "\u0000invalid"
-            )
-        ).toThrow(
-            expect.objectContaining({
-                errorCode: ClientConfigurationErrorCodes.invalidDpopNonce,
-            })
+            opaqueNonce
         );
 
         expect(
             cacheManager.getDpopNonce("https://api.contoso.com/resource")
-        ).toBe("nonce-1");
-
-        cacheManager.setDpopNonce(
-            "https://api.contoso.com/resource",
-            "nonce-2"
-        );
-        expect(
-            cacheManager.getDpopNonce("https://api.contoso.com/resource")
-        ).toBe("nonce-2");
+        ).toBe(opaqueNonce);
     });
 
     it("evicts the oldest write after reaching 50 origins", () => {

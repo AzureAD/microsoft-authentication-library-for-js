@@ -9,45 +9,6 @@ import {
 } from "../error/ClientConfigurationError.js";
 
 /**
- * Maximum accepted DPoP nonce size, measured after UTF-8 encoding.
- * @internal
- */
-export const DPOP_NONCE_MAX_SIZE_BYTES = 1024;
-
-const DPOP_NONCE_CONTROL_CHARACTER_REGEX = /[\u0000-\u001f\u007f-\u009f]/;
-
-/**
- * Returns the byte length of a string after UTF-8 encoding.
- */
-function getUtf8ByteLength(value: string): number {
-    return new TextEncoder().encode(value).length;
-}
-
-/**
- * Validates a DPoP nonce and returns the original opaque value unchanged.
- * @internal
- */
-export function validateDpopNonce(
-    nonce: unknown,
-    correlationId: string = ""
-): string {
-    if (
-        typeof nonce !== "string" ||
-        nonce.trim().length === 0 ||
-        DPOP_NONCE_CONTROL_CHARACTER_REGEX.test(nonce) ||
-        nonce.length > DPOP_NONCE_MAX_SIZE_BYTES ||
-        getUtf8ByteLength(nonce) > DPOP_NONCE_MAX_SIZE_BYTES
-    ) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidDpopNonce,
-            correlationId
-        );
-    }
-
-    return nonce;
-}
-
-/**
  * Returns the normalized HTTPS origin used to scope a resource-server nonce.
  * @internal
  */

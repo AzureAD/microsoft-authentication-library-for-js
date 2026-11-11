@@ -141,10 +141,7 @@ export {
 } from "./response/ResponseHandler.js";
 export { ScopeSet } from "./request/ScopeSet.js";
 export { AuthenticationHeaderParser } from "./request/AuthenticationHeaderParser.js";
-export {
-    canonicalizeDpopResourceServer,
-    validateDpopNonce,
-} from "./crypto/DpopNonceUtils.js";
+export { canonicalizeDpopResourceServer } from "./crypto/DpopNonceUtils.js";
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger.js";
 export {
     InteractionRequiredAuthError,
