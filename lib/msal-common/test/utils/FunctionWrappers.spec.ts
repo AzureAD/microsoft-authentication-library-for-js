@@ -3,11 +3,13 @@ import {
     IPerformanceClient,
     Logger,
     LogLevel,
+    PerformanceEvent,
     ServerError,
     StubPerformanceClient,
     invoke,
     invokeAsync,
 } from "../../src";
+import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 
 describe("FunctionWrappers Unit Tests", () => {
     const perfClient: IPerformanceClient = new StubPerformanceClient();
@@ -98,7 +100,7 @@ describe("FunctionWrappers Unit Tests", () => {
             expect(end).toHaveBeenCalledWith({ success: false }, error);
             expect(loggerSpy).toHaveBeenCalledTimes(2);
             expect(piiLoggerSpy).toHaveBeenCalledWith(
-                JSON.stringify(error),
+                `Error details: '${JSON.stringify(error)}'`,
                 "testCorrelationId"
             );
         });
@@ -272,7 +274,7 @@ describe("FunctionWrappers Unit Tests", () => {
             expect(end).toHaveBeenCalledWith({ success: false }, error);
             expect(loggerSpy).toHaveBeenCalledTimes(2);
             expect(piiLoggerSpy).toHaveBeenCalledWith(
-                JSON.stringify(error),
+                `Error details: '${JSON.stringify(error)}'`,
                 "testCorrelationId"
             );
         });
@@ -355,4 +357,57 @@ describe("FunctionWrappers Unit Tests", () => {
             );
         });
     });
+
+    describe.each(["invoke", "invokeAsync"])(
+        "%s performance logs",
+        (wrapper) => {
+            it.each([false, true])(
+                "does not emit numeric exception contents with PII logging %s",
+                async (piiLoggingEnabled) => {
+                    const testLogger = new Logger({
+                        logLevel: LogLevel.Trace,
+                        piiLoggingEnabled,
+                    });
+                    const testPerfClient = new MockPerformanceClient();
+                    const events: PerformanceEvent[] = [];
+                    testPerfClient.addPerformanceCallback((emittedEvents) => {
+                        events.push(...emittedEvents);
+                    });
+                    const error = 123456;
+                    const correlationId = `numeric-error-${wrapper}-${piiLoggingEnabled}`;
+
+                    if (wrapper === "invoke") {
+                        try {
+                            invoke(
+                                () => {
+                                    throw error;
+                                },
+                                "testEventName",
+                                testLogger,
+                                testPerfClient,
+                                correlationId
+                            )();
+                            throw new Error("Expected the original error");
+                        } catch (e) {
+                            expect(e).toBe(error);
+                        }
+                    } else {
+                        await expect(
+                            invokeAsync(
+                                () => Promise.reject(error),
+                                "testEventName",
+                                testLogger,
+                                testPerfClient,
+                                correlationId
+                            )()
+                        ).rejects.toBe(error);
+                    }
+
+                    expect(events).toHaveLength(1);
+                    expect(events[0].success).toBe(false);
+                    expect(events[0].logs).not.toContain(String(error));
+                }
+            );
+        }
+    );
 });
