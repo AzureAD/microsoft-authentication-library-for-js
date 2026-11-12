@@ -2,10 +2,14 @@ import {
     AuthError,
     IPerformanceClient,
     Logger,
+    LogLevel,
+    PerformanceEvent,
+    ServerError,
     StubPerformanceClient,
     invoke,
     invokeAsync,
 } from "../../src";
+import { MockPerformanceClient } from "../telemetry/PerformanceClient.spec.js";
 
 describe("FunctionWrappers Unit Tests", () => {
     const perfClient: IPerformanceClient = new StubPerformanceClient();
@@ -66,6 +70,7 @@ describe("FunctionWrappers Unit Tests", () => {
                     return inProgressMeasurement;
                 });
             const loggerSpy = jest.spyOn(logger, "trace");
+            const piiLoggerSpy = jest.spyOn(logger, "tracePii");
 
             const error = new AuthError("Failure", "Call Failed");
 
@@ -93,7 +98,93 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testCorrelationId"
             );
             expect(end).toHaveBeenCalledWith({ success: false }, error);
-            expect(loggerSpy).toHaveBeenCalledTimes(3);
+            expect(loggerSpy).toHaveBeenCalledTimes(2);
+            expect(piiLoggerSpy).toHaveBeenCalledWith(
+                `Error details: '${JSON.stringify(error)}'`,
+                "testCorrelationId"
+            );
+        });
+
+        it.each([false, true])(
+            "respects the PII logging setting (%s) for exception contents",
+            (piiLoggingEnabled) => {
+                const messages: { message: string; containsPii: boolean }[] =
+                    [];
+                const testLogger = new Logger({
+                    logLevel: LogLevel.Trace,
+                    piiLoggingEnabled,
+                    loggerCallback: (_level, message, containsPii) =>
+                        messages.push({ message, containsPii }),
+                });
+                const error = new ServerError(
+                    "invalid_grant",
+                    "testCorrelationId",
+                    "synthetic-user@example.invalid"
+                );
+
+                expect(() =>
+                    invoke(
+                        () => {
+                            throw error;
+                        },
+                        "testEventName",
+                        testLogger,
+                        perfClient,
+                        "testCorrelationId"
+                    )()
+                ).toThrow(error);
+                expect(messages).toEqual(
+                    expect.arrayContaining([
+                        {
+                            message: expect.stringContaining(
+                                "Error occurred in 'testEventName'"
+                            ),
+                            containsPii: false,
+                        },
+                    ])
+                );
+                expect(
+                    messages.filter(({ message }) =>
+                        message.includes("synthetic-user@example.invalid")
+                    )
+                ).toEqual(
+                    piiLoggingEnabled
+                        ? [
+                              {
+                                  message: expect.stringContaining(
+                                      JSON.stringify(error)
+                                  ),
+                                  containsPii: true,
+                              },
+                          ]
+                        : []
+                );
+            }
+        );
+
+        it("preserves the original error when serialization fails", () => {
+            const loggerSpy = jest.spyOn(logger, "trace");
+            const error = Object.assign(new Error("Call Failed"), {
+                toJSON: () => {
+                    throw new Error("Serialization failed");
+                },
+            });
+
+            expect(() =>
+                invoke(
+                    () => {
+                        throw error;
+                    },
+                    "testEventName",
+                    logger,
+                    perfClient,
+                    "testCorrelationId"
+                )()
+            ).toThrow(error);
+            expect(loggerSpy).toHaveBeenCalledWith(
+                "Unable to print error message.",
+                "testCorrelationId"
+            );
         });
     });
 
@@ -151,6 +242,7 @@ describe("FunctionWrappers Unit Tests", () => {
                     return inProgressMeasurement;
                 });
             const loggerSpy = jest.spyOn(logger, "trace");
+            const piiLoggerSpy = jest.spyOn(logger, "tracePii");
 
             const error = new AuthError("Failure", "Call Failed");
 
@@ -180,7 +272,142 @@ describe("FunctionWrappers Unit Tests", () => {
                 "testCorrelationId"
             );
             expect(end).toHaveBeenCalledWith({ success: false }, error);
-            expect(loggerSpy).toHaveBeenCalledTimes(3);
+            expect(loggerSpy).toHaveBeenCalledTimes(2);
+            expect(piiLoggerSpy).toHaveBeenCalledWith(
+                `Error details: '${JSON.stringify(error)}'`,
+                "testCorrelationId"
+            );
+        });
+
+        it.each([false, true])(
+            "respects the PII logging setting (%s) for exception contents",
+            async (piiLoggingEnabled) => {
+                const messages: { message: string; containsPii: boolean }[] =
+                    [];
+                const testLogger = new Logger({
+                    logLevel: LogLevel.Trace,
+                    piiLoggingEnabled,
+                    loggerCallback: (_level, message, containsPii) =>
+                        messages.push({ message, containsPii }),
+                });
+                const error = new ServerError(
+                    "invalid_grant",
+                    "testCorrelationId",
+                    "synthetic-user@example.invalid"
+                );
+
+                await expect(
+                    invokeAsync(
+                        () => Promise.reject(error),
+                        "testEventName",
+                        testLogger,
+                        perfClient,
+                        "testCorrelationId"
+                    )()
+                ).rejects.toBe(error);
+                expect(messages).toEqual(
+                    expect.arrayContaining([
+                        {
+                            message: expect.stringContaining(
+                                "Error occurred in 'testEventName'"
+                            ),
+                            containsPii: false,
+                        },
+                    ])
+                );
+                expect(
+                    messages.filter(({ message }) =>
+                        message.includes("synthetic-user@example.invalid")
+                    )
+                ).toEqual(
+                    piiLoggingEnabled
+                        ? [
+                              {
+                                  message: expect.stringContaining(
+                                      JSON.stringify(error)
+                                  ),
+                                  containsPii: true,
+                              },
+                          ]
+                        : []
+                );
+            }
+        );
+
+        it("preserves the original error when serialization fails", async () => {
+            const loggerSpy = jest.spyOn(logger, "trace");
+            const error = Object.assign(new Error("Call Failed"), {
+                toJSON: () => {
+                    throw new Error("Serialization failed");
+                },
+            });
+
+            await expect(
+                invokeAsync(
+                    () => Promise.reject(error),
+                    "testEventName",
+                    logger,
+                    perfClient,
+                    "testCorrelationId"
+                )()
+            ).rejects.toBe(error);
+            expect(loggerSpy).toHaveBeenCalledWith(
+                "Unable to print error message.",
+                "testCorrelationId"
+            );
         });
     });
+
+    describe.each(["invoke", "invokeAsync"])(
+        "%s performance logs",
+        (wrapper) => {
+            it.each([false, true])(
+                "does not emit numeric exception contents with PII logging %s",
+                async (piiLoggingEnabled) => {
+                    const testLogger = new Logger({
+                        logLevel: LogLevel.Trace,
+                        piiLoggingEnabled,
+                    });
+                    const testPerfClient = new MockPerformanceClient();
+                    const events: PerformanceEvent[] = [];
+                    testPerfClient.addPerformanceCallback((emittedEvents) => {
+                        events.push(...emittedEvents);
+                    });
+                    const error = 123456;
+                    const correlationId = `numeric-error-${wrapper}-${piiLoggingEnabled}`;
+
+                    if (wrapper === "invoke") {
+                        try {
+                            invoke(
+                                () => {
+                                    throw error;
+                                },
+                                "testEventName",
+                                testLogger,
+                                testPerfClient,
+                                correlationId
+                            )();
+                            throw new Error("Expected the original error");
+                        } catch (e) {
+                            expect(e).toBe(error);
+                        }
+                    } else {
+                        await expect(
+                            invokeAsync(
+                                () => Promise.reject(error),
+                                "testEventName",
+                                testLogger,
+                                testPerfClient,
+                                correlationId
+                            )()
+                        ).rejects.toBe(error);
+                    }
+
+                    expect(events).toHaveLength(1);
+                    expect(events[0].success).toBe(false);
+                    expect(events[0].logs).not.toContain(String(error));
+                }
+            );
+        }
+    );
 });
