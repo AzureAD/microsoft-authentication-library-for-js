@@ -23,7 +23,11 @@ import { AUTHORITY } from "./constants.js";
     const statusEl = document.getElementById("status");
     const continueBtn = document.getElementById("continue");
     // The deployed endpoint, not the incoming descriptor, fixes the protocol.
-    const protocolVersion = window.location.pathname === "/relay-v2" ? 2 : 1;
+    const protocolVersion =
+        window.location.pathname.replace(/\/+$/, "").toLowerCase() ===
+        "/relay-v2"
+            ? 2
+            : 1;
 
     /*
      * This page is publicly reachable on the app's own origin, so pin the
