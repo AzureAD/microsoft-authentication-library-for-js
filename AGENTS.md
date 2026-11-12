@@ -25,6 +25,8 @@ Some samples located in the `samples/` directory contain a `test/` folder. End t
 
 ## Project Architecture and Layout
 
+Follow existing repository patterns where possible. Introduce new patterns only when existing ones cannot reasonably meet the requirement.
+
 ### Dependencies and Architecture
 
 - **msal-common**: Core package - no dependencies on other MSAL packages

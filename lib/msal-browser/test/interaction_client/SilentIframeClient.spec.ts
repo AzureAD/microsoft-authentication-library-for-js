@@ -983,6 +983,73 @@ describe("SilentIframeClient", () => {
                 });
         });
 
+        it.each([true, false, undefined])(
+            "honors instanceAware from authorization through code redemption (%p)",
+            async (instanceAware) => {
+                //@ts-ignore
+                clientProperties.config.auth.instanceAware = instanceAware;
+                const cloudHost = "login.microsoftonline.us";
+                const authCodeUrlSpy = jest.spyOn(
+                    AuthorizeProtocol,
+                    "getAuthCodeRequestUrl"
+                );
+                jest.spyOn(
+                    BrowserUtils,
+                    "waitForBridgeResponse"
+                ).mockResolvedValue(
+                    `${TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT}&cloud_instance_host_name=${cloudHost}`
+                );
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER,
+                });
+                const sendPostRequestSpy = jest
+                    .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+                    .mockResolvedValue({
+                        headers: {},
+                        status: 200,
+                        body: {
+                            token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                            scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                            expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                            access_token: TEST_TOKENS.ACCESS_TOKEN,
+                            refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                            id_token: TEST_TOKENS.IDTOKEN_V2,
+                        },
+                    });
+
+                const result = await silentIframeClient.acquireToken({
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    nonce: "123523",
+                    state: TEST_STATE_VALUES.USER_STATE,
+                });
+
+                const authCodeUrl = new URL(
+                    await authCodeUrlSpy.mock.results[0].value
+                );
+                expect(authCodeUrl.searchParams.get("instance_aware")).toBe(
+                    instanceAware ? "true" : null
+                );
+                const expectedHost = instanceAware
+                    ? cloudHost
+                    : "login.microsoftonline.com";
+                expect(sendPostRequestSpy).toHaveBeenCalledTimes(1);
+                const [tokenEndpoint, tokenRequest] =
+                    sendPostRequestSpy.mock.calls[0];
+                const tokenUrl = new URL(tokenEndpoint);
+                expect(tokenUrl.hostname).toBe(expectedHost);
+                expect(tokenUrl.pathname).toBe("/common/oauth2/v2.0/token");
+                expect(tokenRequest?.body).toContain("code=thisIsATestCode");
+                expect(result.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
+                expect(new URL(result.authority).hostname).toBe(expectedHost);
+            }
+        );
+
         it("updates authority hostname param if set to true in the config", async () => {
             //@ts-ignore
             const config = { ...pca.config };

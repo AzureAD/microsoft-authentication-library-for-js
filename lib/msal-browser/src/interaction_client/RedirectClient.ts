@@ -811,7 +811,11 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )({ serverTelemetryManager, requestAuthority: request.authority });
+        )({
+            serverTelemetryManager,
+            requestAuthority: request.authority,
+            requestExtraQueryParameters: request.extraQueryParameters,
+        });
         return invokeAsync(
             Authorize.handleResponseCode,
             BrowserPerformanceEvents.HandleResponseCode,
