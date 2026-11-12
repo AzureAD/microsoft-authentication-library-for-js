@@ -1,7 +1,0 @@
-{
-    "type": "minor",
-    "comment": "Mark Native Auth V2 entry APIs as experimental and require sign-in passwords to be submitted through the requested password state. [#8960](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8960)",
-    "packageName": "@azure/msal-browser",
-    "email": "",
-    "dependentChangeType": "patch"
-}

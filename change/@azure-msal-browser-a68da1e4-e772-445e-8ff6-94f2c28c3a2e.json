@@ -1,7 +1,0 @@
-{
-    "type": "minor",
-    "comment": "Support server-directed MFA after Native Auth V2 password reset, including automatic sign-in after MFA.",
-    "packageName": "@azure/msal-browser",
-    "email": "ydi.w127@gmail.com",
-    "dependentChangeType": "patch"
-}

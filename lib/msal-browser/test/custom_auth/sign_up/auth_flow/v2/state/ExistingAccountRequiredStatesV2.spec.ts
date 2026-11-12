@@ -370,7 +370,7 @@ describe("existing-account sign-up states", () => {
         const completed = await state.submitPassword("valid-password");
 
         expect(failed.isFailed()).toBe(true);
-        expect(failed.error?.isInvalidCredentials()).toBe(true);
+        expect(failed.error?.isInvalidPassword()).toBe(true);
         expect(completed.isState("completed")).toBe(true);
         expect(flowClient.submitSignInPassword).toHaveBeenCalledTimes(2);
         expect(flowClient.submitSignInPassword).toHaveBeenNthCalledWith(1, {

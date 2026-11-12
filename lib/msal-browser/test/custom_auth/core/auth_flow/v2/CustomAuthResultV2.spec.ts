@@ -11,6 +11,7 @@ import { AuthFlowErrorV2 } from "../../../../../src/custom_auth/core/auth_flow/v
 import { CustomAuthApiError } from "../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { MsalCustomAuthError } from "../../../../../src/custom_auth/core/error/MsalCustomAuthError.js";
 import { UnexpectedError } from "../../../../../src/custom_auth/core/error/UnexpectedError.js";
+import { InvalidArgumentError } from "../../../../../src/custom_auth/core/error/InvalidArgumentError.js";
 import { AuthMethodSelectionRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { CodeRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { FailedStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/FailedStateV2.js";
@@ -72,13 +73,10 @@ describe("CustomAuthResultV2", () => {
         expect(typeof result.error.isInvalidInput).toBe("function");
         expect(typeof result.error.isInvalidUsername).toBe("function");
         expect(typeof result.error.isUserNotFound).toBe("function");
-        expect(typeof result.error.isInvalidCredentials).toBe("function");
         expect(typeof result.error.isInvalidCode).toBe("function");
+        expect(typeof result.error.isInvalidChallenge).toBe("function");
+        expect(typeof result.error.isInvalidAttributes).toBe("function");
         expect(typeof result.error.isInvalidPassword).toBe("function");
-        expect(typeof result.error.isUserAlreadyExists).toBe("function");
-        expect(typeof result.error.isMissingRequiredAttributes).toBe(
-            "function"
-        );
     };
 
     describe("isState narrowing", () => {
@@ -207,6 +205,125 @@ describe("CustomAuthResultV2", () => {
             expect(result.state).toBeInstanceOf(FailedStateV2);
             expect(result.error?.errorData).toBe(error);
             expectUnifiedClassifiers(result);
+        });
+
+        it("classifies attribute errors and preserves their diagnostics", () => {
+            const error = new CustomAuthApiError(
+                "invalidRequest",
+                "Some of the collected attributes were invalid.",
+                correlationId,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                [
+                    {
+                        attributeIds: ["username"],
+                        code: "attributeValidationFailed",
+                    },
+                ],
+                "attributeValidationError"
+            );
+            const result = CustomAuthResultV2.createWithError(error, {});
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.error?.errorData).toBe(error);
+            expect(result.error?.isInvalidAttributes()).toBe(true);
+            expect(result.error?.invalidAttributes).toEqual(["username"]);
+            expect(result.error?.innerErrorCode).toBe(
+                "attributeValidationError"
+            );
+            expect(result.error?.isInvalidUsername()).toBe(false);
+            expect(result.error?.isInvalidInput()).toBe(false);
+        });
+
+        it("preserves a classified challenge and its owning scenario", () => {
+            const errorData = new CustomAuthApiError(
+                "invalidGrant",
+                "Invalid code.",
+                correlationId,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                "invalidOneTimeCode"
+            );
+            const error = new AuthFlowErrorV2(
+                errorData,
+                CustomAuthFlowScenarioV2.SignIn,
+                "mfaVerification"
+            );
+
+            const result = CustomAuthResultV2.createWithError(error, {
+                scenario: CustomAuthFlowScenarioV2.PasswordReset,
+            });
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.error).toBe(error);
+            expect(result.error?.errorData).toBe(errorData);
+            expect(result.error?.isInvalidChallenge()).toBe(true);
+            expect(result.error?.isInvalidCode()).toBe(false);
+            expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignIn);
+            expect(result.error?.scenario).toBe(result.scenario);
+        });
+
+        it.each([
+            { errorContext: undefined, invalidChallenge: false },
+            { errorContext: "default", invalidChallenge: false },
+            { errorContext: "mfaVerification", invalidChallenge: true },
+            { errorContext: "authMethodRegistration", invalidChallenge: true },
+        ] as const)(
+            "classifies a raw OTP failure with $errorContext context",
+            ({ errorContext, invalidChallenge }) => {
+                const errorData = new CustomAuthApiError(
+                    "invalidGrant",
+                    "Invalid code.",
+                    correlationId,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    "invalidOneTimeCode"
+                );
+
+                const result = CustomAuthResultV2.createWithError(errorData, {
+                    scenario: CustomAuthFlowScenarioV2.SignIn,
+                    errorContext,
+                });
+
+                expect(result.isFailed()).toBe(true);
+                expect(result.error?.errorData).toBe(errorData);
+                expect(result.error?.isInvalidChallenge()).toBe(
+                    invalidChallenge
+                );
+                expect(result.error?.isInvalidCode()).toBe(!invalidChallenge);
+                expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignIn);
+            }
+        );
+
+        it("classifies local username validation at result creation", () => {
+            const errorData = new InvalidArgumentError(
+                "inputs.username",
+                correlationId
+            );
+
+            const result = CustomAuthResultV2.createWithError(errorData, {
+                scenario: CustomAuthFlowScenarioV2.SignUp,
+            });
+
+            expect(result.error?.errorData).toBe(errorData);
+            expect(result.error?.isInvalidUsername()).toBe(true);
+            expect(result.error?.isInvalidInput()).toBe(true);
+            expect(result.error?.correlationId).toBe(correlationId);
+            expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);
         });
 
         it("applies the scenario to the result and unified error", () => {

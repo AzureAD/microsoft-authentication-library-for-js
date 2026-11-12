@@ -648,11 +648,7 @@ export class CustomAuthStandardController
                 correlationId
             );
 
-            ArgumentValidator.ensureArgumentIsNotEmptyString(
-                "inputs.username",
-                inputs.username,
-                correlationId
-            );
+            this.ensureUsernameIsValidV2(inputs.username, correlationId);
             if (inputs.scopes !== undefined && inputs.scopes !== null) {
                 ArgumentValidator.ensureArgumentIsStringArray(
                     "inputs.scopes",
@@ -745,11 +741,7 @@ export class CustomAuthStandardController
                 inputs,
                 correlationId
             );
-            ArgumentValidator.ensureArgumentIsNotEmptyString(
-                "inputs.username",
-                inputs.username,
-                correlationId
-            );
+            this.ensureUsernameIsValidV2(inputs.username, correlationId);
             if (inputs.scopes !== undefined && inputs.scopes !== null) {
                 ArgumentValidator.ensureArgumentIsStringArray(
                     "inputs.scopes",
@@ -860,11 +852,7 @@ export class CustomAuthStandardController
                 inputs,
                 correlationId
             );
-            ArgumentValidator.ensureArgumentIsNotEmptyString(
-                "inputs.username",
-                inputs.username,
-                correlationId
-            );
+            this.ensureUsernameIsValidV2(inputs.username, correlationId);
             if (inputs.scopes !== undefined && inputs.scopes !== null) {
                 ArgumentValidator.ensureArgumentIsStringArray(
                     "inputs.scopes",
@@ -987,6 +975,17 @@ export class CustomAuthStandardController
                 correlationId,
             });
         }
+    }
+
+    private ensureUsernameIsValidV2(
+        username: string | undefined,
+        correlationId?: string
+    ): void {
+        ArgumentValidator.ensureArgumentIsNotEmptyString(
+            "inputs.username",
+            username,
+            correlationId
+        );
     }
 
     private getCorrelationId(

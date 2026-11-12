@@ -2391,22 +2391,110 @@ describe("CacheManager.ts test cases", () => {
         expect(accountsAfterRemove).toHaveLength(0);
     });
 
-    it("removeAccount", () => {
-        const accountToRemove = buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS);
-        const accountToRemoveKey = generateAccountKey(
-            AccountEntityUtils.getAccountInfo(accountToRemove)
-        );
-        expect(
-            mockCache.cacheManager.getAccount(accountToRemoveKey)
-        ).not.toBeNull();
-        mockCache.cacheManager.removeAccount(
-            AccountEntityUtils.getAccountInfo(accountToRemove),
-            RANDOM_TEST_GUID
-        );
-        expect(
-            mockCache.cacheManager.getAccount(accountToRemoveKey)
-        ).toBeNull();
-    });
+    it.each(["removeAccountContext", "removeAccount"] as const)(
+        "%s removes matching access and refresh tokens, but only account removal deletes ID tokens",
+        async (operation) => {
+            const account = AccountEntityUtils.getAccountInfo(
+                buildAccountFromIdTokenClaims(ID_TOKEN_CLAIMS)
+            );
+            const accountKey = generateAccountKey(account);
+            const context = {
+                homeAccountId: account.homeAccountId,
+                environment: account.environment,
+            };
+            const idToken = buildIdToken(
+                ID_TOKEN_CLAIMS,
+                TEST_TOKENS.IDTOKEN_V2,
+                context
+            );
+            const guestIdToken = buildIdToken(
+                GUEST_ID_TOKEN_CLAIMS,
+                TEST_TOKENS.ID_TOKEN_V2_GUEST,
+                context
+            );
+            const accessToken: AccessTokenEntity = {
+                ...context,
+                credentialType: CredentialType.ACCESS_TOKEN,
+                clientId: CACHE_MOCKS.MOCK_CLIENT_ID,
+                secret: "cached-web-access-token",
+                realm: account.tenantId,
+                target: "cleanup-scope",
+                cachedAt: "1000",
+                expiresOn: "4600",
+                extendedExpiresOn: "4600",
+                lastUpdatedAt: Date.now().toString(),
+            };
+            const refreshToken: RefreshTokenEntity = {
+                ...context,
+                credentialType: CredentialType.REFRESH_TOKEN,
+                clientId: CACHE_MOCKS.MOCK_CLIENT_ID,
+                secret: "cached-web-refresh-token",
+                lastUpdatedAt: Date.now().toString(),
+            };
+            const unrelatedRecords = [
+                { ...context, homeAccountId: "other-uid.other-utid" },
+                { ...context, environment: "login.microsoftonline.us" },
+            ].map((unrelatedContext) => ({
+                idToken: { ...idToken, ...unrelatedContext },
+                accessToken: { ...accessToken, ...unrelatedContext },
+                refreshToken: { ...refreshToken, ...unrelatedContext },
+            }));
+            for (const record of [
+                { idToken, accessToken, refreshToken },
+                ...unrelatedRecords,
+            ]) {
+                await mockCache.cacheManager.saveCacheRecord(
+                    record,
+                    RANDOM_TEST_GUID,
+                    false,
+                    0
+                );
+            }
+            await mockCache.cacheManager.setIdTokenCredential(guestIdToken);
+            const cachedAccount = mockCache.cacheManager.getAccount(accountKey);
+            expect(cachedAccount).not.toBeNull();
+
+            mockCache.cacheManager[operation](account, RANDOM_TEST_GUID);
+
+            expect(mockCache.cacheManager.getAccount(accountKey)).toEqual(
+                operation === "removeAccount" ? null : cachedAccount
+            );
+            for (const token of [idToken, guestIdToken]) {
+                expect(
+                    mockCache.cacheManager.getIdTokenCredential(
+                        generateCredentialKey(token)
+                    )
+                ).toEqual(operation === "removeAccount" ? null : token);
+            }
+            expect(
+                mockCache.cacheManager.getAccessTokenCredential(
+                    generateCredentialKey(accessToken)
+                )
+            ).toBeNull();
+            expect(
+                mockCache.cacheManager.getRefreshTokenCredential(
+                    generateCredentialKey(refreshToken)
+                )
+            ).toBeNull();
+            for (const record of unrelatedRecords) {
+                expect(
+                    mockCache.cacheManager.getIdTokenCredential(
+                        generateCredentialKey(record.idToken)
+                    )
+                ).toEqual(record.idToken);
+                expect(
+                    mockCache.cacheManager.getAccessTokenCredential(
+                        generateCredentialKey(record.accessToken)
+                    )
+                ).toEqual(record.accessToken);
+                expect(
+                    mockCache.cacheManager.getRefreshTokenCredential(
+                        generateCredentialKey(record.refreshToken)
+                    )
+                ).toEqual(record.refreshToken);
+            }
+        }
+    );
 
     it("removeAccessToken", async () => {
         const at = {

@@ -166,8 +166,15 @@ export abstract class ClientApplication {
             "acquireTokenByCode called",
             request.correlationId || ""
         );
-        let validatedAuthCodePayload = authCodePayLoad;
-        if (request.state && validatedAuthCodePayload) {
+        // Only returned state is trusted for comparison; request values own code and nonce.
+        const validatedAuthCodePayload: AuthorizationCodePayload = {
+            code: request.code,
+            nonce: request.nonce,
+        };
+        if (authCodePayLoad) {
+            validatedAuthCodePayload.state = authCodePayLoad.state;
+        }
+        if (request.state && authCodePayLoad) {
             this.logger.info(
                 "acquireTokenByCode - validating state",
                 request.correlationId || ""
@@ -177,20 +184,8 @@ export abstract class ClientApplication {
                 validatedAuthCodePayload.state || "",
                 request.correlationId || ""
             );
-            validatedAuthCodePayload = {
-                ...validatedAuthCodePayload,
-                state: "",
-            };
+            validatedAuthCodePayload.state = "";
         }
-        const expectedNonce =
-            request.nonce !== undefined
-                ? request.nonce
-                : validatedAuthCodePayload?.nonce;
-        validatedAuthCodePayload = {
-            ...validatedAuthCodePayload,
-            code: request.code,
-            nonce: expectedNonce,
-        };
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
             ...(await this.initializeBaseRequest(request)),

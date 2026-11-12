@@ -53,6 +53,8 @@ There are a few things that may behave a little differently when acquiring token
 -   If the platform broker needs to prompt the user for interaction a system prompt will be opened. This prompt looks a bit different from the browser popup windows you may be used to.
 -   Switching your account in the platform broker prompt is not supported and MSAL.js will throw an error (Error Code: user_switch) if this happens. It is your app's responsibility to catch this error and handle it in a way that makes sense for your scenarios (e.g. Show an error page, retry with the new account, retry with the original account, etc.)
 
+For platform-broker requests, only `acquireTokenSilent` checks MSAL's internal access-token cache, according to `cacheLookupPolicy` in its request. `RefreshTokenAndNetwork` and `Skip` bypass that lookup and call the platform broker. Popup, SSO, redirect, and authorization-code exchange flows call the platform broker without looking up cached tokens first. The platform broker may still return a token from its own cache. Web-based and nested-app authentication flows are unchanged.
+
 ### DPoP with the platform broker
 
 > [!WARNING]

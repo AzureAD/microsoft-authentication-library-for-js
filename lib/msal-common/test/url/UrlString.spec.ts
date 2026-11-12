@@ -80,6 +80,91 @@ describe("UrlString.ts Class Unit Tests", () => {
         expect(() => urlObj.validateAsUri()).not.toThrow();
     });
 
+    it.each([
+        "https://example.com\\.ciamlogin.com/common",
+        "https://example.com\\@tenant.ciamlogin.com/common",
+        "https://example.com@tenant.ciamlogin.com/common",
+        "https://@tenant.ciamlogin.com/common",
+        "https://example.com%5c.ciamlogin.com/common",
+        "https://example.com%2f.ciamlogin.com/common",
+        "https://exam\tple.ciamlogin.com/common",
+        "https://exam\nple.ciamlogin.com/common",
+        "https://example.com .ciamlogin.com/common",
+        "https://%65xample.com/common",
+        "https://[::1]@example.com/common",
+        "https://[::1]\\.ciamlogin.com/common",
+        "https://[not-ipv6]/common",
+        "\thttps://example.com/common",
+        "https://example.com\\.ciamlogin.com/common?path=c:\\docs#/intro",
+    ])("rejects ambiguous authority %p before extracting its host", (url) => {
+        const urlObj = new UrlString(url, "test-correlation-id");
+        const error = createClientConfigurationError(
+            ClientConfigurationErrorCodes.urlParseError,
+            "test-correlation-id"
+        );
+        expect(() => urlObj.getUrlComponents()).toThrow(error);
+        expect(() => urlObj.validateAsUri()).toThrow(error);
+    });
+
+    it.each([
+        "https://tenant.ciamlogin.com/common",
+        "https://login.microsoftonline.com:443/common",
+        "https://localhost:3000/tenant",
+        "https://[::1]:3000/tenant",
+    ])("preserves valid authority %p", (url) => {
+        expect(() => new UrlString(url, "").validateAsUri()).not.toThrow();
+    });
+
+    it.each([
+        ["http://api.example:80/resource", "api.example:80"],
+        ["https://api.example:443/resource", "api.example:443"],
+        ["https://api.example:8443/resource", "api.example:8443"],
+        ["https://[0:0:0:0:0:0:0:1]:3000/resource", "[0:0:0:0:0:0:0:1]:3000"],
+        ["custom://api.example/resource", "api.example"],
+    ])("preserves the original host and port in %p", (url, host) => {
+        expect(new UrlString(url, "").getUrlComponents().HostNameAndPort).toBe(
+            host
+        );
+    });
+
+    it.each([
+        {
+            url: "https://api.example/resource?path=c:\\docs",
+            path: "/resource",
+            query: "path=c:\\docs",
+        },
+        {
+            url: "https://api.example/resource?q=two words",
+            path: "/resource",
+            query: "q=two words",
+        },
+        {
+            url: "https://api.example/resource#/docs\\intro",
+            path: "/resource",
+            query: undefined,
+        },
+        {
+            url: "https://api.example/resource#/two words",
+            path: "/resource",
+            query: undefined,
+        },
+        {
+            url: "https://api.example/resource\\part?query=value",
+            path: "/resource\\part",
+            query: "query=value",
+        },
+    ])("preserves non-authority content in $url", ({ url, path, query }) => {
+        const urlObj = new UrlString(url, "");
+
+        expect(urlObj.getUrlComponents()).toMatchObject({
+            Protocol: "https:",
+            HostNameAndPort: "api.example",
+            AbsolutePath: path,
+            QueryString: query,
+        });
+        expect(() => urlObj.validateAsUri()).not.toThrow();
+    });
+
     describe("correlationId propagation", () => {
         const correlationId = "url-string-corr-id";
 
