@@ -76,6 +76,8 @@ The Puppeteer e2e tests live in [`./test`](./test). The EAR (Encrypted Authorize
 
 Platform-broker suites import their profile, browser-launch, token-cache, account, and response assertions from `e2e-test-utils`. The account and response assertions read the sample's Profile page; the account assertion checks broker linkage, while the response assertion also requires `fromPlatformBroker: true`.
 
+The EAR and KMSI broker tests verify the original redirect result using the sample's exported MSAL instance and its memoized `handleRedirectPromise()`. Popup and silent operations are observed through `addEventCallback` before the action. Profile checks use the account assertion because Profile performs a separate silent token request, which may return a native-memory cache hit with `fromPlatformBroker: false`. Native silent operations need not repeat EAR authorization or decryption. Popup EAR request observation starts before clicking and pauses new page targets until CDP network observation is enabled; only matching request counts are retained, not request bodies or tokens.
+
 The [`./test/kmsi-basic.spec.ts`](./test/kmsi-basic.spec.ts) suite verifies that both standard web and Encrypted Authorize Response sign-ins with KMSI persist across a complete browser restart:
 
 ```powershell
