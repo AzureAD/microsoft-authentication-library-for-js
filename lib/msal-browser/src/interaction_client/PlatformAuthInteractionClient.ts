@@ -1886,12 +1886,19 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.browserCrypto,
             this.tokenBindingKeyManager
         );
+        const currentNonce = request.resourceRequestUri
+            ? this.browserStorage.getDpopNonce(
+                  request.resourceRequestUri,
+                  this.correlationId
+              )
+            : undefined;
         return dpopProofGenerator.generateResourceProof(
             {
                 htu: request.resourceRequestUri,
                 htm: request.resourceRequestMethod,
                 accessToken: response.access_token,
-                nonce: request.extraParametersNoCache?.pop_nonce,
+                nonce:
+                    currentNonce ?? request.extraParametersNoCache?.pop_nonce,
             },
             request.keyId as string,
             this.correlationId

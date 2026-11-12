@@ -561,6 +561,123 @@ describe("PlatformAuthInteractionClient Tests", () => {
             );
         });
 
+        it("uses the latest PCA nonce when signing an L1 proof after broker IPC", async () => {
+            const resourceRequestUri = "https://graph.microsoft.com/v1.0/me";
+            browserCacheManager.setDpopNonce(
+                resourceRequestUri,
+                "broker-request-nonce"
+            );
+            jest.spyOn(
+                // @ts-ignore
+                platformAuthInteractionClient.tokenBindingKeyManager,
+                "provisionTokenBindingKey"
+            ).mockResolvedValue("local-dpop-key");
+            jest.spyOn(
+                // @ts-ignore
+                platformAuthInteractionClient.tokenBindingKeyManager,
+                "removeTokenBindingKey"
+            ).mockResolvedValue();
+            const generateProofSpy = jest
+                .spyOn(DpopProofGenerator.prototype, "generateResourceProof")
+                .mockResolvedValue("local-dpop-proof");
+            let brokerRequest: PlatformAuthRequest | undefined;
+            let resolveBrokerResponse!: (
+                response: PlatformAuthResponse
+            ) => void;
+            let brokerRequestSent!: () => void;
+            const brokerResponse = new Promise<PlatformAuthResponse>(
+                (resolve) => {
+                    resolveBrokerResponse = resolve;
+                }
+            );
+            const requestSent = new Promise<void>((resolve) => {
+                brokerRequestSent = resolve;
+            });
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockImplementation((request) => {
+                brokerRequest = {
+                    ...request,
+                    extraParametersNoCache: {
+                        ...request.extraParametersNoCache,
+                    },
+                };
+                brokerRequestSent();
+                return brokerResponse;
+            });
+
+            const responsePromise = platformAuthInteractionClient.acquireToken(
+                {
+                    scopes: ["User.Read"],
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    resourceRequestMethod: "GET",
+                    resourceRequestUri,
+                },
+                CacheLookupPolicy.Skip
+            );
+            await requestSent;
+            browserCacheManager.setDpopNonce(
+                resourceRequestUri,
+                "latest-resource-nonce"
+            );
+            resolveBrokerResponse({
+                ...MOCK_WAM_RESPONSE,
+                properties: {
+                    token_type: "DPoP",
+                    binding_attested: "false",
+                },
+            });
+
+            const response = await responsePromise;
+
+            expect(brokerRequest?.extraParametersNoCache?.pop_nonce).toBe(
+                "broker-request-nonce"
+            );
+            expect(response.dpopProof).toBe("local-dpop-proof");
+            expect(generateProofSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    nonce: "latest-resource-nonce",
+                }),
+                "local-dpop-key",
+                RANDOM_TEST_GUID
+            );
+        });
+
+        it("falls back to the request nonce when PCA nonce state is unavailable", async () => {
+            const generateProofSpy = jest
+                .spyOn(DpopProofGenerator.prototype, "generateResourceProof")
+                .mockResolvedValue("local-dpop-proof");
+            const clientInternals =
+                platformAuthInteractionClient as unknown as {
+                    generateDpopProof(
+                        response: PlatformAuthResponse,
+                        request: PlatformAuthRequest
+                    ): Promise<string>;
+                };
+
+            const proof = await clientInternals.generateDpopProof(
+                MOCK_WAM_RESPONSE,
+                {
+                    resourceRequestMethod: "GET",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                    keyId: "local-dpop-key",
+                    extraParametersNoCache: {
+                        pop_nonce: "request-resource-nonce",
+                    },
+                } as PlatformAuthRequest
+            );
+
+            expect(proof).toBe("local-dpop-proof");
+            expect(generateProofSpy).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    nonce: "request-resource-nonce",
+                }),
+                "local-dpop-key",
+                RANDOM_TEST_GUID
+            );
+        });
+
         it("preserves a parent cache-only request's cache error without calling WAM", async () => {
             const cacheError = new Error("Cache read failed");
             jest.spyOn(
@@ -3970,7 +4087,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                     },
                 });
             });
-
             await platformAuthInteractionClient.acquireTokenRedirect(
                 {
                     scopes: ["User.Read"],
