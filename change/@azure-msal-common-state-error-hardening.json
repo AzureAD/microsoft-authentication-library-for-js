@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "comment": "Omit raw state values from authorization response validation errors [#8955](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8955)",
+  "packageName": "@azure/msal-common",
+  "dependentChangeType": "patch"
+}

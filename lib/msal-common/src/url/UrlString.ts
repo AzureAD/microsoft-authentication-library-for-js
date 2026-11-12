@@ -11,6 +11,13 @@ import { StringUtils } from "../utils/StringUtils.js";
 import { IUri } from "./IUri.js";
 import * as Constants from "../utils/Constants.js";
 
+// Matches ASCII controls, space, DEL, backslash, or the userinfo separator (@).
+const UNSAFE_AUTHORITY = /[\x00-\x20\x7f\\@]/;
+const DEFAULT_PORTS: Record<string, string> = {
+    "https:": ":443",
+    "http:": ":80",
+};
+
 /**
  * Url object class which can perform various transformations on url strings.
  */
@@ -168,6 +175,38 @@ export class UrlString {
             AbsolutePath: match[5],
             QueryString: match[7],
         } as IUri;
+
+        let parsedUrl: URL;
+        try {
+            parsedUrl = new URL(this.urlString);
+        } catch {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError,
+                this.correlationId
+            );
+        }
+
+        const host = urlComponents.HostNameAndPort?.toLowerCase();
+        const schemeAndAuthority = `${urlComponents.Protocol}//${host}`;
+        const defaultPort = DEFAULT_PORTS[parsedUrl.protocol] ?? "";
+        /*
+         * Cross-check the original host; reparsing parsedUrl would hide parser differences.
+         * URL has validated IPv6 syntax, so only bracketed hosts need a normalization comparison.
+         */
+        const hostMatches =
+            host === parsedUrl.host ||
+            host === `${parsedUrl.host}${defaultPort}` ||
+            (host?.startsWith("[") &&
+                new URL(`${urlComponents.Protocol}//${host}`).host ===
+                    parsedUrl.host);
+
+        // Check authority ambiguity without restricting resource paths, queries, or fragments.
+        if (UNSAFE_AUTHORITY.test(schemeAndAuthority) || !hostMatches) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError,
+                this.correlationId
+            );
+        }
 
         let pathSegments = urlComponents.AbsolutePath.split("/");
         pathSegments = pathSegments.filter((val) => val && val.length > 0); // remove empty elements

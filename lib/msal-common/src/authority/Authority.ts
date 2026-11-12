@@ -43,7 +43,7 @@ import {
     isCloudInstanceDiscoveryErrorResponse,
 } from "./CloudInstanceDiscoveryErrorResponse.js";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata.js";
-import { RegionDiscovery } from "./RegionDiscovery.js";
+import { RegionDiscovery, isValidRegion } from "./RegionDiscovery.js";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata.js";
 import { ImdsOptions } from "./ImdsOptions.js";
 import type { AzureCloudOptions } from "../config/ClientConfiguration.js";
@@ -1439,6 +1439,13 @@ export class Authority {
         correlationId: string,
         queryString?: string
     ): string {
+        if (!isValidRegion(region)) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.urlParseError,
+                correlationId
+            );
+        }
+
         // Create and validate a Url string object with the initial authority string
         const authorityUrlInstance = new UrlString(host, correlationId);
         authorityUrlInstance.validateAsUri();
@@ -1454,7 +1461,7 @@ export class Authority {
         // Include the query string portion of the url
         const url = UrlString.constructAuthorityUriFromObject(
             {
-                ...authorityUrlInstance.getUrlComponents(),
+                ...authorityUrlParts,
                 HostNameAndPort: hostNameAndPort,
             },
             correlationId

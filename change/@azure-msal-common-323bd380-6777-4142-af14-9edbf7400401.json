@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Preserve ID tokens during account-context cleanup and remove them on full account removal [#8971](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8971)",
-  "packageName": "@azure/msal-common",
-  "email": "lalima.sharda@gmail.com",
-  "dependentChangeType": "patch"
-}

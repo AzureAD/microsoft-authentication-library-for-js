@@ -1,6 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Correct Native Auth V2 browser, user-not-found, password, and local-username error classification, add general attribute and MFA/JIT challenge classifiers, and remove obsolete error helpers. [#8961](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8961)",
-    "packageName": "@azure/msal-browser",
-    "dependentChangeType": "patch"
-}

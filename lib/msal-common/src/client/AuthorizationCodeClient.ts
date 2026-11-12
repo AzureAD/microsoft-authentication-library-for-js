@@ -139,7 +139,10 @@ export class AuthorizationCodeClient {
         }
 
         // Check for new cloud instance
-        if (authCodePayload && authCodePayload.cloud_instance_host_name) {
+        if (
+            this.config.authOptions.instanceAware === true &&
+            authCodePayload?.cloud_instance_host_name
+        ) {
             await invokeAsync(
                 this.updateTokenEndpointAuthority.bind(this),
                 PerformanceEvents.UpdateTokenEndpointAuthority,

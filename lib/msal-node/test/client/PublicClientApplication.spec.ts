@@ -81,6 +81,7 @@ import * as AuthorizeProtocol from "../../src/protocol/Authorize.js";
 import { StubPerformanceClient } from "@azure/msal-common";
 import { DeviceCodeClient } from "../../src/client/DeviceCodeClient.js";
 import { CryptoProvider } from "../../src/crypto/CryptoProvider.js";
+import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 
 const msalCommon: MSALCommonModule = jest.requireActual(
     "@azure/msal-common/node"
@@ -374,7 +375,7 @@ describe("PublicClientApplication", () => {
         });
     });
 
-    test("acquireTokenByCode preserves legacy nonce payload", async () => {
+    test("acquireTokenByCode ignores a response nonce when the request nonce is absent", async () => {
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
@@ -402,45 +403,62 @@ describe("PublicClientApplication", () => {
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByCode(request, authCodePayLoad);
 
-        expect(acquireTokenSpy.mock.calls[0][2]).toEqual(authCodePayLoad);
-    });
-
-    test("acquireTokenByCode request nonce takes precedence and preserves payload metadata", async () => {
-        const nonce = new CryptoProvider().createNewGuid();
-        const request: AuthorizationCodeRequest = {
-            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
-            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
-            nonce,
-        };
-        const authCodePayLoad = {
-            nonce: "legacy-nonce",
-            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
-            client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-        };
-        const MockAuthorizationCodeClient =
-            getMsalCommonAutoMock().AuthorizationCodeClient;
-        const acquireTokenSpy = jest.spyOn(
-            MockAuthorizationCodeClient.prototype,
-            "acquireToken"
-        );
-
-        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
-            (config) =>
-                new MockAuthorizationCodeClient(
-                    config,
-                    new StubPerformanceClient()
-                )
-        );
-
-        const authApp = new PublicClientApplication(appConfig);
-        await authApp.acquireTokenByCode(request, authCodePayLoad);
-
         expect(acquireTokenSpy.mock.calls[0][2]).toEqual({
-            ...authCodePayLoad,
-            nonce,
+            code: request.code,
+            nonce: undefined,
+            state: undefined,
         });
     });
+
+    test.each([undefined, "", "request-nonce"])(
+        "acquireTokenByCode sanitizes response metadata with request nonce %p",
+        async (nonce) => {
+            const request: AuthorizationCodeRequest = {
+                scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+                code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+                nonce,
+                state: "session-state",
+            };
+            const authCodePayLoad = {
+                nonce: "legacy-nonce",
+                code: "response-code",
+                state: "session-state",
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                cloud_instance_host_name: "example.com\\.ciamlogin.com",
+                cloud_instance_name: "response-cloud",
+                cloud_graph_host_name: "example.com",
+                msgraph_host: "example.com",
+            };
+            const MockAuthorizationCodeClient =
+                getMsalCommonAutoMock().AuthorizationCodeClient;
+            const acquireTokenSpy = jest.spyOn(
+                MockAuthorizationCodeClient.prototype,
+                "acquireToken"
+            );
+
+            jest.spyOn(
+                msalCommon,
+                "AuthorizationCodeClient"
+            ).mockImplementation(
+                (config) =>
+                    new MockAuthorizationCodeClient(
+                        config,
+                        new StubPerformanceClient()
+                    )
+            );
+
+            const authApp = new PublicClientApplication(appConfig);
+            await authApp.acquireTokenByCode(request, authCodePayLoad);
+
+            expect(acquireTokenSpy.mock.calls[0][2]).toEqual({
+                code: request.code,
+                state: "",
+                nonce,
+            });
+            expect(authCodePayLoad.state).toBe("session-state");
+        }
+    );
 
     test("acquireTokenByCode with state validation", async () => {
         const request: AuthorizationCodeRequest = {
@@ -471,6 +489,51 @@ describe("PublicClientApplication", () => {
         await authApp.acquireTokenByCode(request, authCodePayLoad);
 
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+    });
+
+    test("acquireTokenByCode keeps callback routing metadata out of network requests", async () => {
+        const networkClient = mockNetworkClient(
+            DEFAULT_OPENID_CONFIG_RESPONSE.body,
+            AUTHENTICATION_RESULT
+        );
+        const getSpy = jest.spyOn(networkClient, "sendGetRequestAsync");
+        const postSpy = jest.spyOn(networkClient, "sendPostRequestAsync");
+        const authApp = new PublicClientApplication({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                authority: TEST_CONSTANTS.AUTHORITY,
+            },
+            system: { networkClient },
+        });
+        const request: AuthorizationCodeRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            state: "session-state",
+            nonce: ID_TOKEN_CLAIMS.nonce,
+        };
+
+        const result = await authApp.acquireTokenByCode(request, {
+            code: "response-code",
+            state: request.state,
+            nonce: "response-nonce",
+            cloud_instance_host_name: "example.com\\.ciamlogin.com",
+            client_info: "response-client-info",
+        });
+
+        expect(result.accessToken).toBe(
+            AUTHENTICATION_RESULT.body.access_token
+        );
+        expect(postSpy).toHaveBeenCalledTimes(1);
+        expect(new URL(postSpy.mock.calls[0][0]).hostname).toBe(
+            "login.microsoftonline.com"
+        );
+        expect(
+            new URLSearchParams(postSpy.mock.calls[0][1]?.body).get("code")
+        ).toBe(request.code);
+        for (const [url] of getSpy.mock.calls) {
+            expect(new URL(url).hostname).toBe("login.microsoftonline.com");
+        }
     });
 
     test("acquireTokenByRefreshToken", async () => {

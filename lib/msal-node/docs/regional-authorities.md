@@ -16,6 +16,8 @@ A few important notes about regional authorities:
 
 To configure your application to use regional authorities, you a required to provide a region in the `azureRegion` field in the client credential request body.
 
+Region names must be a single DNS label of at most 63 characters, starting with a letter, containing only letters, digits, or hyphens, and ending with a letter or digit. Invalid configured regions prevent endpoint resolution and token acquisition. Invalid regions discovered from `REGION_NAME` or IMDS are discarded with a warning and MSAL uses the global authority.
+
 ### Using secrets securely
 
 Secrets should never be hardcoded. The dotenv npm package can be used to store secrets in a .env file (located in project's root directory) that should be included in .gitignore to prevent accidental uploads of the secrets.
