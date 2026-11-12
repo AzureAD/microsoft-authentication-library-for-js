@@ -4,8 +4,9 @@
  *
  * Top-level POPUP-RELAY page (trusted origin), referenced by
  * `auth.popupRelayUri`. MSAL (running in the embedded iframe) opens this page as
- * a top-level popup with the /authorize navigation in the hash. runPopupRelay
- * opens the IdP child popup, waits for the redirect bridge on /redirect to
+ * a top-level popup. V1 carries the navigation in the hash; v2 receives it
+ * through an authenticated handoff. runPopupRelay opens the IdP child popup,
+ * waits for the redirect bridge on /redirect to
  * broadcast the response, and relays it back to the iframe — all inside MSAL.
  * Being top-level and first-party, this page can run the interactive step the
  * partitioned iframe cannot, and its window.opener link back to the iframe
@@ -21,6 +22,8 @@ import { AUTHORITY } from "./constants.js";
 
     const statusEl = document.getElementById("status");
     const continueBtn = document.getElementById("continue");
+    // The deployed endpoint, not the incoming descriptor, fixes the protocol.
+    const protocolVersion = window.location.pathname === "/relay-v2" ? 2 : 1;
 
     /*
      * This page is publicly reachable on the app's own origin, so pin the
@@ -34,7 +37,7 @@ import { AUTHORITY } from "./constants.js";
         continueBtn.disabled = true;
         statusEl.textContent = "Contacting Microsoft...";
         try {
-            runPopupRelay({ allowedAuthorityOrigins });
+            runPopupRelay({ protocolVersion, allowedAuthorityOrigins });
         } catch (e) {
             statusEl.textContent =
                 "Sign-in unavailable: " + (e && e.message ? e.message : e);

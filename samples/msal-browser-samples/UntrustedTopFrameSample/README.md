@@ -2,6 +2,12 @@
 
 Acquire tokens with a plain `acquireTokenPopup` call from an MSAL.js app that's embedded via a cross-origin iframe inside an untrusted host. Normally interactive auth can't complete in that context, so this app sets one config option — `auth.popupRelayUri` — and MSAL relays the interactive step through a top-level same-origin page for you. The app writes no PKCE, no popup plumbing, and no postMessage relay. **Both sign-in (`acquireTokenPopup`) and sign-out (`logoutPopup`) are relayed the same way.**
 
+The default `/relay` endpoint preserves the legacy v1 protocol, which is
+**deprecated due to security concerns**. Open
+`https://127.0.0.1:3000/?relayVersion=2` to use the authenticated v2 protocol at
+the separate `/relay-v2` endpoint. V2 is recommended for new deployments; v1
+remains available here for compatibility testing.
+
 See [Cross-Origin-Opener-Policy and popup responses](../../../lib/msal-browser/docs/configuration.md#cross-origin-opener-policy-and-popup-responses) for how `auth.popupRelayUri` compares with the default redirect bridge and `system.enableLegacyPolling`.
 
 ## Why interactive auth fails in a partitioned iframe
@@ -16,8 +22,8 @@ A cross-site iframe inside a third-party host can't complete interactive auth on
 
 Set `auth.popupRelayUri` to a same-origin page that calls `runPopupRelay()`, and point your redirect URI page at `broadcastResponseToMainFrame()`. Then call `acquireTokenPopup` like any other SPA:
 
-1. `acquireTokenPopup` (in the iframe) generates PKCE and builds the `/authorize` request as usual, but because `popupRelayUri` is set it opens that top-level relay page (same first-party origin) instead of navigating the popup straight to the IdP. The verifier stays in the iframe; only the request to perform travels in the relay page's hash.
-2. The relay page (`runPopupRelay`) opens a child popup to the IdP and performs the navigation (a GET for the auth-code flow, or a POST form for `form_post`/EAR). The relay page never navigates itself to the IdP, so its `opener` link back to the iframe survives COOP.
+1. `acquireTokenPopup` (in the iframe) generates PKCE and builds the `/authorize` request as usual, but because `popupRelayUri` is set it opens that top-level relay page (same first-party origin) instead of navigating the popup straight to the IdP. The verifier stays in the iframe. V1 carries the request in `#req`; v2 carries only a request ID in `#id` and retains the request in the iframe.
+2. The relay page (`runPopupRelay`) opens a child popup and performs the navigation (a GET for the auth-code flow, or a POST form for `form_post`/EAR). V2 first reserves a blank child during the Continue click, then receives the retained request through an origin-, source-, ID-, and nonce-bound `postMessage` handoff. The relay page never navigates itself to the IdP, so its `opener` link back to the iframe survives COOP.
 3. The IdP returns to `/redirect` (the registered SPA redirect URI), which runs the MSAL redirect bridge (`broadcastResponseToMainFrame`). The bridge parses the response, scrubs it from the URL, and broadcasts the raw payload to the relay page over a same-origin `BroadcastChannel`.
 4. The relay page relays that payload to the iframe via `opener.postMessage` (own-origin only).
 5. Back in the iframe, `acquireTokenPopup` exchanges the response with its own verifier, validates, and caches it. `acquireTokenSilent` then works normally.
@@ -29,7 +35,7 @@ Untrusted host (127.0.0.1:3000, top-level)
 └─ Embedded iframe (localhost:3001)   — partitioned under the host
    • acquireTokenPopup()  — PKCE verifier stays here; exchanges + caches
    ▲ opener.postMessage(rawResponse)   (own origin only)
-   │ window.open("/relay#req")   (opened by MSAL)
+   │ window.open("/relay#req" or "/relay-v2#id")   (opened by MSAL)
    ▼
 Relay page (localhost:3001, TOP-LEVEL, first-party)  — runPopupRelay()
    • opens CHILD popup to the IdP (GET url or POST form)
@@ -55,8 +61,13 @@ sequenceDiagram
     U->>I: click "Sign In"
     I->>I: acquireTokenPopup builds /authorize request + PKCE
     Note over I: PKCE verifier stays in the iframe — never leaves
-    I->>R: MSAL opens the relay page (request carried in URL hash)
+    I->>R: MSAL opens /relay#req (v1) or /relay-v2#id (v2)
     U->>R: click "Continue" (user gesture avoids popup blockers)
+    opt v2 authenticated handoff
+        R->>R: reserve blank IdP child popup
+        R-->>I: ready (request ID + document nonce)
+        I->>R: retained request (same ID + nonce)
+    end
     R->>E: opens IdP child popup (GET nav or POST form)
     U->>E: authenticate
     E->>C: returns auth code to /redirect
@@ -72,7 +83,16 @@ sequenceDiagram
 > `end_session_endpoint` URL instead of an `/authorize` request, and `/redirect`
 > relays completion back the same way.
 
-## Why this is safe
+## Response protection and legacy v1 risk
+
+V2 authenticates the request before the relay navigates or submits a form.
+V1 is deprecated due to security concerns: it accepts unauthenticated request
+descriptors from its URL fragment and retains that legacy risk until the
+endpoint is retired. This sample pins the authority origin in
+both versions as defense in depth; the library does not require those pins.
+The response protections below do not independently authorize a v1 descriptor.
+See [Popup relay migrating and retiring v1](../../../lib/msal-browser/docs/configuration.md#popup-relay-migrating-and-retiring-v1)
+for the staged deployment and retirement requirements.
 
 -   The PKCE verifier (and, for EAR, the private key) never leaves the iframe. Only a single-use, PKCE-bound code — or an encrypted EAR response — crosses the window boundary, and it's useless without the secret the iframe kept.
 -   No token ever transits a window. MSAL mints and caches the tokens inside the iframe.
@@ -91,7 +111,8 @@ export const msalConfig = {
         clientId: CLIENT_ID,
         redirectUri: "/redirect",
         postLogoutRedirectUri: "/redirect",
-        popupRelayUri: "/relay",
+        popupRelayUri: "/relay-v2",
+        popupRelayProtocolVersion: 2,
     },
 };
 
@@ -105,14 +126,22 @@ await msalInstance.logoutPopup({ account: result.account });
 
 // relay.js — the popupRelayUri page (open child on a click to dodge popup blockers)
 import { runPopupRelay } from "@azure/msal-browser/popup-relay";
-continueBtn.addEventListener("click", () => runPopupRelay());
+continueBtn.addEventListener("click", () =>
+    runPopupRelay({ protocolVersion: 2 })
+);
 
 // redirect.js — the registered SPA redirect URI AND post-logout redirect URI
 import { broadcastResponseToMainFrame } from "@azure/msal-browser/redirect-bridge";
 broadcastResponseToMainFrame();
 ```
 
-`runPopupRelay` ships in the `@azure/msal-browser/popup-relay` sub-export and `broadcastResponseToMainFrame` in `@azure/msal-browser/redirect-bridge` — both stay out of the main package surface. This sample is built with **Vite**, so each page imports only the export it needs and Vite tree-shakes a clear separation: the iframe app (`index.html`) bundles the full `PublicClientApplication`, while the relay (`relay.html`) and redirect (`redirect.html`) pages bundle only the small popup-relay / redirect-bridge helpers and never pull the main MSAL surface in. The auth-code (GET), `form_post`, and EAR response modes are all supported — the relay page forwards whatever raw response the redirect bridge captured.
+The example selects v2 explicitly on both sides. The sample's v1 mode omits
+`popupRelayProtocolVersion` to exercise the library's compatibility default.
+The server serves the same relay page at `/relay` and `/relay-v2`; `relay.js`
+fixes its protocol from that deployed path, never from the descriptor. There
+is no automatic protocol downgrade.
+
+`runPopupRelay` ships in the `@azure/msal-browser/popup-relay` sub-export and `broadcastResponseToMainFrame` in `@azure/msal-browser/redirect-bridge` — both stay out of the main package surface. This sample is built with **Vite**, so each page imports only the export it needs and Vite tree-shakes a clear separation: the iframe app (`index.html`) bundles the full `PublicClientApplication`, while the relay (`relay.html`, served at both versioned routes) and redirect (`redirect.html`) pages bundle only the small popup-relay / redirect-bridge helpers and never pull the main MSAL surface in. The auth-code (GET), `form_post`, and EAR response modes are all supported — the relay page forwards whatever raw response the redirect bridge captured.
 
 **Sign-out works the same way.** `logoutPopup` clears the local cache, then carries the end-session URL into the relay page exactly like sign-in. The relay's child popup hits the IdP `end_session_endpoint`, the IdP redirects to the post-logout redirect URI (`/redirect`, the same redirect bridge), and completion is relayed back to the iframe. So the embedded app can end the IdP session even though it can't drive a top-level navigation itself.
 
@@ -126,6 +155,8 @@ Register these URIs on the app (`CLIENT_ID` in `app/constants.js`):
 The SPA redirect URI lets the iframe complete the token exchange via CORS with PKCE; the post-logout redirect URI lets the relay page receive logout completion through the same redirect bridge. The untrusted host origin (`https://127.0.0.1:3000`) is not registered — it's never a redirect target.
 
 ## Running the Sample
+
+Use a Vite-supported Node.js version (20.19+ or 22.12+).
 
 The sample serves over HTTPS, so it needs a local TLS cert. `npm run generate:certs` creates a gitignored, self-signed cert/key for both `localhost` and `127.0.0.1` using `openssl`.
 
@@ -173,6 +204,21 @@ UntrustedTopFrameSample/
     └── redirect.html / redirect.js  Redirect URI + post-logout redirect URI: imports broadcastResponseToMainFrame from @azure/msal-browser/redirect-bridge
 ```
 
+## Relay protocol (`?relayVersion=`)
+
+The host forwards `?relayVersion=` to the iframe alongside the existing request
+method flags:
+
+| `?relayVersion=` | Relay endpoint | Request transport                                       |
+| ---------------- | -------------- | ------------------------------------------------------- |
+| `1` (default)    | `/relay`       | Legacy `#req` descriptor                                |
+| `2`              | `/relay-v2`    | ID-only `#id`, then authenticated `postMessage` handoff |
+
+For example, `https://127.0.0.1:3000/?relayVersion=2&httpMethod=POST`
+exercises a v2 POST request. Both endpoints stay available so cached v1
+clients and v2 clients can coexist during migration. Keeping v1 available is
+not a completed retirement.
+
 ## Authorize request method (`?httpMethod=`)
 
 The relay carries whatever `/authorize` request MSAL builds, so both request shapes work through the same relay + redirect bridge. The sample selects the shape from a `?httpMethod=` query parameter (the host forwards it to the iframe):
@@ -193,7 +239,27 @@ cd samples/msal-browser-samples/UntrustedTopFrameSample
 npm run test:e2e
 ```
 
-The Puppeteer/Jest suite ([test/untrustedTopFrameLogin.spec.ts](test/untrustedTopFrameLogin.spec.ts)) drives the full flow against the lab tenant: load the host, click "Sign In" in the iframe, "Continue" in the relay popup, authenticate in the IdP child popup, then assert the iframe acquired and cached tokens and renders the signed-in UI, and finally that `acquireTokenSilent` reads from the native cache. The sign-in test is parameterized over both request methods (`GET`, `POST`) via `?httpMethod=`, asserting the relay carried the expected request method. It launches with `acceptInsecureCerts` and starts the server via `start:https`, so it needs the lab cert (`microsoft-authentication-library-for-js/LabCert.pem`) and the SPA redirect URI `https://localhost:3001/redirect` registered on the app.
+The Puppeteer/Jest suite ([test/untrustedTopFrameLogin.spec.ts](test/untrustedTopFrameLogin.spec.ts)) drives the full flow against the lab tenant: load the host, click "Sign In" in the iframe, "Continue" in the relay popup, authenticate in the IdP child popup, then assert the iframe acquired and cached tokens and renders the signed-in UI, and finally that `acquireTokenSilent` reads from the native cache. Every flow runs against both relay protocols. The sign-in and interactive-fallback cases additionally cover both request methods (`GET`, `POST`), giving a v1/v2 × GET/POST matrix.
+
+V1 assertions inspect the legacy fragment descriptor. V2 assertions verify
+the separate `/relay-v2` endpoint, ID-only fragment, and actual request handoff
+after Continue, including its origin, opener source, matching request ID,
+and nonempty document nonce. Both versions exercise silent cache acquisition
+and complete relay logout. Screenshots are separated by protocol version.
+
+The suite launches with `acceptInsecureCerts` and starts the server via
+`start:https`, so generate the local TLS certificate first. Authenticated
+flows use the shared lab client's `DefaultAzureCredential` to retrieve test
+credentials (for example, Azure CLI sign-in locally or certificate-based
+environment credentials in CI). The SPA redirect URI
+`https://localhost:3001/redirect` must be registered on the app.
+
+The endpoint/configuration, initialization, redirect-cache, and partitioning
+checks do not require lab credentials and can be run separately:
+
+```bash
+npm run test:e2e -- --runInBand --testNamePattern="serves the redirect|keeps sign-in|partitions BroadcastChannel|selects the matching relay"
+```
 
 The suite also verifies sign-in remains disabled until initialization, proves
 that the cross-site iframe and top-level app cannot exchange BroadcastChannel

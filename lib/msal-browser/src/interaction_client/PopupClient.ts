@@ -87,6 +87,7 @@ export type PopupParams = {
     popupName: string;
     popupWindowAttributes: PopupWindowAttributes;
     popupWindowParent: Window;
+    relayAction?: PopupRelay.PopupRelayAction;
 };
 
 export class PopupClient extends StandardInteractionClient {
@@ -410,17 +411,20 @@ export class PopupClient extends StandardInteractionClient {
                 /*
                  * When a popup-relay page is configured, open it top-level
                  * (same first-party origin) instead of navigating the popup
-                 * straight to the IdP, and carry the /authorize URL in its hash.
+                 * straight to the IdP. V1 carries the action in the hash; v2
+                 * retains it for the authenticated handoff.
                  * The relay page opens the IdP child popup and relays the
                  * response back via postMessage (see waitForPopupResponse).
                  */
                 const popupRelayUri = this.config.auth.popupRelayUri;
+                popupParams.relayAction = { method: "GET", url: navigateUrl };
                 const popupNavigateUrl = popupRelayUri
                     ? PopupRelay.buildPopupRelayUrl(
                           popupRelayUri,
                           this.getRelayStateId(request.state, correlationId),
-                          { method: "GET", url: navigateUrl },
-                          correlationId
+                          popupParams.relayAction,
+                          correlationId,
+                          this.config.auth.popupRelayProtocolVersion
                       )
                     : navigateUrl;
 
@@ -441,7 +445,8 @@ export class PopupClient extends StandardInteractionClient {
                 const responseString = await this.waitForPopupResponse(
                     request,
                     popupWindow,
-                    popupParams.popupWindowParent
+                    popupParams.popupWindowParent,
+                    popupParams.relayAction
                 );
 
                 const serverParams = invoke(
@@ -579,7 +584,12 @@ export class PopupClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient,
                 correlationId
-            )(popupRequest, popupWindow, popupParams.popupWindowParent);
+            )(
+                popupRequest,
+                popupWindow,
+                popupParams.popupWindowParent,
+                popupParams.relayAction
+            );
 
             const serverParams = invoke(
                 ResponseHandler.deserializeResponse,
@@ -709,7 +719,12 @@ export class PopupClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             correlationId
-        )(request, popupWindow, popupParams.popupWindowParent);
+        )(
+            request,
+            popupWindow,
+            popupParams.popupWindowParent,
+            popupParams.relayAction
+        );
 
         const serverParams = invoke(
             ResponseHandler.deserializeResponse,
@@ -864,14 +879,15 @@ export class PopupClient extends StandardInteractionClient {
 
             /*
              * When a popup-relay page is configured, open it top-level (same
-             * first-party origin) and carry the end-session URL in its hash,
-             * exactly like the login flow. The relay page opens the IdP child
+             * first-party origin), using the configured wire protocol for the
+             * end-session URL. The relay page opens the IdP child
              * popup and the post-logout redirect page (running the redirect
              * bridge) relays completion back via postMessage — so logout works
              * from an embedded, cross-origin iframe where a direct popup to the
              * IdP cannot. See runPopupRelay / waitForPopupResponse.
              */
             const popupRelayUri = this.config.auth.popupRelayUri;
+            popupParams.relayAction = { method: "GET", url: logoutUri };
             const popupNavigateUrl = popupRelayUri
                 ? PopupRelay.buildPopupRelayUrl(
                       popupRelayUri,
@@ -879,8 +895,9 @@ export class PopupClient extends StandardInteractionClient {
                           validRequest.state || "",
                           this.correlationId
                       ),
-                      { method: "GET", url: logoutUri },
-                      this.correlationId
+                      popupParams.relayAction,
+                      this.correlationId,
+                      this.config.auth.popupRelayProtocolVersion
                   )
                 : logoutUri;
 
@@ -897,7 +914,8 @@ export class PopupClient extends StandardInteractionClient {
             await this.waitForPopupResponse(
                 validRequest,
                 popupWindow,
-                popupParams.popupWindowParent
+                popupParams.popupWindowParent,
+                popupParams.relayAction
             ).catch(() => {
                 // Swallow any errors related to monitoring the window. Server logout is best effort
             });
@@ -1228,15 +1246,17 @@ export class PopupClient extends StandardInteractionClient {
                 this.logger,
                 this.performanceClient
             );
+            popupParams.relayAction = {
+                method: "POST",
+                action: formData.action,
+                fields: formData.fields,
+            };
             const relayUrl = PopupRelay.buildPopupRelayUrl(
                 popupRelayUri,
                 this.getRelayStateId(request.state, correlationId),
-                {
-                    method: "POST",
-                    action: formData.action,
-                    fields: formData.fields,
-                },
-                correlationId
+                popupParams.relayAction,
+                correlationId,
+                this.config.auth.popupRelayProtocolVersion
             );
             return this.initiateAuthRequest(relayUrl, popupParams);
         }
@@ -1259,7 +1279,8 @@ export class PopupClient extends StandardInteractionClient {
     protected async waitForPopupResponse(
         request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
         popupWindow: Window,
-        popupWindowParent: Window
+        popupWindowParent: Window,
+        relayAction?: PopupRelay.PopupRelayAction
     ): Promise<string> {
         /*
          * When a popup-relay page is configured the response is relayed back to
@@ -1270,12 +1291,24 @@ export class PopupClient extends StandardInteractionClient {
          * frame and which does not track the relay popup.
          */
         if (this.config.auth.popupRelayUri) {
+            if (
+                this.config.auth.popupRelayProtocolVersion === 2 &&
+                !relayAction
+            ) {
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.popupRelayUnsupportedFlow,
+                    this.correlationId,
+                    "popup_relay_bad_request"
+                );
+            }
             return PopupRelay.waitForPopupRelayResponse(
                 this.config.system.popupBridgeTimeout,
                 this.logger,
                 request,
                 popupWindow,
-                this.performanceClient
+                this.performanceClient,
+                relayAction,
+                this.config.auth.popupRelayProtocolVersion
             );
         }
         if (this.waitForPopupResponseHook) {

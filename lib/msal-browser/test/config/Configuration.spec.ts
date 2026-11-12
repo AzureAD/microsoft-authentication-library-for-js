@@ -42,6 +42,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         );
         expect(emptyConfig.auth.redirectUri).toBeDefined();
         expect(emptyConfig.auth.postLogoutRedirectUri).toBe("");
+        expect(emptyConfig.auth.popupRelayProtocolVersion).toBe(1);
         expect(emptyConfig.auth?.azureCloudOptions?.azureCloudInstance).toBe(
             AzureCloudInstance.None
         );
@@ -69,6 +70,21 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system?.tokenRenewalOffsetSeconds).toBe(300);
         expect(emptyConfig.system?.navigatePopups).toBe(true);
         expect(emptyConfig.system?.allowPlatformBroker).toBe(false);
+    });
+
+    it("preserves an explicitly selected v2 relay endpoint and protocol", () => {
+        const config = buildConfiguration(
+            {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    popupRelayUri: "/relay-v2",
+                    popupRelayProtocolVersion: 2,
+                },
+            },
+            true
+        );
+        expect(config.auth.popupRelayUri).toBe("/relay-v2");
+        expect(config.auth.popupRelayProtocolVersion).toBe(2);
     });
 
     it("serverTelemetryEnabled defaults to false", () => {

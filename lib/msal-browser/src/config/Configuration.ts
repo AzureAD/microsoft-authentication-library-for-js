@@ -86,6 +86,16 @@ export type BrowserAuthOptions = {
     popupRelayUri?: string;
 
     /**
+     * Wire protocol served by popupRelayUri. Defaults to 1 for compatibility
+     * with existing relay pages. Version 1 is deprecated due to security
+     * concerns: it executes URL-fragment descriptors without authenticating
+     * their provenance. Set to 2 with a separately deployed endpoint calling
+     * runPopupRelay({ protocolVersion: 2 }) for authenticated handoff, then
+     * retire the v1 endpoint. Version 2 never falls back to legacy execution.
+     */
+    popupRelayProtocolVersion?: 1 | 2;
+
+    /**
      * Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
      */
     clientCapabilities?: Array<string>;
@@ -306,6 +316,7 @@ export function buildConfiguration(
                 : "",
         postLogoutRedirectUri: "",
         popupRelayUri: "",
+        popupRelayProtocolVersion: 1,
         clientCapabilities: [],
         OIDCOptions: {
             responseMode: Constants.ResponseMode.FRAGMENT,
