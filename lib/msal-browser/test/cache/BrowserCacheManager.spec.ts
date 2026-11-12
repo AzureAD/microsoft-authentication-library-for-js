@@ -211,35 +211,6 @@ describe("BrowserCacheManager tests", () => {
                 encodedRequest
             );
         });
-
-        it("Rejects a memory-only temporary store instead of claiming redirect durability", () => {
-            const getter = jest
-                .spyOn(window, "sessionStorage", "get")
-                .mockReturnValue(null as any);
-            const memoryCache = createCache();
-            getter.mockRestore();
-            expect(() =>
-                memoryCache.cacheAuthorizeRequest(
-                    {
-                        authority: TEST_CONFIG.validAuthority,
-                        redirectUri: TEST_URIS.TEST_REDIR_URI,
-                        scopes: ["openid"],
-                        correlationId,
-                        asymmetricEar: { privateJwk, apv: "context" },
-                        responseMode: Constants.ResponseMode.FRAGMENT,
-                        nonce: RANDOM_TEST_GUID,
-                        state: TEST_CONFIG.STATE,
-                    },
-                    correlationId
-                )
-            ).toThrow(
-                expect.objectContaining({
-                    errorCode: BrowserAuthErrorCodes.asymmetricEarKeyError,
-                    subError: "session_storage_unavailable",
-                })
-            );
-            expect(window.sessionStorage.getItem(storageKey)).toBeNull();
-        });
     });
 
     describe("Constructor", () => {

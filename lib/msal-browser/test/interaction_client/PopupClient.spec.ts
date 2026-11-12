@@ -842,7 +842,11 @@ describe("PopupClient", () => {
                         popupWindowParent: window,
                     }
                 )
-            ).rejects.toBe(error);
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.asymmetricEarKeyError,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                subError: "request_initialization_failed",
+            });
 
             expect(remove).toHaveBeenCalledWith(
                 "test-dpop-jkt",

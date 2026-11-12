@@ -27,6 +27,7 @@ import {
     Constants,
     AADServerParamKeys,
     ITokenBindingKeyManager,
+    AuthError,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -310,7 +311,7 @@ function getAuthorizeFormAction(
 }
 
 /**
- * Prepares the selected EAR construction, preserving the prepared POST request if setup fails.
+ * Prepares the selected EAR construction.
  * @internal
  */
 export async function initializeEarRequest(
@@ -333,20 +334,31 @@ export async function initializeEarRequest(
             asymmetricEar: undefined,
         };
     }
-    const { privateJwk, publicJwk } = await invokeAsync(
-        generateAsymmetricEarKey,
-        BrowserPerformanceEvents.GenerateAsymmetricEarKey,
-        logger,
-        performanceClient,
-        request.correlationId
-    )();
-    const apv = generateAsymmetricEarApv(publicJwk);
-    const earJwk = base64Encode(JSON.stringify(publicJwk));
-    return {
-        ...request,
-        earJwk,
-        asymmetricEar: { privateJwk, apv },
-    };
+    try {
+        const { privateJwk, publicJwk } = await invokeAsync(
+            generateAsymmetricEarKey,
+            BrowserPerformanceEvents.GenerateAsymmetricEarKey,
+            logger,
+            performanceClient,
+            request.correlationId
+        )();
+        const apv = generateAsymmetricEarApv(publicJwk);
+        const earJwk = base64Encode(JSON.stringify(publicJwk));
+        return {
+            ...request,
+            earJwk,
+            asymmetricEar: { privateJwk, apv },
+        };
+    } catch (error) {
+        if (error instanceof AuthError) {
+            throw error;
+        }
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.asymmetricEarKeyError,
+            request.correlationId,
+            AsymmetricEarSubErrors.RequestInitializationFailed
+        );
+    }
 }
 
 /**
@@ -378,19 +390,27 @@ export async function getEARFormData(
         parameters,
         Constants.OAuthResponseType.IDTOKEN_TOKEN_REFRESHTOKEN
     );
-    RequestParameterBuilder.addEARParameters(
-        parameters,
-        request.earJwk,
-        request.asymmetricEar
-            ? base64Encode(
-                  JSON.stringify({
-                      alg: "ECDH-ES",
-                      enc: "A256GCM",
-                      apv: request.asymmetricEar.apv,
-                  })
-              )
-            : undefined
-    );
+    try {
+        RequestParameterBuilder.addEARParameters(
+            parameters,
+            request.earJwk,
+            request.asymmetricEar
+                ? base64Encode(
+                      JSON.stringify({
+                          alg: "ECDH-ES",
+                          enc: "A256GCM",
+                          apv: request.asymmetricEar.apv,
+                      })
+                  )
+                : undefined
+        );
+    } catch {
+        throw createBrowserAuthError(
+            BrowserAuthErrorCodes.asymmetricEarKeyError,
+            request.correlationId,
+            AsymmetricEarSubErrors.RequestEncodingFailed
+        );
+    }
 
     // Also add codeChallenge as backup in case EAR is not supported
     RequestParameterBuilder.addCodeChallengeParams(

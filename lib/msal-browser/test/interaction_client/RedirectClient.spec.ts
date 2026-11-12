@@ -289,7 +289,16 @@ describe("RedirectClient", () => {
                             authenticationScheme:
                                 Constants.AuthenticationScheme.DPOP,
                         })
-                    ).rejects.toBe(error);
+                    ).rejects.toMatchObject(
+                        failure === "setup"
+                            ? {
+                                  errorCode:
+                                      BrowserAuthErrorCodes.asymmetricEarKeyError,
+                                  correlationId: testRequest.correlationId,
+                                  subError: "request_initialization_failed",
+                              }
+                            : error
+                    );
 
                     expect(provision).toHaveBeenCalledTimes(1);
                     expect(restart).not.toHaveBeenCalled();

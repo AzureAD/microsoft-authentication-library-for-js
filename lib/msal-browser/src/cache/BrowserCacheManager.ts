@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { AsymmetricEarSubErrors } from "../error/AsymmetricEarSubErrors.js";
 import {
     AccessTokenEntity,
     AccountEntity,
@@ -2243,17 +2242,6 @@ export class BrowserCacheManager extends CacheManager {
             "BrowserCacheManager.cacheAuthorizeRequest called",
             correlationId
         );
-
-        if (
-            authCodeRequest.asymmetricEar &&
-            !(this.temporaryCacheStorage instanceof SessionStorage)
-        ) {
-            throw createBrowserAuthError(
-                BrowserAuthErrorCodes.asymmetricEarKeyError,
-                correlationId,
-                AsymmetricEarSubErrors.SessionStorageUnavailable
-            );
-        }
 
         const encodedValue = base64Encode(JSON.stringify(authCodeRequest));
         this.setTemporaryCache(
