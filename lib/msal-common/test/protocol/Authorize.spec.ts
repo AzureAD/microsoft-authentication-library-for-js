@@ -133,14 +133,9 @@ describe("Authorize Protocol Tests", () => {
                 params
             );
             expect(loginUrl.includes(Constants.DEFAULT_AUTHORITY)).toBe(true);
-            expect(
-                loginUrl.includes(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                )
-            ).toBe(true);
+            expect(loginUrl.includes(authority.authorizationEndpoint)).toBe(
+                true
+            );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
@@ -201,14 +196,9 @@ describe("Authorize Protocol Tests", () => {
                 params
             );
             expect(loginUrl.includes(TEST_CONFIG.validAuthority)).toBe(true);
-            expect(
-                loginUrl.includes(
-                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(
-                        "{tenant}",
-                        "common"
-                    )
-                )
-            ).toBe(true);
+            expect(loginUrl.includes(authority.authorizationEndpoint)).toBe(
+                true
+            );
             expect(
                 loginUrl.includes(
                     `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
@@ -1651,6 +1641,78 @@ describe("Authorize Protocol Tests", () => {
     });
 
     describe("validateAuthorizationResponse", () => {
+        const expectedIssuer =
+            "https://login.microsoftonline.com/common/oauth21/2026-08";
+
+        it("accepts an exact authorization response issuer match", () => {
+            AuthorizeProtocol.validateAuthorizationResponse(
+                {
+                    code: "testCode",
+                    state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    iss: expectedIssuer,
+                },
+                TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                "",
+                expectedIssuer
+            );
+        });
+
+        it("throws issuer not found when the authorization response issuer is missing", () => {
+            expect(() =>
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    {
+                        code: "testCode",
+                        state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    },
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    "",
+                    expectedIssuer
+                )
+            ).toThrow(ClientAuthErrorCodes.issuerNotFound);
+        });
+
+        it("throws issuer mismatch before translating a server error", () => {
+            const mismatchedIssuer =
+                "https://login.microsoftonline.com/organizations/oauth21/2026-08";
+
+            try {
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    {
+                        error: "interaction_required",
+                        state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                        iss: mismatchedIssuer,
+                    },
+                    TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                    "",
+                    expectedIssuer
+                );
+                fail("Expected issuer validation to fail");
+            } catch (e) {
+                expect(e).toBeInstanceOf(ClientAuthError);
+                const error = e as ClientAuthError;
+                expect(error.errorCode).toBe(
+                    ClientAuthErrorCodes.issuerMismatch
+                );
+                expect(error.errorMessage).not.toContain(expectedIssuer);
+                expect(error.errorMessage).not.toContain(mismatchedIssuer);
+            }
+        });
+
+        it("throws state mismatch before issuer mismatch", () => {
+            expect(() =>
+                AuthorizeProtocol.validateAuthorizationResponse(
+                    {
+                        code: "testCode",
+                        state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
+                        iss: "https://invalid.example.com/issuer",
+                    },
+                    "differentState",
+                    "",
+                    expectedIssuer
+                )
+            ).toThrow(ClientAuthErrorCodes.stateMismatch);
+        });
+
         it("throws state mismatch error", (done) => {
             const testServerCodeResponse: AuthorizeResponse = {
                 code: "testCode",

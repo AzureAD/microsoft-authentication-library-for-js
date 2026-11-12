@@ -626,6 +626,7 @@ export type AuthorizationCodePayload = {
 
 declare namespace AuthorizeProtocol {
     export {
+        getAuthorizationResponseIssuer,
         getStandardAuthorizeRequestParameters,
         getAuthorizeUrl,
         getAuthorizationCodePayload,
@@ -639,6 +640,7 @@ export type AuthorizeResponse = {
     ear_jwe?: string;
     client_info?: string;
     state?: string;
+    iss?: string;
     cloud_instance_name?: string;
     cloud_instance_host_name?: string;
     cloud_graph_host_name?: string;
@@ -1044,6 +1046,8 @@ declare namespace ClientAuthErrorCodes {
         invalidState,
         stateMismatch,
         stateNotFound,
+        issuerMismatch,
+        issuerNotFound,
         nonceMismatch,
         multipleMatchingTokens,
         multipleMatchingAppMetadata,
@@ -1125,6 +1129,7 @@ declare namespace ClientConfigurationErrorCodes {
         invalidPlatformBrokerConfiguration,
         issuerValidationFailed,
         invalidResponseMode,
+        unsupportedGrantType,
         invalidDpopHtm,
         invalidDpopHtu,
         invalidDpopNonce,
@@ -1195,6 +1200,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     platformBroker?: boolean;
     reqCnf?: string;
     popupOriginCheckDone?: boolean;
+    expectedIssuer?: string;
 };
 
 // @internal (undocumented)
@@ -1665,7 +1671,10 @@ function getAccountInfo(accountEntity: AccountEntity): AccountInfo;
 const GetAuthCodeUrl = "getAuthCodeUrl";
 
 // @public
-function getAuthorizationCodePayload(serverParams: AuthorizeResponse, cachedState: string, correlationId: string): AuthorizationCodePayload;
+function getAuthorizationCodePayload(serverParams: AuthorizeResponse, cachedState: string, correlationId: string, expectedIssuer?: string): AuthorizationCodePayload;
+
+// @internal (undocumented)
+function getAuthorizationResponseIssuer(authority: Authority): string | undefined;
 
 // @internal
 function getAuthorizeUrl(authority: Authority, requestParameters: Map<string, string>): string;
@@ -2075,6 +2084,12 @@ function isServerTelemetryEntity(key: string, entity?: object): boolean;
 
 // @internal
 function isSingleTenant(accountEntity: AccountEntity): boolean;
+
+// @public (undocumented)
+const issuerMismatch = "issuer_mismatch";
+
+// @public (undocumented)
+const issuerNotFound = "issuer_not_found";
 
 // @public (undocumented)
 const issuerValidationFailed = "issuer_validation_failed";
@@ -2560,6 +2575,7 @@ export type PerformanceEvent = {
     isMcp?: boolean;
     cloudDiscoverySource?: string;
     authorityEndpointSource?: string;
+    clientProfile?: string;
     accountsRemoved?: number;
     accessTokensRemoved?: number;
     removeTokenBindingKeyFailure?: number;
@@ -3449,6 +3465,9 @@ const unexpectedError = "unexpected_error";
 const unsupportedAuthenticationScheme = "unsupported_authentication_scheme";
 
 // @public (undocumented)
+const unsupportedGrantType = "unsupported_grant_type";
+
+// @public (undocumented)
 const untrustedAuthority = "untrusted_authority";
 
 // @public
@@ -3515,7 +3534,7 @@ const userCanceled = "user_canceled";
 const USERNAME = "username";
 
 // @public
-function validateAuthorizationResponse(serverResponse: AuthorizeResponse, requestState: string, correlationId: string): void;
+function validateAuthorizationResponse(serverResponse: AuthorizeResponse, requestState: string, correlationId: string, expectedIssuer?: string): void;
 
 // @public
 function validateUrl(url: string, logger?: Logger, correlationId?: string): void;

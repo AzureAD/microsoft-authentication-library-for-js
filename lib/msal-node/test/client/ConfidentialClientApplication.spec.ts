@@ -16,6 +16,7 @@ import {
     AccountEntityUtils,
     INetworkModule,
     ClientAuthErrorCodes,
+    ClientConfigurationErrorCodes,
     AuthorizationCodePayload,
 } from "@azure/msal-common";
 import {
@@ -594,7 +595,7 @@ describe("ConfidentialClientApplication", () => {
             ) => {
                 const endpoint: string = endpointFromSpy;
                 const regionMatch: Array<string> | null = endpoint.match(
-                    "https://(.*).login.microsoft.com/tenantid/oauth2/v2.0/token/"
+                    "https://(.*)\\.login\\.microsoft\\.com/tenantid/oauth21/2026-08/token/"
                 );
                 expect(regionMatch && regionMatch.length).toEqual(2);
                 expect(regionMatch && regionMatch[1]).toEqual(expectedRegion);
@@ -853,12 +854,45 @@ describe("ConfidentialClientApplication", () => {
         const client: ConfidentialClientApplication =
             new ConfidentialClientApplication(config);
 
+        await expect(
+            client.acquireTokenByUsernamePassword(request)
+        ).rejects.toMatchObject({
+            errorCode: ClientConfigurationErrorCodes.unsupportedGrantType,
+            correlationId: expect.any(String),
+        });
+        expect(acquireTokenByUsernamePasswordSpy).toHaveBeenCalledTimes(1);
+    });
+
+    test("acquireTokenByUsernamePassword preserves non-profile authority behavior", async () => {
+        const client = new ConfidentialClientApplication({
+            ...config,
+            auth: {
+                ...config.auth,
+                authority: "https://login.contoso.com/adfs",
+                knownAuthorities: ["login.contoso.com"],
+                authorityMetadata: JSON.stringify({
+                    ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                    authorization_endpoint:
+                        "https://login.contoso.com/adfs/oauth2/authorize",
+                    token_endpoint:
+                        "https://login.contoso.com/adfs/oauth2/token",
+                    issuer: "https://login.contoso.com/adfs",
+                    jwks_uri: "https://login.contoso.com/adfs/discovery/keys",
+                }),
+            },
+        });
+        const request: UsernamePasswordRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            username: TEST_CONSTANTS.USERNAME,
+            password: TEST_CONSTANTS.PASSWORD,
+        };
+
         const authResult = (await client.acquireTokenByUsernamePassword(
             request
         )) as AuthenticationResult;
+
         expect(authResult.accessToken).toEqual(
             CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token
         );
-        expect(acquireTokenByUsernamePasswordSpy).toHaveBeenCalledTimes(1);
     });
 });

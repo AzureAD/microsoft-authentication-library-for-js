@@ -26,6 +26,8 @@ import {
     AuthorizationCodePayload,
     createClientAuthError,
     ClientAuthErrorCodes,
+    createClientConfigurationError,
+    ClientConfigurationErrorCodes,
     buildStaticAuthorityOptions,
     ClientAssertion as ClientAssertionType,
     getClientAssertion,
@@ -33,6 +35,8 @@ import {
     Constants,
     ClientAuthError,
     StubPerformanceClient,
+    AuthorityType,
+    ProtocolMode,
 } from "@azure/msal-common/node";
 import {
     Configuration,
@@ -455,10 +459,42 @@ export abstract class ClientApplication {
     async acquireTokenByUsernamePassword(
         request: UsernamePasswordRequest
     ): Promise<AuthenticationResult | null> {
+        const correlationId =
+            request.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.info(
             "acquireTokenByUsernamePassword called",
-            request.correlationId || ""
+            correlationId
         );
+        const authority = new Authority(
+            Authority.generateAuthority(
+                request.authority || this.config.auth.authority,
+                request.azureCloudOptions || this.config.auth.azureCloudOptions
+            ),
+            this.config.system.networkClient,
+            this.storage,
+            {
+                protocolMode: this.config.system.protocolMode,
+                knownAuthorities: this.config.auth.knownAuthorities,
+                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
+                authorityMetadata: this.config.auth.authorityMetadata,
+            },
+            this.logger,
+            correlationId,
+            new StubPerformanceClient()
+        );
+        if (
+            authority.protocolMode === ProtocolMode.AAD &&
+            authority.authorityType === AuthorityType.Default &&
+            authority.isAliasOfKnownMicrosoftAuthority(
+                authority.hostnameAndPort
+            )
+        ) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.unsupportedGrantType,
+                correlationId
+            );
+        }
+
         const validRequest: CommonUsernamePasswordRequest = {
             ...request,
             ...(await this.initializeBaseRequest(request)),

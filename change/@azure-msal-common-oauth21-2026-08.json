@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Adopt Entra OAuth 2.1 2026-08 endpoints and validate authorization response issuers [PR pending](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/TBD)",
+  "packageName": "@azure/msal-common",
+  "email": "spingale@microsoft.com",
+  "dependentChangeType": "patch"
+}

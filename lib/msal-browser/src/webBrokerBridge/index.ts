@@ -20,6 +20,10 @@ export { toAuthError } from "./WebBrokerBridgeErrorMap.js";
 export { PendingRequestRegistry } from "./PendingRequestRegistry.js";
 export type { WebBrokerBridgeSendFn } from "./PendingRequestRegistry.js";
 export {
+    getAuthorizationResponseMetadata,
+    type AuthorizationResponseMetadata,
+} from "./AuthorizationResponseMetadata.js";
+export {
     addLegacyRequestFields,
     addResourceField,
     normalizeIncomingRequest,

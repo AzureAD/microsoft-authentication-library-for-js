@@ -24,6 +24,10 @@ export type AuthorizeResponse = {
      */
     state?: string;
     /**
+     * Authorization server issuer identifier, as defined by RFC 9207
+     */
+    iss?: string;
+    /**
      * Cloud instance returned when application is instance aware
      */
     cloud_instance_name?: string;
