@@ -80,6 +80,26 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Nonce mismatch error.
 
+### `age_assurance_target_mismatch`
+
+An ID-token age-assurance receipt does not match the explicitly requested targets.
+Validation applies only when `id_token.xms_agvs.additionalProperties` contains
+`target-<identity>` entries in the request's `claims` JSON. For example, requesting
+`target-mc` and `target-sm` requires an `xms_agvt` receipt such as `+mc,-sm`.
+Matching ignores identity case and order, but requires a sign on every receipt
+entry and rejects duplicate, missing, extra, malformed, or non-string receipts.
+Target names are opaque, nonempty identities without commas, whitespace, or a
+leading sign. `all` is a literal identity, not a wildcard.
+
+This check also applies to cached and broker-returned results and when
+`xms_agvs` is `0`. Negative outcomes such as `-mc` can match: matching is not
+proof of adulthood or an authorization decision. Access tokens remain opaque;
+access-token-only target requests do not enable this ID-token check.
+
+Review the requested targets and the identity provider's receipt support before
+retrying. Do not ignore this error or use a rejected result. An external broker
+may maintain its own cache; MSAL cannot undo broker-side writes.
+
 ### `multiple_matching_tokens`
 
 -   The cache contains multiple tokens satisfying the requirements. Call AcquireToken again providing more requirements such as authority or account.

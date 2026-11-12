@@ -9,6 +9,7 @@ import {
     updateAccountTenantProfileData,
 } from "../account/AccountInfo.js";
 import { extractTokenClaims, isKmsi } from "../account/AuthToken.js";
+import { validateAgeAssuranceTargets } from "./AgeAssurance.js";
 import {
     TokenClaims,
     getTenantIdFromIdTokenClaims,
@@ -258,6 +259,12 @@ export class ResponseHandler {
                 );
             }
         }
+
+        validateAgeAssuranceTargets(
+            request.claims,
+            idTokenClaims,
+            request.correlationId
+        );
 
         // generate homeAccountId
         this.homeAccountIdentifier = AccountEntityUtils.generateHomeAccountId(
@@ -617,6 +624,11 @@ export class ResponseHandler {
             requestId,
             tokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER,
         } = options;
+        validateAgeAssuranceTargets(
+            request.claims,
+            idTokenClaims,
+            request.correlationId
+        );
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;

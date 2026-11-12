@@ -334,6 +334,9 @@ function addUsername(parameters: Map<string, string>, username: string): void;
 // @public (undocumented)
 const ADFS = "adfs";
 
+// @public (undocumented)
+const ageAssuranceTargetMismatch = "age_assurance_target_mismatch";
+
 // @public
 const APP_METADATA: string;
 
@@ -1045,6 +1048,7 @@ declare namespace ClientAuthErrorCodes {
         stateMismatch,
         stateNotFound,
         nonceMismatch,
+        ageAssuranceTargetMismatch,
         multipleMatchingTokens,
         multipleMatchingAppMetadata,
         requestCannotBeMade,
@@ -3513,6 +3517,9 @@ const userCanceled = "user_canceled";
 
 // @public (undocumented)
 const USERNAME = "username";
+
+// @internal
+export function validateAgeAssuranceTargets(requestedClaims: string | undefined, idTokenClaims: object | undefined, correlationId: string): void;
 
 // @public
 function validateAuthorizationResponse(serverResponse: AuthorizeResponse, requestState: string, correlationId: string): void;
