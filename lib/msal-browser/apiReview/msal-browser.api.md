@@ -274,15 +274,13 @@ declare namespace BrowserConfigurationAuthErrorCodes {
     export {
         storageNotSupported,
         stubbedPublicClientApplicationCalled,
-        inMemRedirectUnavailable,
-        experimentalCaeCacheUnsupported
+        inMemRedirectUnavailable
     }
 }
 export { BrowserConfigurationAuthErrorCodes }
 
 // @public
 export type BrowserExperimentalOptions = {
-    enableCaeCachePartitioning?: boolean;
     iframeTimeoutTelemetry?: boolean;
     allowPlatformBrokerWithDOM?: boolean;
 };
@@ -546,9 +544,6 @@ export const EventType: {
 // @public (undocumented)
 export type EventType = (typeof EventType)[keyof typeof EventType];
 
-// @public (undocumented)
-const experimentalCaeCacheUnsupported = "experimental_cae_cache_unsupported";
-
 export { ExternalTokenResponse }
 
 // @public (undocumented)
@@ -757,7 +752,7 @@ export type JsonWebTokenTypes = Constants.JsonWebTokenTypes;
 const LoadExternalTokens = "loadExternalTokens";
 
 // @public
-export function loadExternalTokens(config: Configuration, request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions, performanceClient?: IPerformanceClient): Promise<AuthenticationResult>;
+export function loadExternalTokens(config: Configuration, baseRequest: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions, performanceClient?: IPerformanceClient): Promise<AuthenticationResult>;
 
 // @public (undocumented)
 export type LoadTokenOptions = {

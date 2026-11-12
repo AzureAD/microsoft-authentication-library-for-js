@@ -170,161 +170,6 @@ describe("ResponseHandler.ts", () => {
         jest.restoreAllMocks();
     });
 
-    describe("experimental CAE cache components", () => {
-        const request: BaseAuthRequest = {
-            authority: testAuthority.canonicalAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            scopes: ["User.Read"],
-            experimentalCaeCache: {
-                capability: "cp1",
-                hasChallenge: false,
-            },
-        };
-        const cases: Array<{
-            name: string;
-            components?: Record<string, string>;
-            attributeTokens?: string[];
-        }> = [
-            { name: "FMI", components: { fmi_path: "agent-a" } },
-            { name: "client claims", components: { client_claims: "{}" } },
-            { name: "custom components", components: { custom: "" } },
-            { name: "attribute tokens", attributeTokens: ["alpha"] },
-            { name: "empty attribute token value", attributeTokens: [""] },
-        ];
-
-        it.each(cases)(
-            "rejects $name before response or cache mutation",
-            async ({ components, attributeTokens }) => {
-                const storage = new MockStorageClass(
-                    TEST_CONFIG.MSAL_CLIENT_ID,
-                    cryptoInterface,
-                    logger,
-                    stubPerformanceClient
-                );
-                storage.store = { "existing-entry": "preserved" };
-                const before = JSON.stringify(storage.store);
-                const save = jest.spyOn(storage, "saveCacheRecord");
-                const response = {
-                    ...testServerTokenResponse.body,
-                    token_type: AuthenticationScheme.BEARER,
-                };
-                const originalResponse = { ...response };
-                const handler = new ResponseHandler(
-                    TEST_CONFIG.MSAL_CLIENT_ID,
-                    storage,
-                    cryptoInterface,
-                    logger,
-                    stubPerformanceClient,
-                    null,
-                    null
-                );
-
-                await expect(
-                    handler.handleServerTokenResponse(
-                        response,
-                        testAuthority,
-                        TimeUtils.nowSeconds(),
-                        { ...request, attributeTokens },
-                        0,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        undefined,
-                        components
-                    )
-                ).rejects.toMatchObject({
-                    name: "ClientConfigurationError",
-                    errorCode: "experimental_cae_cache_unsupported",
-                    correlationId: request.correlationId,
-                });
-                expect(save).not.toHaveBeenCalled();
-                expect(JSON.stringify(storage.store)).toBe(before);
-                expect(response).toEqual(originalResponse);
-            }
-        );
-
-        it.each<{
-            name: string;
-            experimentalCaeCache?: BaseAuthRequest["experimentalCaeCache"];
-            components?: Record<string, string>;
-            attributeTokens?: string[];
-            expected: Record<string, string>;
-        }>([
-            {
-                name: "ordinary explicit components",
-                experimentalCaeCache: undefined,
-                components: { fmi_path: "agent-a" },
-                attributeTokens: undefined,
-                expected: { fmi_path: "agent-a" },
-            },
-            {
-                name: "ordinary attribute tokens",
-                experimentalCaeCache: undefined,
-                components: undefined,
-                attributeTokens: ["zeta", "alpha"],
-                expected: { attribute_tokens: "alpha zeta" },
-            },
-            {
-                name: "CAE with empty optional components",
-                experimentalCaeCache: request.experimentalCaeCache,
-                components: {},
-                attributeTokens: [],
-                expected: {
-                    experimental_cae_capability: "cp1",
-                },
-            },
-        ])(
-            "preserves $name",
-            async ({
-                experimentalCaeCache,
-                components,
-                attributeTokens,
-                expected,
-            }) => {
-                const storage = new MockStorageClass(
-                    TEST_CONFIG.MSAL_CLIENT_ID,
-                    cryptoInterface,
-                    logger,
-                    stubPerformanceClient
-                );
-                const save = jest.spyOn(storage, "saveCacheRecord");
-                const handler = new ResponseHandler(
-                    TEST_CONFIG.MSAL_CLIENT_ID,
-                    storage,
-                    cryptoInterface,
-                    logger,
-                    stubPerformanceClient,
-                    null,
-                    null
-                );
-                const result = await handler.handleServerTokenResponse(
-                    {
-                        ...testServerTokenResponse.body,
-                        token_type: AuthenticationScheme.BEARER,
-                    },
-                    testAuthority,
-                    TimeUtils.nowSeconds(),
-                    { ...request, experimentalCaeCache, attributeTokens },
-                    0,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    components
-                );
-                expect(result.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
-                expect(save).toHaveBeenCalledTimes(1);
-                const record: CacheRecord = save.mock.calls[0][0];
-                expect(
-                    record.accessToken?.additionalCacheKeyComponents
-                ).toEqual(expected);
-                expect(storage.getTokenKeys().accessToken).toHaveLength(1);
-            }
-        );
-    });
-
     describe("nonce validation", () => {
         const testRequest: BaseAuthRequest = {
             authority: testAuthority.canonicalAuthority,
@@ -847,10 +692,14 @@ describe("ResponseHandler.ts", () => {
                                 ?.additionalCacheKeyComponents
                         ).toEqual({
                             attribute_tokens: "alpha zeta",
+                            clientCapabilities: "false",
                         });
                         // hash input is JSON.stringify of additionalCacheKeyComponents
                         expect(hashStringSpy).toHaveBeenCalledWith(
-                            JSON.stringify({ attribute_tokens: "alpha zeta" })
+                            JSON.stringify({
+                                attribute_tokens: "alpha zeta",
+                                clientCapabilities: "false",
+                            })
                         );
                         // The entity itself must not carry the hash field
                         const entityAsRecord =

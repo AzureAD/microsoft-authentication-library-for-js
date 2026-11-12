@@ -10,6 +10,7 @@ import {
     Authority,
     CacheManager,
     CacheHelpers,
+    ClaimsUtils,
     ClientAuthErrorCodes,
     ClientConfiguration,
     Constants,
@@ -59,17 +60,25 @@ export class ClientCredentialClient extends BaseClient {
      * @param request - CommonClientCredentialRequest provided by the developer
      */
     public async acquireToken(
-        request: CommonClientCredentialRequest
+        baseRequest: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
+        const hasChallenge = ClaimsUtils.hasClaimsChallenge(
+            baseRequest.claims,
+            baseRequest.correlationId
+        );
+        const request = {
+            ...baseRequest,
+            claims: ClaimsUtils.mergeClientCapabilities(
+                baseRequest.claims,
+                this.config.authOptions.clientCapabilities,
+                baseRequest.correlationId,
+                baseRequest.claimsFromClient
+            ),
+        };
         const additionalCacheKeyComponents =
             this.getAdditionalCacheKeyComponents(request);
 
-        CacheHelpers.validateCaeCacheKeyComponents(
-            request,
-            additionalCacheKeyComponents
-        );
-
-        if (request.skipCache || !StringUtils.isEmptyObj(request.claims)) {
+        if (request.skipCache || hasChallenge) {
             return this.executeTokenRequest(
                 request,
                 this.authority,
@@ -142,34 +151,48 @@ export class ClientCredentialClient extends BaseClient {
                 client_claims: request.claimsFromClient,
             };
         }
-        return components;
+        return CacheHelpers.getAccessTokenCacheKeyComponents(
+            request,
+            components
+        );
     }
 
     /**
      * looks up cache if the tokens are cached already
      */
     public async getCachedAuthenticationResult(
-        request: CommonClientCredentialRequest,
+        baseRequest: CommonClientCredentialRequest,
         config: ClientConfiguration | ManagedIdentityConfiguration,
         cryptoUtils: ICrypto,
         authority: Authority,
         cacheManager: CacheManager,
         serverTelemetryManager?: ServerTelemetryManager | null,
-        additionalCacheKeyComponents?: Record<string, string>
+        requestedComponents?: Record<string, string>
     ): Promise<[AuthenticationResult | null, Constants.CacheOutcome]> {
-        CacheHelpers.validateCaeCacheKeyComponents(
-            request,
-            additionalCacheKeyComponents
-        );
-        if (request.experimentalCaeCache) {
-            CacheHelpers.validateCaeCacheKeyComponents(
-                request,
-                this.getAdditionalCacheKeyComponents(request)
-            );
-        }
         const clientConfiguration = config as ClientConfiguration;
         const managedIdentityConfiguration =
             config as ManagedIdentityNodeConfiguration;
+        const request = {
+            ...baseRequest,
+            claims: ClaimsUtils.mergeClientCapabilities(
+                // Managed identity uses claims only as a refresh directive, not OAuth claims.
+                clientConfiguration.authOptions
+                    ? baseRequest.claims
+                    : undefined,
+                clientConfiguration.authOptions?.clientCapabilities ||
+                    managedIdentityConfiguration.clientCapabilities,
+                baseRequest.correlationId,
+                clientConfiguration.authOptions
+                    ? baseRequest.claimsFromClient
+                    : undefined
+            ),
+        };
+        const additionalCacheKeyComponents =
+            CacheHelpers.getAccessTokenCacheKeyComponents(
+                request,
+                requestedComponents ||
+                    this.getAdditionalCacheKeyComponents(request)
+            );
 
         let lastCacheOutcome: Constants.CacheOutcome =
             Constants.CacheOutcome.NOT_APPLICABLE;

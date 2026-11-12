@@ -222,6 +222,8 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Given claims parameter must be a stringified JSON object.
 
+When merging configured client capabilities, `access_token` and `xms_cc`, if supplied, must be objects. The `xms_cc.values` field, if supplied, must be an array of strings.
+
 ### `invalid_dpop_htm`
 
 -   DPoP HTTP method (`htm`) must be a non-empty RFC HTTP method token.
@@ -1075,21 +1077,6 @@ const msalConfig = {
 -   A resource was found both directly in the `resource` parameter and in `extraQueryParameters` or `extraParameters`. Please only include the resource in one location. See the MCP documentation for [msal-browser](../lib/msal-browser/docs/mcp.md) or [msal-node](../lib/msal-node/docs/mcp.md).
 
 ## Browser configuration errors
-
-### `experimental_cae_cache_unsupported`
-
--   The unpublished CAE cache experiment was used outside its supported local
-    test scope. It requires MSAL storage, AAD or EAR, web Bearer requests and only
-    ordinary or CP1 capabilities. OIDC, brokers, nested app auth,
-    hybrid-code acquisition, hydration/import and extended token inputs are not implemented. Disable
-    `experimental.enableCaeCachePartitioning` to restore the normal behavior.
-    See [the experiment's limits](../lib/msal-browser/docs/caching.md#unpublished-cae-cache-experiment).
-    Common response handling and cache lookup reject experimental CAE requests
-    with nonempty attribute-token or additional cache-key components rather than
-    discarding those components. Node client-credential and on-behalf-of requests
-    also reject this combination before cache lookup or token acquisition.
-    This does not enable CAE cache partitioning in Node or change ordinary
-    attribute-token, FMI, or client-claims caching.
 
 ### `storage_not_supported`
 

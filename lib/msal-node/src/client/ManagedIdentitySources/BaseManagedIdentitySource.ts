@@ -4,6 +4,7 @@
  */
 
 import {
+    ClaimsUtils,
     AuthError,
     Authority,
     ClientAuthErrorCodes,
@@ -330,7 +331,14 @@ export abstract class BaseManagedIdentitySource {
             serverTokenResponse,
             fakeAuthority,
             reqTimestamp,
-            managedIdentityRequest,
+            {
+                ...managedIdentityRequest,
+                claims: ClaimsUtils.mergeClientCapabilities(
+                    undefined,
+                    managedIdentityRequest.clientCapabilities,
+                    managedIdentityRequest.correlationId
+                ),
+            },
             ApiId.acquireTokenWithManagedIdentity
         );
     }

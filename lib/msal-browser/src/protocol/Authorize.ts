@@ -4,11 +4,6 @@
  */
 
 import {
-    prepareCaeCacheRequest,
-    rejectCaeCacheExperiment,
-    removeTokenBindingKeyOnFailure,
-} from "../request/RequestHelpers.js";
-import {
     Authority,
     AuthorizeProtocol,
     ClientConfigurationErrorCodes,
@@ -51,6 +46,7 @@ import { EventHandler } from "../event/EventHandler.js";
 import { decryptEarResponse } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
+import { removeTokenBindingKeyOnFailure } from "../request/RequestHelpers.js";
 
 /**
  * Parsed representation of the clientdata response parameter from the /authorize endpoint.
@@ -495,9 +491,6 @@ export async function handleResponsePlatformBroker(
         performanceClient
     )
 ): Promise<AuthenticationResult> {
-    if (config.experimental.enableCaeCachePartitioning) {
-        rejectCaeCacheExperiment(request.correlationId);
-    }
     logger.verbose(
         "Account id found, calling WAM for token",
         request.correlationId
@@ -654,7 +647,7 @@ export async function handleResponseCode(
  * @returns
  */
 export async function handleResponseEAR(
-    originalRequest: CommonAuthorizationUrlRequest,
+    request: CommonAuthorizationUrlRequest,
     response: AuthorizeResponse,
     apiId: ApiId,
     config: BrowserConfiguration,
@@ -670,7 +663,6 @@ export async function handleResponseEAR(
         performanceClient
     )
 ): Promise<AuthenticationResult> {
-    const request = prepareCaeCacheRequest(originalRequest, config);
     // Remove throttle if it exists
     ThrottlingUtils.removeThrottle(
         browserStorage,

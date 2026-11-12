@@ -11,11 +11,8 @@ import {
     ClientAuthErrorCodes,
     createClientAuthError,
 } from "../../error/ClientAuthError.js";
-import {
-    ClientConfigurationErrorCodes,
-    createClientConfigurationError,
-} from "../../error/ClientConfigurationError.js";
 import { BaseAuthRequest } from "../../request/BaseAuthRequest.js";
+import { supportsCae } from "../../request/ClaimsUtils.js";
 import * as Constants from "../../utils/Constants.js";
 import * as TimeUtils from "../../utils/TimeUtils.js";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity.js";
@@ -423,23 +420,20 @@ export function serializeAttributeTokens(
     return [...attributeTokens].sort().join(" ");
 }
 
-/**
- * Rejects cache dimensions that the experimental CAE request context cannot preserve.
- * This validates request inputs, not the components on stored CAE credentials.
- */
-export function validateCaeCacheKeyComponents(
-    request: BaseAuthRequest,
+/** Builds the same access-token dimensions for lookup, storage and replacement. */
+export function getAccessTokenCacheKeyComponents(
+    request: Pick<
+        BaseAuthRequest,
+        "claims" | "attributeTokens" | "correlationId"
+    >,
     additionalCacheKeyComponents?: Record<string, string>
-): void {
-    if (
-        request.experimentalCaeCache &&
-        (request.attributeTokens?.length ||
-            (additionalCacheKeyComponents &&
-                Object.keys(additionalCacheKeyComponents).length > 0))
-    ) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.experimentalCaeCacheUnsupported,
-            request.correlationId
-        );
-    }
+): Record<string, string> {
+    const attributeTokens = serializeAttributeTokens(request.attributeTokens);
+    return {
+        ...(attributeTokens ? { attribute_tokens: attributeTokens } : {}),
+        ...additionalCacheKeyComponents,
+        clientCapabilities: String(
+            supportsCae(request.claims, request.correlationId)
+        ),
+    };
 }

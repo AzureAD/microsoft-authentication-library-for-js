@@ -3,19 +3,16 @@
  * Licensed under the MIT License.
  */
 
-import { AccountEntityUtils, ProtocolMode } from "@azure/msal-common/browser";
+import { AccountEntityUtils } from "@azure/msal-common/browser";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication.js";
 import { Configuration } from "../../src/config/Configuration.js";
 import { StandardController } from "../../src/controllers/StandardController.js";
-import { NestedAppAuthController } from "../../src/controllers/NestedAppAuthController.js";
 import { StandardOperatingContext } from "../../src/operatingcontext/StandardOperatingContext.js";
-import { NestedAppOperatingContext } from "../../src/operatingcontext/NestedAppOperatingContext.js";
 import { loadExternalTokens } from "../../src/cache/TokenCache.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
-import {
-    BrowserCacheLocation,
-    CacheLookupPolicy,
-} from "../../src/utils/BrowserConstants.js";
+import { IPlatformAuthHandler } from "../../src/broker/nativeBroker/IPlatformAuthHandler.js";
+import { PlatformAuthRequest } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
+import { BrowserCacheLocation } from "../../src/utils/BrowserConstants.js";
 import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
@@ -26,12 +23,17 @@ import {
 } from "../utils/StringConstants.js";
 
 class FixtureController extends StandardController {
+    enableBroker(provider: IPlatformAuthHandler) {
+        this.config.system.allowPlatformBroker = true;
+        this.platformAuthProvider = provider;
+    }
+
     get cache() {
         return this.browserStorage;
     }
 }
 
-describe("Experimental ordinary/CP1 token partitioning", () => {
+describe("Ordinary/CP1 token partitioning", () => {
     const account = AccountEntityUtils.getAccountInfo(TEST_ACCOUNT_ENTITY);
     const request = { account, scopes: ["user.read"] };
     const cp1 = JSON.stringify({
@@ -39,7 +41,6 @@ describe("Experimental ordinary/CP1 token partitioning", () => {
     });
 
     function config(
-        enabled = true,
         capabilities: string[] = [],
         location: BrowserCacheLocation = BrowserCacheLocation.MemoryStorage
     ): Configuration {
@@ -56,17 +57,15 @@ describe("Experimental ordinary/CP1 token partitioning", () => {
                 ),
             },
             cache: { cacheLocation: location },
-            experimental: { enableCaeCachePartitioning: enabled },
             system: { allowPlatformBroker: false },
         };
     }
 
     async function application(
-        enabled = true,
         capabilities: string[] = [],
         location: BrowserCacheLocation = BrowserCacheLocation.MemoryStorage
     ) {
-        const configuration = config(enabled, capabilities, location);
+        const configuration = config(capabilities, location);
         const controller = new FixtureController(
             new StandardOperatingContext(configuration)
         );
@@ -84,7 +83,7 @@ describe("Experimental ordinary/CP1 token partitioning", () => {
             true,
             0
         );
-        return { pca, cache: controller.cache };
+        return { pca, cache: controller.cache, controller };
     }
 
     function response(secret: string, scope = "user.read") {
@@ -100,45 +99,12 @@ describe("Experimental ordinary/CP1 token partitioning", () => {
         window.sessionStorage.clear();
     });
 
-    it.each([false, true])(
-        "preserves flag-off behavior and isolates enabled families: %s",
-        async (enabled) => {
-            const post = jest
-                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
-                .mockResolvedValueOnce(response("ordinary"))
-                .mockResolvedValueOnce(response("cp1"))
-                .mockResolvedValueOnce(response("cp1-renewed"));
-            const { pca, cache } = await application(enabled);
-            expect((await pca.acquireTokenSilent(request)).accessToken).toBe(
-                "ordinary"
-            );
-            expect(
-                (await pca.acquireTokenSilent({ ...request, claims: cp1 }))
-                    .accessToken
-            ).toBe("cp1");
-            expect((await pca.acquireTokenSilent(request)).accessToken).toBe(
-                enabled ? "ordinary" : "cp1"
-            );
-            const repeated = await pca.acquireTokenSilent({
-                ...request,
-                claims: cp1,
-            });
-            expect(repeated.accessToken).toBe(enabled ? "cp1" : "cp1-renewed");
-            expect(repeated.fromCache).toBe(enabled);
-            expect(post).toHaveBeenCalledTimes(enabled ? 2 : 3);
-            expect(cache.getTokenKeys().accessToken).toHaveLength(
-                enabled ? 2 : 1
-            );
-            expect(cache.getTokenKeys().refreshToken).toHaveLength(1);
-        }
-    );
-
-    it("keeps simultaneous ordinary and CP1 requests separate", async () => {
+    it("reuses simultaneous ordinary and CP1 tokens with one refresh-token cache", async () => {
         const post = jest
             .spyOn(FetchClient.prototype, "sendPostRequestAsync")
             .mockResolvedValueOnce(response("cp1"))
             .mockResolvedValueOnce(response("ordinary"));
-        const { pca } = await application();
+        const { pca, cache } = await application();
         const [cae, ordinary] = await Promise.all([
             pca.acquireTokenSilent({ ...request, claims: cp1 }),
             pca.acquireTokenSilent(request),
@@ -153,253 +119,421 @@ describe("Experimental ordinary/CP1 token partitioning", () => {
             "ordinary"
         );
         expect(post).toHaveBeenCalledTimes(2);
+        expect(cache.getTokenKeys().accessToken).toHaveLength(2);
+        expect(cache.getTokenKeys().refreshToken).toHaveLength(1);
     });
 
     it.each([
         BrowserCacheLocation.LocalStorage,
         BrowserCacheLocation.SessionStorage,
-    ])(
-        "uses the normal schema for reload and preserves unknown legacy tokens in %s",
-        async (location) => {
-            const post = jest
-                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
-                .mockResolvedValueOnce(response("unknown-legacy"))
-                .mockResolvedValueOnce(response("ordinary"))
-                .mockResolvedValueOnce(response("cp1"));
-            const legacy = await application(false, [], location);
-            await legacy.pca.acquireTokenSilent(request);
-            const enabled = await application(true, [], location);
-            expect(
-                (await enabled.pca.acquireTokenSilent(request)).accessToken
-            ).toBe("ordinary");
-            expect(
-                (
-                    await enabled.pca.acquireTokenSilent({
-                        ...request,
-                        claims: cp1,
-                    })
-                ).accessToken
-            ).toBe("cp1");
-            expect(enabled.cache.getTokenKeys(3).accessToken).toHaveLength(3);
-            expect(enabled.cache.getTokenKeys(4).accessToken).toHaveLength(0);
-            const reload = new PublicClientApplication(
-                config(true, [], location)
-            );
-            await reload.initialize();
-            expect((await reload.acquireTokenSilent(request)).accessToken).toBe(
-                "ordinary"
-            );
-            expect(
-                (await reload.acquireTokenSilent({ ...request, claims: cp1 }))
-                    .accessToken
-            ).toBe("cp1");
-            const disabled = new PublicClientApplication(
-                config(false, [], location)
-            );
-            await disabled.initialize();
-            expect(
-                (await disabled.acquireTokenSilent(request)).accessToken
-            ).toBe("unknown-legacy");
-            expect(post).toHaveBeenCalledTimes(3);
-            await enabled.pca.clearCache();
-            expect(enabled.cache.getTokenKeys().accessToken).toHaveLength(0);
-            expect(enabled.cache.getTokenKeys().refreshToken).toHaveLength(0);
-        }
-    );
-
-    it("ignores later unmarked writes from a flag-off owner", async () => {
+    ])("reuses both token families after reload in %s", async (location) => {
         const post = jest
             .spyOn(FetchClient.prototype, "sendPostRequestAsync")
             .mockResolvedValueOnce(response("ordinary"))
-            .mockResolvedValueOnce(response("cp1"))
-            .mockResolvedValueOnce(response("legacy-write"));
-        const enabled = await application(
-            true,
-            [],
-            BrowserCacheLocation.SessionStorage
-        );
-        await enabled.pca.acquireTokenSilent(request);
-        await enabled.pca.acquireTokenSilent({ ...request, claims: cp1 });
-        const legacy = await application(
-            false,
-            [],
-            BrowserCacheLocation.SessionStorage
-        );
-        await legacy.pca.acquireTokenSilent({ ...request, forceRefresh: true });
-        expect(
-            (await enabled.pca.acquireTokenSilent(request)).accessToken
-        ).toBe("ordinary");
-        expect(
-            (await enabled.pca.acquireTokenSilent({ ...request, claims: cp1 }))
-                .accessToken
-        ).toBe("cp1");
-        expect(post).toHaveBeenCalledTimes(3);
-    });
-
-    it("replaces overlapping scopes only within the requested family", async () => {
-        jest.spyOn(FetchClient.prototype, "sendPostRequestAsync")
-            .mockResolvedValueOnce(response("ordinary", "user.read mail.read"))
-            .mockResolvedValueOnce(response("cp1", "user.read mail.read"))
-            .mockResolvedValueOnce(response("cp1-new"));
-        const { pca, cache } = await application();
-        const wide = { ...request, scopes: ["user.read", "mail.read"] };
-        await pca.acquireTokenSilent(wide);
-        await pca.acquireTokenSilent({ ...wide, claims: cp1 });
-        await pca.acquireTokenSilent({
-            ...request,
-            claims: cp1,
-            forceRefresh: true,
-        });
-        expect((await pca.acquireTokenSilent(wide)).accessToken).toBe(
+            .mockResolvedValueOnce(response("cp1"));
+        const { pca, cache } = await application([], location);
+        await pca.acquireTokenSilent(request);
+        await pca.acquireTokenSilent({ ...request, claims: cp1 });
+        const reload = new PublicClientApplication(config([], location));
+        await reload.initialize();
+        expect((await reload.acquireTokenSilent(request)).accessToken).toBe(
             "ordinary"
         );
         expect(
-            (await pca.acquireTokenSilent({ ...request, claims: cp1 }))
+            (await reload.acquireTokenSilent({ ...request, claims: cp1 }))
                 .accessToken
-        ).toBe("cp1-new");
-        await expect(
-            pca.acquireTokenSilent({
-                ...wide,
-                claims: cp1,
-                cacheLookupPolicy: CacheLookupPolicy.AccessToken,
-            })
-        ).rejects.toMatchObject({ errorCode: "token_refresh_required" });
-        expect(cache.getTokenKeys().accessToken).toHaveLength(2);
+        ).toBe("cp1");
+        expect(post).toHaveBeenCalledTimes(2);
+        expect(cache.getTokenKeys(4).accessToken).toHaveLength(2);
+        await reload.clearCache();
+        expect(cache.getTokenKeys().accessToken).toHaveLength(0);
+        expect(cache.getTokenKeys().refreshToken).toHaveLength(0);
     });
 
-    it("does not grow cache partitions for repeated different challenges", async () => {
-        let grants = 0;
+    it.each([{ capabilities: ["CP1"] }, { capabilities: ["CP1", "CP2"] }])(
+        "merges configured capabilities before lookup and preserves explicit challenge renewal: %j",
+        async ({ capabilities }) => {
+            const post = jest
+                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+                .mockResolvedValueOnce(response("configured"))
+                .mockResolvedValueOnce(response("challenge"))
+                .mockResolvedValueOnce(response("forced"));
+            const { pca } = await application(capabilities);
+            expect((await pca.acquireTokenSilent(request)).accessToken).toBe(
+                "configured"
+            );
+            expect((await pca.acquireTokenSilent(request)).fromCache).toBe(
+                true
+            );
+            const challenge = JSON.stringify({
+                access_token: { auth_time: { essential: true } },
+            });
+            expect(
+                (
+                    await pca.acquireTokenSilent({
+                        ...request,
+                        claims: challenge,
+                    })
+                ).accessToken
+            ).toBe("challenge");
+            expect(
+                (
+                    await pca.acquireTokenSilent({
+                        ...request,
+                        forceRefresh: true,
+                    })
+                ).accessToken
+            ).toBe("forced");
+            expect(post).toHaveBeenCalledTimes(3);
+        }
+    );
+
+    it("composes attribute-token and capability partitions", async () => {
         const post = jest
             .spyOn(FetchClient.prototype, "sendPostRequestAsync")
-            .mockImplementation(async () => response(`token-${++grants}`));
-        const { pca, cache } = await application();
-        await pca.acquireTokenSilent(request);
-        await pca.acquireTokenSilent({ ...request, claims: cp1 });
-        for (let i = 0; i < 12; i++) {
-            await pca.acquireTokenSilent({
+            .mockResolvedValueOnce(response("ordinary-alpha"))
+            .mockResolvedValueOnce(response("cp1-alpha"))
+            .mockResolvedValueOnce(response("cp1-beta"));
+        const { pca } = await application();
+        for (const [claims, attribute, token] of [
+            [undefined, "alpha", "ordinary-alpha"],
+            [cp1, "alpha", "cp1-alpha"],
+            [cp1, "beta", "cp1-beta"],
+        ]) {
+            const attributed = {
                 ...request,
+                claims,
+                attributeTokens: [attribute!],
+            };
+            expect((await pca.acquireTokenSilent(attributed)).accessToken).toBe(
+                token
+            );
+            expect((await pca.acquireTokenSilent(attributed)).fromCache).toBe(
+                true
+            );
+        }
+        expect(post).toHaveBeenCalledTimes(3);
+    });
+
+    it("preserves explicit xms_cc requirements when configured capabilities are merged", async () => {
+        const post = jest
+            .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+            .mockResolvedValueOnce(response("configured"))
+            .mockResolvedValueOnce(response("challenged"));
+        const { pca } = await application(["CP1"]);
+        await pca.acquireTokenSilent(request);
+        const required = JSON.stringify({
+            access_token: { xms_cc: { values: ["CP1"], essential: true } },
+        });
+        expect(
+            (await pca.acquireTokenSilent({ ...request, claims: required }))
+                .accessToken
+        ).toBe("challenged");
+        expect(post).toHaveBeenCalledTimes(2);
+        const body = new URLSearchParams(post.mock.calls[1][1]?.body);
+        expect(JSON.parse(body.get("claims")!).access_token.xms_cc).toEqual({
+            values: ["CP1"],
+            essential: true,
+        });
+        await expect(
+            pca.acquireTokenSilent({
+                ...request,
+                claims: '{"access_token":{"xms_cc":{"values":[123]}}}',
+            })
+        ).rejects.toMatchObject({ errorCode: "invalid_claims" });
+        expect(post).toHaveBeenCalledTimes(2);
+    });
+
+    it("does not coalesce web requests whose effective broker capabilities differ", async () => {
+        const post = jest
+            .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+            .mockImplementation(async (_url, options) => {
+                const body = new URLSearchParams(options?.body);
+                return response(
+                    JSON.parse(body.get("claims")!).access_token?.xms_cc
+                        ? "cp1"
+                        : "ordinary"
+                );
+            });
+        const { pca } = await application(["CP1"]);
+        const brokerRequest = {
+            ...request,
+            extraParameters: { brk_client_id: TEST_CONFIG.MSAL_CLIENT_ID },
+        };
+        const [ordinary, capable] = await Promise.all([
+            pca.acquireTokenSilent({
+                ...brokerRequest,
+                skipBrokerClaims: true,
+            }),
+            pca.acquireTokenSilent({
+                ...brokerRequest,
+                skipBrokerClaims: false,
+            }),
+        ]);
+        expect(ordinary.accessToken).toBe("ordinary");
+        expect(capable.accessToken).toBe("cp1");
+        expect(post).toHaveBeenCalledTimes(2);
+    });
+
+    it("does not coalesce native requests whose raw broker capability policy differs", async () => {
+        jest.spyOn(
+            FetchClient.prototype,
+            "sendPostRequestAsync"
+        ).mockResolvedValue(response("ordinary"));
+        const source = await application();
+        const ordinary = await source.pca.acquireTokenSilent(request);
+        const { pca, controller } = await application(["CP1"]);
+        const nativeAccount = {
+            ...ordinary.account,
+            nativeAccountId: "nativeAccountId",
+        };
+        const sendMessage = jest.fn(async (_request: PlatformAuthRequest) => {
+            throw new Error("Broker called");
+        });
+        controller.enableBroker({
+            getExtensionId: () => undefined,
+            getExtensionName: () => "com.microsoft.browsercore",
+            getExtensionVersion: () => "1.0.0",
+            sendMessage,
+        });
+        const brokerRequest = {
+            ...request,
+            account: nativeAccount,
+            extraParameters: { brk_client_id: TEST_CONFIG.MSAL_CLIENT_ID },
+        };
+        await pca.hydrateCache(
+            { ...ordinary, account: nativeAccount, fromPlatformBroker: true },
+            { ...brokerRequest, skipBrokerClaims: true }
+        );
+        const results = await Promise.allSettled([
+            pca.acquireTokenSilent({
+                ...brokerRequest,
+                skipBrokerClaims: true,
+            }),
+            pca.acquireTokenSilent({
+                ...brokerRequest,
+                skipBrokerClaims: false,
+            }),
+        ]);
+        expect(results[0]).toMatchObject({
+            status: "fulfilled",
+            value: { accessToken: "ordinary" },
+        });
+        expect(results[1]).toMatchObject({
+            status: "rejected",
+            reason: expect.objectContaining({ message: "Broker called" }),
+        });
+        expect(sendMessage).toHaveBeenCalledTimes(1);
+        expect(
+            JSON.parse(sendMessage.mock.calls[0][0].claims!).access_token.xms_cc
+                .values
+        ).toEqual(["CP1"]);
+    });
+
+    it("hydrates a configured CP1 token without introducing a cache-specific API", async () => {
+        const post = jest
+            .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+            .mockResolvedValue(response("source"));
+        const source = await application();
+        const result = await source.pca.acquireTokenSilent(request);
+        const target = await application(["CP1"]);
+        await target.pca.hydrateCache(
+            { ...result, accessToken: "hydrated" },
+            request
+        );
+        expect((await target.pca.acquireTokenSilent(request)).accessToken).toBe(
+            "hydrated"
+        );
+        expect(post).toHaveBeenCalledTimes(1);
+    });
+
+    it("preserves capability and challenge claims through broker cache lookup", async () => {
+        jest.spyOn(
+            FetchClient.prototype,
+            "sendPostRequestAsync"
+        ).mockResolvedValue(response("ordinary"));
+        const { pca, controller } = await application();
+        const ordinary = await pca.acquireTokenSilent(request);
+        const nativeAccount = {
+            ...ordinary.account,
+            nativeAccountId: "nativeAccountId",
+        };
+        const sendMessage = jest.fn(async (_request: PlatformAuthRequest) => {
+            throw new Error("Broker called");
+        });
+        controller.enableBroker({
+            getExtensionId: () => undefined,
+            getExtensionName: () => "com.microsoft.browsercore",
+            getExtensionVersion: () => "1.0.0",
+            sendMessage,
+        });
+        const nativeRequest = { ...request, account: nativeAccount };
+        const nativeResult = {
+            ...ordinary,
+            account: nativeAccount,
+            fromPlatformBroker: true,
+        };
+        await pca.hydrateCache(nativeResult, nativeRequest);
+        await expect(
+            pca.acquireTokenSilent({ ...nativeRequest, claims: cp1 })
+        ).rejects.toThrow("Broker called");
+        expect(sendMessage).toHaveBeenCalledTimes(1);
+        await pca.hydrateCache(
+            { ...nativeResult, accessToken: "native-cp1" },
+            { ...nativeRequest, claims: cp1 }
+        );
+        expect(
+            (await pca.acquireTokenSilent({ ...nativeRequest, claims: cp1 }))
+                .accessToken
+        ).toBe("native-cp1");
+        expect((await pca.acquireTokenSilent(nativeRequest)).accessToken).toBe(
+            "ordinary"
+        );
+        expect(sendMessage).toHaveBeenCalledTimes(1);
+        await expect(
+            pca.acquireTokenSilent({
+                ...nativeRequest,
                 claims: JSON.stringify({
                     access_token: {
                         xms_cc: { values: ["CP1"] },
-                        auth_time: { essential: true, value: i },
+                        auth_time: { essential: true },
                     },
                 }),
-            });
-            expect(cache.getTokenKeys().accessToken).toHaveLength(2);
+            })
+        ).rejects.toThrow("Broker called");
+        expect(sendMessage).toHaveBeenCalledTimes(2);
+    });
+
+    it("keeps skipped broker capabilities out of both outgoing claims and cache selection", async () => {
+        jest.spyOn(
+            FetchClient.prototype,
+            "sendPostRequestAsync"
+        ).mockResolvedValue(response("ordinary"));
+        const source = await application();
+        const ordinary = await source.pca.acquireTokenSilent(request);
+        const { pca, controller } = await application(["CP1"]);
+        const nativeAccount = {
+            ...ordinary.account,
+            nativeAccountId: "nativeAccountId",
+        };
+        const sendMessage = jest.fn(async (_request: PlatformAuthRequest) => {
+            throw new Error("Broker called");
+        });
+        controller.enableBroker({
+            getExtensionId: () => undefined,
+            getExtensionName: () => "com.microsoft.browsercore",
+            getExtensionVersion: () => "1.0.0",
+            sendMessage,
+        });
+        const nativeRequest = {
+            ...request,
+            account: nativeAccount,
+            embeddedClientId: "embedded-app",
+            skipBrokerClaims: true,
+        };
+        await pca.hydrateCache(
+            { ...ordinary, account: nativeAccount, fromPlatformBroker: true },
+            nativeRequest
+        );
+        expect((await pca.acquireTokenSilent(nativeRequest)).accessToken).toBe(
+            "ordinary"
+        );
+        expect(sendMessage).not.toHaveBeenCalled();
+        await expect(
+            pca.acquireTokenSilent({
+                ...nativeRequest,
+                scopes: ["another.scope"],
+            })
+        ).rejects.toThrow("Broker called");
+        expect(
+            JSON.parse(sendMessage.mock.calls[0][0].claims!).access_token
+                ?.xms_cc
+        ).toBeUndefined();
+    });
+
+    it.each([
+        { embeddedClientId: "embedded-app" },
+        {
+            extraParameters: {
+                brk_client_id: TEST_CONFIG.MSAL_CLIENT_ID,
+                brk_redirect_uri: "https://localhost",
+            },
+        },
+    ])(
+        "preserves skipped capabilities through brokered web lookup and renewal: %j",
+        async (brokerParameters) => {
+            const post = jest
+                .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+                .mockResolvedValueOnce(response("ordinary"))
+                .mockResolvedValueOnce(response("ordinary-renewed"))
+                .mockResolvedValueOnce(response("configured-cp1"));
+            const source = await application();
+            const ordinary = await source.pca.acquireTokenSilent(request);
+            const { pca } = await application(["CP1"]);
+            const embeddedRequest = {
+                ...request,
+                ...brokerParameters,
+                skipBrokerClaims: true,
+            };
+            await pca.hydrateCache(ordinary, embeddedRequest);
+            expect(
+                (await pca.acquireTokenSilent(embeddedRequest)).accessToken
+            ).toBe("ordinary");
+            expect(post).toHaveBeenCalledTimes(1);
+            expect(
+                (
+                    await pca.acquireTokenSilent({
+                        ...embeddedRequest,
+                        forceRefresh: true,
+                    })
+                ).accessToken
+            ).toBe("ordinary-renewed");
+            const embeddedBody = new URLSearchParams(
+                post.mock.calls[1][1]?.body
+            );
+            expect(embeddedBody.get("brk_client_id")).toBe(
+                TEST_CONFIG.MSAL_CLIENT_ID
+            );
+            expect(
+                JSON.parse(embeddedBody.get("claims")!).access_token?.xms_cc
+            ).toBeUndefined();
+            expect(
+                (
+                    await pca.acquireTokenSilent({
+                        ...request,
+                        skipBrokerClaims: true,
+                    })
+                ).accessToken
+            ).toBe("configured-cp1");
+            const ordinaryBody = new URLSearchParams(
+                post.mock.calls[2][1]?.body
+            );
+            expect(
+                JSON.parse(ordinaryBody.get("claims")!).access_token.xms_cc
+                    .values
+            ).toEqual(["CP1"]);
         }
-        expect((await pca.acquireTokenSilent(request)).accessToken).toBe(
-            "token-1"
+    );
+
+    it("imports a token using the request's capability and reuses it", async () => {
+        const configuration = config([], BrowserCacheLocation.SessionStorage);
+        const { pca } = await application(
+            [],
+            BrowserCacheLocation.SessionStorage
+        );
+        await loadExternalTokens(
+            configuration,
+            { ...request, claims: cp1 },
+            {
+                ...TEST_TOKEN_RESPONSE.body,
+                access_token: "imported-cp1",
+                scope: "user.read",
+            },
+            {}
         );
         expect(
             (await pca.acquireTokenSilent({ ...request, claims: cp1 }))
                 .accessToken
-        ).toBe("token-14");
-        expect(post).toHaveBeenCalledTimes(14);
-    });
-
-    it("uses configured capability precedence and renews for other claims", async () => {
-        const post = jest
-            .spyOn(FetchClient.prototype, "sendPostRequestAsync")
-            .mockResolvedValueOnce(response("cp1"))
-            .mockResolvedValueOnce(response("challenge"));
-        const { pca, cache } = await application(true, ["CP1"]);
-        await pca.acquireTokenSilent(request);
-        expect(
-            (
-                await pca.acquireTokenSilent({
-                    ...request,
-                    claims: JSON.stringify({
-                        access_token: { xms_cc: { values: [] } },
-                    }),
-                })
-            ).accessToken
-        ).toBe("cp1");
-        expect(
-            (
-                await pca.acquireTokenSilent({
-                    ...request,
-                    claims: JSON.stringify({
-                        id_token: { auth_time: { essential: true } },
-                    }),
-                })
-            ).accessToken
-        ).toBe("challenge");
-        expect(post).toHaveBeenCalledTimes(2);
-        expect(cache.getTokenKeys().accessToken).toHaveLength(1);
-    });
-
-    it("preserves storeInCache opt-out", async () => {
-        const post = jest
-            .spyOn(FetchClient.prototype, "sendPostRequestAsync")
-            .mockResolvedValue(response("cp1"));
-        const { pca, cache } = await application();
-        await pca.acquireTokenSilent({
-            ...request,
-            claims: cp1,
-            storeInCache: { accessToken: false },
-        });
-        expect(cache.getTokenKeys().accessToken).toHaveLength(0);
-        await pca.acquireTokenSilent({ ...request, claims: cp1 });
-        expect(post).toHaveBeenCalledTimes(2);
-    });
-
-    it("rejects hydration, external imports and nested-app controllers", async () => {
-        jest.spyOn(
-            FetchClient.prototype,
-            "sendPostRequestAsync"
-        ).mockResolvedValue(response("grant"));
-        const { pca } = await application();
-        const result = await pca.acquireTokenSilent(request);
-        await expect(pca.hydrateCache(result, request)).rejects.toMatchObject({
-            errorCode: "experimental_cae_cache_unsupported",
-        });
-        await expect(
-            loadExternalTokens(config(), request, TEST_TOKEN_RESPONSE.body, {})
-        ).rejects.toMatchObject({
-            errorCode: "experimental_cae_cache_unsupported",
-        });
-        expect(
-            () =>
-                new NestedAppAuthController(
-                    new NestedAppOperatingContext(config())
-                )
-        ).toThrow("experimental_cae_cache_unsupported");
-    });
-
-    it.each([
-        { attributeTokens: ["alpha"] },
-        { resource: "https://resource.invalid" },
-        { extraParameters: { claims: cp1 } },
-        {
-            claims: JSON.stringify({
-                access_token: { xms_cc: { values: ["CP2"] } },
-            }),
-        },
-    ])(
-        "rejects unsupported request combinations before network: %s",
-        async (unsupported) => {
-            const post = jest.spyOn(
-                FetchClient.prototype,
-                "sendPostRequestAsync"
-            );
-            const { pca, cache } = await application();
-            await expect(
-                pca.acquireTokenSilent({ ...request, ...unsupported })
-            ).rejects.toMatchObject({
-                errorCode: "experimental_cae_cache_unsupported",
-            });
-            expect(post).not.toHaveBeenCalled();
-            expect(cache.getTokenKeys().accessToken).toHaveLength(0);
-        }
-    );
-
-    it.each([
-        { system: { allowPlatformBroker: true } },
-        { system: { protocolMode: ProtocolMode.OIDC } },
-        { auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID, isMcp: true } },
-    ])("rejects unsupported configurations: %s", (unsupported) => {
-        expect(
-            () => new PublicClientApplication({ ...config(), ...unsupported })
-        ).toThrow("experimental_cae_cache_unsupported");
+        ).toBe("imported-cp1");
     });
 });

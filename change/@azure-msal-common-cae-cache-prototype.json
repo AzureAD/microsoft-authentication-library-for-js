@@ -1,6 +1,6 @@
 {
-  "type": "patch",
-  "comment": "Partition ordinary/CP1 token lookup and overlap replacement using existing cache-key components, rejecting unsupported component combinations. [#8975](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8975)",
-  "packageName": "@azure/msal-common",
-  "dependentChangeType": "patch"
+    "type": "patch",
+    "comment": "Compose ordinary/CP1 capability markers with existing cache components for token lookup and replacement; allow CP1-only claims to reuse cached tokens. [#8975](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8975)",
+    "packageName": "@azure/msal-common",
+    "dependentChangeType": "patch"
 }

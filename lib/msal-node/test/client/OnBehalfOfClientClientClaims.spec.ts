@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { createHash } from "crypto";
 import {
     AuthenticationResult,
     ClientConfiguration,
@@ -53,62 +54,6 @@ describe("OnBehalfOfClient claimsFromClient tests", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
-    });
-
-    describe("experimental CAE cache components", () => {
-        it.each([
-            { claimsFromClient: NSP_CLAIMS },
-            { attributeTokens: ["alpha"] },
-        ])(
-            "rejects conflicting request %j before cache lookup or network fallback",
-            async (overrides) => {
-                const client = new OnBehalfOfClient(config);
-                const request = { ...baseRequest(), ...overrides };
-                await client.acquireToken(request);
-                const storage = config.storageInterface!;
-                const before = storage
-                    .getTokenKeys()
-                    .accessToken.map((key) =>
-                        storage.getAccessTokenCredential(
-                            key,
-                            request.correlationId
-                        )
-                    );
-                const read = jest.spyOn(storage, "getAccessTokensByFilter");
-                const save = jest.spyOn(storage, "saveCacheRecord");
-                createTokenRequestBodySpy.mockClear();
-
-                for (const skipCache of [false, true]) {
-                    await expect(
-                        client.acquireToken({
-                            ...request,
-                            skipCache,
-                            experimentalCaeCache: {
-                                capability: "cp1",
-                                hasChallenge: false,
-                            },
-                        })
-                    ).rejects.toMatchObject({
-                        name: "ClientConfigurationError",
-                        errorCode: "experimental_cae_cache_unsupported",
-                        correlationId: request.correlationId,
-                    });
-                }
-                expect(read).not.toHaveBeenCalled();
-                expect(save).not.toHaveBeenCalled();
-                expect(createTokenRequestBodySpy).not.toHaveBeenCalled();
-                expect(
-                    storage
-                        .getTokenKeys()
-                        .accessToken.map((key) =>
-                            storage.getAccessTokenCredential(
-                                key,
-                                request.correlationId
-                            )
-                        )
-                ).toEqual(before);
-            }
-        );
     });
 
     describe("Body injection", () => {
@@ -168,6 +113,42 @@ describe("OnBehalfOfClient claimsFromClient tests", () => {
     });
 
     describe("Cache isolation", () => {
+        it("keeps ordinary and CP1 tokens separate alongside client-originated claims", async () => {
+            jest.spyOn(
+                config.cryptoInterface!,
+                "hashString"
+            ).mockImplementation(async (value) =>
+                createHash("sha256").update(value).digest("base64url")
+            );
+            const client = new OnBehalfOfClient(config);
+            const request = { ...baseRequest(), claimsFromClient: NSP_CLAIMS };
+            const cp1 = {
+                ...request,
+                claims: '{"access_token":{"xms_cc":{"values":["CP1"]}}}',
+            };
+            expect((await client.acquireToken(request))?.fromCache).toBe(false);
+            expect((await client.acquireToken(cp1))?.fromCache).toBe(false);
+            expect((await client.acquireToken(request))?.fromCache).toBe(true);
+            expect((await client.acquireToken(cp1))?.fromCache).toBe(true);
+            const storage = config.storageInterface!;
+            const components = storage
+                .getTokenKeys()
+                .accessToken.map(
+                    (key) =>
+                        storage.getAccessTokenCredential(
+                            key,
+                            request.correlationId
+                        )?.additionalCacheKeyComponents
+                );
+            expect(components).toHaveLength(2);
+            expect(components).toEqual(
+                expect.arrayContaining([
+                    { client_claims: NSP_CLAIMS, clientCapabilities: "false" },
+                    { client_claims: NSP_CLAIMS, clientCapabilities: "true" },
+                ])
+            );
+        });
+
         it("stores client_claims in additionalCacheKeyComponents", async () => {
             const client = new OnBehalfOfClient(config);
 
@@ -186,11 +167,12 @@ describe("OnBehalfOfClient claimsFromClient tests", () => {
                 );
             expect(cachedToken).not.toBeNull();
             expect(cachedToken!.additionalCacheKeyComponents).toEqual({
+                clientCapabilities: "false",
                 client_claims: NSP_CLAIMS,
             });
         });
 
-        it("does not store additionalCacheKeyComponents when claimsFromClient is not set", async () => {
+        it("stores only the capability component when claimsFromClient is not set", async () => {
             const client = new OnBehalfOfClient(config);
 
             await client.acquireToken(baseRequest());
@@ -204,7 +186,9 @@ describe("OnBehalfOfClient claimsFromClient tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
             expect(cachedToken).not.toBeNull();
-            expect(cachedToken!.additionalCacheKeyComponents).toBeUndefined();
+            expect(cachedToken!.additionalCacheKeyComponents).toEqual({
+                clientCapabilities: "false",
+            });
         });
 
         it("returns the token from cache on the second call with identical claimsFromClient", async () => {

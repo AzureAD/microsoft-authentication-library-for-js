@@ -12,6 +12,7 @@ import {
     Authority,
     AuthToken,
     CacheHelpers,
+    ClaimsUtils,
     ClientAuthErrorCodes,
     ClientConfiguration,
     createClientAuthError,
@@ -52,8 +53,21 @@ export class OnBehalfOfClient extends BaseClient {
      * @param request - developer provided CommonOnBehalfOfRequest
      */
     public async acquireToken(
-        request: CommonOnBehalfOfRequest
+        baseRequest: CommonOnBehalfOfRequest
     ): Promise<AuthenticationResult | null> {
+        const hasChallenge = ClaimsUtils.hasClaimsChallenge(
+            baseRequest.claims,
+            baseRequest.correlationId
+        );
+        const request = {
+            ...baseRequest,
+            claims: ClaimsUtils.mergeClientCapabilities(
+                baseRequest.claims,
+                this.config.authOptions.clientCapabilities,
+                baseRequest.correlationId,
+                baseRequest.claimsFromClient
+            ),
+        };
         this.scopeSet = new ScopeSet(
             request.scopes || [],
             request.correlationId
@@ -81,12 +95,13 @@ export class OnBehalfOfClient extends BaseClient {
             };
         }
 
-        CacheHelpers.validateCaeCacheKeyComponents(
-            request,
-            additionalCacheKeyComponents
-        );
+        additionalCacheKeyComponents =
+            CacheHelpers.getAccessTokenCacheKeyComponents(
+                request,
+                additionalCacheKeyComponents
+            );
 
-        if (request.skipCache || !StringUtils.isEmptyObj(request.claims)) {
+        if (request.skipCache || hasChallenge) {
             return this.executeTokenRequest(
                 request,
                 this.authority,

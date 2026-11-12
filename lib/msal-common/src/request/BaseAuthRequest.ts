@@ -36,14 +36,6 @@ export type BaseAuthRequest = {
      */
     claims?: string;
     /**
-     * Effective outgoing capability for experimental access-token partitioning.
-     * @internal
-     */
-    experimentalCaeCache?: {
-        capability: "ordinary" | "cp1";
-        hasChallenge: boolean;
-    };
-    /**
      * A stringified claims object which will be added to a Signed HTTP Request
      */
     shrClaims?: string;

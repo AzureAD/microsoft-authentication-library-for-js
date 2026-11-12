@@ -211,10 +211,6 @@ export class ResponseHandler {
         serverRequestId?: string,
         additionalCacheKeyComponents?: Record<string, string>
     ): Promise<AuthenticationResult> {
-        CacheHelpers.validateCaeCacheKeyComponents(
-            request,
-            additionalCacheKeyComponents
-        );
         // create an idToken object (not entity)
         let idTokenClaims: TokenClaims | undefined;
         if (serverTokenResponse.id_token) {
@@ -311,22 +307,11 @@ export class ResponseHandler {
                 Constants.AuthenticationScheme.DPOP;
         }
 
-        // Compute components once for entity storage (fallback if hash not provided by client)
-        const attributeTokenPartition = CacheHelpers.serializeAttributeTokens(
-            request.attributeTokens
-        );
-        const cacheKeyComponents: Record<string, string> | undefined =
-            (request.experimentalCaeCache
-                ? {
-                      experimental_cae_capability:
-                          request.experimentalCaeCache.capability,
-                  }
-                : additionalCacheKeyComponents) ??
-            (attributeTokenPartition
-                ? {
-                      attribute_tokens: attributeTokenPartition,
-                  }
-                : undefined);
+        const cacheKeyComponents =
+            CacheHelpers.getAccessTokenCacheKeyComponents(
+                request,
+                additionalCacheKeyComponents
+            );
 
         const cacheRecord = this.generateCacheRecord(
             serverTokenResponse,

@@ -700,9 +700,16 @@ export abstract class CacheManager implements ICacheManager {
             credential.additionalCacheKeyComponents &&
             Object.keys(credential.additionalCacheKeyComponents).length > 0
         ) {
-            additionalCacheKeyHash = await this.cryptoImpl.hashString(
-                JSON.stringify(credential.additionalCacheKeyComponents)
+            const components = JSON.stringify(
+                credential.additionalCacheKeyComponents
             );
+            // These fixed SHA-256 values also work in NAA runtimes without WebCrypto.
+            additionalCacheKeyHash =
+                components === '{"clientCapabilities":"false"}'
+                    ? "0h2Zh1K6Styy2BCEcHBN9EmEHNLliepMSFdSb_UJILg"
+                    : components === '{"clientCapabilities":"true"}'
+                    ? "v0-zkI8jZimvhwnN9uef0gdIzqo0SRgnfWWqlcld93o"
+                    : await this.cryptoImpl.hashString(components);
         }
         const accessTokenFilter: CredentialFilter = {
             clientId: credential.clientId,
@@ -711,10 +718,8 @@ export abstract class CacheManager implements ICacheManager {
             homeAccountId: credential.homeAccountId,
             realm: credential.realm,
             tokenType: credential.tokenType,
-            additionalCacheKeyComponents: credential
-                .additionalCacheKeyComponents?.experimental_cae_capability
-                ? credential.additionalCacheKeyComponents
-                : undefined,
+            additionalCacheKeyComponents:
+                credential.additionalCacheKeyComponents,
         };
 
         const tokenKeys = this.getTokenKeys();
@@ -1418,7 +1423,6 @@ export abstract class CacheManager implements ICacheManager {
         tokenKeys?: TokenKeys,
         targetRealm?: string
     ): AccessTokenEntity | null {
-        CacheHelpers.validateCaeCacheKeyComponents(request);
         const correlationId = request.correlationId;
         this.commonLogger.trace(
             "CacheManager - getAccessToken called",
@@ -1443,20 +1447,8 @@ export abstract class CacheManager implements ICacheManager {
                 ? Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
                 : Constants.CredentialType.ACCESS_TOKEN;
 
-        const attributeTokenPartition = CacheHelpers.serializeAttributeTokens(
-            request.attributeTokens
-        );
-        const additionalCacheKeyComponents: Record<string, string> | undefined =
-            request.experimentalCaeCache
-                ? {
-                      experimental_cae_capability:
-                          request.experimentalCaeCache.capability,
-                  }
-                : attributeTokenPartition
-                ? {
-                      attribute_tokens: attributeTokenPartition,
-                  }
-                : undefined;
+        const additionalCacheKeyComponents =
+            CacheHelpers.getAccessTokenCacheKeyComponents(request);
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,

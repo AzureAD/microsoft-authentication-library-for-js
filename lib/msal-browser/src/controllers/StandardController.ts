@@ -32,6 +32,7 @@ import {
     TimeUtils,
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     ITokenBindingKeyManager,
+    ClaimsUtils,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -89,10 +90,7 @@ import { IController } from "./IController.js";
 import { AuthenticationResult } from "../response/AuthenticationResult.js";
 import { ClearCacheRequest } from "../request/ClearCacheRequest.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
-import {
-    initializeSilentRequest,
-    rejectCaeCacheExperiment,
-} from "../request/RequestHelpers.js";
+import { initializeSilentRequest } from "../request/RequestHelpers.js";
 import { InitializeApplicationRequest } from "../request/InitializeApplicationRequest.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import {
@@ -1356,9 +1354,6 @@ export class StandardController implements IController {
         request: AuthorizationCodeRequest
     ): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
-        if (this.config.experimental.enableCaeCachePartitioning) {
-            rejectCaeCacheExperiment(correlationId);
-        }
         this.logger.trace("acquireTokenByCode called", correlationId);
         const atbcMeasurement = this.performanceClient.startMeasurement(
             BrowserRootPerformanceEvents.AcquireTokenByCode,
@@ -1819,16 +1814,23 @@ export class StandardController implements IController {
      */
     async hydrateCache(
         result: AuthenticationResult,
-        request:
+        baseRequest:
             | SilentRequest
             | SsoSilentRequest
             | RedirectRequest
             | PopupRequest
     ): Promise<void> {
         this.logger.verbose("hydrateCache called", result.correlationId);
-        if (this.config.experimental.enableCaeCachePartitioning) {
-            rejectCaeCacheExperiment(result.correlationId);
-        }
+        const request = {
+            ...baseRequest,
+            claims: ClaimsUtils.mergeClientCapabilities(
+                baseRequest.claims,
+                ClaimsUtils.shouldSkipBrokerClaims(baseRequest)
+                    ? undefined
+                    : this.config.auth.clientCapabilities,
+                result.correlationId
+            ),
+        };
 
         // Account gets saved to browser storage regardless of native or not
         const accountEntity =
@@ -1860,13 +1862,11 @@ export class StandardController implements IController {
             );
 
             // Create accessToken entity and store in native internal storage
-            const attributeTokenPartition =
-                CacheHelpers.serializeAttributeTokens(request.attributeTokens);
-            const additionalCacheKeyComponents = attributeTokenPartition
-                ? {
-                      attribute_tokens: attributeTokenPartition,
-                  }
-                : undefined;
+            const additionalCacheKeyComponents =
+                CacheHelpers.getAccessTokenCacheKeyComponents({
+                    ...request,
+                    correlationId: result.correlationId,
+                });
 
             const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
                 result.account.homeAccountId,
@@ -2439,7 +2439,16 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         const preparedRequest = resolveSilentRequestPreparation(
             {
-                request,
+                request: {
+                    ...request,
+                    claims: ClaimsUtils.mergeClientCapabilities(
+                        request.claims,
+                        ClaimsUtils.shouldSkipBrokerClaims(request)
+                            ? undefined
+                            : this.config.auth.clientCapabilities,
+                        correlationId
+                    ),
+                },
                 account,
                 correlationId,
                 config: this.config,

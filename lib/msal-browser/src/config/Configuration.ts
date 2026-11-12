@@ -216,11 +216,6 @@ export type BrowserSystemOptions = SystemOptions & {
  */
 export type BrowserExperimentalOptions = {
     /**
-     * Unpublished, default-off ordinary/CP1 cache partition experiment for
-     * non-brokered web Bearer requests using AAD or EAR.
-     */
-    enableCaeCachePartitioning?: boolean;
-    /**
      * Enables iframe timeout telemetry experiment for silent iframe bridge monitoring.
      */
     iframeTimeoutTelemetry?: boolean;
@@ -386,7 +381,6 @@ export function buildConfiguration(
     };
 
     const DEFAULT_EXPERIMENTAL_OPTIONS: Required<BrowserExperimentalOptions> = {
-        enableCaeCachePartitioning: false,
         iframeTimeoutTelemetry: false,
         allowPlatformBrokerWithDOM: false,
     };
@@ -479,18 +473,5 @@ export function buildConfiguration(
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
 
-    if (
-        overlayedConfig.experimental.enableCaeCachePartitioning &&
-        ((overlayedConfig.system.protocolMode !== ProtocolMode.AAD &&
-            overlayedConfig.system.protocolMode !== ProtocolMode.EAR) ||
-            overlayedConfig.system.allowPlatformBroker ||
-            overlayedConfig.experimental.allowPlatformBrokerWithDOM ||
-            overlayedConfig.auth.isMcp)
-    ) {
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.experimentalCaeCacheUnsupported,
-            ""
-        );
-    }
     return overlayedConfig;
 }

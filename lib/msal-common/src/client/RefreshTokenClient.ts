@@ -4,6 +4,10 @@
  */
 
 import {
+    mergeClientCapabilities,
+    shouldSkipBrokerClaims,
+} from "../request/ClaimsUtils.js";
+import {
     buildClientConfiguration,
     ClientConfiguration,
     CommonClientConfiguration,
@@ -119,9 +123,19 @@ export class RefreshTokenClient {
         this.performanceClient = performanceClient;
     }
     public async acquireToken(
-        request: CommonRefreshTokenRequest,
+        baseRequest: CommonRefreshTokenRequest,
         apiId: number
     ): Promise<AuthenticationResult> {
+        const request = {
+            ...baseRequest,
+            claims: mergeClientCapabilities(
+                baseRequest.claims,
+                shouldSkipBrokerClaims(baseRequest)
+                    ? undefined
+                    : this.config.authOptions.clientCapabilities,
+                baseRequest.correlationId
+            ),
+        };
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await invokeAsync(
             this.executeTokenRequest.bind(this),

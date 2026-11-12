@@ -19,6 +19,11 @@ import {
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager.js";
 import { ClientInfo } from "../account/ClientInfo.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
+import {
+    parseClaims,
+    deepMergeClaims,
+    mergeClientCapabilities,
+} from "./ClaimsUtils.js";
 
 export function instrumentBrokerParams(
     parameters: Map<string, string>,
@@ -518,75 +523,6 @@ const DEFAULT_ID_TOKEN_CLAIMS: Record<string, { essential: false }> = {
 };
 
 /**
- * Parses a claims JSON string into an object, throwing a ClientConfigurationError
- * (error code `invalid_claims`) if the value is not a valid JSON object. The raw
- * claims value is never included in the error - it may contain sensitive data.
- * @param claims - Claims JSON string. Must be valid JSON representing an object.
- * @param correlationId - The request correlation id
- * @returns The parsed claims object
- */
-function parseClaims(
-    claims: string,
-    correlationId: string = ""
-): Record<string, unknown> {
-    let parsed: unknown;
-    try {
-        parsed = JSON.parse(claims);
-    } catch (e) {
-        // Malformed JSON
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidClaims,
-            correlationId
-        );
-    }
-
-    if (!isPlainObject(parsed)) {
-        // Valid JSON, but not an object (e.g. an array, a scalar, or the literal `null`).
-        throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.invalidClaims,
-            correlationId
-        );
-    }
-
-    return parsed;
-}
-
-/**
- * Type guard for a non-null, non-array object (a JSON "object" value).
- * @param value - The value to test
- * @returns True when value is a plain object that can be deep-merged
- */
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-/**
- * Recursively deep-merges two parsed claims objects. Nested objects are merged key-by-key;
- * for any other value type (arrays, scalars, null) the value from `claimsToMerge` replaces
- * the base. This mirrors the deep merge used by msal-dotnet so that, for example, a server
- * `access_token` challenge and a client-originated `access_token` claim are combined rather
- * than one clobbering the other.
- * @param baseClaims - The parsed base claims object
- * @param claimsToMerge - The parsed claims object merged in with precedence
- * @returns The deep-merged claims object
- */
-function deepMergeClaims(
-    baseClaims: Record<string, unknown>,
-    claimsToMerge: Record<string, unknown>
-): Record<string, unknown> {
-    const merged: Record<string, unknown> = { ...baseClaims };
-    for (const [key, mergeInValue] of Object.entries(claimsToMerge)) {
-        const baseValue = merged[key];
-        if (isPlainObject(baseValue) && isPlainObject(mergeInValue)) {
-            merged[key] = deepMergeClaims(baseValue, mergeInValue);
-        } else {
-            merged[key] = mergeInValue;
-        }
-    }
-    return merged;
-}
-
-/**
  * Parses claims JSON, optionally deep-merges a second client-originated claims string
  * (`claimsToMerge`, e.g. `claimsFromClient`) with precedence on conflicting keys, merges
  * default optional idToken claims (signin_state, login_hint, tenant_region_sub_scope), and appends client
@@ -633,27 +569,11 @@ export function buildMergedClaims(
         }
     }
 
-    // Add client capabilities
-    if (clientCapabilities && clientCapabilities.length > 0) {
-        if (
-            !Object.prototype.hasOwnProperty.call(
-                mergedClaims,
-                Constants.ClaimsRequestKeys.ACCESS_TOKEN
-            )
-        ) {
-            // Add access_token key to claims object
-            mergedClaims[Constants.ClaimsRequestKeys.ACCESS_TOKEN] = {};
-        }
-
-        // Add xms_cc claim with provided clientCapabilities to access_token key
-        mergedClaims[Constants.ClaimsRequestKeys.ACCESS_TOKEN][
-            Constants.ClaimsRequestKeys.XMS_CC
-        ] = {
-            values: clientCapabilities,
-        };
-    }
-
-    return JSON.stringify(mergedClaims);
+    return mergeClientCapabilities(
+        JSON.stringify(mergedClaims),
+        clientCapabilities,
+        correlationId
+    );
 }
 
 /**

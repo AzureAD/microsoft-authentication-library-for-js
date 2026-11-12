@@ -50,6 +50,34 @@ describe("UserFederatedIdentityCredentialClient claimsFromClient tests", () => {
         jest.restoreAllMocks();
     });
 
+    it("classifies FIC tokens using the client-originated capabilities actually sent", async () => {
+        const client = new UserFederatedIdentityCredentialClient(config);
+        const cp1 = '{"access_token":{"xms_cc":{"values":["CP1"]}}}';
+        const request = { ...baseRequest(), claimsFromClient: cp1 };
+        const result = await client.acquireToken(request);
+        if (!result?.account) {
+            throw new Error(
+                "Expected a user account in the FIC response fixture"
+            );
+        }
+        const body = new URLSearchParams(
+            await createTokenRequestBodySpy.mock.results[0].value
+        );
+        expect(
+            JSON.parse(body.get("claims")!).access_token.xms_cc.values
+        ).toEqual(["CP1"]);
+        const storage = config.storageInterface!;
+        expect(
+            storage.getAccessToken(result.account, baseRequest())
+        ).toBeNull();
+        expect(
+            storage.getAccessToken(result.account, {
+                ...baseRequest(),
+                claims: cp1,
+            })?.secret
+        ).toBe(result.accessToken);
+    });
+
     describe("Body injection", () => {
         it("merges claimsFromClient into the claims body parameter", async () => {
             const client = new UserFederatedIdentityCredentialClient(config);

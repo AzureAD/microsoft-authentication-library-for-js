@@ -26,6 +26,7 @@ import {
     StubPerformanceClient,
     TimeUtils,
     TokenClaims,
+    ClaimsUtils,
 } from "@azure/msal-common/browser";
 import { buildConfiguration, Configuration } from "../config/Configuration.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
@@ -45,7 +46,6 @@ import * as BrowserUtils from "../utils/BrowserUtils.js";
 import { BrowserCacheManager } from "./BrowserCacheManager.js";
 import { name, version } from "../packageMetadata.js";
 import { TokenBindingKeyManager } from "../crypto/TokenBindingKeyManager.js";
-import { rejectCaeCacheExperiment } from "../request/RequestHelpers.js";
 
 export type LoadTokenOptions = {
     clientInfo?: string;
@@ -64,20 +64,27 @@ export type LoadTokenOptions = {
  */
 export async function loadExternalTokens(
     config: Configuration,
-    request: SilentRequest,
+    baseRequest: SilentRequest,
     response: ExternalTokenResponse,
     options: LoadTokenOptions,
     performanceClient: IPerformanceClient = new StubPerformanceClient()
 ): Promise<AuthenticationResult> {
     BrowserUtils.blockNonBrowserEnvironment();
-    if (config.experimental?.enableCaeCachePartitioning) {
-        rejectCaeCacheExperiment(request.correlationId || "");
-    }
 
     const browserConfig = buildConfiguration(config, true);
 
     const correlationId =
-        request.correlationId || BrowserCrypto.createNewGuid();
+        baseRequest.correlationId || BrowserCrypto.createNewGuid();
+    const request = {
+        ...baseRequest,
+        claims: ClaimsUtils.mergeClientCapabilities(
+            baseRequest.claims,
+            ClaimsUtils.shouldSkipBrokerClaims(baseRequest)
+                ? undefined
+                : browserConfig.auth.clientCapabilities,
+            correlationId
+        ),
+    };
 
     const rootMeasurement = performanceClient.startMeasurement(
         BrowserRootPerformanceEvents.LoadExternalTokens,
@@ -417,13 +424,22 @@ async function loadAccessToken(
         expiresOn,
         extendedExpiresOn,
         base64Decode,
-        correlationId
+        correlationId,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        CacheHelpers.getAccessTokenCacheKeyComponents({
+            ...request,
+            correlationId,
+        })
     );
 
-    await storage.setAccessTokenCredential(
-        accessTokenEntity,
+    await storage.saveCacheRecord(
+        { accessToken: accessTokenEntity },
         correlationId,
-        kmsi
+        kmsi,
+        ApiId.loadExternalTokens
     );
     return accessTokenEntity;
 }

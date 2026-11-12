@@ -18,6 +18,7 @@ export { TimeUtils };
 export { UrlUtils };
 export { AADServerParamKeys };
 export { AccountEntityUtils };
+export * as ClaimsUtils from "./request/ClaimsUtils.js";
 
 export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient.js";
 export { RefreshTokenClient } from "./client/RefreshTokenClient.js";

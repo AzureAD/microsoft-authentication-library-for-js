@@ -129,11 +129,12 @@ describe("ClientCredentialClient claimsFromClient tests", () => {
                 );
             expect(cachedToken).not.toBeNull();
             expect(cachedToken!.additionalCacheKeyComponents).toEqual({
+                clientCapabilities: "false",
                 client_claims: NSP_CLAIMS,
             });
         });
 
-        it("does not store additionalCacheKeyComponents when claimsFromClient is not set", async () => {
+        it("stores only the capability component when claimsFromClient is not set", async () => {
             const client = new ClientCredentialClient(config);
 
             const request: CommonClientCredentialRequest = {
@@ -153,10 +154,12 @@ describe("ClientCredentialClient claimsFromClient tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
             expect(cachedToken).not.toBeNull();
-            expect(cachedToken!.additionalCacheKeyComponents).toBeUndefined();
+            expect(cachedToken!.additionalCacheKeyComponents).toEqual({
+                clientCapabilities: "false",
+            });
         });
 
-        it("treats whitespace-only claimsFromClient as absent (no additionalCacheKeyComponents)", async () => {
+        it("treats whitespace-only claimsFromClient as absent", async () => {
             const client = new ClientCredentialClient(config);
 
             const request: CommonClientCredentialRequest = {
@@ -177,10 +180,12 @@ describe("ClientCredentialClient claimsFromClient tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
             expect(cachedToken).not.toBeNull();
-            expect(cachedToken!.additionalCacheKeyComponents).toBeUndefined();
+            expect(cachedToken!.additionalCacheKeyComponents).toEqual({
+                clientCapabilities: "false",
+            });
         });
 
-        it("treats an empty-object claimsFromClient (`{}`) as absent (no additionalCacheKeyComponents)", async () => {
+        it("treats an empty-object claimsFromClient (`{}`) as absent", async () => {
             const client = new ClientCredentialClient(config);
 
             const request: CommonClientCredentialRequest = {
@@ -203,7 +208,9 @@ describe("ClientCredentialClient claimsFromClient tests", () => {
             expect(cachedToken).not.toBeNull();
             // `{}` contributes nothing to the request body, so it must not fragment
             // the cache from an omitted claimsFromClient.
-            expect(cachedToken!.additionalCacheKeyComponents).toBeUndefined();
+            expect(cachedToken!.additionalCacheKeyComponents).toEqual({
+                clientCapabilities: "false",
+            });
         });
 
         it("returns from network (not cache) on the first call", async () => {

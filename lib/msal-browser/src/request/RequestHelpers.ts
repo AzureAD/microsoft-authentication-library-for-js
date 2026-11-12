@@ -17,14 +17,10 @@ import {
     JsonWebTokenAlgorithms,
     PerformanceEvents,
     PopTokenGenerator,
-    RequestParameterBuilder,
+    ClaimsUtils,
     createClientConfigurationError,
     invokeAsync,
 } from "@azure/msal-common/browser";
-import {
-    BrowserConfigurationAuthError,
-    BrowserConfigurationAuthErrorCodes,
-} from "../error/BrowserConfigurationAuthError.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { SilentRequest } from "./SilentRequest.js";
@@ -38,92 +34,6 @@ const SUPPORTED_AUTHENTICATION_SCHEMES = new Set<string>([
     Constants.AuthenticationScheme.DPOP,
     Constants.AuthenticationScheme.SSH,
 ]);
-
-/** Rejects flows outside the experimental web access-token partition. */
-export function rejectCaeCacheExperiment(correlationId: string): never {
-    throw new BrowserConfigurationAuthError(
-        BrowserConfigurationAuthErrorCodes.experimentalCaeCacheUnsupported,
-        correlationId,
-        "Experimental CAE caching supports non-brokered AAD/EAR bearer requests without token import or additional cache-key components."
-    );
-}
-
-/** Captures the outgoing capability and distinguishes it from a claims challenge. */
-export function prepareCaeCacheRequest<T extends Partial<BaseAuthRequest>>(
-    request: T,
-    config: BrowserConfiguration
-): T {
-    if (!config.experimental?.enableCaeCachePartitioning) {
-        return request.experimentalCaeCache
-            ? { ...request, experimentalCaeCache: undefined }
-            : request;
-    }
-    const correlationId = request.correlationId || "";
-    if (
-        (request.authenticationScheme &&
-            request.authenticationScheme !==
-                Constants.AuthenticationScheme.BEARER) ||
-        request.embeddedClientId ||
-        request.skipBrokerClaims ||
-        request.resource ||
-        request.attributeTokens?.length ||
-        Object.keys(request.extraParameters || {}).length ||
-        Object.keys(request.extraQueryParameters || {}).length
-    ) {
-        rejectCaeCacheExperiment(correlationId);
-    }
-    const merged: unknown = JSON.parse(
-        RequestParameterBuilder.buildMergedClaims(
-            request.claims,
-            config.auth.clientCapabilities,
-            correlationId
-        )
-    );
-    const access = isRecord(merged) ? merged.access_token : undefined;
-    const xmsCc = isRecord(access) ? access.xms_cc : undefined;
-    const values = isRecord(xmsCc) ? xmsCc.values : undefined;
-    if (
-        (xmsCc !== undefined && !isRecord(xmsCc)) ||
-        (values !== undefined &&
-            (!Array.isArray(values) ||
-                !values.every(
-                    (value: unknown) => value === "CP1" || value === "cp1"
-                )))
-    ) {
-        rejectCaeCacheExperiment(correlationId);
-    }
-    const raw: Record<string, unknown> = request.claims
-        ? JSON.parse(request.claims)
-        : {};
-    const hasChallenge = Object.entries(raw).some(
-        ([section, contents]) =>
-            !isRecord(contents) ||
-            (section === "access_token"
-                ? Object.entries(contents).some(
-                      ([key, value]) =>
-                          key !== "xms_cc" ||
-                          !isRecord(value) ||
-                          Object.keys(value).some((field) => field !== "values")
-                  )
-                : Object.keys(contents).length > 0)
-    );
-    return {
-        ...request,
-        scopes: request.scopes ? [...request.scopes] : undefined,
-        storeInCache: request.storeInCache
-            ? { ...request.storeInCache }
-            : undefined,
-        experimentalCaeCache: {
-            capability:
-                Array.isArray(values) && values.length ? "cp1" : "ordinary",
-            hasChallenge,
-        },
-    };
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function validateSshRequest(
     request: Partial<BaseAuthRequest>,
@@ -293,7 +203,14 @@ export async function initializeBaseRequest(
     const scopes = [...((request && request.scopes) || [])];
 
     const validatedRequest: BaseAuthRequest = {
-        ...prepareCaeCacheRequest(request, config),
+        ...request,
+        claims: ClaimsUtils.mergeClientCapabilities(
+            request.claims,
+            ClaimsUtils.shouldSkipBrokerClaims(request)
+                ? undefined
+                : config.auth.clientCapabilities,
+            correlationId
+        ),
         correlationId: request.correlationId,
         authority,
         scopes,

@@ -103,93 +103,58 @@ describe("CacheManager.ts test cases", () => {
         jest.useRealTimers();
     });
 
-    describe("experimental CAE cache components", () => {
-        it.each([{ attributeTokens: ["alpha"] }, { attributeTokens: [""] }])(
-            "rejects conflicting attribute tokens $attributeTokens before cache lookup",
-            ({ attributeTokens }) => {
-                const before = JSON.stringify(mockCache.cacheManager.store);
-                const read = jest.spyOn(mockCache.cacheManager, "getTokenKeys");
-                expect(() =>
-                    mockCache.cacheManager.getAccessToken(TEST_ACCOUNT_INFO, {
-                        authority: TEST_CONFIG.validAuthority,
-                        correlationId: TEST_CONFIG.CORRELATION_ID,
-                        scopes: ["User.Read"],
-                        attributeTokens,
-                        experimentalCaeCache: {
-                            capability: "cp1",
-                            hasChallenge: false,
-                        },
-                    })
-                ).toThrow(
-                    expect.objectContaining({
-                        name: "ClientConfigurationError",
-                        errorCode: "experimental_cae_cache_unsupported",
-                        correlationId: TEST_CONFIG.CORRELATION_ID,
-                    })
+    describe("saveCacheRecord tests", () => {
+        it.each([undefined, '{"access_token":{"xms_cc":{"values":["CP1"]}}}'])(
+            "stores capability-only tokens with standard keys without requiring runtime hashing: %s",
+            async (claims) => {
+                jest.spyOn(mockCrypto, "hashString").mockRejectedValue(
+                    new Error("Hashing unavailable")
                 );
-                expect(read).not.toHaveBeenCalled();
-                expect(JSON.stringify(mockCache.cacheManager.store)).toBe(
-                    before
-                );
-            }
-        );
-
-        it.each([false, true])(
-            "reads and preserves matching stored components with CAE=%s",
-            async (experimental) => {
-                const components: Record<string, string> = experimental
-                    ? {
-                          experimental_cae_capability: "cp1",
-                      }
-                    : { attribute_tokens: "alpha" };
+                const request = {
+                    claims,
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    scopes: ["User.Read"],
+                };
                 const token = CacheHelpers.createAccessTokenEntity(
                     TEST_ACCOUNT_INFO.homeAccountId,
                     TEST_ACCOUNT_INFO.environment,
-                    "partitioned-token",
+                    "capability-token",
                     CACHE_MOCKS.MOCK_CLIENT_ID,
                     TEST_ACCOUNT_INFO.tenantId,
                     "User.Read",
-                    TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
-                    TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
+                    4600,
+                    4600,
                     mockCrypto.base64Decode,
-                    TEST_CONFIG.CORRELATION_ID,
+                    request.correlationId,
                     undefined,
                     AuthenticationScheme.BEARER,
                     undefined,
                     undefined,
-                    components
+                    CacheHelpers.getAccessTokenCacheKeyComponents(request)
                 );
                 await mockCache.cacheManager.saveCacheRecord(
                     { accessToken: token },
-                    TEST_CONFIG.CORRELATION_ID,
+                    request.correlationId,
                     false,
                     0
                 );
-                const before = JSON.stringify(mockCache.cacheManager.store);
-                const actual = mockCache.cacheManager.getAccessToken(
-                    TEST_ACCOUNT_INFO,
-                    {
-                        authority: TEST_CONFIG.validAuthority,
-                        correlationId: TEST_CONFIG.CORRELATION_ID,
-                        scopes: ["User.Read"],
-                        attributeTokens: experimental ? [] : ["alpha"],
-                        experimentalCaeCache: experimental
-                            ? { capability: "cp1", hasChallenge: false }
-                            : undefined,
-                    }
-                );
-                expect(actual?.secret).toBe("partitioned-token");
-                expect(actual?.additionalCacheKeyComponents).toEqual(
-                    components
-                );
-                expect(JSON.stringify(mockCache.cacheManager.store)).toBe(
-                    before
-                );
+                expect(
+                    mockCache.cacheManager.getAccessTokenCredential(
+                        generateCredentialKey(token),
+                        request.correlationId
+                    )?.secret
+                ).toBe("capability-token");
+                expect(
+                    mockCache.cacheManager.getAccessToken(
+                        TEST_ACCOUNT_INFO,
+                        request
+                    )?.secret
+                ).toBe("capability-token");
+                expect(mockCrypto.hashString).not.toHaveBeenCalled();
             }
         );
-    });
 
-    describe("saveCacheRecord tests", () => {
         it("save account", async () => {
             const ac: AccountEntity = {
                 homeAccountId: "someUid.someUtid",
@@ -261,48 +226,6 @@ describe("CacheManager.ts test cases", () => {
                 CredentialType.ACCESS_TOKEN
             );
             expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.BEARER);
-        });
-
-        it("replaces overlapping tokens within the same capability family", async () => {
-            const current = CacheHelpers.createAccessTokenEntity(
-                TEST_ACCOUNT_INFO.homeAccountId,
-                TEST_ACCOUNT_INFO.environment,
-                "current-generation-token",
-                CACHE_MOCKS.MOCK_CLIENT_ID,
-                TEST_CONFIG.MSAL_TENANT_ID,
-                "epoch.read epoch.write",
-                TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
-                TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
-                mockCrypto.base64Decode,
-                TEST_CONFIG.CORRELATION_ID
-            );
-            current.additionalCacheKeyComponents = {
-                experimental_cae_capability: "cp1",
-            };
-            const hash = TEST_CRYPTO_VALUES.TEST_SHA256_HASH;
-            await mockCache.cacheManager.setAccessTokenCredential(
-                current,
-                TEST_CONFIG.CORRELATION_ID,
-                false,
-                hash
-            );
-            await mockCache.cacheManager.saveCacheRecord(
-                {
-                    accessToken: {
-                        ...current,
-                        target: "epoch.read",
-                        secret: "older-generation-token",
-                    },
-                },
-                TEST_CONFIG.CORRELATION_ID,
-                false,
-                0
-            );
-            expect(
-                mockCache.cacheManager.getAccessTokenCredential(
-                    generateCredentialKey(current, hash)
-                )
-            ).toBeNull();
         });
 
         it("does not save accessToken if storeInCache.accessToken = false", async () => {
@@ -2727,7 +2650,9 @@ describe("CacheManager.ts test cases", () => {
                     "",
                     500,
                     AuthenticationScheme.BEARER,
-                    TEST_TOKENS.ACCESS_TOKEN
+                    TEST_TOKENS.ACCESS_TOKEN,
+                    undefined,
+                    { clientCapabilities: "false" }
                 );
 
             const mockedAtEntity2: AccessTokenEntity =
@@ -2744,7 +2669,9 @@ describe("CacheManager.ts test cases", () => {
                     "",
                     500,
                     AuthenticationScheme.BEARER,
-                    TEST_TOKENS.ACCESS_TOKEN
+                    TEST_TOKENS.ACCESS_TOKEN,
+                    undefined,
+                    { clientCapabilities: "false" }
                 );
 
             const accountData = {
@@ -2824,7 +2751,9 @@ describe("CacheManager.ts test cases", () => {
                 "",
                 500,
                 AuthenticationScheme.BEARER,
-                TEST_TOKENS.ACCESS_TOKEN
+                TEST_TOKENS.ACCESS_TOKEN,
+                undefined,
+                { clientCapabilities: "false" }
             );
 
         const mockedPopAtEntity: AccessTokenEntity =
@@ -2841,7 +2770,9 @@ describe("CacheManager.ts test cases", () => {
                 "",
                 500,
                 AuthenticationScheme.POP,
-                TEST_TOKENS.ACCESS_TOKEN
+                TEST_TOKENS.ACCESS_TOKEN,
+                undefined,
+                { clientCapabilities: "false" }
             );
 
         const mockedSshAtEntity: AccessTokenEntity =
@@ -2859,7 +2790,8 @@ describe("CacheManager.ts test cases", () => {
                 500,
                 AuthenticationScheme.SSH,
                 undefined,
-                TEST_SSH_VALUES.SSH_KID
+                TEST_SSH_VALUES.SSH_KID,
+                { clientCapabilities: "false" }
             );
 
         const accountData = {
@@ -2934,7 +2866,9 @@ describe("CacheManager.ts test cases", () => {
                 500,
                 // @ts-ignore
                 AuthenticationScheme.BEARER.toLowerCase(),
-                TEST_TOKENS.ACCESS_TOKEN
+                TEST_TOKENS.ACCESS_TOKEN,
+                undefined,
+                { clientCapabilities: "false" }
             );
 
         const accountData = {
@@ -2999,7 +2933,9 @@ describe("CacheManager.ts test cases", () => {
                 "",
                 500,
                 AuthenticationScheme.BEARER,
-                TEST_TOKENS.ACCESS_TOKEN
+                TEST_TOKENS.ACCESS_TOKEN,
+                undefined,
+                { clientCapabilities: "false" }
             );
 
         const mockedPopAtEntity: AccessTokenEntity =
@@ -3016,7 +2952,9 @@ describe("CacheManager.ts test cases", () => {
                 "",
                 500,
                 AuthenticationScheme.POP,
-                TEST_TOKENS.ACCESS_TOKEN
+                TEST_TOKENS.ACCESS_TOKEN,
+                undefined,
+                { clientCapabilities: "false" }
             );
 
         const mockedSshAtEntity: AccessTokenEntity =
@@ -3034,7 +2972,8 @@ describe("CacheManager.ts test cases", () => {
                 500,
                 AuthenticationScheme.SSH,
                 undefined,
-                TEST_SSH_VALUES.SSH_KID
+                TEST_SSH_VALUES.SSH_KID,
+                { clientCapabilities: "false" }
             );
 
         const accountData = {
@@ -3110,7 +3049,8 @@ describe("CacheManager.ts test cases", () => {
                 500,
                 AuthenticationScheme.BEARER,
                 undefined,
-                undefined
+                undefined,
+                { clientCapabilities: "false" }
             );
 
         const mockedPopAtEntity: AccessTokenEntity =
@@ -3128,7 +3068,8 @@ describe("CacheManager.ts test cases", () => {
                 500,
                 AuthenticationScheme.POP,
                 undefined,
-                TEST_POP_VALUES.KID
+                TEST_POP_VALUES.KID,
+                { clientCapabilities: "false" }
             );
 
         const mockedSshAtEntity: AccessTokenEntity =
@@ -3146,7 +3087,8 @@ describe("CacheManager.ts test cases", () => {
                 500,
                 AuthenticationScheme.SSH,
                 undefined,
-                TEST_SSH_VALUES.SSH_KID
+                TEST_SSH_VALUES.SSH_KID,
+                { clientCapabilities: "false" }
             );
 
         const accountData = {
@@ -3222,7 +3164,8 @@ describe("CacheManager.ts test cases", () => {
             500,
             AuthenticationScheme.BEARER,
             undefined,
-            undefined
+            undefined,
+            { clientCapabilities: "false" }
         );
         const mockedPopAtEntity = CacheHelpers.createAccessTokenEntity(
             "uid.utid",
@@ -3237,7 +3180,9 @@ describe("CacheManager.ts test cases", () => {
             "",
             500,
             AuthenticationScheme.POP,
-            TEST_TOKENS.ACCESS_TOKEN
+            TEST_TOKENS.ACCESS_TOKEN,
+            undefined,
+            { clientCapabilities: "false" }
         );
         const mockedDpopAtEntity = CacheHelpers.createAccessTokenEntity(
             "uid.utid",
@@ -3253,7 +3198,8 @@ describe("CacheManager.ts test cases", () => {
             500,
             DPOP_AUTHENTICATION_SCHEME,
             undefined,
-            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+            { clientCapabilities: "false" }
         );
 
         const accountData = {
@@ -3360,7 +3306,9 @@ describe("CacheManager.ts test cases", () => {
                 "",
                 500,
                 AuthenticationScheme.BEARER,
-                TEST_TOKENS.ACCESS_TOKEN
+                TEST_TOKENS.ACCESS_TOKEN,
+                undefined,
+                { clientCapabilities: "false" }
             );
 
         const partitionedAtEntity: AccessTokenEntity =
@@ -3377,9 +3325,12 @@ describe("CacheManager.ts test cases", () => {
                 "",
                 500,
                 AuthenticationScheme.BEARER,
-                TEST_TOKENS.ACCESS_TOKEN
+                TEST_TOKENS.ACCESS_TOKEN,
+                undefined,
+                { clientCapabilities: "false" }
             );
         partitionedAtEntity.additionalCacheKeyComponents = {
+            clientCapabilities: "false",
             attribute_tokens: "alpha zeta",
         };
 
@@ -3530,7 +3481,8 @@ describe("CacheManager.ts test cases", () => {
             500,
             DPOP_AUTHENTICATION_SCHEME,
             undefined,
-            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT
+            TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
+            { clientCapabilities: "false" }
         );
         const mockedAccount: AccountEntity = CacheManager.toObject(
             {} as AccountEntity,

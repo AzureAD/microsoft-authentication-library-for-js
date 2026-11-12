@@ -384,7 +384,7 @@ describe("BrowserCacheManager tests", () => {
 
                 expect(addFieldsSpy).toHaveBeenCalledWith(
                     {
-                        postMigrateATCount: 2,
+                        postMigrateATCount: 1,
                         postMigrateAcntCount: 2,
                         postMigrateITCount: 2,
                         postMigrateRTCount: 2,
@@ -485,7 +485,7 @@ describe("BrowserCacheManager tests", () => {
 
                 expect(addFieldsSpy).toHaveBeenCalledWith(
                     {
-                        postMigrateATCount: 2,
+                        postMigrateATCount: 1,
                         postMigrateAcntCount: 2,
                         postMigrateITCount: 2,
                         postMigrateRTCount: 2,
@@ -632,7 +632,7 @@ describe("BrowserCacheManager tests", () => {
 
                 expect(addFieldsSpy).toHaveBeenCalledWith(
                     {
-                        postMigrateATCount: 2,
+                        postMigrateATCount: 1,
                         postMigrateAcntCount: 2,
                         postMigrateITCount: 2,
                         postMigrateRTCount: 2,
@@ -650,9 +650,6 @@ describe("BrowserCacheManager tests", () => {
                 expect(currentTokenKeys.accessToken).toEqual([
                     browserCacheManager.generateCredentialKey(
                         TEST_ACCESS_TOKEN_ENTITY
-                    ),
-                    browserCacheManager.generateCredentialKey(
-                        schema2AccessToken
                     ),
                 ]);
                 expect(currentTokenKeys.refreshToken).toEqual([
@@ -1134,7 +1131,7 @@ describe("BrowserCacheManager tests", () => {
                     );
                 });
 
-                it("should migrate access tokens with correct KMSI value from kmsiMap", async () => {
+                it("retains unknown old access tokens without migrating them even with KMSI", async () => {
                     await browserCacheManager.initialize(
                         TEST_CONFIG.CORRELATION_ID
                     );
@@ -1180,14 +1177,19 @@ describe("BrowserCacheManager tests", () => {
                         TEST_CONFIG.CORRELATION_ID
                     );
 
-                    // Should have migrated successfully
+                    expect(
+                        browserCacheManager.getTokenKeys().accessToken
+                    ).toHaveLength(0);
+                    expect(
+                        window.localStorage.getItem(v0AccessTokenKey)
+                    ).not.toBeNull();
                     expect(performanceIncrement).toHaveBeenCalledWith(
-                        { migratedATCount: 1 },
+                        { skipATMigrateCount: 1 },
                         TEST_CONFIG.CORRELATION_ID
                     );
                 });
 
-                it("should only migrate access tokens when newer than existing", async () => {
+                it("migrates access tokens with recorded capabilities using their component hash", async () => {
                     await browserCacheManager.initialize(
                         TEST_CONFIG.CORRELATION_ID
                     );
@@ -1211,6 +1213,9 @@ describe("BrowserCacheManager tests", () => {
                         ...TEST_ACCESS_TOKEN_ENTITY,
                         lastUpdatedAt: recentTimestamp,
                         target: "scope1 scope2",
+                        additionalCacheKeyComponents: {
+                            clientCapabilities: "true",
+                        },
                     };
                     const v0AccessTokenKey = `${v0AccessToken.homeAccountId}-${v0AccessToken.environment}-accesstoken-${v0AccessToken.clientId}-${v0AccessToken.realm}-${v0AccessToken.target}--`;
                     window.localStorage.setItem(
@@ -1247,11 +1252,18 @@ describe("BrowserCacheManager tests", () => {
                     const migratedToken =
                         browserCacheManager.getAccessTokenCredential(
                             browserCacheManager.generateCredentialKey(
-                                v0AccessToken
+                                v0AccessToken,
+                                await new CryptoOps(logger).hashString(
+                                    JSON.stringify(
+                                        v0AccessToken.additionalCacheKeyComponents
+                                    )
+                                )
                             ),
                             TEST_CONFIG.CORRELATION_ID
                         );
-                    expect(migratedToken).toBeDefined();
+                    expect(migratedToken?.additionalCacheKeyComponents).toEqual(
+                        { clientCapabilities: "true" }
+                    );
                 });
             });
         });

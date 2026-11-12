@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { rejectCaeCacheExperiment } from "../request/RequestHelpers.js";
 import {
+    ClaimsUtils,
     CommonAuthorizationUrlRequest,
     PerformanceCallbackFunction,
     AccountInfo,
@@ -94,11 +94,6 @@ export class NestedAppAuthController implements IController {
     protected currentAccountContext: AccountContext | null;
 
     constructor(operatingContext: NestedAppOperatingContext) {
-        if (
-            operatingContext.getConfig().experimental.enableCaeCachePartitioning
-        ) {
-            rejectCaeCacheExperiment("");
-        }
         this.operatingContext = operatingContext;
         const proxy = this.operatingContext.getBridgeProxy();
         if (proxy !== undefined) {
@@ -196,12 +191,16 @@ export class NestedAppAuthController implements IController {
             | PopupRequest
             | RedirectRequest
     >(request: T): T {
-        if (request?.correlationId) {
-            return request;
-        }
+        const correlationId =
+            request?.correlationId || this.browserCrypto.createNewGuid();
         return {
             ...request,
-            correlationId: this.browserCrypto.createNewGuid(),
+            correlationId,
+            claims: ClaimsUtils.mergeClientCapabilities(
+                request?.claims,
+                this.config.auth.clientCapabilities,
+                correlationId
+            ),
         };
     }
 
@@ -451,8 +450,12 @@ export class NestedAppAuthController implements IController {
             bridgeType: "NAA",
         });
 
-        // if the request has claims, we cannot look up in the cache
-        if (request.claims) {
+        if (
+            ClaimsUtils.hasClaimsChallenge(
+                request.claims,
+                request.correlationId
+            )
+        ) {
             this.logger.verbose(
                 "Claims are present in the request, skipping cache lookup",
                 correlationId
@@ -890,6 +893,9 @@ export class NestedAppAuthController implements IController {
             AuthToken.isKmsi(result.idTokenClaims),
             ApiId.hydrateCache
         );
-        return this.browserStorage.hydrateCache(result, request);
+        return this.browserStorage.hydrateCache(
+            result,
+            this.ensureValidRequest(request)
+        );
     }
 }
