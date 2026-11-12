@@ -2508,9 +2508,13 @@ export class StandardController implements IController {
                 correlationId
             );
             this.performanceClient.addFields({ deduped: true }, correlationId);
+            const joiningRequest = {
+                ...preparedRequest.request,
+                correlationId,
+            };
             const result = await inProgressRequest;
             if (
-                request.authenticationScheme !==
+                joiningRequest.authenticationScheme !==
                 Constants.AuthenticationScheme.DPOP
             ) {
                 return result;
@@ -2526,22 +2530,16 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     correlationId
-                )(
-                    {
-                        ...preparedRequest.request,
-                        correlationId,
-                    },
-                    result.account || preparedRequest.account
-                );
+                )(joiningRequest, result.account || preparedRequest.account);
             }
 
             const dpopProof = await ResponseHandler.generateDpopResourceProof(
                 this.browserCrypto,
                 result,
                 {
-                    ...request,
-                    authority: request.authority || this.config.auth.authority,
-                    correlationId,
+                    ...joiningRequest,
+                    authority:
+                        joiningRequest.authority || this.config.auth.authority,
                 },
                 this.performanceClient,
                 {

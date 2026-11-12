@@ -11,6 +11,7 @@ import {
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { StandardController } from "../../src/controllers/StandardController.js";
 import { StandardOperatingContext } from "../../src/operatingcontext/StandardOperatingContext.js";
+import type { SilentRequest } from "../../src/request/SilentRequest.js";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult.js";
 import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -140,6 +141,78 @@ describe("DPoP silent request coalescing", () => {
         expect(browserStorage.getDpopNonce(resourceRequestUri)).toBe(
             "latest-nonce"
         );
+    });
+
+    it("snapshots a joining caller's proof context before awaiting the shared acquisition", async () => {
+        const started = deferred<void>();
+        const response = deferred<AuthenticationResult>();
+        const result: AuthenticationResult = {
+            authority: TEST_CONFIG.validAuthority,
+            uniqueId: account.localAccountId,
+            tenantId: account.tenantId,
+            scopes: ["User.Read"],
+            idToken: TEST_TOKENS.IDTOKEN_V2,
+            idTokenClaims: ID_TOKEN_CLAIMS,
+            accessToken: TEST_TOKENS.ACCESS_TOKEN,
+            dpopProof: "initiating-proof",
+            fromCache: true,
+            correlationId: "initiating",
+            expiresOn: new Date(Date.now() + 3600000),
+            account,
+            tokenType: Constants.AuthenticationScheme.DPOP,
+        };
+        jest.spyOn(
+            controller as unknown as {
+                acquireTokenSilentAsync: StandardController["acquireTokenSilent"];
+            },
+            "acquireTokenSilentAsync"
+        ).mockImplementation(() => {
+            started.resolve();
+            return response.promise;
+        });
+        const generateProof = jest
+            .spyOn(ResponseHandler, "generateDpopResourceProof")
+            .mockResolvedValue("joining-proof");
+        const request = {
+            scopes: ["User.Read"],
+            account,
+            authenticationScheme: Constants.AuthenticationScheme.DPOP,
+            resourceRequestMethod: "GET",
+            resourceRequestUri,
+        };
+
+        const initiatingRequest = controller.acquireTokenSilent({
+            ...request,
+            correlationId: "initiating",
+        });
+        await started.promise;
+        const joiningRequest: SilentRequest = {
+            ...request,
+            correlationId: "joining",
+        };
+        const joiningResultPromise =
+            controller.acquireTokenSilent(joiningRequest);
+
+        joiningRequest.authenticationScheme =
+            Constants.AuthenticationScheme.BEARER;
+        joiningRequest.resourceRequestMethod = "POST";
+        joiningRequest.resourceRequestUri =
+            "https://graph.microsoft.com/v1.0/messages";
+        response.resolve(result);
+
+        const [, joiningResult] = await Promise.all([
+            initiatingRequest,
+            joiningResultPromise,
+        ]);
+
+        expect(joiningResult.dpopProof).toBe("joining-proof");
+        expect(generateProof).toHaveBeenCalledTimes(1);
+        expect(generateProof.mock.calls[0][2]).toMatchObject({
+            authenticationScheme: Constants.AuthenticationScheme.DPOP,
+            correlationId: "joining",
+            resourceRequestMethod: "GET",
+            resourceRequestUri,
+        });
     });
 
     it("generates a fresh local proof for a joining L1 broker caller", async () => {
