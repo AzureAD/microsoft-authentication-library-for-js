@@ -17,9 +17,6 @@ body:
 
               If you have questions about timelines, please see our [roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md). Issues pertaining to timelines without an explicit feature request may be closed without comment.
 
-              > [!IMPORTANT]
-              > If you are a Microsoft employee please post your question in our [Teams Channel](https://aka.ms/msaljs/teams) instead.
-
     - type: markdown
       attributes:
           value: |
