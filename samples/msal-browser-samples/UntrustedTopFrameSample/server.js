@@ -82,7 +82,7 @@ const DIST_DIR = path.join(__dirname, "dist");
 
 // The top-level popup-relay page — opened by the iframe with window.open(). Must
 // be served at a stable path on the trusted origin.
-appServer.get("/relay", (req, res) => {
+appServer.get(["/relay", "/relay-v2"], (req, res) => {
     res.sendFile(path.join(DIST_DIR, "relay.html"));
 });
 

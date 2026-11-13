@@ -236,6 +236,7 @@ export type BrowserAuthOptions = {
     redirectUri?: string;
     postLogoutRedirectUri?: string | null;
     popupRelayUri?: string;
+    popupRelayProtocolVersion?: 1 | 2;
     clientCapabilities?: Array<string>;
     OIDCOptions?: OIDCOptions;
     azureCloudOptions?: AzureCloudOptions;

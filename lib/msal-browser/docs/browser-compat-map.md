@@ -42,7 +42,7 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 | API | MSAL Usage | Fallback |
 |-----|-----------|----------|
 | `BroadcastChannel` | Redirect bridge (popup/iframe → main frame), cross-tab cache sync | None for redirect bridge |
-| `postMessage` + `MessageChannel` | WAM browser extension communication | None for WAM path |
+| `postMessage` + `MessageChannel` | WAM browser extension communication; `postMessage` also returns popup-relay responses and authenticates v2 request handoff | None for WAM or popup-relay paths |
 | `navigator.platformAuthentication` | Capability discovery and direct platform-broker token acquisition through browser DOM APIs | Microsoft Single Sign On extension during provider discovery; traditional web flows when no platform provider is available |
 
 **MSAL-specific restrictions:**
@@ -89,6 +89,7 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 **MSAL-specific restrictions:**
 - `window.open()` must be in a user-gesture call stack or browsers block it
 - COOP `same-origin` on AAD severs `window.opener` in popups — the default redirect bridge uses `BroadcastChannel` instead. `system.enableLegacyPolling` opts into reading the popup/iframe location and requires the opener connection (and popup reference) to survive the full round-trip; strict app `COOP: same-origin` is incompatible, while `same-origin-allow-popups` can work when cross-origin responses omit enforcing COOP
+- Popup relay v2 reserves its blank child during the user gesture, then navigates only after a same-origin, source-checked `postMessage` request handoff. This works across iframe storage partitions without shared storage, but requires the opener connection and matching wire protocols. V1 is deprecated due to security concerns but remains the default for previous-bundle compatibility; its legacy fragment-execution risk remains until the application explicitly retires that endpoint. V2 never downgrades.
 - Legacy polling requires `redirectUri` and `postLogoutRedirectUri` to be passive same-origin callback pages that leave the response query/fragment intact. Do not run the redirect bridge, `handleRedirectPromise()`, or app routing/response-processing code on the callback before the poller reads it
 - `pocd=1` lets Entra omit COOP. With `auth.originCheck` enabled, MSAL asserts it only when every ancestor is same-origin and the top-level opener is absent or same-origin; cross-origin or inaccessible window checks fail closed. `system.enableLegacyPolling` disables that check and always asserts `pocd=1`, so COOP protection may be omitted
 - Silent iframe requires IdP to allow framing and 3P cookies to be available; breaks under Safari ITP, Firefox TCP, and Chrome with 3P cookies disabled

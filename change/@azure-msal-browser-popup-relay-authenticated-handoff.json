@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add opt-in authenticated popup-relay protocol v2 and explicit protocol mismatch errors; deprecate v1 due to security concerns while preserving compatibility for staged migration and retirement [#8984](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8984)",
+  "packageName": "@azure/msal-browser",
+  "email": "nugetaad@microsoft.com",
+  "dependentChangeType": "patch"
+}

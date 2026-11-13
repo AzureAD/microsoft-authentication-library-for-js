@@ -241,6 +241,11 @@ export type PerformanceEvent = {
     lateResponseExperimentEnabled?: boolean;
 
     /**
+     * Popup-relay wire protocol selected for the request (1 or 2).
+     */
+    popupRelayProtocolVersion?: number;
+
+    /**
      * Number of times a fetch POST request was retried due to transport failure
      */
     fetchRetryCount?: number;
@@ -620,5 +625,6 @@ export const IntFields: ReadonlySet<string> = new Set([
     "networkRtt",
     "redirectBridgeTimeoutMs",
     "redirectBridgeMessageVersion",
+    "popupRelayProtocolVersion",
     "fetchRetryCount",
 ]);
