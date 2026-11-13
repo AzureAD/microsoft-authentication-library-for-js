@@ -68,6 +68,8 @@ MSAL Node fires events when the in-memory cache is accessed and apps can choose 
 1. Load the cache from persistence to MSAL's memory before accessing the cache
 2. If the in-memory cache has changed since last access, save the cache back to persistence
 
+When silent token acquisition fails with the `bad_token` suberror, MSAL removes the rejected refresh token and invokes the cache plugin to persist the removal. Cache plugins should save changes whenever `cacheHasChanged` is `true`, including on failed requests.
+
 For persisting the cache, MSAL accepts a custom cache plugin in [configuration](./configuration.md). This plugin should implement the [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.ICachePlugin.html) interface:
 
 ```typescript
