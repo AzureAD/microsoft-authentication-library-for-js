@@ -196,12 +196,16 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
     };
 
     it("buildConfiguration correctly assigns new values", async () => {
+        const dpopNonceProvider = {
+            getDpopNonce: jest.fn().mockReturnValue("resource-nonce"),
+        };
         const newConfig: CommonClientConfiguration = buildClientConfiguration({
             //@ts-ignore
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
             },
             cryptoInterface: mockCrypto,
+            dpopNonceProvider,
             storageInterface: cacheStorageMock,
             networkInterface: {
                 sendGetRequestAsync: async (
@@ -240,6 +244,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         });
         await cacheStorageMock.setAccount(MockCache.acc);
         expect(newConfig.cryptoInterface).not.toBeNull();
+        expect(newConfig.dpopNonceProvider).toBe(dpopNonceProvider);
         expect(newConfig.storageInterface).not.toBeNull();
         expect(newConfig.networkInterface).not.toBeNull();
         expect(newConfig.loggerOptions).not.toBeNull();

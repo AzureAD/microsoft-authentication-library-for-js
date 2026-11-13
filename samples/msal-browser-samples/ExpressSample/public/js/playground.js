@@ -18,6 +18,14 @@ export function initializePlayground() {
     setupEventListeners();
 }
 
+export async function loadDpopNonce(resourceRequestUri, nonce) {
+    if (!playgroundMsalInstance) {
+        throw new Error("Please apply a valid configuration first");
+    }
+
+    await playgroundMsalInstance.loadDpopNonce(resourceRequestUri, nonce);
+}
+
 function setupEventListeners() {
     // Configuration actions
     document

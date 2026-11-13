@@ -111,6 +111,7 @@ export {
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     TokenBindingKeyProvisioningParameters,
 } from "./crypto/ITokenBindingKeyManager.js";
+export { IDpopNonceProvider } from "./crypto/IDpopNonceProvider.js";
 export { PublicJsonWebKey } from "./crypto/PublicJsonWebKey.js";
 
 export * as AuthorizeProtocol from "./protocol/Authorize.js";
@@ -140,6 +141,10 @@ export {
 } from "./response/ResponseHandler.js";
 export { ScopeSet } from "./request/ScopeSet.js";
 export { AuthenticationHeaderParser } from "./request/AuthenticationHeaderParser.js";
+export {
+    canonicalizeDpopResourceServer,
+    validateDpopNonce,
+} from "./crypto/DpopNonceUtils.js";
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger.js";
 export {
     InteractionRequiredAuthError,
