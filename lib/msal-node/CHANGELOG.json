@@ -2,6 +2,27 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Thu, 12 Nov 2026 18:58:52 GMT",
+      "version": "7.2.2",
+      "tag": "@azure/msal-node_v7.2.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "nugetaad@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "ac530e1f9e5f2167b86fe412405c03b8fad0d1a6",
+            "comment": "Sanitize authorization code response payloads consistently across Node clients [#8959](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8959)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.16.2",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 06 Nov 2026 23:13:16 GMT",
       "version": "7.2.1",
       "tag": "@azure/msal-node_v7.2.1",
