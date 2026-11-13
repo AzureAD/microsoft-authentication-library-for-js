@@ -103,6 +103,47 @@ describe("ClientCredentialClient FMI tests", () => {
     });
 
     describe("Cache isolation", () => {
+        it("keeps ordinary and CP1 tokens separate within the same FMI partition", async () => {
+            jest.spyOn(
+                config.cryptoInterface!,
+                "hashString"
+            ).mockImplementation(async (value) =>
+                createHash("sha256").update(value).digest("base64url")
+            );
+            const client = new ClientCredentialClient(config);
+            const request: CommonClientCredentialRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                fmiPath: "agent-a",
+            };
+            const cp1 = {
+                ...request,
+                claims: '{"access_token":{"xms_cc":{"values":["CP1"]}}}',
+            };
+            expect((await client.acquireToken(request))?.fromCache).toBe(false);
+            expect((await client.acquireToken(cp1))?.fromCache).toBe(false);
+            expect((await client.acquireToken(request))?.fromCache).toBe(true);
+            expect((await client.acquireToken(cp1))?.fromCache).toBe(true);
+            const storage = config.storageInterface!;
+            const components = storage
+                .getTokenKeys()
+                .accessToken.map(
+                    (key) =>
+                        storage.getAccessTokenCredential(
+                            key,
+                            request.correlationId
+                        )?.additionalCacheKeyComponents
+                );
+            expect(components).toHaveLength(2);
+            expect(components).toEqual(
+                expect.arrayContaining([
+                    { fmi_path: "agent-a", clientCapabilities: "false" },
+                    { fmi_path: "agent-a", clientCapabilities: "true" },
+                ])
+            );
+        });
+
         it("stores additionalCacheKeyComponents for FMI cache isolation", async () => {
             const client = new ClientCredentialClient(config);
             const fmiPathValue = "test-agent-app-id";
@@ -127,11 +168,12 @@ describe("ClientCredentialClient FMI tests", () => {
                 );
             expect(cachedToken).not.toBeNull();
             expect(cachedToken!.additionalCacheKeyComponents).toEqual({
+                clientCapabilities: "false",
                 fmi_path: fmiPathValue,
             });
         });
 
-        it("does not store additionalCacheKeyComponents when fmiPath is not set", async () => {
+        it("stores only the capability component when fmiPath is not set", async () => {
             const client = new ClientCredentialClient(config);
 
             const request: CommonClientCredentialRequest = {
@@ -151,7 +193,9 @@ describe("ClientCredentialClient FMI tests", () => {
                     TEST_CONFIG.CORRELATION_ID
                 );
             expect(cachedToken).not.toBeNull();
-            expect(cachedToken!.additionalCacheKeyComponents).toBeUndefined();
+            expect(cachedToken!.additionalCacheKeyComponents).toEqual({
+                clientCapabilities: "false",
+            });
         });
 
         it("caches FMI tokens and returns from network (not cache) on first call", async () => {

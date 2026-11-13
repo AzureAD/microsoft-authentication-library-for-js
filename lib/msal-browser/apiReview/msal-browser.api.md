@@ -752,7 +752,7 @@ export type JsonWebTokenTypes = Constants.JsonWebTokenTypes;
 const LoadExternalTokens = "loadExternalTokens";
 
 // @public
-export function loadExternalTokens(config: Configuration, request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions, performanceClient?: IPerformanceClient): Promise<AuthenticationResult>;
+export function loadExternalTokens(config: Configuration, baseRequest: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions, performanceClient?: IPerformanceClient): Promise<AuthenticationResult>;
 
 // @public (undocumented)
 export type LoadTokenOptions = {

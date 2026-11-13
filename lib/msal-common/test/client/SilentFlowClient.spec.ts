@@ -324,7 +324,7 @@ describe("SilentFlowClient unit tests", () => {
             );
         });
 
-        it("acquireCachedToken throws when given valid claims with default configuration", async () => {
+        it("acquireCachedToken permits reuse for a CP1-only declaration", async () => {
             const testScopes = [
                 OPENID_SCOPE,
                 PROFILE_SCOPE,
@@ -364,14 +364,8 @@ describe("SilentFlowClient unit tests", () => {
                 claims: `{ "access_token": { "xms_cc":{"values":["cp1"] } }}`,
             };
 
-            await expect(
-                client.acquireCachedToken(silentFlowRequest)
-            ).rejects.toMatchObject(
-                createClientAuthError(
-                    ClientAuthErrorCodes.tokenRefreshRequired,
-                    ""
-                )
-            );
+            const [result] = await client.acquireCachedToken(silentFlowRequest);
+            expect(result.fromCache).toBe(true);
         });
 
         it("acquireCachedToken returns cached token when isMcp is true and resource matches", async () => {

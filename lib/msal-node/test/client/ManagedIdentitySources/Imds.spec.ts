@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { createHash } from "crypto";
 import { ManagedIdentityApplication } from "../../../src/client/ManagedIdentityApplication.js";
 import { ManagedIdentityConfiguration } from "../../../src/config/Configuration.js";
 import {
@@ -43,6 +44,7 @@ import {
 } from "../../../src/utils/Constants.js";
 import {
     AccessTokenEntity,
+    INetworkModule,
     AuthenticationResult,
     CacheHelpers,
     ClientConfigurationErrorCodes,
@@ -87,6 +89,61 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
             undefined,
             Constants.HTTP_BAD_REQUEST
         );
+
+    it("partitions the shared managed-identity cache by transmitted capabilities, not refresh claims", async () => {
+        const network: INetworkModule = networkClient;
+        const send = jest.spyOn(network, "sendGetRequestAsync");
+        const ordinary = new ManagedIdentityApplication({
+            ...systemAssignedConfig,
+            clientCapabilities: [],
+        });
+        const capable = new ManagedIdentityApplication({
+            ...systemAssignedConfig,
+            clientCapabilities: ["CP1"],
+        });
+        const cp1 = '{"access_token":{"xms_cc":{"values":["CP1"]}}}';
+        expect(
+            (
+                await ordinary.acquireToken({
+                    ...managedIdentityRequestParams,
+                    claims: cp1,
+                })
+            ).fromCache
+        ).toBe(false);
+        expect(
+            new URL(
+                send.mock.calls[send.mock.calls.length - 1][0]
+            ).searchParams.has(ManagedIdentityQueryParameters.XMS_CC)
+        ).toBe(false);
+        expect(
+            (await capable.acquireToken(managedIdentityRequestParams)).fromCache
+        ).toBe(false);
+        expect(
+            new URL(
+                send.mock.calls[send.mock.calls.length - 1][0]
+            ).searchParams.get(ManagedIdentityQueryParameters.XMS_CC)
+        ).toBe("CP1");
+        expect(
+            (await capable.acquireToken(managedIdentityRequestParams)).fromCache
+        ).toBe(true);
+        expect(
+            (await ordinary.acquireToken(managedIdentityRequestParams))
+                .fromCache
+        ).toBe(true);
+        const storage = ManagedIdentityApplication[
+            "nodeStorage"
+        ] as NodeStorage;
+        expect(
+            storage
+                .getTokenKeys()
+                .accessToken.map(
+                    (key) =>
+                        storage.getAccessTokenCredential(key)
+                            ?.additionalCacheKeyComponents?.clientCapabilities
+                )
+                .sort()
+        ).toEqual(["false", "true"]);
+    });
 
     describe("User Assigned", () => {
         test("acquires a User Assigned Client Id token", async () => {
@@ -1022,7 +1079,11 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 getCacheKey(),
                 getCacheKey(MANAGED_IDENTITY_RESOURCE_ID),
                 getCacheKey(MANAGED_IDENTITY_RESOURCE_ID_2),
-            ];
+            ].map((key) =>
+                `${key}-${createHash("sha256")
+                    .update(JSON.stringify({ clientCapabilities: "false" }))
+                    .digest("base64url")}`.toLowerCase()
+            );
 
             // verify the cache keys
             const allCacheKeysExistandAreCorrect: boolean = cacheKeys.every(

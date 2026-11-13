@@ -61,6 +61,14 @@ Note that the in-memory cache is not scalable for server-side applications and p
 
 > :warning: We recommend **persisting** the cache with **encryption** for all production applications both for security and desired cache longevity. If you choose not to persist the cache, the [TokenCache](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.tokencache.html) interface is still available to access the cached entities.
 
+## CAE-aware access-token caching
+
+The cache separates tokens acquired with CP1 support from those acquired without it, alongside existing account, scope, attribute-token, FMI and client-claims dimensions. Declaring capabilities alone permits cache reuse. For mixed callers, leave global `auth.clientCapabilities` unset and supply CP1 through the capable caller's request `claims`.
+
+OAuth tokens are classified from the effective outgoing claims, including configured capabilities and client-originated claims. Managed identity uses the capabilities sent in its `xms_cc` parameter; its `claims` input remains a refresh/revocation directive.
+
+Previously serialized access tokens without capability metadata are left intact but are not eligible for new lookups. Calls acquire marked tokens as needed, using shared authentication state where available. Renewal can require interaction or fail normally. Node serialization does not use the browser's schema-version migration; older SDKs retain their own cache-matching behavior on downgrade.
+
 ## Persistent cache
 
 MSAL Node fires events when the in-memory cache is accessed and apps can choose whether to persist the cache (see: [TokenCacheContext](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_common.tokencachecontext.html)) (e.g. to a file, a SQL database and etc.). This constitutes two actions:
@@ -134,7 +142,6 @@ Please refer to the [Web app using DistributedCachePlugin](../../../samples/msal
 
 See the samples below for more about how to handle caching in MSAL Node apps:
 
--   [(PCA) Console app using MSAL Node Extensions](../../../extensions/samples/msal-node-extensions/index.js)
 -   [(PCA) Dektop app using MSAL Node Extensions](../../../extensions/samples/electron-webpack/README.md)
 -   [(CCA) Web app using DistributedCachePlugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)
 -   [(CCA) Web API using a custom distributed cache plugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)

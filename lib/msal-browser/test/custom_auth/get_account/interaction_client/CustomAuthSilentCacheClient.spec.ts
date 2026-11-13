@@ -447,7 +447,10 @@ function createAccessTokenEntity(browserCrypto: ICrypto): AccessTokenEntity {
         browserCrypto.base64Decode,
         "",
         undefined,
-        TestServerTokenResponse.token_type as Constants.AuthenticationScheme
+        TestServerTokenResponse.token_type as Constants.AuthenticationScheme,
+        undefined,
+        undefined,
+        { clientCapabilities: "false" }
     );
 }
 

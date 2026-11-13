@@ -13,6 +13,7 @@ import {
     AuthToken,
     AuthorityType,
     CacheHelpers,
+    ClaimsUtils,
     ClientAuthErrorCodes,
     ClientConfigurationErrorCodes,
     CommonSilentFlowRequest,
@@ -149,7 +150,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         this.platformAuthProvider = provider;
         this.nativeStorageManager = nativeStorageImpl;
         this.silentCacheClient = new SilentCacheClient(
-            config,
+            {
+                ...config,
+                // Broker requests already carry their effective capabilities.
+                auth: { ...config.auth, clientCapabilities: [] },
+            },
             this.nativeStorageManager,
             browserCrypto,
             logger,
@@ -248,7 +253,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 cachedResult = await this.acquireTokensFromCache(
                     this.accountId,
                     nativeRequest,
-                    cacheLookupPolicy
+                    cacheLookupPolicy,
+                    request
                 );
             } catch (e) {
                 if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
@@ -359,7 +365,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      */
     private createSilentCacheRequest(
         request: PlatformAuthRequest,
-        cachedAccount: AccountInfo
+        cachedAccount: AccountInfo,
+        originalRequest?: PopupRequest | SilentRequest | SsoSilentRequest
     ): CommonSilentFlowRequest {
         const silentRequest: CommonSilentFlowRequest = {
             authority: request.authority,
@@ -369,6 +376,15 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.correlationId
             ).asArray(),
             account: cachedAccount,
+            // Use caller claims, not the optional ID-token claims added for the broker.
+            claims: ClaimsUtils.mergeClientCapabilities(
+                originalRequest ? originalRequest.claims : request.claims,
+                originalRequest &&
+                    ClaimsUtils.shouldSkipBrokerClaims(originalRequest)
+                    ? undefined
+                    : this.config.auth.clientCapabilities,
+                this.correlationId
+            ),
             forceRefresh: false,
             ...this.createSilentCacheTokenBindingParameters(request),
             resource: request.extraParameters?.resource,
@@ -429,7 +445,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected async acquireTokensFromCache(
         nativeAccountId: string,
         request: PlatformAuthRequest,
-        cacheLookupPolicy: CacheLookupPolicy = CacheLookupPolicy.Default
+        cacheLookupPolicy: CacheLookupPolicy = CacheLookupPolicy.Default,
+        originalRequest?: PopupRequest | SilentRequest | SsoSilentRequest
     ): Promise<AuthenticationResult | undefined> {
         if (
             cacheLookupPolicy === CacheLookupPolicy.RefreshTokenAndNetwork ||
@@ -471,7 +488,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         try {
             const silentRequest = this.createSilentCacheRequest(
                 request,
-                account
+                account,
+                originalRequest
             );
             const result = await this.silentCacheClient.acquireToken(
                 silentRequest
@@ -1193,7 +1211,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 : (request.tokenType as Constants.AuthenticationScheme),
             undefined,
             request.keyId,
-            additionalCacheKeyComponents
+            CacheHelpers.getAccessTokenCacheKeyComponents(
+                {
+                    claims: request.claims,
+                    correlationId: request.correlationId,
+                },
+                additionalCacheKeyComponents
+            )
         );
         if (request.extraParameters?.resource) {
             cachedAccessToken.resource = request.extraParameters.resource;
@@ -1310,10 +1334,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const canonicalAuthority = await this.getCanonicalAuthority(request);
 
         // ignore config claims if skipBrokerClaims is set to true and this is a brokered authentication flow
-        const configClaims =
-            request.skipBrokerClaims && !!request.embeddedClientId
-                ? undefined
-                : this.config.auth.clientCapabilities;
+        const configClaims = ClaimsUtils.shouldSkipBrokerClaims(request)
+            ? undefined
+            : this.config.auth.clientCapabilities;
 
         const { scopes, claims, dpopNonce } = request as (
             | PopupRequest

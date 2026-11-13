@@ -19,7 +19,11 @@ import { ResponseHandler } from "../response/ResponseHandler.js";
 import { CacheRecord } from "../cache/entities/CacheRecord.js";
 import { AuthenticationScheme, CacheOutcome } from "../utils/Constants.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
-import { StringUtils } from "../utils/StringUtils.js";
+import {
+    hasClaimsChallenge,
+    mergeClientCapabilities,
+    shouldSkipBrokerClaims,
+} from "../request/ClaimsUtils.js";
 import { extractTokenClaims } from "../account/AuthToken.js";
 import { TokenClaims } from "../account/TokenClaims.js";
 import * as PerformanceEvents from "../telemetry/performance/PerformanceEvents.js";
@@ -95,11 +99,24 @@ export class SilentFlowClient {
      * @param request
      */
     async acquireCachedToken(
-        request: CommonSilentFlowRequest
+        baseRequest: CommonSilentFlowRequest
     ): Promise<[AuthenticationResult, CacheOutcome]> {
         let lastCacheOutcome: CacheOutcome = CacheOutcome.NOT_APPLICABLE;
+        const request = {
+            ...baseRequest,
+            claims: mergeClientCapabilities(
+                baseRequest.claims,
+                shouldSkipBrokerClaims(baseRequest)
+                    ? undefined
+                    : this.config.authOptions.clientCapabilities,
+                baseRequest.correlationId
+            ),
+        };
 
-        if (request.forceRefresh || !StringUtils.isEmptyObj(request.claims)) {
+        if (
+            request.forceRefresh ||
+            hasClaimsChallenge(request.claims, request.correlationId)
+        ) {
             // Must refresh due to present force_refresh flag.
             this.setCacheOutcome(
                 CacheOutcome.FORCE_REFRESH_OR_CLAIMS,

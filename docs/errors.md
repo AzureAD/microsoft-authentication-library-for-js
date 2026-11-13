@@ -20,7 +20,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 **Mitigation**:
 
-1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](./caching.md#cached-artifacts).
+1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](../lib/msal-browser/docs/caching.md#cached-artifacts).
 
 ### `cache_error_unknown`
 
@@ -221,6 +221,8 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 ### `invalid_claims`
 
 -   Given claims parameter must be a stringified JSON object.
+
+When merging configured client capabilities, `access_token` and `xms_cc`, if supplied, must be objects. The `xms_cc.values` field, if supplied, must be an array of strings.
 
 ### `invalid_dpop_htm`
 

@@ -386,15 +386,17 @@ describe("ConfidentialClientApplication", () => {
                     const returnVal: string = (await createTokenRequestBodySpy
                         .mock.results[0].value) as string;
                     expect(
-                        decodeURIComponent(
-                            returnVal
-                                .split("&")
-                                .filter((key: string) =>
-                                    key.includes("claims=")
-                                )[0]
-                                .split("claims=")[1]
+                        JSON.parse(
+                            decodeURIComponent(
+                                returnVal
+                                    .split("&")
+                                    .filter((key: string) =>
+                                        key.includes("claims=")
+                                    )[0]
+                                    .split("claims=")[1]
+                            )
                         )
-                    ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
+                    ).toEqual(JSON.parse(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS));
 
                     // skip cache lookup verification because acquireTokenByCode does not pull elements from the cache
 
@@ -414,15 +416,17 @@ describe("ConfidentialClientApplication", () => {
                     const returnVal2: string = (await createTokenRequestBodySpy
                         .mock.results[1].value) as string;
                     expect(
-                        decodeURIComponent(
-                            returnVal2
-                                .split("&")
-                                .filter((key: string) =>
-                                    key.includes("claims=")
-                                )[0]
-                                .split("claims=")[1]
+                        JSON.parse(
+                            decodeURIComponent(
+                                returnVal2
+                                    .split("&")
+                                    .filter((key: string) =>
+                                        key.includes("claims=")
+                                    )[0]
+                                    .split("claims=")[1]
+                            )
                         )
-                    ).toEqual(mergedClaims);
+                    ).toEqual(JSON.parse(mergedClaims));
                 }
             );
         });

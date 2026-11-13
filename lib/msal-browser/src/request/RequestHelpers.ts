@@ -17,6 +17,7 @@ import {
     JsonWebTokenAlgorithms,
     PerformanceEvents,
     PopTokenGenerator,
+    ClaimsUtils,
     createClientConfigurationError,
     invokeAsync,
 } from "@azure/msal-common/browser";
@@ -203,6 +204,13 @@ export async function initializeBaseRequest(
 
     const validatedRequest: BaseAuthRequest = {
         ...request,
+        claims: ClaimsUtils.mergeClientCapabilities(
+            request.claims,
+            ClaimsUtils.shouldSkipBrokerClaims(request)
+                ? undefined
+                : config.auth.clientCapabilities,
+            correlationId
+        ),
         correlationId: request.correlationId,
         authority,
         scopes,

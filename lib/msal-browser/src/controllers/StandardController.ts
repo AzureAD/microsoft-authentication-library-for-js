@@ -32,6 +32,7 @@ import {
     TimeUtils,
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     ITokenBindingKeyManager,
+    ClaimsUtils,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -1813,13 +1814,23 @@ export class StandardController implements IController {
      */
     async hydrateCache(
         result: AuthenticationResult,
-        request:
+        baseRequest:
             | SilentRequest
             | SsoSilentRequest
             | RedirectRequest
             | PopupRequest
     ): Promise<void> {
         this.logger.verbose("hydrateCache called", result.correlationId);
+        const request = {
+            ...baseRequest,
+            claims: ClaimsUtils.mergeClientCapabilities(
+                baseRequest.claims,
+                ClaimsUtils.shouldSkipBrokerClaims(baseRequest)
+                    ? undefined
+                    : this.config.auth.clientCapabilities,
+                result.correlationId
+            ),
+        };
 
         // Account gets saved to browser storage regardless of native or not
         const accountEntity =
@@ -1851,13 +1862,11 @@ export class StandardController implements IController {
             );
 
             // Create accessToken entity and store in native internal storage
-            const attributeTokenPartition =
-                CacheHelpers.serializeAttributeTokens(request.attributeTokens);
-            const additionalCacheKeyComponents = attributeTokenPartition
-                ? {
-                      attribute_tokens: attributeTokenPartition,
-                  }
-                : undefined;
+            const additionalCacheKeyComponents =
+                CacheHelpers.getAccessTokenCacheKeyComponents({
+                    ...request,
+                    correlationId: result.correlationId,
+                });
 
             const accessTokenEntity = CacheHelpers.createAccessTokenEntity(
                 result.account.homeAccountId,
@@ -2430,7 +2439,16 @@ export class StandardController implements IController {
     ): Promise<AuthenticationResult> {
         const preparedRequest = resolveSilentRequestPreparation(
             {
-                request,
+                request: {
+                    ...request,
+                    claims: ClaimsUtils.mergeClientCapabilities(
+                        request.claims,
+                        ClaimsUtils.shouldSkipBrokerClaims(request)
+                            ? undefined
+                            : this.config.auth.clientCapabilities,
+                        correlationId
+                    ),
+                },
                 account,
                 correlationId,
                 config: this.config,

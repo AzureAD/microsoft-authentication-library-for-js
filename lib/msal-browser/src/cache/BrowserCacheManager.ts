@@ -737,7 +737,29 @@ export class BrowserCacheManager extends CacheManager {
                 continue;
             }
 
-            const newKey = this.generateCredentialKey(oldSchemaData);
+            /*
+             * Old tokens do not record the issuing request's capabilities.
+             * Retain them for older readers, but renew in the current schema.
+             */
+            if (
+                oldSchemaData.additionalCacheKeyComponents
+                    ?.clientCapabilities !== "true" &&
+                oldSchemaData.additionalCacheKeyComponents
+                    ?.clientCapabilities !== "false"
+            ) {
+                this.performanceClient.incrementFields(
+                    { skipATMigrateCount: 1 },
+                    correlationId
+                );
+                continue;
+            }
+            const componentsHash = await this.cryptoImpl.hashString(
+                JSON.stringify(oldSchemaData.additionalCacheKeyComponents)
+            );
+            const newKey = this.generateCredentialKey(
+                oldSchemaData,
+                componentsHash
+            );
             const kmsi = kmsiMap[oldSchemaData.homeAccountId];
             if (!currentCredentialKeys.accessToken.includes(newKey)) {
                 await this.setUserData(
@@ -2475,7 +2497,11 @@ export class BrowserCacheManager extends CacheManager {
             undefined, // refreshOn
             result.tokenType as Constants.AuthenticationScheme,
             undefined, // userAssertionHash
-            request.sshKid
+            request.sshKid,
+            CacheHelpers.getAccessTokenCacheKeyComponents({
+                ...request,
+                correlationId: request.correlationId || result.correlationId,
+            })
         );
 
         if (request.resource) {

@@ -9,6 +9,8 @@ import {
     AuthenticationResult,
     Authority,
     CacheManager,
+    CacheHelpers,
+    ClaimsUtils,
     ClientAuthErrorCodes,
     ClientConfiguration,
     Constants,
@@ -58,34 +60,25 @@ export class ClientCredentialClient extends BaseClient {
      * @param request - CommonClientCredentialRequest provided by the developer
      */
     public async acquireToken(
-        request: CommonClientCredentialRequest
+        baseRequest: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
-        // Build additional cache key components for cache isolation
-        let additionalCacheKeyComponents: Record<string, string> | undefined;
-        if (request.fmiPath) {
-            additionalCacheKeyComponents = {
-                ...additionalCacheKeyComponents,
-                fmi_path: request.fmiPath,
-            };
-        }
-        /*
-         * Client-originated claims participate in the cache key (unlike server-issued `claims`,
-         * which bypasses the cache). Identical claims values are served from cache; different
-         * values produce separate cache entries. Gate on `!isEmptyObj` (not just `trim()`) so an
-         * empty/whitespace or empty-object (`{}`) value - which contributes nothing to the request
-         * body - does not fragment the cache from an omitted `claimsFromClient`.
-         */
-        if (
-            request.claimsFromClient &&
-            !StringUtils.isEmptyObj(request.claimsFromClient)
-        ) {
-            additionalCacheKeyComponents = {
-                ...additionalCacheKeyComponents,
-                client_claims: request.claimsFromClient,
-            };
-        }
+        const hasChallenge = ClaimsUtils.hasClaimsChallenge(
+            baseRequest.claims,
+            baseRequest.correlationId
+        );
+        const request = {
+            ...baseRequest,
+            claims: ClaimsUtils.mergeClientCapabilities(
+                baseRequest.claims,
+                this.config.authOptions.clientCapabilities,
+                baseRequest.correlationId,
+                baseRequest.claimsFromClient
+            ),
+        };
+        const additionalCacheKeyComponents =
+            this.getAdditionalCacheKeyComponents(request);
 
-        if (request.skipCache || !StringUtils.isEmptyObj(request.claims)) {
+        if (request.skipCache || hasChallenge) {
             return this.executeTokenRequest(
                 request,
                 this.authority,
@@ -139,20 +132,67 @@ export class ClientCredentialClient extends BaseClient {
     }
 
     /**
+     * Builds the client-provided dimensions used to isolate cached app tokens.
+     */
+    private getAdditionalCacheKeyComponents(
+        request: CommonClientCredentialRequest
+    ): Record<string, string> | undefined {
+        let components: Record<string, string> | undefined;
+        if (request.fmiPath) {
+            components = { fmi_path: request.fmiPath };
+        }
+        // Empty client claims must not create a different cache partition.
+        if (
+            request.claimsFromClient &&
+            !StringUtils.isEmptyObj(request.claimsFromClient)
+        ) {
+            components = {
+                ...components,
+                client_claims: request.claimsFromClient,
+            };
+        }
+        return CacheHelpers.getAccessTokenCacheKeyComponents(
+            request,
+            components
+        );
+    }
+
+    /**
      * looks up cache if the tokens are cached already
      */
     public async getCachedAuthenticationResult(
-        request: CommonClientCredentialRequest,
+        baseRequest: CommonClientCredentialRequest,
         config: ClientConfiguration | ManagedIdentityConfiguration,
         cryptoUtils: ICrypto,
         authority: Authority,
         cacheManager: CacheManager,
         serverTelemetryManager?: ServerTelemetryManager | null,
-        additionalCacheKeyComponents?: Record<string, string>
+        requestedComponents?: Record<string, string>
     ): Promise<[AuthenticationResult | null, Constants.CacheOutcome]> {
         const clientConfiguration = config as ClientConfiguration;
         const managedIdentityConfiguration =
             config as ManagedIdentityNodeConfiguration;
+        const request = {
+            ...baseRequest,
+            claims: ClaimsUtils.mergeClientCapabilities(
+                // Managed identity uses claims only as a refresh directive, not OAuth claims.
+                clientConfiguration.authOptions
+                    ? baseRequest.claims
+                    : undefined,
+                clientConfiguration.authOptions?.clientCapabilities ||
+                    managedIdentityConfiguration.clientCapabilities,
+                baseRequest.correlationId,
+                clientConfiguration.authOptions
+                    ? baseRequest.claimsFromClient
+                    : undefined
+            ),
+        };
+        const additionalCacheKeyComponents =
+            CacheHelpers.getAccessTokenCacheKeyComponents(
+                request,
+                requestedComponents ||
+                    this.getAdditionalCacheKeyComponents(request)
+            );
 
         let lastCacheOutcome: Constants.CacheOutcome =
             Constants.CacheOutcome.NOT_APPLICABLE;
