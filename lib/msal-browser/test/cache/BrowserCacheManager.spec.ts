@@ -52,6 +52,7 @@ import { CryptoOps } from "../../src/crypto/CryptoOps.js";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage.js";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager.js";
 import { base64Decode } from "../../src/encode/Base64Decode.js";
+import { base64Encode } from "../../src/encode/Base64Encode.js";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient.js";
 import { EventHandler } from "../../src/event/EventHandler.js";
 import { version } from "../../src/packageMetadata.js";
@@ -59,6 +60,10 @@ import * as CacheKeys from "../../src/cache/CacheKeys.js";
 import { getAccount } from "../../src/cache/AccountManager.js";
 import { isEncrypted } from "../../src/cache/EncryptedData.js";
 import { SessionStorage } from "../../src/cache/SessionStorage.js";
+import {
+    generateAsymmetricEarKey,
+    importAsymmetricEarKey,
+} from "../../src/crypto/BrowserCrypto.js";
 
 describe("BrowserCacheManager tests", () => {
     let cacheConfig: Required<CacheOptions>;
@@ -84,6 +89,128 @@ describe("BrowserCacheManager tests", () => {
         jest.restoreAllMocks();
         window.sessionStorage.clear();
         window.localStorage.clear();
+    });
+
+    describe("asymmetric EAR redirect context", () => {
+        let privateJwk: JsonWebKey;
+        const correlationId = TEST_CONFIG.CORRELATION_ID;
+        const storageKey = `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`;
+        let cache: BrowserCacheManager;
+        let performanceClient: StubPerformanceClient;
+        const createCache = (clientId = TEST_CONFIG.MSAL_CLIENT_ID) =>
+            new BrowserCacheManager(
+                clientId,
+                {
+                    ...cacheConfig,
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                },
+                browserCrypto,
+                logger,
+                performanceClient,
+                new EventHandler()
+            );
+
+        beforeAll(async () => {
+            privateJwk = (await generateAsymmetricEarKey()).privateJwk;
+        });
+
+        beforeEach(() => {
+            performanceClient = new StubPerformanceClient();
+            cache = createCache();
+        });
+
+        it("Restores the serialized private key from a fresh instance using sessionStorage only", async () => {
+            const context = { privateJwk, apv: "request-context" };
+            const traceSpy = jest.spyOn(logger, "trace");
+            const request: CommonAuthorizationUrlRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["openid"],
+                correlationId,
+                asymmetricEar: context,
+                responseMode: Constants.ResponseMode.FRAGMENT,
+                nonce: RANDOM_TEST_GUID,
+                state: TEST_CONFIG.STATE,
+            };
+            cache.cacheAuthorizeRequest(
+                request,
+                correlationId,
+                "pkce-verifier"
+            );
+
+            expect(window.localStorage.getItem(storageKey)).toBeNull();
+            const [restored, verifier] =
+                createCache().getCachedRequest(correlationId);
+            expect(restored).toEqual(request);
+            expect(verifier).toBe("pkce-verifier");
+            const key = await importAsymmetricEarKey(
+                restored.asymmetricEar!.privateJwk
+            );
+            expect(key.extractable).toBe(false);
+            expect(key.usages).toEqual(["deriveBits"]);
+            expect(JSON.stringify(traceSpy.mock.calls)).not.toContain(
+                privateJwk.d
+            );
+        });
+
+        it.each(["reset", "clear"])(
+            "Removes the private redirect context through existing %s cleanup",
+            (cleanup) => {
+                const request: CommonAuthorizationUrlRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: ["openid"],
+                    correlationId,
+                    asymmetricEar: { privateJwk, apv: "request-context" },
+                    responseMode: Constants.ResponseMode.FRAGMENT,
+                    nonce: RANDOM_TEST_GUID,
+                    state: TEST_CONFIG.STATE,
+                };
+                const otherClient = createCache("other-client");
+                cache.cacheAuthorizeRequest(
+                    request,
+                    correlationId,
+                    "pkce-verifier"
+                );
+                otherClient.cacheAuthorizeRequest(
+                    request,
+                    correlationId,
+                    "other-verifier"
+                );
+
+                if (cleanup === "reset") {
+                    cache.resetRequestCache(correlationId);
+                    expect(otherClient.getCachedRequest(correlationId)).toEqual(
+                        [request, "other-verifier"]
+                    );
+                } else {
+                    cache.clear(correlationId);
+                }
+                expect(window.sessionStorage.getItem(storageKey)).toBeNull();
+            }
+        );
+
+        it("Does not log private redirect context when cached JSON is corrupt", () => {
+            const errorSpy = jest.spyOn(logger, "error");
+            const piiSpy = jest.spyOn(logger, "errorPii");
+            const encodedRequest = base64Encode(
+                `{"asymmetricEar":{"privateJwk":${JSON.stringify(privateJwk)}`
+            );
+            window.sessionStorage.setItem(storageKey, encodedRequest);
+            expect(() => cache.getCachedRequest(correlationId)).toThrow(
+                expect.objectContaining({
+                    errorCode:
+                        BrowserAuthErrorCodes.unableToParseTokenRequestCacheError,
+                })
+            );
+            expect(piiSpy).not.toHaveBeenCalled();
+            expect(JSON.stringify(errorSpy.mock.calls)).not.toContain(
+                privateJwk.d
+            );
+            expect(JSON.stringify(errorSpy.mock.calls)).not.toContain(
+                encodedRequest
+            );
+        });
     });
 
     describe("Constructor", () => {

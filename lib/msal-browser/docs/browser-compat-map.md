@@ -34,6 +34,7 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 | `crypto.subtle.sign()` | PoP token signing, DPoP proof signing | None |
 | `crypto.subtle.decrypt()` | EAR response decryption, localStorage decryption | None |
 | `crypto.subtle.deriveKey()` | HKDF key derivation for localStorage encryption | None |
+| `crypto.subtle.deriveBits()` | P-384 ECDH shared-secret derivation for asymmetric EAR response decryption | None
 
 **MSAL-specific restriction:** `deriveKey()` with HKDF as base key requires Firefox 119+.
 

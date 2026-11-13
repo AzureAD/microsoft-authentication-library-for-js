@@ -55,7 +55,6 @@ import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
-import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
     getDiscoveredAuthority,
@@ -305,13 +304,6 @@ export class SilentIframeClient extends StandardInteractionClient {
             account
         );
 
-        const earJwk = await invokeAsync(
-            generateEarKey,
-            BrowserPerformanceEvents.GenerateEarKey,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )();
         const pkceCodes = await invokeAsync(
             generatePkceCodes,
             BrowserPerformanceEvents.GeneratePkceCodes,
@@ -319,11 +311,15 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.performanceClient,
             correlationId
         )(this.performanceClient, this.logger, correlationId);
-        const silentRequest = {
-            ...request,
-            earJwk: earJwk,
-            codeChallenge: pkceCodes.challenge,
-        };
+        const silentRequest = await Authorize.initializeEarRequest(
+            this.config,
+            {
+                ...request,
+                codeChallenge: pkceCodes.challenge,
+            },
+            this.logger,
+            this.performanceClient
+        );
 
         // Create the iframe, register the response listener, then navigate, so the listener is active before the iframe can respond.
         const iframe = createHiddenIframe();

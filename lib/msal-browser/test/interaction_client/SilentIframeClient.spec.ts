@@ -51,6 +51,7 @@ import {
     ApiId,
     BrowserConstants,
     InteractionType,
+    TemporaryCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
@@ -1966,6 +1967,99 @@ describe("SilentIframeClient", () => {
                 expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
             });
 
+            it.each([
+                { response: "ear", httpMethod: Constants.HttpMethod.POST },
+                { response: "code", httpMethod: Constants.HttpMethod.POST },
+                { response: "timeout", httpMethod: Constants.HttpMethod.POST },
+            ])(
+                "Keeps asymmetric $httpMethod iframe keys in memory for $response",
+                async ({ response, httpMethod }) => {
+                    pca.getConfiguration().experimental.enableAsymmetricEar =
+                        true;
+                    jest.spyOn(
+                        window.navigator,
+                        "userAgent",
+                        "get"
+                    ).mockReturnValue(
+                        "Mozilla/5.0 Chrome/137.0.0.0 Safari/537.36"
+                    );
+                    jest.spyOn(
+                        SilentHandler,
+                        "initiateEarRequest"
+                    ).mockImplementation(async () => {
+                        expect(
+                            Object.keys(window.sessionStorage).filter(
+                                (key) =>
+                                    key.endsWith(
+                                        TemporaryCacheKeys.REQUEST_PARAMS
+                                    ) ||
+                                    key.includes(".request.asymmetric-ear.")
+                            )
+                        ).toHaveLength(0);
+                        return document.createElement("iframe");
+                    });
+                    const responseSpy = jest.spyOn(
+                        BrowserUtils,
+                        "waitForBridgeResponse"
+                    );
+                    if (response === "timeout") {
+                        responseSpy.mockRejectedValue(
+                            new Error("iframe timeout")
+                        );
+                    } else {
+                        responseSpy.mockResolvedValue(
+                            `#${
+                                response === "ear" ? "ear_jwe" : "code"
+                            }=response&state=${
+                                TEST_STATE_VALUES.TEST_STATE_SILENT
+                            }`
+                        );
+                        jest.spyOn(
+                            AuthorizeProtocol,
+                            response === "ear"
+                                ? "handleResponseEAR"
+                                : "handleResponseCode"
+                        ).mockImplementation(async (...args) => {
+                            const request = args[0];
+                            await Promise.resolve();
+                            expect(
+                                request.asymmetricEar?.privateJwk.d
+                            ).toBeDefined();
+                            expect(
+                                Object.keys(window.sessionStorage).filter(
+                                    (key) =>
+                                        key.endsWith(
+                                            TemporaryCacheKeys.REQUEST_PARAMS
+                                        ) ||
+                                        key.includes(".request.asymmetric-ear.")
+                                )
+                            ).toHaveLength(0);
+                            return getTestAuthenticationResult();
+                        });
+                    }
+                    const result = pca.ssoSilent({
+                        ...validRequest,
+                        httpMethod,
+                    });
+                    if (response === "timeout") {
+                        await expect(result).rejects.toThrow("iframe timeout");
+                    } else {
+                        await expect(result).resolves.toEqual(
+                            getTestAuthenticationResult()
+                        );
+                    }
+                    expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
+                    expect(
+                        Object.keys(window.sessionStorage).filter(
+                            (key) =>
+                                key.endsWith(
+                                    TemporaryCacheKeys.REQUEST_PARAMS
+                                ) || key.includes(".request.asymmetric-ear.")
+                        )
+                    ).toHaveLength(0);
+                }
+            );
+
             it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", async () => {
                 jest.restoreAllMocks();
                 jest.spyOn(
@@ -2021,19 +2115,24 @@ describe("SilentIframeClient", () => {
                 );
             });
 
-            it("throws if protocolMode is set to EAR and httpMethod is set to GET", async () => {
-                await expect(
-                    pca.ssoSilent({
-                        ...validRequest,
-                        httpMethod: Constants.HttpMethod.GET,
-                    })
-                ).rejects.toThrow(
-                    createClientConfigurationError(
-                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
-                        ""
-                    )
-                );
-            });
+            it.each([false, true])(
+                "throws if EAR uses GET (asymmetric: %s)",
+                async (enableAsymmetricEar) => {
+                    pca.getConfiguration().experimental.enableAsymmetricEar =
+                        enableAsymmetricEar;
+                    await expect(
+                        pca.ssoSilent({
+                            ...validRequest,
+                            httpMethod: Constants.HttpMethod.GET,
+                        })
+                    ).rejects.toThrow(
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
+                            ""
+                        )
+                    );
+                }
+            );
         });
     });
 
