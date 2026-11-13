@@ -2465,7 +2465,15 @@ export class StandardController implements IController {
             this.performanceClient
         );
 
-        const requestKey = preparedRequest.key;
+        const requestKey =
+            preparedRequest.key !== undefined &&
+            preparedRequest.request.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP
+                ? JSON.stringify({
+                      requestKey: preparedRequest.key,
+                      accountTenantId: preparedRequest.account.tenantId,
+                  })
+                : preparedRequest.key;
         const shouldDeduplicate = requestKey !== undefined;
         const inProgressRequest = shouldDeduplicate
             ? this.activeSilentTokenRequests.get(requestKey)
