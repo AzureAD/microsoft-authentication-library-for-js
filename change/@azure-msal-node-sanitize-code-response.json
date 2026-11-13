@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Sanitize authorization code response payloads consistently across Node clients [#8959](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8959)",
-  "packageName": "@azure/msal-node",
-  "email": "nugetaad@microsoft.com",
-  "dependentChangeType": "patch"
-}
