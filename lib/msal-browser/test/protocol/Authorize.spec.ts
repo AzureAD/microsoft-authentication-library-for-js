@@ -33,9 +33,13 @@ import { version } from "../../src/packageMetadata.js";
 import {
     BrowserAuthError,
     BrowserAuthErrorCodes,
+    createBrowserAuthError,
 } from "../../src/error/BrowserAuthError.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { PlatformAuthInteractionClient } from "../../src/interaction_client/PlatformAuthInteractionClient.js";
+import * as BrowserCrypto from "../../src/crypto/BrowserCrypto.js";
+import { base64Decode } from "../../src/encode/Base64Decode.js";
+import * as Base64Encode from "../../src/encode/Base64Encode.js";
 
 describe("Authorize Protocol Tests", () => {
     describe("EAR Protocol Tests", () => {
@@ -96,29 +100,412 @@ describe("Authorize Protocol Tests", () => {
 
         afterEach(() => {
             jest.restoreAllMocks();
+            window.sessionStorage.clear();
+        });
+
+        describe("asymmetric EAR selection", () => {
+            const asymmetricConfig = buildConfiguration(
+                {
+                    auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                    system: { protocolMode: ProtocolMode.EAR },
+                    experimental: { enableAsymmetricEar: true },
+                },
+                true
+            );
+
+            it.each([false, true])(
+                "Sends only the public key and APV while retaining private context locally (platformBroker=%s)",
+                async (platformBroker) => {
+                    const request = await Authorize.initializeEarRequest(
+                        asymmetricConfig,
+                        { ...validRequest, platformBroker },
+                        logger,
+                        performanceClient
+                    );
+                    expect(request?.asymmetricEar).toBeDefined();
+                    const publicJwk = JSON.parse(
+                        base64Decode(request!.earJwk!)
+                    );
+                    expect(publicJwk).toMatchObject({
+                        kty: "EC",
+                        crv: "P-384",
+                    });
+                    expect(publicJwk.d).toBeUndefined();
+                    const context = request.asymmetricEar!;
+                    expect(context.privateJwk.d).toBeDefined();
+                    expect(window.sessionStorage.length).toBe(0);
+                    const form = await Authorize.getEARFormData(
+                        asymmetricConfig,
+                        authority,
+                        request!,
+                        logger,
+                        performanceClient
+                    );
+                    expect(
+                        JSON.parse(base64Decode(form.fields.ear_jwe_crypto))
+                    ).toEqual({
+                        alg: "ECDH-ES",
+                        enc: "A256GCM",
+                        apv: context.apv,
+                    });
+                    expect(JSON.stringify(form)).not.toContain(
+                        context.privateJwk.d
+                    );
+                }
+            );
+
+            it.each([false, true])(
+                "Propagates asymmetric key-generation errors without falling back (platformBroker=%s)",
+                async (platformBroker) => {
+                    const error = new Error("P-384 unavailable");
+                    jest.spyOn(
+                        BrowserCrypto,
+                        "generateAsymmetricEarKey"
+                    ).mockRejectedValue(error);
+                    const symmetricSpy = jest.spyOn(
+                        BrowserCrypto,
+                        "generateEarKey"
+                    );
+                    await expect(
+                        Authorize.initializeEarRequest(
+                            asymmetricConfig,
+                            { ...validRequest, platformBroker },
+                            logger,
+                            performanceClient
+                        )
+                    ).rejects.toMatchObject({
+                        errorCode: BrowserAuthErrorCodes.asymmetricEarKeyError,
+                        correlationId: validRequest.correlationId,
+                        subError: "request_initialization_failed",
+                    });
+                    expect(symmetricSpy).not.toHaveBeenCalled();
+                }
+            );
+
+            it("Preserves defined asymmetric EAR setup errors", async () => {
+                const error = createBrowserAuthError(
+                    BrowserAuthErrorCodes.asymmetricEarKeyError,
+                    validRequest.correlationId,
+                    "invalid_public_key_coordinates"
+                );
+                jest.spyOn(
+                    BrowserCrypto,
+                    "generateAsymmetricEarApv"
+                ).mockImplementation(() => {
+                    throw error;
+                });
+                await expect(
+                    Authorize.initializeEarRequest(
+                        asymmetricConfig,
+                        validRequest,
+                        logger,
+                        performanceClient
+                    )
+                ).rejects.toBe(error);
+            });
+
+            it("Throws an AuthError when public key serialization fails", async () => {
+                const key = await BrowserCrypto.generateAsymmetricEarKey();
+                jest.spyOn(
+                    BrowserCrypto,
+                    "generateAsymmetricEarKey"
+                ).mockResolvedValue(key);
+                const error = new Error(
+                    `Unexpected failure with key ${key.privateJwk.d}`
+                );
+                jest.spyOn(JSON, "stringify").mockImplementationOnce(() => {
+                    throw error;
+                });
+                const result = Authorize.initializeEarRequest(
+                    asymmetricConfig,
+                    validRequest,
+                    logger,
+                    performanceClient
+                );
+                await expect(result).rejects.toBeInstanceOf(BrowserAuthError);
+                await expect(result).rejects.toMatchObject({
+                    errorCode: BrowserAuthErrorCodes.asymmetricEarKeyError,
+                    correlationId: validRequest.correlationId,
+                    subError: "request_initialization_failed",
+                });
+                await expect(result).rejects.not.toThrow(key.privateJwk.d!);
+            });
+
+            it("Throws an AuthError when public key encoding fails", async () => {
+                const key = await BrowserCrypto.generateAsymmetricEarKey();
+                jest.spyOn(
+                    BrowserCrypto,
+                    "generateAsymmetricEarKey"
+                ).mockResolvedValue(key);
+                const error = new Error(
+                    `Unexpected failure with key ${key.privateJwk.d}`
+                );
+                jest.spyOn(Base64Encode, "base64Encode").mockImplementationOnce(
+                    () => {
+                        throw error;
+                    }
+                );
+                const result = Authorize.initializeEarRequest(
+                    asymmetricConfig,
+                    validRequest,
+                    logger,
+                    performanceClient
+                );
+                await expect(result).rejects.toBeInstanceOf(BrowserAuthError);
+                await expect(result).rejects.toMatchObject({
+                    errorCode: BrowserAuthErrorCodes.asymmetricEarKeyError,
+                    correlationId: validRequest.correlationId,
+                    subError: "request_initialization_failed",
+                });
+                await expect(result).rejects.not.toThrow(key.privateJwk.d!);
+            });
+
+            it("Throws an AuthError when EAR metadata serialization fails", async () => {
+                const request = await Authorize.initializeEarRequest(
+                    asymmetricConfig,
+                    validRequest,
+                    logger,
+                    performanceClient
+                );
+                const error = new Error("Unable to serialize EAR metadata");
+                const stringify = JSON.stringify;
+                jest.spyOn(JSON, "stringify").mockImplementation(
+                    (value, ...args) => {
+                        if (value?.alg === "ECDH-ES") {
+                            throw error;
+                        }
+                        return stringify(value, ...args);
+                    }
+                );
+                const result = Authorize.getEARFormData(
+                    asymmetricConfig,
+                    authority,
+                    request,
+                    logger,
+                    performanceClient
+                );
+                await expect(result).rejects.toBeInstanceOf(BrowserAuthError);
+                await expect(result).rejects.toMatchObject({
+                    errorCode: BrowserAuthErrorCodes.asymmetricEarKeyError,
+                    correlationId: request.correlationId,
+                    subError: "request_encoding_failed",
+                });
+            });
+
+            it("Throws an AuthError when EAR metadata encoding fails", async () => {
+                const request = await Authorize.initializeEarRequest(
+                    asymmetricConfig,
+                    validRequest,
+                    logger,
+                    performanceClient
+                );
+                jest.spyOn(Base64Encode, "base64Encode").mockImplementationOnce(
+                    () => {
+                        throw new Error("Unable to encode EAR metadata");
+                    }
+                );
+                const result = Authorize.getEARFormData(
+                    asymmetricConfig,
+                    authority,
+                    request,
+                    logger,
+                    performanceClient
+                );
+                await expect(result).rejects.toBeInstanceOf(BrowserAuthError);
+                await expect(result).rejects.toMatchObject({
+                    errorCode: BrowserAuthErrorCodes.asymmetricEarKeyError,
+                    correlationId: request.correlationId,
+                    subError: "request_encoding_failed",
+                });
+            });
+
+            it("Preserves symmetric broker EAR when the experimental flag is disabled", async () => {
+                const asymmetricSpy = jest.spyOn(
+                    BrowserCrypto,
+                    "generateAsymmetricEarKey"
+                );
+                const request = await Authorize.initializeEarRequest(
+                    config,
+                    {
+                        ...validRequest,
+                        platformBroker: true,
+                    },
+                    logger,
+                    performanceClient
+                );
+                expect(request?.asymmetricEar).toBeUndefined();
+                expect(JSON.parse(base64Decode(request!.earJwk!)).kty).toBe(
+                    "oct"
+                );
+                expect(asymmetricSpy).not.toHaveBeenCalled();
+            });
+
+            it("Decrypts asymmetric EAR before handing the account ID to the platform broker", async () => {
+                const request = await Authorize.initializeEarRequest(
+                    asymmetricConfig,
+                    { ...validRequest, platformBroker: true },
+                    logger,
+                    performanceClient
+                );
+                const context = request.asymmetricEar!;
+                const asymmetricSpy = jest
+                    .spyOn(BrowserCrypto, "decryptAsymmetricEarResponse")
+                    .mockResolvedValue(
+                        JSON.stringify({ accountId: "testAccountId" })
+                    );
+                const symmetricSpy = jest.spyOn(
+                    BrowserCrypto,
+                    "decryptEarResponse"
+                );
+                const platformBrokerSpy = jest
+                    .spyOn(
+                        PlatformAuthInteractionClient.prototype,
+                        "acquireToken"
+                    )
+                    .mockResolvedValue(getTestAuthenticationResult());
+                const result = await Authorize.handleResponseEAR(
+                    request!,
+                    { ear_jwe: validEarJWE, state: validRequest.state },
+                    ApiId.acquireTokenPopup,
+                    asymmetricConfig,
+                    authority,
+                    cacheManager,
+                    cacheManager,
+                    eventHandler,
+                    logger,
+                    performanceClient,
+                    new PlatformAuthExtensionHandler(
+                        logger,
+                        2000,
+                        performanceClient
+                    )
+                );
+                expect(asymmetricSpy).toHaveBeenCalledWith(
+                    context.privateJwk,
+                    context.apv,
+                    validEarJWE,
+                    request!.asymmetricEar!.apv,
+                    {
+                        logger,
+                        performanceClient,
+                        correlationId: validRequest.correlationId,
+                    }
+                );
+                expect(symmetricSpy).not.toHaveBeenCalled();
+                expect(platformBrokerSpy).toHaveBeenCalledWith(
+                    expect.objectContaining({ platformBroker: true })
+                );
+                expect(
+                    JSON.stringify(platformBrokerSpy.mock.calls)
+                ).not.toContain(context.privateJwk.d);
+                expect(result).toEqual(getTestAuthenticationResult());
+                cacheManager.resetRequestCache(request!.correlationId);
+            });
+
+            it.each([1, 2])(
+                "Uses the initiating request's construction when the current flag is disabled (request version %s)",
+                async (version) => {
+                    const request = await Authorize.initializeEarRequest(
+                        asymmetricConfig,
+                        validRequest,
+                        logger,
+                        performanceClient
+                    );
+                    Object.assign(request!.asymmetricEar!, { version });
+                    await Authorize.getEARFormData(
+                        config,
+                        authority,
+                        request!,
+                        logger,
+                        performanceClient
+                    );
+                    const plaintext = await BrowserCrypto.decryptEarResponse(
+                        validEarJWK,
+                        validEarJWE
+                    );
+                    const asymmetricSpy = jest
+                        .spyOn(BrowserCrypto, "decryptAsymmetricEarResponse")
+                        .mockResolvedValue(plaintext);
+                    const symmetricSpy = jest.spyOn(
+                        BrowserCrypto,
+                        "decryptEarResponse"
+                    );
+                    const result = await Authorize.handleResponseEAR(
+                        request!,
+                        { ear_jwe: validEarJWE, state: validRequest.state },
+                        ApiId.acquireTokenPopup,
+                        config,
+                        authority,
+                        cacheManager,
+                        cacheManager,
+                        eventHandler,
+                        logger,
+                        performanceClient
+                    );
+                    expect(result).toEqual(getTestAuthenticationResult());
+                    expect(asymmetricSpy).toHaveBeenCalled();
+                    expect(symmetricSpy).not.toHaveBeenCalled();
+                    cacheManager.resetRequestCache(request!.correlationId);
+                }
+            );
+
+            it("Does not downgrade to symmetric EAR when asymmetric decryption fails", async () => {
+                const request = await Authorize.initializeEarRequest(
+                    asymmetricConfig,
+                    validRequest,
+                    logger,
+                    performanceClient
+                );
+                const error = createBrowserAuthError(
+                    BrowserAuthErrorCodes.failedToDecryptEarResponse,
+                    request.correlationId,
+                    "jwe_decryption_failed"
+                );
+                jest.spyOn(
+                    BrowserCrypto,
+                    "decryptAsymmetricEarResponse"
+                ).mockRejectedValue(error);
+                const symmetricSpy = jest.spyOn(
+                    BrowserCrypto,
+                    "decryptEarResponse"
+                );
+                await expect(
+                    Authorize.handleResponseEAR(
+                        request!,
+                        { ear_jwe: validEarJWE, state: validRequest.state },
+                        ApiId.acquireTokenPopup,
+                        config,
+                        authority,
+                        cacheManager,
+                        cacheManager,
+                        eventHandler,
+                        logger,
+                        performanceClient
+                    )
+                ).rejects.toBe(error);
+                expect(symmetricSpy).not.toHaveBeenCalled();
+                cacheManager.resetRequestCache(request!.correlationId);
+            });
         });
 
         describe("getEARForm tests", () => {
-            it("Throws if earJwk is empty", async () => {
+            it("Throws earJwkEmpty when no EAR key is provided", async () => {
                 const { earJwk, ...request }: CommonAuthorizationUrlRequest =
                     validRequest;
 
-                try {
-                    await Authorize.getEARForm(
+                await expect(
+                    Authorize.getEARForm(
                         document,
                         config,
                         authority,
                         request,
                         logger,
                         performanceClient
-                    );
-                    throw "Unexpected! Should throw";
-                } catch (e) {
-                    expect(e).toBeInstanceOf(BrowserAuthError);
-                    expect((e as BrowserAuthError).errorCode).toBe(
-                        BrowserAuthErrorCodes.earJwkEmpty
-                    );
-                }
+                    )
+                ).rejects.toMatchObject({
+                    errorCode: BrowserAuthErrorCodes.earJwkEmpty,
+                    correlationId: request.correlationId,
+                });
             });
 
             it("Returns HTMLFormElement", async () => {
