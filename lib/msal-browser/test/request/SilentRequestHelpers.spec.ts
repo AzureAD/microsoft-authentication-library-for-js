@@ -77,6 +77,7 @@ describe("silent request preparation", () => {
         );
         expect(JSON.parse(prepared.key!)).toEqual({
             ...originalThumbprint,
+            accountTenantId: input.account.tenantId,
             forceRefresh: true,
             cacheLookupPolicy: CacheLookupPolicy.Default,
             extraParameters: [["custom", "value"]],
@@ -86,6 +87,19 @@ describe("silent request preparation", () => {
         expect(prepared.account).toBe(input.account);
         expect(input.request.account).toBeUndefined();
         expect(input.request.correlationId).toBeUndefined();
+    });
+
+    it("distinguishes web requests for different account tenants", () => {
+        const baseline = prepareWebSilentRequest(input);
+        const prepared = prepareWebSilentRequest({
+            ...input,
+            account: {
+                ...input.account,
+                tenantId: "guest-tenant",
+            },
+        });
+
+        expect(prepared.key).not.toBe(baseline.key);
     });
 
     it("does not include DPoP nonce state in the web request key", () => {

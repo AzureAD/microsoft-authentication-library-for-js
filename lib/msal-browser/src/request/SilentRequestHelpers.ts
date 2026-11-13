@@ -93,6 +93,7 @@ export function prepareWebSilentRequest({
     return {
         key: JSON.stringify({
             ...thumbprint,
+            accountTenantId: account.tenantId,
             forceRefresh: !!request.forceRefresh,
             cacheLookupPolicy:
                 request.cacheLookupPolicy ?? CacheLookupPolicy.Default,

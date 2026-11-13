@@ -143,6 +143,81 @@ describe("DPoP silent request coalescing", () => {
         );
     });
 
+    it("does not coalesce web DPoP requests for different account tenants", async () => {
+        const guestAccount: AccountInfo = {
+            ...account,
+            tenantId: "guest-tenant",
+        };
+        const homeResponse = deferred<AuthenticationResult>();
+        const guestResponse = deferred<AuthenticationResult>();
+        const createResult = (
+            requestAccount: AccountInfo,
+            accessToken: string,
+            correlationId: string
+        ): AuthenticationResult => ({
+            authority: TEST_CONFIG.validAuthority,
+            uniqueId: requestAccount.localAccountId,
+            tenantId: requestAccount.tenantId,
+            scopes: ["User.Read"],
+            idToken: TEST_TOKENS.IDTOKEN_V2,
+            idTokenClaims: ID_TOKEN_CLAIMS,
+            accessToken,
+            dpopProof: `${correlationId}-proof`,
+            fromCache: true,
+            correlationId,
+            expiresOn: new Date(Date.now() + 3600000),
+            account: requestAccount,
+            tokenType: Constants.AuthenticationScheme.DPOP,
+        });
+        const acquire = jest
+            .spyOn(
+                controller as unknown as {
+                    acquireTokenSilentAsync(
+                        request: SilentRequest & { correlationId: string },
+                        account: AccountInfo
+                    ): Promise<AuthenticationResult>;
+                },
+                "acquireTokenSilentAsync"
+            )
+            .mockImplementation((_request, requestAccount) =>
+                requestAccount.tenantId === account.tenantId
+                    ? homeResponse.promise
+                    : guestResponse.promise
+            );
+        const request = {
+            scopes: ["User.Read"],
+            authenticationScheme: Constants.AuthenticationScheme.DPOP,
+            resourceRequestMethod: "GET",
+            resourceRequestUri,
+        };
+
+        const homeRequest = controller.acquireTokenSilent({
+            ...request,
+            account,
+            correlationId: "home",
+        });
+        const guestRequest = controller.acquireTokenSilent({
+            ...request,
+            account: guestAccount,
+            correlationId: "guest",
+        });
+        homeResponse.resolve(createResult(account, "home-token", "home"));
+        guestResponse.resolve(
+            createResult(guestAccount, "guest-token", "guest")
+        );
+
+        const [homeResult, guestResult] = await Promise.all([
+            homeRequest,
+            guestRequest,
+        ]);
+
+        expect(acquire).toHaveBeenCalledTimes(2);
+        expect(homeResult.accessToken).toBe("home-token");
+        expect(homeResult.tenantId).toBe(account.tenantId);
+        expect(guestResult.accessToken).toBe("guest-token");
+        expect(guestResult.tenantId).toBe(guestAccount.tenantId);
+    });
+
     it("snapshots a joining caller's proof context before awaiting the shared acquisition", async () => {
         const started = deferred<void>();
         const response = deferred<AuthenticationResult>();
