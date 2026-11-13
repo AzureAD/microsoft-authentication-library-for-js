@@ -31,20 +31,20 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
 ### Library Version Support Status
 
 
-| Package Name | Current Version | LTS Version | 
+| Package Name | Current Version | LTS Version |
 |--------------|-----------------|-------------|
-| @azure/msal-browser |v5 | v4 |
-| @azure/msal-node | v5 | v3 | 
-| @azure/msal-react | v5 | v3 | 
-| @azure/msal-angular | v5 | v4 |
+| @azure/msal-browser | v5 | v4 |
+| @azure/msal-node | v7 | v6 |
+| @azure/msal-react | v5 | v3 |
+| @azure/msal-angular | v6 | v5 |
 | @azure/msal-node-extensions | v5 | v1 |
-| ~~@azure/msal (msal-core)~~|  | Fully Deprecated  |
-| ~~@azure/msal-angularjs~~ |  | Fully Deprecated  |
+| ~~@azure/msal (msal-core)~~|  | Fully Deprecated |
+| ~~@azure/msal-angularjs~~ |  | Fully Deprecated |
 
 **Disambiguation:**
-- The MSAL team provides full support to the current version for each package in the table below.
+- The MSAL team provides full support to the current version for each package in the table above.
 - LTS (long-term support) versions will still receive some support and critical bug-fixes but will not ship new features. Our recommendation if you encounter any issues will always be to upgrade to the latest version of the library.
-- All supported packages were brought up to version parity as of `v5`. Packages with versions lower than `v4` in the LTS column skipped as many versions as required to jump directly to `v5`.
+- Most supported packages were brought up to version parity at `v5`. Packages may release later major versions independently when package-specific breaking changes are required.
 
 #### MSAL Browser CDN Deprecation
 
