@@ -910,6 +910,10 @@ msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 
 -   Failed to decrypt ear response.
 
+### `asymmetric_ear_key_error`
+
+-   Failed to persist, recover, remove, or import a request-specific asymmetric EAR key. The sub-error identifies the failed stage without including key material.
+
 ### `timed_out`
 
 -   The request failed to complete within the configured timeout. Review logs and network traces to identify potential causes. Retrying the request once or increasing the configured timeout may sometimes resolve timeouts caused by general runtime or network latency.

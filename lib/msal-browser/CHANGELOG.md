@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Fri, 06 Nov 2026 23:13:15 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 12 Nov 2026 18:58:52 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.29.1
+
+Thu, 12 Nov 2026 18:58:52 GMT
+
+### Patches
+
+- Forward browser instance-aware configuration and redirect request overrides during authorization code redemption [#8959](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8959) (nugetaad@microsoft.com)
+- Bump @azure/msal-common to v16.16.2
 
 ## 5.29.0
 

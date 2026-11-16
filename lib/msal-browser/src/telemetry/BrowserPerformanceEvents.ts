@@ -201,6 +201,13 @@ export const UrlEncodeArr = "urlEncodeArr";
 export const Encrypt = "encrypt";
 export const Decrypt = "decrypt";
 export const GenerateEarKey = "generateEarKey";
+export const GenerateAsymmetricEarKey = "generateAsymmetricEarKey";
+export const ImportAsymmetricEarKey = "importAsymmetricEarKey";
+export const ImportAsymmetricEarPublicKey = "importAsymmetricEarPublicKey";
+export const DeriveAsymmetricEarSecret = "deriveAsymmetricEarSecret";
+export const AsymmetricEarConcatKdf = "asymmetricEarConcatKdf";
+export const ImportAsymmetricEarContentKey = "importAsymmetricEarContentKey";
+export const DecryptAsymmetricEarResponse = "decryptAsymmetricEarResponse";
 export const DecryptEarResponse = "decryptEarResponse";
 
 export const LoadAccount = "loadAccount";
