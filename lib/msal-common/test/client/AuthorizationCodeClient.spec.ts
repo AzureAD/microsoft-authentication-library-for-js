@@ -2339,78 +2339,86 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
         });
 
-        it("successfully uses a new authority if cloud_instance_host_name is different", async () => {
-            const client = new AuthorizationCodeClient(
-                config,
-                stubPerformanceClient
-            );
-            jest.spyOn(
-                Authority.prototype,
-                <any>"getEndpointMetadataFromNetwork"
-            ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            jest.spyOn(
-                // @ts-ignore
-                client.networkClient,
-                "sendPostRequestAsync"
-            ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
+        it.each([true, false, undefined])(
+            "only uses cloud_instance_host_name when instanceAware is enabled (%p)",
+            async (instanceAware) => {
+                config.authOptions.instanceAware = instanceAware;
+                const client = new AuthorizationCodeClient(
+                    config,
+                    stubPerformanceClient
+                );
+                jest.spyOn(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                ).mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+                jest.spyOn(
+                    // @ts-ignore
+                    client.networkClient,
+                    "sendPostRequestAsync"
+                ).mockResolvedValue({ ...AUTHENTICATION_RESULT, headers: {} });
 
-            if (!config.cryptoInterface) {
-                throw TestError.createTestSetupError(
-                    "configuration cryptoInterface not initialized correctly."
+                if (!config.cryptoInterface) {
+                    throw TestError.createTestSetupError(
+                        "configuration cryptoInterface not initialized correctly."
+                    );
+                }
+                // Set up stubs
+                const idTokenClaims = {
+                    ver: "2.0",
+                    iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                    sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                    exp: 1536361411,
+                    name: "Abe Lincoln",
+                    preferred_username: "AbeLi@microsoft.com",
+                    oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                    tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    nonce: "123523",
+                };
+                jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
+                    idTokenClaims
+                );
+
+                const authoritySpy = jest.spyOn(
+                    AuthorityFactory,
+                    "createDiscoveredInstance"
+                );
+
+                const authCodeRequest: CommonAuthorizationCodeRequest = {
+                    authority: Constants.DEFAULT_AUTHORITY,
+                    scopes: [
+                        ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                        ...TEST_CONFIG.DEFAULT_SCOPES,
+                    ],
+                    redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                    code: TEST_TOKENS.AUTHORIZATION_CODE,
+                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                    claims: TEST_CONFIG.CLAIMS,
+                    correlationId: RANDOM_TEST_GUID,
+                    authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                };
+                await client.acquireToken(authCodeRequest, 0, {
+                    code: authCodeRequest.code,
+                    nonce: idTokenClaims.nonce,
+                    cloud_instance_host_name: "login.windows.net",
+                });
+                if (!instanceAware) {
+                    expect(authoritySpy).not.toHaveBeenCalled();
+                    return;
+                }
+                expect(authoritySpy).toHaveBeenCalledWith(
+                    "https://login.windows.net/common/",
+                    // @ts-ignore
+                    client.networkClient,
+                    // @ts-ignore
+                    client.cacheManager,
+                    client.authority.options,
+                    client.logger,
+                    RANDOM_TEST_GUID,
+                    // @ts-ignore
+                    client.performanceClient
                 );
             }
-            // Set up stubs
-            const idTokenClaims = {
-                ver: "2.0",
-                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                exp: 1536361411,
-                name: "Abe Lincoln",
-                preferred_username: "AbeLi@microsoft.com",
-                oid: "00000000-0000-0000-66f3-3332eca7ea81",
-                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523",
-            };
-            jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(
-                idTokenClaims
-            );
-
-            const authoritySpy = jest.spyOn(
-                AuthorityFactory,
-                "createDiscoveredInstance"
-            );
-
-            const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
-                scopes: [
-                    ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-                    ...TEST_CONFIG.DEFAULT_SCOPES,
-                ],
-                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                code: TEST_TOKENS.AUTHORIZATION_CODE,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                claims: TEST_CONFIG.CLAIMS,
-                correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: Constants.AuthenticationScheme.BEARER,
-            };
-            await client.acquireToken(authCodeRequest, 0, {
-                code: authCodeRequest.code,
-                nonce: idTokenClaims.nonce,
-                cloud_instance_host_name: "login.windows.net",
-            });
-            expect(authoritySpy).toHaveBeenCalledWith(
-                "https://login.windows.net/common/",
-                // @ts-ignore
-                client.networkClient,
-                // @ts-ignore
-                client.cacheManager,
-                client.authority.options,
-                client.logger,
-                RANDOM_TEST_GUID,
-                // @ts-ignore
-                client.performanceClient
-            );
-        });
+        );
     });
 
     describe("Telemetry protocol mode tests", () => {

@@ -2297,12 +2297,8 @@ export class BrowserCacheManager extends CacheManager {
                 verifier = base64Decode(encodedVerifier);
             }
         } catch (e) {
-            this.logger.errorPii(
-                `Attempted to parse: '${encodedTokenRequest}'`,
-                correlationId
-            );
             this.logger.error(
-                `Parsing cached token request threw with error: '${e}'`,
+                "Unable to parse cached token request",
                 correlationId
             );
             throw createBrowserAuthError(
