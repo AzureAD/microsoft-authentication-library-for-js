@@ -3,10 +3,6 @@
  * Licensed under the MIT License.
  */
 
-/*
- * Return contracts of the shared V2 base client (BaseApiClientV2), flow-agnostic and reused by
- * every V2 flow. Distinct from the per-flow result DTOs (e.g. ResetPasswordResultsV2).
- */
 import type { SignUpAttributeV2 } from "./SignUpResultsV2.js";
 import {
     ACTIVATE_RELATION,
@@ -19,7 +15,6 @@ import {
     ResponseStateV2,
 } from "../ApiClientConstantsV2.js";
 
-// Initial continuation token and available flow links.
 export interface AuthorizeChallengeEntryResultV2 {
     continuationToken: string;
     resetPasswordHref?: string;
@@ -27,11 +22,6 @@ export interface AuthorizeChallengeEntryResultV2 {
     signUpHref?: string;
 }
 
-/*
- * A selectable authentication method surfaced by a flow-start response, resolved from
- * `_embedded.methods[]`. `challengeHref` is the per-method `challenge` link to POST to send the
- * code to that method; `id`/`type`/`hint` are display/selection metadata.
- */
 export interface StartMethodV2 {
     id: string;
     type?: string;
@@ -73,10 +63,6 @@ export const AuthenticationFactorV2 = {
 export type AuthenticationFactorV2 =
     (typeof AuthenticationFactorV2)[keyof typeof AuthenticationFactorV2];
 
-/*
- * Result of starting a flow. It contains the continuation token, available
- * authentication methods, authentication factor, and optional server scenario.
- */
 export interface StartResultV2 {
     continuationToken: string;
     methods: StartMethodV2[];
@@ -107,10 +93,6 @@ export type ChallengeResultV2 =
     | ChallengeVerificationResultV2
     | RiskVerificationRequiredResultV2;
 
-/*
- * Result of verifying a credential. The discriminated union identifies whether
- * another update is required or token redemption can continue.
- */
 export type VerifyResultV2 =
     | {
           nextAction: typeof UPDATE_RELATION;

@@ -44,8 +44,10 @@ and continue forwarding legacy response-mode values to the broker.
 ## Loopback GET callbacks
 
 The built-in interactive loopback server no longer accepts OAuth responses through GET query
-parameters. A GET request containing `code` or `error` returns HTTP 400 and fails the pending
-interaction with `loopback_server_query_response_not_supported`.
+parameters. A GET request containing `code` or `error` with exactly one state matching the pending
+request returns HTTP 400 and fails the pending interaction with
+`loopback_server_query_response_not_supported`. A callback with missing, empty, mismatched, or
+duplicate state also returns HTTP 400, but leaves the pending interaction active.
 
 Valid `application/x-www-form-urlencoded` POST success and error responses continue working.
 Harmless GET requests without OAuth response parameters do not complete or fail authentication.

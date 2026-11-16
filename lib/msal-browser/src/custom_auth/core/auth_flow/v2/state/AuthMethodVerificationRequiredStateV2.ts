@@ -11,10 +11,13 @@ import type { AuthMethodVerificationRequiredStateParametersV2 } from "./CustomAu
 import { CompletedStateV2 } from "./CompletedStateV2.js";
 import { CustomAuthAccountData } from "../../../../get_account/auth_flow/CustomAuthAccountData.js";
 import { ensureArgumentIsNotNullOrUndefined } from "../../../utils/ArgumentValidator.js";
+import { FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
+import { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 
 /**
  * State returned when a newly registered authentication method must be
  * activated with the challenge sent by the service.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class AuthMethodVerificationRequiredStateV2 extends AuthFlowActionRequiredStateBase<AuthMethodVerificationRequiredStateParametersV2> {
     readonly stateType = "authMethodVerificationRequired";
@@ -34,7 +37,7 @@ export class AuthMethodVerificationRequiredStateV2 extends AuthFlowActionRequire
     /**
      * Submits the activation challenge for the registered method.
      * @param challenge - The activation challenge to submit.
-     * @returns The completed authentication result or a failed state.
+     * @returns A sign-in continuation, completed authentication result, or failed state.
      */
     async submitChallenge(
         challenge: string
@@ -58,6 +61,21 @@ export class AuthMethodVerificationRequiredStateV2 extends AuthFlowActionRequire
                 code: challenge,
             });
 
+            if (result.type === FLOW_SIGN_IN_CONTINUATION_REQUIRED_V2) {
+                return new CustomAuthResultV2(
+                    new SignInContinuationStateV2({
+                        correlationId: result.correlationId,
+                        logger,
+                        config: this.stateParameters.config,
+                        flowClient,
+                        continuationState: result.continuationState,
+                        cacheClient: this.stateParameters.cacheClient,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
             const account = new CustomAuthAccountData(
                 result.authenticationResult.account,
                 this.stateParameters.config,
@@ -79,13 +97,13 @@ export class AuthMethodVerificationRequiredStateV2 extends AuthFlowActionRequire
             return CustomAuthResultV2.createWithError(error, {
                 scenario: continuationState.scenario,
                 correlationId,
+                errorContext: "authMethodRegistration",
             });
         }
     }
 
     /**
-     * Requests a replacement activation challenge using the retained server
-     * resend link.
+     * Requests a replacement activation challenge for the registered method.
      * @returns Refreshed activation metadata or a failed state.
      */
     async resendChallenge(): Promise<AuthMethodRegistrationChallengeResultV2> {

@@ -10,6 +10,7 @@ import {
     StubPerformanceClient,
     getRequestThumbprint,
 } from "@azure/msal-common/browser";
+import { PlatformAuthDOMHandler } from "../../src/broker/nativeBroker/PlatformAuthDOMHandler.js";
 import { PlatformAuthExtensionHandler } from "../../src/broker/nativeBroker/PlatformAuthExtensionHandler.js";
 import { buildConfiguration } from "../../src/config/Configuration.js";
 import {
@@ -248,6 +249,7 @@ describe("silent request preparation", () => {
         undefined,
         Constants.AuthenticationScheme.BEARER,
         Constants.AuthenticationScheme.POP,
+        Constants.AuthenticationScheme.DPOP,
     ])("selects broker preparation for supported scheme %s", (scheme) => {
         input.request.authenticationScheme = scheme;
         const prepared = resolveSilentRequestPreparation(
@@ -261,11 +263,26 @@ describe("silent request preparation", () => {
         expect(prepared.account).toBe(prepared.request.account);
     });
 
-    it.each([
-        Constants.AuthenticationScheme.DPOP,
-        Constants.AuthenticationScheme.SSH,
-    ])("keeps web preparation for unsupported broker scheme %s", (scheme) => {
-        input.request.authenticationScheme = scheme;
+    it("keeps web preparation for DPoP when the DOM provider is active", () => {
+        input.request.authenticationScheme =
+            Constants.AuthenticationScheme.DPOP;
+        const prepared = resolveSilentRequestPreparation(
+            input,
+            new PlatformAuthDOMHandler(
+                logger,
+                performanceClient,
+                "test-correlation-id"
+            ),
+            logger,
+            performanceClient
+        );
+        expect(prepared).toEqual(prepareWebSilentRequest(input));
+        expect(prepared.request).toBe(input.request);
+        expect(prepared.account).toBe(input.account);
+    });
+
+    it("keeps web preparation for unsupported broker scheme SSH", () => {
+        input.request.authenticationScheme = Constants.AuthenticationScheme.SSH;
         const prepared = resolveSilentRequestPreparation(
             input,
             provider,

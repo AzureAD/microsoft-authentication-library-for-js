@@ -8,8 +8,8 @@ import type { FailedStateV2 } from "../state/FailedStateV2.js";
 import type { AuthMethodVerificationRequiredStateV2 } from "../state/AuthMethodVerificationRequiredStateV2.js";
 
 /**
- * The states a registration challenge action can resolve to. Successful
- * registration requires verification before the flow can complete.
+ * States returned after requesting an authentication-method registration challenge.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type AuthMethodRegistrationChallengeResultStateV2 =
     | AuthMethodVerificationRequiredStateV2
@@ -17,7 +17,7 @@ export type AuthMethodRegistrationChallengeResultStateV2 =
 
 /**
  * Result of challenging a selected authentication method for registration.
- * It wraps the verification-required or failed state.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type AuthMethodRegistrationChallengeResultV2 =
     CustomAuthResultV2<AuthMethodRegistrationChallengeResultStateV2>;

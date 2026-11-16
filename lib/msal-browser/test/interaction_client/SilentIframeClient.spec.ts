@@ -51,6 +51,7 @@ import {
     ApiId,
     BrowserConstants,
     InteractionType,
+    TemporaryCacheKeys,
 } from "../../src/utils/BrowserConstants.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import { TestTimeUtils } from "msal-test-utils";
@@ -270,7 +271,46 @@ describe("SilentIframeClient", () => {
                 expect.anything(),
                 expect.anything(),
                 expect.anything(),
-                undefined
+                undefined,
+                expect.anything()
+            );
+        });
+
+        it("removes the generated DPoP key when the iframe response fails", async () => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
+                new Error("iframe response failed")
+            );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            const tokenBindingKeyManager = (silentIframeClient as any)
+                .tokenBindingKeyManager;
+            jest.spyOn(
+                tokenBindingKeyManager,
+                "provisionTokenBindingKey"
+            ).mockResolvedValue("test-dpop-jkt");
+            const removeKeySpy = jest
+                .spyOn(tokenBindingKeyManager, "removeTokenBindingKey")
+                .mockResolvedValue(undefined);
+
+            await expect(
+                silentIframeClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    resourceRequestMethod: "GET",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                })
+            ).rejects.toThrow("iframe response failed");
+
+            expect(removeKeySpy).toHaveBeenCalledWith(
+                "test-dpop-jkt",
+                expect.any(String)
             );
         });
 
@@ -942,6 +982,73 @@ describe("SilentIframeClient", () => {
                     ).resolves.toEqual(testFirstServerErrorResponse);
                 });
         });
+
+        it.each([true, false, undefined])(
+            "honors instanceAware from authorization through code redemption (%p)",
+            async (instanceAware) => {
+                //@ts-ignore
+                clientProperties.config.auth.instanceAware = instanceAware;
+                const cloudHost = "login.microsoftonline.us";
+                const authCodeUrlSpy = jest.spyOn(
+                    AuthorizeProtocol,
+                    "getAuthCodeRequestUrl"
+                );
+                jest.spyOn(
+                    BrowserUtils,
+                    "waitForBridgeResponse"
+                ).mockResolvedValue(
+                    `${TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT}&cloud_instance_host_name=${cloudHost}`
+                );
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER,
+                });
+                const sendPostRequestSpy = jest
+                    .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+                    .mockResolvedValue({
+                        headers: {},
+                        status: 200,
+                        body: {
+                            token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                            scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                            expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                            access_token: TEST_TOKENS.ACCESS_TOKEN,
+                            refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                            id_token: TEST_TOKENS.IDTOKEN_V2,
+                        },
+                    });
+
+                const result = await silentIframeClient.acquireToken({
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    loginHint: "testLoginHint",
+                    nonce: "123523",
+                    state: TEST_STATE_VALUES.USER_STATE,
+                });
+
+                const authCodeUrl = new URL(
+                    await authCodeUrlSpy.mock.results[0].value
+                );
+                expect(authCodeUrl.searchParams.get("instance_aware")).toBe(
+                    instanceAware ? "true" : null
+                );
+                const expectedHost = instanceAware
+                    ? cloudHost
+                    : "login.microsoftonline.com";
+                expect(sendPostRequestSpy).toHaveBeenCalledTimes(1);
+                const [tokenEndpoint, tokenRequest] =
+                    sendPostRequestSpy.mock.calls[0];
+                const tokenUrl = new URL(tokenEndpoint);
+                expect(tokenUrl.hostname).toBe(expectedHost);
+                expect(tokenUrl.pathname).toBe("/common/oauth2/v2.0/token");
+                expect(tokenRequest?.body).toContain("code=thisIsATestCode");
+                expect(result.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
+                expect(new URL(result.authority).hostname).toBe(expectedHost);
+            }
+        );
 
         it("updates authority hostname param if set to true in the config", async () => {
             //@ts-ignore
@@ -1860,6 +1967,99 @@ describe("SilentIframeClient", () => {
                 expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
             });
 
+            it.each([
+                { response: "ear", httpMethod: Constants.HttpMethod.POST },
+                { response: "code", httpMethod: Constants.HttpMethod.POST },
+                { response: "timeout", httpMethod: Constants.HttpMethod.POST },
+            ])(
+                "Keeps asymmetric $httpMethod iframe keys in memory for $response",
+                async ({ response, httpMethod }) => {
+                    pca.getConfiguration().experimental.enableAsymmetricEar =
+                        true;
+                    jest.spyOn(
+                        window.navigator,
+                        "userAgent",
+                        "get"
+                    ).mockReturnValue(
+                        "Mozilla/5.0 Chrome/137.0.0.0 Safari/537.36"
+                    );
+                    jest.spyOn(
+                        SilentHandler,
+                        "initiateEarRequest"
+                    ).mockImplementation(async () => {
+                        expect(
+                            Object.keys(window.sessionStorage).filter(
+                                (key) =>
+                                    key.endsWith(
+                                        TemporaryCacheKeys.REQUEST_PARAMS
+                                    ) ||
+                                    key.includes(".request.asymmetric-ear.")
+                            )
+                        ).toHaveLength(0);
+                        return document.createElement("iframe");
+                    });
+                    const responseSpy = jest.spyOn(
+                        BrowserUtils,
+                        "waitForBridgeResponse"
+                    );
+                    if (response === "timeout") {
+                        responseSpy.mockRejectedValue(
+                            new Error("iframe timeout")
+                        );
+                    } else {
+                        responseSpy.mockResolvedValue(
+                            `#${
+                                response === "ear" ? "ear_jwe" : "code"
+                            }=response&state=${
+                                TEST_STATE_VALUES.TEST_STATE_SILENT
+                            }`
+                        );
+                        jest.spyOn(
+                            AuthorizeProtocol,
+                            response === "ear"
+                                ? "handleResponseEAR"
+                                : "handleResponseCode"
+                        ).mockImplementation(async (...args) => {
+                            const request = args[0];
+                            await Promise.resolve();
+                            expect(
+                                request.asymmetricEar?.privateJwk.d
+                            ).toBeDefined();
+                            expect(
+                                Object.keys(window.sessionStorage).filter(
+                                    (key) =>
+                                        key.endsWith(
+                                            TemporaryCacheKeys.REQUEST_PARAMS
+                                        ) ||
+                                        key.includes(".request.asymmetric-ear.")
+                                )
+                            ).toHaveLength(0);
+                            return getTestAuthenticationResult();
+                        });
+                    }
+                    const result = pca.ssoSilent({
+                        ...validRequest,
+                        httpMethod,
+                    });
+                    if (response === "timeout") {
+                        await expect(result).rejects.toThrow("iframe timeout");
+                    } else {
+                        await expect(result).resolves.toEqual(
+                            getTestAuthenticationResult()
+                        );
+                    }
+                    expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
+                    expect(
+                        Object.keys(window.sessionStorage).filter(
+                            (key) =>
+                                key.endsWith(
+                                    TemporaryCacheKeys.REQUEST_PARAMS
+                                ) || key.includes(".request.asymmetric-ear.")
+                        )
+                    ).toHaveLength(0);
+                }
+            );
+
             it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", async () => {
                 jest.restoreAllMocks();
                 jest.spyOn(
@@ -1910,23 +2110,29 @@ describe("SilentIframeClient", () => {
                     expect.anything(),
                     expect.anything(),
                     expect.anything(),
-                    undefined
+                    undefined,
+                    expect.anything()
                 );
             });
 
-            it("throws if protocolMode is set to EAR and httpMethod is set to GET", async () => {
-                await expect(
-                    pca.ssoSilent({
-                        ...validRequest,
-                        httpMethod: Constants.HttpMethod.GET,
-                    })
-                ).rejects.toThrow(
-                    createClientConfigurationError(
-                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
-                        ""
-                    )
-                );
-            });
+            it.each([false, true])(
+                "throws if EAR uses GET (asymmetric: %s)",
+                async (enableAsymmetricEar) => {
+                    pca.getConfiguration().experimental.enableAsymmetricEar =
+                        enableAsymmetricEar;
+                    await expect(
+                        pca.ssoSilent({
+                            ...validRequest,
+                            httpMethod: Constants.HttpMethod.GET,
+                        })
+                    ).rejects.toThrow(
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
+                            ""
+                        )
+                    );
+                }
+            );
         });
     });
 
