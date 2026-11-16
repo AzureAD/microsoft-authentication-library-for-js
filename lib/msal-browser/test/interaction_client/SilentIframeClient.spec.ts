@@ -1044,7 +1044,7 @@ describe("SilentIframeClient", () => {
                     sendPostRequestSpy.mock.calls[0];
                 const tokenUrl = new URL(tokenEndpoint);
                 expect(tokenUrl.hostname).toBe(expectedHost);
-                expect(tokenUrl.pathname).toBe("/common/oauth2/v2.0/token");
+                expect(tokenUrl.pathname).toBe("/common/oauth21/2026-08/token");
                 expect(tokenRequest?.body).toContain("code=thisIsATestCode");
                 expect(result.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
                 expect(new URL(result.authority).hostname).toBe(expectedHost);
