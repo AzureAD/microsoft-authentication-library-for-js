@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Open the cross-tab BroadcastChannel only while subscribed so Node.js processes can exit [#8874](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8874)",
+  "packageName": "@azure/msal-browser",
+  "email": "dlwhdugs4147@gmail.com",
+  "dependentChangeType": "patch"
+}

@@ -168,4 +168,63 @@ describe("Event API tests", () => {
         expect(callback1Events[0]).toBe(EventType.ACQUIRE_TOKEN_START);
         expect(callback2Events[0]).toBe(EventType.ACQUIRE_TOKEN_SUCCESS);
     });
+
+    describe("cross-tab events", () => {
+        it("opens a BroadcastChannel only while subscribed", () => {
+            const eventHandler = new EventHandler(logger);
+            // @ts-ignore
+            expect(eventHandler.broadcastChannel).toBeUndefined();
+
+            eventHandler.subscribeCrossTab();
+            // @ts-ignore
+            const channel: BroadcastChannel = eventHandler.broadcastChannel;
+            expect(channel).toBeInstanceOf(BroadcastChannel);
+            const closeSpy = jest.spyOn(channel, "close");
+
+            eventHandler.unsubscribeCrossTab();
+            expect(closeSpy).toHaveBeenCalledTimes(1);
+            // @ts-ignore
+            expect(eventHandler.broadcastChannel).toBeUndefined();
+        });
+
+        it("closes the short-lived channel when a cross-tab send fails", () => {
+            const sender = new EventHandler(logger);
+            jest.spyOn(
+                BroadcastChannel.prototype,
+                "postMessage"
+            ).mockImplementation(() => {
+                throw new Error("DataCloneError");
+            });
+            const closeSpy = jest.spyOn(BroadcastChannel.prototype, "close");
+
+            expect(() =>
+                sender.emitEvent(
+                    EventType.LOGOUT_SUCCESS,
+                    "test-correlation-id",
+                    InteractionType.Popup
+                )
+            ).toThrow("DataCloneError");
+            expect(closeSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it("sends LOGIN_SUCCESS to a subscribed instance without keeping a channel open", (done) => {
+            const receiver = new EventHandler(logger);
+            const sender = new EventHandler(logger);
+            receiver.subscribeCrossTab();
+            receiver.addEventCallback((message: EventMessage) => {
+                expect(message.eventType).toEqual(EventType.LOGIN_SUCCESS);
+                expect(message.correlationId).toEqual("test-correlation-id");
+                // @ts-ignore
+                expect(sender.broadcastChannel).toBeUndefined();
+                receiver.unsubscribeCrossTab();
+                done();
+            });
+
+            sender.emitEvent(
+                EventType.LOGIN_SUCCESS,
+                "test-correlation-id",
+                InteractionType.Popup
+            );
+        });
+    });
 });
