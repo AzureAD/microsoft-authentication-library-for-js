@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1793999198256,
+  "lastUpdate": 1794861154609,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -25139,6 +25139,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.05%",
             "unit": "ops/sec",
             "extra": "220 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "296ee45ad946d575cd9000673c18a263f4571b14",
+          "message": "build(deps): bump next from 16.4.3 to 16.4.5 (#8987)\n\nBumps [next](https://github.com/vercel/next.js) from 16.4.3 to 16.4.5.\n<details>\n<summary>Release notes</summary>\n<p><em>Sourced from <a\nhref=\"https://github.com/vercel/next.js/releases\">next's\nreleases</a>.</em></p>\n<blockquote>\n<h2>v16.4.5</h2>\n<p>This release contains security fixes for the following\nadvisories:</p>\n<h2>Moderate</h2>\n<ul>\n<li><a\nhref=\"https://github.com/vercel/next.js/security/advisories/GHSA-mfr8-8qww-v76h\">Cross-tenant\nsensitive information disclosure in Next.js 'use cache' when called\nthrough unstable_cache</a></li>\n<li><a\nhref=\"https://github.com/vercel/next.js/security/advisories/GHSA-vc7v-qv4w-wrv8\">Cache\nleak across root param values in nested 'use cache' functions\n(follow-up)</a></li>\n<li><a\nhref=\"https://github.com/vercel/next.js/security/advisories/GHSA-vvgp-ww4w-46vf\">Cache\npoisoning of shared fallback shells in Cache Components via\nrequest-supplied placeholder route params</a></li>\n<li><a\nhref=\"https://github.com/vercel/next.js/security/advisories/GHSA-rhh4-g77r-r9qj\">Cross-user\ncache disclosure and poisoning in Next.js use cache with binary\narguments</a></li>\n<li><a\nhref=\"https://github.com/vercel/next.js/security/advisories/GHSA-pc58-hwjq-p385\">Cross-client\nresponse injection and disclosure in self-hosted Next.js applications\nforwarding fetched responses</a></li>\n<li><a\nhref=\"https://github.com/vercel/next.js/security/advisories/GHSA-7qx7-33qx-rqx2\">SVG\nrejection bypass in Next.js image optimization</a></li>\n<li><a\nhref=\"https://github.com/vercel/next.js/security/advisories/GHSA-f3mh-rxg3-f5g2\">HttpOnly\ncookie exposure through internal response header on Next.js Edge runtime\nroutes</a></li>\n</ul>\n<h2>v16.4.4</h2>\n<blockquote>\n<p>[!NOTE]\nThis release is backporting bug fixes. It does <strong>not</strong>\ninclude all pending features/changes on canary. The <a\nhref=\"https://nextjs.org/blog/upcoming-nextjs-security-release-november-2026\">announced\nsecurity released for November</a> will be published tomorrow.</p>\n</blockquote>\n<h3>Core Changes</h3>\n<ul>\n<li>[lts-active] test: disable the <code>reads fallback params after a\nclient navigation</code> deployment test (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/100668\">#100668</a>)</li>\n<li>[lts-active] Reload on missed Turbopack startup CSS updates (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/100619\">#100619</a>)</li>\n<li>[lts-active] Revert &quot;Optimize strict module factory chunks (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/98421\">#98421</a>)&quot;\n(<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/100866\">#100866</a>)</li>\n<li>[lts-active] Emit the Turbopack shared-runtime bootstrap in the PPR\nresume so it gets the CSP nonce (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/100907\">#100907</a>)</li>\n<li>[lts-active] [ci] Pin deploy test deployments to Node.js 22.x (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/100886\">#100886</a>)</li>\n<li>[lts-active] fix(analyze): use route summaries as the analyzer route\nindex (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/100974\">#100974</a>)</li>\n<li>[lts-active] Use fast-jwt instead of jsonwebtoken (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/100885\">#100885</a>)</li>\n</ul>\n<h3>Credits</h3>\n<p>Huge thanks to <a\nhref=\"https://github.com/icyJoseph\"><code>@​icyJoseph</code></a>, <a\nhref=\"https://github.com/mischnic\"><code>@​mischnic</code></a>, <a\nhref=\"https://github.com/wbinnssmith\"><code>@​wbinnssmith</code></a>, <a\nhref=\"https://github.com/lukesandberg\"><code>@​lukesandberg</code></a>,\nand <a href=\"https://github.com/eps1lon\"><code>@​eps1lon</code></a> for\nhelping!</p>\n</blockquote>\n</details>\n<details>\n<summary>Commits</summary>\n<ul>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/4e5335a00314be7fbb2aace5e9be56a88e64e5a8\"><code>4e5335a</code></a>\nv16.4.5</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/809be725f033ec7aa4c658ba2b7a084cb039d1f2\"><code>809be72</code></a>\n[lts-active] Strip internal middleware cookie headers from edge\nresponses (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/282\">#282</a>)</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/2842833be3a5a1e5fef0c5fb8c96df74742eef2a\"><code>2842833</code></a>\n[lts-active] Fix stale compressed framing for forwarded fetch responses\n(<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/281\">#281</a>)</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/6596840a0fa3c2633735b05e41ca3d9ab01ece41\"><code>6596840</code></a>\n[lts-active] [use cache] Fix cache key when binary args are used (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/280\">#280</a>)</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/18eeffb5fabd91911852d44cf56948b3f2cbee04\"><code>18eeffb</code></a>\n[lts-active] Fix shared shell poisoning from request-supplied\nplaceholder par...</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/e66e656e7d423a828bdca5f87e82cef7038c57a6\"><code>e66e656</code></a>\n[lts-active] [next/image] Fix false-positive AVIF/HEIC detection (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/278\">#278</a>)</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/d605874e5a4b8b6b7dca1b6e07bcabb44d0e2e5b\"><code>d605874</code></a>\n[lts-active] Fix <code>unstable_cache</code> leaking cold <code>'use\ncache'</code> fills across roo...</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/80c96ede21798d4ad54da12fe50d5b00a09b06e3\"><code>80c96ed</code></a>\n[lts-active] Fix outer <code>'use cache'</code> entries reused across\nroot param values ...</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/b175f52b05a5f6c6c39ca72565ea178542be323b\"><code>b175f52</code></a>\nv16.4.4</li>\n<li><a\nhref=\"https://github.com/vercel/next.js/commit/ba4a4c161b982c615f5be9d50fe60732f3951add\"><code>ba4a4c1</code></a>\n[lts-active] Use fast-jwt instead of jsonwebtoken (<a\nhref=\"https://redirect.github.com/vercel/next.js/issues/100885\">#100885</a>)</li>\n<li>Additional commits viewable in <a\nhref=\"https://github.com/vercel/next.js/compare/v16.4.3...v16.4.5\">compare\nview</a></li>\n</ul>\n</details>\n<br />\n\n\n[![Dependabot compatibility\nscore](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=next&package-manager=npm_and_yarn&previous-version=16.4.3&new-version=16.4.5)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\n\nDependabot will resolve any conflicts with this PR as long as you don't\nalter it yourself. You can also trigger a rebase manually by commenting\n`@dependabot rebase`.\n\n[//]: # (dependabot-automerge-start)\n[//]: # (dependabot-automerge-end)\n\n---\n\n<details>\n<summary>Dependabot commands and options</summary>\n<br />\n\nYou can trigger Dependabot actions by commenting on this PR:\n- `@dependabot rebase` will rebase this PR\n- `@dependabot recreate` will recreate this PR, overwriting any edits\nthat have been made to it\n- `@dependabot show <dependency name> ignore conditions` will show all\nof the ignore conditions of the specified dependency\n- `@dependabot ignore this major version` will close this PR and stop\nDependabot creating any more for this major version (unless you reopen\nthe PR or upgrade to it yourself)\n- `@dependabot ignore this minor version` will close this PR and stop\nDependabot creating any more for this minor version (unless you reopen\nthe PR or upgrade to it yourself)\n- `@dependabot ignore this dependency` will close this PR and stop\nDependabot creating any more for this dependency (unless you reopen the\nPR or upgrade to it yourself)\nYou can disable automated security fix PRs for this repo from the\n[Security Alerts\npage](https://github.com/AzureAD/microsoft-authentication-library-for-js/network/alerts).\n\n</details>\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>",
+          "timestamp": "2026-11-16T15:24:02-05:00",
+          "tree_id": "ad437215b9d27394ef45ab24c5dbbe9fc157fa2d",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/296ee45ad946d575cd9000673c18a263f4571b14"
+        },
+        "date": 1794861151779,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 704827,
+            "range": "±1.08%",
+            "unit": "ops/sec",
+            "extra": "220 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 688734,
+            "range": "±0.95%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
