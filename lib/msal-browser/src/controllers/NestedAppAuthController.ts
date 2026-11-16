@@ -460,6 +460,7 @@ export class NestedAppAuthController implements IController {
                 "Claims are present in the request, skipping cache lookup",
                 correlationId
             );
+            atsMeasurement.discard();
             return null;
         }
 
@@ -469,6 +470,7 @@ export class NestedAppAuthController implements IController {
                 "forceRefresh is set to true, skipping cache lookup",
                 correlationId
             );
+            atsMeasurement.discard();
             return null;
         }
 
@@ -485,6 +487,7 @@ export class NestedAppAuthController implements IController {
                 result = await this.acquireTokenFromCacheInternal(request);
                 break;
             default:
+                atsMeasurement.discard();
                 return null;
         }
 

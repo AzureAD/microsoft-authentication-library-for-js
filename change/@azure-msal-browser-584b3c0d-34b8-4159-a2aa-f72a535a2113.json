@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add optional NAA host SDK and platform request telemetry [#8990](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8990)",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

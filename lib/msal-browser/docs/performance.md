@@ -95,7 +95,7 @@ The complete details for `PerformanceEvents` objects can be found [here](../../m
 
 ### Nested App Authentication measurements
 
-NAA request measurements include `nestedAppAuthRequest: true`, `bridgeType: "NAA"`, `bridgeSdkName`, and `bridgeSdkVersion`. The SDK name and version come from the host's bridge initialization response and identify the host SDK, not the MSAL.js library.
+NAA request measurements include `nestedAppAuthRequest: true`, `bridgeType: "NAA"`, and optional `bridgeSdkName` and `bridgeSdkVersion`. The SDK name and version come from the host's bridge initialization response and identify the host SDK, not the MSAL.js library. Existing bridge proxy implementations do not need to provide SDK metadata; these telemetry fields are undefined when it is absent.
 
 Hosts can optionally return an operating system string in `initContext.capabilities.platform`, for example `{ "queryAccount": false, "platform": "Windows" }`. MSAL includes this value as `platform` on interactive, silent host, and silent cache measurements, including failed requests. When the host does not provide it, `platform` is undefined; MSAL does not infer an operating system from the browser.
 

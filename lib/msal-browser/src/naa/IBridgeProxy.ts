@@ -10,9 +10,9 @@ import { TokenRequest } from "./TokenRequest.js";
 
 export interface IBridgeProxy {
     /** Name of the host SDK handling bridge requests. */
-    readonly sdkName: string;
+    readonly sdkName?: string;
     /** Version of the host SDK handling bridge requests. */
-    readonly sdkVersion: string;
+    readonly sdkVersion?: string;
     getTokenInteractive(request: TokenRequest): Promise<AuthResult>;
     getTokenSilent(request: TokenRequest): Promise<AuthResult>;
     getHostCapabilities(): BridgeCapabilities | null;

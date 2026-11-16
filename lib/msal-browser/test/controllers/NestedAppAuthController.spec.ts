@@ -998,6 +998,40 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             }
         );
 
+        it.each([
+            { forceRefresh: true },
+            { claims: JSON.stringify({ access_token: { xms_cc: {} } }) },
+        ])(
+            "emits silent host telemetry when cache lookup is bypassed (%j)",
+            async (options) => {
+                const events: PerformanceEvent[] = [];
+                performanceClient.addPerformanceCallback((measurements) => {
+                    events.push(...measurements);
+                });
+                mockBridge.addAuthResultResponse(
+                    "GetToken",
+                    SILENT_TOKEN_RESPONSE
+                );
+
+                await localPca.acquireTokenSilent({
+                    scopes: [NAA_SCOPE],
+                    correlationId: RANDOM_TEST_GUID,
+                    ...options,
+                });
+
+                expect(events).toContainEqual(
+                    expect.objectContaining({
+                        name: "ssoSilent",
+                        correlationId: RANDOM_TEST_GUID,
+                        success: true,
+                        bridgeSdkName: INIT_CONTEXT_RESPONSE.sdkName,
+                        bridgeSdkVersion: INIT_CONTEXT_RESPONSE.sdkVersion,
+                        platform: INIT_CONTEXT_RESPONSE.capabilities?.platform,
+                    })
+                );
+            }
+        );
+
         it("emits host metadata on silent cache hits without calling the host", async () => {
             const request = {
                 scopes: [NAA_SCOPE],
@@ -1025,6 +1059,51 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
                     bridgeSdkName: INIT_CONTEXT_RESPONSE.sdkName,
                     bridgeSdkVersion: INIT_CONTEXT_RESPONSE.sdkVersion,
                     platform: INIT_CONTEXT_RESPONSE.capabilities?.platform,
+                })
+            );
+        });
+
+        it("supports existing bridge proxies without SDK or platform metadata", async () => {
+            const legacyBridgeProxy: IBridgeProxy = {
+                getTokenInteractive:
+                    bridgeProxy.getTokenInteractive.bind(bridgeProxy),
+                getTokenSilent: bridgeProxy.getTokenSilent.bind(bridgeProxy),
+                getHostCapabilities: () => null,
+                getAccountContext: () => null,
+            };
+            jest.mocked(BridgeProxy.create).mockResolvedValue(
+                legacyBridgeProxy
+            );
+            const legacyPca = await createNestablePublicClientApplication({
+                auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                telemetry: { client: performanceClient },
+            });
+            const events: PerformanceEvent[] = [];
+            performanceClient.addPerformanceCallback((measurements) => {
+                events.push(...measurements);
+            });
+            mockBridge.addAuthResultResponse(
+                "GetTokenPopup",
+                SILENT_TOKEN_RESPONSE
+            );
+
+            const result = await legacyPca.acquireTokenPopup({
+                scopes: [NAA_SCOPE],
+                correlationId: RANDOM_TEST_GUID,
+            });
+
+            expect(result.accessToken).toBe(
+                SILENT_TOKEN_RESPONSE.token.access_token
+            );
+            expect(events).toContainEqual(
+                expect.objectContaining({
+                    correlationId: RANDOM_TEST_GUID,
+                    success: true,
+                    nestedAppAuthRequest: true,
+                    bridgeType: "NAA",
+                    bridgeSdkName: undefined,
+                    bridgeSdkVersion: undefined,
+                    platform: undefined,
                 })
             );
         });
