@@ -6,6 +6,7 @@
 import { CustomAuthFlowScenarioV2 } from "../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { getPublicApiIdV2 } from "../../../../src/custom_auth/core/telemetry/FlowApiIdHelperV2.js";
 import { AuthenticationFactorV2 } from "../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
+import * as PublicApiId from "../../../../src/custom_auth/core/telemetry/PublicApiId.js";
 import {
     MFA_V2_RESEND_CHALLENGE,
     MFA_V2_SELECT_AUTH_METHOD,
@@ -20,6 +21,7 @@ import {
     SIGN_UP_V2_RESEND_CODE,
     SIGN_UP_V2_SUBMIT_ATTRIBUTES,
     SIGN_UP_V2_SUBMIT_CODE,
+    SIGN_UP_V2_SUBMIT_PASSWORD,
 } from "../../../../src/custom_auth/core/telemetry/PublicApiId.js";
 
 describe("getPublicApiIdV2", () => {
@@ -48,6 +50,11 @@ describe("getPublicApiIdV2", () => {
             scenario: CustomAuthFlowScenarioV2.SignUp,
             step: "submitCode" as const,
             expectedApiId: SIGN_UP_V2_SUBMIT_CODE,
+        },
+        {
+            scenario: CustomAuthFlowScenarioV2.SignUp,
+            step: "submitPassword" as const,
+            expectedApiId: SIGN_UP_V2_SUBMIT_PASSWORD,
         },
         {
             scenario: CustomAuthFlowScenarioV2.SignUp,
@@ -120,19 +127,30 @@ describe("getPublicApiIdV2", () => {
         ).toBe(SIGN_IN_V2_COMPLETE);
     });
 
+    it.each([
+        ["requestChallenge", MFA_V2_SELECT_AUTH_METHOD],
+        ["submitCode", MFA_V2_SUBMIT_CHALLENGE],
+        ["resendCode", MFA_V2_RESEND_CHALLENGE],
+    ] as const)(
+        "uses existing MFA ID for password-reset %s",
+        (step, expectedApiId) => {
+            expect(
+                getPublicApiIdV2(
+                    CustomAuthFlowScenarioV2.PasswordReset,
+                    step,
+                    AuthenticationFactorV2.MULTI_FACTOR
+                )
+            ).toBe(expectedApiId);
+        }
+    );
+
     it("uses distinct API IDs for sign-in code and password submission", () => {
         expect(SIGN_IN_V2_SUBMIT_CODE).not.toBe(SIGN_IN_V2_SUBMIT_PASSWORD);
     });
 
-    it("uses a distinct API ID for every sign-up step", () => {
-        const signUpApiIds = [
-            SIGN_UP_V2_CHALLENGE,
-            SIGN_UP_V2_SUBMIT_CODE,
-            SIGN_UP_V2_RESEND_CODE,
-            SIGN_UP_V2_SUBMIT_ATTRIBUTES,
-            SIGN_UP_V2_COMPLETE,
-        ];
+    it("uses a distinct API ID for every native-auth operation", () => {
+        const apiIds = Object.values(PublicApiId);
 
-        expect(new Set(signUpApiIds).size).toBe(signUpApiIds.length);
+        expect(new Set(apiIds).size).toBe(apiIds.length);
     });
 });

@@ -6,7 +6,9 @@
 import type {
     ChallengeVerificationResultV2,
     EnrollmentRequiredResultV2,
+    StartResultV2,
 } from "./BaseResultsV2.js";
+import { CHALLENGE_RELATION } from "../ApiClientConstantsV2.js";
 
 export interface SignUpAttributeV2 {
     attributeId: string;
@@ -18,24 +20,21 @@ export interface SignUpAttributeV2 {
     confirmationInput?: string;
 }
 
-export interface SignUpStartApiResultV2 {
-    continuationToken: string;
-    submitAttributesHref: string;
-    attributes?: SignUpAttributeV2[];
+export interface SignUpStartExistingAccountApiResultV2 extends StartResultV2 {
+    nextAction: typeof CHALLENGE_RELATION;
 }
 
+export type SignUpStartApiResultV2 =
+    | ChallengeVerificationResultV2
+    | SignUpStartExistingAccountApiResultV2;
+
 export const SignUpSubmitAttributesNextActionV2 = {
-    VERIFY: "verify",
     COLLECT_ATTRIBUTES: "collectAttributes",
     CONTINUE: "continue",
     ENROLL: "enroll",
 } as const;
 
 export type SignUpSubmitAttributesApiResultV2 =
-    | (ChallengeVerificationResultV2 & {
-          nextAction: typeof SignUpSubmitAttributesNextActionV2.VERIFY;
-          attributes?: SignUpAttributeV2[];
-      })
     | {
           nextAction: typeof SignUpSubmitAttributesNextActionV2.COLLECT_ATTRIBUTES;
           continuationToken: string;
