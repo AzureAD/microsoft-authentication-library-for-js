@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794862964404,
+  "lastUpdate": 1794867569703,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -25215,6 +25215,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.49%",
             "unit": "ops/sec",
             "extra": "236 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "427f7b1ecb83c5e73c9712f59e7de0d2c8966911",
+          "message": "Fix silent request deduplication across account tenants (#8989)\n\n## Summary\n\nExtracts the multi-tenant web silent-request deduplication fix and\nregression coverage from #8981 so it can ship independently of\nresource-server DPoP nonce support. The original PR is unchanged.\n\nWeb requests for the same home account, authority, and scopes must not\nshare an in-flight acquisition when their selected account tenants\ndiffer. Include `account.tenantId` in the web request key, matching the\ntenant differentiation already present in the platform-broker key.\n\n## Scope\n\n- Add only the account tenant discriminator to the web request key.\n- Extract the request-helper regression test.\n- Adapt the concurrent cross-tenant regression to the existing web\ncoalescing suite, covering home-first and guest-first arrival and\nverifying each caller receives its own tenant's token and account.\n- Use bearer requests for the controller regression because current\n`dev` already bypasses DPoP deduplication; a DPoP-only test would pass\nwithout this fix.\n- Leave broker behavior, DPoP nonce/proof changes, public APIs, and\npersisted caches untouched.\n\n## Validation\n\n- Confirmed the new regressions fail before the source fix: both\ncross-tenant arrival orders incorrectly performed one acquisition\ninstead of two.\n- Browser tests: 130 suites passed; 3,189 tests passed, 3 skipped, 2\ntodo.\n- Browser lint passed with 3 existing warnings; package formatting\npassed.\n- Built `msal-common` before `msal-browser`; browser bundles and\ndeclarations built and API Extractor passed with no API changes.\n- On this Windows environment Rollup remained alive after writing the\ncommon bundles. Completed the common declaration build separately and\nused Rollup's `--forceExit` for the browser bundle build.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: bug\nagent-tool: copilot-cli\nagent-model: gpt-6.1-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\n---------\n\nCopilot-Session: 6c5b032a-637e-4ff0-af54-be990feba3dd",
+          "timestamp": "2026-11-16T22:10:06Z",
+          "tree_id": "c47dbebd1a4791f8c42841c18abb10ee856b1422",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/427f7b1ecb83c5e73c9712f59e7de0d2c8966911"
+        },
+        "date": 1794867566144,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 680319,
+            "range": "±1.38%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 707402,
+            "range": "±0.71%",
+            "unit": "ops/sec",
+            "extra": "231 samples"
           }
         ]
       }
