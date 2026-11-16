@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Prevent silent web requests for different account tenants from sharing an in-flight token acquisition.",
+    "packageName": "@azure/msal-browser",
+    "email": "hemoral@microsoft.com",
+    "dependentChangeType": "patch"
+}
