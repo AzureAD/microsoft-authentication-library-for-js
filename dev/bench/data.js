@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794861154609,
+  "lastUpdate": 1794862964404,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -25177,6 +25177,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.95%",
             "unit": "ops/sec",
             "extra": "233 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5121d5aff7e436193a4baba3ef608209e4c45632",
+          "message": "build(deps-dev): bump node-forge from 1.4.0 to 1.4.3 (#8966)\n\nBumps [node-forge](https://github.com/digitalbazaar/forge) from 1.4.0 to\n1.4.3.\n<details>\n<summary>Changelog</summary>\n<p><em>Sourced from <a\nhref=\"https://github.com/digitalbazaar/forge/blob/main/CHANGELOG.md\">node-forge's\nchangelog</a>.</em></p>\n<blockquote>\n<h2>1.4.3 - 2026-11-03</h2>\n<h3>Security</h3>\n<ul>\n<li><strong>HIGH</strong>: X.509 certificate chain verification ignores\nname constraints.\n<ul>\n<li><code>pki.verifyCertificateChain()</code> does not check the\nnameConstraints\nextension (RFC 5280 4.2.1.10). A non-critical nameConstraints extension\nin a CA certificate is ignored, so a name-constrained intermediate CA\ncan\nissue certificates for names outside its permitted subtrees, or inside\nits excluded subtrees, and the chain verifies. Exploitation requires the\nprivate key of a name-constrained CA that chains to a trusted root. A\ncritical nameConstraints extension is rejected as an unsupported\ncritical\nextension.</li>\n<li>Reported by <a\nhref=\"https://github.com/bhaswanthc\"><code>@​bhaswanthc</code></a>.</li>\n<li>CVE ID: <a href=\"\">CVE-TBD</a></li>\n<li>GHSA ID: <a\nhref=\"https://github.com/digitalbazaar/forge/security/advisories/GHSA-3cc4-3294-vgjf\">GHSA-3cc4-3294-vgjf</a></li>\n</ul>\n</li>\n<li><strong>MODERATE</strong>: TLS client crash on a handshake record\nwithout a session.\n<ul>\n<li>A TLS client throws an uncaught <code>TypeError</code> from\n<code>process()</code> when it\nreceives a ServerHello while it has no session: after a\n<code>close_notify</code>\nalert or a call to <code>close()</code>, or before\n<code>handshake()</code> is called. A\nmalicious server, or an on-path attacker, can terminate a Node.js\nprocess\nthat passes socket data to <code>process()</code> without catching\nexceptions.\nServers are not affected.</li>\n<li>Reported by <a\nhref=\"https://github.com/manus-use\"><code>@​manus-use</code></a>.</li>\n<li>CVE ID: <a href=\"\">CVE-TBD</a></li>\n<li>GHSA ID: <a\nhref=\"https://github.com/digitalbazaar/forge/security/advisories/GHSA-j8rw-jp99-435v\">GHSA-j8rw-jp99-435v</a></li>\n</ul>\n</li>\n<li><strong>MODERATE</strong>: ReDoS in <code>forge.http</code> response\nheader parsing.\n<ul>\n<li><code>forge.http</code> trims response header and\n<code>Set-Cookie</code> values with a\nregular expression that takes quadratic time on a long run of whitespace\nfollowed by another character. A server, or an on-path attacker, can\nblock a <code>forge.http</code> client for minutes with one large\nheader.</li>\n<li>Reported by <a\nhref=\"https://github.com/manus-pi\"><code>@​manus-pi</code></a>.</li>\n<li>CVE ID: <a href=\"\">CVE-TBD</a></li>\n<li>GHSA ID: <a\nhref=\"https://github.com/digitalbazaar/forge/security/advisories/GHSA-6cv4-p8m7-4r25\">GHSA-6cv4-p8m7-4r25</a></li>\n</ul>\n</li>\n<li><strong>MODERATE</strong>: TLS client crash on an unsupported\nServerHello compression\nmethod.\n<ul>\n<li>A TLS client accepts any compression method in the ServerHello,\nalthough it only offers no compression. An unknown method makes\n<code>process()</code> throw an uncaught <code>Error</code> at\nServerHelloDone, before the\nserver is authenticated. A malicious server, or an on-path attacker, can\nterminate a Node.js process that passes socket data to\n<code>process()</code>\nwithout catching exceptions, including through\n<code>forge.tls.wrapSocket</code>.\nServers are not affected.</li>\n<li>Reported by <a\nhref=\"https://github.com/alienkeric\"><code>@​alienkeric</code></a>.</li>\n<li>CVE ID: <a href=\"\">CVE-TBD</a></li>\n<li>GHSA ID: <a\nhref=\"https://github.com/digitalbazaar/forge/security/advisories/GHSA-w4xr-hqv8-ch44\">GHSA-w4xr-hqv8-ch44</a></li>\n</ul>\n</li>\n<li><strong>LOW</strong>: Ed25519 signature verification accepts\nsmall-order public keys.\n<ul>\n<li><code>ed25519.verify()</code> does not reject public keys of small\norder, such as\nthe identity point. Under such a key, a signature with <code>S =\n0</code> and a\nsmall-order <code>R</code> verifies for many or, with the identity key,\nall\nmessages, without any private key. Applications are affected only\nif</li>\n</ul>\n</li>\n</ul>\n<!-- raw HTML omitted -->\n</blockquote>\n<p>... (truncated)</p>\n</details>\n<details>\n<summary>Commits</summary>\n<ul>\n<li><a\nhref=\"https://github.com/digitalbazaar/forge/commit/936b24d939dc7261ee37982576f9cf2b410084ee\"><code>936b24d</code></a>\nRelease 1.4.3.</li>\n<li><a\nhref=\"https://github.com/digitalbazaar/forge/commit/4d8f79afe9661aedf1c5a1a28463d9564905df91\"><code>4d8f79a</code></a>\nUpdate changelog.</li>\n<li><a\nhref=\"https://github.com/digitalbazaar/forge/commit/1d9816d333c23c523ef2bd8b24282c87db2654ef\"><code>1d9816d</code></a>\nCheck the ServerHello compression method.</li>\n<li><a\nhref=\"https://github.com/digitalbazaar/forge/commit/326a4d0903ee46358bc849a5c3fd96d9c21489bd\"><code>326a4d0</code></a>\nTrim forge.http header values in linear time.</li>\n<li><a\nhref=\"https://github.com/digitalbazaar/forge/commit/2cfaeb516cb3d4aff1c0569d39394df41c5cb17c\"><code>2cfaeb5</code></a>\nIgnore handshake messages on a TLS client without a session.</li>\n<li><a\nhref=\"https://github.com/digitalbazaar/forge/commit/6b23eae8beac316b6867bdb0e7ad7c2c959a97f6\"><code>6b23eae</code></a>\nComplete nameConstraints enforcement.</li>\n<li><a\nhref=\"https://github.com/digitalbazaar/forge/commit/862aa5f630bdf40b0dfda408d6ac357bf35a7d6b\"><code>862aa5f</code></a>\nEnforce nameConstraints in <code>verifyCertificateChain()</code>.</li>\n<li><a\nhref=\"https://github.com/digitalbazaar/forge/commit/956f2b511709cdf37d16180354a0ae7e1d947725\"><code>956f2b5</code></a>\nDocument ed25519.verify() small-order key behavior.</li>\n<li><a\nhref=\"https://github.com/digitalbazaar/forge/commit/1b77e6f20082d7484479303d0252d5f427651295\"><code>1b77e6f</code></a>\nReject small-order Ed25519 public keys in verify.</li>\n<li><a\nhref=\"https://github.com/digitalbazaar/forge/commit/2bd5146c042aabcba86977372befbd80f89c418e\"><code>2bd5146</code></a>\nAdd GitHub usernames to credits.</li>\n<li>Additional commits viewable in <a\nhref=\"https://github.com/digitalbazaar/forge/compare/v1.4.0...v1.4.3\">compare\nview</a></li>\n</ul>\n</details>\n<br />\n\nSigned-off-by: dependabot[bot] <support@github.com>\nCo-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>\nCo-authored-by: Konstantin <kshabelko@microsoft.com>",
+          "timestamp": "2026-11-16T20:54:23Z",
+          "tree_id": "bc114185674b766400bd4f8bfd3d6cceb0e3f832",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/5121d5aff7e436193a4baba3ef608209e4c45632"
+        },
+        "date": 1794862960363,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 471523,
+            "range": "±1.49%",
+            "unit": "ops/sec",
+            "extra": "228 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 475829,
+            "range": "±0.49%",
+            "unit": "ops/sec",
+            "extra": "236 samples"
           }
         ]
       }
