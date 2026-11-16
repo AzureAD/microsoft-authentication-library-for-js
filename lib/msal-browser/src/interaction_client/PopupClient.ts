@@ -61,7 +61,6 @@ import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
-import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
     clearCacheOnLogout,
@@ -537,13 +536,6 @@ export class PopupClient extends StandardInteractionClient {
             account
         );
 
-        const earJwk = await invokeAsync(
-            generateEarKey,
-            BrowserPerformanceEvents.GenerateEarKey,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )();
         const pkce =
             pkceCodes ||
             (await invokeAsync(
@@ -559,9 +551,8 @@ export class PopupClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        const popupRequest = {
+        let popupRequest: CommonAuthorizationUrlRequest = {
             ...request,
-            earJwk: earJwk,
             codeChallenge: pkce.challenge,
             ...tokenBindingParams,
             popupOriginCheckDone: this.getPopupOriginCheckDone(
@@ -569,6 +560,12 @@ export class PopupClient extends StandardInteractionClient {
             ),
         };
         try {
+            popupRequest = await Authorize.initializeEarRequest(
+                this.config,
+                popupRequest,
+                this.logger,
+                this.performanceClient
+            );
             const popupWindow = await this.openPostFormPopup(
                 popupRequest,
                 discoveredAuthority,

@@ -245,7 +245,7 @@ function addDomainHint(parameters: Map<string, string>, domainHint: string): voi
 function addDpopTokenProofHeader(headers: Record<string, string>, request: BaseAuthRequest, tokenEndpoint: string, cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager): Promise<void>;
 
 // @public
-function addEARParameters(parameters: Map<string, string>, jwk: string): void;
+function addEARParameters(parameters: Map<string, string>, jwk: string, jweCrypto?: string): void;
 
 // @public
 function addExtraParameters(parameters: Map<string, string>, extraParams: StringDict): void;
@@ -1183,6 +1183,12 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     responseMode: ResponseMode;
     account?: AccountInfo;
     earJwk?: string;
+    asymmetricEar?: {
+        privateJwk: PublicJsonWebKey & {
+            d?: string;
+        };
+        apv: string;
+    };
     codeChallenge?: string;
     codeChallengeMethod?: string;
     domainHint?: string;
