@@ -4,7 +4,6 @@
  */
 
 import { CustomAuthResultV2 } from "../../../../core/auth_flow/v2/CustomAuthResultV2.js";
-import type { VerifyChallengeResultV2 } from "../../../../core/auth_flow/v2/result/VerifyChallengeResultV2.js";
 import type {
     CodeRequiredStateParametersV2,
     CustomAuthActionRequiredStateParametersV2,
@@ -15,7 +14,7 @@ import type {
     FlowPasswordRequiredResultV2,
 } from "../../../../core/interaction_client/v2/result/FlowActionResultV2.js";
 import { AuthenticationFactorV2 } from "../../../../core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
-import { PasswordRequiredStateV2 } from "./PasswordRequiredStateV2.js";
+import { PasswordRequiredStateV2 } from "../../../../core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import type { RequestChallengeResultV2 } from "../../../../core/auth_flow/v2/result/RequestChallengeResultV2.js";
 
 export class SignInStateTransitionHandlerV2 {
@@ -37,7 +36,7 @@ export class SignInStateTransitionHandlerV2 {
     handleMfaRequired(
         result: FlowMFARequiredResultV2,
         stateParameters: CodeRequiredStateParametersV2
-    ): VerifyChallengeResultV2 {
+    ): CustomAuthResultV2<AuthMethodSelectionRequiredStateV2, undefined> {
         return new CustomAuthResultV2(
             new AuthMethodSelectionRequiredStateV2({
                 correlationId: result.correlationId,

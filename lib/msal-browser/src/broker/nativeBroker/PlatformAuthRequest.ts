@@ -107,6 +107,11 @@ export type PlatformAuthRequest = {
     enclave?: PlatformAuthEnclave;
     reqCnf?: string;
     keyId?: string;
+    /**
+     * Records whether a binding preference was included on the broker wire.
+     * This is internal response-validation state and must not be sent.
+     */
+    bindingPreferenceSent?: boolean;
     tokenType?: PlatformAuthTokenType;
     shrClaims?: string;
     shrNonce?: string;
@@ -123,27 +128,26 @@ export type PlatformAuthRequest = {
  * Adds canonical proof request fields to the broker no-cache property bag.
  */
 export function createPlatformAuthExtraParametersNoCache(
-    extraParametersNoCache: PlatformAuthExtraParametersNoCache | undefined,
-    isProofOfPossessionRequest: boolean,
+    tokenType: PlatformAuthTokenType | undefined,
     resourceRequestMethod?: string,
     resourceRequestUri?: string,
     dpopNonce?: string
 ): PlatformAuthExtraParametersNoCache | undefined {
-    if (!isProofOfPossessionRequest) {
-        return extraParametersNoCache;
+    if (!isProofOfPossessionTokenType(tokenType)) {
+        return undefined;
     }
 
     return {
-        ...extraParametersNoCache,
         ...(resourceRequestMethod && {
             pop_method: resourceRequestMethod,
         }),
         ...(resourceRequestUri && {
             pop_url: resourceRequestUri,
         }),
-        ...(dpopNonce && {
-            pop_nonce: dpopNonce,
-        }),
+        ...(tokenType === PlatformAuthTokenType.DPOP_WITH_PROOF &&
+            dpopNonce && {
+                pop_nonce: dpopNonce,
+            }),
     };
 }
 

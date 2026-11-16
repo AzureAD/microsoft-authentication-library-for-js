@@ -111,6 +111,22 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     }
 
     /**
+     * Returns whether a key is available in persistent storage. Unlike
+     * containsKey, this does not consult the in-memory fallback.
+     */
+    async containsKeyInPersistentStorage(
+        key: string,
+        correlationId: string
+    ): Promise<boolean> {
+        try {
+            return await this.indexedDBCache.containsKey(key);
+        } catch (e) {
+            this.handleDatabaseAccessError(e, correlationId);
+            return false;
+        }
+    }
+
+    /**
      * Returns true or false if the given key is present in the cache.
      * @param key
      * @param correlationId

@@ -14,12 +14,22 @@ describe("LoopbackClient", () => {
     });
 
     describe("listenForAuthCode", () => {
+        it("refuses to start without an expected state", async () => {
+            loopbackClient = new LoopbackClient();
+            await expect(
+                loopbackClient.listenForAuthCode("")
+            ).rejects.toMatchObject({
+                errorCode: "state_not_found",
+            });
+        });
+
         it.each([
             "/?code=test_auth_code&state=test_state",
-            "/?error=access_denied&error_description=user_cancelled",
+            "/?error=access_denied&error_description=user_cancelled&state=test_state",
         ])("rejects OAuth responses delivered by GET: %s", async (path) => {
             loopbackClient = new LoopbackClient();
-            const responsePromise = loopbackClient.listenForAuthCode();
+            const responsePromise =
+                loopbackClient.listenForAuthCode("test_state");
 
             await waitForServerReady(loopbackClient);
             const redirectUri = loopbackClient.getRedirectUri();
@@ -36,7 +46,8 @@ describe("LoopbackClient", () => {
 
         it("handles POST with valid auth code (form_post response_mode)", async () => {
             loopbackClient = new LoopbackClient();
-            const responsePromise = loopbackClient.listenForAuthCode();
+            const responsePromise =
+                loopbackClient.listenForAuthCode("test_state");
 
             await waitForServerReady(loopbackClient);
             const redirectUri = loopbackClient.getRedirectUri();
@@ -58,7 +69,8 @@ describe("LoopbackClient", () => {
 
         it("handles POST with error response", async () => {
             loopbackClient = new LoopbackClient();
-            const responsePromise = loopbackClient.listenForAuthCode();
+            const responsePromise =
+                loopbackClient.listenForAuthCode("test_state");
 
             await waitForServerReady(loopbackClient);
             const redirectUri = loopbackClient.getRedirectUri();
@@ -68,7 +80,7 @@ describe("LoopbackClient", () => {
                 Number(port),
                 "POST",
                 "/",
-                "error=access_denied&error_description=user_cancelled",
+                "error=access_denied&error_description=user_cancelled&state=test_state",
                 "application/x-www-form-urlencoded"
             );
 
@@ -79,7 +91,7 @@ describe("LoopbackClient", () => {
 
         it("returns 415 for POST with wrong Content-Type", async () => {
             loopbackClient = new LoopbackClient();
-            loopbackClient.listenForAuthCode();
+            loopbackClient.listenForAuthCode("test_state");
 
             await waitForServerReady(loopbackClient);
             const redirectUri = loopbackClient.getRedirectUri();
@@ -98,7 +110,7 @@ describe("LoopbackClient", () => {
 
         it("returns 405 for non-GET/POST methods", async () => {
             loopbackClient = new LoopbackClient();
-            loopbackClient.listenForAuthCode();
+            loopbackClient.listenForAuthCode("test_state");
 
             await waitForServerReady(loopbackClient);
             const redirectUri = loopbackClient.getRedirectUri();
@@ -112,7 +124,8 @@ describe("LoopbackClient", () => {
 
         it("does not resolve promise for requests without OAuth params", async () => {
             loopbackClient = new LoopbackClient();
-            const responsePromise = loopbackClient.listenForAuthCode();
+            const responsePromise =
+                loopbackClient.listenForAuthCode("real_state");
 
             await waitForServerReady(loopbackClient);
             const redirectUri = loopbackClient.getRedirectUri();
@@ -136,7 +149,8 @@ describe("LoopbackClient", () => {
 
         it("does not resolve promise for POST without OAuth params", async () => {
             loopbackClient = new LoopbackClient();
-            const responsePromise = loopbackClient.listenForAuthCode();
+            const responsePromise =
+                loopbackClient.listenForAuthCode("real_state");
 
             await waitForServerReady(loopbackClient);
             const redirectUri = loopbackClient.getRedirectUri();
@@ -166,7 +180,8 @@ describe("LoopbackClient", () => {
 
         it("returns 200 (does not hang) for non-root POST", async () => {
             loopbackClient = new LoopbackClient();
-            const responsePromise = loopbackClient.listenForAuthCode();
+            const responsePromise =
+                loopbackClient.listenForAuthCode("real_state");
 
             await waitForServerReady(loopbackClient);
             const redirectUri = loopbackClient.getRedirectUri();
@@ -197,8 +212,10 @@ describe("LoopbackClient", () => {
 
         it("serves GET to root without resolving the auth response", async () => {
             loopbackClient = new LoopbackClient();
-            const responsePromise =
-                loopbackClient.listenForAuthCode("Custom success!");
+            const responsePromise = loopbackClient.listenForAuthCode(
+                "real_state",
+                "Custom success!"
+            );
 
             await waitForServerReady(loopbackClient);
             const redirectUri = loopbackClient.getRedirectUri();
@@ -219,6 +236,99 @@ describe("LoopbackClient", () => {
                 state: "real_state",
             });
         });
+
+        it.each([
+            ["missing", ""],
+            ["empty", "&state="],
+            ["mismatched", "&state=unrelated_state"],
+            ["case-mismatched", "&state=REAL_STATE"],
+            ["malformed", "&state=%E0%A4%A"],
+            ["duplicate", "&state=unrelated_state&state=real_state"],
+            [
+                "duplicate in reverse order",
+                "&state=real_state&state=unrelated_state",
+            ],
+            ["repeated", "&state=real_state&state=real_state"],
+            [
+                "encoded duplicate name",
+                "&st%61te=unrelated_state&state=real_state",
+            ],
+        ])(
+            "ignores %s state on code and error callbacks without ending sign-in",
+            async (_name, state) => {
+                loopbackClient = new LoopbackClient();
+                const responsePromise =
+                    loopbackClient.listenForAuthCode("real_state");
+                const onResponse = jest.fn();
+                responsePromise.then(onResponse, onResponse);
+                await waitForServerReady(loopbackClient);
+                const port = Number(
+                    new URL(loopbackClient.getRedirectUri()).port
+                );
+
+                for (const response of [
+                    "code=unrelated_code",
+                    "error=access_denied",
+                ]) {
+                    for (const method of ["GET", "POST"]) {
+                        const result = await makeRequestWithBody(
+                            port,
+                            method,
+                            method === "GET" ? `/?${response}${state}` : "/",
+                            method === "POST"
+                                ? `${response}${state}`
+                                : undefined,
+                            "application/x-www-form-urlencoded"
+                        );
+                        expect(result.statusCode).toBe(400);
+                        expect(result.body).toBe(
+                            "Invalid authorization response state."
+                        );
+                        expect(onResponse).not.toHaveBeenCalled();
+                    }
+                }
+
+                await makeRequest(
+                    port,
+                    "POST",
+                    "/",
+                    "code=real_code&state=real_state",
+                    "application/x-www-form-urlencoded"
+                );
+                await expect(responsePromise).resolves.toMatchObject({
+                    code: "real_code",
+                    state: "real_state",
+                });
+            }
+        );
+
+        it("compares URL-decoded state exactly and preserves custom templates", async () => {
+            const state = "library_state|app state+%&=/#";
+            loopbackClient = new LoopbackClient();
+            const responsePromise = loopbackClient.listenForAuthCode(
+                state,
+                "Custom success!",
+                "Custom error!"
+            );
+            await waitForServerReady(loopbackClient);
+            const port = Number(new URL(loopbackClient.getRedirectUri()).port);
+
+            const result = await makeRequestWithBody(
+                port,
+                "POST",
+                "/",
+                new URLSearchParams({
+                    error: "access_denied",
+                    state,
+                }).toString(),
+                "application/x-www-form-urlencoded; charset=UTF-8"
+            );
+            expect(result).toEqual({ statusCode: 200, body: "Custom error!" });
+            await expect(responsePromise).resolves.toEqual({
+                error: "access_denied",
+                state,
+            });
+        });
     });
 
     describe("preferredPort", () => {
@@ -226,7 +336,7 @@ describe("LoopbackClient", () => {
             // Ask the OS for a free port, then request it as the preferred port
             const preferredPort = await getFreePort();
             loopbackClient = new LoopbackClient(preferredPort);
-            loopbackClient.listenForAuthCode();
+            loopbackClient.listenForAuthCode("test_state");
 
             await waitForServerReady(loopbackClient);
             const redirectUri = loopbackClient.getRedirectUri();
@@ -247,7 +357,7 @@ describe("LoopbackClient", () => {
 
             try {
                 loopbackClient = new LoopbackClient(preferredPort);
-                loopbackClient.listenForAuthCode();
+                loopbackClient.listenForAuthCode("test_state");
 
                 await waitForServerReady(loopbackClient);
                 const redirectUri = loopbackClient.getRedirectUri();

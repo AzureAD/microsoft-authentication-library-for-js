@@ -116,8 +116,9 @@ export const SubmitButtonSelectors = {
     ACCEPTBUTTON: "#acceptButton, input[name='acceptButton']",
     REMOTE_CONNECT_SUBMIT:
         "#remoteConnectSubmit, input[name='remoteConnectSubmit']",
+    REMOTE_CONNECT_APPROVE: "#idBtn_Approve",
     SUBMITBUTTON: "#submitButton, input[name='submitButton']",
-    INPUT_SUBMIT: "input[type='submit']",
+    INPUT_SUBMIT: "input[type='submit']:not(#idBtn_Cancel)",
     SUBMIT: "button[type='submit']",
 };
 

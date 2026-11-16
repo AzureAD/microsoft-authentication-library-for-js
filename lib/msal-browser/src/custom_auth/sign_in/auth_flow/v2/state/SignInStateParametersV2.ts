@@ -7,6 +7,3 @@ import type { CustomAuthActionRequiredStateParametersV2 } from "../../../../core
 
 export type SignInContinuationStateParametersV2 =
     CustomAuthActionRequiredStateParametersV2;
-
-export type PasswordRequiredStateParametersV2 =
-    CustomAuthActionRequiredStateParametersV2;
