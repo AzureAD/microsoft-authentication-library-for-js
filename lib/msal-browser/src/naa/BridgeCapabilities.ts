@@ -6,4 +6,6 @@
 // Capabilities are intended to future proof the bridge against any feature support
 export interface BridgeCapabilities {
     queryAccount?: boolean;
+    /** Operating system reported by the host, when available. */
+    platform?: string;
 }

@@ -225,6 +225,9 @@ export class NestedAppAuthController implements IController {
         atPopupMeasurement.add({
             nestedAppAuthRequest: true,
             bridgeType: "NAA",
+            bridgeSdkName: this.bridgeProxy.sdkName,
+            bridgeSdkVersion: this.bridgeProxy.sdkVersion,
+            platform: this.bridgeProxy.getHostCapabilities()?.platform,
         });
 
         try {
@@ -349,6 +352,9 @@ export class NestedAppAuthController implements IController {
         ssoSilentMeasurement.add({
             nestedAppAuthRequest: true,
             bridgeType: "NAA",
+            bridgeSdkName: this.bridgeProxy.sdkName,
+            bridgeSdkVersion: this.bridgeProxy.sdkVersion,
+            platform: this.bridgeProxy.getHostCapabilities()?.platform,
         });
 
         try {
@@ -443,6 +449,9 @@ export class NestedAppAuthController implements IController {
         atsMeasurement?.add({
             nestedAppAuthRequest: true,
             bridgeType: "NAA",
+            bridgeSdkName: this.bridgeProxy.sdkName,
+            bridgeSdkVersion: this.bridgeProxy.sdkVersion,
+            platform: this.bridgeProxy.getHostCapabilities()?.platform,
         });
 
         // if the request has claims, we cannot look up in the cache

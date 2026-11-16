@@ -327,6 +327,12 @@ export type PerformanceEvent = {
      */
     nestedAppAuthRequest?: boolean;
     bridgeType?: "NAA" | "PWB";
+    /** Name of the host SDK handling NAA bridge requests. */
+    bridgeSdkName?: string;
+    /** Version of the host SDK handling NAA bridge requests. */
+    bridgeSdkVersion?: string;
+    /** Operating system reported by the NAA host in bridge capabilities. */
+    platform?: string;
 
     /**
      * Multiple matched access/id/refresh tokens in the cache

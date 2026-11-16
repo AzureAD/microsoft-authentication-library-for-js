@@ -21,7 +21,7 @@ export const NAA_CLIENT_CAPABILITIES: string[] = [];
 export const INIT_CONTEXT_RESPONSE: InitContext = {
     sdkName: "test",
     sdkVersion: "1.0.0",
-    capabilities: { queryAccount: false },
+    capabilities: { queryAccount: false, platform: "Windows" },
     accountContext: {
         homeAccountId:
             "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66da",

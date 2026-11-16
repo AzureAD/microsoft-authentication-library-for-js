@@ -93,6 +93,14 @@ The complete details for `PerformanceEvents` objects can be found [here](../../m
 | `bridgeType`                       | `"NAA" \| "PWB"` | Bridge type used for the operation.                                                                                   |
 | `<internalFunctionName>DurationMs` | `number`  | Duration in milliseconds for an internal operation.                                                                           |
 
+### Nested App Authentication measurements
+
+NAA request measurements include `nestedAppAuthRequest: true`, `bridgeType: "NAA"`, `bridgeSdkName`, and `bridgeSdkVersion`. The SDK name and version come from the host's bridge initialization response and identify the host SDK, not the MSAL.js library.
+
+Hosts can optionally return an operating system string in `initContext.capabilities.platform`, for example `{ "queryAccount": false, "platform": "Windows" }`. MSAL includes this value as `platform` on interactive, silent host, and silent cache measurements, including failed requests. When the host does not provide it, `platform` is undefined; MSAL does not infer an operating system from the browser.
+
+These fields do not include account context or the full capabilities object. For NAA applications, register performance callbacks on the configured performance client directly; the NAA controller does not support `PublicClientApplication.addPerformanceCallback`.
+
 ### Platform broker measurements
 
 When platform brokering is enabled, MSAL measures provider discovery and provider creation during initialization, and extension or DOM transport, response validation, request initialization, response processing, and cache updates during authentication. These child measurements are folded into their enclosing top-level event as `<measurementName>DurationMs` fields under the same `correlationId`; they are not emitted as separate callback events. During initialization, extension handshake duration is available as `ext.nativeMessageHandlerHandshakeDurationMs` and extension provider creation duration is available as `ext.platformAuthExtensionCreateProviderDurationMs`.
