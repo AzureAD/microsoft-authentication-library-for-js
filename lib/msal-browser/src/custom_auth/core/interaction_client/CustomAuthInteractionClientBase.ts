@@ -27,6 +27,7 @@ import { EndSessionRequest } from "../../../request/EndSessionRequest.js";
 import { ClearCacheRequest } from "../../../request/ClearCacheRequest.js";
 import { AuthenticationResult } from "../../../response/AuthenticationResult.js";
 import { SignInTokenResponse } from "../network_client/custom_auth_api/types/ApiResponseTypes.js";
+import { setNativeAuthSession } from "../utils/NativeAuthSession.js";
 
 export abstract class CustomAuthInteractionClientBase extends StandardInteractionClient {
     private readonly tokenResponseHandler: ResponseHandler;
@@ -125,6 +126,14 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
                 },
                 apiId
             );
+
+        if (result.account) {
+            setNativeAuthSession(
+                this.browserStorage,
+                result.account,
+                correlationId
+            );
+        }
 
         return result as AuthenticationResult;
     }

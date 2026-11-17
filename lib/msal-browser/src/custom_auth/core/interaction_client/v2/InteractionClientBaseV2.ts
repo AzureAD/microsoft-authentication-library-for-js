@@ -27,6 +27,7 @@ import { MethodNotImplementedError } from "../../error/MethodNotImplementedError
 import { initializeServerTelemetryManager } from "../../../../interaction_client/BaseInteractionClient.js";
 import { RequestContextV2 } from "../../network_client/custom_auth_api/v2/request/RequestsV2.js";
 import { TokenResponseV2 } from "../../network_client/custom_auth_api/v2/response/ResponsesV2.js";
+import { setNativeAuthSession } from "../../utils/NativeAuthSession.js";
 
 /*
  * Shared base for Native Auth V2 interaction clients.
@@ -127,6 +128,14 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
                 },
                 apiId
             );
+
+        if (result.account) {
+            setNativeAuthSession(
+                this.browserStorage,
+                result.account,
+                correlationId
+            );
+        }
 
         return result as AuthenticationResult;
     }

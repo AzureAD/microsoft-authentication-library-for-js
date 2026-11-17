@@ -14,11 +14,15 @@ import * as CustomAuthApiEndpoint from "./network_client/custom_auth_api/CustomA
 import { buildUrl } from "./utils/UrlUtils.js";
 import { BrowserConfiguration } from "../../config/Configuration.js";
 import { BrowserCacheManager } from "../../cache/BrowserCacheManager.js";
+import { isNativeAuthSession } from "./utils/NativeAuthSession.js";
 
 /**
  * Authority class which can be used to create an authority object for Custom Auth features.
  */
 export class CustomAuthAuthority extends Authority {
+    private readonly browserStorage: BrowserCacheManager;
+    private readonly customAuthLogger: Logger;
+
     /**
      * Constructor for the Custom Auth Authority.
      * @param authority - The authority URL for the authority.
@@ -60,6 +64,9 @@ export class CustomAuthAuthority extends Authority {
             performanceClient
         );
 
+        this.browserStorage = cacheManager;
+        this.customAuthLogger = logger;
+
         // Set the metadata for the authority
         const metadataEntity = {
             aliases: [this.hostnameAndPort],
@@ -67,7 +74,10 @@ export class CustomAuthAuthority extends Authority {
             preferred_network: this.hostnameAndPort,
             canonical_authority: this.canonicalAuthority,
             authorization_endpoint: "",
-            token_endpoint: this.tokenEndpoint,
+            token_endpoint: buildUrl(
+                this.getCustomAuthApiDomain(),
+                CustomAuthApiEndpoint.SIGNIN_TOKEN
+            ).href,
             end_session_endpoint: "",
             issuer: "",
             aliasesFromNetwork: false,
@@ -112,10 +122,41 @@ export class CustomAuthAuthority extends Authority {
 
     override get tokenEndpoint(): string {
         const endpointUrl = buildUrl(
-            this.getCustomAuthApiDomain(),
+            this.getTokenEndpointDomain(),
             CustomAuthApiEndpoint.SIGNIN_TOKEN
         );
 
         return endpointUrl.href;
+    }
+
+    private getTokenEndpointDomain(): string {
+        const accounts = this.browserStorage.getAllAccounts(
+            {},
+            this.correlationId
+        );
+
+        if (accounts.length > 1) {
+            this.customAuthLogger.warning(
+                "Multiple accounts found in cache. This is not supported in the Native Auth scenario.",
+                this.correlationId
+            );
+        }
+
+        const account = accounts[0];
+
+        if (!account) {
+            return this.getCustomAuthApiDomain();
+        }
+
+        const isNativeSession = isNativeAuthSession(
+            this.browserStorage,
+            account
+        );
+
+        if (isNativeSession) {
+            return this.getCustomAuthApiDomain();
+        }
+
+        return this.canonicalAuthority;
     }
 }

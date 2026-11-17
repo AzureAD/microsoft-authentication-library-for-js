@@ -8,6 +8,8 @@ import {
     getDefaultPerformanceClient,
 } from "../test_resources/TestModules.js";
 import { TEST_CONFIG } from "../../utils/StringConstants.js";
+import { TestAccountDetails } from "../test_resources/TestConstants.js";
+import { setNativeAuthSession } from "../../../src/custom_auth/core/utils/NativeAuthSession.js";
 
 describe("CustomAuthAuthority", () => {
     const authorityUrl = customAuthConfig.auth.authority;
@@ -31,7 +33,41 @@ describe("CustomAuthAuthority", () => {
         config.cache
     );
 
+    afterEach(async () => {
+        jest.restoreAllMocks();
+        await browserStorage.clear(TEST_CONFIG.CORRELATION_ID);
+    });
+
     describe("constructor", () => {
+        it("caches the native API endpoint without reading accounts before cache initialization", () => {
+            const getAccounts = jest
+                .spyOn(browserStorage, "getAllAccounts")
+                .mockImplementation(() => {
+                    throw new Error("Cache is not initialized");
+                });
+
+            new CustomAuthAuthority(
+                authorityUrl ?? "",
+                config,
+                StubbedNetworkModule,
+                browserStorage,
+                logger,
+                performanceClient,
+                customAuthProxyDomain
+            );
+
+            expect(getAccounts).not.toHaveBeenCalled();
+            expect(
+                browserStorage.getAuthorityMetadata(
+                    authorityMetadataEntityKey,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toMatchObject({
+                token_endpoint:
+                    "https://myspafunctiont1.azurewebsites.net/api/ReverseProxy/oauth2/v2.0/token",
+            });
+        });
+
         it("should correctly parse and store the authority URL", () => {
             const customAuthAuthority = new CustomAuthAuthority(
                 authorityUrl ?? "",
@@ -175,6 +211,117 @@ describe("CustomAuthAuthority", () => {
     });
 
     describe("tokenEndpoint", () => {
+        it("updates token routing as the session changes without changing the native API domain or metadata", () => {
+            const sharedAuthority = new CustomAuthAuthority(
+                authorityUrl ?? "",
+                config,
+                StubbedNetworkModule,
+                browserStorage,
+                logger,
+                performanceClient,
+                customAuthProxyDomain
+            );
+            const cachedMetadata = browserStorage.getAuthorityMetadata(
+                authorityMetadataEntityKey,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            const saveMetadata = jest.spyOn(
+                browserStorage,
+                "setAuthorityMetadata"
+            );
+            const getAccounts = jest.spyOn(browserStorage, "getAllAccounts");
+            const proxyEndpoint =
+                "https://myspafunctiont1.azurewebsites.net/api/ReverseProxy/oauth2/v2.0/token";
+            const directEndpoint =
+                "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/oauth2/v2.0/token";
+
+            getAccounts.mockReturnValue([]);
+            expect(sharedAuthority.tokenEndpoint).toBe(proxyEndpoint);
+
+            getAccounts.mockReturnValue([TestAccountDetails]);
+            expect(sharedAuthority.tokenEndpoint).toBe(directEndpoint);
+            expect(sharedAuthority.getCustomAuthApiDomain()).toBe(
+                customAuthProxyDomain
+            );
+
+            getAccounts.mockReturnValue([]);
+            expect(sharedAuthority.tokenEndpoint).toBe(proxyEndpoint);
+
+            setNativeAuthSession(
+                browserStorage,
+                TestAccountDetails,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            getAccounts.mockReturnValue([TestAccountDetails]);
+            expect(sharedAuthority.tokenEndpoint).toBe(proxyEndpoint);
+            expect(sharedAuthority.getCustomAuthApiDomain()).toBe(
+                customAuthProxyDomain
+            );
+            expect(saveMetadata).not.toHaveBeenCalled();
+            expect(
+                browserStorage.getAuthorityMetadata(
+                    authorityMetadataEntityKey,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toEqual(cachedMetadata);
+        });
+
+        it.each(["signed out", "browser", "native"])(
+            "uses the canonical token endpoint without a proxy for a %s session",
+            (session) => {
+                jest.spyOn(browserStorage, "getAllAccounts").mockReturnValue(
+                    session === "signed out" ? [] : [TestAccountDetails]
+                );
+                if (session === "native") {
+                    setNativeAuthSession(
+                        browserStorage,
+                        TestAccountDetails,
+                        TEST_CONFIG.CORRELATION_ID
+                    );
+                }
+                const authority = new CustomAuthAuthority(
+                    authorityUrl ?? "",
+                    config,
+                    StubbedNetworkModule,
+                    browserStorage,
+                    logger,
+                    performanceClient
+                );
+
+                expect(authority.tokenEndpoint).toBe(
+                    "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/oauth2/v2.0/token"
+                );
+            }
+        );
+
+        it("warns when multiple accounts are cached and routes using the first account", () => {
+            jest.spyOn(browserStorage, "getAllAccounts").mockReturnValue([
+                TestAccountDetails,
+                {
+                    ...TestAccountDetails,
+                    homeAccountId: "another-account",
+                },
+            ]);
+            const warning = jest.spyOn(logger, "warning");
+            const authority = new CustomAuthAuthority(
+                authorityUrl ?? "",
+                config,
+                StubbedNetworkModule,
+                browserStorage,
+                logger,
+                performanceClient,
+                customAuthProxyDomain
+            );
+
+            expect(authority.tokenEndpoint).toBe(
+                "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/oauth2/v2.0/token"
+            );
+            expect(warning).toHaveBeenCalledWith(
+                "Multiple accounts found in cache. This is not supported in the Native Auth scenario.",
+                expect.any(String)
+            );
+        });
+
         it("should return the correct token endpoint", () => {
             const customAuthAuthority = new CustomAuthAuthority(
                 authorityUrl ?? "",
