@@ -60,6 +60,58 @@ describe.each([false, true])(
             localStorage.clear();
         });
 
+        it("does not coalesce web requests for different account tenants", async () => {
+            const guestAccount: AccountInfo = {
+                ...account,
+                tenantId: "guest-tenant",
+            };
+            const accounts = reverse
+                ? [guestAccount, account]
+                : [account, guestAccount];
+            let release!: () => void;
+            const pending = new Promise<void>((resolve) => {
+                release = resolve;
+            });
+            let signalStarted!: () => void;
+            const started = new Promise<void>((resolve) => {
+                signalStarted = resolve;
+            });
+            const acquire = jest
+                .spyOn(SilentCacheClient.prototype, "acquireToken")
+                .mockImplementation(async (request) => {
+                    signalStarted();
+                    await pending;
+                    return {
+                        ...result,
+                        account: request.account,
+                        tenantId: request.account.tenantId,
+                        accessToken: `token-${request.account.tenantId}`,
+                    };
+                });
+            const first = application.acquireTokenSilent({
+                scopes: ["User.Read"],
+                account: accounts[0],
+                correlationId: "first",
+            });
+            await started;
+            const second = application.acquireTokenSilent({
+                scopes: ["User.Read"],
+                account: accounts[1],
+                correlationId: "second",
+            });
+            release();
+            const results = await Promise.all([first, second]);
+
+            expect(acquire).toHaveBeenCalledTimes(2);
+            expect(results.map((value) => value.accessToken)).toEqual(
+                accounts.map((value) => `token-${value.tenantId}`)
+            );
+            expect(results.map((value) => value.tenantId)).toEqual(
+                accounts.map((value) => value.tenantId)
+            );
+            expect(results.map((value) => value.account)).toEqual(accounts);
+        });
+
         it.each([
             ["force refresh", {}, { forceRefresh: true }, false],
             [

@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Declare popupRelayProtocolVersion as a top-level integer performance telemetry field [#8984](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8984)",
+  "packageName": "@azure/msal-common",
+  "email": "nugetaad@microsoft.com",
+  "dependentChangeType": "patch"
+}
