@@ -58,7 +58,6 @@ import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
-import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
     clearCacheOnLogout,
@@ -346,13 +345,6 @@ export class RedirectClient extends StandardInteractionClient {
             account
         );
 
-        const earJwk = await invokeAsync(
-            generateEarKey,
-            BrowserPerformanceEvents.GenerateEarKey,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )();
         const pkceCodes = await invokeAsync(
             generatePkceCodes,
             BrowserPerformanceEvents.GeneratePkceCodes,
@@ -367,14 +359,19 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        const redirectRequest = {
+        let redirectRequest: CommonAuthorizationUrlRequest = {
             ...request,
-            earJwk: earJwk,
             codeChallenge: pkceCodes.challenge,
             ...tokenBindingParams,
         };
 
         try {
+            redirectRequest = await Authorize.initializeEarRequest(
+                this.config,
+                redirectRequest,
+                this.logger,
+                this.performanceClient
+            );
             if (
                 !(await isTokenBindingKeyPersistedForRedirect(
                     redirectRequest,
@@ -411,14 +408,15 @@ export class RedirectClient extends StandardInteractionClient {
                     );
                 }, this.config.system.redirectNavigationTimeout);
             });
-        } catch (e) {
+        } catch (error) {
+            this.browserStorage.resetRequestCache(correlationId);
             await removeTokenBindingKeyOnFailure(
                 redirectRequest,
                 this.tokenBindingKeyManager,
                 this.logger,
                 this.performanceClient
             );
-            throw e;
+            throw error;
         }
     }
 
@@ -844,7 +842,6 @@ export class RedirectClient extends StandardInteractionClient {
     /**
      * Redirects window to given URL.
      * @param urlNavigate
-     * @param onRedirectNavigateRequest - onRedirectNavigate callback provided on the request
      */
     async initiateAuthRequest(requestUrl: string): Promise<void> {
         this.logger.verbose(
