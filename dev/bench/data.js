@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794867569703,
+  "lastUpdate": 1794920064783,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -25253,6 +25253,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.71%",
             "unit": "ops/sec",
             "extra": "231 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kshabelko@microsoft.com",
+            "name": "Konstantin",
+            "username": "konstantin-msft"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "211f88d903db345a3b26d8422b3385dbd51cf4e1",
+          "message": "Add opt-in authenticated popup-relay protocol v2 (#8984)\n\nThis pull request introduces support for a new, more secure wire\nprotocol version (v2) for the popup relay feature in MSAL.js,\ndeprecating the previous v1 protocol due to security concerns. The\ndocumentation and API have been updated to describe the new protocol,\nits configuration, and its security improvements, as well as to clarify\ncompatibility and migration guidance. Several related documentation\nlinks and descriptions were also improved for clarity and accuracy.\n\n**Popup Relay Protocol v2 Support and Deprecation of v1:**\n\n* Added a new `popupRelayProtocolVersion` option (values `1` or `2`) to\nthe `BrowserAuthOptions` type and configuration documentation, allowing\nexplicit selection of the wire protocol for popup relay. Protocol v2 is\nrecommended for new deployments due to improved security; v1 is now\ndeprecated.\n[[1]](diffhunk://#diff-d8aa8313e46503e745028509a1ac18093831ea5baeafe63c63ea825727aa3580R239)\n[[2]](diffhunk://#diff-b50088530c035ffb7feb43ef085da52f5d977cebfec286eb975e5b10a745c63cL76-R87)\n* Expanded documentation on how to configure and migrate to popup relay\nv2, including setup steps, security notes, and protocol selection\nguidance.\n\n**Security and Behavior Documentation Updates:**\n\n* Updated error documentation to explain the deprecation of popup relay\nv1, describe new sub-errors related to v2 (such as protocol mismatch,\nhandshake timeout, and handoff/navigation failures), and clarify error\nmessages for both protocols.\n* Clarified browser compatibility documentation to explain how v2 uses\n`postMessage` for authenticated request handoff and its security\nadvantages over v1, as well as the requirements for opener connections\nand protocol matching.\n[[1]](diffhunk://#diff-3fcd652293d8eece606557c890a929b94a999cebbf4ceaa1b87ecac08d01f524L45-R45)\n[[2]](diffhunk://#diff-3fcd652293d8eece606557c890a929b94a999cebbf4ceaa1b87ecac08d01f524R92)\n\n**General Documentation Improvements:**\n\n* Fixed and improved internal documentation links and references for\nbetter navigation and accuracy.\n[[1]](diffhunk://#diff-5c0106f1b82570db9c632cceba7ac0a81efb2eb9301a53378c8c6466b2eed2dfL23-R23)\n[[2]](diffhunk://#diff-b50088530c035ffb7feb43ef085da52f5d977cebfec286eb975e5b10a745c63cL76-R87)\n\nThese changes ensure MSAL.js applications can adopt a more secure popup\nrelay flow and provide clear guidance for configuration and migration.\n\n---------\n\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>",
+          "timestamp": "2026-11-17T12:45:07Z",
+          "tree_id": "d067fe11d025ffa319b65cf336df38aebf33bb35",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/211f88d903db345a3b26d8422b3385dbd51cf4e1"
+        },
+        "date": 1794920061410,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 552560,
+            "range": "±1.04%",
+            "unit": "ops/sec",
+            "extra": "234 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 563488,
+            "range": "±1.01%",
+            "unit": "ops/sec",
+            "extra": "227 samples"
           }
         ]
       }
