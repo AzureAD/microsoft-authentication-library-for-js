@@ -253,8 +253,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 cachedResult = await this.acquireTokensFromCache(
                     this.accountId,
                     nativeRequest,
-                    cacheLookupPolicy,
-                    request
+                    cacheLookupPolicy
                 );
             } catch (e) {
                 if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
@@ -365,8 +364,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      */
     private createSilentCacheRequest(
         request: PlatformAuthRequest,
-        cachedAccount: AccountInfo,
-        originalRequest?: PopupRequest | SilentRequest | SsoSilentRequest
+        cachedAccount: AccountInfo
     ): CommonSilentFlowRequest {
         const silentRequest: CommonSilentFlowRequest = {
             authority: request.authority,
@@ -376,15 +374,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.correlationId
             ).asArray(),
             account: cachedAccount,
-            // Use caller claims, not the optional ID-token claims added for the broker.
-            claims: ClaimsUtils.mergeClientCapabilities(
-                originalRequest ? originalRequest.claims : request.claims,
-                originalRequest &&
-                    ClaimsUtils.shouldSkipBrokerClaims(originalRequest)
-                    ? undefined
-                    : this.config.auth.clientCapabilities,
-                this.correlationId
-            ),
+            claims: request.claims,
             forceRefresh: false,
             ...this.createSilentCacheTokenBindingParameters(request),
             resource: request.extraParameters?.resource,
@@ -445,8 +435,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     protected async acquireTokensFromCache(
         nativeAccountId: string,
         request: PlatformAuthRequest,
-        cacheLookupPolicy: CacheLookupPolicy = CacheLookupPolicy.Default,
-        originalRequest?: PopupRequest | SilentRequest | SsoSilentRequest
+        cacheLookupPolicy: CacheLookupPolicy = CacheLookupPolicy.Default
     ): Promise<AuthenticationResult | undefined> {
         if (
             cacheLookupPolicy === CacheLookupPolicy.RefreshTokenAndNetwork ||
@@ -488,8 +477,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         try {
             const silentRequest = this.createSilentCacheRequest(
                 request,
-                account,
-                originalRequest
+                account
             );
             const result = await this.silentCacheClient.acquireToken(
                 silentRequest

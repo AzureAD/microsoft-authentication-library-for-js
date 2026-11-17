@@ -111,7 +111,7 @@ claims requirements and `forceRefresh` retain their existing renewal behavior.
 When importing or hydrating tokens, supply the claims of the acquisition that
 produced them; MSAL does not inspect opaque access tokens to infer capabilities.
 
-Credential schema5 uses the existing versioned cache and migration framework.
+Account and credential schema6 use the existing versioned cache and migration framework.
 Account, ID-token and refresh-token state migrate normally. Old access tokens
 without complete capability metadata (including the earlier prototype's boolean
 marker) are not copied into the new schema: today's PCA
@@ -120,6 +120,13 @@ as needed, which may require interaction if silent renewal fails. Older-schema
 entries remain subject to the normal expiry, retention and quota rules below.
 Rolling back lets the older SDK use its own schema, without granting that SDK
 mixed-capability isolation it did not already support.
+
+Account and credential versions stay aligned. When migrating older entries,
+the ID-token migration can find an account stored under an earlier schema,
+preserving sign-in state from prior prototypes with mismatched versions.
+
+Library-added optional ID-token claims do not force renewal. Caller requirements
+on those claims, such as `essential: true` or a requested value, still do.
 
 Persistent caches use the normal hashing implementation. Non-browser NAA's
 memory-only cache instead encodes the complete component map into its key, so

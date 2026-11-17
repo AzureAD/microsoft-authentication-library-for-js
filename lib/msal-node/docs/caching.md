@@ -67,6 +67,8 @@ The cache separates tokens by the complete advertised capability set, alongside 
 
 OAuth tokens are classified from the effective outgoing claims, including configured capabilities and client-originated claims. Managed identity uses the capabilities sent in its `xms_cc` parameter; its `claims` input remains a refresh/revocation directive.
 
+Library-added optional ID-token claims do not force renewal. Additional caller requirements, including `essential: true` or a requested value on those same claims, still require a new token.
+
 Previously serialized access tokens without capability metadata are left intact but are not eligible for new lookups. Calls acquire marked tokens as needed, using shared authentication state where available. Renewal can require interaction or fail normally. Node serialization does not use the browser's schema-version migration; older SDKs retain their own cache-matching behavior on downgrade.
 
 ## Persistent cache

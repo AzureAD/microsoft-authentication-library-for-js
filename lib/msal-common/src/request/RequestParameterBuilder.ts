@@ -23,6 +23,7 @@ import {
     parseClaims,
     deepMergeClaims,
     mergeClientCapabilities,
+    DEFAULT_ID_TOKEN_CLAIMS,
 } from "./ClaimsUtils.js";
 
 export function instrumentBrokerParams(
@@ -508,19 +509,6 @@ export function addExtraParameters(
         }
     });
 }
-
-/**
- * Default optional idToken claims requested on all auth requests.
- * signin_state enables KMSI detection; login_hint enables login hint propagation;
- * tenant_region_sub_scope identifies the sovereign enclave a tenant belongs to.
- */
-const DEFAULT_ID_TOKEN_CLAIMS: Record<string, { essential: false }> = {
-    [Constants.ClaimsRequestKeys.SIGNIN_STATE]: { essential: false },
-    [Constants.ClaimsRequestKeys.LOGIN_HINT]: { essential: false },
-    [Constants.ClaimsRequestKeys.TENANT_REGION_SUB_SCOPE]: {
-        essential: false,
-    },
-};
 
 /**
  * Parses claims JSON, optionally deep-merges a second client-originated claims string

@@ -451,7 +451,7 @@ export class NestedAppAuthController implements IController {
         });
 
         if (
-            ClaimsUtils.hasClaimsChallenge(
+            ClaimsUtils.hasAdditionalClaims(
                 request.claims,
                 request.correlationId
             )

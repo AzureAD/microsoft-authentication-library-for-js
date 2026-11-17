@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Partition access tokens by complete capability sets with schema5, retain shared sign-in migration and support non-browser NAA memory caching without WebCrypto. [#8975](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8975)",
+    "comment": "Partition access tokens by complete capability sets with aligned account/credential schema6, preserve older sign-in state and support non-browser NAA caching without WebCrypto. [#8975](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8975)",
     "packageName": "@azure/msal-browser",
     "dependentChangeType": "patch"
 }

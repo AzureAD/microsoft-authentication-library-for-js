@@ -435,6 +435,15 @@ describe("Ordinary/CP1 token partitioning", () => {
             })
         ).rejects.toThrow("Broker called");
         expect(sendMessage).toHaveBeenCalledTimes(2);
+        await expect(
+            pca.acquireTokenSilent({
+                ...nativeRequest,
+                claims: JSON.stringify({
+                    id_token: { login_hint: { essential: true } },
+                }),
+            })
+        ).rejects.toThrow("Broker called");
+        expect(sendMessage).toHaveBeenCalledTimes(3);
     });
 
     it("keeps skipped broker capabilities out of both outgoing claims and cache selection", async () => {

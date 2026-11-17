@@ -4,15 +4,45 @@
  */
 
 import {
-    hasClaimsChallenge,
+    hasAdditionalClaims,
     mergeClientCapabilities,
     supportsCae,
     shouldSkipBrokerClaims,
     getClientCapabilities,
 } from "../../src/request/ClaimsUtils.js";
 import { getAccessTokenCacheKeyComponents } from "../../src/cache/utils/CacheHelpers.js";
+import { buildMergedClaims } from "../../src/request/RequestParameterBuilder.js";
 
 describe("Capability claims", () => {
+    it("allows reuse with the library's optional ID-token claims and capabilities", () => {
+        expect(hasAdditionalClaims(buildMergedClaims())).toBe(false);
+        expect(
+            hasAdditionalClaims(buildMergedClaims(undefined, ["CP1", "CP2"]))
+        ).toBe(false);
+    });
+
+    it.each(["signin_state", "login_hint", "tenant_region_sub_scope"])(
+        "preserves caller requirements on the optional %s claim",
+        (claim) => {
+            for (const requirement of [
+                { essential: true },
+                { essential: false, value: "required-value" },
+                null,
+            ]) {
+                expect(
+                    hasAdditionalClaims(
+                        buildMergedClaims(
+                            JSON.stringify({
+                                id_token: { [claim]: requirement },
+                            }),
+                            ["CP1"]
+                        )
+                    )
+                ).toBe(true);
+            }
+        }
+    );
+
     it("preserves future capabilities and normalizes order, casing and duplicates", () => {
         const claims = JSON.stringify({
             access_token: { xms_cc: { values: ["cp2", "CP1", "cp2"] } },
@@ -90,7 +120,7 @@ describe("Capability claims", () => {
     ])(
         "classifies claims %s without changing challenge semantics",
         (claims, challenge) => {
-            expect(hasClaimsChallenge(claims as string | undefined)).toBe(
+            expect(hasAdditionalClaims(claims as string | undefined)).toBe(
                 challenge
             );
         }
@@ -106,7 +136,7 @@ describe("Capability claims", () => {
 
         const merged = mergeClientCapabilities(requestClaims, ["CP1"]);
         expect(supportsCae(merged)).toBe(true);
-        expect(hasClaimsChallenge(merged)).toBe(true);
+        expect(hasAdditionalClaims(merged)).toBe(true);
         expect(JSON.parse(merged!).access_token.auth_time).toEqual({
             essential: true,
         });
@@ -119,7 +149,7 @@ describe("Capability claims", () => {
         const claims =
             '{"access_token":{"xms_cc":{"values":["CP1"],"essential":true}}}';
         const merged = mergeClientCapabilities(claims, ["CP1"]);
-        expect(hasClaimsChallenge(merged)).toBe(true);
+        expect(hasAdditionalClaims(merged)).toBe(true);
         expect(JSON.parse(merged!).access_token.xms_cc.essential).toBe(true);
         expect(() =>
             mergeClientCapabilities(

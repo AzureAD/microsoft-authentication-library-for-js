@@ -9,6 +9,14 @@ import {
 } from "../error/ClientConfigurationError.js";
 import { BROKER_CLIENT_ID } from "../constants/AADServerParamKeys.js";
 import type { BaseAuthRequest } from "./BaseAuthRequest.js";
+import { ClaimsRequestKeys } from "../utils/Constants.js";
+
+/** Optional ID-token claims added by the library, not requirements for renewal. */
+export const DEFAULT_ID_TOKEN_CLAIMS: Record<string, { essential: false }> = {
+    [ClaimsRequestKeys.SIGNIN_STATE]: { essential: false },
+    [ClaimsRequestKeys.LOGIN_HINT]: { essential: false },
+    [ClaimsRequestKeys.TENANT_REGION_SUB_SCOPE]: { essential: false },
+};
 
 /** Matches the broker-parameter presence used by the outgoing claims builder. */
 export function shouldSkipBrokerClaims(
@@ -163,8 +171,8 @@ export function supportsCae(
     return getClientCapabilities(claims, correlationId).includes("CP1");
 }
 
-/** Capability declarations alone do not request a new token. */
-export function hasClaimsChallenge(
+/** Whether claims contain requirements beyond library-added optional claims and capabilities. */
+export function hasAdditionalClaims(
     claims?: string,
     correlationId: string = ""
 ): boolean {
@@ -177,6 +185,18 @@ export function hasClaimsChallenge(
             return true;
         }
         return Object.entries(contents).some(([key, value]) => {
+            if (
+                section === "id_token" &&
+                Object.prototype.hasOwnProperty.call(
+                    DEFAULT_ID_TOKEN_CLAIMS,
+                    key
+                ) &&
+                isPlainObject(value) &&
+                Object.keys(value).length === 1 &&
+                value.essential === false
+            ) {
+                return false;
+            }
             if (
                 section !== "access_token" ||
                 key !== "xms_cc" ||

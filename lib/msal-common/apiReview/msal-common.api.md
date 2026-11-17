@@ -984,7 +984,8 @@ declare namespace ClaimsUtils {
         deepMergeClaims,
         getClientCapabilities,
         supportsCae,
-        hasClaimsChallenge
+        hasAdditionalClaims,
+        DEFAULT_ID_TOKEN_CLAIMS
     }
 }
 
@@ -1476,6 +1477,11 @@ const DEFAULT_COMMON_TENANT = "common";
 // @public
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto;
 
+// @public
+const DEFAULT_ID_TOKEN_CLAIMS: Record<string, {
+    essential: false;
+}>;
+
 // @public (undocumented)
 const DEFAULT_MAX_THROTTLE_TIME_SECONDS: number;
 
@@ -1737,7 +1743,7 @@ const HandleCodeResponseFromServer = "handleCodeResponseFromServer";
 const HandleServerTokenResponse = "handleServerTokenResponse";
 
 // @public
-function hasClaimsChallenge(claims?: string, correlationId?: string): boolean;
+function hasAdditionalClaims(claims?: string, correlationId?: string): boolean;
 
 // @public (undocumented)
 const hashNotDeserialized = "hash_not_deserialized";

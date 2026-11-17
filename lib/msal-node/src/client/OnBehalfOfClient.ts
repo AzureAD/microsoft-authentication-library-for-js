@@ -55,7 +55,7 @@ export class OnBehalfOfClient extends BaseClient {
     public async acquireToken(
         baseRequest: CommonOnBehalfOfRequest
     ): Promise<AuthenticationResult | null> {
-        const hasChallenge = ClaimsUtils.hasClaimsChallenge(
+        const hasAdditionalClaims = ClaimsUtils.hasAdditionalClaims(
             baseRequest.claims,
             baseRequest.correlationId
         );
@@ -101,7 +101,7 @@ export class OnBehalfOfClient extends BaseClient {
                 additionalCacheKeyComponents
             );
 
-        if (request.skipCache || hasChallenge) {
+        if (request.skipCache || hasAdditionalClaims) {
             return this.executeTokenRequest(
                 request,
                 this.authority,

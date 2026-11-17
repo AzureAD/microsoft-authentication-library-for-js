@@ -532,9 +532,20 @@ export class BrowserCacheManager extends CacheManager {
             const currentAccountKey = currentAccountKeys.find((key) =>
                 key.includes(oldSchemaData.homeAccountId)
             );
-            const previousAccountKey = previousAccountKeys.find((key) =>
+            let previousAccountKey = previousAccountKeys.find((key) =>
                 key.includes(oldSchemaData.homeAccountId)
             );
+            // Earlier caches can have a newer credential schema than their account.
+            for (
+                let schema = accountSchema - 1;
+                !currentAccountKey && !previousAccountKey && schema >= 0;
+                schema--
+            ) {
+                previousAccountKey = getAccountKeys(
+                    this.browserStorage,
+                    schema
+                ).find((key) => key.includes(oldSchemaData.homeAccountId));
+            }
 
             let account: AccountEntity | null = null;
             if (currentAccountKey) {

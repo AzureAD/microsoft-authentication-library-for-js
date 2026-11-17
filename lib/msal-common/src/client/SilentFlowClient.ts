@@ -20,7 +20,7 @@ import { CacheRecord } from "../cache/entities/CacheRecord.js";
 import { AuthenticationScheme, CacheOutcome } from "../utils/Constants.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import {
-    hasClaimsChallenge,
+    hasAdditionalClaims,
     mergeClientCapabilities,
     shouldSkipBrokerClaims,
 } from "../request/ClaimsUtils.js";
@@ -115,7 +115,7 @@ export class SilentFlowClient {
 
         if (
             request.forceRefresh ||
-            hasClaimsChallenge(request.claims, request.correlationId)
+            hasAdditionalClaims(request.claims, request.correlationId)
         ) {
             // Must refresh due to present force_refresh flag.
             this.setCacheOutcome(

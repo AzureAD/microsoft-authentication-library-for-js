@@ -858,6 +858,77 @@ describe("BrowserCacheManager tests", () => {
             });
 
             describe("migrateIdTokens - KMSI edge cases", () => {
+                it.each([4, 5])(
+                    "migrates schema %s credentials whose account is in an earlier schema",
+                    async (credentialSchema) => {
+                        await browserCacheManager.initialize(
+                            TEST_CONFIG.CORRELATION_ID
+                        );
+                        const idToken = {
+                            ...TEST_ID_TOKEN_ENTITY,
+                            secret: TEST_TOKENS.IDTOKEN_V2,
+                            lastUpdatedAt: Date.now().toString(),
+                        };
+                        const account = {
+                            ...TEST_ACCOUNT_ENTITY,
+                            homeAccountId: idToken.homeAccountId,
+                            lastUpdatedAt: Date.now().toString(),
+                        };
+                        const oldAccountKey = `msal.3|${account.homeAccountId}|${account.environment}|${account.realm}`;
+                        const oldIdTokenKey = browserCacheManager
+                            .generateCredentialKey(idToken)
+                            .replace(
+                                `msal.${CacheKeys.CREDENTIAL_SCHEMA_VERSION}|`,
+                                `msal.${credentialSchema}|`
+                            );
+                        window.localStorage.setItem(
+                            oldAccountKey,
+                            JSON.stringify(account)
+                        );
+                        window.localStorage.setItem(
+                            oldIdTokenKey,
+                            JSON.stringify(idToken)
+                        );
+                        window.localStorage.setItem(
+                            CacheKeys.getAccountKeysCacheKey(3),
+                            JSON.stringify([oldAccountKey])
+                        );
+                        window.localStorage.setItem(
+                            CacheKeys.getTokenKeysCacheKey(
+                                TEST_CONFIG.MSAL_CLIENT_ID,
+                                credentialSchema
+                            ),
+                            JSON.stringify({
+                                idToken: [oldIdTokenKey],
+                                accessToken: [],
+                                refreshToken: [],
+                            })
+                        );
+
+                        await browserCacheManager.migrateExistingCache(
+                            TEST_CONFIG.CORRELATION_ID
+                        );
+
+                        expect(
+                            browserCacheManager.getAccountKeys()
+                        ).toHaveLength(1);
+                        expect(
+                            browserCacheManager.getIdTokenCredential(
+                                browserCacheManager.generateCredentialKey(
+                                    idToken
+                                ),
+                                TEST_CONFIG.CORRELATION_ID
+                            )?.secret
+                        ).toBe(idToken.secret);
+                        expect(
+                            window.localStorage.getItem(oldAccountKey)
+                        ).not.toBeNull();
+                        expect(
+                            window.localStorage.getItem(oldIdTokenKey)
+                        ).not.toBeNull();
+                    }
+                );
+
                 it("should migrate when old token has signin_state and is newer", async () => {
                     await browserCacheManager.initialize(
                         TEST_CONFIG.CORRELATION_ID

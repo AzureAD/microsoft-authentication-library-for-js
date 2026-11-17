@@ -425,10 +425,10 @@ async function loadAccessToken(
         extendedExpiresOn,
         base64Decode,
         correlationId,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
+        undefined, // refreshOn
+        undefined, // tokenType
+        undefined, // userAssertionHash
+        undefined, // keyId
         CacheHelpers.getAccessTokenCacheKeyComponents({
             ...request,
             correlationId,

@@ -62,7 +62,7 @@ export class ClientCredentialClient extends BaseClient {
     public async acquireToken(
         baseRequest: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
-        const hasChallenge = ClaimsUtils.hasClaimsChallenge(
+        const hasAdditionalClaims = ClaimsUtils.hasAdditionalClaims(
             baseRequest.claims,
             baseRequest.correlationId
         );
@@ -78,7 +78,7 @@ export class ClientCredentialClient extends BaseClient {
         const additionalCacheKeyComponents =
             this.getAdditionalCacheKeyComponents(request);
 
-        if (request.skipCache || hasChallenge) {
+        if (request.skipCache || hasAdditionalClaims) {
             return this.executeTokenRequest(
                 request,
                 this.authority,
