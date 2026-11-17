@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix Native Auth V1/V2 and social refresh-token routing",
+  "comment": "Fix Native Auth V1/V2 and social refresh-token routing [#8991](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8991)",
   "packageName": "@azure/msal-browser",
   "email": "ydi.w127@gmail.com",
   "dependentChangeType": "patch"
