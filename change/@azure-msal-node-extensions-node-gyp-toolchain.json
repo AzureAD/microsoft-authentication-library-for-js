@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Use an explicit node-gyp build dependency to support Visual Studio 2026 while retaining Node.js 20 build compatibility. [#8992](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8992)",
+    "comment": "Use node-gyp 13 to support Visual Studio 2026 and document contributor build requirements without changing supported application runtimes. [#8992](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8992)",
     "packageName": "@azure/msal-node-extensions",
     "email": "hemoral@microsoft.com",
     "dependentChangeType": "patch"
