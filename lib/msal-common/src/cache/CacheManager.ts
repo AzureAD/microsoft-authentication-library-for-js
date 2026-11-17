@@ -700,16 +700,9 @@ export abstract class CacheManager implements ICacheManager {
             credential.additionalCacheKeyComponents &&
             Object.keys(credential.additionalCacheKeyComponents).length > 0
         ) {
-            const components = JSON.stringify(
+            additionalCacheKeyHash = await this.getCacheKeySuffix(
                 credential.additionalCacheKeyComponents
             );
-            // These fixed SHA-256 values also work in NAA runtimes without WebCrypto.
-            additionalCacheKeyHash =
-                components === '{"clientCapabilities":"false"}'
-                    ? "0h2Zh1K6Styy2BCEcHBN9EmEHNLliepMSFdSb_UJILg"
-                    : components === '{"clientCapabilities":"true"}'
-                    ? "v0-zkI8jZimvhwnN9uef0gdIzqo0SRgnfWWqlcld93o"
-                    : await this.cryptoImpl.hashString(components);
         }
         const accessTokenFilter: CredentialFilter = {
             clientId: credential.clientId,
@@ -771,6 +764,13 @@ export abstract class CacheManager implements ICacheManager {
             kmsi,
             additionalCacheKeyHash
         );
+    }
+
+    /** Returns the cache-key suffix for additional credential dimensions. */
+    protected async getCacheKeySuffix(
+        components: Record<string, string>
+    ): Promise<string> {
+        return this.cryptoImpl.hashString(JSON.stringify(components));
     }
 
     /**

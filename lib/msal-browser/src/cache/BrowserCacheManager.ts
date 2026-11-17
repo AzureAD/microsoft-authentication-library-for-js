@@ -738,14 +738,16 @@ export class BrowserCacheManager extends CacheManager {
             }
 
             /*
-             * Old tokens do not record the issuing request's capabilities.
-             * Retain them for older readers, but renew in the current schema.
+             * Earlier schemas did not retain the complete capability set.
+             * Keep their tokens for older readers and renew in this schema.
              */
+            const capabilitySet = StringUtils.jsonParseHelper<unknown>(
+                oldSchemaData.additionalCacheKeyComponents
+                    ?.clientCapabilities || ""
+            );
             if (
-                oldSchemaData.additionalCacheKeyComponents
-                    ?.clientCapabilities !== "true" &&
-                oldSchemaData.additionalCacheKeyComponents
-                    ?.clientCapabilities !== "false"
+                !Array.isArray(capabilitySet) ||
+                capabilitySet.some((value) => typeof value !== "string")
             ) {
                 this.performanceClient.incrementFields(
                     { skipATMigrateCount: 1 },
@@ -1612,6 +1614,31 @@ export class BrowserCacheManager extends CacheManager {
             correlationId
         );
         return parsedAccessToken as AccessTokenEntity;
+    }
+
+    /** Keeps non-browser NAA memory keys independent of cryptographic APIs. */
+    protected async getCacheKeySuffix(
+        components: Record<string, string>
+    ): Promise<string> {
+        if (
+            this.browserStorage instanceof MemoryStorage &&
+            (this.cryptoImpl === DEFAULT_CRYPTO_IMPLEMENTATION ||
+                typeof window === "undefined" ||
+                !window.crypto?.subtle ||
+                typeof TextEncoder === "undefined")
+        ) {
+            /*
+             * NAA's non-browser memory cache has no WebCrypto. Fixed-width hex
+             * preserves every component without collisions when keys are lowercased.
+             */
+            return JSON.stringify(components)
+                .split("")
+                .map((character) =>
+                    character.charCodeAt(0).toString(16).padStart(4, "0")
+                )
+                .join("");
+        }
+        return super.getCacheKeySuffix(components);
     }
 
     /**

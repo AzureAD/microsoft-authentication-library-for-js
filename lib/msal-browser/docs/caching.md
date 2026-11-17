@@ -76,9 +76,11 @@ To faciliate efficient token acquisition while maintaining a good UX, MSAL cache
 ## CAE-aware access-token caching
 
 The existing cache keeps ordinary and CP1 access tokens separately using a
-`clientCapabilities` component. It records whether the issuing request advertised
-CP1, alongside existing cache dimensions such as account, scopes and attribute
-tokens. Both families share account, ID-token and refresh-token state.
+`clientCapabilities` component. It stores the complete advertised capability set
+as a JSON array string, normalized for casing, order and duplicates. Empty,
+CP1, CP2 and combined sets remain distinct, alongside existing dimensions such
+as account, scopes and attribute tokens. All sets share account, ID-token and
+refresh-token state.
 
 For mixed callers, leave global `auth.clientCapabilities` unset and specify CP1
 on the request. Configured capabilities otherwise override the request's
@@ -109,14 +111,19 @@ claims requirements and `forceRefresh` retain their existing renewal behavior.
 When importing or hydrating tokens, supply the claims of the acquisition that
 produced them; MSAL does not inspect opaque access tokens to infer capabilities.
 
-Credential schema4 uses the existing versioned cache and migration framework.
+Credential schema5 uses the existing versioned cache and migration framework.
 Account, ID-token and refresh-token state migrate normally. Old access tokens
-without capability metadata are not copied into the new schema: today's PCA
+without complete capability metadata (including the earlier prototype's boolean
+marker) are not copied into the new schema: today's PCA
 configuration cannot establish how an earlier token was requested. MSAL renews
 as needed, which may require interaction if silent renewal fails. Older-schema
 entries remain subject to the normal expiry, retention and quota rules below.
 Rolling back lets the older SDK use its own schema, without granting that SDK
 mixed-capability isolation it did not already support.
+
+Persistent caches use the normal hashing implementation. Non-browser NAA's
+memory-only cache instead encodes the complete component map into its key, so
+it does not require WebCrypto or a fixed list of known capabilities.
 
 This changes token selection, not concurrent request ordering or revocation.
 It does not cancel earlier acquisitions or guarantee immediate cross-tab reuse

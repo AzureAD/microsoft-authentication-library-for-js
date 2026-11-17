@@ -129,7 +129,7 @@ describe("ClientCredentialClient claimsFromClient tests", () => {
                 );
             expect(cachedToken).not.toBeNull();
             expect(cachedToken!.additionalCacheKeyComponents).toEqual({
-                clientCapabilities: "false",
+                clientCapabilities: "[]",
                 client_claims: NSP_CLAIMS,
             });
         });
@@ -155,7 +155,7 @@ describe("ClientCredentialClient claimsFromClient tests", () => {
                 );
             expect(cachedToken).not.toBeNull();
             expect(cachedToken!.additionalCacheKeyComponents).toEqual({
-                clientCapabilities: "false",
+                clientCapabilities: "[]",
             });
         });
 
@@ -181,7 +181,7 @@ describe("ClientCredentialClient claimsFromClient tests", () => {
                 );
             expect(cachedToken).not.toBeNull();
             expect(cachedToken!.additionalCacheKeyComponents).toEqual({
-                clientCapabilities: "false",
+                clientCapabilities: "[]",
             });
         });
 
@@ -209,7 +209,7 @@ describe("ClientCredentialClient claimsFromClient tests", () => {
             // `{}` contributes nothing to the request body, so it must not fragment
             // the cache from an omitted claimsFromClient.
             expect(cachedToken!.additionalCacheKeyComponents).toEqual({
-                clientCapabilities: "false",
+                clientCapabilities: "[]",
             });
         });
 

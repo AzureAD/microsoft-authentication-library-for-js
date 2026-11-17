@@ -138,8 +138,8 @@ describe("ClientCredentialClient FMI tests", () => {
             expect(components).toHaveLength(2);
             expect(components).toEqual(
                 expect.arrayContaining([
-                    { fmi_path: "agent-a", clientCapabilities: "false" },
-                    { fmi_path: "agent-a", clientCapabilities: "true" },
+                    { fmi_path: "agent-a", clientCapabilities: "[]" },
+                    { fmi_path: "agent-a", clientCapabilities: '["CP1"]' },
                 ])
             );
         });
@@ -168,7 +168,7 @@ describe("ClientCredentialClient FMI tests", () => {
                 );
             expect(cachedToken).not.toBeNull();
             expect(cachedToken!.additionalCacheKeyComponents).toEqual({
-                clientCapabilities: "false",
+                clientCapabilities: "[]",
                 fmi_path: fmiPathValue,
             });
         });
@@ -194,7 +194,7 @@ describe("ClientCredentialClient FMI tests", () => {
                 );
             expect(cachedToken).not.toBeNull();
             expect(cachedToken!.additionalCacheKeyComponents).toEqual({
-                clientCapabilities: "false",
+                clientCapabilities: "[]",
             });
         });
 

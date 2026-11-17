@@ -840,6 +840,7 @@ export abstract class CacheManager implements ICacheManager {
     // (undocumented)
     abstract getAuthorityMetadataKeys(): Array<string>;
     getBaseAccountInfo(accountFilter: AccountFilter, correlationId: string): AccountInfo | null;
+    protected getCacheKeySuffix(components: Record<string, string>): Promise<string>;
     getIdToken(account: AccountInfo, correlationId: string, tokenKeys?: TokenKeys, targetRealm?: string): IdTokenEntity | null;
     abstract getIdTokenCredential(idTokenKey: string, correlationId: string): IdTokenEntity | null;
     getIdTokensByFilter(filter: CredentialFilter, correlationId: string, tokenKeys?: TokenKeys): Map<string, IdTokenEntity>;
@@ -981,6 +982,7 @@ declare namespace ClaimsUtils {
         isPlainObject,
         mergeClientCapabilities,
         deepMergeClaims,
+        getClientCapabilities,
         supportsCae,
         hasClaimsChallenge
     }
@@ -1691,6 +1693,9 @@ function getAuthorizeUrl(authority: Authority, requestParameters: Map<string, st
 
 // @public (undocumented)
 export function getClientAssertion(clientAssertion: string | ClientAssertionCallback, clientId: string, tokenEndpoint?: string, fmiPath?: string): Promise<string>;
+
+// @public
+function getClientCapabilities(claims?: string, correlationId?: string): string[];
 
 // @public
 function getDeserializedResponse(responseString: string): AuthorizeResponse | null;

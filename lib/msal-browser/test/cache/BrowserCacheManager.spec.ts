@@ -1131,63 +1131,70 @@ describe("BrowserCacheManager tests", () => {
                     );
                 });
 
-                it("retains unknown old access tokens without migrating them even with KMSI", async () => {
-                    await browserCacheManager.initialize(
-                        TEST_CONFIG.CORRELATION_ID
-                    );
+                it.each([undefined, "false", "true", "[", "[1]"])(
+                    "retains unknown old capability sets without migrating them even with KMSI: %s",
+                    async (marker) => {
+                        await browserCacheManager.initialize(
+                            TEST_CONFIG.CORRELATION_ID
+                        );
 
-                    // Setup idToken with KMSI=true
-                    const idToken = {
-                        ...TEST_ID_TOKEN_ENTITY,
-                        secret: TEST_TOKENS.IDTOKEN_V2, // Has signin_state with kmsi
-                    };
-                    await browserCacheManager.setIdTokenCredential(
-                        idToken,
-                        TEST_CONFIG.CORRELATION_ID,
-                        true
-                    );
+                        // Setup idToken with KMSI=true
+                        const idToken = {
+                            ...TEST_ID_TOKEN_ENTITY,
+                            secret: TEST_TOKENS.IDTOKEN_V2, // Has signin_state with kmsi
+                        };
+                        await browserCacheManager.setIdTokenCredential(
+                            idToken,
+                            TEST_CONFIG.CORRELATION_ID,
+                            true
+                        );
 
-                    // Create v0 access token for same account
-                    const v0AccessToken = {
-                        ...TEST_ACCESS_TOKEN_ENTITY,
-                        homeAccountId: idToken.homeAccountId,
-                    };
-                    const v0AccessTokenKey = `${v0AccessToken.homeAccountId}-${v0AccessToken.environment}-accesstoken-${v0AccessToken.clientId}-${v0AccessToken.realm}`;
-                    window.localStorage.setItem(
-                        v0AccessTokenKey,
-                        JSON.stringify(v0AccessToken)
-                    );
+                        // Create v0 access token for same account
+                        const v0AccessToken = {
+                            ...TEST_ACCESS_TOKEN_ENTITY,
+                            homeAccountId: idToken.homeAccountId,
+                            additionalCacheKeyComponents:
+                                marker === undefined
+                                    ? undefined
+                                    : { clientCapabilities: marker },
+                        };
+                        const v0AccessTokenKey = `${v0AccessToken.homeAccountId}-${v0AccessToken.environment}-accesstoken-${v0AccessToken.clientId}-${v0AccessToken.realm}`;
+                        window.localStorage.setItem(
+                            v0AccessTokenKey,
+                            JSON.stringify(v0AccessToken)
+                        );
 
-                    // Setup v0 token keys
-                    window.localStorage.setItem(
-                        `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
-                        JSON.stringify({
-                            idToken: [],
-                            accessToken: [v0AccessTokenKey],
-                            refreshToken: [],
-                        })
-                    );
+                        // Setup v0 token keys
+                        window.localStorage.setItem(
+                            `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                            JSON.stringify({
+                                idToken: [],
+                                accessToken: [v0AccessTokenKey],
+                                refreshToken: [],
+                            })
+                        );
 
-                    const performanceIncrement = jest.spyOn(
-                        performanceClient,
-                        "incrementFields"
-                    );
+                        const performanceIncrement = jest.spyOn(
+                            performanceClient,
+                            "incrementFields"
+                        );
 
-                    await browserCacheManager.migrateExistingCache(
-                        TEST_CONFIG.CORRELATION_ID
-                    );
+                        await browserCacheManager.migrateExistingCache(
+                            TEST_CONFIG.CORRELATION_ID
+                        );
 
-                    expect(
-                        browserCacheManager.getTokenKeys().accessToken
-                    ).toHaveLength(0);
-                    expect(
-                        window.localStorage.getItem(v0AccessTokenKey)
-                    ).not.toBeNull();
-                    expect(performanceIncrement).toHaveBeenCalledWith(
-                        { skipATMigrateCount: 1 },
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-                });
+                        expect(
+                            browserCacheManager.getTokenKeys().accessToken
+                        ).toHaveLength(0);
+                        expect(
+                            window.localStorage.getItem(v0AccessTokenKey)
+                        ).not.toBeNull();
+                        expect(performanceIncrement).toHaveBeenCalledWith(
+                            { skipATMigrateCount: 1 },
+                            TEST_CONFIG.CORRELATION_ID
+                        );
+                    }
+                );
 
                 it("migrates access tokens with recorded capabilities using their component hash", async () => {
                     await browserCacheManager.initialize(
@@ -1214,7 +1221,7 @@ describe("BrowserCacheManager tests", () => {
                         lastUpdatedAt: recentTimestamp,
                         target: "scope1 scope2",
                         additionalCacheKeyComponents: {
-                            clientCapabilities: "true",
+                            clientCapabilities: '["CP1"]',
                         },
                     };
                     const v0AccessTokenKey = `${v0AccessToken.homeAccountId}-${v0AccessToken.environment}-accesstoken-${v0AccessToken.clientId}-${v0AccessToken.realm}-${v0AccessToken.target}--`;
@@ -1262,7 +1269,7 @@ describe("BrowserCacheManager tests", () => {
                             TEST_CONFIG.CORRELATION_ID
                         );
                     expect(migratedToken?.additionalCacheKeyComponents).toEqual(
-                        { clientCapabilities: "true" }
+                        { clientCapabilities: '["CP1"]' }
                     );
                 });
             });

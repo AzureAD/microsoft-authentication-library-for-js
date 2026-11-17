@@ -8,10 +8,33 @@ import {
     mergeClientCapabilities,
     supportsCae,
     shouldSkipBrokerClaims,
+    getClientCapabilities,
 } from "../../src/request/ClaimsUtils.js";
 import { getAccessTokenCacheKeyComponents } from "../../src/cache/utils/CacheHelpers.js";
 
 describe("Capability claims", () => {
+    it("preserves future capabilities and normalizes order, casing and duplicates", () => {
+        const claims = JSON.stringify({
+            access_token: { xms_cc: { values: ["cp2", "CP1", "cp2"] } },
+        });
+        expect(getClientCapabilities(claims)).toEqual(["CP1", "CP2"]);
+        expect(
+            getAccessTokenCacheKeyComponents({ claims, correlationId: "test" })
+        ).toEqual({
+            clientCapabilities: '["CP1","CP2"]',
+        });
+        expect(
+            getAccessTokenCacheKeyComponents({ correlationId: "test" })
+        ).toEqual({
+            clientCapabilities: "[]",
+        });
+        expect(JSON.parse(claims).access_token.xms_cc.values).toEqual([
+            "cp2",
+            "CP1",
+            "cp2",
+        ]);
+    });
+
     it.each([
         [{ skipBrokerClaims: true, embeddedClientId: "app" }, true],
         [
@@ -128,7 +151,7 @@ describe("Capability claims", () => {
         const components = {
             fmi_path: "agent-a",
             client_claims: "client-claims",
-            clientCapabilities: "false",
+            clientCapabilities: "[]",
         };
         expect(
             getAccessTokenCacheKeyComponents(
@@ -143,9 +166,9 @@ describe("Capability claims", () => {
             attribute_tokens: "alpha zeta",
             fmi_path: "agent-a",
             client_claims: "client-claims",
-            clientCapabilities: "true",
+            clientCapabilities: '["CP1"]',
         });
-        expect(components.clientCapabilities).toBe("false");
+        expect(components.clientCapabilities).toBe("[]");
     });
 
     it.each(["secret-not-json", "null", "[]"])(

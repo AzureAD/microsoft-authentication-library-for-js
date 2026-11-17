@@ -143,8 +143,11 @@ describe("OnBehalfOfClient claimsFromClient tests", () => {
             expect(components).toHaveLength(2);
             expect(components).toEqual(
                 expect.arrayContaining([
-                    { client_claims: NSP_CLAIMS, clientCapabilities: "false" },
-                    { client_claims: NSP_CLAIMS, clientCapabilities: "true" },
+                    { client_claims: NSP_CLAIMS, clientCapabilities: "[]" },
+                    {
+                        client_claims: NSP_CLAIMS,
+                        clientCapabilities: '["CP1"]',
+                    },
                 ])
             );
         });
@@ -167,7 +170,7 @@ describe("OnBehalfOfClient claimsFromClient tests", () => {
                 );
             expect(cachedToken).not.toBeNull();
             expect(cachedToken!.additionalCacheKeyComponents).toEqual({
-                clientCapabilities: "false",
+                clientCapabilities: "[]",
                 client_claims: NSP_CLAIMS,
             });
         });
@@ -187,7 +190,7 @@ describe("OnBehalfOfClient claimsFromClient tests", () => {
                 );
             expect(cachedToken).not.toBeNull();
             expect(cachedToken!.additionalCacheKeyComponents).toEqual({
-                clientCapabilities: "false",
+                clientCapabilities: "[]",
             });
         });
 

@@ -129,22 +129,38 @@ export function deepMergeClaims(
     return merged;
 }
 
+/** Returns the advertised capability set in a stable cache representation. */
+export function getClientCapabilities(
+    claims?: string,
+    correlationId: string = ""
+): string[] {
+    const parsed = claims ? parseClaims(claims, correlationId) : {};
+    const access = parsed.access_token;
+    const capability = isPlainObject(access) ? access.xms_cc : undefined;
+    const values = isPlainObject(capability) ? capability.values : undefined;
+    if (values === undefined) {
+        return [];
+    }
+    if (
+        !Array.isArray(values) ||
+        values.some((value) => typeof value !== "string")
+    ) {
+        throw createClientConfigurationError(
+            ClientConfigurationErrorCodes.invalidClaims,
+            correlationId
+        );
+    }
+    return [
+        ...new Set(values.map((value: string) => value.toUpperCase())),
+    ].sort();
+}
+
 /** Whether the outgoing claims declare CAE support. */
 export function supportsCae(
     claims?: string,
     correlationId: string = ""
 ): boolean {
-    const parsed = claims ? parseClaims(claims, correlationId) : {};
-    const access = parsed.access_token;
-    const capability = isPlainObject(access) ? access.xms_cc : undefined;
-    const values = isPlainObject(capability) ? capability.values : undefined;
-    return (
-        Array.isArray(values) &&
-        values.some(
-            (value) =>
-                typeof value === "string" && value.toUpperCase() === "CP1"
-        )
-    );
+    return getClientCapabilities(claims, correlationId).includes("CP1");
 }
 
 /** Capability declarations alone do not request a new token. */

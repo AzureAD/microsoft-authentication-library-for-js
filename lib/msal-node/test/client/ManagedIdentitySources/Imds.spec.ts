@@ -142,7 +142,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                             ?.additionalCacheKeyComponents?.clientCapabilities
                 )
                 .sort()
-        ).toEqual(["false", "true"]);
+        ).toEqual(['["CP1"]', "[]"]);
     });
 
     describe("User Assigned", () => {
@@ -1081,7 +1081,7 @@ describe("Acquires a token successfully via an IMDS Managed Identity", () => {
                 getCacheKey(MANAGED_IDENTITY_RESOURCE_ID_2),
             ].map((key) =>
                 `${key}-${createHash("sha256")
-                    .update(JSON.stringify({ clientCapabilities: "false" }))
+                    .update(JSON.stringify({ clientCapabilities: "[]" }))
                     .digest("base64url")}`.toLowerCase()
             );
 

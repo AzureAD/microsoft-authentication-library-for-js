@@ -63,7 +63,7 @@ Note that the in-memory cache is not scalable for server-side applications and p
 
 ## CAE-aware access-token caching
 
-The cache separates tokens acquired with CP1 support from those acquired without it, alongside existing account, scope, attribute-token, FMI and client-claims dimensions. Declaring capabilities alone permits cache reuse. For mixed callers, leave global `auth.clientCapabilities` unset and supply CP1 through the capable caller's request `claims`.
+The cache separates tokens by the complete advertised capability set, alongside existing account, scope, attribute-token, FMI and client-claims dimensions. Capability names are normalized for casing, order and duplicates; empty, CP1, CP2 and combined sets remain distinct. Declaring capabilities alone permits cache reuse. For mixed callers, leave global `auth.clientCapabilities` unset and supply CP1 through the capable caller's request `claims`.
 
 OAuth tokens are classified from the effective outgoing claims, including configured capabilities and client-originated claims. Managed identity uses the capabilities sent in its `xms_cc` parameter; its `claims` input remains a refresh/revocation directive.
 

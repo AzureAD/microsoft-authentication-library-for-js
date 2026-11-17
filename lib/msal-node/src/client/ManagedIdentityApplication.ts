@@ -8,7 +8,6 @@ import {
     Authority,
     AuthorityOptions,
     ClientConfiguration,
-    DEFAULT_CRYPTO_IMPLEMENTATION,
     INetworkModule,
     Logger,
     ProtocolMode,
@@ -77,18 +76,17 @@ export class ManagedIdentityApplication {
             canonicalAuthority: Constants.DEFAULT_AUTHORITY,
         };
 
+        this.cryptoProvider = new CryptoProvider();
         if (!ManagedIdentityApplication.nodeStorage) {
             ManagedIdentityApplication.nodeStorage = new NodeStorage(
                 this.logger,
                 this.config.managedIdentityId.id,
-                DEFAULT_CRYPTO_IMPLEMENTATION,
+                this.cryptoProvider,
                 fakeStatusAuthorityOptions
             );
         }
 
         this.networkClient = this.config.system.networkClient;
-
-        this.cryptoProvider = new CryptoProvider();
 
         const fakeAuthorityOptions: AuthorityOptions = {
             protocolMode: ProtocolMode.AAD,

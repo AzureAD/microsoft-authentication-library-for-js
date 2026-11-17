@@ -105,11 +105,9 @@ describe("CacheManager.ts test cases", () => {
 
     describe("saveCacheRecord tests", () => {
         it.each([undefined, '{"access_token":{"xms_cc":{"values":["CP1"]}}}'])(
-            "stores capability-only tokens with standard keys without requiring runtime hashing: %s",
+            "hashes capability components through the configured implementation: %s",
             async (claims) => {
-                jest.spyOn(mockCrypto, "hashString").mockRejectedValue(
-                    new Error("Hashing unavailable")
-                );
+                jest.spyOn(mockCrypto, "hashString");
                 const request = {
                     claims,
                     authority: TEST_CONFIG.validAuthority,
@@ -141,7 +139,10 @@ describe("CacheManager.ts test cases", () => {
                 );
                 expect(
                     mockCache.cacheManager.getAccessTokenCredential(
-                        generateCredentialKey(token),
+                        generateCredentialKey(
+                            token,
+                            TEST_CRYPTO_VALUES.TEST_SHA256_HASH
+                        ),
                         request.correlationId
                     )?.secret
                 ).toBe("capability-token");
@@ -151,7 +152,9 @@ describe("CacheManager.ts test cases", () => {
                         request
                     )?.secret
                 ).toBe("capability-token");
-                expect(mockCrypto.hashString).not.toHaveBeenCalled();
+                expect(mockCrypto.hashString).toHaveBeenCalledWith(
+                    JSON.stringify(token.additionalCacheKeyComponents)
+                );
             }
         );
 
@@ -2740,7 +2743,7 @@ describe("CacheManager.ts test cases", () => {
                     AuthenticationScheme.BEARER,
                     TEST_TOKENS.ACCESS_TOKEN,
                     undefined,
-                    { clientCapabilities: "false" }
+                    { clientCapabilities: "[]" }
                 );
 
             const mockedAtEntity2: AccessTokenEntity =
@@ -2759,7 +2762,7 @@ describe("CacheManager.ts test cases", () => {
                     AuthenticationScheme.BEARER,
                     TEST_TOKENS.ACCESS_TOKEN,
                     undefined,
-                    { clientCapabilities: "false" }
+                    { clientCapabilities: "[]" }
                 );
 
             const accountData = {
@@ -2841,7 +2844,7 @@ describe("CacheManager.ts test cases", () => {
                 AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN,
                 undefined,
-                { clientCapabilities: "false" }
+                { clientCapabilities: "[]" }
             );
 
         const mockedPopAtEntity: AccessTokenEntity =
@@ -2860,7 +2863,7 @@ describe("CacheManager.ts test cases", () => {
                 AuthenticationScheme.POP,
                 TEST_TOKENS.ACCESS_TOKEN,
                 undefined,
-                { clientCapabilities: "false" }
+                { clientCapabilities: "[]" }
             );
 
         const mockedSshAtEntity: AccessTokenEntity =
@@ -2879,7 +2882,7 @@ describe("CacheManager.ts test cases", () => {
                 AuthenticationScheme.SSH,
                 undefined,
                 TEST_SSH_VALUES.SSH_KID,
-                { clientCapabilities: "false" }
+                { clientCapabilities: "[]" }
             );
 
         const accountData = {
@@ -2956,7 +2959,7 @@ describe("CacheManager.ts test cases", () => {
                 AuthenticationScheme.BEARER.toLowerCase(),
                 TEST_TOKENS.ACCESS_TOKEN,
                 undefined,
-                { clientCapabilities: "false" }
+                { clientCapabilities: "[]" }
             );
 
         const accountData = {
@@ -3023,7 +3026,7 @@ describe("CacheManager.ts test cases", () => {
                 AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN,
                 undefined,
-                { clientCapabilities: "false" }
+                { clientCapabilities: "[]" }
             );
 
         const mockedPopAtEntity: AccessTokenEntity =
@@ -3042,7 +3045,7 @@ describe("CacheManager.ts test cases", () => {
                 AuthenticationScheme.POP,
                 TEST_TOKENS.ACCESS_TOKEN,
                 undefined,
-                { clientCapabilities: "false" }
+                { clientCapabilities: "[]" }
             );
 
         const mockedSshAtEntity: AccessTokenEntity =
@@ -3061,7 +3064,7 @@ describe("CacheManager.ts test cases", () => {
                 AuthenticationScheme.SSH,
                 undefined,
                 TEST_SSH_VALUES.SSH_KID,
-                { clientCapabilities: "false" }
+                { clientCapabilities: "[]" }
             );
 
         const accountData = {
@@ -3138,7 +3141,7 @@ describe("CacheManager.ts test cases", () => {
                 AuthenticationScheme.BEARER,
                 undefined,
                 undefined,
-                { clientCapabilities: "false" }
+                { clientCapabilities: "[]" }
             );
 
         const mockedPopAtEntity: AccessTokenEntity =
@@ -3157,7 +3160,7 @@ describe("CacheManager.ts test cases", () => {
                 AuthenticationScheme.POP,
                 undefined,
                 TEST_POP_VALUES.KID,
-                { clientCapabilities: "false" }
+                { clientCapabilities: "[]" }
             );
 
         const mockedSshAtEntity: AccessTokenEntity =
@@ -3176,7 +3179,7 @@ describe("CacheManager.ts test cases", () => {
                 AuthenticationScheme.SSH,
                 undefined,
                 TEST_SSH_VALUES.SSH_KID,
-                { clientCapabilities: "false" }
+                { clientCapabilities: "[]" }
             );
 
         const accountData = {
@@ -3253,7 +3256,7 @@ describe("CacheManager.ts test cases", () => {
             AuthenticationScheme.BEARER,
             undefined,
             undefined,
-            { clientCapabilities: "false" }
+            { clientCapabilities: "[]" }
         );
         const mockedPopAtEntity = CacheHelpers.createAccessTokenEntity(
             "uid.utid",
@@ -3270,7 +3273,7 @@ describe("CacheManager.ts test cases", () => {
             AuthenticationScheme.POP,
             TEST_TOKENS.ACCESS_TOKEN,
             undefined,
-            { clientCapabilities: "false" }
+            { clientCapabilities: "[]" }
         );
         const mockedDpopAtEntity = CacheHelpers.createAccessTokenEntity(
             "uid.utid",
@@ -3287,7 +3290,7 @@ describe("CacheManager.ts test cases", () => {
             DPOP_AUTHENTICATION_SCHEME,
             undefined,
             TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
-            { clientCapabilities: "false" }
+            { clientCapabilities: "[]" }
         );
 
         const accountData = {
@@ -3396,7 +3399,7 @@ describe("CacheManager.ts test cases", () => {
                 AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN,
                 undefined,
-                { clientCapabilities: "false" }
+                { clientCapabilities: "[]" }
             );
 
         const partitionedAtEntity: AccessTokenEntity =
@@ -3415,10 +3418,10 @@ describe("CacheManager.ts test cases", () => {
                 AuthenticationScheme.BEARER,
                 TEST_TOKENS.ACCESS_TOKEN,
                 undefined,
-                { clientCapabilities: "false" }
+                { clientCapabilities: "[]" }
             );
         partitionedAtEntity.additionalCacheKeyComponents = {
-            clientCapabilities: "false",
+            clientCapabilities: "[]",
             attribute_tokens: "alpha zeta",
         };
 
@@ -3570,7 +3573,7 @@ describe("CacheManager.ts test cases", () => {
             DPOP_AUTHENTICATION_SCHEME,
             undefined,
             TEST_DPOP_VALUES.ACCESS_TOKEN_JKT,
-            { clientCapabilities: "false" }
+            { clientCapabilities: "[]" }
         );
         const mockedAccount: AccountEntity = CacheManager.toObject(
             {} as AccountEntity,

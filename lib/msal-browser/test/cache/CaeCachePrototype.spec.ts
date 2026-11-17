@@ -144,10 +144,43 @@ describe("Ordinary/CP1 token partitioning", () => {
                 .accessToken
         ).toBe("cp1");
         expect(post).toHaveBeenCalledTimes(2);
-        expect(cache.getTokenKeys(4).accessToken).toHaveLength(2);
+        expect(cache.getTokenKeys().accessToken).toHaveLength(2);
         await reload.clearCache();
         expect(cache.getTokenKeys().accessToken).toHaveLength(0);
         expect(cache.getTokenKeys().refreshToken).toHaveLength(0);
+    });
+
+    it("keeps complete capability sets separate and reuses equivalent sets", async () => {
+        const post = jest.spyOn(FetchClient.prototype, "sendPostRequestAsync");
+        const { pca, cache } = await application();
+        const sets = [[], ["CP1"], ["CP2"], ["CP1", "CP2"]];
+        for (const [index, values] of sets.entries()) {
+            post.mockResolvedValueOnce(response(`token-${index}`));
+            const claims = JSON.stringify({
+                access_token: { xms_cc: { values } },
+            });
+            expect(
+                (await pca.acquireTokenSilent({ ...request, claims }))
+                    .accessToken
+            ).toBe(`token-${index}`);
+        }
+        for (const [index, values] of sets.entries()) {
+            const claims = JSON.stringify({
+                access_token: {
+                    xms_cc: {
+                        values: [...values, ...values]
+                            .reverse()
+                            .map((value) => value.toLowerCase()),
+                    },
+                },
+            });
+            expect(
+                (await pca.acquireTokenSilent({ ...request, claims }))
+                    .accessToken
+            ).toBe(`token-${index}`);
+        }
+        expect(post).toHaveBeenCalledTimes(4);
+        expect(cache.getTokenKeys().accessToken).toHaveLength(4);
     });
 
     it.each([{ capabilities: ["CP1"] }, { capabilities: ["CP1", "CP2"] }])(

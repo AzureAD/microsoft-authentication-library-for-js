@@ -248,12 +248,12 @@ describe.each([
             expect(ordinary.accessToken).toBe("ordinary-ear");
             expect(cae.accessToken).toBe("recovery-ear");
             expect(ordinary.fromCache && cae.fromCache).toBe(true);
-            expect(cache.getTokenKeys(4).accessToken).toHaveLength(2);
+            expect(cache.getTokenKeys().accessToken).toHaveLength(2);
             expect(cache.getTokenKeys(3).accessToken).toHaveLength(0);
-            expect(cache.getTokenKeys(4).refreshToken).toHaveLength(1);
+            expect(cache.getTokenKeys().refreshToken).toHaveLength(1);
             expect(
                 cache
-                    .getTokenKeys(4)
+                    .getTokenKeys()
                     .accessToken.map(
                         (key) =>
                             cache.getAccessTokenCredential(
@@ -263,8 +263,8 @@ describe.each([
                     )
             ).toEqual(
                 expect.arrayContaining([
-                    { clientCapabilities: "false" },
-                    { clientCapabilities: "true" },
+                    { clientCapabilities: "[]" },
+                    { clientCapabilities: '["CP1"]' },
                 ])
             );
         }

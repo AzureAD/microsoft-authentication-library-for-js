@@ -12,7 +12,7 @@ import {
     createClientAuthError,
 } from "../../error/ClientAuthError.js";
 import { BaseAuthRequest } from "../../request/BaseAuthRequest.js";
-import { supportsCae } from "../../request/ClaimsUtils.js";
+import { getClientCapabilities } from "../../request/ClaimsUtils.js";
 import * as Constants from "../../utils/Constants.js";
 import * as TimeUtils from "../../utils/TimeUtils.js";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity.js";
@@ -432,8 +432,8 @@ export function getAccessTokenCacheKeyComponents(
     return {
         ...(attributeTokens ? { attribute_tokens: attributeTokens } : {}),
         ...additionalCacheKeyComponents,
-        clientCapabilities: String(
-            supportsCae(request.claims, request.correlationId)
+        clientCapabilities: JSON.stringify(
+            getClientCapabilities(request.claims, request.correlationId)
         ),
     };
 }

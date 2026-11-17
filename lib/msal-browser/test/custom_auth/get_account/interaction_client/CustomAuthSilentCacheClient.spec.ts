@@ -450,7 +450,7 @@ function createAccessTokenEntity(browserCrypto: ICrypto): AccessTokenEntity {
         TestServerTokenResponse.token_type as Constants.AuthenticationScheme,
         undefined,
         undefined,
-        { clientCapabilities: "false" }
+        { clientCapabilities: "[]" }
     );
 }
 
