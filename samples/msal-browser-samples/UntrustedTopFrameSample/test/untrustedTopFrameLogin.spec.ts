@@ -31,14 +31,76 @@ type RelayRequest =
     | { method: "GET"; url: string }
     | { method: "POST"; action: string; fields: Record<string, string> };
 
-async function getRelayRequest(relay: Page): Promise<RelayRequest> {
-    const raw = await relay.evaluate(() =>
-        new URLSearchParams(window.location.hash.slice(1)).get("req")
+async function startRelay(
+    relay: Page,
+    protocolVersion: 1 | 2
+): Promise<RelayRequest> {
+    expect(new URL(relay.url()).pathname).toBe(
+        protocolVersion === 2 ? "/relay-v2" : "/relay"
     );
-    if (!raw) {
-        throw new Error("The relay did not receive a request");
+    await relay.waitForFunction(
+        () => document.getElementById("status")?.textContent === "Ready."
+    );
+    const parameters = new URL(relay.url()).hash.slice(1);
+    const hash = new URLSearchParams(parameters);
+    if (protocolVersion === 1) {
+        expect([...hash.keys()]).toEqual(["req"]);
+        const request: RelayRequest = JSON.parse(hash.get("req") || "");
+        await relay.click("#continue");
+        return request;
     }
-    return JSON.parse(raw);
+
+    expect([...hash.keys()]).toEqual(["id"]);
+    const id = hash.get("id");
+    expect(id).toBeTruthy();
+    const capture = await relay.evaluateHandle(() => {
+        const state = {
+            request: null as {
+                id: string;
+                nonce: string;
+                request: RelayRequest & { id: string };
+                origin: string;
+                fromOpener: boolean;
+            } | null,
+        };
+        window.addEventListener("message", function onRequest(event) {
+            if (event.data?.type !== "msal:popup-relay-request:v2") {
+                return;
+            }
+            window.removeEventListener("message", onRequest);
+            state.request = {
+                id: event.data.id,
+                nonce: event.data.nonce,
+                request: event.data.request,
+                origin: event.origin,
+                fromOpener: event.source === window.opener,
+            };
+        });
+        return state;
+    });
+    try {
+        expect(await capture.evaluate((state) => state.request)).toBeNull();
+        await relay.click("#continue");
+        const received = await relay.waitForFunction(
+            (state) => state.request,
+            {},
+            capture
+        );
+        const handoff = await received.jsonValue();
+        await received.dispose();
+        if (!handoff) {
+            throw new Error("The v2 relay did not receive a request");
+        }
+        expect(handoff.origin).toBe(APP_ORIGIN);
+        expect(handoff.fromOpener).toBe(true);
+        expect(handoff.id).toBe(id);
+        expect(handoff.request.id).toBe(id);
+        expect(handoff.nonce).toEqual(expect.any(String));
+        expect(handoff.nonce).not.toBe("");
+        return handoff.request;
+    } finally {
+        await capture.dispose();
+    }
 }
 
 /**
@@ -104,7 +166,8 @@ async function signInViaRelay(
     frame: Frame,
     username: string,
     accountPwd: string,
-    screenshot: Screenshot
+    screenshot: Screenshot,
+    protocolVersion: 1 | 2
 ): Promise<{ relayedMethod: string; routingSlice: string | null }> {
     const relayPromise = waitForPage(context, "/relay");
     const signInButton = await frame.waitForSelector("#signIn:not([disabled])");
@@ -113,9 +176,8 @@ async function signInViaRelay(
     await relay.bringToFront();
     await screenshot.takeScreenshot(relay, "Relay popup opened");
 
-    // Capture the relayed /authorize request shape before runPopupRelay scrubs
-    // it from the relay page's hash on Continue.
-    const request = await getRelayRequest(relay);
+    const idpPromise = waitForPage(context, "login.microsoftonline.com");
+    const request = await startRelay(relay, protocolVersion);
     const relayedMethod = request.method;
     const parameters = new URL(
         request.method === "GET" ? request.url : request.action
@@ -127,9 +189,6 @@ async function signInViaRelay(
     }
     expect(parameters.getAll("pocd")).toEqual(["1"]);
 
-    const idpPromise = waitForPage(context, "login.microsoftonline.com");
-    const continueButton = await relay.waitForSelector("#continue");
-    await continueButton?.click();
     const idp = await idpPromise;
 
     await enterCredentials(idp, screenshot, username, accountPwd);
@@ -146,294 +205,350 @@ async function signInViaRelay(
     return { relayedMethod, routingSlice: parameters.get("dc") };
 }
 
-describe("Untrusted Top Frame Sample", () => {
-    jest.retryTimes(1);
-    let browser: Browser;
-    let context: BrowserContext;
-    let page: Page;
-    let username: string;
-    let accountPwd: string;
+describe.each([1, 2] as const)(
+    "Untrusted Top Frame Sample (relay v%i)",
+    (protocolVersion) => {
+        jest.retryTimes(1);
+        let browser: Browser;
+        let context: BrowserContext;
+        let page: Page;
+        let username: string;
+        let accountPwd: string;
 
-    beforeAll(async () => {
-        // @ts-ignore
-        browser = await puppeteer.launch({
-            ignoreDefaultArgs: ["--no-sandbox", "--disable-setuid-sandbox"],
-            acceptInsecureCerts: true, // accept the self-signed localhost cert
+        beforeAll(async () => {
+            // @ts-ignore
+            browser = await puppeteer.launch({
+                ignoreDefaultArgs: ["--no-sandbox", "--disable-setuid-sandbox"],
+                acceptInsecureCerts: true, // accept the self-signed localhost cert
+            });
         });
 
-        const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD,
-        };
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(
-            labApiParams
-        );
-        [username, accountPwd] = await setupCredentials(
-            envResponse[0],
-            labClient
-        );
-    });
-
-    beforeEach(async () => {
-        jest.setTimeout(90000);
-        context = await browser.createBrowserContext();
-        page = await context.newPage();
-        page.setDefaultTimeout(10000);
-    });
-
-    afterEach(async () => {
-        await page.close();
-        await context.close();
-    });
-
-    afterAll(async () => {
-        await browser.close();
-    });
-
-    it("serves the redirect bridge without caching", async () => {
-        const response = await page.goto(`${APP_ORIGIN}/redirect`);
-        expect(response?.headers()["cache-control"]).toBe("no-store");
-    });
-
-    it("keeps sign-in disabled until the app initializes", async () => {
-        await page.setJavaScriptEnabled(false);
-        await page.goto(APP_ORIGIN);
-        expect(
-            await page.$eval("#signIn", (button) =>
-                button.hasAttribute("disabled")
-            )
-        ).toBe(true);
-        await page.setJavaScriptEnabled(true);
-        await page.reload();
-        await page.waitForSelector("#signIn:not([disabled])");
-    });
-
-    it("partitions BroadcastChannel between the embedded and top-level app", async () => {
-        await page.goto(HOST_ORIGIN);
-        const frame = await getEmbeddedFrame(page);
-        await frame.waitForSelector("#signIn:not([disabled])");
-        expect(
-            await page.$eval("#embedded-iframe", (iframe) =>
-                iframe.getAttribute("title")
-            )
-        ).toBe("Trusted authentication app");
-        expect(new URL(page.url()).hostname).toBe("127.0.0.1");
-        expect(new URL(frame.url()).hostname).toBe("localhost");
-        const name = `relay-partition-${Date.now()}`;
-        const probe = await frame.evaluateHandle((channelName) => {
-            const state = {
-                channel: new BroadcastChannel(channelName),
-                received: false,
-            };
-            state.channel.onmessage = () => {
-                state.received = true;
-            };
-            return state;
-        }, name);
-        const topLevel = await context.newPage();
-        try {
-            await topLevel.goto(APP_ORIGIN);
-            // A same-partition control must receive the message; the embedded
-            // app with the same origin but a different top-level site must not.
-            await topLevel.evaluate(
-                (channelName) =>
-                    new Promise<void>((resolve, reject) => {
-                        const receiver = new BroadcastChannel(channelName);
-                        const sender = new BroadcastChannel(channelName);
-                        const timeout = setTimeout(() => {
-                            receiver.close();
-                            sender.close();
-                            reject(
-                                new Error(
-                                    "BroadcastChannel control did not receive the message"
-                                )
-                            );
-                        }, 5000);
-                        receiver.onmessage = () => {
-                            clearTimeout(timeout);
-                            receiver.close();
-                            sender.close();
-                            resolve();
-                        };
-                        sender.postMessage("partition-probe");
-                    }),
-                name
-            );
-            await frame.evaluate(
-                () => new Promise((resolve) => setTimeout(resolve, 500))
-            );
-            expect(await probe.evaluate((state) => state.received)).toBe(false);
-        } finally {
-            await probe.evaluate((state) => state.channel.close());
-            await probe.dispose();
-            await topLevel.close();
+        function hostUrl(query = ""): string {
+            return `${HOST_ORIGIN}/?relayVersion=${protocolVersion}&${query}`;
         }
-    });
 
-    // Each variant drives a different /authorize request shape through the same
-    // relay: a GET navigation vs a POST form. The relay, redirect bridge, and
-    // redirect page are method-agnostic.
-    it.each([
-        ["GET", "httpMethod=GET", "GET"],
-        ["POST", "httpMethod=POST", "POST"],
-        // ["EAR", "ear=true", "POST"],
-    ])(
-        "signs in and preserves the request configuration on interactive fallback (%s)",
-        async (label, query, expectedMethod) => {
-            const screenshot = new Screenshot(
-                `${SCREENSHOT_BASE_FOLDER_NAME}/signIn-${label}`
-            );
+        beforeEach(async () => {
+            jest.setTimeout(90000);
+            context = await browser.createBrowserContext();
+            page = await context.newPage();
+            page.setDefaultTimeout(10000);
+        });
 
-            await page.goto(`${HOST_ORIGIN}/?${query}`);
-            await screenshot.takeScreenshot(page, "Host page loaded");
+        afterEach(async () => {
+            await page.close();
+            await context.close();
+        });
 
-            const frame = await getEmbeddedFrame(page);
-            await frame.waitForSelector("#not-authenticated");
+        afterAll(async () => {
+            await browser.close();
+        });
 
-            const { relayedMethod, routingSlice } = await signInViaRelay(
-                page,
-                context,
-                frame,
-                username,
-                accountPwd,
-                screenshot
-            );
-            expect(relayedMethod).toEqual(expectedMethod);
+        it("serves the redirect bridge without caching", async () => {
+            const response = await page.goto(`${APP_ORIGIN}/redirect`);
+            expect(response?.headers()["cache-control"]).toBe("no-store");
+        });
 
-            const displayed = await frame.$eval(
-                "#username-display",
-                (el) => el.textContent
-            );
-            expect(displayed).toContain(username);
-            await screenshot.takeScreenshot(page, "Embedded app signed in");
-
-            await frame.evaluate(() => {
-                const acquireTokenSilent = window.pca.acquireTokenSilent.bind(
-                    window.pca
-                );
-                window.pca.acquireTokenSilent = (request) =>
-                    acquireTokenSilent({ ...request, forceRefresh: true });
-                const fetch = window.fetch.bind(window);
-                window.fetch = async (input, init) => {
-                    const url = new URL(
-                        input instanceof Request ? input.url : String(input)
-                    );
-                    const body = new URLSearchParams(
-                        typeof init?.body === "string" ? init.body : ""
-                    );
-                    if (
-                        url.pathname.endsWith("/token") &&
-                        body.get("grant_type") === "refresh_token"
-                    ) {
-                        return new Response(
-                            JSON.stringify({
-                                error: "interaction_required",
-                                error_description:
-                                    "Interactive sign-in required",
-                            }),
-                            {
-                                status: 400,
-                                headers: { "Content-Type": "application/json" },
-                            }
-                        );
-                    }
-                    return fetch(input, init);
-                };
-            });
-            const fallbackPromise = waitForPage(context, "/relay");
-            await frame.click("#acquireTokenSilent");
-            const fallback = await fallbackPromise;
-            const fallbackRequest = await getRelayRequest(fallback);
-            expect(fallbackRequest.method).toBe(expectedMethod);
-            expect(routingSlice).toBeTruthy();
+        it("keeps sign-in disabled until the app initializes", async () => {
+            await page.setJavaScriptEnabled(false);
+            await page.goto(`${APP_ORIGIN}/?relayVersion=${protocolVersion}`);
             expect(
-                new URL(
-                    fallbackRequest.method === "GET"
-                        ? fallbackRequest.url
-                        : fallbackRequest.action
-                ).searchParams.get("dc")
-            ).toBe(routingSlice);
-            await fallback.close();
-        }
-    );
-
-    it("acquires a token silently after relay sign-in", async () => {
-        const screenshot = new Screenshot(
-            `${SCREENSHOT_BASE_FOLDER_NAME}/silentToken`
-        );
-
-        await page.goto(HOST_ORIGIN);
-        const frame = await getEmbeddedFrame(page);
-        await frame.waitForSelector("#not-authenticated");
-
-        await signInViaRelay(
-            page,
-            context,
-            frame,
-            username,
-            accountPwd,
-            screenshot
-        );
-
-        // Silent acquisition reads from MSAL's native cache — no relay popup.
-        const silentButton = await frame.waitForSelector("#acquireTokenSilent");
-        await silentButton?.click();
-        await frame.waitForSelector("#token-info", { visible: true });
-        const json = await frame.$eval(
-            "#token-response",
-            (el) => el.textContent || ""
-        );
-        expect(JSON.parse(json).fromCache).toBe(true);
-        await screenshot.takeScreenshot(page, "Silent token acquired");
-    });
-
-    it("relays logout from a cross-site iframe and clears accounts and tokens", async () => {
-        const screenshot = new Screenshot(
-            `${SCREENSHOT_BASE_FOLDER_NAME}/logout`
-        );
-        await page.goto(HOST_ORIGIN);
-        const frame = await getEmbeddedFrame(page);
-        await signInViaRelay(
-            page,
-            context,
-            frame,
-            username,
-            accountPwd,
-            screenshot
-        );
-        expect(
-            await frame.evaluate(() => window.pca.getAllAccounts().length)
-        ).toBe(1);
-
-        const relayPromise = waitForPage(context, "/relay");
-        await frame.click("#signOut");
-        const relay = await relayPromise;
-        const request = await getRelayRequest(relay);
-        expect(request.method).toBe("GET");
-        if (request.method !== "GET") {
-            throw new Error("Logout must carry an end-session URL");
-        }
-        const logout = new URL(request.url);
-        expect(logout.pathname).toMatch(/\/logout$/);
-        expect(logout.searchParams.getAll("pocd")).toEqual(["1"]);
-        expect(logout.searchParams.get("post_logout_redirect_uri")).toBe(
-            `${APP_ORIGIN}/redirect`
-        );
-        await relay.click("#continue");
-        await frame.waitForSelector("#not-authenticated", { visible: true });
-        expect(
-            await frame.$eval("#status-text", (element) => element.textContent)
-        ).toBe("Signed out.");
-        expect(await frame.evaluate(() => window.pca.getAllAccounts())).toEqual(
-            []
-        );
-        expect(
-            await frame.evaluate(() =>
-                Object.keys(localStorage).filter((key) =>
-                    /idtoken|accesstoken|refreshtoken/.test(key)
+                await page.$eval("#signIn", (button) =>
+                    button.hasAttribute("disabled")
                 )
-            )
-        ).toEqual([]);
-    });
-});
+            ).toBe(true);
+            await page.setJavaScriptEnabled(true);
+            await page.reload();
+            await page.waitForSelector("#signIn:not([disabled])");
+        });
+
+        it("partitions BroadcastChannel between the embedded and top-level app", async () => {
+            await page.goto(hostUrl());
+            const frame = await getEmbeddedFrame(page);
+            await frame.waitForSelector("#signIn:not([disabled])");
+            expect(
+                await page.$eval("#embedded-iframe", (iframe) =>
+                    iframe.getAttribute("title")
+                )
+            ).toBe("Trusted authentication app");
+            expect(new URL(page.url()).hostname).toBe("127.0.0.1");
+            expect(new URL(frame.url()).hostname).toBe("localhost");
+            const name = `relay-partition-${Date.now()}`;
+            const probe = await frame.evaluateHandle((channelName) => {
+                const state = {
+                    channel: new BroadcastChannel(channelName),
+                    received: false,
+                };
+                state.channel.onmessage = () => {
+                    state.received = true;
+                };
+                return state;
+            }, name);
+            const topLevel = await context.newPage();
+            try {
+                await topLevel.goto(APP_ORIGIN);
+                // A same-partition control must receive the message; the embedded
+                // app with the same origin but a different top-level site must not.
+                await topLevel.evaluate(
+                    (channelName) =>
+                        new Promise<void>((resolve, reject) => {
+                            const receiver = new BroadcastChannel(channelName);
+                            const sender = new BroadcastChannel(channelName);
+                            const timeout = setTimeout(() => {
+                                receiver.close();
+                                sender.close();
+                                reject(
+                                    new Error(
+                                        "BroadcastChannel control did not receive the message"
+                                    )
+                                );
+                            }, 5000);
+                            receiver.onmessage = () => {
+                                clearTimeout(timeout);
+                                receiver.close();
+                                sender.close();
+                                resolve();
+                            };
+                            sender.postMessage("partition-probe");
+                        }),
+                    name
+                );
+                await frame.evaluate(
+                    () => new Promise((resolve) => setTimeout(resolve, 500))
+                );
+                expect(await probe.evaluate((state) => state.received)).toBe(
+                    false
+                );
+            } finally {
+                await probe.evaluate((state) => state.channel.close());
+                await probe.dispose();
+                await topLevel.close();
+            }
+        });
+
+        it("selects the matching relay endpoint and protocol", async () => {
+            await page.goto(hostUrl());
+            const frame = await getEmbeddedFrame(page);
+            await frame.waitForSelector("#signIn:not([disabled])");
+            const auth = await frame.evaluate(
+                () => window.pca.getConfiguration().auth
+            );
+            const relayPath = protocolVersion === 2 ? "/relay-v2" : "/relay";
+            expect(auth.popupRelayUri).toBe(relayPath);
+            expect(auth.popupRelayProtocolVersion).toBe(protocolVersion);
+            const response = await page.goto(`${APP_ORIGIN}${relayPath}`);
+            expect(response?.status()).toBe(200);
+            await page.waitForFunction(
+                () =>
+                    document.getElementById("status")?.textContent === "Ready."
+            );
+            await page.waitForSelector("#continue:not([disabled])");
+        });
+
+        describe("authenticated flows", () => {
+            beforeAll(async () => {
+                const labApiParams: LabApiQueryParams = {
+                    azureEnvironment: AzureEnvironments.CLOUD,
+                    appType: AppTypes.CLOUD,
+                };
+                const labClient = new LabClient();
+                const envResponse = await labClient.getVarsByCloudEnvironment(
+                    labApiParams
+                );
+                [username, accountPwd] = await setupCredentials(
+                    envResponse[0],
+                    labClient
+                );
+            });
+
+            // Each variant drives a different /authorize request shape through the same
+            // relay: a GET navigation vs a POST form. The relay, redirect bridge, and
+            // redirect page are method-agnostic.
+            it.each([
+                ["GET", "httpMethod=GET", "GET"],
+                ["POST", "httpMethod=POST", "POST"],
+                // ["EAR", "ear=true", "POST"],
+            ])(
+                "signs in and preserves the request configuration on interactive fallback (%s)",
+                async (label, query, expectedMethod) => {
+                    const screenshot = new Screenshot(
+                        `${SCREENSHOT_BASE_FOLDER_NAME}/v${protocolVersion}/signIn-${label}`
+                    );
+
+                    await page.goto(hostUrl(query));
+                    await screenshot.takeScreenshot(page, "Host page loaded");
+
+                    const frame = await getEmbeddedFrame(page);
+                    await frame.waitForSelector("#not-authenticated");
+
+                    const { relayedMethod, routingSlice } =
+                        await signInViaRelay(
+                            page,
+                            context,
+                            frame,
+                            username,
+                            accountPwd,
+                            screenshot,
+                            protocolVersion
+                        );
+                    expect(relayedMethod).toEqual(expectedMethod);
+
+                    const displayed = await frame.$eval(
+                        "#username-display",
+                        (el) => el.textContent
+                    );
+                    expect(displayed).toContain(username);
+                    await screenshot.takeScreenshot(
+                        page,
+                        "Embedded app signed in"
+                    );
+
+                    await frame.evaluate(() => {
+                        const acquireTokenSilent =
+                            window.pca.acquireTokenSilent.bind(window.pca);
+                        window.pca.acquireTokenSilent = (request) =>
+                            acquireTokenSilent({
+                                ...request,
+                                forceRefresh: true,
+                            });
+                        const fetch = window.fetch.bind(window);
+                        window.fetch = async (input, init) => {
+                            const url = new URL(
+                                input instanceof Request
+                                    ? input.url
+                                    : String(input)
+                            );
+                            const body = new URLSearchParams(
+                                typeof init?.body === "string" ? init.body : ""
+                            );
+                            if (
+                                url.pathname.endsWith("/token") &&
+                                body.get("grant_type") === "refresh_token"
+                            ) {
+                                return new Response(
+                                    JSON.stringify({
+                                        error: "interaction_required",
+                                        error_description:
+                                            "Interactive sign-in required",
+                                    }),
+                                    {
+                                        status: 400,
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                        },
+                                    }
+                                );
+                            }
+                            return fetch(input, init);
+                        };
+                    });
+                    const fallbackPromise = waitForPage(context, "/relay");
+                    await frame.click("#acquireTokenSilent");
+                    const fallback = await fallbackPromise;
+                    const fallbackRequest = await startRelay(
+                        fallback,
+                        protocolVersion
+                    );
+                    expect(fallbackRequest.method).toBe(expectedMethod);
+                    expect(routingSlice).toBeTruthy();
+                    expect(
+                        new URL(
+                            fallbackRequest.method === "GET"
+                                ? fallbackRequest.url
+                                : fallbackRequest.action
+                        ).searchParams.get("dc")
+                    ).toBe(routingSlice);
+                    await fallback.close();
+                }
+            );
+
+            it("acquires a token silently after relay sign-in", async () => {
+                const screenshot = new Screenshot(
+                    `${SCREENSHOT_BASE_FOLDER_NAME}/v${protocolVersion}/silentToken`
+                );
+
+                await page.goto(hostUrl());
+                const frame = await getEmbeddedFrame(page);
+                await frame.waitForSelector("#not-authenticated");
+
+                await signInViaRelay(
+                    page,
+                    context,
+                    frame,
+                    username,
+                    accountPwd,
+                    screenshot,
+                    protocolVersion
+                );
+
+                // Silent acquisition reads from MSAL's native cache — no relay popup.
+                const silentButton = await frame.waitForSelector(
+                    "#acquireTokenSilent"
+                );
+                await silentButton?.click();
+                await frame.waitForSelector("#token-info", { visible: true });
+                const json = await frame.$eval(
+                    "#token-response",
+                    (el) => el.textContent || ""
+                );
+                expect(JSON.parse(json).fromCache).toBe(true);
+                await screenshot.takeScreenshot(page, "Silent token acquired");
+            });
+
+            it("relays logout from a cross-site iframe and clears accounts and tokens", async () => {
+                const screenshot = new Screenshot(
+                    `${SCREENSHOT_BASE_FOLDER_NAME}/v${protocolVersion}/logout`
+                );
+                await page.goto(hostUrl());
+                const frame = await getEmbeddedFrame(page);
+                await signInViaRelay(
+                    page,
+                    context,
+                    frame,
+                    username,
+                    accountPwd,
+                    screenshot,
+                    protocolVersion
+                );
+                expect(
+                    await frame.evaluate(
+                        () => window.pca.getAllAccounts().length
+                    )
+                ).toBe(1);
+
+                const relayPromise = waitForPage(context, "/relay");
+                await frame.click("#signOut");
+                const relay = await relayPromise;
+                const request = await startRelay(relay, protocolVersion);
+                expect(request.method).toBe("GET");
+                if (request.method !== "GET") {
+                    throw new Error("Logout must carry an end-session URL");
+                }
+                const logout = new URL(request.url);
+                expect(logout.pathname).toMatch(/\/logout$/);
+                expect(logout.searchParams.getAll("pocd")).toEqual(["1"]);
+                expect(
+                    logout.searchParams.get("post_logout_redirect_uri")
+                ).toBe(`${APP_ORIGIN}/redirect`);
+                await frame.waitForSelector("#not-authenticated", {
+                    visible: true,
+                });
+                expect(
+                    await frame.$eval(
+                        "#status-text",
+                        (element) => element.textContent
+                    )
+                ).toBe("Signed out.");
+                expect(
+                    await frame.evaluate(() => window.pca.getAllAccounts())
+                ).toEqual([]);
+                expect(
+                    await frame.evaluate(() =>
+                        Object.keys(localStorage).filter((key) =>
+                            /idtoken|accesstoken|refreshtoken/.test(key)
+                        )
+                    )
+                ).toEqual([]);
+            });
+        });
+    }
+);
