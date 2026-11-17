@@ -2500,6 +2500,7 @@ export type PerformanceEvent = {
     isRedirectUriCrossOrigin?: boolean;
     redirectBridgeMessageVersion?: number;
     lateResponseExperimentEnabled?: boolean;
+    popupRelayProtocolVersion?: number;
     fetchRetryCount?: number;
     idTokenSize?: number;
     accessTokenSize?: number;

@@ -20,7 +20,7 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 **Mitigation**:
 
-1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](./caching.md#cached-artifacts).
+1. Make sure the configured cache storage has enough capacity to allow MSAL.js to persist token payload. The amount of cache storage required depends on the number of [cached artifacts](../lib/msal-browser/docs/caching.md#cached-artifacts).
 
 ### `cache_error_unknown`
 
@@ -678,13 +678,20 @@ const promise2 = msalInstance.acquireTokenPopup(request2);
 
 ### `popup_relay_unsupported_flow`
 
+Popup relay v1 is deprecated due to security concerns: fragment descriptors do not authenticate their provenance. Migrate to v2 and retire the v1 endpoint as described in [Popup relay migrating and retiring v1](../lib/msal-browser/docs/configuration.md#popup-relay-migrating-and-retiring-v1).
+
 -   The popup-relay flow (configured via `auth.popupRelayUri`) was invoked in an unsupported context. It is thrown either by MSAL when building the relay URL or from the relay page itself, and includes a sub-error indicating the cause:
 -   `popup_relay_cross_origin` - `auth.popupRelayUri` resolved to a different origin than the app. The relay page must be same-origin as the embedded frame (the response is relayed back over a same-origin `postMessage`). Use a path or a same-origin absolute URL.
 -   `popup_relay_no_opener` - The relay page was not opened as a popup (`window.opener` is null), so it has no parent window to relay the authentication response back to. Ensure the relay page is only loaded as the popup opened by MSAL and that `runPopupRelay` is not called when navigating to the page directly.
--   `popup_relay_bad_request` - The relayed request encoded in the relay page URL could not be parsed, was missing its channel id, or did not match the expected request shape (a `GET` with a `url`, or a `POST` with an `action` and string-valued `fields`). This typically indicates the relay page was loaded without the expected request payload or the payload was modified.
--   `popup_relay_unsafe_url` - The navigation target encoded in the relay page URL was not an absolute `https:` URL, or carried embedded credentials. The relay page is directly reachable, so its hash is untrusted input; only `https:` targets are accepted, which blocks active schemes such as `javascript:` from executing in the relay app's own origin. This usually indicates someone attempted to load the relay page from a crafted link.
--   `popup_relay_untrusted_authority` - The navigation target's origin was not listed in the `allowedAuthorityOrigins` option passed to `runPopupRelay()`. Entries are compared by origin, so passing the full authority URL, a trailing slash, mixed case, or an explicit `:443` all work. Add your authority's origin to that list, or omit the option entirely to accept any `https:` origin. Note that an explicitly empty array means "allow nothing" and rejects every navigation.
+-   `popup_relay_bad_request` - The relay URL was missing its request id, a v1 descriptor could not be parsed, or a request did not match the expected shape (a `GET` with a `url`, or a `POST` with an `action` and string-valued `fields`). A v2 request must also match the id in its authenticated handoff.
+-   `popup_relay_unsafe_url` - The navigation target was not an absolute `https:` URL, or carried embedded credentials. Active schemes such as `javascript:` are never accepted.
+-   `popup_relay_untrusted_authority` - The navigation target's origin was not listed in the optional `allowedAuthorityOrigins` passed to `runPopupRelay()`. Entries are compared by origin, so a full authority URL, trailing slash, mixed case, or explicit `:443` all work. An explicitly empty array rejects every navigation. Omitting the option accepts any HTTPS origin: v2 still requires an authenticated app request, whereas v1 retains its legacy risk until retired.
 -   `popup_relay_invalid_allowed_origin` - The `allowedAuthorityOrigins` option was not an array, or one of its entries could not be parsed as a URL, was not `https:`, or carried embedded credentials. Fix the offending entry; entries are rejected rather than silently dropped so the allow list cannot appear stricter than it actually is.
+-   `popup_relay_invalid_protocol` - The configured `auth.popupRelayProtocolVersion` or relay `protocolVersion` was neither `1` nor `2`. Omitting either selects the v1 compatibility default; invalid values never select a fallback.
+-   `popup_relay_protocol_mismatch` - A caller used a different wire protocol from the one configured on the updated relay endpoint. It rejects the request before opening a child or submitting a form and reports an error in the caller's response envelope. Use matching app and endpoint protocols. A v1 caller reaching a v2-only endpoint after retirement must reload/upgrade; do not downgrade v2. Previous relay bundles cannot report this sub-error and may leave the caller waiting for a timeout.
+-   `popup_relay_handshake_timeout` (on `timed_out`) - The v2 relay did not receive an authenticated request from its same-origin opener before the timeout. Check the selected wire protocol and preserve the opener connection; exact package versions need not match if the protocol is compatible.
+-   `popup_relay_handoff_failed` (on `popup_window_error`) - Posting the retained v2 request to the relay failed. The request is rejected and its listeners and timers are removed; MSAL does not retry through v1.
+-   `popup_relay_navigation_failed` (on `popup_window_error`) - The authenticated child navigation or form submission failed. Check the relay's popup permissions and Content Security Policy.
 
 ### `redirect_in_iframe`
 

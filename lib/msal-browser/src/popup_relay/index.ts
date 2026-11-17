@@ -3,16 +3,32 @@
  * Licensed under the MIT License.
  */
 
-import { POPUP_RELAY_RESPONSE_TYPE } from "./constants.js";
 import {
+    POPUP_RELAY_READY_TYPE,
+    POPUP_RELAY_REQUEST_TYPE,
+    POPUP_RELAY_RESPONSE_TYPE,
+    POPUP_RELAY_V2_RESPONSE_TYPE,
+    getPopupRelayProtocolVersion,
+} from "./constants.js";
+import {
+    BrowserAuthError,
     BrowserAuthErrorCodes,
     createBrowserAuthError,
 } from "../error/BrowserAuthError.js";
 import { createForm } from "../protocol/Authorize.js";
 import { PopupWindowAttributes } from "../request/PopupWindowAttributes.js";
+import { createNewGuid } from "../crypto/BrowserCrypto.js";
 
 /** Options for {@link runPopupRelay}. */
 export type PopupRelayOptions = {
+    /**
+     * Wire protocol accepted by this endpoint. Defaults to 1 to preserve
+     * existing relay deployments. Version 1 is deprecated due to security
+     * concerns: URL-fragment descriptors do not authenticate their provenance.
+     * Deploy a separate endpoint with version 2 for authenticated handoff,
+     * then retire the v1 endpoint.
+     */
+    protocolVersion?: 1 | 2;
     /**
      * Sizing/positioning for the IdP child popup the relay page opens. Same
      * shape as `PopupRequest.popupWindowAttributes` (`popupSize` with width and
@@ -37,7 +53,10 @@ export type PopupRelayOptions = {
      * **Optional — omitting it does not disable the relay.** The relay page
      * always rejects non-`https:` navigation targets; this option additionally
      * pins *which* https origins are acceptable. When omitted, any https origin
-     * is allowed, which is how every existing relay page already behaves.
+     * is allowed. V1 is deprecated due to security concerns: it accepts
+     * unauthenticated fragment descriptors and retains the legacy
+     * arbitrary-navigation risk until the endpoint is retired. V2 requires an
+     * authenticated opener request even when this option is omitted.
      * Passing an explicitly empty array means "allow nothing" and will reject
      * every navigation.
      */
@@ -101,12 +120,10 @@ function normalizeAllowedOrigins(allowedAuthorityOrigins: string[]): string[] {
 }
 
 /**
- * Validates a navigation target taken from the relay page's hash before it can
+ * Validates a navigation target before it can
  * reach `window.open` or a form `action`.
  *
- * The hash is *not* authority: anyone can craft a link to the deployed relay
- * page, so a target must be proven safe rather than assumed to have been built
- * by MSAL. Only absolute `https:` URLs without embedded credentials are
+ * Only absolute `https:` URLs without embedded credentials are
  * accepted, which rules out active/local schemes (`javascript:`, `data:`,
  * `blob:`, `vbscript:`, `file:`) that would otherwise execute in — or read
  * from — the relay page's own first-party security origin. `https:`-only also
@@ -162,27 +179,20 @@ function validateNavigationTarget(
 }
 
 /**
- * Parses and fully validates the relayed request carried in the relay page's
- * hash. Every field is treated as attacker-controlled: the shape is checked
- * exactly (no implicit GET fallback for an unknown `method`) and both
+ * Fully validates a v1 descriptor or an authenticated v2 request. The shape
+ * is checked exactly (no implicit GET fallback for an unknown `method`) and both
  * navigation targets — the GET `url` and the POST `action` — are run through
  * {@link validateNavigationTarget}.
  */
 function parseRelayRequest(
-    rawReq: string,
+    rawReq: unknown,
     allowedAuthorityOrigins?: string[]
 ): PopupRelayRequest {
-    let parsed;
-    try {
-        parsed = JSON.parse(rawReq);
-    } catch (e) {
-        parsed = null;
-    }
-    if (typeof parsed !== "object" || parsed === null) {
+    if (typeof rawReq !== "object" || rawReq === null) {
         throwRelayError(BAD_REQUEST_SUBERROR);
     }
 
-    const request = parsed as Record<string, unknown>;
+    const request = rawReq as Record<string, unknown>;
     const id = request.id;
     if (typeof id !== "string" || !id) {
         throwRelayError(BAD_REQUEST_SUBERROR);
@@ -245,17 +255,22 @@ function buildChildPopupFeatures(attributes?: PopupWindowAttributes): string {
 /**
  * Entry point for the top-level "popup-relay" page referenced by
  * `auth.popupRelayUri`. Call this from the relay page (which MSAL opens as a
- * top-level popup from inside an embedded, cross-origin iframe). It:
+ * top-level popup from inside an embedded, cross-origin iframe).
  *
- *   1. Reads the IdP navigation MSAL passed in this page's hash (a GET URL, or a
- *      POST form for the form_post / EAR response modes), then scrubs the hash.
- *   2. Validates that navigation. The relay page is directly reachable, so the
- *      hash is untrusted input: the request shape is checked exactly and the
- *      navigation target must be an absolute `https:` URL (optionally pinned to
- *      {@link PopupRelayOptions.allowedAuthorityOrigins}). Anything else — in
- *      particular active schemes such as `javascript:` — is rejected before it
- *      can reach `window.open` or a form `action`.
- *   3. Opens the IdP child popup and performs that navigation (the relay page
+ * V1 (the compatibility default) is deprecated due to security concerns. It
+ * executes validated but unauthenticated fragment descriptors and returns the
+ * legacy response envelope. It retains the legacy risk when origins are not
+ * pinned; retire that endpoint after migrating callers.
+ *
+ * V2 must be explicitly selected on both the app and its separate relay
+ * endpoint. It:
+ *
+ *   1. Reads the request id from the hash, then scrubs the hash. Navigation
+ *      descriptors in the hash are never executed.
+ *   2. Reserves a blank child popup during the user gesture, then requests the
+ *      navigation from the opener through an origin- and source-checked
+ *      postMessage handoff bound to this relay document's nonce.
+ *   3. Validates and performs the authenticated navigation (the relay page
  *      stays put, so its `window.opener` link back to the embedded frame
  *      survives COOP).
  *   4. Waits for the child's redirect URI page (which must run the redirect
@@ -274,13 +289,33 @@ function buildChildPopupFeatures(attributes?: PopupWindowAttributes): string {
  * @param options - {@link PopupRelayOptions}
  */
 export function runPopupRelay(options?: PopupRelayOptions): void {
+    const protocolVersion = getPopupRelayProtocolVersion(
+        options?.protocolVersion
+    );
     const opener = window.opener as Window | null;
     const targetOrigin = window.location.origin;
 
     const hashParams = new URLSearchParams(
         window.location.hash.replace(/^#/, "")
     );
-    const rawReq = hashParams.get("req") || "";
+    const incomingVersion = hashParams.has("id") ? 2 : 1;
+    let legacyDescriptor: unknown;
+    if (incomingVersion === 1) {
+        try {
+            legacyDescriptor = JSON.parse(hashParams.get("req") || "");
+        } catch {
+            legacyDescriptor = null;
+        }
+    }
+    let id: unknown = hashParams.get("id") || "";
+    if (
+        incomingVersion === 1 &&
+        legacyDescriptor &&
+        typeof legacyDescriptor === "object" &&
+        "id" in legacyDescriptor
+    ) {
+        id = legacyDescriptor.id;
+    }
 
     // Scrub the relayed request out of the relay page's own URL immediately.
     if (typeof window.history.replaceState === "function") {
@@ -299,15 +334,42 @@ export function runPopupRelay(options?: PopupRelayOptions): void {
         );
     }
 
-    /*
-     * Validate everything before opening anything: the relay page is directly
-     * reachable, so the hash is attacker-controlled input, not authority.
-     */
-    const request = parseRelayRequest(rawReq, options?.allowedAuthorityOrigins);
+    if (typeof id !== "string" || !id) {
+        throwRelayError(BAD_REQUEST_SUBERROR);
+    }
 
-    const id = request.id;
+    if (incomingVersion !== protocolVersion) {
+        const error = createBrowserAuthError(
+            BrowserAuthErrorCodes.popupRelayUnsupportedFlow,
+            "",
+            "popup_relay_protocol_mismatch"
+        );
+        opener.postMessage(
+            {
+                type:
+                    incomingVersion === 1
+                        ? POPUP_RELAY_RESPONSE_TYPE
+                        : POPUP_RELAY_V2_RESPONSE_TYPE,
+                id,
+                error: error.errorCode,
+                subError: error.subError,
+            },
+            targetOrigin
+        );
+        throw error;
+    }
+
+    const legacyRequest =
+        protocolVersion === 1
+            ? parseRelayRequest(
+                  legacyDescriptor,
+                  options?.allowedAuthorityOrigins
+              )
+            : undefined;
+    const nonce = protocolVersion === 2 ? createNewGuid() : undefined;
     const channel = new BroadcastChannel(id);
     let settled = false;
+    let requestReceived = protocolVersion === 1;
     /*
      * Timer handles are kept on a const holder so relay() (declared before the
      * timers are created) can clear them — `let` handles trip prefer-const, and
@@ -318,7 +380,11 @@ export function runPopupRelay(options?: PopupRelayOptions): void {
         timeoutId?: number;
     } = {};
 
-    const relay = (message: { payload?: string; error?: string }): void => {
+    const relay = (message: {
+        payload?: string;
+        error?: string;
+        subError?: string;
+    }): void => {
         if (settled) {
             return;
         }
@@ -330,8 +396,18 @@ export function runPopupRelay(options?: PopupRelayOptions): void {
         }
         clearInterval(timers.closedPoll);
         clearTimeout(timers.timeoutId);
+        window.removeEventListener("message", onRequest);
+        window.removeEventListener("pagehide", onPageHide);
         opener.postMessage(
-            { type: POPUP_RELAY_RESPONSE_TYPE, id, ...message },
+            {
+                type:
+                    protocolVersion === 1
+                        ? POPUP_RELAY_RESPONSE_TYPE
+                        : POPUP_RELAY_V2_RESPONSE_TYPE,
+                id,
+                ...(protocolVersion === 2 ? { nonce } : {}),
+                ...message,
+            },
             targetOrigin
         );
         setTimeout(() => {
@@ -346,29 +422,96 @@ export function runPopupRelay(options?: PopupRelayOptions): void {
     // The redirect bridge broadcasts the raw auth response payload here.
     channel.onmessage = (event: MessageEvent): void => {
         const payload = event.data && event.data.payload;
-        if (payload) {
+        if (requestReceived && payload) {
             relay({ payload });
         }
     };
 
+    const onRequest = (event: MessageEvent): void => {
+        const data = event.data;
+        if (
+            settled ||
+            requestReceived ||
+            protocolVersion !== 2 ||
+            !childPopup ||
+            event.origin !== targetOrigin ||
+            event.source !== opener ||
+            !data ||
+            data.type !== POPUP_RELAY_REQUEST_TYPE ||
+            data.id !== id ||
+            data.nonce !== nonce
+        ) {
+            return;
+        }
+        window.removeEventListener("message", onRequest);
+        try {
+            const request = parseRelayRequest(
+                data.request,
+                options?.allowedAuthorityOrigins
+            );
+            if (request.id !== id) {
+                throwRelayError(BAD_REQUEST_SUBERROR);
+            }
+            requestReceived = true;
+            if (request.method === "GET") {
+                childPopup.location.replace(request.url);
+            } else {
+                createForm(
+                    childPopup.document,
+                    request.action,
+                    request.fields
+                ).submit();
+            }
+        } catch (e) {
+            relay({
+                error:
+                    e instanceof BrowserAuthError
+                        ? e.errorCode
+                        : BrowserAuthErrorCodes.popupWindowError,
+                subError:
+                    e instanceof BrowserAuthError
+                        ? e.subError
+                        : "popup_relay_navigation_failed",
+            });
+            childPopup.close();
+        }
+    };
+
     const features = buildChildPopupFeatures(options?.popupWindowAttributes);
+    // Reserve a fresh window before the asynchronous handoff consumes activation.
     const childPopup =
-        request.method === "POST"
-            ? window.open("about:blank", "msalPopupRelayChild", features)
-            : window.open(request.url, "msalPopupRelayChild", features);
+        legacyRequest?.method === "GET"
+            ? window.open(legacyRequest.url, "msalPopupRelayChild", features)
+            : window.open(
+                  "about:blank",
+                  protocolVersion === 1 ? "msalPopupRelayChild" : "_blank",
+                  features
+              );
 
     if (!childPopup) {
         relay({ error: BrowserAuthErrorCodes.popupWindowError });
         return;
     }
 
-    if (request.method === "POST") {
+    function onPageHide(): void {
+        settled = true;
+        window.removeEventListener("message", onRequest);
+        window.removeEventListener("pagehide", onPageHide);
+        clearInterval(timers.closedPoll);
+        clearTimeout(timers.timeoutId);
+        channel.close();
+        childPopup?.close();
+    }
+    if (protocolVersion === 2) {
+        window.addEventListener("message", onRequest);
+    } else if (legacyRequest?.method === "POST") {
         createForm(
             childPopup.document,
-            request.action,
-            request.fields
+            legacyRequest.action,
+            legacyRequest.fields
         ).submit();
     }
+    window.addEventListener("pagehide", onPageHide);
 
     timers.closedPoll = window.setInterval(() => {
         if (childPopup.closed && !settled) {
@@ -397,7 +540,19 @@ export function runPopupRelay(options?: PopupRelayOptions): void {
             } catch (e) {
                 /* ignore */
             }
-            relay({ error: BrowserAuthErrorCodes.timedOut });
+            relay({
+                error: BrowserAuthErrorCodes.timedOut,
+                subError: requestReceived
+                    ? undefined
+                    : "popup_relay_handshake_timeout",
+            });
         }
     }, options?.timeoutMs || DEFAULT_POPUP_RELAY_TIMEOUT_MS);
+
+    if (protocolVersion === 2) {
+        opener.postMessage(
+            { type: POPUP_RELAY_READY_TYPE, id, nonce },
+            targetOrigin
+        );
+    }
 }
