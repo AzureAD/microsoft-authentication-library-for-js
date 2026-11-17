@@ -2,6 +2,41 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 17 Nov 2026 19:15:40 GMT",
+      "version": "5.30.0",
+      "tag": "@azure/msal-browser_v5.30.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "nugetaad@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "211f88d903db345a3b26d8422b3385dbd51cf4e1",
+            "comment": "Add opt-in authenticated popup-relay protocol v2 and explicit protocol mismatch errors; deprecate v1 due to security concerns while preserving compatibility for staged migration and retirement [#8984](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8984)"
+          },
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9eec86fc129a10418ce7aabed3e2ac822cf557cd",
+            "comment": "Add experimental support for P-384 asymmetric encryption in EAR flows [#8970](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8970)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.17.0",
+            "commit": "not available"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9eec86fc129a10418ce7aabed3e2ac822cf557cd",
+            "comment": "Prevent silent web requests for different account tenants from sharing an in-flight token acquisition. [#8989](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8989)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 12 Nov 2026 18:58:52 GMT",
       "version": "5.29.1",
       "tag": "@azure/msal-browser_v5.29.1",
