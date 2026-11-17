@@ -9,6 +9,8 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const architectures = ["x64", "ia32", "arm64"];
+// Node 24+ no longer ships Windows x86 import libraries. Node-API keeps these binaries runtime-independent.
+const targetVersion = "22.23.5";
 
 const binDir = path.join(__dirname, "..", "bin");
 if (!fs.existsSync(binDir)) {
@@ -23,7 +25,9 @@ architectures.forEach(arch => {
         fs.mkdirSync(archDir);
     }
 
-    execSync(`npm run compile -- --arch=${arch}`);
+    execSync(`npm run compile -- --arch=${arch} --target=${targetVersion}`, {
+        stdio: "inherit"
+    });
 
     const sourceFile = path.join(__dirname, "..", "build", "Release", "dpapi.node");
     const destFile = path.join(archDir, "dpapi.node");

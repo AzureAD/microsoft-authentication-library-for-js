@@ -1,0 +1,76 @@
+name: Node extensions native compatibility
+
+on:
+    workflow_dispatch:
+    pull_request:
+        branches: [dev]
+        paths:
+            - "extensions/msal-node-extensions/**"
+            - ".github/workflows/node-extensions-native.yml"
+            - "package-lock.json"
+
+permissions:
+    contents: read
+
+jobs:
+    build:
+        runs-on: windows-latest
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+              with:
+                  node-version: "26.13.1"
+            - run: npm install --global npm@11.6.1
+            - run: npm ci --workspace=@azure/msal-common --workspace=@azure/msal-node-extensions --include-workspace-root
+            - run: npm run build:all
+              working-directory: extensions/msal-node-extensions
+            - run: npm run lint && npm run format:check && npm test -- --runInBand
+              working-directory: extensions/msal-node-extensions
+            - run: npm pack --pack-destination="${{ runner.temp }}"
+              working-directory: extensions/msal-node-extensions
+            - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+              with:
+                  name: node-extensions-package
+                  path: ${{ runner.temp }}/azure-msal-node-extensions-*.tgz
+                  if-no-files-found: error
+
+    runtime:
+        needs: build
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [windows-latest]
+                node: ["20", "22", "24", "26.13.1"]
+                include:
+                    - os: windows-11-arm
+                      node: "26.13.1"
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+            - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+              with:
+                  node-version: ${{ matrix.node }}
+            - run: npm install --global npm@11.6.1
+            - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+              with:
+                  name: node-extensions-package
+                  path: ${{ runner.temp }}/native-package
+            - name: Install and exercise the shipped package
+              shell: pwsh
+              run: |
+                  $package = (Get-ChildItem "${{ runner.temp }}/native-package" -Filter *.tgz).FullName
+                  $consumer = Join-Path "${{ runner.temp }}" "native-consumer"
+                  New-Item -ItemType Directory $consumer | Out-Null
+                  Push-Location $consumer
+                  npm init --yes
+                  npm install $package --no-audit --no-fund
+                  if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                  Pop-Location
+                  $installed = Join-Path $consumer "node_modules/@azure/msal-node-extensions"
+                  foreach ($arch in @("x64", "ia32", "arm64")) {
+                      if (-not (Test-Path "$installed/bin/$arch/dpapi.node")) {
+                          throw "Missing shipped binary: $arch"
+                      }
+                  }
+                  node extensions/msal-node-extensions/scripts/testPackage.cjs $installed
+                  exit $LASTEXITCODE

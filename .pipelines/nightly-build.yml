@@ -22,7 +22,10 @@ jobs:
           - task: NodeTool@0
             displayName: "Install Node.js"
             inputs:
-                versionSpec: "22.x"
+                versionSpec: "26.13.1"
+
+          - script: npm install --global npm@11.6.1
+            displayName: "Install npm 11.6.1"
 
           - task: Npm@1
             displayName: "Install Dependencies"
