@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Preserve opaque SHR nonce values and correctly parse authentication header parameters.",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}

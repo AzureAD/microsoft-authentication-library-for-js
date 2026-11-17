@@ -62,6 +62,95 @@ describe("AuthenticationHeaderParser unit tests", () => {
             }
         );
 
+        it.each([
+            [
+                HeaderNames.AuthenticationInfo,
+                'nextnonce="dGVzdA=="',
+                "dGVzdA==",
+            ],
+            [
+                HeaderNames.AuthenticationInfo,
+                'nextnonce="abc", qop="auth"',
+                "abc",
+            ],
+            [
+                HeaderNames.AuthenticationInfo,
+                'qop="auth", nextnonce="abc"',
+                "abc",
+            ],
+            [
+                HeaderNames.AuthenticationInfo,
+                '\t nextnonce \t= "abc" \t, qop="auth"',
+                "abc",
+            ],
+            [
+                HeaderNames.AuthenticationInfo,
+                'PoP nextnonce="dGVzdA==", qop="auth"',
+                "dGVzdA==",
+            ],
+            [
+                HeaderNames.WWWAuthenticate,
+                'PoP realm="example", nonce="dGVzdA=="',
+                "dGVzdA==",
+            ],
+            [
+                HeaderNames.WWWAuthenticate,
+                'PoP\tnonce \t= "abc", error="nonce_required"',
+                "abc",
+            ],
+            [
+                HeaderNames.AuthenticationInfo,
+                'qop="auth,auth-int", nextnonce="abc"',
+                "abc",
+            ],
+            [
+                HeaderNames.AuthenticationInfo,
+                String.raw`nextnonce="a\",b\\c==%2F'o"`,
+                "a\",b\\c==%2F'o",
+            ],
+            [
+                HeaderNames.WWWAuthenticate,
+                String.raw`PoP realm="a\",b", nonce="a,b=%2F'o"`,
+                "a,b=%2F'o",
+            ],
+            [
+                HeaderNames.AuthenticationInfo,
+                "nextnonce=opaque%2F%u0041==",
+                "opaque%2F%u0041==",
+            ],
+            [HeaderNames.AuthenticationInfo, 'NEXTNONCE="AbC"', "AbC"],
+        ])(
+            "preserves the nonce in %s: %s",
+            (headerName, headerValue, expectedNonce) => {
+                const parser = new AuthenticationHeaderParser({
+                    [headerName]: headerValue,
+                });
+
+                expect(parser.getShrNonce()).toBe(expectedNonce);
+            }
+        );
+
+        it.each([
+            'nextnonce="unterminated',
+            'nextnonce="dangling\\',
+            'nextnonce="abc"trailing',
+            'nextnonce=ab"cd"',
+            "nextnonce=abc def",
+            "nextnonce",
+            'nextnonce=""',
+        ])("rejects malformed or empty nonce parameters: %s", (headerValue) => {
+            const parser = new AuthenticationHeaderParser({
+                [HeaderNames.AuthenticationInfo]: headerValue,
+            });
+
+            expect(() => parser.getShrNonce()).toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidAuthenticationHeader,
+                    ""
+                )
+            );
+        });
+
         it("should throw an error if neither Authentication-Info or WWW-Authenticate headers are present", () => {
             const authenticationHeaderParser = new AuthenticationHeaderParser(
                 {}

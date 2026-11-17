@@ -35,6 +35,7 @@ export class AuthenticationHeaderParser {
 
     /**
      * This method parses the SHR nonce value out of either the Authentication-Info or WWW-Authenticate authentication headers.
+     * Nonces are opaque: only HTTP quoted-string syntax is decoded, not URI escapes.
      * @returns
      */
     getShrNonce(): string {
@@ -84,20 +85,68 @@ export class AuthenticationHeaderParser {
     }
 
     /**
-     * Parses an HTTP header's challenge set into a key/value map.
+     * Parses scheme-prefixed or scheme-less HTTP authentication parameters.
      * @param header
      * @returns
      */
     private parseChallenges<T>(header: string): T {
-        const schemeSeparator = header.indexOf(" ");
-        const challenges = header.substr(schemeSeparator + 1).split(",");
-        const challengeMap = {} as T;
+        const challenges: string[] = [];
+        let challengeStart = 0;
+        let quoted = false;
+        let escaped = false;
 
-        challenges.forEach((challenge: string) => {
-            const [key, value] = challenge.split("=");
-            // Remove escaped quotation marks (', ") from challenge string to keep only the challenge value
-            challengeMap[key] = unescape(value.replace(/['"]+/g, ""));
-        });
+        for (let index = 0; index < header.length; index++) {
+            const character = header[index];
+            if (escaped) {
+                escaped = false;
+            } else if (quoted && character === "\\") {
+                escaped = true;
+            } else if (character === '"') {
+                quoted = !quoted;
+            } else if (!quoted && character === ",") {
+                challenges.push(header.slice(challengeStart, index));
+                challengeStart = index + 1;
+            }
+        }
+
+        if (quoted) {
+            throw createClientConfigurationError(
+                ClientConfigurationErrorCodes.invalidAuthenticationHeader,
+                ""
+            );
+        }
+        challenges.push(header.slice(challengeStart));
+
+        const challengeMap = Object.create(null) as T;
+        for (const challenge of challenges) {
+            const separator = challenge.indexOf("=");
+            // Accept the legacy PoP prefix without treating spaces in values as scheme separators.
+            const keyParts = challenge
+                .slice(0, separator)
+                .trim()
+                .split(/[ \t]+/);
+            const value = challenge.slice(separator + 1).trim();
+            const quotedValue = value.startsWith('"');
+            if (
+                separator < 1 ||
+                keyParts.length > 2 ||
+                keyParts.some(
+                    (part) => !/^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(part)
+                ) ||
+                (quotedValue
+                    ? !/^"(?:[^"\\\r\n]|\\[^\r\n])*"$/.test(value)
+                    : /[\s"]/.test(value))
+            ) {
+                throw createClientConfigurationError(
+                    ClientConfigurationErrorCodes.invalidAuthenticationHeader,
+                    ""
+                );
+            }
+            const key = keyParts[keyParts.length - 1].toLowerCase();
+            challengeMap[key] = quotedValue
+                ? value.slice(1, -1).replace(/\\(.)/g, "$1")
+                : value;
+        }
 
         return challengeMap;
     }
