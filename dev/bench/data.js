@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1794920064783,
+  "lastUpdate": 1795034927064,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -25291,6 +25291,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.01%",
             "unit": "ops/sec",
             "extra": "227 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "589ceaf511c4d3b87e1b3192a764b7bf80da412e",
+          "message": "Fix msal-node-extensions builds with Visual Studio 2026 (#8992)\n\n## Summary\n\n- Declare `node-gyp ^13.1.0` as a direct development dependency of\n`@azure/msal-node-extensions`, locked to 13.1.0, so workspace-scoped\nbuilds use an explicit toolchain with Visual Studio 2026 support rather\nthan npm's bundled copy.\n- Preserve the separate locked node-gyp 12.4.0 required by\n`@electron/rebuild`; no unrelated lockfile changes.\n- Document contributor build-host requirements and retain Node.js 22 for\nWindows binary production.\n- Runtime dependencies, the `>=20` application-runtime engine range, the\nconsumer install hook, build scripts, shipped architectures, and CI\nimages are unchanged.\n\n## Why\n\nThe Windows CI image now includes Visual Studio 2026. npm's bundled\nnode-gyp 11.5.0 cannot recognize that installation, so the DPAPI native\nbuild fails during Visual Studio discovery. An explicit workspace\ndependency fixes tool selection without downgrading the CI image or\nchanging the CI Node major.\n\nNode-gyp 13 requires build hosts matching `^22.22.2 || ^24.15.0 ||\n>=26.0.0`; CI's Node.js 22.23.5 qualifies. These are contributor build\nrequirements, not a change to the precompiled package's supported\napplication runtimes.\n\n## Validation\n\n- Clean, frozen-lockfile, workspace-scoped `npm ci` passed with Node.js\n22.23.5 / npm 10.9.9.\n- The actual package compile script selected node-gyp 13.1.0.\n- Full common + extension build passed; x64, ia32, and arm64 DPAPI\nbinaries compiled with Visual Studio 2026 and Python 3.13.17. All three\nPE architecture identifiers were checked; ia32 and arm64 binaries were\ncross-compiled, not executed.\n- All 93 extension tests passed across 11 suites; package lint, format\nchecks, changed JSON formatting, and README internal-link validation\npassed.\n- Inspected a real package tarball: all three native binaries are\npresent; build sources/scripts and bundled dependencies are absent.\n- The identical packaged x64 binary passed DPAPI encryption/decryption\nchecks with both scopes, with and without entropy, plus invalid-input\nchecks on Node.js 20.20.0, 22.23.5, and 24.13.0.\n- A real Node.js 20.20.0 consumer installation passed with `--omit=dev\n--engine-strict`, without installing node-gyp 13. Public API import and\na packaged DPAPI round trip also passed.\n- Updated hosted CI is pending; earlier results for the node-gyp 12\nrevision do not validate this revision.\n- The npm advisory audit could not complete in this environment; no\nclean advisory-audit result is claimed.\n\n## Existing Windows build limitation\n\nNode.js 24 does not provide the Windows ia32 import library required to\nproduce the existing three-architecture package. This change retains the\nNode.js 22 build host and x64/ia32/arm64 architecture list. Runtime\ntesting on Node.js 24 is separate from producing native binaries under\nNode.js 24.\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: bug\nagent-tool: copilot-cli\nagent-model: gpt-6.1-sol\nwork-item: AB#n/a\n<!-- END pr-telemetry -->\n\n---------\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCopilot-Session: 9d6c95ba-0428-44bc-8458-7c846358b958",
+          "timestamp": "2026-11-18T12:39:49-08:00",
+          "tree_id": "48adf9eb946a2022b3aab6cac3f934de914ffdf7",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/589ceaf511c4d3b87e1b3192a764b7bf80da412e"
+        },
+        "date": 1795034923774,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 638610,
+            "range": "±1.48%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 694828,
+            "range": "±1.14%",
+            "unit": "ops/sec",
+            "extra": "219 samples"
           }
         ]
       }
