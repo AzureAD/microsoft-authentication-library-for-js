@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-// Nested error shape returned by the HAL `/api` resource endpoints.
 export interface AttributeValidationDetailV2 {
     attributeIds?: string[];
     code?: string;
@@ -24,24 +23,21 @@ export interface HalErrorResponseV2 {
     };
 }
 
-// Flat error shape returned by the OAuth endpoints (authorize-challenge entry and token).
 export interface OAuthErrorResponseV2 {
     error?: string;
     error_description?: string;
     error_codes?: number[];
+    suberror?: string;
     timestamp?: string;
     trace_id?: string;
     correlation_id?: string;
 }
 
-/*
- * Normalized server error folded from either wire shape (flat OAuth or nested HAL) into one
- * struct. Response parsing adds it to the envelope so the api-client stays shape-agnostic.
- */
 export interface ServerErrorV2 {
     code: string;
     message?: string;
     innerErrorCode?: string;
+    subError?: string;
     errorCodes?: number[];
     correlationId?: string;
     traceId?: string;

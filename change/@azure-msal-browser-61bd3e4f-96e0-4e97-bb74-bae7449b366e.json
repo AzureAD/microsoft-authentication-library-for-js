@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Add experimental support for P-384 asymmetric encryption in EAR flows [#8970](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8970)",
+    "packageName": "@azure/msal-browser",
+    "email": "shylasummers@microsoft.com",
+    "dependentChangeType": "patch"
+}

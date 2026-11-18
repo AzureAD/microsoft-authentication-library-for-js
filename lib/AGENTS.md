@@ -3,6 +3,7 @@
 ## Code Standards
 
 - Prefer simple constants over nested ones
+- Minimize code churn: preserve existing structure and avoid unrelated formatting or refactors.
 - Prefer `const` objects with `as const` or literal types over TypeScript enums
 - Prefer standalone functions over classes when possible
 - Use `const` for immutable data
@@ -45,4 +46,3 @@ All of the following commands should be run in each package directory where chan
 - Standard MSAL authentication flows without instance aware configuration
 - Proper authority configuration for the specific cloud environment the application targets
 - Separate application registrations for different cloud environments if needed
-

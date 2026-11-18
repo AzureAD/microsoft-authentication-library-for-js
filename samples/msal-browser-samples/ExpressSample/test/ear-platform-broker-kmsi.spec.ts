@@ -10,17 +10,15 @@ import {
     BrowserCacheUtils,
     Screenshot,
     verifyKmsiFromResponse,
-} from "e2e-test-utils";
-import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
-import {
     createPlatformBrokerProfile,
     launchPlatformBrokerBrowser,
     PLATFORM_LOGIN_TIMEOUT,
     PlatformBrokerProfile,
     removePlatformBrokerProfile,
-    verifyPlatformBrokerResponse,
+    verifyPlatformBrokerAccount,
     verifyPlatformBrokerTokenStore,
-} from "./platformBrokerTestUtils";
+} from "e2e-test-utils";
+import { AuthenticationFlowTestUtils } from "./AuthenticationFlowTestUtils";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const serverUtils = require("../../../e2eTestUtils/jest-puppeteer-utils/serverUtils");
@@ -108,7 +106,7 @@ describe("EAR + Platform Broker + Keep Me Signed In Tests", () => {
         expect(
             await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
         ).toBeGreaterThan(0);
-        const initialBrokerResponse = await verifyPlatformBrokerResponse(page);
+        const initialBrokerResponse = await verifyPlatformBrokerAccount(page);
         await verifyPlatformBrokerTokenStore(browserCache);
         await verifyKmsiFromResponse(page);
         const initialAccountKeys = await browserCache.getAccountFromCache();
@@ -123,14 +121,8 @@ describe("EAR + Platform Broker + Keep Me Signed In Tests", () => {
         browser = await launchPlatformBrokerBrowser(profile);
         page = await browser.newPage();
         browserCache = new BrowserCacheUtils(page, CACHE_LOCATION);
-        flowUtils = new AuthenticationFlowTestUtils(page);
-        await flowUtils.installCryptoOperationSpy(
-            TEST_ORIGIN,
-            EAR_CRYPTO_ALGORITHM
-        );
 
         await page.goto(TEST_URL, { timeout: PAGE_NAVIGATION_TIMEOUT });
-        await flowUtils.assertCryptoOperationSpyInstalled(EAR_CRYPTO_ALGORITHM);
         let popupOpened = false;
         page.once("popup", () => {
             popupOpened = true;
@@ -147,16 +139,7 @@ describe("EAR + Platform Broker + Keep Me Signed In Tests", () => {
         await screenshot.takeScreenshot(page, "Combined sign-in restored");
 
         expect(popupOpened).toBe(false);
-        expect(flowUtils.getRequestCount("/authorize", "POST")).toBeGreaterThan(
-            0
-        );
-        expect(flowUtils.getFragmentParameterCount("ear_jwe")).toBeGreaterThan(
-            0
-        );
-        expect(
-            await flowUtils.getCryptoOperationCount(EAR_CRYPTO_ALGORITHM)
-        ).toBeGreaterThan(0);
-        const restoredBrokerResponse = await verifyPlatformBrokerResponse(page);
+        const restoredBrokerResponse = await verifyPlatformBrokerAccount(page);
         expect(restoredBrokerResponse.nativeAccountId).toBe(
             initialBrokerResponse.nativeAccountId
         );

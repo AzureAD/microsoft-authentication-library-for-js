@@ -42,7 +42,10 @@ import {
     TimeUtils,
     UrlString,
 } from "../../src/index.js";
-import { RegionDiscovery } from "../../src/authority/RegionDiscovery.js";
+import {
+    RegionDiscovery,
+    isValidRegion,
+} from "../../src/authority/RegionDiscovery.js";
 import { RegionDiscoveryMetadata } from "../../src/authority/RegionDiscoveryMetadata.js";
 import { InstanceDiscoveryMetadata } from "../../src/authority/AuthorityMetadata.js";
 import * as authorityMetadata from "../../src/authority/AuthorityMetadata.js";
@@ -952,6 +955,93 @@ describe("Authority.ts Class Unit Tests", () => {
             ): Promise<T> => Promise.resolve(getImpl(url, options) as T),
             sendPostRequestAsync: <T>(): Promise<T> => Promise.resolve({} as T),
         });
+
+        it.each([undefined, null, true, 123, {}, ["westus2"]])(
+            "rejects a non-string region %p without coercion",
+            (region) => {
+                expect(isValidRegion(region)).toBe(false);
+            }
+        );
+
+        it.each([true, 123, {}, ["westus2"]])(
+            "discards a non-string IMDS location %p",
+            async (location) => {
+                const networkInterface = buildNetworkInterface(() => ({
+                    status: Constants.HTTP_SUCCESS,
+                    body: { location },
+                }));
+                const regionDiscovery = new RegionDiscovery(
+                    networkInterface,
+                    logger,
+                    new StubPerformanceClient(),
+                    correlationId
+                );
+                const metadata: RegionDiscoveryMetadata = {};
+                const warningSpy = jest.spyOn(logger, "warning");
+
+                await expect(
+                    regionDiscovery.detectRegion(undefined, metadata)
+                ).resolves.toBeNull();
+                expect(metadata.region_source).toBe(
+                    Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION
+                );
+                expect(warningSpy).toHaveBeenCalledWith(
+                    "Region discovery returned an invalid region. Using the global authority.",
+                    correlationId
+                );
+            }
+        );
+
+        it.each([
+            { source: "environment", expectedCalls: 0 },
+            { source: "imds", expectedCalls: 1 },
+            { source: "imds-retry", expectedCalls: 3 },
+        ])(
+            "discards invalid region values from $source",
+            async ({ source, expectedCalls }) => {
+                const invalidRegion = "example.com\\";
+                let calls = 0;
+                const networkInterface = buildNetworkInterface(() => {
+                    calls++;
+                    if (source === "imds-retry" && calls === 1) {
+                        return { status: Constants.HTTP_BAD_REQUEST };
+                    }
+                    if (source === "imds-retry" && calls === 2) {
+                        return {
+                            status: Constants.HTTP_BAD_REQUEST,
+                            body: { "newest-versions": ["2026-01-01"] },
+                        };
+                    }
+                    return {
+                        status: Constants.HTTP_SUCCESS,
+                        body: { location: invalidRegion },
+                    };
+                });
+                const warningSpy = jest.spyOn(logger, "warning");
+                const regionDiscovery = new RegionDiscovery(
+                    networkInterface,
+                    logger,
+                    new StubPerformanceClient(),
+                    correlationId
+                );
+                const metadata: RegionDiscoveryMetadata = {};
+
+                await expect(
+                    regionDiscovery.detectRegion(
+                        source === "environment" ? invalidRegion : undefined,
+                        metadata
+                    )
+                ).resolves.toBeNull();
+                expect(metadata.region_source).toBe(
+                    Constants.RegionDiscoverySources.FAILED_AUTO_DETECTION
+                );
+                expect(warningSpy).toHaveBeenCalledWith(
+                    "Region discovery returned an invalid region. Using the global authority.",
+                    correlationId
+                );
+                expect(calls).toBe(expectedCalls);
+            }
+        );
 
         it("calls the IMDS /compute JSON endpoint and reads the location field", async () => {
             let requestedUrl = "";
@@ -3285,6 +3375,49 @@ describe("Authority.ts Class Unit Tests", () => {
     });
 
     describe("replaceWithRegionalInformation", () => {
+        it.each([
+            "",
+            "example.com\\",
+            "example.com/",
+            "example.com@",
+            "example.com",
+            "westus%2eexample",
+            "westus:443",
+            "westus?query",
+            "westus#fragment",
+            "westus\n",
+            "-westus",
+            "westus-",
+            "a".repeat(64),
+        ])("rejects invalid configured region %p", (region) => {
+            expect(() =>
+                Authority.replaceWithRegionalInformation(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                    region,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toThrow(
+                createClientConfigurationError(
+                    ClientConfigurationErrorCodes.urlParseError,
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            );
+        });
+
+        it.each(["westus2", "USGov-Virginia", "a", "a".repeat(63)])(
+            "accepts a single DNS label as region %p",
+            (region) => {
+                const endpoint = Authority.buildRegionalAuthorityString(
+                    "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
+                    region,
+                    ""
+                );
+                expect(new URL(endpoint).hostname).toBe(
+                    `${region.toLowerCase()}.login.microsoft.com`
+                );
+            }
+        );
+
         it("replaces authorization_endpoint", () => {
             const originResponse: OpenIdConfigResponse = {
                 ...DEFAULT_OPENID_CONFIG_RESPONSE.body,

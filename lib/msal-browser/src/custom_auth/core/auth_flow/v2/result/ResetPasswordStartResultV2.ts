@@ -4,15 +4,13 @@
  */
 
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import type { ResetPasswordStartErrorV2 } from "../error/ResetPasswordStartErrorV2.js";
 import type { AuthMethodSelectionRequiredStateV2 } from "../state/AuthMethodSelectionRequiredStateV2.js";
 import type { CodeRequiredStateV2 } from "../state/CodeRequiredStateV2.js";
 import type { FailedStateV2 } from "../state/FailedStateV2.js";
 
 /**
- * The states a reset-password (V2) entry operation can resolve to. On success
- * a sole method is challenged automatically; multiple methods require
- * selection. `FailedStateV2` carries a terminal error.
+ * States returned when native auth V2 password reset starts.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type ResetPasswordStartResultStateV2 =
     | AuthMethodSelectionRequiredStateV2
@@ -20,11 +18,8 @@ export type ResetPasswordStartResultStateV2 =
     | FailedStateV2;
 
 /**
- * Result of starting a native auth V2 reset-password operation. It is returned
- * by `resetPasswordV2` and wraps one of {@link ResetPasswordStartResultStateV2}
- * plus, on failure, a {@link ResetPasswordStartErrorV2}.
+ * Result of starting native auth V2 password reset.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
-export type ResetPasswordStartResultV2 = CustomAuthResultV2<
-    ResetPasswordStartResultStateV2,
-    ResetPasswordStartErrorV2
->;
+export type ResetPasswordStartResultV2 =
+    CustomAuthResultV2<ResetPasswordStartResultStateV2>;

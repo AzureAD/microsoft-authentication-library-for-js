@@ -29,9 +29,7 @@ import { RequestContextV2 } from "../../network_client/custom_auth_api/v2/reques
 import { TokenResponseV2 } from "../../network_client/custom_auth_api/v2/response/ResponsesV2.js";
 
 /*
- * Shared base for Native Auth V2 interaction clients. It extends
- * `StandardInteractionClient` for common browser infrastructure while keeping
- * V1 and V2 token handling independent.
+ * Shared base for Native Auth V2 interaction clients.
  */
 export abstract class InteractionClientBaseV2 extends StandardInteractionClient {
     private readonly tokenResponseHandler: ResponseHandler;
@@ -68,7 +66,6 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
         );
     }
 
-    // Required by the base contract. After sign-in, use CustomAuthAccountData.getAccessToken().
     acquireToken(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         request: RedirectRequest | PopupRequest | SsoSilentRequest
@@ -78,7 +75,6 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
         );
     }
 
-    // Required by the base contract. After sign-in, use CustomAuthAccountData.signOut().
     logout(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         request: EndSessionRequest | ClearCacheRequest | undefined
@@ -108,13 +104,16 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
 
     protected async handleTokenResponse(
         tokenResponse: TokenResponseV2,
-        requestScopes: string[],
+        requestedScopes: string[],
         correlationId: string,
         apiId: number
     ): Promise<AuthenticationResult> {
         this.logger.verbose("Processing V2 token response.", correlationId);
 
         const requestTimestamp = Math.round(new Date().getTime() / 1000.0);
+        const responseScopes = tokenResponse.scope
+            ? tokenResponse.scope.split(" ").filter((scope) => !!scope)
+            : requestedScopes;
 
         const result =
             await this.tokenResponseHandler.handleServerTokenResponse(
@@ -124,7 +123,7 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
                 {
                     authority: this.customAuthAuthority.canonicalAuthority,
                     correlationId,
-                    scopes: requestScopes,
+                    scopes: responseScopes,
                 },
                 apiId
             );

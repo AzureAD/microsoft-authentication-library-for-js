@@ -23,6 +23,7 @@ import {
     Constants,
 } from "@azure/msal-common/browser";
 import { BrowserCacheLocation } from "../utils/BrowserConstants.js";
+import { topOpenerIsSameOriginOrAbsent } from "../utils/PopupOriginCheck.js";
 import { INavigationClient } from "../navigation/INavigationClient.js";
 import { NavigationClient } from "../navigation/NavigationClient.js";
 import { FetchClient } from "../network/FetchClient.js";
@@ -85,6 +86,16 @@ export type BrowserAuthOptions = {
     popupRelayUri?: string;
 
     /**
+     * Wire protocol served by popupRelayUri. Defaults to 1 for compatibility
+     * with existing relay pages. Version 1 is deprecated due to security
+     * concerns: it executes URL-fragment descriptors without authenticating
+     * their provenance. Set to 2 with a separately deployed endpoint calling
+     * runPopupRelay({ protocolVersion: 2 }) for authenticated handoff, then
+     * retire the v1 endpoint. Version 2 never falls back to legacy execution.
+     */
+    popupRelayProtocolVersion?: 1 | 2;
+
+    /**
      * Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
      */
     clientCapabilities?: Array<string>;
@@ -115,6 +126,14 @@ export type BrowserAuthOptions = {
      * This is a boolean flag and defaults to false if not specified.
      */
     verifySSO?: boolean;
+    /**
+     * Compute whether to send `pocd=1` on authorize and logout requests.
+     * Set to `false` to always assert it and accept responsibility for the framing threat model.
+     * Defaults to `true`; legacy polling defaults it to `false` unless explicitly set.
+     *
+     * See [Cross-Origin-Opener-Policy and popup responses](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#cross-origin-opener-policy-and-popup-responses).
+     */
+    originCheck?: boolean;
 };
 
 /** @internal */
@@ -162,6 +181,14 @@ export type BrowserSystemOptions = SystemOptions & {
      */
     iframeBridgeTimeout?: number;
     /**
+     * Use same-origin URL polling instead of the redirect bridge for popup and silent iframe responses.
+     * Requires a passive same-origin callback and a COOP-compatible popup round-trip.
+     * Defaults to `false`. When enabled, {@link BrowserAuthOptions.originCheck} defaults to `false`.
+     *
+     * See [Cross-Origin-Opener-Policy and popup responses](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#cross-origin-opener-policy-and-popup-responses).
+     */
+    enableLegacyPolling?: boolean;
+    /**
      * Time to wait for redirection to occur before resolving promise
      */
     redirectNavigationTimeout?: number;
@@ -198,6 +225,11 @@ export type BrowserSystemOptions = SystemOptions & {
  * @public
  */
 export type BrowserExperimentalOptions = {
+    /**
+     * Opts EAR requests into asymmetric encryption. Defaults to false.
+     * Requires system.protocolMode to be ProtocolMode.EAR.
+     */
+    enableAsymmetricEar?: boolean;
     /**
      * Enables iframe timeout telemetry experiment for silent iframe bridge monitoring.
      */
@@ -289,6 +321,7 @@ export function buildConfiguration(
                 : "",
         postLogoutRedirectUri: "",
         popupRelayUri: "",
+        popupRelayProtocolVersion: 1,
         clientCapabilities: [],
         OIDCOptions: {
             responseMode: Constants.ResponseMode.FRAGMENT,
@@ -305,6 +338,8 @@ export function buildConfiguration(
         instanceAware: false,
         isMcp: false,
         verifySSO: false,
+        // Legacy polling needs COOP omitted, so it implies asserting pocd=1.
+        originCheck: !userInputSystem?.enableLegacyPolling,
     };
 
     // Default cache options for browser
@@ -344,6 +379,7 @@ export function buildConfiguration(
             DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
         protocolMode: ProtocolMode.AAD,
         serverTelemetryEnabled: false,
+        enableLegacyPolling: false,
     };
 
     const providedSystemOptions: Required<BrowserSystemOptions> = {
@@ -361,8 +397,21 @@ export function buildConfiguration(
     };
 
     const DEFAULT_EXPERIMENTAL_OPTIONS: Required<BrowserExperimentalOptions> = {
+        enableAsymmetricEar: false,
         iframeTimeoutTelemetry: false,
         allowPlatformBrokerWithDOM: false,
+    };
+
+    let logger: Logger | undefined;
+    const getLogger = (): Logger => {
+        if (!logger) {
+            logger = new Logger(
+                providedSystemOptions.loggerOptions,
+                name,
+                version
+            );
+        }
+        return logger;
     };
 
     // Throw an error if user has set OIDCOptions without being in OIDC protocol mode
@@ -370,12 +419,7 @@ export function buildConfiguration(
         userInputSystem?.protocolMode !== ProtocolMode.OIDC &&
         userInputAuth?.OIDCOptions
     ) {
-        const logger = new Logger(
-            providedSystemOptions.loggerOptions,
-            name,
-            version
-        );
-        logger.warning(
+        getLogger().warning(
             JSON.stringify(
                 createClientConfigurationError(
                     ClientConfigurationErrorCodes.cannotSetOIDCOptions,
@@ -398,6 +442,36 @@ export function buildConfiguration(
         );
     }
 
+    /*
+     * The origin check computes 0 in the embedded contexts legacy polling
+     * serves, so re-enabling it there breaks the flow. Honor it, but warn.
+     */
+    if (
+        userInputSystem?.enableLegacyPolling &&
+        userInputAuth?.originCheck === true
+    ) {
+        getLogger().warning(
+            "buildConfiguration: system.enableLegacyPolling is true and auth.originCheck is explicitly true. Legacy polling requires pocd=1, which the origin check will not produce in an embedded context. Unset auth.originCheck to let legacy polling assert it.",
+            ""
+        );
+    }
+
+    /*
+     * Opting out is a deliberate risk transfer, not an error — but the app
+     * cannot know at config time that the risky topology is actually present.
+     */
+    if (
+        (userInputAuth?.originCheck ?? DEFAULT_AUTH_OPTIONS.originCheck) ===
+            false &&
+        typeof window !== "undefined" &&
+        !topOpenerIsSameOriginOrAbsent(window)
+    ) {
+        getLogger().warning(
+            "buildConfiguration: auth.originCheck is disabled and the top-level window has a cross-origin opener. MSAL will assert pocd=1, so the STS omits Cross-Origin-Opener-Policy and that opener can reach the auth popup. The application is responsible for this risk.",
+            ""
+        );
+    }
+
     const overlayedConfig: BrowserConfiguration = {
         auth: {
             ...DEFAULT_AUTH_OPTIONS,
@@ -412,9 +486,27 @@ export function buildConfiguration(
         experimental: {
             ...DEFAULT_EXPERIMENTAL_OPTIONS,
             ...userInputExperimental,
+            enableAsymmetricEar:
+                userInputExperimental?.enableAsymmetricEar ?? false,
         },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
+
+    if (
+        overlayedConfig.experimental.enableAsymmetricEar &&
+        overlayedConfig.system.protocolMode !== ProtocolMode.EAR
+    ) {
+        const logger = new Logger(
+            providedSystemOptions.loggerOptions,
+            name,
+            version
+        );
+        logger.warning(
+            "experimental.enableAsymmetricEar is ignored because system.protocolMode is not ProtocolMode.EAR.",
+            ""
+        );
+        overlayedConfig.experimental.enableAsymmetricEar = false;
+    }
 
     return overlayedConfig;
 }

@@ -10,6 +10,8 @@ import type {
     FlowCodeRequiredResultV2,
     FlowSubmitCodeResultV2,
 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
+import { ensureArgumentIsNotNullOrUndefined } from "../../../utils/ArgumentValidator.js";
+import type { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 
 export abstract class ChallengeVerificationStateBaseV2<
     TParameters extends CodeVerificationStateParametersV2 = CodeVerificationStateParametersV2
@@ -31,23 +33,30 @@ export abstract class ChallengeVerificationStateBaseV2<
     }
 
     protected async submitCodeCore(
-        code: string
+        code: string,
+        authenticationFactor?: AuthenticationFactorV2
     ): Promise<FlowSubmitCodeResultV2> {
-        if (this.codeLength) {
-            this.ensureCodeIsValid(code, this.codeLength);
-        }
+        ensureArgumentIsNotNullOrUndefined(
+            "code",
+            code,
+            this.stateParameters.correlationId
+        );
 
         return this.stateParameters.flowClient.submitCode({
             correlationId: this.stateParameters.correlationId,
             continuationState: this.stateParameters.continuationState,
+            authenticationFactor,
             code,
         });
     }
 
-    protected async resendCodeCore(): Promise<FlowCodeRequiredResultV2> {
+    protected async resendCodeCore(
+        authenticationFactor?: AuthenticationFactorV2
+    ): Promise<FlowCodeRequiredResultV2> {
         return this.stateParameters.flowClient.resendCode({
             correlationId: this.stateParameters.correlationId,
             continuationState: this.stateParameters.continuationState,
+            authenticationFactor,
         });
     }
 }

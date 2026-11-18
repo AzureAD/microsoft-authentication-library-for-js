@@ -5,36 +5,56 @@
 
 import { AuthenticationMethodV2 } from "../AuthenticationMethodV2.js";
 import { CustomAuthResultV2 } from "../CustomAuthResultV2.js";
-import { RequestChallengeErrorV2 } from "../error/RequestChallengeErrorV2.js";
+import { AuthFlowActionRequiredStateBase } from "../../AuthFlowState.js";
 import { CodeRequiredStateV2 } from "./CodeRequiredStateV2.js";
+import { MFAVerificationRequiredStateV2 } from "./MFAVerificationRequiredStateV2.js";
 import type { AuthMethodSelectionRequiredStateParametersV2 } from "./CustomAuthStateParametersV2.js";
 import type { RequestChallengeResultV2 } from "../result/RequestChallengeResultV2.js";
-import { FLOW_CODE_REQUIRED_V2 } from "../../../interaction_client/v2/result/FlowActionResultV2.js";
-import { AuthenticationMethodSelectionStateBaseV2 } from "./AuthenticationMethodSelectionStateBaseV2.js";
+import {
+    FLOW_CODE_REQUIRED_V2,
+    FLOW_PASSWORD_REQUIRED_V2,
+    type FlowCodeRequiredResultV2,
+    type FlowPasswordRequiredResultV2,
+} from "../../../interaction_client/v2/result/FlowActionResultV2.js";
 import { AuthenticationMethodTypeV2 } from "../../../network_client/custom_auth_api/v2/ApiClientConstantsV2.js";
 import { CustomAuthError } from "../../../error/CustomAuthError.js";
+import { InvalidArgumentError } from "../../../error/InvalidArgumentError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../network_client/custom_auth_api/v2/ErrorCodesV2.js";
+import { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
+import { CustomAuthFlowScenarioV2 } from "../CustomAuthFlowScenarioV2.js";
+import { ExistingAccountCodeRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/ExistingAccountCodeRequiredStateV2.js";
+import { ExistingAccountPasswordRequiredStateV2 } from "../../../../sign_up/auth_flow/v2/state/ExistingAccountPasswordRequiredStateV2.js";
 
 /**
- * State returned when the user must select one of several authentication
- * methods before a challenge can be issued. It exposes the list of offered
- * methods and lets the app request a challenge for the chosen one. The flow
- * stays on this state until a challenge is successfully requested.
+ * State returned when the user must select an authentication method.
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
-export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSelectionStateBaseV2<AuthMethodSelectionRequiredStateParametersV2> {
+export class AuthMethodSelectionRequiredStateV2 extends AuthFlowActionRequiredStateBase<AuthMethodSelectionRequiredStateParametersV2> {
     readonly stateType = "authMethodSelectionRequired";
+    readonly methods: readonly AuthenticationMethodV2[];
+
+    constructor(stateParameters: AuthMethodSelectionRequiredStateParametersV2) {
+        super(stateParameters);
+        this.methods = stateParameters.methods;
+    }
 
     /**
-     * Requests a challenge for the selected authentication method. The returned
-     * state identifies the credential the application must collect.
-     * @param method - The method to challenge, from {@link methods}.
-     * @returns The result of requesting the challenge.
+     * Selects an authentication method and requests its challenge.
+     * @param method - The method to select, from {@link methods}.
+     * @returns The result of selecting the method and requesting its challenge.
      */
-    async requestChallenge(
+    async selectAuthMethod(
         method: AuthenticationMethodV2
     ): Promise<RequestChallengeResultV2> {
-        const { correlationId, logger, continuationState, flowClient } =
-            this.stateParameters;
+        const {
+            authenticationFactor,
+            correlationId,
+            logger,
+            continuationState,
+            flowClient,
+            signInStateTransitionHandler,
+            resetPasswordStateTransitionHandler,
+        } = this.stateParameters;
 
         try {
             logger.verbose(
@@ -44,7 +64,6 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSele
 
             const { result, selectedMethod } =
                 await this.requestSelectedMethodChallenge(method);
-            const resultType: string = result.type;
 
             const commonStateParameters = {
                 correlationId: result.correlationId,
@@ -53,17 +72,25 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSele
                 flowClient,
                 continuationState: result.continuationState,
                 cacheClient: this.stateParameters.cacheClient,
+                signInStateTransitionHandler,
             };
+            const isExistingAccountSignUp =
+                continuationState.scenario ===
+                    CustomAuthFlowScenarioV2.SignUp &&
+                continuationState.signUp?.purpose === "existingAccount";
 
+            const channel =
+                result.type === FLOW_CODE_REQUIRED_V2
+                    ? result.channel?.toLowerCase()
+                    : undefined;
             if (
+                isExistingAccountSignUp &&
+                authenticationFactor === AuthenticationFactorV2.SINGLE_FACTOR &&
                 result.type === FLOW_CODE_REQUIRED_V2 &&
-                (result.channel?.toLowerCase() ===
-                    AuthenticationMethodTypeV2.EMAIL ||
-                    result.channel?.toLowerCase() ===
-                        AuthenticationMethodTypeV2.SMS)
+                channel === AuthenticationMethodTypeV2.EMAIL
             ) {
                 return new CustomAuthResultV2(
-                    new CodeRequiredStateV2({
+                    new ExistingAccountCodeRequiredStateV2({
                         ...commonStateParameters,
                         method: selectedMethod,
                         sentTo: result.sentTo,
@@ -75,13 +102,103 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSele
                 );
             }
 
+            if (
+                !isExistingAccountSignUp &&
+                authenticationFactor === AuthenticationFactorV2.SINGLE_FACTOR &&
+                result.type === FLOW_CODE_REQUIRED_V2 &&
+                (channel === AuthenticationMethodTypeV2.EMAIL ||
+                    channel === AuthenticationMethodTypeV2.SMS)
+            ) {
+                return new CustomAuthResultV2(
+                    new CodeRequiredStateV2({
+                        ...commonStateParameters,
+                        resetPasswordStateTransitionHandler,
+                        method: selectedMethod,
+                        sentTo: result.sentTo,
+                        channel: result.channel,
+                        codeLength: result.codeLength,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (
+                isExistingAccountSignUp &&
+                authenticationFactor === AuthenticationFactorV2.SINGLE_FACTOR &&
+                result.type === FLOW_PASSWORD_REQUIRED_V2
+            ) {
+                return new CustomAuthResultV2(
+                    new ExistingAccountPasswordRequiredStateV2(
+                        commonStateParameters
+                    ),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            if (
+                continuationState.scenario ===
+                    CustomAuthFlowScenarioV2.SignIn &&
+                authenticationFactor === AuthenticationFactorV2.SINGLE_FACTOR &&
+                result.type === FLOW_PASSWORD_REQUIRED_V2
+            ) {
+                if (!signInStateTransitionHandler) {
+                    throw new CustomAuthError(
+                        UNSUPPORTED_FLOW_TRANSITION,
+                        "Sign-in method selection cannot map a password challenge without a sign-in transition handler.",
+                        correlationId
+                    );
+                }
+
+                return signInStateTransitionHandler.handlePasswordRequired(
+                    result,
+                    commonStateParameters
+                );
+            }
+
+            if (
+                authenticationFactor === AuthenticationFactorV2.MULTI_FACTOR &&
+                result.type === FLOW_CODE_REQUIRED_V2
+            ) {
+                return new CustomAuthResultV2(
+                    new MFAVerificationRequiredStateV2({
+                        ...commonStateParameters,
+                        method: selectedMethod,
+                        sentTo: result.sentTo,
+                        channel: result.channel,
+                        codeLength: result.codeLength,
+                    }),
+                    undefined,
+                    result.continuationState.scenario
+                );
+            }
+
+            let expectedChallenge =
+                authenticationFactor === AuthenticationFactorV2.SINGLE_FACTOR
+                    ? continuationState.scenario ===
+                      CustomAuthFlowScenarioV2.SignIn
+                        ? "an email or SMS code challenge or a password challenge for single-factor sign-in"
+                        : "an email or SMS code challenge for single-factor authentication"
+                    : "a code challenge for multi-factor authentication";
+            if (
+                isExistingAccountSignUp &&
+                authenticationFactor === AuthenticationFactorV2.SINGLE_FACTOR
+            ) {
+                expectedChallenge =
+                    "an email code challenge or a password challenge for existing-account sign-up";
+            }
+
+            const returnedChallenge =
+                result.type === FLOW_CODE_REQUIRED_V2
+                    ? result.channel
+                        ? `a '${result.channel}' code challenge`
+                        : "a code challenge without a channel"
+                    : "a password challenge";
+
             throw new CustomAuthError(
                 UNSUPPORTED_FLOW_TRANSITION,
-                `Challenge type '${resultType}' with channel '${
-                    result.type === FLOW_CODE_REQUIRED_V2
-                        ? result.channel
-                        : AuthenticationMethodTypeV2.PASSWORD
-                }' is not supported for password reset.`,
+                `Authentication method selection expected ${expectedChallenge}, but the server returned ${returnedChallenge}.`,
                 correlationId
             );
         } catch (error) {
@@ -91,10 +208,44 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthenticationMethodSele
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                errorType: RequestChallengeErrorV2,
                 scenario: continuationState.scenario,
                 correlationId,
             });
         }
+    }
+
+    private async requestSelectedMethodChallenge(
+        method: AuthenticationMethodV2
+    ): Promise<{
+        result: FlowCodeRequiredResultV2 | FlowPasswordRequiredResultV2;
+        selectedMethod: AuthenticationMethodV2;
+    }> {
+        const {
+            correlationId,
+            continuationState,
+            flowClient,
+            authenticationFactor,
+        } = this.stateParameters;
+        const selectedMethod = this.methods.find(
+            (candidate) => candidate.id === method.id
+        );
+
+        if (!selectedMethod) {
+            throw new InvalidArgumentError("method", correlationId);
+        }
+
+        const result = await flowClient.requestChallenge({
+            correlationId,
+            authenticationFactor,
+            continuationState: {
+                ...continuationState,
+                links: {
+                    ...continuationState.links,
+                    challenge: selectedMethod.challengeHref,
+                },
+            },
+        });
+
+        return { result, selectedMethod };
     }
 }

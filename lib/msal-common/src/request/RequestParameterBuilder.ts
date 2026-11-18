@@ -475,6 +475,21 @@ export function addInstanceAware(parameters: Map<string, string>): void {
 }
 
 /**
+ * Adds `pocd=1`, telling the STS that the client verified the popup driving
+ * this request cannot be reached by an untrusted window, so the
+ * Cross-Origin-Opener-Policy response header may be omitted.
+ *
+ * Only ever added when the check passed — a negative result is signalled by
+ * omitting the parameter, which keeps the STS default (apply COOP) and stays
+ * compatible with library versions that never send it.
+ */
+export function addPopupOriginCheckDone(parameters: Map<string, string>): void {
+    if (!parameters.has(AADServerParamKeys.POPUP_ORIGIN_CHECK_DONE)) {
+        parameters.set(AADServerParamKeys.POPUP_ORIGIN_CHECK_DONE, "1");
+    }
+}
+
+/**
  * Add extraParameters
  * @param extraParams - String dictionary containing extra parameters to be added.
  */
@@ -755,16 +770,21 @@ export function addBrokerParameters(
  * Add EAR (Encrypted Authorize Response) request parameters
  * @param parameters
  * @param jwk
+ * @param jweCrypto - Base64-encoded encryption metadata; defaults to symmetric EAR.
  */
 export function addEARParameters(
     parameters: Map<string, string>,
-    jwk: string
+    jwk: string,
+    jweCrypto?: string
 ): void {
     parameters.set(AADServerParamKeys.EAR_JWK, encodeURIComponent(jwk));
 
-    // ear_jwe_crypto will always have value: {"alg":"dir","enc":"A256GCM"} so we can hardcode this
+    // Default symmetric EAR metadata; asymmetric requests supply their APV.
     const jweCryptoB64Encoded = "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0";
-    parameters.set(AADServerParamKeys.EAR_JWE_CRYPTO, jweCryptoB64Encoded);
+    parameters.set(
+        AADServerParamKeys.EAR_JWE_CRYPTO,
+        jweCrypto ?? jweCryptoB64Encoded
+    );
 }
 
 export function addResource(

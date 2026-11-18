@@ -267,6 +267,10 @@ export function getStandardAuthorizeRequestParameters(
         RequestParameterBuilder.addInstanceAware(parameters);
     }
 
+    if (request.popupOriginCheckDone) {
+        RequestParameterBuilder.addPopupOriginCheckDone(parameters);
+    }
+
     return parameters;
 }
 
@@ -347,8 +351,7 @@ export function validateAuthorizationResponse(
     } catch (e) {
         throw createClientAuthError(
             ClientAuthErrorCodes.invalidState,
-            correlationId,
-            serverResponse.state
+            correlationId
         );
     }
 
@@ -357,8 +360,7 @@ export function validateAuthorizationResponse(
     } catch (e) {
         throw createClientAuthError(
             ClientAuthErrorCodes.invalidState,
-            correlationId,
-            serverResponse.state
+            correlationId
         );
     }
 

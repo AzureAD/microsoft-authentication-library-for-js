@@ -67,6 +67,7 @@ import { TestTimeUtils } from "msal-test-utils";
 import { PopupRequest } from "../../src/request/PopupRequest.js";
 import { version } from "../../src/packageMetadata.js";
 import * as CacheKeys from "../../src/cache/CacheKeys.js";
+import { EventHandler } from "../../src/event/EventHandler.js";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -158,10 +159,156 @@ describe("PopupClient", () => {
             jest.spyOn(window, "open").mockReturnValue(popupWindow);
         });
 
+        it.each([
+            ["GET", 1, ProtocolMode.AAD, Constants.HttpMethod.GET],
+            ["POST", 1, ProtocolMode.AAD, Constants.HttpMethod.POST],
+            ["EAR", 1, ProtocolMode.EAR, Constants.HttpMethod.POST],
+            ["GET", 2, ProtocolMode.AAD, Constants.HttpMethod.GET],
+            ["POST", 2, ProtocolMode.AAD, Constants.HttpMethod.POST],
+            ["EAR", 2, ProtocolMode.EAR, Constants.HttpMethod.POST],
+        ] as const)(
+            "routes the %s relay action with protocol v%s",
+            async (_label, protocolVersion, protocolMode, httpMethod) => {
+                const relayUri = protocolVersion === 1 ? "/relay" : "/relay-v2";
+                const relayPca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        popupRelayUri: relayUri,
+                        ...(protocolVersion === 2
+                            ? { popupRelayProtocolVersion: 2 as const }
+                            : {}),
+                    },
+                    system: { protocolMode },
+                });
+                await relayPca.initialize();
+                jest.spyOn(
+                    window.navigator,
+                    "userAgent",
+                    "get"
+                ).mockReturnValue("Mozilla/5.0 Chrome/137.0.0.0 Safari/537.36");
+                jest.spyOn(BrowserCrypto, "generateEarKey").mockResolvedValue(
+                    validEarJWK
+                );
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "getAuthCodeRequestUrl"
+                ).mockResolvedValue(testNavUrl);
+                const formData = {
+                    action: TEST_URIS.TEST_AUTH_ENDPT,
+                    fields: { client_id: TEST_CONFIG.MSAL_CLIENT_ID },
+                };
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "getCodeFormData"
+                ).mockResolvedValue(formData);
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "getEARFormData"
+                ).mockResolvedValue(formData);
+                const popup = {
+                    location: { assign: jest.fn() },
+                    close: jest.fn(),
+                    focus: jest.fn(),
+                } as unknown as Window;
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "openSizedPopup"
+                ).mockReturnValue(popup);
+                const response = jest
+                    .spyOn(PopupRelayClient, "waitForPopupRelayResponse")
+                    .mockResolvedValue(
+                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+                    );
+                jest.spyOn(
+                    AuthorizeProtocol,
+                    "handleResponseCode"
+                ).mockResolvedValue(getTestAuthenticationResult());
+
+                await relayPca.acquireTokenPopup({
+                    scopes: ["User.Read"],
+                    httpMethod,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                });
+
+                expect(response).toHaveBeenCalledWith(
+                    expect.any(Number),
+                    expect.anything(),
+                    expect.anything(),
+                    popup,
+                    expect.anything(),
+                    httpMethod === Constants.HttpMethod.GET
+                        ? { method: "GET", url: testNavUrl }
+                        : { method: "POST", ...formData },
+                    protocolVersion
+                );
+                expect(popup.location.assign).toHaveBeenCalledWith(
+                    protocolVersion === 1
+                        ? expect.stringContaining("/relay#req=")
+                        : expect.stringContaining("/relay-v2#id=")
+                );
+                if (protocolVersion === 2) {
+                    expect(popup.location.assign).not.toHaveBeenCalledWith(
+                        expect.stringContaining("req=")
+                    );
+                }
+            }
+        );
+
         afterEach(() => {
             window.localStorage.clear();
             window.sessionStorage.clear();
         });
+
+        it.each([
+            ["trusted parent", false, true, "", true],
+            ["parent with an untrusted opener", true, true, "", false],
+            ["explicit origin-check opt-out", true, false, "", true],
+            ["relay topology", true, true, "/relay", true],
+        ] as const)(
+            "uses the correct POCD assertion for %s",
+            async (_label, untrustedOpener, originCheck, relay, expected) => {
+                const parent = {
+                    origin: window.origin,
+                    location: window.location,
+                    opener: untrustedOpener
+                        ? {
+                              get location() {
+                                  throw new DOMException(
+                                      "Blocked a frame",
+                                      "SecurityError"
+                                  );
+                              },
+                          }
+                        : null,
+                } as Window;
+                Object.defineProperties(parent, {
+                    parent: { value: parent },
+                    top: { value: parent },
+                });
+                pca.getConfiguration().auth.originCheck = originCheck;
+                pca.getConfiguration().auth.popupRelayUri = relay;
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "openSizedPopup"
+                ).mockReturnValue({
+                    close: jest.fn(),
+                    focus: jest.fn(),
+                    document: {},
+                    location: { assign: jest.fn() },
+                } as unknown as Window);
+                const post = jest
+                    .spyOn(PopupClient.prototype, "executeCodeFlowWithPost")
+                    .mockResolvedValue(getTestAuthenticationResult());
+                await popupClient.acquireToken({
+                    scopes: ["User.Read"],
+                    httpMethod: Constants.HttpMethod.POST,
+                    popupWindowParent: parent,
+                });
+                expect(post.mock.calls[0][0].popupOriginCheckDone).toBe(
+                    expected
+                );
+            }
+        );
 
         it("throws error when AuthenticationScheme is set to SSH and SSH JWK is omitted from the request", async () => {
             const request: CommonAuthorizationUrlRequest = {
@@ -708,8 +855,100 @@ describe("PopupClient", () => {
                 expect.anything(),
                 expect.anything(),
                 expect.anything(),
-                undefined
+                undefined,
+                expect.anything()
             );
+        });
+
+        it("removes the generated DPoP key when the popup response fails", async () => {
+            jest.spyOn(
+                AuthorizeProtocol,
+                "getAuthCodeRequestUrl"
+            ).mockResolvedValue(testNavUrl);
+            jest.spyOn(PopupClient.prototype, "initiateAuthRequest")
+                .mockClear()
+                .mockReturnValue(window);
+            jest.spyOn(BrowserUtils, "waitForBridgeResponse").mockRejectedValue(
+                new Error("popup response failed")
+            );
+            jest.spyOn(PkceGenerator, "generatePkceCodes").mockResolvedValue({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            });
+            const tokenBindingKeyManager = (popupClient as any)
+                .tokenBindingKeyManager;
+            jest.spyOn(
+                tokenBindingKeyManager,
+                "provisionTokenBindingKey"
+            ).mockResolvedValue("test-dpop-jkt");
+            const removeKeySpy = jest
+                .spyOn(tokenBindingKeyManager, "removeTokenBindingKey")
+                .mockResolvedValue(undefined);
+
+            await expect(
+                popupClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    resourceRequestMethod: "GET",
+                    resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
+                })
+            ).rejects.toThrow("popup response failed");
+
+            expect(removeKeySpy).toHaveBeenCalledWith(
+                "test-dpop-jkt",
+                expect.any(String)
+            );
+        });
+
+        it("propagates asymmetric EAR setup failure and removes the generated DPoP key without posting a form", async () => {
+            (popupClient as any).config.experimental.enableAsymmetricEar = true;
+            const error = new Error("P-384 unavailable");
+            jest.spyOn(
+                BrowserCrypto,
+                "generateAsymmetricEarKey"
+            ).mockRejectedValue(error);
+            const manager = (popupClient as any).tokenBindingKeyManager;
+            jest.spyOn(manager, "provisionTokenBindingKey").mockResolvedValue(
+                "test-dpop-jkt"
+            );
+            const remove = jest
+                .spyOn(manager, "removeTokenBindingKey")
+                .mockResolvedValue(undefined);
+            const form = jest.spyOn(AuthorizeProtocol, "getEARForm");
+            const codeFlow = jest.spyOn(popupClient, "executeCodeFlow");
+
+            await expect(
+                popupClient.executeEarFlow(
+                    {
+                        authority: TEST_CONFIG.validAuthority,
+                        redirectUri: TEST_URIS.TEST_REDIR_URI,
+                        scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        responseMode: Constants.ResponseMode.FRAGMENT,
+                        nonce: ID_TOKEN_CLAIMS.nonce,
+                        state: TEST_STATE_VALUES.TEST_STATE_POPUP,
+                        authenticationScheme:
+                            Constants.AuthenticationScheme.DPOP,
+                    },
+                    {
+                        popupName: "test-popup",
+                        popupWindowAttributes: {},
+                        popupWindowParent: window,
+                    }
+                )
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.asymmetricEarKeyError,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                subError: "request_initialization_failed",
+            });
+
+            expect(remove).toHaveBeenCalledWith(
+                "test-dpop-jkt",
+                TEST_CONFIG.CORRELATION_ID
+            );
+            expect(form).not.toHaveBeenCalled();
+            expect(codeFlow).not.toHaveBeenCalled();
         });
 
         it("throws hash_empty_error if popup returns to redirectUri without a hash", (done) => {
@@ -1008,6 +1247,13 @@ describe("PopupClient", () => {
             });
 
             it("Invokes EAR flow when protocolMode is set to EAR", async () => {
+                jest.spyOn(
+                    window.navigator,
+                    "userAgent",
+                    "get"
+                ).mockReturnValue(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+                );
                 const validRequest: PopupRequest = {
                     authority: TEST_CONFIG.validAuthority,
                     scopes: ["openid", "profile", "offline_access"],
@@ -1035,6 +1281,202 @@ describe("PopupClient", () => {
                 const result = await pca.acquireTokenPopup(validRequest);
                 expect(result).toEqual(getTestAuthenticationResult());
                 expect(earFormSpy).toHaveBeenCalled();
+            });
+
+            it.each([false, true])(
+                "preserves the delegated parent's origin check for EAR (asymmetric: %s)",
+                async (enableAsymmetricEar) => {
+                    pca.getConfiguration().experimental.enableAsymmetricEar =
+                        enableAsymmetricEar;
+                    jest.spyOn(
+                        window.navigator,
+                        "userAgent",
+                        "get"
+                    ).mockReturnValue(
+                        "Mozilla/5.0 Chrome/137.0.0.0 Safari/537.36"
+                    );
+                    const parent = {
+                        origin: window.origin,
+                        location: window.location,
+                        opener: {
+                            get location() {
+                                throw new DOMException(
+                                    "Blocked a frame",
+                                    "SecurityError"
+                                );
+                            },
+                        },
+                    } as Window;
+                    Object.defineProperties(parent, {
+                        parent: { value: parent },
+                        top: { value: parent },
+                    });
+                    jest.spyOn(
+                        PopupClient.prototype,
+                        "openSizedPopup"
+                    ).mockReturnValue(popupWindow);
+                    const post = jest
+                        .spyOn(
+                            PopupClient.prototype as any,
+                            "openPostFormPopup"
+                        )
+                        .mockResolvedValue(popupWindow);
+                    jest.spyOn(
+                        BrowserUtils,
+                        "waitForBridgeResponse"
+                    ).mockResolvedValue(
+                        `#ear_jwe=${validEarJWE}&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`
+                    );
+                    const response = jest
+                        .spyOn(AuthorizeProtocol, "handleResponseEAR")
+                        .mockResolvedValue(getTestAuthenticationResult());
+
+                    await pca.acquireTokenPopup({
+                        scopes: ["openid"],
+                        httpMethod: Constants.HttpMethod.POST,
+                        popupWindowParent: parent,
+                    });
+
+                    expect(post.mock.calls[0][0]).toEqual(
+                        expect.objectContaining({ popupOriginCheckDone: false })
+                    );
+                    expect(response.mock.calls[0][0].popupOriginCheckDone).toBe(
+                        false
+                    );
+                }
+            );
+
+            it.each([
+                { response: "ear", httpMethod: Constants.HttpMethod.POST },
+                { response: "code", httpMethod: Constants.HttpMethod.POST },
+                { response: "cancel", httpMethod: Constants.HttpMethod.POST },
+            ])(
+                "Keeps asymmetric $httpMethod popup keys in memory for $response",
+                async ({ response, httpMethod }) => {
+                    pca.getConfiguration().experimental.enableAsymmetricEar =
+                        true;
+                    jest.spyOn(
+                        window.navigator,
+                        "userAgent",
+                        "get"
+                    ).mockReturnValue(
+                        "Mozilla/5.0 Chrome/137.0.0.0 Safari/537.36"
+                    );
+                    jest.spyOn(
+                        PopupClient.prototype,
+                        "openSizedPopup"
+                    ).mockReturnValue(popupWindow);
+                    const formSpy = jest
+                        .spyOn(HTMLFormElement.prototype, "submit")
+                        .mockImplementation(() => {
+                            expect(
+                                Object.keys(window.sessionStorage).filter(
+                                    (key) =>
+                                        key.endsWith(
+                                            TemporaryCacheKeys.REQUEST_PARAMS
+                                        ) ||
+                                        key.includes(".request.asymmetric-ear.")
+                                )
+                            ).toHaveLength(0);
+                        });
+                    const responseSpy = jest.spyOn(
+                        BrowserUtils,
+                        "waitForBridgeResponse"
+                    );
+                    if (response === "cancel") {
+                        responseSpy.mockRejectedValue(
+                            new Error("popup cancelled")
+                        );
+                    } else {
+                        responseSpy.mockResolvedValue(
+                            `#${
+                                response === "ear" ? "ear_jwe" : "code"
+                            }=response&state=${
+                                TEST_STATE_VALUES.TEST_STATE_POPUP
+                            }`
+                        );
+                        jest.spyOn(
+                            AuthorizeProtocol,
+                            response === "ear"
+                                ? "handleResponseEAR"
+                                : "handleResponseCode"
+                        ).mockImplementation(async (...args) => {
+                            const request = args[0];
+                            await Promise.resolve();
+                            expect(
+                                request.asymmetricEar?.privateJwk.d
+                            ).toBeDefined();
+                            expect(
+                                Object.keys(window.sessionStorage).filter(
+                                    (key) =>
+                                        key.endsWith(
+                                            TemporaryCacheKeys.REQUEST_PARAMS
+                                        ) ||
+                                        key.includes(".request.asymmetric-ear.")
+                                )
+                            ).toHaveLength(0);
+                            return getTestAuthenticationResult();
+                        });
+                    }
+                    const result = pca.acquireTokenPopup({
+                        scopes: ["openid"],
+                        state: TEST_STATE_VALUES.USER_STATE,
+                        httpMethod,
+                    });
+                    if (response === "cancel") {
+                        await expect(result).rejects.toThrow("popup cancelled");
+                    } else {
+                        await expect(result).resolves.toEqual(
+                            getTestAuthenticationResult()
+                        );
+                    }
+                    expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
+                    expect(formSpy).toHaveBeenCalled();
+                    expect(
+                        Object.keys(window.sessionStorage).filter(
+                            (key) =>
+                                key.endsWith(
+                                    TemporaryCacheKeys.REQUEST_PARAMS
+                                ) || key.includes(".request.asymmetric-ear.")
+                        )
+                    ).toHaveLength(0);
+                }
+            );
+
+            it("uses authorization code flow instead of EAR in Safari", async () => {
+                const validRequest: PopupRequest = {
+                    authority: TEST_CONFIG.validAuthority,
+                    scopes: ["openid", "profile", "offline_access"],
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    redirectUri: window.location.href,
+                    state: TEST_STATE_VALUES.USER_STATE,
+                    nonce: ID_TOKEN_CLAIMS.nonce,
+                };
+                jest.spyOn(
+                    window.navigator,
+                    "userAgent",
+                    "get"
+                ).mockReturnValue(
+                    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Safari/605.1.15"
+                );
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "openSizedPopup"
+                ).mockReturnValue(popupWindow);
+                const codeFlowSpy = jest
+                    .spyOn(PopupClient.prototype, "executeCodeFlow")
+                    .mockResolvedValue(getTestAuthenticationResult());
+                const earFlowSpy = jest.spyOn(
+                    PopupClient.prototype,
+                    "executeEarFlow"
+                );
+
+                const result = await pca.acquireTokenPopup(validRequest);
+
+                expect(result).toEqual(getTestAuthenticationResult());
+                expect(codeFlowSpy).toHaveBeenCalled();
+                expect(earFlowSpy).not.toHaveBeenCalled();
+                expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
             });
 
             it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", async () => {
@@ -1074,26 +1516,31 @@ describe("PopupClient", () => {
                 expect(earFormSpy).toHaveBeenCalled();
             });
 
-            it("throws error when ProtocolMode is set to EAR and httpMethod is set to GET", async () => {
-                const validRequest: PopupRequest = {
-                    authority: TEST_CONFIG.validAuthority,
-                    scopes: ["openid", "profile", "offline_access"],
-                    correlationId: TEST_CONFIG.CORRELATION_ID,
-                    redirectUri: window.location.href,
-                    state: TEST_STATE_VALUES.USER_STATE,
-                    nonce: ID_TOKEN_CLAIMS.nonce,
-                    httpMethod: Constants.HttpMethod.GET,
-                };
+            it.each([false, true])(
+                "throws error when EAR uses GET (asymmetric: %s)",
+                async (enableAsymmetricEar) => {
+                    pca.getConfiguration().experimental.enableAsymmetricEar =
+                        enableAsymmetricEar;
+                    const validRequest: PopupRequest = {
+                        authority: TEST_CONFIG.validAuthority,
+                        scopes: ["openid", "profile", "offline_access"],
+                        correlationId: TEST_CONFIG.CORRELATION_ID,
+                        redirectUri: window.location.href,
+                        state: TEST_STATE_VALUES.USER_STATE,
+                        nonce: ID_TOKEN_CLAIMS.nonce,
+                        httpMethod: Constants.HttpMethod.GET,
+                    };
 
-                await expect(
-                    pca.acquireTokenPopup(validRequest)
-                ).rejects.toThrow(
-                    createClientConfigurationError(
-                        ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
-                        ""
-                    )
-                );
-            });
+                    await expect(
+                        pca.acquireTokenPopup(validRequest)
+                    ).rejects.toThrow(
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
+                            ""
+                        )
+                    );
+                }
+            );
         });
     });
 
@@ -1113,6 +1560,47 @@ describe("PopupClient", () => {
         afterEach(() => {
             window.localStorage.clear();
             window.sessionStorage.clear();
+        });
+
+        it("does not assert POCD for a delegated parent with an untrusted opener", async () => {
+            const parent = {
+                origin: window.origin,
+                location: window.location,
+                opener: {
+                    get location() {
+                        throw new DOMException(
+                            "Blocked a frame",
+                            "SecurityError"
+                        );
+                    },
+                },
+            } as Window;
+            Object.defineProperties(parent, {
+                parent: { value: parent },
+                top: { value: parent },
+            });
+            const logout = jest
+                .spyOn(AuthorizationCodeClient.prototype, "getLogoutUri")
+                .mockReturnValue(TEST_URIS.TEST_END_SESSION_ENDPOINT);
+            const popup = {
+                close: jest.fn(),
+                focus: jest.fn(),
+                document: {},
+                location: { assign: jest.fn() },
+            } as unknown as Window;
+            jest.spyOn(PopupClient.prototype, "openSizedPopup").mockReturnValue(
+                popup
+            );
+            jest.spyOn(PopupClient.prototype, "openPopup").mockReturnValue(
+                popup
+            );
+            jest.spyOn(
+                EventHandler.prototype,
+                "emitEvent"
+            ).mockImplementation();
+
+            await popupClient.logout({ popupWindowParent: parent });
+            expect(logout.mock.calls[0][0].popupOriginCheckDone).toBe(false);
         });
 
         it("opens popup window before network request by default", async () => {
@@ -1141,38 +1629,53 @@ describe("PopupClient", () => {
             expect(logoutUriSpy.mock.calls[0][0].state).toBeTruthy();
         });
 
-        it("routes logout through the popup-relay page when popupRelayUri is configured", async () => {
-            (popupClient as any).config.auth.popupRelayUri = "/relay";
-            const logoutUri = TEST_URIS.TEST_END_SESSION_ENDPOINT;
-            jest.spyOn(
-                AuthorizationCodeClient.prototype,
-                "getLogoutUri"
-            ).mockReturnValue(logoutUri);
-            const buildSpy = jest
-                .spyOn(PopupRelayClient, "buildPopupRelayUrl")
-                .mockReturnValue("https://localhost/relay#req");
-            const relayResponseSpy = jest
-                .spyOn(PopupRelayClient, "waitForPopupRelayResponse")
-                .mockResolvedValue("state=loggedout");
-            jest.spyOn(PopupClient.prototype, "openSizedPopup").mockReturnValue(
-                {
+        it.each<1 | 2>([1, 2])(
+            "routes logout through the configured v%s relay",
+            async (protocolVersion) => {
+                const relayUri = protocolVersion === 1 ? "/relay" : "/relay-v2";
+                pca.getConfiguration().auth.popupRelayUri = relayUri;
+                pca.getConfiguration().auth.popupRelayProtocolVersion =
+                    protocolVersion;
+                const logoutUri = TEST_URIS.TEST_END_SESSION_ENDPOINT;
+                jest.spyOn(
+                    AuthorizationCodeClient.prototype,
+                    "getLogoutUri"
+                ).mockReturnValue(logoutUri);
+                const buildSpy = jest
+                    .spyOn(PopupRelayClient, "buildPopupRelayUrl")
+                    .mockReturnValue("https://localhost/relay#req");
+                const relayResponseSpy = jest
+                    .spyOn(PopupRelayClient, "waitForPopupRelayResponse")
+                    .mockResolvedValue("state=loggedout");
+                jest.spyOn(
+                    PopupClient.prototype,
+                    "openSizedPopup"
+                ).mockReturnValue({
                     location: { assign: jest.fn() },
                     document: {},
                     close: jest.fn(),
-                } as any
-            );
+                } as any);
 
-            await popupClient.logout().catch(() => {});
+                await popupClient.logout().catch(() => {});
 
-            // The end-session URL is carried into the relay page as a GET action.
-            expect(buildSpy).toHaveBeenCalledWith(
-                "/relay",
-                expect.any(String),
-                { method: "GET", url: logoutUri },
-                expect.any(String)
-            );
-            expect(relayResponseSpy).toHaveBeenCalled();
-        });
+                expect(buildSpy).toHaveBeenCalledWith(
+                    relayUri,
+                    expect.any(String),
+                    { method: "GET", url: logoutUri },
+                    expect.any(String),
+                    protocolVersion
+                );
+                expect(relayResponseSpy).toHaveBeenCalledWith(
+                    expect.any(Number),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    expect.anything(),
+                    { method: "GET", url: logoutUri },
+                    protocolVersion
+                );
+            }
+        );
 
         it("opens the end-session URL directly (no relay) when popupRelayUri is not configured", async () => {
             (popupClient as any).config.auth.popupRelayUri = undefined;
@@ -2233,7 +2736,8 @@ describe("PopupClient", () => {
             const response = await clientImpl.waitForPopupResponse(
                 request,
                 popupWindow,
-                window
+                window,
+                { method: "GET", url: TEST_URIS.TEST_AUTH_ENDPT }
             );
 
             expect(response).toEqual("code=relayCode");
@@ -2243,7 +2747,9 @@ describe("PopupClient", () => {
                 clientImpl.logger,
                 request,
                 popupWindow,
-                clientImpl.performanceClient
+                clientImpl.performanceClient,
+                { method: "GET", url: TEST_URIS.TEST_AUTH_ENDPT },
+                1
             );
             expect(hook).not.toHaveBeenCalled();
         });

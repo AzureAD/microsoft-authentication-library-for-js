@@ -12,7 +12,7 @@ This document catalogs browser Web APIs that MSAL Browser depends on, their role
 |-----|-----------|----------|
 | `sessionStorage` | Interaction status, PKCE verifier, redirect origin URL, redirect bridge response cache | `MemoryStorage` (response lost on navigation) |
 | `localStorage` | Persistent token cache (when `cacheLocation: "localStorage"`) | None if configured; not used by default |
-| `IndexedDB` | PoP token RSA keypairs and DPoP token-binding keypairs | In-memory (keys lost on reload) |
+| `IndexedDB` | PoP token RSA keypairs and DPoP token-binding keypairs | In-memory for same-page flows when the storage failure is reported as unavailable; none when an MSAL-owned key must survive redirect navigation |
 | `document.cookie` | Encryption key for localStorage cache | None — cache cannot be decrypted without it |
 
 **MSAL-specific restrictions:**
@@ -34,6 +34,7 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 | `crypto.subtle.sign()` | PoP token signing, DPoP proof signing | None |
 | `crypto.subtle.decrypt()` | EAR response decryption, localStorage decryption | None |
 | `crypto.subtle.deriveKey()` | HKDF key derivation for localStorage encryption | None |
+| `crypto.subtle.deriveBits()` | P-384 ECDH shared-secret derivation for asymmetric EAR response decryption | None
 
 **MSAL-specific restriction:** `deriveKey()` with HKDF as base key requires Firefox 119+.
 
@@ -42,7 +43,7 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 | API | MSAL Usage | Fallback |
 |-----|-----------|----------|
 | `BroadcastChannel` | Redirect bridge (popup/iframe → main frame), cross-tab cache sync | None for redirect bridge |
-| `postMessage` + `MessageChannel` | WAM browser extension communication | None for WAM path |
+| `postMessage` + `MessageChannel` | WAM browser extension communication; `postMessage` also returns popup-relay responses and authenticates v2 request handoff | None for WAM or popup-relay paths |
 | `navigator.platformAuthentication` | Capability discovery and direct platform-broker token acquisition through browser DOM APIs | Microsoft Single Sign On extension during provider discovery; traditional web flows when no platform provider is available |
 
 **MSAL-specific restrictions:**
@@ -79,8 +80,8 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 | API | MSAL Usage | Fallback |
 |-----|-----------|----------|
 | `window.location.assign()` / `.replace()` | Navigate to IdP | None |
-| `window.location.hash` / `.search` | Extract auth response from redirect URL | None |
-| `window.history.replaceState()` | Clean auth params from URL | Graceful no-op (URL stays dirty) |
+| `window.location.hash` / `.search` | Extract auth response from redirect URL; optional legacy mode polls popup/iframe location after same-origin navigation | None |
+| `window.history.replaceState()` | Remove the trailing `#` after clearing a recognized response fragment by hash assignment; preserve the query string and reset history state to `null` | Hash assignment clears the response even if history updates are unavailable (may raise `hashchange`) |
 | `pageshow` event | Detect bfcache restoration to clear stale interaction state | Graceful — may cause `interaction_in_progress` error |
 | `window.open()` | Popup auth flows | None for popup |
 | Hidden iframe | Silent token renewal (`ssoSilent`, `acquireTokenSilent` fallback) | None for silent renewal |
@@ -88,7 +89,10 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 
 **MSAL-specific restrictions:**
 - `window.open()` must be in a user-gesture call stack or browsers block it
-- COOP `same-origin` on AAD severs `window.opener` in popups — redirect bridge mitigates
+- COOP `same-origin` on AAD severs `window.opener` in popups — the default redirect bridge uses `BroadcastChannel` instead. `system.enableLegacyPolling` opts into reading the popup/iframe location and requires the opener connection (and popup reference) to survive the full round-trip; strict app `COOP: same-origin` is incompatible, while `same-origin-allow-popups` can work when cross-origin responses omit enforcing COOP
+- Popup relay v2 reserves its blank child during the user gesture, then navigates only after a same-origin, source-checked `postMessage` request handoff. This works across iframe storage partitions without shared storage, but requires the opener connection and matching wire protocols. V1 is deprecated due to security concerns but remains the default for previous-bundle compatibility; its legacy fragment-execution risk remains until the application explicitly retires that endpoint. V2 never downgrades.
+- Legacy polling requires `redirectUri` and `postLogoutRedirectUri` to be passive same-origin callback pages that leave the response query/fragment intact. Do not run the redirect bridge, `handleRedirectPromise()`, or app routing/response-processing code on the callback before the poller reads it
+- `pocd=1` lets Entra omit COOP. With `auth.originCheck` enabled, MSAL asserts it only when every ancestor is same-origin and the top-level opener is absent or same-origin; cross-origin or inaccessible window checks fail closed. `system.enableLegacyPolling` disables that check and always asserts `pocd=1`, so COOP protection may be omitted
 - Silent iframe requires IdP to allow framing and 3P cookies to be available; breaks under Safari ITP, Firefox TCP, and Chrome with 3P cookies disabled
 - Office.js sets `history.replaceState` to `null` — MSAL guards with `typeof` check
 
@@ -98,6 +102,7 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 |-----|-----------|----------|
 | `fetch()` | All HTTP requests (token endpoint, discovery, custom auth) | None |
 | `navigator.onLine` | Distinguish network-offline from transport failures when token POST fails | Assumes online (retries once for non-abort transport failures) |
+| `navigator.userAgent` / `navigator.userAgentData.brands` | Identify Safari for EAR fallback using OWA's browser-check ordering | Client hints are optional; use user-agent markers when unavailable |
 | `TextEncoder` / `TextDecoder` | String ↔ binary for crypto | None |
 | `atob()` / `btoa()` | Base64 for JWK and token parsing | None |
 | Hidden form + `form.submit()` | POST-based `/authorize` (EAR, redirect POST, silent iframe POST) | None for POST flows |
@@ -133,8 +138,9 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 |-----|:-:|:-:|:-:|:-:|:-:|:-:|
 | `sessionStorage` | ✅ | | | | | |
 | `localStorage` | ○ | ○ | ○ | ○ | | |
-| `IndexedDB` | ○ | ○ | ○ | ○ | | |
+| `IndexedDB` | ○⁵ | ○ | ○ | ○ | | ○⁵ |
 | `BroadcastChannel` | ¹ | ✅ | ✅ | ✅² | | |
+| Same-origin location polling (`system.enableLegacyPolling`) | ○ | | ○ | ○ | | |
 | `window.open()` | | ✅ | | | | |
 | Hidden iframe | | | ✅ | ✅² | | |
 | `crypto.subtle` | ✅ | ✅ | ✅ | ✅ | | |
@@ -149,3 +155,5 @@ After MSAL selects the DOM provider, a token-request failure is surfaced through
 - ² when refresh token expired and MSAL falls back to hidden iframe
 - ³ IdP session cookie required in iframe; MSAL's own cookie for localStorage encryption only
 - ⁴ optional DOM-based platform-broker provider; requires both configuration flags and the `get-token-and-sign-out` contract
+- ⁵ required for web DPoP redirect and platform-broker L1 redirect when an MSAL-owned key must survive navigation; broker-provided L3 proofs do not require cross-navigation key persistence
+- Legacy polling is opt-in for popup responses, silent iframe responses, and popup logout; it requires the passive same-origin callback and a popup reference that remains connected for the full round-trip

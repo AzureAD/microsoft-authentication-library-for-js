@@ -1144,9 +1144,10 @@ export class BrowserCacheManager extends CacheManager {
                         throw cacheError;
                     }
                     // When cache quota is exceeded, start removing access tokens until we can successfully set the item
-                    this.removeAccessToken(
+                    await this.removeAccessTokenAndTokenBindingKey(
                         accessTokenKeys[i],
                         correlationId,
+                        undefined,
                         false // Don't save token keys yet, do it at the end
                     );
                 } else {
@@ -1375,6 +1376,23 @@ export class BrowserCacheManager extends CacheManager {
         updateTokenKeys: boolean = true
     ): void {
         super.removeAccessToken(key, correlationId);
+        updateTokenKeys && this.removeAccessTokenKeys([key], correlationId);
+    }
+
+    /**
+     * Removes an access token and awaits token-binding key cleanup.
+     */
+    async removeAccessTokenAndTokenBindingKey(
+        key: string,
+        correlationId: string,
+        preservedKeyId?: string,
+        updateTokenKeys: boolean = true
+    ): Promise<void> {
+        await super.removeAccessTokenAndTokenBindingKey(
+            key,
+            correlationId,
+            preservedKeyId
+        );
         updateTokenKeys && this.removeAccessTokenKeys([key], correlationId);
     }
 
@@ -2279,12 +2297,8 @@ export class BrowserCacheManager extends CacheManager {
                 verifier = base64Decode(encodedVerifier);
             }
         } catch (e) {
-            this.logger.errorPii(
-                `Attempted to parse: '${encodedTokenRequest}'`,
-                correlationId
-            );
             this.logger.error(
-                `Parsing cached token request threw with error: '${e}'`,
+                "Unable to parse cached token request",
                 correlationId
             );
             throw createBrowserAuthError(

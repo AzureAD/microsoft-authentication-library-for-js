@@ -309,7 +309,7 @@ describe("DeviceCodeClient unit tests", () => {
 
             const secondCallReturnVal = await executePostToTokenEndpointSpy.mock
                 .results[1].value;
-            expect(secondCallReturnVal).toBe(AUTHENTICATION_RESULT);
+            expect(secondCallReturnVal).toStrictEqual(AUTHENTICATION_RESULT);
         }, 12000);
     });
 

@@ -6,7 +6,7 @@
 import { CustomAuthError } from "./CustomAuthError.js";
 
 export class InvalidArgumentError extends CustomAuthError {
-    constructor(argName: string, correlationId?: string) {
+    constructor(public readonly argName: string, correlationId?: string) {
         const errorDescription = `The argument '${argName}' is invalid.`;
 
         super("invalid_argument", errorDescription, correlationId);

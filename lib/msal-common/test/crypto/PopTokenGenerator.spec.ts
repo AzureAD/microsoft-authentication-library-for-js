@@ -157,6 +157,48 @@ describe("PopTokenGenerator Unit Tests", () => {
             );
         });
 
+        it.each([
+            {
+                resourceRequestUri:
+                    "https://api.example/resource?path=c:\\docs",
+                query: "path=c:\\docs",
+            },
+            {
+                resourceRequestUri: "https://api.example/resource#/docs\\intro",
+                query: undefined,
+            },
+        ])(
+            "signs a resource URL containing a non-authority backslash: $resourceRequestUri",
+            async ({ resourceRequestUri, query }) => {
+                const popTokenGenerator = new PopTokenGenerator(
+                    cryptoInterface,
+                    tokenBindingKeyManager,
+                    new StubPerformanceClient()
+                );
+                const signTokenBindingJwtSpy = jest
+                    .spyOn(cryptoInterface, "signTokenBindingJwt")
+                    .mockResolvedValue("signed-pop-token");
+
+                await expect(
+                    popTokenGenerator.signPopToken(
+                        TEST_POP_VALUES.SAMPLE_POP_AT,
+                        TEST_POP_VALUES.KID,
+                        { ...testRequest, resourceRequestUri }
+                    )
+                ).resolves.toBe("signed-pop-token");
+                expect(signTokenBindingJwtSpy).toHaveBeenCalledWith(
+                    expect.anything(),
+                    expect.objectContaining({
+                        u: "api.example",
+                        p: "/resource",
+                        q: query ? [[], query] : undefined,
+                    }),
+                    TEST_POP_VALUES.KID,
+                    TEST_CONFIG.CORRELATION_ID
+                );
+            }
+        );
+
         it("Signs the proof-of-possession JWT token when PoP parameters are undefined", (done) => {
             const popTokenGenerator = new PopTokenGenerator(
                 cryptoInterface,

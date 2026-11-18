@@ -5,6 +5,7 @@
 
 import { ApiRequestBase } from "../../types/ApiTypesBase.js";
 import { UserAccountAttributes } from "../../../../../UserAccountAttributes.js";
+import { PhoneRegistrationChannelV2 } from "../ApiClientConstantsV2.js";
 
 /*
  * Per-request context threaded through every V2 network-layer call. These shared fields drive
@@ -24,12 +25,13 @@ export interface OAuthFormRequestV2 {
 
 /*
  * Entry (POST /oauth2/v2.0/authorize-challenge): the flow's front door. OAuth form-encoded
- * and carries only `client_id` (via OAuthFormRequestV2). The response
+ * and carries `client_id` (via OAuthFormRequestV2), with optional scope and claims. The response
  * (`AuthorizeChallengeEntryResponseV2`) returns the seed `continuation_token` and the flat
  * `reset_password`/`sign_in`/`sign_up` hrefs.
  */
 export interface AuthorizeChallengeEntryRequestV2 extends OAuthFormRequestV2 {
     scope?: string;
+    claims?: string;
 }
 
 /*
@@ -51,16 +53,14 @@ export interface TokenRequestV2 extends OAuthFormRequestV2 {
     grant_type: string;
     code: string;
     client_info: string;
-    scope?: string;
 }
 
 /*
  * Compound token-completion operation. The continuation is first redeemed for
- * an authorization code, which is then exchanged using the requested scopes.
+ * an authorization code, which is then exchanged for tokens.
  */
 export interface CompleteWithTokensRequestV2 {
     continuationToken: string;
-    scopes: string[];
 }
 
 /*
@@ -81,7 +81,7 @@ export type PasswordResetStartRequestV2 = StartRequestV2;
 
 export type SignInStartRequestV2 = StartRequestV2;
 
-export type SignUpStartRequestV2 = ActionRequestBaseV2;
+export type SignUpStartRequestV2 = StartRequestV2;
 
 export interface SignUpSubmitAttributesRequestV2 extends ActionRequestBaseV2 {
     attributes: UserAccountAttributes & {
@@ -93,13 +93,31 @@ export interface SignUpSubmitAttributesRequestV2 extends ActionRequestBaseV2 {
 // Request or resend a challenge.
 export type ChallengeRequestV2 = ActionRequestBaseV2;
 
+export interface EmailAuthMethodRegistrationRequestV2
+    extends ActionRequestBaseV2 {
+    email: string;
+}
+
+export interface PhoneAuthMethodRegistrationRequestV2
+    extends ActionRequestBaseV2 {
+    phoneNumber: string;
+    channel: typeof PhoneRegistrationChannelV2.SMS;
+}
+
+export type AuthMethodRegistrationRequestV2 =
+    | EmailAuthMethodRegistrationRequestV2
+    | PhoneAuthMethodRegistrationRequestV2;
+
+export interface AuthMethodRegistrationVerificationRequestV2
+    extends ActionRequestBaseV2 {
+    otp: string;
+}
+
 // Submit a single credential to `/methods/{type}/{id}/verify`.
 /*
  * The credential is a distinct top-level key per method type (never overloaded onto one field):
- * email OTP sends `otp`. This is modelled as a discriminated union so the compiler enforces
- * that exactly one credential is present. Password-based verify is a future extension point:
- * add a `VerifyPasswordRequestV2` member (`password: string`) and include it in the union
- * without touching the OTP member.
+ * OTP verification sends `otp`, and password verification sends `password`.
+ * The union represents the supported credential request shapes.
  */
 type VerifyRequestBaseV2 = ActionRequestBaseV2;
 
