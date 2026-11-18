@@ -1267,7 +1267,7 @@ describe("BrowserCacheManager tests", () => {
                     }
                 );
 
-                it("migrates access tokens with recorded capabilities using their component hash", async () => {
+                it("retains even recorded capability tokens only for their older-schema readers", async () => {
                     await browserCacheManager.initialize(
                         TEST_CONFIG.CORRELATION_ID
                     );
@@ -1320,28 +1320,16 @@ describe("BrowserCacheManager tests", () => {
                         TEST_CONFIG.CORRELATION_ID
                     );
 
-                    // Should have migrated the old token
                     expect(performanceIncrement).toHaveBeenCalledWith(
-                        { migratedATCount: 1 },
+                        { skipATMigrateCount: 1 },
                         TEST_CONFIG.CORRELATION_ID
                     );
-
-                    // Verify the token was migrated
-                    const migratedToken =
-                        browserCacheManager.getAccessTokenCredential(
-                            browserCacheManager.generateCredentialKey(
-                                v0AccessToken,
-                                await new CryptoOps(logger).hashString(
-                                    JSON.stringify(
-                                        v0AccessToken.additionalCacheKeyComponents
-                                    )
-                                )
-                            ),
-                            TEST_CONFIG.CORRELATION_ID
-                        );
-                    expect(migratedToken?.additionalCacheKeyComponents).toEqual(
-                        { clientCapabilities: '["CP1"]' }
-                    );
+                    expect(
+                        browserCacheManager.getTokenKeys().accessToken
+                    ).toHaveLength(0);
+                    expect(
+                        window.localStorage.getItem(v0AccessTokenKey)
+                    ).not.toBeNull();
                 });
             });
         });

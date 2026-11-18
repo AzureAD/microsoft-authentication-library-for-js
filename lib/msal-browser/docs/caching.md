@@ -112,10 +112,9 @@ When importing or hydrating tokens, supply the claims of the acquisition that
 produced them; MSAL does not inspect opaque access tokens to infer capabilities.
 
 Account and credential schema6 use the existing versioned cache and migration framework.
-Account, ID-token and refresh-token state migrate normally. Old access tokens
-without complete capability metadata (including the earlier prototype's boolean
-marker) are not copied into the new schema: today's PCA
-configuration cannot establish how an earlier token was requested. MSAL renews
+Account, ID-token and refresh-token state migrate normally. Access tokens from
+older schemas are not copied into the new schema: today's PCA configuration
+cannot establish how an earlier token was requested. MSAL renews
 as needed, which may require interaction if silent renewal fails. Older-schema
 entries remain subject to the normal expiry, retention and quota rules below.
 Rolling back lets the older SDK use its own schema, without granting that SDK

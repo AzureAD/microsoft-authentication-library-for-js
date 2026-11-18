@@ -193,7 +193,7 @@ export class BrowserCacheManager extends CacheManager {
         }
         const kmsiMap = this.getKMSIValues();
         for (let i = 0; i < CacheKeys.CREDENTIAL_SCHEMA_VERSION; i++) {
-            await this.migrateAccessTokens(i, kmsiMap, correlationId);
+            await this.migrateAccessTokens(i, correlationId);
             await this.migrateRefreshTokens(i, kmsiMap, correlationId);
         }
 
@@ -668,15 +668,13 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Migrates access tokens from old cache schema to current schema
+     * Cleans expired old-schema access tokens, retaining valid entries only for older readers.
      * @param credentialSchema
-     * @param kmsiMap
      * @param correlationId
      * @returns
      */
     async migrateAccessTokens(
         credentialSchema: number,
-        kmsiMap: KmsiMap,
         correlationId: string
     ): Promise<void> {
         const credentialKeysToMigrate = getTokenKeys(
@@ -687,12 +685,6 @@ export class BrowserCacheManager extends CacheManager {
         if (credentialKeysToMigrate.accessToken.length === 0) {
             return;
         }
-
-        const currentCredentialKeys = getTokenKeys(
-            this.clientId,
-            this.browserStorage,
-            CacheKeys.CREDENTIAL_SCHEMA_VERSION
-        );
 
         for (const accessTokenKey of [...credentialKeysToMigrate.accessToken]) {
             this.performanceClient.incrementFields(
@@ -739,77 +731,10 @@ export class BrowserCacheManager extends CacheManager {
                 continue;
             }
 
-            if (!(oldSchemaData.homeAccountId in kmsiMap)) {
-                // Don't migrate tokens if we don't have an idToken for them
-                this.performanceClient.incrementFields(
-                    { skipATMigrateCount: 1 },
-                    correlationId
-                );
-                continue;
-            }
-
-            /*
-             * Earlier schemas did not retain the complete capability set.
-             * Keep their tokens for older readers and renew in this schema.
-             */
-            const capabilitySet = StringUtils.jsonParseHelper<unknown>(
-                oldSchemaData.additionalCacheKeyComponents
-                    ?.clientCapabilities || ""
+            this.performanceClient.incrementFields(
+                { skipATMigrateCount: 1 },
+                correlationId
             );
-            if (
-                !Array.isArray(capabilitySet) ||
-                capabilitySet.some((value) => typeof value !== "string")
-            ) {
-                this.performanceClient.incrementFields(
-                    { skipATMigrateCount: 1 },
-                    correlationId
-                );
-                continue;
-            }
-            const componentsHash = await this.cryptoImpl.hashString(
-                JSON.stringify(oldSchemaData.additionalCacheKeyComponents)
-            );
-            const newKey = this.generateCredentialKey(
-                oldSchemaData,
-                componentsHash
-            );
-            const kmsi = kmsiMap[oldSchemaData.homeAccountId];
-            if (!currentCredentialKeys.accessToken.includes(newKey)) {
-                await this.setUserData(
-                    newKey,
-                    JSON.stringify(oldSchemaData),
-                    correlationId,
-                    oldSchemaData.lastUpdatedAt,
-                    kmsi
-                );
-                this.performanceClient.incrementFields(
-                    { migratedATCount: 1 },
-                    correlationId
-                );
-                currentCredentialKeys.accessToken.push(newKey);
-            } else {
-                const currentToken = this.getAccessTokenCredential(
-                    newKey,
-                    correlationId
-                );
-                if (
-                    !currentToken ||
-                    oldSchemaData.lastUpdatedAt > currentToken.lastUpdatedAt
-                ) {
-                    // If the token already exists, only overwrite it if the old token has a more recent lastUpdatedAt
-                    await this.setUserData(
-                        newKey,
-                        JSON.stringify(oldSchemaData),
-                        correlationId,
-                        oldSchemaData.lastUpdatedAt,
-                        kmsi
-                    );
-                    this.performanceClient.incrementFields(
-                        { migratedATCount: 1 },
-                        correlationId
-                    );
-                }
-            }
         }
 
         this.setTokenKeys(
@@ -817,7 +742,6 @@ export class BrowserCacheManager extends CacheManager {
             correlationId,
             credentialSchema
         );
-        this.setTokenKeys(currentCredentialKeys, correlationId);
     }
 
     /**
