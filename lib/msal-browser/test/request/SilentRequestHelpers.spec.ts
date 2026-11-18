@@ -75,7 +75,7 @@ describe("silent request preparation", () => {
             },
             input.account.homeAccountId
         );
-        expect(JSON.parse(prepared.key)).toEqual({
+        expect(JSON.parse(prepared.key!)).toEqual({
             ...originalThumbprint,
             accountTenantId: input.account.tenantId,
             forceRefresh: true,
@@ -100,6 +100,22 @@ describe("silent request preparation", () => {
         });
 
         expect(prepared.key).not.toBe(baseline.key);
+    });
+
+    it("does not include DPoP nonce state in the web request key", () => {
+        input.request = {
+            scopes: ["User.Read"],
+            authenticationScheme: Constants.AuthenticationScheme.DPOP,
+            resourceRequestMethod: "GET",
+            resourceRequestUri: "https://api.contoso.com/resource",
+        };
+
+        const prepared = prepareWebSilentRequest(input);
+
+        expect(JSON.parse(prepared.key!)).not.toHaveProperty(
+            "dpopNonceGeneration"
+        );
+        expect(prepared.key).not.toContain("opaque-nonce");
     });
 
     it.each([
@@ -184,8 +200,8 @@ describe("silent request preparation", () => {
             storeInCache: { accessToken: false },
         };
         const prepared = preparePlatformSilentRequest(input);
-        expect(prepared.key.startsWith("platform:")).toBe(true);
-        const key = JSON.parse(prepared.key.slice("platform:".length));
+        expect(prepared.key!.startsWith("platform:")).toBe(true);
+        const key = JSON.parse(prepared.key!.slice("platform:".length));
         expect(key).toMatchObject({
             accountId: input.account.nativeAccountId,
             homeAccountIdentifier: input.account.homeAccountId,
@@ -263,7 +279,6 @@ describe("silent request preparation", () => {
         undefined,
         Constants.AuthenticationScheme.BEARER,
         Constants.AuthenticationScheme.POP,
-        Constants.AuthenticationScheme.DPOP,
     ])("selects broker preparation for supported scheme %s", (scheme) => {
         input.request.authenticationScheme = scheme;
         const prepared = resolveSilentRequestPreparation(
@@ -272,7 +287,21 @@ describe("silent request preparation", () => {
             logger,
             performanceClient
         );
-        expect(prepared.key.startsWith("platform:")).toBe(true);
+        expect(prepared.key!.startsWith("platform:")).toBe(true);
+        expect(prepared.request).not.toBe(input.request);
+        expect(prepared.account).toBe(prepared.request.account);
+    });
+
+    it("does not create a deduplication key for platform DPoP", () => {
+        input.request.authenticationScheme =
+            Constants.AuthenticationScheme.DPOP;
+        const prepared = resolveSilentRequestPreparation(
+            input,
+            provider,
+            logger,
+            performanceClient
+        );
+        expect(prepared.key).toBeUndefined();
         expect(prepared.request).not.toBe(input.request);
         expect(prepared.account).toBe(prepared.request.account);
     });
@@ -353,7 +382,7 @@ describe("silent request preparation", () => {
             logger,
             performanceClient
         );
-        expect(broker.key.startsWith("platform:")).toBe(true);
+        expect(broker.key!.startsWith("platform:")).toBe(true);
         expect(web).toEqual(prepareWebSilentRequest(input));
         expect(web.request).toBe(input.request);
         expect(web.account).toBe(input.account);
