@@ -2608,81 +2608,123 @@ describe("FlowInteractionClientV2", () => {
                 });
             });
 
-            it.each(["code", "password"])(
-                "preserves the continue href after %s verification",
-                async (credential) => {
-                    const contextSpy = jest.spyOn(
-                        client as unknown as {
-                            createRequestContext: (
-                                apiId: number,
-                                correlationId: string
-                            ) => unknown;
-                            handleTokenResponse: (
-                                ...args: unknown[]
-                            ) => Promise<unknown>;
-                        },
-                        "createRequestContext"
-                    );
-                    apiClient.verifyChallenge.mockResolvedValue({
-                        nextAction: "continue",
-                        continueHref: CONTINUE_HREF,
+            it("preserves the continue href after code verification", async () => {
+                const contextSpy = jest.spyOn(
+                    client as unknown as {
+                        createRequestContext: (
+                            apiId: number,
+                            correlationId: string
+                        ) => unknown;
+                    },
+                    "createRequestContext"
+                );
+                apiClient.verifyChallenge.mockResolvedValue({
+                    nextAction: "continue",
+                    continueHref: CONTINUE_HREF,
+                    continuationToken: "ct-continue",
+                });
+                apiClient.completeWithTokens.mockResolvedValue({
+                    token_type: "Bearer",
+                    expires_in: 3600,
+                    access_token: "at",
+                    refresh_token: "rt",
+                    scope: "openid profile offline_access User.Read",
+                    id_token: "id",
+                    client_info: "ci",
+                });
+                jest.spyOn(
+                    client as unknown as {
+                        handleTokenResponse: (
+                            ...args: unknown[]
+                        ) => Promise<unknown>;
+                    },
+                    "handleTokenResponse"
+                ).mockResolvedValue({
+                    account: { homeAccountId: "uid.utid" },
+                });
+
+                const result = await client.submitCode({
+                    correlationId,
+                    continuationState: existingAccountContinuationState,
+                    code: "123456",
+                });
+
+                expect(contextSpy).toHaveBeenCalledWith(
+                    SIGN_UP_V2_SUBMIT_CODE,
+                    correlationId
+                );
+                expect(contextSpy).toHaveBeenCalledWith(
+                    SIGN_UP_V2_COMPLETE,
+                    correlationId
+                );
+                expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
+                    {
                         continuationToken: "ct-continue",
-                    });
-                    apiClient.completeWithTokens.mockResolvedValue({
-                        token_type: "Bearer",
-                        expires_in: 3600,
-                        access_token: "at",
-                        refresh_token: "rt",
-                        scope: "openid profile offline_access User.Read",
-                        id_token: "id",
-                        client_info: "ci",
-                    });
-                    jest.spyOn(
-                        client as unknown as {
-                            handleTokenResponse: (
-                                ...args: unknown[]
-                            ) => Promise<unknown>;
-                        },
-                        "handleTokenResponse"
-                    ).mockResolvedValue({
-                        account: { homeAccountId: "uid.utid" },
-                    });
+                        continueHref: CONTINUE_HREF,
+                    },
+                    expect.objectContaining({ correlationId })
+                );
+                expect(result.type).toBe(FLOW_COMPLETED_V2);
+            });
 
-                    const result =
-                        credential === "code"
-                            ? await client.submitCode({
-                                  correlationId,
-                                  continuationState:
-                                      existingAccountContinuationState,
-                                  code: "123456",
-                              })
-                            : await client.submitSignInPassword({
-                                  correlationId,
-                                  continuationState:
-                                      existingAccountContinuationState,
-                                  password: "valid-password",
-                              });
+            it("preserves the continue href after password verification", async () => {
+                const contextSpy = jest.spyOn(
+                    client as unknown as {
+                        createRequestContext: (
+                            apiId: number,
+                            correlationId: string
+                        ) => unknown;
+                    },
+                    "createRequestContext"
+                );
+                apiClient.verifyChallenge.mockResolvedValue({
+                    nextAction: "continue",
+                    continueHref: CONTINUE_HREF,
+                    continuationToken: "ct-continue",
+                });
+                apiClient.completeWithTokens.mockResolvedValue({
+                    token_type: "Bearer",
+                    expires_in: 3600,
+                    access_token: "at",
+                    refresh_token: "rt",
+                    scope: "openid profile offline_access User.Read",
+                    id_token: "id",
+                    client_info: "ci",
+                });
+                jest.spyOn(
+                    client as unknown as {
+                        handleTokenResponse: (
+                            ...args: unknown[]
+                        ) => Promise<unknown>;
+                    },
+                    "handleTokenResponse"
+                ).mockResolvedValue({
+                    account: { homeAccountId: "uid.utid" },
+                });
 
-                    expect(contextSpy).toHaveBeenCalledWith(
-                        credential === "code"
-                            ? SIGN_UP_V2_SUBMIT_CODE
-                            : SIGN_UP_V2_SUBMIT_PASSWORD,
-                        correlationId
-                    );
-                    expect(contextSpy).toHaveBeenCalledWith(
-                        SIGN_UP_V2_COMPLETE,
-                        correlationId
-                    );
-                    expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
-                        {
-                            continuationToken: "ct-continue",
-                            continueHref: CONTINUE_HREF,
-                        },
-                        expect.objectContaining({ correlationId })
-                    );
-                    expect(result.type).toBe(FLOW_COMPLETED_V2);
-                }
-            );
+                const result = await client.submitSignInPassword({
+                    correlationId,
+                    continuationState: existingAccountContinuationState,
+                    password: "valid-password",
+                });
+
+                expect(contextSpy).toHaveBeenCalledWith(
+                    SIGN_UP_V2_SUBMIT_PASSWORD,
+                    correlationId
+                );
+                expect(contextSpy).toHaveBeenCalledWith(
+                    SIGN_UP_V2_COMPLETE,
+                    correlationId
+                );
+                expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
+                    {
+                        continuationToken: "ct-continue",
+                        continueHref: CONTINUE_HREF,
+                    },
+                    expect.objectContaining({ correlationId })
+                );
+                expect(result.type).toBe(FLOW_COMPLETED_V2);
+            });
 
             it("preserves existing-account purpose and fresh metadata when resending", async () => {
                 const contextSpy = jest.spyOn(
