@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Thu, 12 Nov 2026 18:58:52 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 18 Nov 2026 03:43:40 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.17.0
+
+Wed, 18 Nov 2026 03:43:40 GMT
+
+### Minor changes
+
+- Declare popupRelayProtocolVersion as a top-level integer performance telemetry field [#8984](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8984) (nugetaad@microsoft.com)
+- Support asymmetric EAR request metadata [#8970](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8970) (shylasummers@microsoft.com)
 
 ## 16.16.2
 
