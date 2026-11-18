@@ -107,6 +107,15 @@ describe("Reset password V2 (SSPR)", () => {
         expect(signInResult.data?.getAccount()?.idToken).toStrictEqual(
             TestServerTokenResponse.id_token
         );
+        const completionUrl = new URL(
+            POLL_COMPLETED_RESPONSE._links.continue.href
+        );
+        const proxyOrigin = new URL(customAuthConfig.customAuth.authApiProxyUrl)
+            .origin;
+        const calls = (fetch as jest.Mock).mock.calls;
+        expect(String(calls[calls.length - 2][0])).toBe(
+            `${proxyOrigin}${completionUrl.pathname}${completionUrl.search}`
+        );
     };
 
     const reachResetMfaSelection =

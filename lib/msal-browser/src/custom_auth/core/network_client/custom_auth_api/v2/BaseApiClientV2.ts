@@ -90,9 +90,14 @@ export abstract class BaseApiClientV2 {
             request.claims = claims;
         }
 
+        const url = buildUrl(
+            this.baseRequestUrl.href,
+            AUTHORIZE_CHALLENGE,
+            this.customAuthApiQueryParams
+        );
         const parsedResponse =
             await this.postOAuthForm<AuthorizeChallengeEntryResponseV2>(
-                AUTHORIZE_CHALLENGE,
+                url,
                 request,
                 context
             );
@@ -138,6 +143,7 @@ export abstract class BaseApiClientV2 {
         context: RequestContextV2
     ): Promise<TokenResponseV2> {
         const code = await this.authorizeChallengeContinue(
+            request.continueHref,
             request.continuationToken,
             context
         );
@@ -149,6 +155,7 @@ export abstract class BaseApiClientV2 {
      * Redeems a continuation token for an authorization code.
      */
     protected async authorizeChallengeContinue(
+        continueHref: string,
         continuationToken: string,
         context: RequestContextV2
     ): Promise<string> {
@@ -158,7 +165,7 @@ export abstract class BaseApiClientV2 {
 
         const parsedResponse =
             await this.postOAuthForm<AuthorizeChallengeContinueResponseV2>(
-                AUTHORIZE_CHALLENGE,
+                resolveHrefV2(this.baseRequestUrl, continueHref),
                 request,
                 context
             );
@@ -198,8 +205,13 @@ export abstract class BaseApiClientV2 {
             client_info: "1",
         };
 
-        const parsedResponse = await this.postOAuthForm<TokenResponseV2>(
+        const url = buildUrl(
+            this.baseRequestUrl.href,
             SIGNIN_TOKEN,
+            this.customAuthApiQueryParams
+        );
+        const parsedResponse = await this.postOAuthForm<TokenResponseV2>(
+            url,
             request,
             context
         );
@@ -273,19 +285,13 @@ export abstract class BaseApiClientV2 {
     }
 
     private async postOAuthForm<T>(
-        endpoint: string,
+        url: URL,
         data: OAuthFormRequestV2 | AuthorizeChallengeContinueRequestV2,
         context: RequestContextV2
     ): Promise<ParsedResponseV2<T>> {
         const formData = new URLSearchParams(
             Object.entries(data) as [string, string][]
         );
-        const url = buildUrl(
-            this.baseRequestUrl.href,
-            endpoint,
-            this.customAuthApiQueryParams
-        );
-
         const response = await this.sendRequest(
             url,
             HttpMethod.POST,

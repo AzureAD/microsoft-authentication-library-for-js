@@ -43,7 +43,7 @@ import {
     EmbeddedMethodV2,
     EmbeddedEnrollmentMethodV2,
     EnrollmentResponseV2,
-    HalResponseBaseV2,
+    ContinueResponseV2,
 } from "./response/ResponsesV2.js";
 import {
     RequestContextV2,
@@ -199,6 +199,11 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             return {
                 nextAction: SignUpSubmitAttributesNextActionV2.CONTINUE,
                 continuationToken,
+                continueHref: this.handler.requireHref(
+                    parsedResponse.body._links?.continue?.href,
+                    ResponseStateV2.CONTINUE,
+                    correlationId
+                ),
             };
         }
 
@@ -386,7 +391,7 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
         request: AuthMethodRegistrationVerificationRequestV2,
         context: RequestContextV2
     ): Promise<ActivationResultV2> {
-        const parsedResponse = await this.sendActionRequest<HalResponseBaseV2>(
+        const parsedResponse = await this.sendActionRequest<ContinueResponseV2>(
             activateHref,
             HttpMethod.POST,
             request,
@@ -405,6 +410,11 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             nextAction: ResponseStateV2.CONTINUE,
             continuationToken: this.handler.requireContinuationToken(
                 parsedResponse.continuationToken,
+                parsedResponse.correlationId
+            ),
+            continueHref: this.handler.requireHref(
+                parsedResponse.body._links?.continue?.href,
+                ResponseStateV2.CONTINUE,
                 parsedResponse.correlationId
             ),
         };
@@ -512,6 +522,11 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             return {
                 nextAction,
                 continuationToken,
+                continueHref: this.handler.requireHref(
+                    parsedResponse.body._links?.continue?.href,
+                    ResponseStateV2.CONTINUE,
+                    correlationId
+                ),
             };
         }
 
@@ -568,6 +583,11 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
             return {
                 nextAction: ResponseStateV2.CONTINUE,
                 continuationToken,
+                continueHref: this.handler.requireHref(
+                    parsedResponse.body._links?.continue?.href,
+                    ResponseStateV2.CONTINUE,
+                    correlationId
+                ),
             };
         }
 

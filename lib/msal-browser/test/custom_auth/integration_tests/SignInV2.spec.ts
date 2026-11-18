@@ -88,6 +88,8 @@ describe("Sign-in V2", () => {
     describe("single-factor completion", () => {
         describe("PasswordRequiredStateV2", () => {
             it("IT-SF-01: signInV2 -> passwordRequired -> completed", async () => {
+                const continueHref =
+                    "https://contoso.ciamlogin.com/server-tenant/oauth2/v2.0/authorize-challenge?dc=server&customer=hello%20world";
                 (fetch as jest.Mock)
                     .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
                     .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -95,7 +97,10 @@ describe("Sign-in V2", () => {
                         buildResponse(PASSWORD_CHALLENGE_RESPONSE)
                     )
                     .mockResolvedValueOnce(
-                        buildResponse(SIGN_IN_CONTINUE_RESPONSE)
+                        buildResponse({
+                            ...SIGN_IN_CONTINUE_RESPONSE,
+                            _links: { continue: { href: continueHref } },
+                        })
                     )
                     .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
                     .mockResolvedValueOnce(
@@ -119,6 +124,13 @@ describe("Sign-in V2", () => {
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
                 expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+                const proxyOrigin = new URL(
+                    customAuthConfig.customAuth.authApiProxyUrl
+                ).origin;
+                const calls = (fetch as jest.Mock).mock.calls;
+                expect(String(calls[calls.length - 2][0])).toBe(
+                    `${proxyOrigin}/server-tenant/oauth2/v2.0/authorize-challenge?dc=server&customer=hello%20world`
+                );
             });
 
             it.each(["valid-password", "", 42])(

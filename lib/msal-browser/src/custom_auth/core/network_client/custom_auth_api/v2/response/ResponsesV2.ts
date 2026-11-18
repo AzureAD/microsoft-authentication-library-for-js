@@ -50,6 +50,12 @@ export interface AuthorizeChallengeContinueResponseV2 {
     code?: string;
 }
 
+export interface ContinueResponseV2 extends Omit<HalResponseBaseV2, "_links"> {
+    _links?: {
+        continue?: HalLink;
+    };
+}
+
 export interface AuthorizeChallengeEntryResponseV2
     extends OAuthErrorResponseV2 {
     continuation_token?: string;
@@ -128,6 +134,7 @@ export interface SignUpSubmitAttributesResponseV2
     extends Omit<CodeChallengeResponseV2, "_links" | "_embedded"> {
     attributes?: SignUpAttributeResponseV2[];
     _links?: {
+        continue?: HalLink;
         verify?: HalLink;
         resend?: HalLink;
         submitAttributes?: HalLink;
@@ -143,6 +150,7 @@ export interface VerifyResponseV2 extends Omit<HalResponseBaseV2, "_links"> {
     payload?: Record<string, unknown>;
     attributes?: SignUpAttributeResponseV2[];
     _links?: {
+        continue?: HalLink;
         update?: HalLink;
         submitAttributes?: HalLink;
     };
@@ -174,6 +182,7 @@ export interface UpdatePasswordResponseV2
 
 export interface PollResponseV2 extends Omit<HalResponseBaseV2, "_links"> {
     _links?: {
+        continue?: HalLink;
         poll?: HalLink;
     };
     _embedded?: {

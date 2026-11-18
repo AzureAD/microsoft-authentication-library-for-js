@@ -119,10 +119,16 @@ export const UPDATE_RESPONSE = {
     _links: { poll: { href: "/tenant/api/v0.1/poll" } },
 };
 
+const CONTINUE_LINKS = {
+    continue: {
+        href: "https://contoso.ciamlogin.com/server-tenant/oauth2/v2.0/authorize-challenge?route=server&customer=hello%20world",
+    },
+};
+
 export const POLL_COMPLETED_RESPONSE = {
     state: "continue",
     continuationToken: "ct-poll",
-    _links: { continue: { href: "/tenant/api/v0.1/continue" } },
+    _links: CONTINUE_LINKS,
 };
 
 export const POLL_MFA_REQUIRED_RESPONSE = {
@@ -163,6 +169,7 @@ export const MFA_EMAIL_CHALLENGE_RESPONSE = {
 export const MFA_VERIFY_RESPONSE = {
     continuationToken: "ct-mfa-verified",
     state: "continue",
+    _links: CONTINUE_LINKS,
 };
 
 export const POLL_ENROLL_REQUIRED_RESPONSE = {
@@ -192,6 +199,7 @@ export const ENROLL_ACTIVATION_RESPONSE = {
 export const ACTIVATED_CONTINUE_RESPONSE = {
     continuationToken: "ct-activated",
     state: "continue",
+    _links: CONTINUE_LINKS,
 };
 
 export const CONTINUE_RESPONSE = { code: "auth-code-1" };
