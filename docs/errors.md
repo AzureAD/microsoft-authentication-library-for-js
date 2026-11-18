@@ -259,7 +259,7 @@ may maintain its own cache; MSAL cannot undo broker-side writes.
 
 ### `invalid_dpop_nonce`
 
--   DPoP nonce values must be non-empty when supplied.
+-   DPoP nonce values must be non-empty strings when supplied. Non-empty values are treated as opaque and replayed unchanged.
 
 ### `dpop_missing_resource_context`
 

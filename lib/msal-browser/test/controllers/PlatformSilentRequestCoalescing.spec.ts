@@ -41,9 +41,7 @@ import {
 } from "../utils/StringConstants.js";
 
 type BrokerRequest = SsoSilentRequest &
-    Pick<SilentRequest, "forceRefresh" | "cacheLookupPolicy"> & {
-        dpopNonce?: string;
-    };
+    Pick<SilentRequest, "forceRefresh" | "cacheLookupPolicy">;
 
 const account: AccountInfo = {
     homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -343,7 +341,6 @@ describe("platform broker silent request coalescing", () => {
             "proof URI",
             { resourceRequestUri: "https://other-resource.example.com" },
         ],
-        ["DPoP nonce", { dpopNonce: "server-nonce" }],
         ["redirect URI", { redirectUri: "https://app.example.com/other" }],
         ["OIDC nonce", { nonce: "other-oidc-nonce" }],
         ["state", { state: "other-state" }],

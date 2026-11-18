@@ -152,16 +152,33 @@ describe("DpopProofGenerator Unit Tests", () => {
             expect(claims.jti.length).toBeGreaterThan(0);
         });
 
-        it("includes optional nonce in token proof when provided", () => {
+        it("preserves an optional opaque nonce in the token proof", () => {
             const tokenEndpoint =
                 "https://login.microsoftonline.com/tenant/oauth2/v2.0/token";
-            const nonce = "server-nonce-abc123";
+            const nonce = `\u0000${"\u00e9".repeat(1025)} " \\`;
             const claims = generator.buildTokenProofClaims(
                 { tokenEndpoint, nonce },
                 ""
             );
 
             expect(claims.nonce).toBe(nonce);
+        });
+
+        it("rejects an empty token nonce", () => {
+            expect(() =>
+                generator.buildTokenProofClaims(
+                    {
+                        tokenEndpoint:
+                            "https://login.microsoftonline.com/tenant/oauth2/v2.0/token",
+                        nonce: "",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    errorCode: ClientConfigurationErrorCodes.invalidDpopNonce,
+                })
+            );
         });
 
         it("omits nonce from token proof when not provided", () => {
@@ -358,6 +375,24 @@ describe("DpopProofGenerator Unit Tests", () => {
             );
 
             expect(claims.nonce).toBe("resource-nonce-xyz");
+        });
+
+        it("rejects an empty resource nonce", () => {
+            expect(() =>
+                generator.buildResourceProofClaims(
+                    {
+                        htu: "https://graph.microsoft.com/v1.0/me",
+                        htm: "GET",
+                        ath: TEST_DPOP_VALUES.ACCESS_TOKEN_ATH,
+                        nonce: "",
+                    },
+                    TEST_CONFIG.CORRELATION_ID
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    errorCode: ClientConfigurationErrorCodes.invalidDpopNonce,
+                })
+            );
         });
 
         it("omits nonce from resource proof when not provided", () => {

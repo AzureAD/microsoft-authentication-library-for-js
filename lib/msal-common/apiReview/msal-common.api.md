@@ -936,6 +936,9 @@ const cannotRemoveEmptyScope = "cannot_remove_empty_scope";
 // @public (undocumented)
 const cannotSetOIDCOptions = "cannot_set_OIDCOptions";
 
+// @internal
+export function canonicalizeDpopResourceServer(resourceRequestUri: unknown, correlationId?: string): string;
+
 // @public (undocumented)
 const CCS_HEADER = "X-AnchorMailbox";
 
@@ -1088,6 +1091,7 @@ export type ClientConfiguration = {
     networkInterface?: INetworkModule;
     cryptoInterface?: ICrypto;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
+    dpopNonceProvider?: IDpopNonceProvider;
     clientCredentials?: ClientCredentials;
     libraryInfo?: LibraryInfo;
     telemetry?: TelemetryOptions;
@@ -1216,6 +1220,7 @@ export type CommonClientConfiguration = {
     networkInterface: INetworkModule;
     cryptoInterface: Required<ICrypto>;
     tokenBindingKeyManager: ITokenBindingKeyManager;
+    dpopNonceProvider?: IDpopNonceProvider;
     libraryInfo: LibraryInfo;
     telemetry: Required<TelemetryOptions>;
     serverTelemetryManager: ServerTelemetryManager | null;
@@ -1657,6 +1662,7 @@ export type GenerateAuthenticationResultOptions = {
     serverTokenResponse?: ServerAuthorizationTokenResponse;
     requestId?: string;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
+    dpopNonceProvider?: IDpopNonceProvider;
 };
 
 // @public
@@ -1840,6 +1846,11 @@ const ID_TOKEN = "id_token";
 
 // @public (undocumented)
 const ID_TOKEN_HINT = "id_token_hint";
+
+// @internal
+export interface IDpopNonceProvider {
+    getDpopNonce(resourceRequestUri: string, correlationId?: string): string | undefined;
+}
 
 // @internal (undocumented)
 export type IdTokenCache = Record<string, IdTokenEntity>;
@@ -2578,6 +2589,8 @@ export type PerformanceEvent = {
     deduped?: boolean;
     hasAttributeTokens?: boolean;
     dpopTokenTypeMismatch?: string;
+    authenticationScheme?: string;
+    dpopNonceAppliedToProof?: boolean;
     kmsi?: boolean;
     regionSubScope?: string;
     ssoCapable?: boolean;
@@ -2960,9 +2973,12 @@ const RESPONSE_TYPE = "response_type";
 
 // @internal
 export class ResponseHandler {
-    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, tokenBindingKeyManager?: ITokenBindingKeyManager);
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, performanceClient: IPerformanceClient, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, tokenBindingKeyManager?: ITokenBindingKeyManager, dpopNonceProvider?: IDpopNonceProvider);
     static generateAuthenticationResult(cryptoObj: ICrypto, authority: Authority, cacheRecord: CacheRecord, fromTokenCache: boolean, request: BaseAuthRequest, performanceClient: IPerformanceClient, options?: GenerateAuthenticationResultOptions): Promise<AuthenticationResult>;
+    static generateDpopResourceProof(cryptoObj: ICrypto, authenticationResult: AuthenticationResult, request: BaseAuthRequest, performanceClient: IPerformanceClient, options?: Pick<GenerateAuthenticationResultOptions, "tokenBindingKeyManager" | "dpopNonceProvider">): Promise<string>;
     handleServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, apiId: number, authCodePayload?: AuthorizationCodePayload, userAssertionHash?: string, handlingRefreshTokenResponse?: boolean, forceCacheRefreshTokenResponse?: boolean, serverRequestId?: string, additionalCacheKeyComponents?: Record<string, string>): Promise<AuthenticationResult>;
+    static hasDpopKeyId(authenticationResult: AuthenticationResult): boolean;
+    static setDpopKeyId(authenticationResult: AuthenticationResult, keyId: string): void;
     validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse, correlationId: string, refreshAccessToken?: boolean): void;
 }
 
@@ -3530,6 +3546,9 @@ export function validateAgeAssuranceTargets(requestedClaims: string | undefined,
 
 // @public
 function validateAuthorizationResponse(serverResponse: AuthorizeResponse, requestState: string, correlationId: string): void;
+
+// @internal
+export function validateDpopNonce(nonce: unknown, correlationId?: string): string;
 
 // @public
 function validateUrl(url: string, logger?: Logger, correlationId?: string): void;

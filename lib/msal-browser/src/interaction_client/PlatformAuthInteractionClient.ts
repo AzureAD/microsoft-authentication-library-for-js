@@ -27,6 +27,7 @@ import {
     PerformanceEvents,
     PopTokenGenerator,
     RequestParameterBuilder,
+    ResponseHandler,
     ScopeSet,
     ServerTelemetryManager,
     SignedHttpRequestParameters,
@@ -159,7 +160,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             performanceClient,
             correlationId,
             provider,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            browserStorage
         );
 
         const extensionName = this.platformAuthProvider.getExtensionName();
@@ -881,6 +883,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             isL3DpopResponse ||
             (this.isDpopBrokerRequest(request) &&
                 storeInCache?.accessToken === false);
+        if (
+            dpopBrokerOutcome === "L1" &&
+            !shouldRemoveGeneratedDpopKey &&
+            request.keyId
+        ) {
+            ResponseHandler.setDpopKeyId(result, request.keyId);
+        }
         if (shouldRemoveGeneratedDpopKey) {
             await this.resetGeneratedDpopRequestKey(request);
         }
@@ -1339,12 +1348,16 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 ? undefined
                 : this.config.auth.clientCapabilities;
 
-        const { scopes, claims, dpopNonce } = request as (
-            | PopupRequest
-            | SsoSilentRequest
-        ) & {
-            dpopNonce?: string;
-        };
+        const { scopes, claims } = request;
+        const dpopNonce =
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP &&
+            request.resourceRequestUri
+                ? this.browserStorage.getDpopNonce(
+                      request.resourceRequestUri,
+                      this.correlationId
+                  )
+                : undefined;
         const scopeSet = new ScopeSet(
             [...(scopes || []), ...Constants.OIDC_DEFAULT_SCOPES],
             this.correlationId
@@ -1897,12 +1910,19 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.browserCrypto,
             this.tokenBindingKeyManager
         );
+        const currentNonce = request.resourceRequestUri
+            ? this.browserStorage.getDpopNonce(
+                  request.resourceRequestUri,
+                  this.correlationId
+              )
+            : undefined;
         return dpopProofGenerator.generateResourceProof(
             {
                 htu: request.resourceRequestUri,
                 htm: request.resourceRequestMethod,
                 accessToken: response.access_token,
-                nonce: request.extraParametersNoCache?.pop_nonce,
+                nonce:
+                    currentNonce ?? request.extraParametersNoCache?.pop_nonce,
             },
             request.keyId as string,
             this.correlationId
