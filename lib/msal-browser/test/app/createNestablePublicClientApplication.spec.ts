@@ -254,6 +254,7 @@ describe("createNestablePublicClientApplication tests", () => {
                     getConfiguration = jest.fn();
                     hydrateCache = jest.fn();
                     clearCache = jest.fn();
+                    loadDpopNonce = jest.fn();
                 }
 
                 const mockPcaFactory = jest
