@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1795034927064,
+  "lastUpdate": 1795040175958,
   "repoUrl": "https://github.com/AzureAD/microsoft-authentication-library-for-js",
   "entries": {
     "msal-node client-credential Regression Test": [
@@ -25329,6 +25329,44 @@ window.BENCHMARK_DATA = {
             "range": "±1.14%",
             "unit": "ops/sec",
             "extra": "219 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "hemoral@microsoft.com",
+            "name": "Hector Morales",
+            "username": "hectormmg"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a24374bd4fd28a829bd584f1f109293e0b5bfe28",
+          "message": "AB#3677519: Add in-memory resource server DPoP nonce support (#8981)\n\n## Summary\n\nAdds application-assisted resource-server DPoP nonce support for\nbrowser-native and platform-broker `PublicClientApplication` flows using\nbounded, PCA-scoped, memory-only state.\n\nWhen an API response includes `DPoP-Nonce`, the application loads the\nserver-issued value with `pca.loadDpopNonce(response.url, nonce)`. MSAL\nrejects empty nonce values. Every non-empty nonce remains opaque: it is\nstored and replayed unchanged, and MSAL does not perform the resource\nHTTP retry.\n\nReplaces #8819 with history rebased onto the latest `dev`.\n\n## Implements\n\n- `PublicClientApplication.loadDpopNonce(resourceRequestUri, dpopNonce)`\nfor loading opaque resource-server nonces\n- Strict HTTPS-origin canonicalization for nonce cache scoping\n- PCA-local storage bounded to 50 resource origins, with oldest-write\neviction\n- Late-bound nonce lookup for browser DPoP resource proofs\n- Independent platform-broker DPoP requests where WAM owns proof\ngeneration\n- Cached nonce forwarding to WAM through `pop_nonce`\n- DPoP-aware silent-request deduplication without legacy redirect nonce\nhandoff state\n- Cache-clear and logout cleanup\n- Production Microsoft Graph E2E coverage for nonce challenge/retry and\nHTTP-method binding\n\n## Explicitly deferred\n\n- Authorization-server nonce storage or rotation\n- Token-endpoint `use_dpop_nonce` challenge retry\n- Authorization-code or refresh-token retry orchestration\n- Automatic resource HTTP retry\n- NAA nonce transport across bridge contracts\n\n## Validation\n\n- `msal-common` and `msal-browser` builds passed in dependency order\n- `msal-common`: 49 suites / 1,447 tests passed\n- `msal-browser`: 133 suites / 3,121 tests passed\n- Lint and formatting checks passed for both packages (pre-existing lint\nwarnings remain)\n- API Extractor passed for both packages\n- Live production Graph DPoP E2E tests passed: **2/2**\n- Diff checks passed\n\n## Cross-repository integration\n\nThe corresponding draft 1P integration is tracked by ADO PR !28923:\n\nhttps://dev.azure.com/IdentityDivision/IDDP/_git/msal-javascript-1p/pullrequest/28923\n\n## Work item\n\n- AB#3677519\n\n<!-- BEGIN pr-telemetry -->\nassistance: agentic-cli\ntype: feature\nagent-tool: copilot-cli\nagent-model: gpt-5.6-sol\nwork-item: AB#3677519\n<!-- END pr-telemetry -->\n\n---------\n\nCo-authored-by: Forge <forge-bot@entra.github.io>\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\nCo-authored-by: Copilot Autofix powered by AI <175728472+Copilot@users.noreply.github.com>\nCopilot-Session: 372b8c77-3727-4057-b7f0-d742951bbf9b\nCopilot-Session: db11b4d8-ece2-4a09-a1af-419c59110655\nCopilot-Session: afb3bd9e-9546-40a1-aa18-d717a5487c40\nCopilot-Session: 978ad3f9-d731-4eb8-a6b5-11b45d539089",
+          "timestamp": "2026-11-18T14:06:40-08:00",
+          "tree_id": "23b64a1dc5c5c610adc511cb57a131b79dc022af",
+          "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/a24374bd4fd28a829bd584f1f109293e0b5bfe28"
+        },
+        "date": 1795040172284,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsFirstItemInTheCache",
+            "value": 471258,
+            "range": "±1.50%",
+            "unit": "ops/sec",
+            "extra": "230 samples"
+          },
+          {
+            "name": "ConfidentialClientApplication#acquireTokenByClientCredential-fromCache-resourceIsLastItemInTheCache",
+            "value": 472531,
+            "range": "±0.89%",
+            "unit": "ops/sec",
+            "extra": "233 samples"
           }
         ]
       }
