@@ -213,6 +213,7 @@ export class CustomAuthSilentCacheClient extends CustomAuthInteractionClientBase
             },
             cryptoInterface: this.browserCrypto,
             tokenBindingKeyManager: this.tokenBindingKeyManager,
+            dpopNonceProvider: this.browserStorage,
             networkInterface: this.networkClient,
             storageInterface: this.browserStorage,
             serverTelemetryManager: serverTelemetryManager,

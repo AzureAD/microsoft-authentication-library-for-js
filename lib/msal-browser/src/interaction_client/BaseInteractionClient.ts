@@ -22,6 +22,7 @@ import {
     invokeAsync,
     StringDict,
     ITokenBindingKeyManager,
+    IDpopNonceProvider,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
@@ -51,6 +52,7 @@ export abstract class BaseInteractionClient {
     protected correlationId: string;
     protected performanceClient: IPerformanceClient;
     protected tokenBindingKeyManager: ITokenBindingKeyManager;
+    protected readonly dpopNonceProvider: IDpopNonceProvider;
 
     constructor(
         config: BrowserConfiguration,
@@ -62,7 +64,8 @@ export abstract class BaseInteractionClient {
         performanceClient: IPerformanceClient,
         correlationId: string,
         platformAuthProvider?: IPlatformAuthHandler,
-        tokenBindingKeyManager?: ITokenBindingKeyManager
+        tokenBindingKeyManager?: ITokenBindingKeyManager,
+        dpopNonceProvider?: IDpopNonceProvider
     ) {
         this.config = config;
         this.browserStorage = storageImpl;
@@ -77,6 +80,7 @@ export abstract class BaseInteractionClient {
         this.tokenBindingKeyManager =
             tokenBindingKeyManager ||
             new TokenBindingKeyManager(this.logger, this.performanceClient);
+        this.dpopNonceProvider = dpopNonceProvider ?? storageImpl;
     }
 
     abstract acquireToken(
@@ -256,6 +260,7 @@ export async function clearCacheOnLogout(
     correlationId: string,
     account?: AccountInfo | null
 ): Promise<void> {
+    browserStorage.clearDpopNonces();
     if (account) {
         // Clear given account.
         try {
