@@ -92,6 +92,23 @@ describe("age-assurance target binding", () => {
         "{}",
         claims([]),
         claims(["target-mc"], "access_token"),
+        JSON.stringify({
+            id_token: { xms_agvs: { additionalProperties: "target-mc" } },
+        }),
+        JSON.stringify({
+            id_token: {
+                xms_agvs: {
+                    additionalProperties: { "target-mc": true },
+                },
+            },
+        }),
+        JSON.stringify({
+            id_token: {
+                xms_agvs: {
+                    additionalProperties: [null, 1, { value: "target-mc" }],
+                },
+            },
+        }),
     ])("does not opt in without explicit ID-token targets: %s", (request) => {
         expect(() =>
             validateAgeAssuranceTargets(request, undefined, "")

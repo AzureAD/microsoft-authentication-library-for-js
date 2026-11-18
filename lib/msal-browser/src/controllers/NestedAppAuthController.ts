@@ -190,12 +190,10 @@ export class NestedAppAuthController implements IController {
             | PopupRequest
             | RedirectRequest
     >(request: T): T {
-        if (request?.correlationId) {
-            return request;
-        }
         return {
             ...request,
-            correlationId: this.browserCrypto.createNewGuid(),
+            correlationId:
+                request?.correlationId || this.browserCrypto.createNewGuid(),
         };
     }
 

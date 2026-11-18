@@ -11,6 +11,7 @@ import {
     AuthenticationResult,
     Authority,
     AuthToken,
+    ClientAuthError,
     ClientAuthErrorCodes,
     ClientConfiguration,
     createClientAuthError,
@@ -33,6 +34,7 @@ import { ApiId } from "../utils/Constants.js";
 import { EncodingUtils } from "../utils/EncodingUtils.js";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest.js";
 import { BaseClient } from "./BaseClient.js";
+import { getResponseRequest } from "../utils/ResponseUtils.js";
 
 /**
  * On-Behalf-Of client
@@ -48,11 +50,12 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * Public API to acquire tokens with on behalf of flow
-     * @param request - developer provided CommonOnBehalfOfRequest
+     * @param userRequest - developer provided CommonOnBehalfOfRequest
      */
     public async acquireToken(
-        request: CommonOnBehalfOfRequest
+        userRequest: CommonOnBehalfOfRequest
     ): Promise<AuthenticationResult | null> {
+        const request = { ...userRequest };
         this.scopeSet = new ScopeSet(
             request.scopes || [],
             request.correlationId
@@ -95,6 +98,12 @@ export class OnBehalfOfClient extends BaseClient {
                 additionalCacheKeyComponents
             );
         } catch (e) {
+            if (
+                e instanceof ClientAuthError &&
+                e.errorCode === ClientAuthErrorCodes.ageAssuranceTargetMismatch
+            ) {
+                throw e;
+            }
             // Any failure falls back to interactive request, once we implement distributed cache, we plan to handle `createRefreshRequiredError` to refresh using the RT
             return await this.executeTokenRequest(
                 request,
@@ -200,7 +209,7 @@ export class OnBehalfOfClient extends BaseClient {
                 appMetadata: null,
             },
             true,
-            request,
+            getResponseRequest(request),
             this.performanceClient,
             {
                 idTokenClaims,
@@ -231,10 +240,7 @@ export class OnBehalfOfClient extends BaseClient {
             this.cacheManager.getIdTokensByFilter(idTokenFilter, correlationId);
 
         // When acquiring a token on behalf of an application, there might not be an id token in the cache
-        if (Object.values(idTokenMap).length < 1) {
-            return null;
-        }
-        return Object.values(idTokenMap)[0] as IdTokenEntity;
+        return idTokenMap.values().next().value ?? null;
     }
 
     /**
@@ -351,7 +357,7 @@ export class OnBehalfOfClient extends BaseClient {
             response.body,
             this.authority,
             reqTimestamp,
-            request,
+            getResponseRequest(request),
             ApiId.acquireTokenByOBO,
             undefined, // authCodePayload
             userAssertionHash, // userAssertionHash

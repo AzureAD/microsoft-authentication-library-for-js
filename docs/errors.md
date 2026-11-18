@@ -84,12 +84,19 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 An ID-token age-assurance receipt does not match the explicitly requested targets.
 Validation applies only when `id_token.xms_agvs.additionalProperties` contains
-`target-<identity>` entries in the request's `claims` JSON. For example, requesting
+`target-<identity>` entries in an array in the effective request claims JSON.
+For Node flows supporting `claimsFromClient`, validation uses the existing
+deep merge with `claims`, including client-claims precedence. For example, requesting
 `target-mc` and `target-sm` requires an `xms_agvt` receipt such as `+mc,-sm`.
 Matching ignores identity case and order, but requires a sign on every receipt
 entry and rejects duplicate, missing, extra, malformed, or non-string receipts.
 Target names are opaque, nonempty identities without commas, whitespace, or a
 leading sign. `all` is a literal identity, not a wildcard.
+
+Client-claims access-token cache isolation does not bind the separately cached
+ID token to those targets. A cached receipt mismatch fails closed with this error;
+the SDK does not automatically reacquire tokens in response. Recovery behavior
+requires explicit SDK-owner agreement before this draft is ready to merge.
 
 This check also applies to cached and broker-returned results and when
 `xms_agvs` is `0`. Negative outcomes such as `-mc` can match: matching is not
