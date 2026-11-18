@@ -66,7 +66,8 @@ export class AuthenticationHeaderParser {
         if (wwwAuthenticate) {
             const wwwAuthenticateChallenges =
                 this.parseChallenges<WWWAuthenticateChallenges>(
-                    wwwAuthenticate
+                    wwwAuthenticate,
+                    "pop"
                 );
             if (wwwAuthenticateChallenges.nonce) {
                 return wwwAuthenticateChallenges.nonce;
@@ -87,9 +88,10 @@ export class AuthenticationHeaderParser {
     /**
      * Parses scheme-prefixed or scheme-less HTTP authentication parameters.
      * @param header
+     * @param scheme - When provided, selects only the first matching challenge.
      * @returns
      */
-    private parseChallenges<T>(header: string): T {
+    private parseChallenges<T>(header: string, scheme?: string): T {
         const challenges: string[] = [];
         let challengeStart = 0;
         let quoted = false;
@@ -118,8 +120,21 @@ export class AuthenticationHeaderParser {
         challenges.push(header.slice(challengeStart));
 
         const challengeMap = Object.create(null) as T;
+        let currentScheme: string | undefined;
         for (const challenge of challenges) {
             const separator = challenge.indexOf("=");
+            const bareScheme = challenge.trim();
+            if (
+                scheme &&
+                separator === -1 &&
+                /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(bareScheme)
+            ) {
+                if (currentScheme === scheme) {
+                    break;
+                }
+                currentScheme = bareScheme.toLowerCase();
+                continue;
+            }
             // Accept the legacy PoP prefix without treating spaces in values as scheme separators.
             const keyParts = challenge
                 .slice(0, separator)
@@ -143,6 +158,15 @@ export class AuthenticationHeaderParser {
                 );
             }
             const key = keyParts[keyParts.length - 1].toLowerCase();
+            if (scheme && keyParts.length === 2) {
+                if (currentScheme === scheme) {
+                    break;
+                }
+                currentScheme = keyParts[0].toLowerCase();
+            }
+            if (scheme && currentScheme !== scheme) {
+                continue;
+            }
             challengeMap[key] = quotedValue
                 ? value.slice(1, -1).replace(/\\(.)/g, "$1")
                 : value;

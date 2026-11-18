@@ -63,6 +63,40 @@ describe("AuthenticationHeaderParser unit tests", () => {
         );
 
         it.each([
+            'PoP nonce="shr", Digest realm="example", nonce="digest"',
+            'Digest realm="example", nonce="digest", PoP nonce="shr"',
+            'Basic, Digest realm="example", nonce="digest", pOp realm="resource", nonce="shr"',
+            'PoP nonce="shr", Basic, Digest nonce="digest"',
+            'PoP nonce="shr", PoP nonce="second"',
+        ])("selects only the first PoP challenge: %s", (headerValue) => {
+            const parser = new AuthenticationHeaderParser({
+                [HeaderNames.WWWAuthenticate]: headerValue,
+            });
+
+            expect(parser.getShrNonce()).toBe("shr");
+        });
+
+        it.each([
+            'Digest realm="example", nonce="digest"',
+            'PoP realm="resource", Digest nonce="digest"',
+            'PoP realm="resource", PoP nonce="second"',
+        ])(
+            "does not borrow a nonce from another challenge: %s",
+            (headerValue) => {
+                const parser = new AuthenticationHeaderParser({
+                    [HeaderNames.WWWAuthenticate]: headerValue,
+                });
+
+                expect(() => parser.getShrNonce()).toThrow(
+                    createClientConfigurationError(
+                        ClientConfigurationErrorCodes.invalidAuthenticationHeader,
+                        ""
+                    )
+                );
+            }
+        );
+
+        it.each([
             [
                 HeaderNames.AuthenticationInfo,
                 'nextnonce="dGVzdA=="',
