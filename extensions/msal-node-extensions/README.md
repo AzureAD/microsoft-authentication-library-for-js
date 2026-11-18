@@ -155,13 +155,15 @@ If you intend to contribute to the library visit the [`contributing section`](#c
 
 ### Building the package locally
 
+Building from source requires Node.js `^22.22.2 || ^24.15.0 || >=26.0.0`, as required by the `node-gyp` 13 development dependency. For Windows builds, use Node.js 22.22.2 or later in the 22.x release line: the build produces x64, ia32, and arm64 binaries, and Node.js 24 does not publish the Windows ia32 import library required by the build. These contributor build requirements do not change the supported application runtimes for the precompiled package.
+
 To build both the `@azure/msal-node-extensions` library and `@azure/msal-common` libraries, run the following commands:
 
 ```bash
 // Install dev dependencies from root of repo
 npm install
 // Change to the msal-node-extensions package directory
-cd lib/msal-node-extensions/
+cd extensions/msal-node-extensions/
 // Build msal-common and msal-node-extensions
 npm run build:all
 ```
