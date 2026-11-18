@@ -32,6 +32,20 @@ describe("RequestParameterBuilder unit tests", () => {
         jest.restoreAllMocks();
     });
 
+    it("Uses request-specific asymmetric encryption metadata instead of the symmetric EAR default", () => {
+        const parameters = new Map<string, string>();
+        const jweCrypto = "request-specific-encoded-metadata";
+        RequestParameterBuilder.addEARParameters(
+            parameters,
+            "public-jwk",
+            jweCrypto
+        );
+        expect(parameters.get(AADServerParamKeys.EAR_JWE_CRYPTO)).toBe(
+            jweCrypto
+        );
+        expect(parameters.get(AADServerParamKeys.EAR_JWK)).toBe("public-jwk");
+    });
+
     it("Build query string from RequestParameterBuilder object", () => {
         const parameters = new Map<string, string>();
         RequestParameterBuilder.addResponseType(

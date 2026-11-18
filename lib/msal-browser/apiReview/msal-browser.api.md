@@ -89,6 +89,9 @@ export const ApiId: {
 export type ApiId = (typeof ApiId)[keyof typeof ApiId];
 
 // @public (undocumented)
+const asymmetricEarKeyError = "asymmetric_ear_key_error";
+
+// @public (undocumented)
 const authCodeOrNativeAccountIdRequired = "auth_code_or_nativeAccountId_required";
 
 // @public (undocumented)
@@ -220,6 +223,7 @@ declare namespace BrowserAuthErrorCodes {
         failedToBuildHeaders,
         failedToParseHeaders,
         failedToDecryptEarResponse,
+        asymmetricEarKeyError,
         timedOut,
         emptyResponse
     }
@@ -236,6 +240,7 @@ export type BrowserAuthOptions = {
     redirectUri?: string;
     postLogoutRedirectUri?: string | null;
     popupRelayUri?: string;
+    popupRelayProtocolVersion?: 1 | 2;
     clientCapabilities?: Array<string>;
     OIDCOptions?: OIDCOptions;
     azureCloudOptions?: AzureCloudOptions;
@@ -281,6 +286,7 @@ export { BrowserConfigurationAuthErrorCodes }
 
 // @public
 export type BrowserExperimentalOptions = {
+    enableAsymmetricEar?: boolean;
     iframeTimeoutTelemetry?: boolean;
     allowPlatformBrokerWithDOM?: boolean;
 };
@@ -900,7 +906,7 @@ export type PopupPosition = {
 const popupRelayUnsupportedFlow = "popup_relay_unsupported_flow";
 
 // @public
-export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
+export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "asymmetricEar" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
     popupWindowParent?: Window;
@@ -991,7 +997,7 @@ const redirectInIframe = "redirect_in_iframe";
 function redirectPreflightCheck(initialized: boolean, config: BrowserConfiguration): void;
 
 // @public
-export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
+export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "scopes" | "earJwk" | "asymmetricEar" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">> & {
     scopes: Array<string>;
     redirectStartPage?: string;
 };
@@ -1076,7 +1082,7 @@ const SsoCapable = "ssoCapable";
 const SsoSilent = "ssoSilent";
 
 // @public
-export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "earJwk" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">>;
+export type SsoSilentRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode" | "earJwk" | "asymmetricEar" | "codeChallenge" | "codeChallengeMethod" | "platformBroker">>;
 
 // @public (undocumented)
 const stateInteractionTypeMismatch = "state_interaction_type_mismatch";
@@ -1125,7 +1131,7 @@ const unsupportedTokenBindingAlgorithm = "unsupported_token_binding_algorithm";
 const userCancelled = "user_cancelled";
 
 // @public (undocumented)
-export const version = "5.29.0";
+export const version = "5.29.1";
 
 // @public (undocumented)
 const WaitForBridgeLateResponse = "waitForBridgeLateResponse";

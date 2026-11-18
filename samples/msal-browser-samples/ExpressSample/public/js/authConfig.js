@@ -67,6 +67,12 @@ export function createMsalConfig() {
                 ...earConfig.system,
                 protocolMode: msal.ProtocolMode.EAR,
             },
+            experimental: {
+                enableAsymmetricEar:
+                    new URLSearchParams(window.location.search).get(
+                        "asymmetricEar"
+                    ) === "true",
+            },
         });
     }
 

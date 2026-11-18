@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node
 
-<!-- This log was last generated on Fri, 06 Nov 2026 23:13:16 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 12 Nov 2026 18:58:52 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 7.2.2
+
+Thu, 12 Nov 2026 18:58:52 GMT
+
+### Patches
+
+- Sanitize authorization code response payloads consistently across Node clients [#8959](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8959) (nugetaad@microsoft.com)
+- Bump @azure/msal-common to v16.16.2
 
 ## 7.2.1
 

@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Respect PII logging settings for performance wrapper exception details [#8982](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8982)",
-    "packageName": "@azure/msal-common",
-    "email": "lalima.sharda@gmail.com",
-    "dependentChangeType": "patch"
-}

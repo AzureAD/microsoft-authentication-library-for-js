@@ -13,6 +13,7 @@ export type SsoSilentRequest = Partial<
         CommonAuthorizationUrlRequest,
         | "responseMode"
         | "earJwk"
+        | "asymmetricEar"
         | "codeChallenge"
         | "codeChallengeMethod"
         | "platformBroker"
