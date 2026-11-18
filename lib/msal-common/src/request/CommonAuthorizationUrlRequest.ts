@@ -6,6 +6,7 @@
 import { ResponseMode } from "../utils/Constants.js";
 import { BaseAuthRequest } from "./BaseAuthRequest.js";
 import { AccountInfo } from "../account/AccountInfo.js";
+import { PublicJsonWebKey } from "../crypto/PublicJsonWebKey.js";
 
 /**
  * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)
@@ -27,6 +28,14 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
      * JSON Web Key used when constructing Encrypted Authorize Response (EAR) parameters.
      */
     earJwk?: string;
+    /**
+     * Private asymmetric EAR context. Retained in memory except for cached redirect requests.
+     * @internal
+     */
+    asymmetricEar?: {
+        privateJwk: PublicJsonWebKey & { d?: string };
+        apv: string;
+    };
     /**
      * Used to secure authorization code grant via Proof of Key for Code Exchange (PKCE). For more information, see the PKCE RCF:https://tools.ietf.org/html/rfc7636
      */
@@ -78,4 +87,12 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
      * @internal
      */
     reqCnf?: string;
+    /**
+     * Adds `pocd=1`, signalling that no untrusted window can reach the window
+     * driving this request. msal-browser computes this for every authorize
+     * request; a flow sets it explicitly only to assert a value the current
+     * window cannot be measured for, such as the popup-relay topology.
+     * @internal
+     */
+    popupOriginCheckDone?: boolean;
 };

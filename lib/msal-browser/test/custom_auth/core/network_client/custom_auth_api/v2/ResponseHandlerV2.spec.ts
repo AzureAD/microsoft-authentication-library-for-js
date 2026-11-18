@@ -80,27 +80,6 @@ describe("ResponseHandlerV2", () => {
             expect(result.continuationToken).toBe("ct-snake");
         });
 
-        it("flags web fallback when the flat error is redirect_to_web", async () => {
-            const result = await handler.parseResponse(
-                buildResponse({
-                    error: "redirect_to_web",
-                    continuation_token: "ct",
-                }),
-                REQUEST_CORRELATION_ID
-            );
-
-            expect(result.isWebFallbackRequired).toBe(true);
-        });
-
-        it("flags web fallback when the state is webFallbackRequired", async () => {
-            const result = await handler.parseResponse(
-                buildResponse({ state: "webFallbackRequired" }),
-                REQUEST_CORRELATION_ID
-            );
-
-            expect(result.isWebFallbackRequired).toBe(true);
-        });
-
         it("does not flag web fallback on a normal response", async () => {
             const result = await handler.parseResponse(
                 buildResponse({ state: "interactionRequired" }),
@@ -155,6 +134,62 @@ describe("ResponseHandlerV2", () => {
                 correlationId: "flat-corr",
                 traceId: "flat-trace",
                 timestamp: "2026-02-02",
+            });
+        });
+
+        it("normalizes web_redirect_required from a flat OAuth suberror", async () => {
+            const result = await handler.parseResponse(
+                buildResponse({
+                    error: "invalid_grant",
+                    error_description:
+                        "AADSTS55214: Non-retryable error has occurred.",
+                    error_codes: [55214],
+                    timestamp: "2026-10-12 15:43:29Z",
+                    trace_id: "c7fe3b84-3596-4d2d-a195-3aa21fb41100",
+                    correlation_id: "c556852d-edfa-4040-b472-15a62de49ad5",
+                    suberror: "web_redirect_required",
+                }),
+                REQUEST_CORRELATION_ID
+            );
+
+            expect(result.isWebFallbackRequired).toBe(true);
+            expect(result.error).toEqual({
+                code: "invalid_grant",
+                message: "AADSTS55214: Non-retryable error has occurred.",
+                errorCodes: [55214],
+                subError: "web_redirect_required",
+                correlationId: "c556852d-edfa-4040-b472-15a62de49ad5",
+                traceId: "c7fe3b84-3596-4d2d-a195-3aa21fb41100",
+                timestamp: "2026-10-12 15:43:29Z",
+            });
+        });
+
+        it("normalizes userNotFound from a nested HAL error", async () => {
+            const result = await handler.parseResponse(
+                buildResponse({
+                    error: {
+                        code: "invalidRequest",
+                        message:
+                            "AADSTS50034: The user account does not exist in the directory.",
+                        timestamp: "2026-10-15 11:00:16Z",
+                        traceId: "6a72e163-b400-45c1-82d1-2ffe897e1c00",
+                        correlationId: "1b387df0-1092-49fd-9afa-503c14ead335",
+                        innerError: {
+                            code: "userNotFound",
+                        },
+                    },
+                }),
+                REQUEST_CORRELATION_ID
+            );
+
+            expect(result.error).toEqual({
+                code: "invalidRequest",
+                message:
+                    "AADSTS50034: The user account does not exist in the directory.",
+                innerErrorCode: "userNotFound",
+                correlationId: "1b387df0-1092-49fd-9afa-503c14ead335",
+                traceId: "6a72e163-b400-45c1-82d1-2ffe897e1c00",
+                timestamp: "2026-10-15 11:00:16Z",
             });
         });
 
@@ -259,6 +294,53 @@ describe("ResponseHandlerV2", () => {
                     error: CONTINUATION_TOKEN_MISSING,
                 })
             );
+        });
+    });
+
+    describe("resolveSignUpAttributes", () => {
+        it.each<{ attributes: unknown }>([
+            { attributes: null },
+            { attributes: {} },
+            { attributes: [null] },
+            { attributes: [[]] },
+            { attributes: [{ attributeId: 42 }] },
+            { attributes: [{ attributeId: " " }] },
+        ])(
+            "rejects malformed attribute metadata $attributes",
+            ({ attributes }) => {
+                expect(() =>
+                    handler.resolveSignUpAttributes(
+                        // @ts-expect-error Exercise malformed wire metadata.
+                        attributes,
+                        REQUEST_CORRELATION_ID
+                    )
+                ).toThrow(
+                    expect.objectContaining({
+                        error: INVALID_HAL_RESPONSE,
+                        correlationId: REQUEST_CORRELATION_ID,
+                    })
+                );
+            }
+        );
+
+        it("preserves custom username metadata and repeated collection", () => {
+            const attributes = [
+                { attributeId: "username", required: true },
+                { attributeId: "alternateEmail", required: false },
+            ];
+
+            expect(
+                handler.resolveSignUpAttributes(
+                    attributes,
+                    REQUEST_CORRELATION_ID
+                )
+            ).toBe(attributes);
+            expect(
+                handler.resolveSignUpAttributes(
+                    attributes,
+                    REQUEST_CORRELATION_ID
+                )
+            ).toBe(attributes);
         });
     });
 

@@ -48,7 +48,11 @@ export const invoke = <T extends Array<any>, U>(
         } catch (e) {
             logger.trace(`Error occurred in '${eventName}'`, correlationId);
             try {
-                logger.trace(JSON.stringify(e), correlationId);
+                // Prevent numeric error details from being treated as minified log hashes.
+                logger.tracePii(
+                    `Error details: '${JSON.stringify(e)}'`,
+                    correlationId
+                );
             } catch (e) {
                 logger.trace("Unable to print error message.", correlationId);
             }
@@ -110,7 +114,10 @@ export const invokeAsync = <T extends Array<any>, U>(
             .catch((e) => {
                 logger.trace(`Error occurred in '${eventName}'`, correlationId);
                 try {
-                    logger.trace(JSON.stringify(e), correlationId);
+                    logger.tracePii(
+                        `Error details: '${JSON.stringify(e)}'`,
+                        correlationId
+                    );
                 } catch (e) {
                     logger.trace(
                         "Unable to print error message.",

@@ -26,7 +26,11 @@ import {
     initializeAuthorizationRequest,
     StandardInteractionClient,
 } from "./StandardInteractionClient.js";
-import { getTokenBindingRequestParams } from "../request/RequestHelpers.js";
+import {
+    getTokenBindingRequestParams,
+    isTokenBindingKeyPersistedForRedirect,
+    removeTokenBindingKeyOnFailure,
+} from "../request/RequestHelpers.js";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import {
     ApiId,
@@ -35,6 +39,7 @@ import {
     TemporaryCacheKeys,
 } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { shouldUseEar } from "../utils/BrowserDetection.js";
 import { EndSessionRequest } from "../request/EndSessionRequest.js";
 import { EventType } from "../event/EventType.js";
 import { NavigationOptions } from "../navigation/NavigationOptions.js";
@@ -53,7 +58,6 @@ import * as ResponseHandler from "../response/ResponseHandler.js";
 import * as Authorize from "../protocol/Authorize.js";
 import { generatePkceCodes } from "../crypto/PkceGenerator.js";
 import { isPlatformAuthAllowed } from "../broker/nativeBroker/PlatformAuthProvider.js";
-import { generateEarKey } from "../crypto/BrowserCrypto.js";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
     clearCacheOnLogout,
@@ -183,10 +187,14 @@ export class RedirectClient extends StandardInteractionClient {
         window.addEventListener("pageshow", handleBackButton);
 
         try {
-            const redirectOperation =
-                this.config.system.protocolMode === ProtocolMode.EAR
-                    ? this.executeEarFlow(validRequest)
-                    : this.executeCodeFlow(validRequest);
+            const redirectOperation = shouldUseEar(
+                this.config.system.protocolMode,
+                this.logger,
+                this.performanceClient,
+                this.correlationId
+            )
+                ? this.executeEarFlow(validRequest)
+                : this.executeCodeFlow(validRequest);
             await Promise.race([redirectOperation, backButtonCancellation]);
         } catch (e) {
             if (e instanceof AuthError) {
@@ -236,13 +244,23 @@ export class RedirectClient extends StandardInteractionClient {
             ...tokenBindingParams,
         };
 
-        this.browserStorage.cacheAuthorizeRequest(
-            redirectRequest,
-            this.correlationId,
-            pkceCodes.verifier
-        );
-
         try {
+            if (
+                !(await isTokenBindingKeyPersistedForRedirect(
+                    redirectRequest,
+                    this.tokenBindingKeyManager
+                ))
+            ) {
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.cryptoKeyNotFound,
+                    this.correlationId
+                );
+            }
+            this.browserStorage.cacheAuthorizeRequest(
+                redirectRequest,
+                this.correlationId,
+                pkceCodes.verifier
+            );
             if (redirectRequest.httpMethod === Constants.HttpMethod.POST) {
                 return await this.executeCodeFlowWithPost(redirectRequest);
             } else {
@@ -280,6 +298,12 @@ export class RedirectClient extends StandardInteractionClient {
                 return await this.initiateAuthRequest(navigateUrl);
             }
         } catch (e) {
+            await removeTokenBindingKeyOnFailure(
+                redirectRequest,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
             if (e instanceof AuthError) {
                 e.correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
@@ -321,13 +345,6 @@ export class RedirectClient extends StandardInteractionClient {
             account
         );
 
-        const earJwk = await invokeAsync(
-            generateEarKey,
-            BrowserPerformanceEvents.GenerateEarKey,
-            this.logger,
-            this.performanceClient,
-            correlationId
-        )();
         const pkceCodes = await invokeAsync(
             generatePkceCodes,
             BrowserPerformanceEvents.GeneratePkceCodes,
@@ -342,39 +359,65 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient
         );
-        const redirectRequest = {
+        let redirectRequest: CommonAuthorizationUrlRequest = {
             ...request,
-            earJwk: earJwk,
             codeChallenge: pkceCodes.challenge,
             ...tokenBindingParams,
         };
 
-        this.browserStorage.cacheAuthorizeRequest(
-            redirectRequest,
-            this.correlationId,
-            pkceCodes.verifier
-        );
-
-        const form = await Authorize.getEARForm(
-            document,
-            this.config,
-            discoveredAuthority,
-            redirectRequest,
-            this.logger,
-            this.performanceClient
-        );
-        form.submit();
-        return new Promise<void>((resolve, reject) => {
-            setTimeout(() => {
-                reject(
-                    createBrowserAuthError(
-                        BrowserAuthErrorCodes.timedOut,
-                        "",
-                        "failed_to_redirect"
-                    )
+        try {
+            redirectRequest = await Authorize.initializeEarRequest(
+                this.config,
+                redirectRequest,
+                this.logger,
+                this.performanceClient
+            );
+            if (
+                !(await isTokenBindingKeyPersistedForRedirect(
+                    redirectRequest,
+                    this.tokenBindingKeyManager
+                ))
+            ) {
+                throw createBrowserAuthError(
+                    BrowserAuthErrorCodes.cryptoKeyNotFound,
+                    this.correlationId
                 );
-            }, this.config.system.redirectNavigationTimeout);
-        });
+            }
+            this.browserStorage.cacheAuthorizeRequest(
+                redirectRequest,
+                this.correlationId,
+                pkceCodes.verifier
+            );
+            const form = await Authorize.getEARForm(
+                document,
+                this.config,
+                discoveredAuthority,
+                redirectRequest,
+                this.logger,
+                this.performanceClient
+            );
+            form.submit();
+            return await new Promise<void>((resolve, reject) => {
+                setTimeout(() => {
+                    reject(
+                        createBrowserAuthError(
+                            BrowserAuthErrorCodes.timedOut,
+                            "",
+                            "failed_to_redirect"
+                        )
+                    );
+                }, this.config.system.redirectNavigationTimeout);
+            });
+        } catch (error) {
+            this.browserStorage.resetRequestCache(correlationId);
+            await removeTokenBindingKeyOnFailure(
+                redirectRequest,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
+            throw error;
+        }
     }
 
     /**
@@ -466,6 +509,12 @@ export class RedirectClient extends StandardInteractionClient {
                 this.logger.info(
                     "handleRedirectPromise did not detect a response as a result of a redirect. Cleaning temporary cache.",
                     this.correlationId
+                );
+                await removeTokenBindingKeyOnFailure(
+                    request,
+                    this.tokenBindingKeyManager,
+                    this.logger,
+                    this.performanceClient
                 );
                 this.browserStorage.resetRequestCache(this.correlationId);
 
@@ -604,6 +653,12 @@ export class RedirectClient extends StandardInteractionClient {
 
             return null;
         } catch (e) {
+            await removeTokenBindingKeyOnFailure(
+                request,
+                this.tokenBindingKeyManager,
+                this.logger,
+                this.performanceClient
+            );
             if (e instanceof AuthError) {
                 (e as AuthError).correlationId = this.correlationId;
                 serverTelemetryManager.cacheFailedRequest(e);
@@ -658,7 +713,6 @@ export class RedirectClient extends StandardInteractionClient {
                 return [null, ""];
             }
 
-            BrowserUtils.clearHash(window);
             this.logger.verbose(
                 "Hash contains known properties, returning response hash",
                 this.correlationId
@@ -746,7 +800,8 @@ export class RedirectClient extends StandardInteractionClient {
                 this.eventHandler,
                 this.logger,
                 this.performanceClient,
-                this.platformAuthProvider
+                this.platformAuthProvider,
+                this.tokenBindingKeyManager
             );
         }
 
@@ -756,7 +811,11 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger,
             this.performanceClient,
             this.correlationId
-        )({ serverTelemetryManager, requestAuthority: request.authority });
+        )({
+            serverTelemetryManager,
+            requestAuthority: request.authority,
+            requestExtraQueryParameters: request.extraQueryParameters,
+        });
         return invokeAsync(
             Authorize.handleResponseCode,
             BrowserPerformanceEvents.HandleResponseCode,
@@ -775,14 +834,14 @@ export class RedirectClient extends StandardInteractionClient {
             this.eventHandler,
             this.logger,
             this.performanceClient,
-            this.platformAuthProvider
+            this.platformAuthProvider,
+            this.tokenBindingKeyManager
         );
     }
 
     /**
      * Redirects window to given URL.
      * @param urlNavigate
-     * @param onRedirectNavigateRequest - onRedirectNavigate callback provided on the request
      */
     async initiateAuthRequest(requestUrl: string): Promise<void> {
         this.logger.verbose(

@@ -569,6 +569,7 @@ describe("PerformanceClient.spec.ts", () => {
         const accessTokenSize = 12345.67;
         const refreshTokenSize = 23456.78;
         const idTokenSize = undefined;
+        const popupRelayProtocolVersion = 2.75;
 
         function isIntegral(val: number | undefined) {
             return val && Math.floor(val) === val;
@@ -581,6 +582,8 @@ describe("PerformanceClient.spec.ts", () => {
             expect(isIntegral(events[0].accessTokenSize)).toBeTruthy();
             expect(isIntegral(events[0].refreshTokenSize)).toBeTruthy();
             expect(isIntegral(events[0].idTokenSize)).toBeUndefined();
+            expect(events[0].popupRelayProtocolVersion).toBe(2);
+            expect(events[0].ext?.popupRelayProtocolVersion).toBeUndefined();
 
             done();
         });
@@ -594,6 +597,7 @@ describe("PerformanceClient.spec.ts", () => {
             accessTokenSize,
             refreshTokenSize,
             idTokenSize,
+            popupRelayProtocolVersion,
         });
         topLevelEvent.end({
             success: true,

@@ -23,6 +23,30 @@ describe("UrlUtils.ts Class Unit Tests", () => {
     });
 
     describe("getDeserializedResponse Tests", () => {
+        it.each([
+            "#/dashboard?tab=orders&code=app-code",
+            "#/dashboard/orders&state=app-state",
+            "#/dashboard#tab=orders&error=app-error",
+            "dashboard?tab=orders&code=app-code",
+        ])("returns null for application route %s", (responseString) => {
+            expect(UrlUtils.getDeserializedResponse(responseString)).toBeNull();
+        });
+
+        it.each(["", "#", "?", "#/"])(
+            "accepts flat response parameters with prefix '%s' and route characters in values",
+            (prefix) => {
+                expect(
+                    UrlUtils.getDeserializedResponse(
+                        `${prefix}custom=value&code=auth-code&return_to=/dashboard?tab=orders#details`
+                    )
+                ).toEqual({
+                    custom: "value",
+                    code: "auth-code",
+                    return_to: "/dashboard?tab=orders#details",
+                });
+            }
+        );
+
         it("getDeserializedResponse returns object if hash contains known properties", () => {
             expect(UrlUtils.getDeserializedResponse("#code=value")).toEqual({
                 code: "value",

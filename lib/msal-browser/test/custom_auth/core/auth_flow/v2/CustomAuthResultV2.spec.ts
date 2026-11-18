@@ -7,10 +7,11 @@ import { AuthError } from "@azure/msal-common/browser";
 import { CustomAuthBrowserConfiguration } from "../../../../../src/custom_auth/configuration/CustomAuthConfiguration.js";
 import { CustomAuthResultV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthResultV2.js";
 import { ResetPasswordStartResultV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
-import { ResetPasswordStartErrorV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/error/ResetPasswordStartErrorV2.js";
+import { AuthFlowErrorV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
 import { CustomAuthApiError } from "../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { MsalCustomAuthError } from "../../../../../src/custom_auth/core/error/MsalCustomAuthError.js";
 import { UnexpectedError } from "../../../../../src/custom_auth/core/error/UnexpectedError.js";
+import { InvalidArgumentError } from "../../../../../src/custom_auth/core/error/InvalidArgumentError.js";
 import { AuthMethodSelectionRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { CodeRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { FailedStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/FailedStateV2.js";
@@ -18,10 +19,17 @@ import { AuthenticationMethodV2 } from "../../../../../src/custom_auth/core/auth
 import { CustomAuthFlowScenarioV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { FlowInteractionClientV2 } from "../../../../../src/custom_auth/core/interaction_client/v2/FlowInteractionClientV2.js";
 import { CustomAuthSilentCacheClient } from "../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
+import { AuthenticationFactorV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import { getDefaultLogger } from "../../../test_resources/TestModules.js";
+import { SubmitPasswordResultV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/result/SubmitPasswordResultV2.js";
+import { PasswordRequiredStateV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
+import type { SignInStartResultV2 } from "../../../../../src/custom_auth/sign_in/auth_flow/v2/result/SignInStartResultV2.js";
+import type { VerifyChallengeResultV2 } from "../../../../../src/custom_auth/core/auth_flow/v2/result/VerifyChallengeResultV2.js";
+import { SubmitAttributesResultV2 } from "../../../../../src/custom_auth/sign_up/auth_flow/v2/result/SubmitAttributesResultV2.js";
 
 describe("CustomAuthResultV2", () => {
     const correlationId = "test-correlation-id";
+    const scopes = ["openid", "profile", "offline_access"];
     const mockConfig = {
         auth: { clientId: "test-client-id" },
         customAuth: { challengeTypes: ["password"] },
@@ -43,10 +51,33 @@ describe("CustomAuthResultV2", () => {
             continuationState: {
                 continuationToken: "ct",
                 scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                scopes,
                 links: {},
             },
             methods: [{ id: "email", type: "email", challengeHref: "/c" }],
+            authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
         });
+
+    const expectUnifiedClassifiers = (
+        result:
+            | ResetPasswordStartResultV2
+            | SubmitPasswordResultV2
+            | SubmitAttributesResultV2
+    ): void => {
+        expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
+        if (!result.error) {
+            throw new Error("Expected a unified V2 flow error.");
+        }
+
+        expect(typeof result.error.isBrowserRequired).toBe("function");
+        expect(typeof result.error.isInvalidInput).toBe("function");
+        expect(typeof result.error.isInvalidUsername).toBe("function");
+        expect(typeof result.error.isUserNotFound).toBe("function");
+        expect(typeof result.error.isInvalidCode).toBe("function");
+        expect(typeof result.error.isInvalidChallenge).toBe("function");
+        expect(typeof result.error.isInvalidAttributes).toBe("function");
+        expect(typeof result.error.isInvalidPassword).toBe("function");
+    };
 
     describe("isState narrowing", () => {
         it("returns true and narrows state to the matching union member", () => {
@@ -58,9 +89,9 @@ describe("CustomAuthResultV2", () => {
 
             if (result.isState("authMethodSelectionRequired")) {
                 // Compile-time proof of narrowing: `methods` and
-                // `requestChallenge` exist only on the narrowed member.
+                // `selectAuthMethod` exist only on the narrowed member.
                 expect(result.state.methods).toEqual([method]);
-                expect(typeof result.state.requestChallenge).toBe("function");
+                expect(typeof result.state.selectAuthMethod).toBe("function");
             }
         });
 
@@ -83,6 +114,7 @@ describe("CustomAuthResultV2", () => {
                     continuationState: {
                         continuationToken: "ct",
                         scenario: CustomAuthFlowScenarioV2.PasswordReset,
+                        scopes,
                         links: {
                             verify: "/verify",
                         },
@@ -117,8 +149,48 @@ describe("CustomAuthResultV2", () => {
         });
     });
 
+    describe("isPasswordRequired narrowing", () => {
+        it.each([
+            CustomAuthFlowScenarioV2.SignIn,
+            CustomAuthFlowScenarioV2.SignUp,
+        ])("narrows the shared password state for %s", (scenario) => {
+            const result: SignInStartResultV2 | VerifyChallengeResultV2 =
+                new CustomAuthResultV2(
+                    new PasswordRequiredStateV2({
+                        correlationId,
+                        logger: getDefaultLogger(),
+                        config: mockConfig,
+                        flowClient: {} as FlowInteractionClientV2,
+                        cacheClient: {} as CustomAuthSilentCacheClient,
+                        continuationState: {
+                            continuationToken: "ct-password",
+                            scenario,
+                            scopes,
+                            links: {},
+                        },
+                    }),
+                    undefined,
+                    scenario
+                );
+
+            expect(result.isPasswordRequired()).toBe(true);
+            if (result.isPasswordRequired()) {
+                const state: PasswordRequiredStateV2 = result.state;
+                expect(typeof state.submitPassword).toBe("function");
+            }
+        });
+
+        it("does not match another state or a failed result", () => {
+            const result = new CustomAuthResultV2(buildSelectionState());
+            const failedResult = new CustomAuthResultV2(new FailedStateV2());
+
+            expect(result.isPasswordRequired()).toBe(false);
+            expect(failedResult.isPasswordRequired()).toBe(false);
+        });
+    });
+
     describe("createWithError", () => {
-        it("builds a failed result carrying the flow-specific error", () => {
+        it("builds a failed result carrying the unified flow error", () => {
             const error = new CustomAuthApiError(
                 "user_not_found",
                 "User not found",
@@ -126,22 +198,137 @@ describe("CustomAuthResultV2", () => {
             );
 
             const result = CustomAuthResultV2.createWithError<
-                ResetPasswordStartResultV2["state"],
-                ResetPasswordStartErrorV2
-            >(error, {
-                errorType: ResetPasswordStartErrorV2,
-            });
+                ResetPasswordStartResultV2["state"]
+            >(error, {});
 
             expect(result.isFailed()).toBe(true);
             expect(result.state).toBeInstanceOf(FailedStateV2);
-            expect(result.error).toBeInstanceOf(ResetPasswordStartErrorV2);
             expect(result.error?.errorData).toBe(error);
+            expectUnifiedClassifiers(result);
         });
 
-        it("applies the scenario to the result and flow-specific error", () => {
+        it("classifies attribute errors and preserves their diagnostics", () => {
+            const error = new CustomAuthApiError(
+                "invalidRequest",
+                "Some of the collected attributes were invalid.",
+                correlationId,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                [
+                    {
+                        attributeIds: ["username"],
+                        code: "attributeValidationFailed",
+                    },
+                ],
+                "attributeValidationError"
+            );
+            const result = CustomAuthResultV2.createWithError(error, {});
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.error?.errorData).toBe(error);
+            expect(result.error?.isInvalidAttributes()).toBe(true);
+            expect(result.error?.invalidAttributes).toEqual(["username"]);
+            expect(result.error?.innerErrorCode).toBe(
+                "attributeValidationError"
+            );
+            expect(result.error?.isInvalidUsername()).toBe(false);
+            expect(result.error?.isInvalidInput()).toBe(false);
+        });
+
+        it("preserves a classified challenge and its owning scenario", () => {
+            const errorData = new CustomAuthApiError(
+                "invalidGrant",
+                "Invalid code.",
+                correlationId,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                "invalidOneTimeCode"
+            );
+            const error = new AuthFlowErrorV2(
+                errorData,
+                CustomAuthFlowScenarioV2.SignIn,
+                "mfaVerification"
+            );
+
+            const result = CustomAuthResultV2.createWithError(error, {
+                scenario: CustomAuthFlowScenarioV2.PasswordReset,
+            });
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.error).toBe(error);
+            expect(result.error?.errorData).toBe(errorData);
+            expect(result.error?.isInvalidChallenge()).toBe(true);
+            expect(result.error?.isInvalidCode()).toBe(false);
+            expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignIn);
+            expect(result.error?.scenario).toBe(result.scenario);
+        });
+
+        it.each([
+            { errorContext: undefined, invalidChallenge: false },
+            { errorContext: "default", invalidChallenge: false },
+            { errorContext: "mfaVerification", invalidChallenge: true },
+            { errorContext: "authMethodRegistration", invalidChallenge: true },
+        ] as const)(
+            "classifies a raw OTP failure with $errorContext context",
+            ({ errorContext, invalidChallenge }) => {
+                const errorData = new CustomAuthApiError(
+                    "invalidGrant",
+                    "Invalid code.",
+                    correlationId,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    "invalidOneTimeCode"
+                );
+
+                const result = CustomAuthResultV2.createWithError(errorData, {
+                    scenario: CustomAuthFlowScenarioV2.SignIn,
+                    errorContext,
+                });
+
+                expect(result.isFailed()).toBe(true);
+                expect(result.error?.errorData).toBe(errorData);
+                expect(result.error?.isInvalidChallenge()).toBe(
+                    invalidChallenge
+                );
+                expect(result.error?.isInvalidCode()).toBe(!invalidChallenge);
+                expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignIn);
+            }
+        );
+
+        it("classifies local username validation at result creation", () => {
+            const errorData = new InvalidArgumentError(
+                "inputs.username",
+                correlationId
+            );
+
+            const result = CustomAuthResultV2.createWithError(errorData, {
+                scenario: CustomAuthFlowScenarioV2.SignUp,
+            });
+
+            expect(result.error?.errorData).toBe(errorData);
+            expect(result.error?.isInvalidUsername()).toBe(true);
+            expect(result.error?.isInvalidInput()).toBe(true);
+            expect(result.error?.correlationId).toBe(correlationId);
+            expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);
+        });
+
+        it("applies the scenario to the result and unified error", () => {
             const result = CustomAuthResultV2.createWithError<
-                ResetPasswordStartResultV2["state"],
-                ResetPasswordStartErrorV2
+                ResetPasswordStartResultV2["state"]
             >(
                 new CustomAuthApiError(
                     "user_not_found",
@@ -149,7 +336,6 @@ describe("CustomAuthResultV2", () => {
                     correlationId
                 ),
                 {
-                    errorType: ResetPasswordStartErrorV2,
                     scenario: CustomAuthFlowScenarioV2.PasswordReset,
                 }
             );
@@ -164,8 +350,7 @@ describe("CustomAuthResultV2", () => {
 
         it("converts an AuthError to MsalCustomAuthError", () => {
             const result = CustomAuthResultV2.createWithError<
-                ResetPasswordStartResultV2["state"],
-                ResetPasswordStartErrorV2
+                ResetPasswordStartResultV2["state"]
             >(
                 new AuthError(
                     "auth_error_code",
@@ -173,9 +358,7 @@ describe("CustomAuthResultV2", () => {
                     "Auth error message",
                     "auth_sub_error"
                 ),
-                {
-                    errorType: ResetPasswordStartErrorV2,
-                }
+                {}
             );
 
             expect(result.error?.errorData).toBeInstanceOf(MsalCustomAuthError);
@@ -189,10 +372,8 @@ describe("CustomAuthResultV2", () => {
 
         it("wraps an unknown error and preserves the supplied correlation ID", () => {
             const result = CustomAuthResultV2.createWithError<
-                ResetPasswordStartResultV2["state"],
-                ResetPasswordStartErrorV2
+                ResetPasswordStartResultV2["state"]
             >(new TypeError("something broke"), {
-                errorType: ResetPasswordStartErrorV2,
                 correlationId,
             });
 

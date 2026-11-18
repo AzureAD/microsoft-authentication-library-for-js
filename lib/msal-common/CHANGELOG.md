@@ -1,8 +1,55 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Fri, 02 Oct 2026 19:03:42 GMT and should not be manually modified. -->
+<!-- This log was last generated on Thu, 12 Nov 2026 18:58:52 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.16.2
+
+Thu, 12 Nov 2026 18:58:52 GMT
+
+### Patches
+
+- Respect PII logging settings for performance wrapper exception details [#8982](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8982) (lalima.sharda@gmail.com)
+- Omit raw state values from authorization response validation errors [#8955](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8955) (undefined)
+- Validate authority and region inputs and honor instance-aware configuration during authorization code redemption [#8959](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8959) (nugetaad@microsoft.com)
+
+## 16.16.1
+
+Fri, 06 Nov 2026 23:13:15 GMT
+
+### Patches
+
+- Preserve ID tokens during account-context cleanup and remove them on full account removal [#8971](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8971) (lalima.sharda@gmail.com)
+
+## 16.16.0
+
+Thu, 05 Nov 2026 01:03:50 GMT
+
+### Minor changes
+
+- Export the DPoP proof generator from the browser entry point [#8789](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8789) (hectormmg@microsoft.com)
+
+## 16.15.0
+
+Tue, 27 Oct 2026 18:15:10 GMT
+
+### Minor changes
+
+- Add the pocd (popup origin check done) parameter to authorize and end-session requests, preserving computed parameter precedence [#8793](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8793) (kshabelko@microsoft.com)
+
+### Patches
+
+- Handle response headers case-insensitively [#8916](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8916) (kshabelko@microsoft.com)
+- Avoid interpreting application routes as authorization responses [#8918](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8918) (223556219+Copilot@users.noreply.github.com)
+
+## 16.14.3
+
+Wed, 21 Oct 2026 18:37:17 GMT
+
+### Patches
+
+- Add a bridge type field to performance telemetry [#8864](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8864) (Sameera.Gajjarapu@microsoft.com)
 
 ## 16.14.2
 

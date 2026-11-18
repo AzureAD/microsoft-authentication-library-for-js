@@ -4,7 +4,11 @@
  */
 
 import { CustomAuthFlowScenarioV2 } from "../auth_flow/v2/CustomAuthFlowScenarioV2.js";
+import { AuthenticationFactorV2 } from "../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 import {
+    MFA_V2_RESEND_CHALLENGE,
+    MFA_V2_SELECT_AUTH_METHOD,
+    MFA_V2_SUBMIT_CHALLENGE,
     RESET_PASSWORD_V2_CHALLENGE,
     RESET_PASSWORD_V2_RESEND_CODE,
     RESET_PASSWORD_V2_SUBMIT,
@@ -19,6 +23,7 @@ import {
     SIGN_UP_V2_RESEND_CODE,
     SIGN_UP_V2_SUBMIT_ATTRIBUTES,
     SIGN_UP_V2_SUBMIT_CODE,
+    SIGN_UP_V2_SUBMIT_PASSWORD,
 } from "./PublicApiId.js";
 
 export type FlowStepV2 =
@@ -50,15 +55,33 @@ const FLOW_STEP_API_IDS_V2: Partial<
     [CustomAuthFlowScenarioV2.SignUp]: {
         requestChallenge: SIGN_UP_V2_CHALLENGE,
         submitCode: SIGN_UP_V2_SUBMIT_CODE,
+        submitPassword: SIGN_UP_V2_SUBMIT_PASSWORD,
         resendCode: SIGN_UP_V2_RESEND_CODE,
         submitAttributes: SIGN_UP_V2_SUBMIT_ATTRIBUTES,
         signInWithContinuation: SIGN_UP_V2_COMPLETE,
     },
 };
 
+const MFA_STEP_API_IDS_V2: Partial<Record<FlowStepV2, number>> = {
+    requestChallenge: MFA_V2_SELECT_AUTH_METHOD,
+    submitCode: MFA_V2_SUBMIT_CHALLENGE,
+    resendCode: MFA_V2_RESEND_CHALLENGE,
+};
+
 export function getPublicApiIdV2(
     scenario: CustomAuthFlowScenarioV2,
-    step: FlowStepV2
+    step: FlowStepV2,
+    authenticationFactor?: AuthenticationFactorV2
 ): number | undefined {
+    if (
+        (scenario === CustomAuthFlowScenarioV2.SignIn ||
+            scenario === CustomAuthFlowScenarioV2.PasswordReset) &&
+        authenticationFactor === AuthenticationFactorV2.MULTI_FACTOR
+    ) {
+        return (
+            MFA_STEP_API_IDS_V2[step] ?? FLOW_STEP_API_IDS_V2[scenario]?.[step]
+        );
+    }
+
     return FLOW_STEP_API_IDS_V2[scenario]?.[step];
 }

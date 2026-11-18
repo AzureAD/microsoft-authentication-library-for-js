@@ -241,6 +241,11 @@ export type PerformanceEvent = {
     lateResponseExperimentEnabled?: boolean;
 
     /**
+     * Popup-relay wire protocol selected for the request (1 or 2).
+     */
+    popupRelayProtocolVersion?: number;
+
+    /**
      * Number of times a fetch POST request was retried due to transport failure
      */
     fetchRetryCount?: number;
@@ -371,6 +376,18 @@ export type PerformanceEvent = {
     embeddedRedirectUri?: string;
 
     isAsyncPopup?: boolean;
+
+    /**
+     * Whether the auth response was collected via the legacy (non-COOP)
+     * location-polling flow rather than the BroadcastChannel redirect bridge.
+     */
+    usesLegacyPolling?: boolean;
+
+    /**
+     * Timeout, in milliseconds, applied while polling a silent iframe for the
+     * auth response under the legacy polling flow.
+     */
+    iframePollTimeout?: number;
 
     cacheRtExpiresOnSeconds?: number;
     ntwkRtExpiresOnSeconds?: number;
@@ -608,5 +625,6 @@ export const IntFields: ReadonlySet<string> = new Set([
     "networkRtt",
     "redirectBridgeTimeoutMs",
     "redirectBridgeMessageVersion",
+    "popupRelayProtocolVersion",
     "fetchRetryCount",
 ]);

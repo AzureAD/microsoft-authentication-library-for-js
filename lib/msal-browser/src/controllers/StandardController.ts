@@ -54,6 +54,7 @@ import {
     INTERACTION_TYPE,
 } from "../utils/BrowserConstants.js";
 import * as BrowserUtils from "../utils/BrowserUtils.js";
+import { cancelPendingPopupPollingResponse } from "../utils/PopupMonitor.js";
 import { RedirectRequest } from "../request/RedirectRequest.js";
 import { PopupRequest } from "../request/PopupRequest.js";
 import { SsoSilentRequest } from "../request/SsoSilentRequest.js";
@@ -245,7 +246,6 @@ export class StandardController implements IController {
             this.browserCrypto = DEFAULT_CRYPTO_IMPLEMENTATION;
             this.tokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER;
         }
-
         this.eventHandler = new EventHandler(this.logger);
 
         // Initialize the browser storage class.
@@ -473,7 +473,39 @@ export class StandardController implements IController {
     private async handleRedirectPromiseInternal(
         options?: HandleRedirectPromiseOptions
     ): Promise<AuthenticationResult | null> {
-        if (!this.browserStorage.isInteractionInProgress(true)) {
+        // Preserve the response for RedirectClient before removing it from the URL.
+        const responseString =
+            options?.hash ||
+            (this.config.auth.OIDCOptions.responseMode ===
+            Constants.ResponseMode.QUERY
+                ? window.location.search
+                : window.location.hash);
+        const anyClientInteractionInProgress =
+            this.browserStorage.isInteractionInProgress(false);
+        const currentClientInteraction =
+            this.browserStorage.isInteractionInProgress(true);
+        const isBridgeCallback =
+            BrowserUtils.isInPopup() ||
+            (BrowserUtils.isInIframe() &&
+                !this.config.system.allowRedirectInIframe);
+        /*
+         * Clear recognized response fragments for:
+         * - Stale callbacks with no pending interaction.
+         * - This client's login callback, even if request setup or response validation fails.
+         * - This client's logout callback containing state, before the SIGNOUT early return.
+         * Leave another client's callback untouched. clearHash preserves query strings
+         * and application routes, and does nothing when no response fragment is present.
+         * Skip popup and non-redirect iframe callbacks: legacy apps may call HRP
+         * before their redirect bridge reads and broadcasts the response.
+         */
+        if (
+            !isBridgeCallback &&
+            (!anyClientInteractionInProgress || currentClientInteraction)
+        ) {
+            BrowserUtils.clearHash(window);
+        }
+
+        if (!currentClientInteraction) {
             this.logger.info(
                 "handleRedirectPromise called but there is no interaction in progress, returning null.",
                 ""
@@ -489,7 +521,7 @@ export class StandardController implements IController {
                 ""
             );
             this.browserStorage.setInteractionInProgress(false);
-            return Promise.resolve(null);
+            return null;
         }
 
         const loggedInAccounts = this.getAllAccounts();
@@ -571,7 +603,14 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     rootMeasurement.event.correlationId
-                )(standardRequest, codeVerifier, rootMeasurement, options);
+                )(
+                    standardRequest,
+                    codeVerifier,
+                    rootMeasurement,
+                    options?.hash
+                        ? options
+                        : { ...options, hash: responseString }
+                );
             }
         } catch (e) {
             this.browserStorage.resetRequestCache("");
@@ -729,6 +768,10 @@ export class StandardController implements IController {
             const platformAuthProvider = this.platformAuthProvider;
 
             if (this.canUsePlatformBroker(request) && platformAuthProvider) {
+                const nativeRequest = this.sanitizeNativeBrokerRequest(
+                    request,
+                    correlationId
+                );
                 const nativeClient = new PlatformAuthInteractionClient(
                     this.config,
                     this.browserStorage,
@@ -750,7 +793,7 @@ export class StandardController implements IController {
                     this.logger,
                     this.performanceClient,
                     correlationId
-                )(request, atrMeasurement).catch((e: AuthError) => {
+                )(nativeRequest, atrMeasurement).catch((e: AuthError) => {
                     if (
                         e instanceof NativeAuthError &&
                         isFatalNativeAuthError(e)
@@ -840,6 +883,9 @@ export class StandardController implements IController {
                 request.overrideInteractionInProgress,
                 correlationId
             );
+            if (request.overrideInteractionInProgress) {
+                cancelPendingPopupPollingResponse(this.logger);
+            }
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -1603,6 +1649,12 @@ export class StandardController implements IController {
             INTERACTION_TYPE.SIGNOUT
         );
 
+        try {
+            await this.clearNativeCache(logoutRequest?.account, correlationId);
+        } catch (error) {
+            this.browserStorage.setInteractionInProgress(false);
+            throw error;
+        }
         const redirectClient = this.createRedirectClient(correlationId);
         return redirectClient.logout(logoutRequest);
     }
@@ -1621,9 +1673,16 @@ export class StandardController implements IController {
             );
 
             const popupClient = this.createPopupClient(correlationId);
-            return popupClient.logout(logoutRequest).finally(() => {
-                this.browserStorage.setInteractionInProgress(false);
-            });
+            const nativeCacheClear = this.clearNativeCache(
+                logoutRequest?.account,
+                correlationId
+            );
+            const popupLogout = popupClient.logout(logoutRequest);
+            return Promise.all([nativeCacheClear, popupLogout])
+                .then(() => undefined)
+                .finally(() => {
+                    this.browserStorage.setInteractionInProgress(false);
+                });
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -1640,7 +1699,53 @@ export class StandardController implements IController {
         }
         const correlationId = this.getRequestCorrelationId(logoutRequest);
         const cacheClient = this.createSilentCacheClient(correlationId);
-        return cacheClient.logout(logoutRequest);
+        const nativeCacheClear = this.clearNativeCache(
+            logoutRequest?.account,
+            correlationId
+        );
+        const browserCacheClear = cacheClient.logout(logoutRequest);
+        await Promise.all([nativeCacheClear, browserCacheClear]);
+    }
+
+    private async clearNativeCache(
+        account: AccountInfo | null | undefined,
+        correlationId: string
+    ): Promise<void> {
+        const homeAccountId = account?.homeAccountId.toLowerCase();
+        const environment = account?.environment.toLowerCase();
+        const accessTokenKeys = this.nativeInternalStorage
+            .getTokenKeys()
+            .accessToken.filter((key) => {
+                if (!account) {
+                    return true;
+                }
+
+                const accessToken =
+                    this.nativeInternalStorage.getAccessTokenCredential(
+                        key,
+                        correlationId
+                    );
+                if (!accessToken) {
+                    return false;
+                }
+                return (
+                    accessToken.homeAccountId.toLowerCase() === homeAccountId &&
+                    accessToken.environment.toLowerCase() === environment
+                );
+            });
+
+        await Promise.all(
+            accessTokenKeys.map((key) =>
+                this.nativeInternalStorage.removeAccessTokenAndTokenBindingKey(
+                    key,
+                    correlationId
+                )
+            )
+        );
+
+        if (!account) {
+            this.nativeInternalStorage.clear(correlationId);
+        }
     }
 
     // #endregion
@@ -1812,6 +1917,27 @@ export class StandardController implements IController {
     // #region Helpers
 
     /**
+     * Removes internal DPoP key state from application-originated broker requests.
+     */
+    private sanitizeNativeBrokerRequest<T extends { dpopJkt?: string }>(
+        request: T,
+        correlationId: string
+    ): T {
+        if (!request.dpopJkt) {
+            return request;
+        }
+
+        this.logger.warning(
+            "Ignoring caller-provided dpopJkt for a direct platform broker request.",
+            correlationId
+        );
+        return {
+            ...request,
+            dpopJkt: undefined,
+        };
+    }
+
+    /**
      * Acquire a token from native device (e.g. WAM)
      * @param request
      * @param apiId
@@ -1853,6 +1979,10 @@ export class StandardController implements IController {
             correlationId,
             this.tokenBindingKeyManager
         );
+        const nativeRequest = this.sanitizeNativeBrokerRequest(
+            request,
+            correlationId
+        );
 
         return invokeAsync(
             nativeClient.acquireToken.bind(nativeClient),
@@ -1860,7 +1990,7 @@ export class StandardController implements IController {
             this.logger,
             this.performanceClient,
             correlationId
-        )(request, cacheLookupPolicy);
+        )(nativeRequest, cacheLookupPolicy);
     }
 
     /**
@@ -2310,13 +2440,18 @@ export class StandardController implements IController {
             this.performanceClient
         );
 
-        const inProgressRequest = this.activeSilentTokenRequests.get(
-            preparedRequest.key
-        );
+        const shouldDeduplicate =
+            preparedRequest.request.authenticationScheme !==
+            Constants.AuthenticationScheme.DPOP;
+        const inProgressRequest = shouldDeduplicate
+            ? this.activeSilentTokenRequests.get(preparedRequest.key)
+            : undefined;
 
         if (typeof inProgressRequest === "undefined") {
             this.logger.verbose(
-                "acquireTokenSilent called for the first time, storing active request",
+                shouldDeduplicate
+                    ? "acquireTokenSilent called for the first time, storing active request"
+                    : "acquireTokenSilent called for DPoP request, starting an independent operation",
                 correlationId
             );
             this.performanceClient.addFields({ deduped: false }, correlationId);
@@ -2334,6 +2469,10 @@ export class StandardController implements IController {
                 },
                 preparedRequest.account
             );
+            if (!shouldDeduplicate) {
+                return activeRequest;
+            }
+
             this.activeSilentTokenRequests.set(
                 preparedRequest.key,
                 activeRequest

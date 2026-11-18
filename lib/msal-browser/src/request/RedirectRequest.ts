@@ -15,6 +15,7 @@ export type RedirectRequest = Partial<
         | "responseMode"
         | "scopes"
         | "earJwk"
+        | "asymmetricEar"
         | "codeChallenge"
         | "codeChallengeMethod"
         | "platformBroker"

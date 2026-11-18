@@ -7,23 +7,20 @@ import { Logger } from "@azure/msal-common/browser";
 import { HttpHeaderKeys } from "../../../../CustomAuthConstants.js";
 import { CustomAuthApiError } from "../../../error/CustomAuthApiError.js";
 import { normalizeServerErrorV2 } from "./response/ErrorNormalizerV2.js";
-import { EmbeddedMethodV2, ParsedResponseV2 } from "./response/ResponsesV2.js";
-import { ResponseStateV2 } from "./ApiClientConstantsV2.js";
+import {
+    ParsedResponseV2,
+    SignUpAttributeResponseV2,
+} from "./response/ResponsesV2.js";
 import {
     CONTINUATION_TOKEN_MISSING,
     INVALID_HAL_RESPONSE,
     INVALID_RESPONSE_BODY,
     NO_AUTHENTICATION_METHODS,
-    REDIRECT_TO_WEB,
+    WEB_REDIRECT_REQUIRED,
 } from "./ErrorCodesV2.js";
 
 /*
- * Turns a raw HTTP response from a V2 endpoint into a typed, checked envelope, and validates HAL
- * relations. Raw-preserving: the body keeps its HAL `_links`/`_embedded` shape so the api-client
- * navigates typed hrefs directly. Parsing never throws on a non-200 status - every V2 response
- * (including the entry response) carries a meaningful body, so only a non-object body is a hard
- * failure; the wire error is normalized onto the envelope (`error`). Required response values use
- * shared guards after callers read their strongly typed response properties directly.
+ * Parses V2 HTTP responses and validates required response values.
  */
 export class ResponseHandlerV2 {
     constructor(private readonly logger?: Logger) {}
@@ -38,8 +35,6 @@ export class ResponseHandlerV2 {
 
         const json = await this.parseBody(response, correlationId);
 
-        const state = typeof json.state === "string" ? json.state : undefined;
-
         const continuationToken =
             (typeof json.continuationToken === "string"
                 ? json.continuationToken
@@ -48,16 +43,10 @@ export class ResponseHandlerV2 {
                 ? json.continuation_token
                 : undefined);
 
-        const flatError =
-            typeof json.error === "string" ? json.error : undefined;
-
-        const isWebFallbackRequired =
-            flatError === REDIRECT_TO_WEB ||
-            state === ResponseStateV2.WEB_FALLBACK_REQUIRED;
-
         const error = normalizeServerErrorV2(json);
 
-        // Surface the header correlation id on the body (HalResponseBaseV2.correlationId).
+        const isWebFallbackRequired = error?.subError === WEB_REDIRECT_REQUIRED;
+
         json.correlationId = correlationId;
 
         return {
@@ -72,12 +61,12 @@ export class ResponseHandlerV2 {
 
     // Required href; throws when it is absent.
     requireHref(
-        href: string | undefined,
+        href: unknown,
         relation: string,
         correlationId: string,
         missingHrefError?: { code: string; message: string }
     ): string {
-        if (!href) {
+        if (typeof href !== "string" || !href.trim()) {
             const errorCode = missingHrefError?.code ?? INVALID_HAL_RESPONSE;
             const errorMessage =
                 missingHrefError?.message ??
@@ -116,11 +105,51 @@ export class ResponseHandlerV2 {
         return continuationToken;
     }
 
-    // Required embedded auth methods; throws when `_embedded.methods` is absent or empty.
-    requireMethods(
-        methods: EmbeddedMethodV2[] | undefined,
+    resolveSignUpAttributes(
+        attributes: SignUpAttributeResponseV2[] | undefined,
         correlationId: string
-    ): EmbeddedMethodV2[] {
+    ): SignUpAttributeResponseV2[] {
+        const resolved = attributes === undefined ? [] : attributes;
+        if (
+            !Array.isArray(resolved) ||
+            resolved.some(
+                (attribute) =>
+                    typeof attribute !== "object" ||
+                    attribute === null ||
+                    typeof attribute.attributeId !== "string" ||
+                    !attribute.attributeId.trim()
+            )
+        ) {
+            const message =
+                "Invalid HAL response: sign-up attributes must be an array of objects with nonempty string attributeId values";
+            this.logger?.error(message, correlationId);
+            throw new CustomAuthApiError(
+                INVALID_HAL_RESPONSE,
+                message,
+                correlationId
+            );
+        }
+
+        if (
+            resolved.some(
+                (attribute) => attribute.attributeId.toLowerCase() === "email"
+            )
+        ) {
+            const message =
+                "Invalid HAL response: email cannot be collected as a sign-up attribute";
+            this.logger?.error(message, correlationId);
+            throw new CustomAuthApiError(
+                INVALID_HAL_RESPONSE,
+                message,
+                correlationId
+            );
+        }
+
+        return resolved;
+    }
+
+    // Required embedded auth methods; throws when `_embedded.methods` is absent or empty.
+    requireMethods<T>(methods: T[] | undefined, correlationId: string): T[] {
         if (!methods?.length) {
             this.logger?.error(
                 "V2 HAL response is missing the required embedded authentication methods",
@@ -158,7 +187,6 @@ export class ResponseHandlerV2 {
             );
         }
 
-        // response.json() accepts primitives/arrays; every V2 body must be a JSON object.
         if (typeof json !== "object" || json === null || Array.isArray(json)) {
             this.logger?.error(
                 "V2 response serialization failed: body is not a JSON object",

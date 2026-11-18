@@ -27,6 +27,77 @@ describe("Configuration.ts Class Unit Tests", () => {
         containsPii: boolean
     ): void => {};
 
+    describe("asymmetric EAR experimental option", () => {
+        it.each([undefined, false, true])(
+            "Preserves EAR protocol selection with enableAsymmetricEar=%s",
+            (enabled) => {
+                const loggerCallback = jest.fn();
+                const config = buildConfiguration(
+                    {
+                        auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                        system: {
+                            protocolMode: ProtocolMode.EAR,
+                            loggerOptions: { loggerCallback },
+                        },
+                        experimental: { enableAsymmetricEar: enabled },
+                    },
+                    true
+                );
+                expect(config.system.protocolMode).toBe(ProtocolMode.EAR);
+                expect(config.experimental.enableAsymmetricEar).toBe(
+                    enabled === true
+                );
+                expect(loggerCallback).not.toHaveBeenCalled();
+            }
+        );
+
+        it.each([undefined, ProtocolMode.AAD, ProtocolMode.OIDC])(
+            "Warns and ignores opt-in for resolved non-EAR protocol %s",
+            (protocolMode) => {
+                const loggerCallback = jest.fn();
+                const config = buildConfiguration(
+                    {
+                        auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                        system: {
+                            ...(protocolMode ? { protocolMode } : {}),
+                            loggerOptions: { loggerCallback },
+                        },
+                        experimental: { enableAsymmetricEar: true },
+                    },
+                    true
+                );
+                expect(config.system.protocolMode).toBe(
+                    protocolMode ?? ProtocolMode.AAD
+                );
+                expect(config.experimental.enableAsymmetricEar).toBe(false);
+                expect(loggerCallback).toHaveBeenCalledTimes(1);
+                expect(loggerCallback).toHaveBeenCalledWith(
+                    LogLevel.Warning,
+                    expect.stringContaining(
+                        "experimental.enableAsymmetricEar is ignored because system.protocolMode is not ProtocolMode.EAR."
+                    ),
+                    false
+                );
+            }
+        );
+
+        it.each([undefined, false])(
+            "Does not warn for non-EAR without opt-in (%s)",
+            (enabled) => {
+                const loggerCallback = jest.fn();
+                buildConfiguration(
+                    {
+                        auth: { clientId: TEST_CONFIG.MSAL_CLIENT_ID },
+                        system: { loggerOptions: { loggerCallback } },
+                        experimental: { enableAsymmetricEar: enabled },
+                    },
+                    true
+                );
+                expect(loggerCallback).not.toHaveBeenCalled();
+            }
+        );
+    });
+
     it("buildConfiguration assigns default values", () => {
         // @ts-ignore
         let emptyConfig: Configuration = buildConfiguration(
@@ -42,6 +113,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         );
         expect(emptyConfig.auth.redirectUri).toBeDefined();
         expect(emptyConfig.auth.postLogoutRedirectUri).toBe("");
+        expect(emptyConfig.auth.popupRelayProtocolVersion).toBe(1);
         expect(emptyConfig.auth?.azureCloudOptions?.azureCloudInstance).toBe(
             AzureCloudInstance.None
         );
@@ -69,6 +141,21 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system?.tokenRenewalOffsetSeconds).toBe(300);
         expect(emptyConfig.system?.navigatePopups).toBe(true);
         expect(emptyConfig.system?.allowPlatformBroker).toBe(false);
+    });
+
+    it("preserves an explicitly selected v2 relay endpoint and protocol", () => {
+        const config = buildConfiguration(
+            {
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    popupRelayUri: "/relay-v2",
+                    popupRelayProtocolVersion: 2,
+                },
+            },
+            true
+        );
+        expect(config.auth.popupRelayUri).toBe("/relay-v2");
+        expect(config.auth.popupRelayProtocolVersion).toBe(2);
     });
 
     it("serverTelemetryEnabled defaults to false", () => {
@@ -278,5 +365,166 @@ describe("Configuration.ts Class Unit Tests", () => {
             true
         );
         expect(loggerSpy).toBeCalled();
+    });
+    describe("origin check risk warning", () => {
+        const CROSS_ORIGIN_OPENER = {
+            get location(): Location {
+                // Mirrors the SecurityError a real cross-origin Window throws.
+                throw new Error("SecurityError");
+            },
+        } as unknown as Window;
+
+        let originalOpener: Window | null;
+
+        beforeEach(() => {
+            originalOpener = window.opener;
+        });
+
+        afterEach(() => {
+            window.opener = originalOpener;
+            jest.restoreAllMocks();
+        });
+
+        const build = (config: Configuration): void => {
+            buildConfiguration(config, true);
+        };
+
+        const baseAuth = {
+            clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            authority: TEST_CONFIG.validAuthority,
+        };
+
+        it.each([true, false])(
+            "reuses the logger for overlapping configuration warnings with originCheck=%s",
+            (originCheck) => {
+                window.opener = CROSS_ORIGIN_OPENER;
+                const loggerSpy = jest
+                    .spyOn(Logger.prototype, "warning")
+                    .mockImplementation()
+                    .mockClear();
+
+                build({
+                    auth: {
+                        ...baseAuth,
+                        originCheck,
+                        OIDCOptions: {
+                            responseMode: Constants.ResponseMode.QUERY,
+                        },
+                    },
+                    system: {
+                        protocolMode: ProtocolMode.AAD,
+                        enableLegacyPolling: true,
+                    },
+                });
+
+                expect(loggerSpy).toHaveBeenCalledTimes(2);
+                expect(loggerSpy.mock.contexts[0]).toBeInstanceOf(Logger);
+                expect(loggerSpy.mock.contexts[1]).toBe(
+                    loggerSpy.mock.contexts[0]
+                );
+                expect(loggerSpy).toHaveBeenCalledWith(
+                    expect.stringContaining(
+                        originCheck
+                            ? "auth.originCheck is explicitly true"
+                            : "auth.originCheck is disabled"
+                    ),
+                    ""
+                );
+            }
+        );
+
+        it("uses each configuration build's own logger options", () => {
+            window.opener = CROSS_ORIGIN_OPENER;
+            const firstCallback = jest.fn();
+            const secondCallback = jest.fn();
+
+            for (const loggerCallback of [firstCallback, secondCallback]) {
+                build({
+                    auth: { ...baseAuth, originCheck: false },
+                    system: {
+                        loggerOptions: {
+                            loggerCallback,
+                            logLevel: LogLevel.Warning,
+                        },
+                    },
+                });
+            }
+
+            expect(firstCallback).toHaveBeenCalledTimes(1);
+            expect(secondCallback).toHaveBeenCalledTimes(1);
+        });
+
+        it("warns when the origin check is explicitly disabled and the top-level opener is cross-origin", () => {
+            window.opener = CROSS_ORIGIN_OPENER;
+            const loggerSpy = jest
+                .spyOn(Logger.prototype, "warning")
+                .mockImplementation();
+
+            build({ auth: { ...baseAuth, originCheck: false } });
+
+            expect(loggerSpy).toHaveBeenCalledWith(
+                expect.stringContaining("auth.originCheck is disabled"),
+                ""
+            );
+        });
+
+        it("warns when legacy polling implicitly disables the origin check", () => {
+            window.opener = CROSS_ORIGIN_OPENER;
+            const loggerSpy = jest
+                .spyOn(Logger.prototype, "warning")
+                .mockImplementation();
+
+            build({
+                auth: baseAuth,
+                system: { enableLegacyPolling: true },
+            });
+
+            expect(loggerSpy).toHaveBeenCalledWith(
+                expect.stringContaining("auth.originCheck is disabled"),
+                ""
+            );
+        });
+
+        it("does not warn when the origin check is left enabled, even under a cross-origin opener", () => {
+            window.opener = CROSS_ORIGIN_OPENER;
+            const loggerSpy = jest
+                .spyOn(Logger.prototype, "warning")
+                .mockImplementation();
+
+            build({ auth: baseAuth });
+
+            expect(loggerSpy).not.toHaveBeenCalledWith(
+                expect.stringContaining("auth.originCheck is disabled"),
+                ""
+            );
+        });
+
+        it("does not warn when the origin check is disabled but there is no opener", () => {
+            window.opener = null;
+            const loggerSpy = jest
+                .spyOn(Logger.prototype, "warning")
+                .mockImplementation();
+
+            build({ auth: { ...baseAuth, originCheck: false } });
+
+            expect(loggerSpy).not.toHaveBeenCalledWith(
+                expect.stringContaining("auth.originCheck is disabled"),
+                ""
+            );
+        });
+
+        it("does not warn when the origin check is disabled and the opener is same-origin", () => {
+            window.opener = window;
+            const loggerSpy = jest
+                .spyOn(Logger.prototype, "warning")
+                .mockImplementation();
+
+            build({ auth: { ...baseAuth, originCheck: false } });
+
+            expect(loggerSpy).not.toHaveBeenCalledWith(
+                expect.stringContaining("auth.originCheck is disabled"),
+                ""
+            );
+        });
     });
 });

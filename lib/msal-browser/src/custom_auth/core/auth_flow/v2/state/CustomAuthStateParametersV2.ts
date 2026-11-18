@@ -9,22 +9,25 @@ import { FlowContinuationStateV2 } from "../../../interaction_client/v2/FlowCont
 import { FlowInteractionClientV2 } from "../../../interaction_client/v2/FlowInteractionClientV2.js";
 import { CustomAuthSilentCacheClient } from "../../../../get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import type { SignUpStateTransitionHandlerV2 } from "../../../../sign_up/auth_flow/v2/state/SignUpStateTransitionHandlerV2.js";
+import type { AuthenticationFactorV2 } from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
+import type { SignInStateTransitionHandlerV2 } from "../../../../sign_in/auth_flow/v2/state/SignInStateTransitionHandlerV2.js";
+import type { ResetPasswordStateTransitionHandlerV2 } from "../../../../reset_password/auth_flow/v2/state/ResetPasswordStateTransitionHandlerV2.js";
+import type { AuthenticationMethodRegistrationV2 } from "../AuthenticationMethodRegistrationV2.js";
+import type { SignUpAttributeV2 } from "../../../network_client/custom_auth_api/v2/result/SignUpResultsV2.js";
 
 export interface CustomAuthActionRequiredStateParametersV2
     extends AuthFlowActionRequiredStateParameters {
     flowClient: FlowInteractionClientV2;
     continuationState: FlowContinuationStateV2;
     cacheClient: CustomAuthSilentCacheClient;
+    signInStateTransitionHandler?: SignInStateTransitionHandlerV2;
 }
 
 export interface AuthMethodSelectionRequiredStateParametersV2
     extends CustomAuthActionRequiredStateParametersV2 {
     methods: readonly AuthenticationMethodV2[];
-}
-
-export interface MFARequiredStateParametersV2
-    extends CustomAuthActionRequiredStateParametersV2 {
-    methods: readonly AuthenticationMethodV2[];
+    authenticationFactor: AuthenticationFactorV2;
+    resetPasswordStateTransitionHandler?: ResetPasswordStateTransitionHandlerV2;
 }
 
 export interface CodeVerificationStateParametersV2
@@ -38,7 +41,26 @@ export interface CodeVerificationStateParametersV2
 export interface CodeRequiredStateParametersV2
     extends CodeVerificationStateParametersV2 {
     signUpStateTransitionHandler?: SignUpStateTransitionHandlerV2;
+    resetPasswordStateTransitionHandler?: ResetPasswordStateTransitionHandlerV2;
+}
+
+export interface PasswordRequiredStateParametersV2
+    extends CustomAuthActionRequiredStateParametersV2 {
+    requestedPasswordAttribute?: SignUpAttributeV2;
+    signUpStateTransitionHandler?: SignUpStateTransitionHandlerV2;
 }
 
 export type MFAVerificationRequiredStateParametersV2 =
     CodeVerificationStateParametersV2;
+
+export interface AuthMethodRegistrationRequiredStateParametersV2
+    extends CustomAuthActionRequiredStateParametersV2 {
+    methods: readonly AuthenticationMethodRegistrationV2[];
+}
+
+export interface AuthMethodVerificationRequiredStateParametersV2
+    extends CustomAuthActionRequiredStateParametersV2 {
+    type: string;
+    sentTo?: string;
+    codeLength: number;
+}

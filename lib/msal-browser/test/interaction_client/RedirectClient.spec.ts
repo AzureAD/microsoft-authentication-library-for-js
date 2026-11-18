@@ -58,6 +58,7 @@ import {
     InteractionType,
 } from "../../src/utils/BrowserConstants.js";
 import { base64Encode } from "../../src/encode/Base64Encode.js";
+import { base64Decode } from "../../src/encode/Base64Decode.js";
 import { FetchClient } from "../../src/network/FetchClient.js";
 import {
     createBrowserAuthError,
@@ -213,6 +214,170 @@ describe("RedirectClient", () => {
     });
 
     describe("handleRedirectPromise", () => {
+        it("removes an unused DPoP key when no redirect response is found", async () => {
+            const tokenBindingKeyManager = (redirectClient as any)
+                .tokenBindingKeyManager;
+            const removeKeySpy = jest
+                .spyOn(tokenBindingKeyManager, "removeTokenBindingKey")
+                .mockResolvedValue(undefined);
+
+            const result = await redirectClient.handleRedirectPromise(
+                {
+                    ...testRequest,
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                    dpopJkt: "test-dpop-jkt",
+                },
+                TEST_CONFIG.TEST_VERIFIER,
+                rootMeasurement,
+                { hash: "" }
+            );
+
+            expect(result).toBeNull();
+            expect(removeKeySpy).toHaveBeenCalledWith(
+                "test-dpop-jkt",
+                RANDOM_TEST_GUID
+            );
+        });
+
+        describe("authorization key persistence", () => {
+            it.each(["setup", "request-persistence"])(
+                "does not orphan or reprovision DPoP keys after asymmetric EAR %s failure",
+                async (failure) => {
+                    pca.getConfiguration().experimental.enableAsymmetricEar =
+                        true;
+                    const manager = (redirectClient as any)
+                        .tokenBindingKeyManager;
+                    const provision = jest
+                        .spyOn(manager, "provisionTokenBindingKey")
+                        .mockResolvedValue("owned-dpop-jkt");
+                    jest.spyOn(
+                        manager,
+                        "isTokenBindingKeyPersisted"
+                    ).mockResolvedValue(true);
+                    const remove = jest
+                        .spyOn(manager, "removeTokenBindingKey")
+                        .mockResolvedValue(undefined);
+                    const error = new Error(
+                        failure === "setup"
+                            ? "P-384 unavailable"
+                            : "request storage unavailable"
+                    );
+                    if (failure === "setup") {
+                        jest.spyOn(
+                            BrowserCrypto,
+                            "generateAsymmetricEarKey"
+                        ).mockRejectedValue(error);
+                    } else {
+                        jest.spyOn(
+                            browserStorage,
+                            "cacheAuthorizeRequest"
+                        ).mockImplementation(() => {
+                            throw error;
+                        });
+                    }
+                    const terminalError = new Error("navigation cancelled");
+                    const form = jest
+                        .spyOn(AuthorizeProtocol, "getEARForm")
+                        .mockRejectedValue(terminalError);
+                    const restart = jest.spyOn(
+                        redirectClient,
+                        "executeCodeFlow"
+                    );
+                    await expect(
+                        redirectClient.executeEarFlow({
+                            ...testRequest,
+                            authenticationScheme:
+                                Constants.AuthenticationScheme.DPOP,
+                        })
+                    ).rejects.toMatchObject(
+                        failure === "setup"
+                            ? {
+                                  errorCode:
+                                      BrowserAuthErrorCodes.asymmetricEarKeyError,
+                                  correlationId: testRequest.correlationId,
+                                  subError: "request_initialization_failed",
+                              }
+                            : error
+                    );
+
+                    expect(provision).toHaveBeenCalledTimes(1);
+                    expect(restart).not.toHaveBeenCalled();
+                    expect(remove).toHaveBeenCalledWith(
+                        "owned-dpop-jkt",
+                        testRequest.correlationId
+                    );
+                    expect(form).not.toHaveBeenCalled();
+                    expect(
+                        Object.keys(window.sessionStorage).filter((key) =>
+                            key.endsWith(TemporaryCacheKeys.REQUEST_PARAMS)
+                        )
+                    ).toHaveLength(0);
+                }
+            );
+
+            it.each(["code", "ear", "asymmetric-ear"])(
+                "does not navigate when an owned DPoP key is not persisted (%s)",
+                async (flow) => {
+                    pca.getConfiguration().experimental.enableAsymmetricEar =
+                        flow === "asymmetric-ear";
+                    const tokenBindingKeyManager = (redirectClient as any)
+                        .tokenBindingKeyManager;
+                    jest.spyOn(
+                        tokenBindingKeyManager,
+                        "provisionTokenBindingKey"
+                    ).mockResolvedValue("owned-dpop-jkt");
+                    jest.spyOn(
+                        tokenBindingKeyManager,
+                        "isTokenBindingKeyPersisted"
+                    ).mockResolvedValue(false);
+                    const removeKeySpy = jest
+                        .spyOn(tokenBindingKeyManager, "removeTokenBindingKey")
+                        .mockResolvedValue(undefined);
+                    const navigateSpy = jest.spyOn(
+                        NavigationClient.prototype,
+                        "navigateExternal"
+                    );
+                    const formSpy = jest
+                        .spyOn(AuthorizeProtocol, "getEARForm")
+                        .mockRejectedValue(
+                            new Error("unexpected EAR navigation")
+                        );
+                    const codeFlowSpy = jest.spyOn(
+                        redirectClient,
+                        "executeCodeFlow"
+                    );
+                    const request = {
+                        ...testRequest,
+                        authenticationScheme:
+                            Constants.AuthenticationScheme.DPOP,
+                    };
+
+                    await expect(
+                        flow === "code"
+                            ? redirectClient.executeCodeFlow(request)
+                            : redirectClient.executeEarFlow(request)
+                    ).rejects.toMatchObject({
+                        errorCode: BrowserAuthErrorCodes.cryptoKeyNotFound,
+                    });
+
+                    expect(navigateSpy).not.toHaveBeenCalled();
+                    expect(formSpy).not.toHaveBeenCalled();
+                    if (flow !== "code") {
+                        expect(codeFlowSpy).not.toHaveBeenCalled();
+                    }
+                    expect(removeKeySpy).toHaveBeenCalledWith(
+                        "owned-dpop-jkt",
+                        testRequest.correlationId
+                    );
+                    expect(
+                        Object.keys(window.sessionStorage).filter((key) =>
+                            key.includes(".request.asymmetric-ear.")
+                        )
+                    ).toHaveLength(0);
+                }
+            );
+        });
+
         it("sets document.title during processing and restores original title when no title is set", (done) => {
             document.title = "";
             browserStorage.setInteractionInProgress(true);
@@ -314,30 +479,25 @@ describe("RedirectClient", () => {
                 });
         });
 
-        it("If response hash is not a Redirect response cleans temporary cache, return null and do not remove hash", (done) => {
+        it("cleans temporary cache, returning null for non-redirect state without modifying the URL", async () => {
             browserStorage.setInteractionInProgress(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP;
-            redirectClient
-                .handleRedirectPromise(
-                    testRequest,
-                    TEST_CONFIG.TEST_VERIFIER,
-                    rootMeasurement,
-                    { hash: "" }
-                )
-                .then((response) => {
-                    expect(response).toBe(null);
-                    expect(window.localStorage.length).toEqual(0);
-                    expect(window.sessionStorage.length).toEqual(1);
-                    expect(
-                        window.sessionStorage.getItem(
-                            CacheKeys.VERSION_CACHE_KEY
-                        )
-                    ).toEqual(version); // Validate that the one item in sessionStorage is what we expect
-                    expect(window.location.hash).toEqual(
-                        TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
-                    );
-                    done();
-                });
+            const response = await redirectClient.handleRedirectPromise(
+                testRequest,
+                TEST_CONFIG.TEST_VERIFIER,
+                rootMeasurement,
+                { hash: "" }
+            );
+
+            expect(response).toBe(null);
+            expect(window.localStorage.length).toEqual(0);
+            expect(window.sessionStorage.length).toEqual(1);
+            expect(
+                window.sessionStorage.getItem(CacheKeys.VERSION_CACHE_KEY)
+            ).toEqual(version);
+            expect(window.location.hash).toBe(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP
+            );
         });
 
         it("return null if state cannot be decoded", (done) => {
@@ -461,6 +621,71 @@ describe("RedirectClient", () => {
                     done();
                 });
         });
+
+        it.each([
+            { instanceAware: false, override: "true" },
+            { instanceAware: true, override: "false" },
+        ])(
+            "honors redirect instance_aware=$override over config instanceAware=$instanceAware during code redemption",
+            async ({ instanceAware, override }) => {
+                pca.getConfiguration().auth.instanceAware = instanceAware;
+                const cloudHost = "login.microsoftonline.us";
+                const expectedHost =
+                    override === "true"
+                        ? cloudHost
+                        : "login.microsoftonline.com";
+                jest.spyOn(
+                    FetchClient.prototype,
+                    "sendGetRequestAsync"
+                ).mockImplementation((url): any => {
+                    if (url.includes("discovery/instance")) {
+                        return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                    } else if (
+                        url.includes(".well-known/openid-configuration")
+                    ) {
+                        return DEFAULT_OPENID_CONFIG_RESPONSE;
+                    }
+                });
+                const sendPostRequestSpy = jest
+                    .spyOn(FetchClient.prototype, "sendPostRequestAsync")
+                    .mockResolvedValue({
+                        headers: {},
+                        status: 200,
+                        body: {
+                            token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                            scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                            expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                            access_token: TEST_TOKENS.ACCESS_TOKEN,
+                            refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                            id_token: TEST_TOKENS.IDTOKEN_V2,
+                        },
+                    });
+                browserStorage.setInteractionInProgress(true);
+
+                const result = await redirectClient.handleRedirectPromise(
+                    {
+                        ...testRequest,
+                        extraQueryParameters: { instance_aware: override },
+                    },
+                    TEST_CONFIG.TEST_VERIFIER,
+                    rootMeasurement,
+                    {
+                        hash: `${TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT}&cloud_instance_host_name=${cloudHost}`,
+                        navigateToLoginRequestUrl: false,
+                    }
+                );
+
+                expect(sendPostRequestSpy).toHaveBeenCalledTimes(1);
+                const [tokenEndpoint, tokenRequest] =
+                    sendPostRequestSpy.mock.calls[0];
+                const tokenUrl = new URL(tokenEndpoint);
+                expect(tokenUrl.hostname).toBe(expectedHost);
+                expect(tokenUrl.pathname).toBe("/common/oauth2/v2.0/token");
+                expect(tokenRequest?.body).toContain("code=thisIsATestCode");
+                expect(result?.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
+                expect(new URL(result!.authority).hostname).toBe(expectedHost);
+            }
+        );
 
         it("gets hash from cache and processes response", async () => {
             window.sessionStorage.setItem(
@@ -994,7 +1219,9 @@ describe("RedirectClient", () => {
                     testTokenResponse.expiresOn.getMilliseconds() >=
                         tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe("");
+            expect(window.location.hash).toBe(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
         });
 
         it("calls custom navigateInternal function then processes hash", async () => {
@@ -1152,7 +1379,9 @@ describe("RedirectClient", () => {
                 testTokenResponse.expiresOn!.getMilliseconds() >=
                     tokenResponse.expiresOn!.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe("");
+            expect(window.location.hash).toBe(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
         });
 
         it("processes hash if navigateToLoginRequestUri is false and request origin is different", async () => {
@@ -1295,7 +1524,9 @@ describe("RedirectClient", () => {
                     testTokenResponse.expiresOn.getMilliseconds() >=
                         tokenResponse.expiresOn.getMilliseconds()
             ).toBeTruthy();
-            expect(window.location.hash).toBe("");
+            expect(window.location.hash).toBe(
+                TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT
+            );
         });
 
         it("returns null if interaction is not in progress", async () => {
@@ -1739,65 +1970,75 @@ describe("RedirectClient", () => {
                 });
         });
 
-        it("clears hash if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash", (done) => {
-            let pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                },
-            });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
-
-            // @ts-ignore
-            redirectClient = new RedirectClient(
-                // @ts-ignore
-                pca.config,
-                // @ts-ignore
-                pca.browserStorage,
-                // @ts-ignore
-                pca.browserCrypto,
-                // @ts-ignore
-                pca.logger,
-                // @ts-ignore
-                pca.eventHandler,
-                // @ts-ignore
-                pca.navigationClient,
-                // @ts-ignore
-                pca.performanceClient,
-                // @ts-ignore
-                pca.nativeInternalStorage
-            );
-
-            browserStorage.setInteractionInProgress(true);
-            const loginRequestUrl = window.location.href + "#testHash";
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-            window.sessionStorage.setItem(
-                `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
-                loginRequestUrl
-            );
-            jest.spyOn(
-                RedirectClient.prototype,
-                <any>"handleResponse"
-            ).mockImplementation((response) => {
-                expect(window.location.href).not.toContain("#testHash");
-                expect(response).toEqual({
-                    code: "thisIsATestCode",
-                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+        it.each(["#", "#/"])(
+            "processes a %s callback without modifying it if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash",
+            (prefix, done) => {
+                let pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    },
                 });
-                done();
-            });
-            redirectClient.handleRedirectPromise(
-                testRequest,
-                TEST_CONFIG.TEST_VERIFIER,
-                rootMeasurement,
-                {
-                    hash: "",
-                    navigateToLoginRequestUrl: false,
-                }
-            );
-        });
+
+                //PCA implementation moved to controller
+                pca = (pca as any).controller;
+
+                // @ts-ignore
+                redirectClient = new RedirectClient(
+                    // @ts-ignore
+                    pca.config,
+                    // @ts-ignore
+                    pca.browserStorage,
+                    // @ts-ignore
+                    pca.browserCrypto,
+                    // @ts-ignore
+                    pca.logger,
+                    // @ts-ignore
+                    pca.eventHandler,
+                    // @ts-ignore
+                    pca.navigationClient,
+                    // @ts-ignore
+                    pca.performanceClient,
+                    // @ts-ignore
+                    pca.nativeInternalStorage
+                );
+
+                browserStorage.setInteractionInProgress(true);
+                const loginRequestUrl = window.location.href + "#testHash";
+                window.location.hash = `${prefix}${TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT.substring(
+                    1
+                )}`;
+                window.sessionStorage.setItem(
+                    `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`,
+                    loginRequestUrl
+                );
+                jest.spyOn(
+                    RedirectClient.prototype,
+                    <any>"handleResponse"
+                ).mockImplementation((response) => {
+                    expect(window.location.href).not.toContain("#testHash");
+                    expect(window.location.hash).toBe(
+                        `${prefix}${TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT.substring(
+                            1
+                        )}`
+                    );
+                    expect(response).toEqual({
+                        code: "thisIsATestCode",
+                        client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                        state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    });
+                    done();
+                });
+                redirectClient.handleRedirectPromise(
+                    testRequest,
+                    TEST_CONFIG.TEST_VERIFIER,
+                    rootMeasurement,
+                    {
+                        hash: "",
+                        navigateToLoginRequestUrl: false,
+                    }
+                );
+            }
+        );
 
         it("mutes no_server_response error when back navigation is detected", async () => {
             // @ts-ignore
@@ -1849,6 +2090,36 @@ describe("RedirectClient", () => {
     });
 
     describe("acquireToken", () => {
+        it.each([undefined, `${TEST_URIS.TEST_REDIR_URI}#code=""`])(
+            "preserves the default or explicit redirect start page: %s",
+            async (redirectStartPage) => {
+                window.location.hash = '#code=""';
+                const startPage = redirectStartPage || window.location.href;
+                jest.spyOn(
+                    PkceGenerator,
+                    "generatePkceCodes"
+                ).mockResolvedValue({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER,
+                });
+                jest.spyOn(
+                    RedirectClient.prototype,
+                    "initiateAuthRequest"
+                ).mockResolvedValue();
+
+                await redirectClient.acquireToken({
+                    ...testRequest,
+                    redirectStartPage,
+                });
+
+                expect(
+                    window.sessionStorage.getItem(
+                        `${CacheKeys.PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`
+                    )
+                ).toBe(startPage);
+            }
+        );
+
         it("throws error when AuthenticationScheme is set to SSH and SSH JWK is omitted from the request", async () => {
             const loginRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -3522,6 +3793,9 @@ describe("RedirectClient", () => {
         });
 
         it("Invokes EAR flow when protocolMode is set to EAR", (done) => {
+            jest.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+            );
             const validRequest: RedirectRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 scopes: ["openid", "profile", "offline_access"],
@@ -3543,6 +3817,33 @@ describe("RedirectClient", () => {
             );
 
             pca.acquireTokenRedirect(validRequest).catch(() => {});
+        });
+
+        it("uses authorization code flow instead of EAR in Safari", async () => {
+            const validRequest: RedirectRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                scopes: ["openid", "profile", "offline_access"],
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                redirectUri: window.location.href,
+                state: TEST_STATE_VALUES.USER_STATE,
+                nonce: ID_TOKEN_CLAIMS.nonce,
+            };
+            jest.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Safari/605.1.15"
+            );
+            const codeFlowSpy = jest
+                .spyOn(RedirectClient.prototype, "executeCodeFlow")
+                .mockResolvedValue();
+            const earFlowSpy = jest.spyOn(
+                RedirectClient.prototype,
+                "executeEarFlow"
+            );
+
+            await pca.acquireTokenRedirect(validRequest);
+
+            expect(codeFlowSpy).toHaveBeenCalled();
+            expect(earFlowSpy).not.toHaveBeenCalled();
+            expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
         });
 
         it("EAR flow falls back to Auth Code if service returns code instead of ear_jwe", (done) => {
@@ -3595,6 +3896,98 @@ describe("RedirectClient", () => {
                 )
             );
             expect(earFormSpy).toHaveBeenCalled();
+        });
+
+        it("Rejects before navigation if caching the asymmetric redirect request throws", async () => {
+            pca.getConfiguration().experimental.enableAsymmetricEar = true;
+            jest.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+                "Mozilla/5.0 Chrome/137.0.0.0 Safari/537.36"
+            );
+            jest.spyOn(
+                BrowserCacheManager.prototype,
+                "cacheAuthorizeRequest"
+            ).mockImplementation(() => {
+                throw new Error("request storage unavailable");
+            });
+            const fallback = jest
+                .spyOn(RedirectClient.prototype, "executeCodeFlow")
+                .mockResolvedValue();
+            const formSpy = jest
+                .spyOn(HTMLFormElement.prototype, "submit")
+                .mockImplementation();
+            await expect(
+                pca.acquireTokenRedirect({ scopes: ["openid"] })
+            ).rejects.toBeDefined();
+            expect(fallback).not.toHaveBeenCalled();
+            expect(formSpy).not.toHaveBeenCalled();
+            expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
+            expect(
+                Object.keys(window.sessionStorage).filter((key) =>
+                    key.endsWith(TemporaryCacheKeys.REQUEST_PARAMS)
+                )
+            ).toHaveLength(0);
+        });
+
+        it("Rejects asymmetric EAR GET before navigation", async () => {
+            pca.getConfiguration().experimental.enableAsymmetricEar = true;
+            jest.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+                "Mozilla/5.0 Chrome/137.0.0.0 Safari/537.36"
+            );
+            const navigationSpy = jest.spyOn(
+                NavigationClient.prototype,
+                "navigateExternal"
+            );
+            const formSpy = jest.spyOn(HTMLFormElement.prototype, "submit");
+            await expect(
+                pca.acquireTokenRedirect({
+                    scopes: ["openid"],
+                    httpMethod: Constants.HttpMethod.GET,
+                })
+            ).rejects.toMatchObject({
+                errorCode:
+                    ClientConfigurationErrorCodes.invalidRequestMethodForEAR,
+            });
+            expect(navigationSpy).not.toHaveBeenCalled();
+            expect(formSpy).not.toHaveBeenCalled();
+            expect(
+                Object.keys(window.sessionStorage).filter((key) =>
+                    key.endsWith(TemporaryCacheKeys.REQUEST_PARAMS)
+                )
+            ).toHaveLength(0);
+        });
+
+        it("Retains an asymmetric redirect key until navigation terminates, then removes it on timeout", async () => {
+            pca.getConfiguration().experimental.enableAsymmetricEar = true;
+            jest.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+                "Mozilla/5.0 Chrome/137.0.0.0 Safari/537.36"
+            );
+            const formSpy = jest
+                .spyOn(HTMLFormElement.prototype, "submit")
+                .mockImplementation(() => {
+                    const encodedRequest = window.sessionStorage.getItem(
+                        `msal.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`
+                    )!;
+                    const request = JSON.parse(base64Decode(encodedRequest));
+                    expect(request.asymmetricEar?.privateJwk).toEqual(
+                        expect.objectContaining({
+                            kty: "EC",
+                            crv: "P-384",
+                            d: expect.any(String),
+                        })
+                    );
+                });
+            await expect(
+                pca.acquireTokenRedirect({ scopes: ["openid"] })
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.timedOut,
+            });
+            expect(formSpy).toHaveBeenCalled();
+            expect(BrowserCrypto.generateEarKey).not.toHaveBeenCalled();
+            expect(
+                Object.keys(window.sessionStorage).filter((key) =>
+                    key.endsWith(TemporaryCacheKeys.REQUEST_PARAMS)
+                )
+            ).toHaveLength(0);
         });
     });
 });

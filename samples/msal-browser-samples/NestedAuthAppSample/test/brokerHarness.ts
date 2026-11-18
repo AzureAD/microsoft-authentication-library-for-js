@@ -35,10 +35,11 @@ export interface BrokerContext {
     extensionPresent: boolean;
 }
 
-// Launches branded Chrome with a fresh profile so the SSO extension force-installs.
+// Reuse the profile to exercise broker persistence across full browser restarts.
 // `extensionPresent` is false if it does not appear before the timeout.
-export async function launchBrokerContext(): Promise<BrokerContext> {
-    const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "naa-broker-"));
+export async function launchBrokerContext(
+    userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), "naa-broker-"))
+): Promise<BrokerContext> {
     const executablePath = process.env.CHROME_FOR_TESTING_PATH;
     const extensionSource = process.env.SSO_EXTENSION_PATH;
     const extensionDir = extensionSource

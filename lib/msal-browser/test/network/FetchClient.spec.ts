@@ -5,8 +5,18 @@ import {
     Constants,
     IPerformanceClient,
     NetworkError,
+    DEFAULT_CRYPTO_IMPLEMENTATION,
+    DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+    Logger,
+    RequestThumbprint,
+    ServerAuthorizationTokenResponse,
+    ServerError,
+    StubPerformanceClient,
+    ThrottlingUtils,
+    TokenProtocol,
 } from "@azure/msal-common";
 import { BrowserAuthErrorCodes } from "../../src/error/BrowserAuthError.js";
+import { TestStorageManager } from "../cache/TestStorageManager.js";
 
 const mockResponse: Response = {
     headers: new Headers(),
@@ -160,6 +170,66 @@ describe("FetchClient.ts Unit Tests", () => {
                 correlationId,
             });
         });
+
+        it.each([400, 429, 503])(
+            "honors Retry-After from a Fetch HTTP %i response until the throttle expires",
+            async (status) => {
+                const now = 5_000;
+                jest.setSystemTime(now);
+                const logger = new Logger({});
+                const performanceClient = new StubPerformanceClient();
+                const cache = new TestStorageManager(
+                    "test-client",
+                    DEFAULT_CRYPTO_IMPLEMENTATION,
+                    logger,
+                    performanceClient,
+                    undefined,
+                    DEFAULT_TOKEN_BINDING_KEY_MANAGER
+                );
+                const thumbprint: RequestThumbprint = {
+                    clientId: "test-client",
+                    authority: Constants.DEFAULT_AUTHORITY,
+                    scopes: ["scope"],
+                };
+                global["fetch"] = jest.fn().mockResolvedValue({
+                    ...mockResponse,
+                    headers: new Headers({ "Retry-After": "120" }),
+                    status,
+                    json: async () => ({
+                        error: "invalid_grant",
+                        error_codes: ["50196"],
+                    }),
+                });
+                const sendRequest = () =>
+                    TokenProtocol.sendPostRequest<ServerAuthorizationTokenResponse>(
+                        thumbprint,
+                        `${Constants.DEFAULT_AUTHORITY}/token`,
+                        { body: "test-request" },
+                        correlationId,
+                        cache,
+                        fetchClient,
+                        logger,
+                        performanceClient
+                    );
+
+                const response = await sendRequest();
+                expect(response.headers["retry-after"]).toBe("120");
+                expect(
+                    cache.getThrottlingCache(
+                        ThrottlingUtils.generateThrottlingStorageKey(thumbprint)
+                    )
+                ).toMatchObject({ throttleTime: now + 120_000 });
+
+                await expect(sendRequest()).rejects.toBeInstanceOf(ServerError);
+                jest.advanceTimersByTime(61_000);
+                await expect(sendRequest()).rejects.toBeInstanceOf(ServerError);
+                expect(global["fetch"]).toHaveBeenCalledTimes(1);
+
+                jest.advanceTimersByTime(60_000);
+                await expect(sendRequest()).resolves.toMatchObject({ status });
+                expect(global["fetch"]).toHaveBeenCalledTimes(2);
+            }
+        );
     });
 
     describe("sendRequestAsync", () => {

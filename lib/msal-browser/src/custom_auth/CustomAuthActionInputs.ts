@@ -39,13 +39,30 @@ export type SignInWithContinuationTokenInputs = {
     claims?: string;
 };
 
-export type SignInInputsV2 = SignInInputs;
-
-export type ResetPasswordInputsV2 = ResetPasswordInputs;
-
-export type SignUpInputsV2 = SignUpInputs & {
+/**
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+ */
+export type SignInInputsV2 = CustomAuthActionInputs & {
+    username: string;
     scopes?: Array<string>;
     claims?: string;
 };
 
-export type SignInContinuationInputsV2 = SignInWithContinuationTokenInputs;
+/**
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+ */
+export type ResetPasswordInputsV2 = CustomAuthActionInputs & {
+    username: string;
+    scopes?: Array<string>;
+    claims?: string;
+};
+
+/**
+ * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
+ */
+export type SignUpInputsV2 = CustomAuthActionInputs & {
+    username: string;
+    attributes?: UserAccountAttributes;
+    scopes?: Array<string>;
+    claims?: string;
+};

@@ -52,6 +52,63 @@ describe("Authorize Protocol Tests", () => {
         jest.restoreAllMocks();
     });
     describe("Authorization url creation", () => {
+        const basePocdRequest = (): CommonAuthorizationUrlRequest => ({
+            authority: TEST_CONFIG.validAuthority,
+            responseMode: Constants.ResponseMode.QUERY,
+            redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+            nonce: RANDOM_TEST_GUID,
+            state: TEST_CONFIG.STATE,
+            scopes: TEST_CONFIG.DEFAULT_SCOPES,
+            codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+            codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+            correlationId: RANDOM_TEST_GUID,
+            authenticationScheme: Constants.AuthenticationScheme.BEARER,
+        });
+
+        it("adds pocd=1 when popupOriginCheckDone is set", async () => {
+            const params =
+                AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                    authOptions,
+                    { ...basePocdRequest(), popupOriginCheckDone: true },
+                    new Logger({})
+                );
+            const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
+                authority,
+                params
+            );
+            expect(
+                loginUrl.includes(
+                    `${AADServerParamKeys.POPUP_ORIGIN_CHECK_DONE}=1`
+                )
+            ).toBe(true);
+        });
+
+        it.each([false, undefined])(
+            "omits pocd entirely when popupOriginCheckDone is %s",
+            async (popupOriginCheckDone) => {
+                const params =
+                    AuthorizeProtocol.getStandardAuthorizeRequestParameters(
+                        authOptions,
+                        { ...basePocdRequest(), popupOriginCheckDone },
+                        new Logger({})
+                    );
+                const loginUrl = AuthorizeProtocol.getAuthorizeUrl(
+                    authority,
+                    params
+                );
+                /*
+                 * A negative result is signalled by omission, not pocd=0, so
+                 * the STS default (apply COOP) applies and older library
+                 * versions stay compatible.
+                 */
+                expect(
+                    loginUrl.includes(
+                        AADServerParamKeys.POPUP_ORIGIN_CHECK_DONE
+                    )
+                ).toBe(false);
+            }
+        );
+
         it("Creates an authorization url with default parameters", async () => {
             const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1726,26 +1783,59 @@ describe("Authorize Protocol Tests", () => {
             }
         });
 
-        it("throws invalid state error", (done) => {
-            const testServerCodeResponse: AuthorizeResponse = {
-                code: "testCode",
-                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
-                state: TEST_STATE_VALUES.URI_ENCODED_LIB_STATE,
-            };
+        const validState = `${TEST_STATE_VALUES.URI_ENCODED_LIB_STATE}|<span>untrusted-state</span>`;
+        const malformedState = `${validState}%zz`;
 
-            try {
-                AuthorizeProtocol.validateAuthorizationResponse(
-                    testServerCodeResponse,
-                    "dummy-state-%20%%%30%%%%%40",
-                    ""
+        it.each([
+            {
+                name: "malformed response state",
+                response: { code: "testCode", state: malformedState },
+                cachedState: validState,
+            },
+            {
+                name: "malformed response state on an error response",
+                response: {
+                    error: "access_denied",
+                    error_description: "Request denied",
+                    state: malformedState,
+                },
+                cachedState: validState,
+            },
+            {
+                name: "malformed cached state",
+                response: { code: "testCode", state: validState },
+                cachedState: malformedState,
+            },
+            {
+                name: "matching malformed response and cached states",
+                response: { code: "testCode", state: malformedState },
+                cachedState: malformedState,
+            },
+        ])(
+            "throws invalid_state without reflecting state for $name",
+            ({ response, cachedState }) => {
+                const expectedError = new ClientAuthError(
+                    ClientAuthErrorCodes.invalidState,
+                    RANDOM_TEST_GUID
                 );
-            } catch (e) {
-                expect(e).toBeInstanceOf(ClientAuthError);
-                const err = e as ClientAuthError;
-                expect(err.errorCode).toBe(ClientAuthErrorCodes.invalidState);
-                done();
+                const validateResponse = () =>
+                    AuthorizeProtocol.validateAuthorizationResponse(
+                        response,
+                        cachedState,
+                        RANDOM_TEST_GUID
+                    );
+
+                expect(validateResponse).toThrow(ClientAuthError);
+                expect(validateResponse).toThrow(
+                    expect.objectContaining({
+                        errorCode: ClientAuthErrorCodes.invalidState,
+                        correlationId: RANDOM_TEST_GUID,
+                        message: expectedError.message,
+                        errorMessage: expectedError.errorMessage,
+                    })
+                );
             }
-        });
+        );
 
         it("throws ServerError and parser error no", (done) => {
             const testServerCodeResponse: AuthorizeResponse = {

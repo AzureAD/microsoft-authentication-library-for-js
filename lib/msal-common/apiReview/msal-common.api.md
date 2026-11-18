@@ -89,7 +89,8 @@ declare namespace AADServerParamKeys {
         USERNAME,
         USER_ID,
         FMI_PATH,
-        ATTRIBUTE_TOKENS
+        ATTRIBUTE_TOKENS,
+        POPUP_ORIGIN_CHECK_DONE
     }
 }
 export { AADServerParamKeys }
@@ -244,7 +245,7 @@ function addDomainHint(parameters: Map<string, string>, domainHint: string): voi
 function addDpopTokenProofHeader(headers: Record<string, string>, request: BaseAuthRequest, tokenEndpoint: string, cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager): Promise<void>;
 
 // @public
-function addEARParameters(parameters: Map<string, string>, jwk: string): void;
+function addEARParameters(parameters: Map<string, string>, jwk: string, jweCrypto?: string): void;
 
 // @public
 function addExtraParameters(parameters: Map<string, string>, extraParams: StringDict): void;
@@ -281,6 +282,9 @@ function addPassword(parameters: Map<string, string>, password: string): void;
 
 // @public
 function addPopToken(parameters: Map<string, string>, cnfString: string): void;
+
+// @public
+function addPopupOriginCheckDone(parameters: Map<string, string>): void;
 
 // @public
 function addPostLogoutRedirectUri(parameters: Map<string, string>, redirectUri: string): void;
@@ -852,6 +856,7 @@ export abstract class CacheManager implements ICacheManager {
     readAppMetadataFromCache(environment: string, correlationId: string): AppMetadataEntity | null;
     refreshTokenKeyMatchesFilter(inputKey: string, filter: CredentialFilter): boolean;
     removeAccessToken(key: string, correlationId: string): void;
+    removeAccessTokenAndTokenBindingKey(key: string, correlationId: string, preservedKeyId?: string): Promise<void>;
     removeAccount(account: AccountInfo, correlationId: string): void;
     removeAccountContext(account: AccountInfo, correlationId: string): void;
     removeAllAccounts(correlationId: string): void;
@@ -1178,6 +1183,12 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     responseMode: ResponseMode;
     account?: AccountInfo;
     earJwk?: string;
+    asymmetricEar?: {
+        privateJwk: PublicJsonWebKey & {
+            d?: string;
+        };
+        apv: string;
+    };
     codeChallenge?: string;
     codeChallengeMethod?: string;
     domainHint?: string;
@@ -1189,6 +1200,7 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     state: string;
     platformBroker?: boolean;
     reqCnf?: string;
+    popupOriginCheckDone?: boolean;
 };
 
 // @internal (undocumented)
@@ -1217,6 +1229,7 @@ export type CommonEndSessionRequest = {
     state?: string;
     logoutHint?: string;
     extraQueryParameters?: StringDict;
+    popupOriginCheckDone?: boolean;
 };
 
 // @public
@@ -1540,6 +1553,22 @@ const DPOP_JKT = "dpop_jkt";
 
 // @public (undocumented)
 const dpopMissingResourceContext = "dpop_missing_resource_context";
+
+// @internal
+export class DpopProofGenerator {
+    constructor(cryptoUtils: ICrypto, tokenBindingKeyManager: ITokenBindingKeyManager);
+    buildResourceProofClaims(params: DpopResourceProofParams, correlationId?: string): DpopProofClaims;
+    buildTokenProofClaims(params: DpopTokenProofParams, correlationId?: string): DpopProofClaims;
+    generateJkt(correlationId?: string): Promise<string>;
+    generateResourceProof(params: GenerateDpopResourceProofParams, keyId: string, correlationId?: string): Promise<string>;
+    generateTokenProof(params: DpopTokenProofParams, keyId: string, correlationId?: string): Promise<string>;
+}
+
+// @internal
+export type DpopResourceRequestContext = {
+    htu: string;
+    htm: string;
+};
 
 // @public (undocumented)
 const dpopTokenTypeMismatch = "dpop_token_type_mismatch";
@@ -2065,6 +2094,8 @@ function isTokenExpired(expiresOn: string, offset: number): boolean;
 // @internal
 export interface ITokenBindingKeyManager {
     getTokenBindingPublicKeyJwk(kid: string, correlationId: string): Promise<PublicJsonWebKey>;
+    hasTokenBindingKey?(kid: string, correlationId: string): Promise<boolean>;
+    isTokenBindingKeyPersisted?(kid: string, correlationId: string): Promise<boolean>;
     provisionTokenBindingKey(request: TokenBindingKeyProvisioningParameters): Promise<string>;
     removeTokenBindingKey(kid: string, correlationId: string): Promise<void>;
 }
@@ -2296,6 +2327,9 @@ const nonceMismatch = "nonce_mismatch";
 // @public (undocumented)
 const noNetworkConnectivity = "no_network_connectivity";
 
+// @internal
+export function normalizeDpopResourceRequestContext(context: DpopResourceRequestContext, correlationId?: string): DpopResourceRequestContext;
+
 // @public
 function normalizeUrlForComparison(url: string, logger?: Logger, correlationId?: string): string;
 
@@ -2455,6 +2489,7 @@ export type PerformanceEvent = {
     isRedirectUriCrossOrigin?: boolean;
     redirectBridgeMessageVersion?: number;
     lateResponseExperimentEnabled?: boolean;
+    popupRelayProtocolVersion?: number;
     fetchRetryCount?: number;
     idTokenSize?: number;
     accessTokenSize?: number;
@@ -2509,6 +2544,8 @@ export type PerformanceEvent = {
     embeddedClientId?: string;
     embeddedRedirectUri?: string;
     isAsyncPopup?: boolean;
+    usesLegacyPolling?: boolean;
+    iframePollTimeout?: number;
     cacheRtExpiresOnSeconds?: number;
     ntwkRtExpiresOnSeconds?: number;
     extRtExpiresOnSeconds?: number;
@@ -2659,6 +2696,9 @@ export class PopTokenGenerator {
     signPayload(payload: string, keyId: string, request: SignedHttpRequestParameters, claims?: object): Promise<string>;
     signPopToken(accessToken: string, keyId: string, request: SignedHttpRequestParameters): Promise<string>;
 }
+
+// @public
+const POPUP_ORIGIN_CHECK_DONE = "pocd";
 
 // @public (undocumented)
 const POST_LOGOUT_URI = "post_logout_redirect_uri";
@@ -2858,6 +2898,7 @@ declare namespace RequestParameterBuilder {
         addClientInfo,
         addCliData,
         addInstanceAware,
+        addPopupOriginCheckDone,
         addExtraParameters,
         buildMergedClaims,
         addUsername,
@@ -3493,7 +3534,7 @@ export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity |
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 // @public (undocumented)
-export const version = "16.14.2";
+export const version = "16.16.2";
 
 // @public
 function wasClockTurnedBack(cachedAt: string): boolean;

@@ -15,6 +15,7 @@ import {
     PerformanceCallbackFunction,
     AccountInfo,
     AccountFilter,
+    Constants,
     Logger,
     CommonAuthorizationUrlRequest,
     CommonEndSessionRequest,
@@ -39,6 +40,8 @@ import { EventType } from "../event/EventType.js";
 import { createNewGuid } from "../crypto/BrowserCrypto.js";
 import { HandleRedirectPromiseOptions } from "../request/HandleRedirectPromiseOptions.js";
 import { waitForBridgeResponse } from "../utils/BrowserUtils.js";
+import { monitorPopupForHash } from "../utils/PopupMonitor.js";
+import { monitorIframeForHash } from "../utils/IframeMonitor.js";
 import type { WaitForPopupResponseFn } from "../interaction_client/PopupClient.js";
 import type {
     WaitForIframeResponseFn,
@@ -99,9 +102,10 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Waits for the auth response from a popup window opened by MSAL.
      *
-     * The default implementation delegates to MSAL's `BroadcastChannel`-based bridge.
-     * Subclasses must return the raw response string (hash/query/fragment), or reject
-     * with an `AuthError` on failure.
+     * The default implementation delegates to MSAL's `BroadcastChannel`-based bridge,
+     * or to the v4-style same-origin location poller when
+     * `system.enableLegacyPolling` is set. Subclasses must return the raw response
+     * string (hash/query/fragment), or reject with an `AuthError` on failure.
      *
      * @internal
      * @param request The in-flight authorization or end-session request.
@@ -110,16 +114,27 @@ export class PublicClientApplication implements IPublicClientApplication {
      */
     protected async waitForPopupResponse(
         request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         popupWindow: Window,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         popupWindowParent: Window
     ): Promise<string> {
         const controller = this.controller as IController & {
             getPerformanceClient(): IPerformanceClient;
         };
+        const config = controller.getConfiguration();
+
+        if (config.system.enableLegacyPolling) {
+            return waitForPopupPollingResponse(
+                config,
+                controller.getLogger(),
+                controller.getPerformanceClient(),
+                request,
+                popupWindow,
+                popupWindowParent
+            );
+        }
+
         return waitForBridgeResponse(
-            controller.getConfiguration().system.popupBridgeTimeout,
+            config.system.popupBridgeTimeout,
             controller.getLogger(),
             request,
             controller.getPerformanceClient()
@@ -129,7 +144,8 @@ export class PublicClientApplication implements IPublicClientApplication {
     /**
      * Waits for the auth response from a hidden iframe used by MSAL silent flows.
      *
-     * The default implementation delegates to MSAL's `BroadcastChannel`-based bridge.
+     * The default implementation delegates to MSAL's `BroadcastChannel`-based bridge,
+     * or to the v4-style location poller when `system.enableLegacyPolling` is set.
      * Subclasses must return the raw response string (hash/query/fragment), or reject
      * with an `AuthError` on failure.
      *
@@ -138,7 +154,6 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param request The in-flight authorization request.
      */
     protected async waitForIframeResponse(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         iframe: HTMLIFrameElement,
         request: WaitForIframeRequest
     ): Promise<string> {
@@ -146,6 +161,17 @@ export class PublicClientApplication implements IPublicClientApplication {
             getPerformanceClient(): IPerformanceClient;
         };
         const config = controller.getConfiguration();
+
+        if (config.system.enableLegacyPolling) {
+            return waitForIframePollingResponse(
+                config,
+                controller.getLogger(),
+                controller.getPerformanceClient(),
+                iframe,
+                request
+            );
+        }
+
         return waitForBridgeResponse(
             config.system.iframeBridgeTimeout,
             controller.getLogger(),
@@ -479,4 +505,78 @@ export async function createStandardPublicClientApplication(
     const pca = new PublicClientApplication(configuration);
     await pca.initialize();
     return pca;
+}
+
+/**
+ * Collects a popup auth response using the v4-style same-origin location
+ * poller instead of the `BroadcastChannel` redirect bridge.
+ */
+async function waitForPopupPollingResponse(
+    config: BrowserConfiguration,
+    logger: Logger,
+    performanceClient: IPerformanceClient,
+    request: CommonAuthorizationUrlRequest | CommonEndSessionRequest,
+    popupWindow: Window,
+    popupWindowParent: Window
+): Promise<string> {
+    const responseMode: string =
+        config.auth.OIDCOptions?.responseMode === Constants.ResponseMode.QUERY
+            ? Constants.ResponseMode.QUERY
+            : Constants.ResponseMode.FRAGMENT;
+
+    performanceClient.addFields(
+        { usesLegacyPolling: true },
+        request.correlationId
+    );
+
+    const unloadHandler = (): void => {
+        try {
+            if (popupWindow && !popupWindow.closed) {
+                popupWindow.close();
+            }
+        } catch {
+            /* ignore */
+        }
+    };
+    popupWindowParent.addEventListener("beforeunload", unloadHandler);
+
+    return monitorPopupForHash(
+        popupWindow,
+        popupWindowParent,
+        responseMode,
+        logger,
+        unloadHandler,
+        request.correlationId
+    );
+}
+
+/**
+ * Collects a silent-iframe auth response using the v4-style location poller
+ * instead of the `BroadcastChannel` redirect bridge.
+ */
+async function waitForIframePollingResponse(
+    config: BrowserConfiguration,
+    logger: Logger,
+    performanceClient: IPerformanceClient,
+    iframe: HTMLIFrameElement,
+    request: WaitForIframeRequest
+): Promise<string> {
+    const responseMode: string =
+        config.auth.OIDCOptions?.responseMode === Constants.ResponseMode.QUERY
+            ? Constants.ResponseMode.QUERY
+            : Constants.ResponseMode.FRAGMENT;
+    const iframePollTimeout = config.system.iframeBridgeTimeout;
+
+    performanceClient.addFields(
+        { usesLegacyPolling: true, iframePollTimeout },
+        request.correlationId
+    );
+
+    return monitorIframeForHash(
+        iframe,
+        iframePollTimeout,
+        logger,
+        request.correlationId,
+        responseMode
+    );
 }
