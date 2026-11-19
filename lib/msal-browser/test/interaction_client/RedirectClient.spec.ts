@@ -24,6 +24,7 @@ import {
     getTestAuthenticationResult,
     validEarJWE,
     testNavUrl,
+    TEST_AUTHORIZATION_RESPONSE_ISSUER,
 } from "../utils/StringConstants.js";
 import {
     ServerError,
@@ -680,7 +681,7 @@ describe("RedirectClient", () => {
                     sendPostRequestSpy.mock.calls[0];
                 const tokenUrl = new URL(tokenEndpoint);
                 expect(tokenUrl.hostname).toBe(expectedHost);
-                expect(tokenUrl.pathname).toBe("/common/oauth2/v2.0/token");
+                expect(tokenUrl.pathname).toBe("/common/oauth21/2026-08/token");
                 expect(tokenRequest?.body).toContain("code=thisIsATestCode");
                 expect(result?.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
                 expect(new URL(result!.authority).hostname).toBe(expectedHost);
@@ -1837,6 +1838,7 @@ describe("RedirectClient", () => {
                     code: "thisIsATestCode",
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                     client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    iss: TEST_AUTHORIZATION_RESPONSE_ISSUER,
                 });
             });
             redirectClient
@@ -1866,6 +1868,7 @@ describe("RedirectClient", () => {
                     code: "thisIsATestCode",
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                     client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    iss: TEST_AUTHORIZATION_RESPONSE_ISSUER,
                 });
             });
             redirectClient
@@ -1902,6 +1905,7 @@ describe("RedirectClient", () => {
                     code: "thisIsATestCode",
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                     client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                    iss: TEST_AUTHORIZATION_RESPONSE_ISSUER,
                 });
             });
 
@@ -1936,6 +1940,7 @@ describe("RedirectClient", () => {
                     code: "thisIsATestCode",
                     client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                     state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    iss: TEST_AUTHORIZATION_RESPONSE_ISSUER,
                 });
                 done();
             });
@@ -2025,6 +2030,7 @@ describe("RedirectClient", () => {
                         code: "thisIsATestCode",
                         client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                         state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                        iss: TEST_AUTHORIZATION_RESPONSE_ISSUER,
                     });
                     done();
                 });
