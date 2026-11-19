@@ -32,6 +32,7 @@ import {
 
 const STANDARD_TIMEOUT = testConfig.timeouts.standard;
 const AUTH_TIMEOUT = testConfig.timeouts.auth;
+const SIGN_UP_PASSWORD_CARD_SELECTOR = "#signUpPasswordCard";
 type SignUpKind = "password" | "otp";
 type SignUpStep = "password" | "attributes" | "completed";
 type UpfrontProfile = "names" | "city" | "none";
@@ -179,7 +180,7 @@ describe("Native Auth Sample - V2 Sign Up Tests", () => {
 
     async function waitForSignUpStep(): Promise<SignUpStep> {
         const step = await waitForStep({
-            password: "#signUpPasswordCard",
+            password: SIGN_UP_PASSWORD_CARD_SELECTOR,
             attributes: "#signUpAttributesCard",
             completed: "#authStatusBanner",
         });
@@ -436,7 +437,7 @@ describe("Native Auth Sample - V2 Sign Up Tests", () => {
         await openSignUp("password");
         await submitUsername(existingPasswordUsername);
         const step = await waitForStep({
-            password: "#signUpPasswordCard",
+            password: SIGN_UP_PASSWORD_CARD_SELECTOR,
             method: "#mfaMethodSelectionCard",
         });
         if (step === "method") {
@@ -463,7 +464,7 @@ describe("Native Auth Sample - V2 Sign Up Tests", () => {
                 "Select existing password method",
                 STANDARD_TIMEOUT
             );
-            await waitForStep({ password: "#signUpPasswordCard" });
+            await waitForStep({ password: SIGN_UP_PASSWORD_CARD_SELECTOR });
         }
         expect(
             await page.$eval(
@@ -679,7 +680,7 @@ describe("Native Auth Sample - V2 Sign Up Tests", () => {
         "E2E-V2-SU-06: Invalid new password is rejected without authentication",
         async () => {
             await startNewAccount("password", false, "city");
-            await waitForStep({ password: "#signUpPasswordCard" });
+            await waitForStep({ password: SIGN_UP_PASSWORD_CARD_SELECTOR });
             await submitPassword(negativeTestData.invalidPassword);
             await expectRejection("Invalid new password.");
         },
