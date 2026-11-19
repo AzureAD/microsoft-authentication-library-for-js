@@ -2,6 +2,27 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 18 Nov 2026 21:34:22 GMT",
+      "version": "16.17.0",
+      "tag": "@azure/msal-common_v16.17.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "shylasummers@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "589ceaf511c4d3b87e1b3192a764b7bf80da412e",
+            "comment": "Support asymmetric EAR request metadata [#8970](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8970)"
+          },
+          {
+            "author": "nugetaad@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "589ceaf511c4d3b87e1b3192a764b7bf80da412e",
+            "comment": "Declare popupRelayProtocolVersion as a top-level integer performance telemetry field [#8984](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8984)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 12 Nov 2026 18:58:52 GMT",
       "version": "16.16.2",
       "tag": "@azure/msal-common_v16.16.2",

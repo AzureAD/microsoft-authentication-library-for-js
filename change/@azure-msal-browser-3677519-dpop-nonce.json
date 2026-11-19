@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Add IPublicClientApplication.loadDpopNonce with origin-scoped PCA-memory state and WAM forwarding (AB#3677519) [#8981](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8981)",
+    "packageName": "@azure/msal-browser",
+    "email": "hemoral@microsoft.com",
+    "dependentChangeType": "patch"
+}

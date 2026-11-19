@@ -87,9 +87,11 @@ When `acquireTokenRedirect()` uses the Windows Accounts extension, broker intera
 
 DPoP requests must include the resource method and URI used to build the proof.
 
-Resource-server DPoP nonce forwarding is not yet supported through the Windows Accounts extension. Applications must not pass `pop_nonce` through `extraParameters`; nonce support will use a dedicated API and internal nonce store.
+#### Resource-server nonce challenges
 
-For the complete request shape and proof usage, see [DPoP for PublicClientApplication](./access-token-proof-of-possession.md#dpop-for-publicclientapplication).
+Applications can provide a resource-server nonce through `loadDpopNonce`. For an L1 outcome, MSAL includes the nonce when it generates the resource proof locally. For an L3 outcome, MSAL forwards the nonce to the platform broker, which includes it in the broker-generated proof. Applications must not pass `pop_nonce` through `extraParameters`.
+
+For the complete request shape, proof usage, and nonce-challenge retry flow, see [DPoP for PublicClientApplication](./access-token-proof-of-possession.md#dpop-for-publicclientapplication) and [Resource-server nonce challenges](./access-token-proof-of-possession.md#resource-server-nonce-challenges).
 
 ## Acquiring Device Bound Tokens using DOM API
 

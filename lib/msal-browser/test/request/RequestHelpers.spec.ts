@@ -43,6 +43,7 @@ describe("RequestHelpers tests", () => {
 
     describe("initializeBaseRequest", () => {
         it("should initialize a base request with default values", async () => {
+            const addFieldsSpy = jest.spyOn(mockPerformanceClient, "addFields");
             const request: Partial<BaseAuthRequest> & {
                 correlationId: string;
             } = {
@@ -65,6 +66,12 @@ describe("RequestHelpers tests", () => {
             );
             expect(result.authenticationScheme).toBe(
                 Constants.AuthenticationScheme.BEARER
+            );
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    authenticationScheme: Constants.AuthenticationScheme.BEARER,
+                },
+                TEST_CONFIG.CORRELATION_ID
             );
         });
 
@@ -192,6 +199,7 @@ describe("RequestHelpers tests", () => {
         });
 
         it("should only validate DPoP context during base request initialization", async () => {
+            const addFieldsSpy = jest.spyOn(mockPerformanceClient, "addFields");
             const provisionSpy = jest
                 .spyOn(
                     TokenBindingKeyManager.prototype,
@@ -218,6 +226,12 @@ describe("RequestHelpers tests", () => {
 
             expect(result.dpopJkt).toBeUndefined();
             expect(provisionSpy).not.toHaveBeenCalled();
+            expect(addFieldsSpy).toHaveBeenCalledWith(
+                {
+                    authenticationScheme: Constants.AuthenticationScheme.DPOP,
+                },
+                TEST_CONFIG.CORRELATION_ID
+            );
         });
 
         it("should return dpop_jkt params when preparing a DPoP network request", async () => {
