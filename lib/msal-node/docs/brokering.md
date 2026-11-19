@@ -177,7 +177,7 @@ Access token proof of possession is supported through the Windows and macOS brok
 ### Usage Example
 
 ```typescript
-import { PublicClientApplication, Configuration, AuthenticationScheme } from "@azure/msal-node";
+import { PublicClientApplication, Configuration } from "@azure/msal-node";
 import { NativeBrokerPlugin } from "@azure/msal-node-extensions";
 
 const msalConfig: Configuration = {
@@ -193,7 +193,7 @@ const pca = new PublicClientApplication(msalConfig);
 
 const popTokenRequest = {
     scopes: ["User.Read"],
-    authenticationScheme: AuthenticationScheme.POP,
+    authenticationScheme: "pop" as const,
     resourceRequestMethod: "POST",
     resourceRequestUri: "YOUR_RESOURCE_ENDPOINT",
     shrNonce: "NONCE_ACQUIRED_FROM_RESOURCE_SERVER"
