@@ -1,5 +1,7 @@
 # Working with MSAL.js and Azure AD B2C
 
+> Azure AD B2C has not been available for purchase by new customers since May 1, 2025. Existing customers should consult the [B2C FAQ](https://learn.microsoft.com/azure/active-directory-b2c/faq) for availability and support information. This guide describes existing B2C applications; Microsoft Entra External ID and its native-authentication APIs use different configuration and contracts.
+
 > :warning: Before you start here, make sure you understand [how to initialize an app object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md) and [working with resources and scopes](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md). We also recommend general familiarity with **Azure AD B2C**. See the [B2C documentation](https://docs.microsoft.com/azure/active-directory-b2c/technical-overview) for more.
 
 **MSAL.js supports** authentication with **social** (Microsoft, Google, Facebook etc.), **enterprise** (ADFS, Salesforce etc.) and **local** (stored in the Azure AD B2C directory) identities using **Azure AD B2C** (*B2C* for short). When developing B2C apps with **MSAL.js**, there are a few important details to keep in mind.
@@ -83,7 +85,7 @@ The `login.microsoftonline.com` endpoints can still be used for any behind the s
 
 - To obtain **application permissions**, you'll need perform application authentication (using the **client credentials grant**).
 - To obtain **delegated permissions**, you'll need to perform user authentication with an admin account.
-- Management apps are typically registered as audience **type 1** or **type 2** (see [below](#b2c-and-account/audience-types)).
+- Management apps are typically registered as audience **type 1** or **type 2** (see [below](#b2c-and-accountaudience-types)).
 
 ## Other Topics
 

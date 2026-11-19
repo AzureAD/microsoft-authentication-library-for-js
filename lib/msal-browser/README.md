@@ -1,5 +1,7 @@
 # Microsoft Authentication Library for JavaScript (MSAL.js) for Browser-Based Single-Page Applications
 
+**Documentation:** [Browse MSAL Browser guides](./docs/README.md).
+
 [![npm version](https://img.shields.io/npm/v/@azure/msal-browser.svg?style=flat)](https://www.npmjs.com/package/@azure/msal-browser/)
 [![npm version](https://img.shields.io/npm/dm/@azure/msal-browser.svg)](https://nodei.co/npm/@azure/msal-browser/)
 [![codecov](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js/branch/dev/graph/badge.svg?flag=msal-browser)](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js)
@@ -22,7 +24,7 @@
     - [Advanced Topics](#advanced-topics)
 1. [Samples](#samples)
 1. [Build and Test](#build-and-test)
-1. [Authorization Code vs Implicit](#implicit-flow-vs-authorization-code-flow-with-pkce)
+1. [Authorization Code vs Implicit](#authorization-code-flow-with-proof-key-for-code-exchange-pkce)
 1. [Framework Wrappers](#framework-wrappers)
 1. [Security Reporting](#security-reporting)
 1. [License](#license)
@@ -32,7 +34,7 @@
 
 The MSAL library for JavaScript enables client-side JavaScript applications to authenticate users using [Microsoft Entra ID](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
-The `@azure/msal-browser` package described by the code in this folder uses the [`@azure/msal-common` package](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-common) as a dependency to enable authentication in JavaScript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section [below](#implicit-flow-vs-authorization-code-flow-with-pkce).
+The `@azure/msal-browser` package described by the code in this folder uses the [`@azure/msal-common` package](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-common) as a dependency to enable authentication in JavaScript Single-Page Applications without backend servers. This version of the library uses the OAuth 2.0 Authorization Code Flow with PKCE. To read more about this protocol, as well as the differences between implicit flow and authorization code flow, see the section [below](#authorization-code-flow-with-proof-key-for-code-exchange-pkce).
 
 The `@azure/msal-browser` package **does NOT** support the implicit flow.
 
