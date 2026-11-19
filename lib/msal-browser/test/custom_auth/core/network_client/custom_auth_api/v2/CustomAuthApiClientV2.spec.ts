@@ -187,7 +187,7 @@ describe("CustomAuthApiClientV2", () => {
                     entry.resetPasswordHref,
                     {
                         continuationToken: entry.continuationToken,
-                        username: "user@test.com",
+                        username: "user@test.example.com",
                     },
                     context
                 );
@@ -296,7 +296,7 @@ describe("CustomAuthApiClientV2", () => {
                     href,
                     {
                         continuationToken: "ct-entry",
-                        username: "user@test.com",
+                        username: "user@test.example.com",
                     },
                     context
                 );
@@ -324,7 +324,7 @@ describe("CustomAuthApiClientV2", () => {
                     "https://service.example/tenant/api/v0.1/auth/resetpassword",
                     {
                         continuationToken: "ct-entry",
-                        username: "user@test.com",
+                        username: "user@test.example.com",
                     },
                     context
                 )
@@ -434,8 +434,8 @@ describe("CustomAuthApiClientV2", () => {
                             "AADSTS55214: Non-retryable error has occurred.",
                         error_codes: [55214],
                         timestamp: "2026-10-12 15:43:29Z",
-                        trace_id: "c7fe3b84-3596-4d2d-a195-3aa21fb41100",
-                        correlation_id: "c556852d-edfa-4040-b472-15a62de49ad5",
+                        trace_id: "test-web-redirect-trace-id",
+                        correlation_id: "test-web-redirect-correlation-id",
                         suberror: "web_redirect_required",
                     },
                     400
@@ -450,8 +450,8 @@ describe("CustomAuthApiClientV2", () => {
                     "AADSTS55214: Non-retryable error has occurred.",
                 errorCodes: [55214],
                 subError: "web_redirect_required",
-                correlationId: "c556852d-edfa-4040-b472-15a62de49ad5",
-                traceId: "c7fe3b84-3596-4d2d-a195-3aa21fb41100",
+                correlationId: "test-web-redirect-correlation-id",
+                traceId: "test-web-redirect-trace-id",
                 timestamp: "2026-10-12 15:43:29Z",
             });
         });
@@ -464,8 +464,8 @@ describe("CustomAuthApiClientV2", () => {
                         "AADSTS500127: No authenticated credentials found in request.",
                     error_codes: [500127],
                     timestamp: "2026-10-15 11:00:20Z",
-                    trace_id: "6a72e163-b400-45c1-82d1-2ffe597f1c00",
-                    correlation_id: "5bf14be2-24a1-425c-b8ea-6961b52105b9",
+                    trace_id: "test-credentials-missing-trace-id",
+                    correlation_id: "test-credentials-missing-correlation-id",
                     continuation_token: "ct-entry",
                     sign_in: "/tenant/api/v0.1/signin/start",
                 })
@@ -490,8 +490,9 @@ describe("CustomAuthApiClientV2", () => {
                             "AADSTS500127: No authenticated credentials found in request.",
                         error_codes: [500127],
                         timestamp: "2026-10-15 11:00:20Z",
-                        trace_id: "6a72e163-b400-45c1-82d1-2ffe597f1c00",
-                        correlation_id: "5bf14be2-24a1-425c-b8ea-6961b52105b9",
+                        trace_id: "test-credentials-missing-trace-id",
+                        correlation_id:
+                            "test-credentials-missing-correlation-id",
                     },
                     401
                 )
@@ -504,8 +505,8 @@ describe("CustomAuthApiClientV2", () => {
                 errorDescription:
                     "AADSTS500127: No authenticated credentials found in request.",
                 errorCodes: [500127],
-                correlationId: "5bf14be2-24a1-425c-b8ea-6961b52105b9",
-                traceId: "6a72e163-b400-45c1-82d1-2ffe597f1c00",
+                correlationId: "test-credentials-missing-correlation-id",
+                traceId: "test-credentials-missing-trace-id",
                 timestamp: "2026-10-15 11:00:20Z",
             });
         });
@@ -513,7 +514,7 @@ describe("CustomAuthApiClientV2", () => {
 
     describe("resetPasswordStart", () => {
         const request = {
-            username: "user@test.com",
+            username: "user@test.example.com",
             continuationToken: "ct-entry",
         };
 
@@ -585,7 +586,7 @@ describe("CustomAuthApiClientV2", () => {
     describe("signInStart", () => {
         const request = {
             continuationToken: "ct-entry",
-            username: "user@test.com",
+            username: "user@test.example.com",
         };
 
         it("returns the embedded authentication methods", async () => {
@@ -1299,7 +1300,7 @@ describe("CustomAuthApiClientV2", () => {
                     action: "verify",
                     id: "email-1",
                     type: "email",
-                    hint: "u***@test.com",
+                    hint: "u***@test.example.com",
                     codeLength: 8,
                     attributes: [
                         {
@@ -1466,7 +1467,7 @@ describe("CustomAuthApiClientV2", () => {
                     "/tenant/api/v2.0/auth/submitattributes",
                     {
                         continuationToken: "ct-start",
-                        attributes: { email: "user@test.com" },
+                        attributes: { email: "user@test.example.com" },
                     },
                     context
                 )
@@ -1654,7 +1655,7 @@ describe("CustomAuthApiClientV2", () => {
                     action: "verify",
                     type: "email",
                     codeLength: 6,
-                    hint: "u***@test.com",
+                    hint: "u***@test.example.com",
                     _links: {
                         verify: { href: "/tenant/api/v0.1/verify" },
                         resend: { href: "/tenant/api/v0.1/resend" },
@@ -1675,7 +1676,7 @@ describe("CustomAuthApiClientV2", () => {
                 verifyHref: "/tenant/api/v0.1/verify",
                 resendHref: "/tenant/api/v0.1/resend",
                 codeLength: 6,
-                hint: "u***@test.com",
+                hint: "u***@test.example.com",
             });
         });
 
@@ -2188,7 +2189,7 @@ describe("CustomAuthApiClientV2", () => {
                             {
                                 id: "email-mfa",
                                 type: "email",
-                                hint: "u***@test.com",
+                                hint: "u***@test.example.com",
                                 _links: {
                                     challenge: {
                                         href: "/tenant/api/v0.1/mfa/challenge",
@@ -2217,7 +2218,7 @@ describe("CustomAuthApiClientV2", () => {
                     {
                         id: "email-mfa",
                         type: "email",
-                        hint: "u***@test.com",
+                        hint: "u***@test.example.com",
                         challengeHref: "/tenant/api/v0.1/mfa/challenge",
                     },
                 ],
@@ -2553,7 +2554,7 @@ describe("CustomAuthApiClientV2", () => {
                     state: "interactionRequired",
                     action: "activate",
                     type: "email",
-                    hint: "u***@test.com",
+                    hint: "u***@test.example.com",
                     codeLength: 6,
                     _links: {
                         activate: {
@@ -2569,7 +2570,7 @@ describe("CustomAuthApiClientV2", () => {
             const result = await apiClient.enrollAuthMethod(
                 "/tenant/api/v0.1/enroll/email",
                 {
-                    email: "user@test.com",
+                    email: "user@test.example.com",
                     continuationToken: "ct-enroll",
                 },
                 context
@@ -2578,7 +2579,7 @@ describe("CustomAuthApiClientV2", () => {
             expect(result).toEqual({
                 nextAction: "activate",
                 continuationToken: "ct-activate",
-                hint: "u***@test.com",
+                hint: "u***@test.example.com",
                 codeLength: 6,
                 activateHref: "/tenant/api/v0.1/activate/email",
                 resendHref: "/tenant/api/v0.1/enroll/email",
@@ -2590,7 +2591,7 @@ describe("CustomAuthApiClientV2", () => {
             );
             expect(options.method).toBe(HttpMethod.POST);
             expect(JSON.parse(options.body)).toEqual({
-                email: "user@test.com",
+                email: "user@test.example.com",
                 continuationToken: "ct-enroll",
             });
         });
@@ -2661,7 +2662,7 @@ describe("CustomAuthApiClientV2", () => {
             const enrollment = await apiClient.enrollAuthMethod(
                 "/tenant/api/v0.1/enroll/email",
                 {
-                    email: "user@test.com",
+                    email: "user@test.example.com",
                     continuationToken: "ct-enroll",
                 },
                 context
@@ -2712,7 +2713,7 @@ describe("CustomAuthApiClientV2", () => {
                 apiClient.enrollAuthMethod(
                     "/tenant/api/v0.1/enroll/email",
                     {
-                        email: "user@test.com",
+                        email: "user@test.example.com",
                         continuationToken: "ct-enroll",
                     },
                     context
@@ -2736,7 +2737,7 @@ describe("CustomAuthApiClientV2", () => {
                 apiClient.enrollAuthMethod(
                     "/tenant/api/v0.1/enroll/email",
                     {
-                        email: "user@test.com",
+                        email: "user@test.example.com",
                         continuationToken: "ct-enroll",
                     },
                     context
@@ -2767,7 +2768,7 @@ describe("CustomAuthApiClientV2", () => {
                 apiClient.enrollAuthMethod(
                     "/tenant/api/v0.1/enroll/email",
                     {
-                        email: "user@test.com",
+                        email: "user@test.example.com",
                         continuationToken: "ct-enroll",
                     },
                     context
@@ -2801,7 +2802,7 @@ describe("CustomAuthApiClientV2", () => {
                 apiClient.enrollAuthMethod(
                     "/tenant/api/v0.1/enroll/email",
                     {
-                        email: "user@test.com",
+                        email: "user@test.example.com",
                         continuationToken: "ct-enroll",
                     },
                     context
@@ -2832,7 +2833,7 @@ describe("CustomAuthApiClientV2", () => {
                 apiClient.enrollAuthMethod(
                     "/tenant/api/v0.1/enroll/email",
                     {
-                        email: "user@test.com",
+                        email: "user@test.example.com",
                         continuationToken: "ct-enroll",
                     },
                     context
@@ -2871,7 +2872,7 @@ describe("CustomAuthApiClientV2", () => {
                     apiClient.enrollAuthMethod(
                         "/tenant/api/v0.1/enroll/email",
                         {
-                            email: "user@test.com",
+                            email: "user@test.example.com",
                             continuationToken: "ct-enroll",
                         },
                         context
@@ -2888,7 +2889,7 @@ describe("CustomAuthApiClientV2", () => {
                     continuationToken: "ct-resend",
                     action: "activate",
                     type: "email",
-                    hint: "u***@test.com",
+                    hint: "u***@test.example.com",
                     codeLength: 6,
                     _links: {
                         activate: {
@@ -2912,7 +2913,7 @@ describe("CustomAuthApiClientV2", () => {
             ).resolves.toMatchObject({
                 nextAction: "activate",
                 continuationToken: "ct-resend",
-                hint: "u***@test.com",
+                hint: "u***@test.example.com",
                 codeLength: 6,
             });
 
@@ -2940,7 +2941,7 @@ describe("CustomAuthApiClientV2", () => {
             const result = await apiClient.activateAuthMethod(
                 "/tenant/api/v0.1/activate/email",
                 {
-                    otp: "866334",
+                    otp: "123456",
                     continuationToken: "ct-activate",
                 },
                 context
@@ -2954,7 +2955,7 @@ describe("CustomAuthApiClientV2", () => {
 
             const [, options] = mockHttpClient.sendAsync.mock.calls[0];
             expect(JSON.parse(options.body)).toEqual({
-                otp: "866334",
+                otp: "123456",
                 continuationToken: "ct-activate",
             });
         });
@@ -2971,7 +2972,7 @@ describe("CustomAuthApiClientV2", () => {
                 apiClient.activateAuthMethod(
                     "/tenant/api/v0.1/activate/email",
                     {
-                        otp: "866334",
+                        otp: "123456",
                         continuationToken: "ct-activate",
                     },
                     context
@@ -3490,9 +3491,8 @@ describe("CustomAuthApiClientV2", () => {
                             message:
                                 "AADSTS50034: The user account does not exist in the directory.",
                             timestamp: "2026-10-15 11:00:16Z",
-                            traceId: "6a72e163-b400-45c1-82d1-2ffe897e1c00",
-                            correlationId:
-                                "1b387df0-1092-49fd-9afa-503c14ead335",
+                            traceId: "test-user-not-found-trace-id",
+                            correlationId: "test-user-not-found-correlation-id",
                             innerError: { code: "userNotFound" },
                         },
                     },
@@ -3509,8 +3509,8 @@ describe("CustomAuthApiClientV2", () => {
             ).rejects.toMatchObject({
                 error: "invalidRequest",
                 innerErrorCode: "userNotFound",
-                correlationId: "1b387df0-1092-49fd-9afa-503c14ead335",
-                traceId: "6a72e163-b400-45c1-82d1-2ffe897e1c00",
+                correlationId: "test-user-not-found-correlation-id",
+                traceId: "test-user-not-found-trace-id",
                 timestamp: "2026-10-15 11:00:16Z",
             });
         });

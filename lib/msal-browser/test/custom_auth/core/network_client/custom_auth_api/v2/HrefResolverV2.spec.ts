@@ -34,13 +34,13 @@ describe("HrefResolverV2.resolveHrefV2", () => {
 
     it("preserves the href query string (dc data-center hint)", () => {
         const href =
-            "/tenant/api/v0.1/auth/methods/email/c8e4b6bda907432f91a4d15a31cad758/verify?dc=test-dc-2";
+            "/tenant/api/v0.1/auth/methods/email/test-email-method/verify?dc=test-dc-2";
 
         const result = resolveHrefV2(base, href);
 
         expect(result.search).toBe("?dc=test-dc-2");
         expect(result.pathname).toBe(
-            "/tenant/api/v0.1/auth/methods/email/c8e4b6bda907432f91a4d15a31cad758/verify"
+            "/tenant/api/v0.1/auth/methods/email/test-email-method/verify"
         );
     });
 
@@ -92,12 +92,12 @@ describe("HrefResolverV2.resolveHrefV2", () => {
 
     it("does not switch hosts when the href contains another origin", () => {
         const href =
-            "https://service.example.com/some-tenant/api/v0.1/auth/methods/password/11d8/pollUpdate?dc=Y";
+            "https://service.example.com/some-tenant/api/v0.1/auth/methods/password/test-password-method/pollUpdate?dc=Y";
 
         const result = resolveHrefV2(base, href);
 
         expect(result.href).toBe(
-            `${base.origin}/some-tenant/api/v0.1/auth/methods/password/11d8/pollUpdate?dc=Y`
+            `${base.origin}/some-tenant/api/v0.1/auth/methods/password/test-password-method/pollUpdate?dc=Y`
         );
     });
 

@@ -7,10 +7,8 @@ import { CustomAuthPublicClientApplication } from "../../../src/custom_auth/Cust
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
 import { PasswordRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
-import { AuthMethodSelectionRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { AuthFlowErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
-import { MFAVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import {
     AuthMethodRegistrationRequiredStateV2,
@@ -117,9 +115,12 @@ describe("Sign-in V2", () => {
                     PasswordRequiredStateV2
                 );
 
-                const result = await (
-                    startResult.state as PasswordRequiredStateV2
-                ).submitPassword("valid-password");
+                if (!startResult.isState("passwordRequired")) {
+                    throw new Error("Expected a password-required state.");
+                }
+                const result = await startResult.state.submitPassword(
+                    "valid-password"
+                );
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -207,9 +208,12 @@ describe("Sign-in V2", () => {
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
                 });
-                const result = await (
-                    startResult.state as PasswordRequiredStateV2
-                ).submitPassword("incorrect");
+                if (!startResult.isState("passwordRequired")) {
+                    throw new Error("Expected a password-required state.");
+                }
+                const result = await startResult.state.submitPassword(
+                    "incorrect"
+                );
 
                 expect(result.isFailed()).toBe(true);
                 expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
@@ -242,9 +246,10 @@ describe("Sign-in V2", () => {
                 expect(startResult.isState("codeRequired")).toBe(true);
                 expect(startResult.state).toBeInstanceOf(CodeRequiredStateV2);
 
-                const result = await (
-                    startResult.state as CodeRequiredStateV2
-                ).submitCode("123456");
+                if (!startResult.isState("codeRequired")) {
+                    throw new Error("Expected a code-required state.");
+                }
+                const result = await startResult.state.submitCode("123456");
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -270,9 +275,10 @@ describe("Sign-in V2", () => {
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
                 });
-                const resendResult = await (
-                    startResult.state as CodeRequiredStateV2
-                ).resendCode();
+                if (!startResult.isState("codeRequired")) {
+                    throw new Error("Expected a code-required state.");
+                }
+                const resendResult = await startResult.state.resendCode();
 
                 expect(resendResult.isState("codeRequired")).toBe(true);
                 expect(resendResult.state).toBeInstanceOf(CodeRequiredStateV2);
@@ -281,9 +287,10 @@ describe("Sign-in V2", () => {
                     expect(resendResult.state.sentTo).toBe("u***@contoso.com");
                 }
 
-                const result = await (
-                    resendResult.state as CodeRequiredStateV2
-                ).submitCode("123456");
+                if (!resendResult.isState("codeRequired")) {
+                    throw new Error("Expected a code-required state.");
+                }
+                const result = await resendResult.state.submitCode("123456");
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -316,8 +323,12 @@ describe("Sign-in V2", () => {
                     true
                 );
                 expect(fetch).toHaveBeenCalledTimes(2);
-                const selectionState =
-                    startResult.state as AuthMethodSelectionRequiredStateV2;
+                if (!startResult.isState("authMethodSelectionRequired")) {
+                    throw new Error(
+                        "Expected authentication method selection."
+                    );
+                }
+                const selectionState = startResult.state;
                 const passwordMethod = selectionState.methods.find(
                     (method) => method.type === "password"
                 );
@@ -334,9 +345,12 @@ describe("Sign-in V2", () => {
                 expect(passwordResult.isState("passwordRequired")).toBe(true);
                 expect(fetch).toHaveBeenCalledTimes(3);
 
-                const result = await (
-                    passwordResult.state as PasswordRequiredStateV2
-                ).submitPassword("selected-password");
+                if (!passwordResult.isState("passwordRequired")) {
+                    throw new Error("Expected a password-required state.");
+                }
+                const result = await passwordResult.state.submitPassword(
+                    "selected-password"
+                );
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -366,8 +380,12 @@ describe("Sign-in V2", () => {
                     true
                 );
                 expect(fetch).toHaveBeenCalledTimes(2);
-                const selectionState =
-                    startResult.state as AuthMethodSelectionRequiredStateV2;
+                if (!startResult.isState("authMethodSelectionRequired")) {
+                    throw new Error(
+                        "Expected authentication method selection."
+                    );
+                }
+                const selectionState = startResult.state;
                 const emailMethod = selectionState.methods.find(
                     (method) => method.type === "email"
                 );
@@ -383,9 +401,10 @@ describe("Sign-in V2", () => {
                 expect(codeResult.state).toBeInstanceOf(CodeRequiredStateV2);
                 expect(fetch).toHaveBeenCalledTimes(3);
 
-                const result = await (
-                    codeResult.state as CodeRequiredStateV2
-                ).submitCode("123456");
+                if (!codeResult.isState("codeRequired")) {
+                    throw new Error("Expected a code-required state.");
+                }
+                const result = await codeResult.state.submitCode("123456");
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -636,15 +655,22 @@ describe("Sign-in V2", () => {
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
                 });
-                const passwordResult = await (
-                    startResult.state as PasswordRequiredStateV2
-                ).submitPassword("valid-password");
+                if (!startResult.isState("passwordRequired")) {
+                    throw new Error("Expected a password-required state.");
+                }
+                const passwordResult = await startResult.state.submitPassword(
+                    "valid-password"
+                );
 
                 expect(
                     passwordResult.isState("authMethodSelectionRequired")
                 ).toBe(true);
-                const mfaSelectionState =
-                    passwordResult.state as AuthMethodSelectionRequiredStateV2;
+                if (!passwordResult.isState("authMethodSelectionRequired")) {
+                    throw new Error(
+                        "Expected authentication method selection."
+                    );
+                }
+                const mfaSelectionState = passwordResult.state;
                 expect(mfaSelectionState.methods[0].type).toBe("email");
 
                 const challengeResult =
@@ -656,9 +682,12 @@ describe("Sign-in V2", () => {
                     true
                 );
 
-                const result = await (
-                    challengeResult.state as MFAVerificationRequiredStateV2
-                ).submitChallenge("123456");
+                if (!challengeResult.isState("mfaVerificationRequired")) {
+                    throw new Error("Expected MFA verification.");
+                }
+                const result = await challengeResult.state.submitChallenge(
+                    "123456"
+                );
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -689,11 +718,18 @@ describe("Sign-in V2", () => {
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
                 });
-                const passwordResult = await (
-                    startResult.state as PasswordRequiredStateV2
-                ).submitPassword("valid-password");
-                const mfaSelectionState =
-                    passwordResult.state as AuthMethodSelectionRequiredStateV2;
+                if (!startResult.isState("passwordRequired")) {
+                    throw new Error("Expected a password-required state.");
+                }
+                const passwordResult = await startResult.state.submitPassword(
+                    "valid-password"
+                );
+                if (!passwordResult.isState("authMethodSelectionRequired")) {
+                    throw new Error(
+                        "Expected authentication method selection."
+                    );
+                }
+                const mfaSelectionState = passwordResult.state;
 
                 expect(mfaSelectionState.methods[0].type).toBe("sms");
 
@@ -701,9 +737,11 @@ describe("Sign-in V2", () => {
                     await mfaSelectionState.selectAuthMethod(
                         mfaSelectionState.methods[0]
                     );
-                const resendResult = await (
-                    challengeResult.state as MFAVerificationRequiredStateV2
-                ).resendChallenge();
+                if (!challengeResult.isState("mfaVerificationRequired")) {
+                    throw new Error("Expected MFA verification.");
+                }
+                const resendResult =
+                    await challengeResult.state.resendChallenge();
 
                 expect(resendResult.isState("mfaVerificationRequired")).toBe(
                     true
@@ -713,9 +751,12 @@ describe("Sign-in V2", () => {
                     expect(resendResult.state.sentTo).toBe("+1******1234");
                 }
 
-                const result = await (
-                    resendResult.state as MFAVerificationRequiredStateV2
-                ).submitChallenge("123456");
+                if (!resendResult.isState("mfaVerificationRequired")) {
+                    throw new Error("Expected MFA verification.");
+                }
+                const result = await resendResult.state.submitChallenge(
+                    "123456"
+                );
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -770,15 +811,20 @@ describe("Sign-in V2", () => {
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
                 });
-                const codeResult = await (
-                    startResult.state as CodeRequiredStateV2
-                ).submitCode("123456");
+                if (!startResult.isState("codeRequired")) {
+                    throw new Error("Expected a code-required state.");
+                }
+                const codeResult = await startResult.state.submitCode("123456");
 
                 expect(codeResult.isState("authMethodSelectionRequired")).toBe(
                     true
                 );
-                const mfaSelectionState =
-                    codeResult.state as AuthMethodSelectionRequiredStateV2;
+                if (!codeResult.isState("authMethodSelectionRequired")) {
+                    throw new Error(
+                        "Expected authentication method selection."
+                    );
+                }
+                const mfaSelectionState = codeResult.state;
                 const challengeResult =
                     await mfaSelectionState.selectAuthMethod(
                         mfaSelectionState.methods[0]
@@ -788,9 +834,12 @@ describe("Sign-in V2", () => {
                     true
                 );
 
-                const result = await (
-                    challengeResult.state as MFAVerificationRequiredStateV2
-                ).submitChallenge("123456");
+                if (!challengeResult.isState("mfaVerificationRequired")) {
+                    throw new Error("Expected MFA verification.");
+                }
+                const result = await challengeResult.state.submitChallenge(
+                    "123456"
+                );
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -822,8 +871,12 @@ describe("Sign-in V2", () => {
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
                 });
-                const primarySelectionState =
-                    startResult.state as AuthMethodSelectionRequiredStateV2;
+                if (!startResult.isState("authMethodSelectionRequired")) {
+                    throw new Error(
+                        "Expected authentication method selection."
+                    );
+                }
+                const primarySelectionState = startResult.state;
                 const passwordMethod = primarySelectionState.methods.find(
                     (method) => method.type === "password"
                 );
@@ -837,23 +890,36 @@ describe("Sign-in V2", () => {
                     await primarySelectionState.selectAuthMethod(
                         passwordMethod
                     );
-                const mfaSelectionResult = await (
-                    passwordRequiredResult.state as PasswordRequiredStateV2
-                ).submitPassword("valid-password");
+                if (!passwordRequiredResult.isState("passwordRequired")) {
+                    throw new Error("Expected a password-required state.");
+                }
+                const mfaSelectionResult =
+                    await passwordRequiredResult.state.submitPassword(
+                        "valid-password"
+                    );
 
                 expect(
                     mfaSelectionResult.isState("authMethodSelectionRequired")
                 ).toBe(true);
-                const mfaSelectionState =
-                    mfaSelectionResult.state as AuthMethodSelectionRequiredStateV2;
+                if (
+                    !mfaSelectionResult.isState("authMethodSelectionRequired")
+                ) {
+                    throw new Error(
+                        "Expected authentication method selection."
+                    );
+                }
+                const mfaSelectionState = mfaSelectionResult.state;
                 const challengeResult =
                     await mfaSelectionState.selectAuthMethod(
                         mfaSelectionState.methods[0]
                     );
 
-                const result = await (
-                    challengeResult.state as MFAVerificationRequiredStateV2
-                ).submitChallenge("123456");
+                if (!challengeResult.isState("mfaVerificationRequired")) {
+                    throw new Error("Expected MFA verification.");
+                }
+                const result = await challengeResult.state.submitChallenge(
+                    "123456"
+                );
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -894,8 +960,12 @@ describe("Sign-in V2", () => {
                     const startResult = await app.signInV2({
                         username: "user@contoso.com",
                     });
-                    const primarySelectionState =
-                        startResult.state as AuthMethodSelectionRequiredStateV2;
+                    if (!startResult.isState("authMethodSelectionRequired")) {
+                        throw new Error(
+                            "Expected authentication method selection."
+                        );
+                    }
+                    const primarySelectionState = startResult.state;
                     const primaryMethod = primarySelectionState.methods.find(
                         (method) => method.type === primaryChannel
                     );
@@ -919,25 +989,38 @@ describe("Sign-in V2", () => {
                         );
                     }
 
-                    const mfaSelectionResult = await (
-                        codeRequiredResult.state as CodeRequiredStateV2
-                    ).submitCode("123456");
+                    if (!codeRequiredResult.isState("codeRequired")) {
+                        throw new Error("Expected a code-required state.");
+                    }
+                    const mfaSelectionResult =
+                        await codeRequiredResult.state.submitCode("123456");
 
                     expect(
                         mfaSelectionResult.isState(
                             "authMethodSelectionRequired"
                         )
                     ).toBe(true);
-                    const mfaSelectionState =
-                        mfaSelectionResult.state as AuthMethodSelectionRequiredStateV2;
+                    if (
+                        !mfaSelectionResult.isState(
+                            "authMethodSelectionRequired"
+                        )
+                    ) {
+                        throw new Error(
+                            "Expected authentication method selection."
+                        );
+                    }
+                    const mfaSelectionState = mfaSelectionResult.state;
                     const challengeResult =
                         await mfaSelectionState.selectAuthMethod(
                             mfaSelectionState.methods[0]
                         );
 
-                    const result = await (
-                        challengeResult.state as MFAVerificationRequiredStateV2
-                    ).submitChallenge("123456");
+                    if (!challengeResult.isState("mfaVerificationRequired")) {
+                        throw new Error("Expected MFA verification.");
+                    }
+                    const result = await challengeResult.state.submitChallenge(
+                        "123456"
+                    );
 
                     expect(result.isState("completed")).toBe(true);
                     expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -977,16 +1060,25 @@ describe("Sign-in V2", () => {
                 expect(
                     mfaSelectionResult.isState("authMethodSelectionRequired")
                 ).toBe(true);
-                const mfaSelectionState =
-                    mfaSelectionResult.state as AuthMethodSelectionRequiredStateV2;
+                if (
+                    !mfaSelectionResult.isState("authMethodSelectionRequired")
+                ) {
+                    throw new Error(
+                        "Expected authentication method selection."
+                    );
+                }
+                const mfaSelectionState = mfaSelectionResult.state;
                 const challengeResult =
                     await mfaSelectionState.selectAuthMethod(
                         mfaSelectionState.methods[0]
                     );
 
-                const result = await (
-                    challengeResult.state as MFAVerificationRequiredStateV2
-                ).submitChallenge("123456");
+                if (!challengeResult.isState("mfaVerificationRequired")) {
+                    throw new Error("Expected MFA verification.");
+                }
+                const result = await challengeResult.state.submitChallenge(
+                    "123456"
+                );
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);

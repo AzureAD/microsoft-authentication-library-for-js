@@ -15,6 +15,10 @@ import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth
 import { NewPasswordRequiredStateV2 } from "../../../src/custom_auth/reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import { SignInContinuationStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import { MFAVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
+import type { CustomAuthResultV2 } from "../../../src/custom_auth/core/auth_flow/v2/CustomAuthResultV2.js";
+import type { RequestChallengeResultStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/result/RequestChallengeResultV2.js";
+import type { ResetPasswordStartResultStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
+import type { SubmitNewPasswordResultV2 } from "../../../src/custom_auth/reset_password/auth_flow/v2/result/SubmitNewPasswordResultV2.js";
 import { INVALID_HAL_RESPONSE } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
@@ -85,20 +89,31 @@ describe("Reset password V2 (SSPR)", () => {
     });
 
     const completePasswordReset = async (
-        codeState: CodeRequiredStateV2
+        codeResult: CustomAuthResultV2<
+            ResetPasswordStartResultStateV2 | RequestChallengeResultStateV2
+        >
     ): Promise<void> => {
-        const verifyResult = await codeState.submitCode("123456");
+        if (!codeResult.isState("codeRequired")) {
+            throw new Error("Expected a code-required state.");
+        }
+        const verifyResult = await codeResult.state.submitCode("123456");
         expect(verifyResult.isFailed()).toBe(false);
         expect(verifyResult.state).toBeInstanceOf(NewPasswordRequiredStateV2);
 
-        const passwordState = verifyResult.state as NewPasswordRequiredStateV2;
+        if (!verifyResult.isState("newPasswordRequired")) {
+            throw new Error("Expected a new-password-required state.");
+        }
+        const passwordState = verifyResult.state;
         const submitResult = await passwordState.submitNewPassword(
             "new-valid-password"
         );
         expect(submitResult.isFailed()).toBe(false);
         expect(submitResult.state).toBeInstanceOf(SignInContinuationStateV2);
 
-        const signInState = submitResult.state as SignInContinuationStateV2;
+        if (!submitResult.isState("signInContinuation")) {
+            throw new Error("Expected sign-in continuation.");
+        }
+        const signInState = submitResult.state;
         const signInResult = await signInState.signIn();
         expect(signInResult.isFailed()).toBe(false);
         expect(signInResult.isState("completed")).toBe(true);
@@ -119,7 +134,7 @@ describe("Reset password V2 (SSPR)", () => {
     };
 
     const reachResetMfaSelection =
-        async (): Promise<AuthMethodSelectionRequiredStateV2> => {
+        async (): Promise<SubmitNewPasswordResultV2> => {
             (fetch as jest.Mock)
                 .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
                 .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
@@ -149,7 +164,7 @@ describe("Reset password V2 (SSPR)", () => {
             }
             expect(fetch).toHaveBeenCalledTimes(6);
             expect(app.getAllAccounts()).toHaveLength(0);
-            return selection.state;
+            return selection;
         };
 
     it("completes password reset after automatically challenging the only Email method", async () => {
@@ -174,7 +189,7 @@ describe("Reset password V2 (SSPR)", () => {
         expect(codeState.method?.id).toBe("email");
         expect(codeState.channel).toBe("email");
 
-        await completePasswordReset(codeState);
+        await completePasswordReset(startResult);
 
         expect(fetch).toHaveBeenCalledTimes(8);
     });
@@ -211,7 +226,7 @@ describe("Reset password V2 (SSPR)", () => {
         if (!resent.isState("codeRequired")) {
             throw new Error("Expected a replacement reset code.");
         }
-        await completePasswordReset(resent.state);
+        await completePasswordReset(resent);
 
         expect(fetch).toHaveBeenCalledTimes(9);
     });
@@ -444,7 +459,11 @@ describe("Reset password V2 (SSPR)", () => {
     );
 
     it("uses the refreshed MFA token and verify link after resending", async () => {
-        const selection = await reachResetMfaSelection();
+        const selectionResult = await reachResetMfaSelection();
+        if (!selectionResult.isState("authMethodSelectionRequired")) {
+            throw new Error("Expected reset MFA selection.");
+        }
+        const selection = selectionResult.state;
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(MFA_EMAIL_CHALLENGE_RESPONSE))
             .mockResolvedValueOnce(
@@ -507,7 +526,11 @@ describe("Reset password V2 (SSPR)", () => {
     it.each(["selection", "resend", "verification"] as const)(
         "rejects enrollment after MFA %s without caching an account",
         async (step) => {
-            const selection = await reachResetMfaSelection();
+            const selectionResult = await reachResetMfaSelection();
+            if (!selectionResult.isState("authMethodSelectionRequired")) {
+                throw new Error("Expected reset MFA selection.");
+            }
+            const selection = selectionResult.state;
             (fetch as jest.Mock).mockResolvedValueOnce(
                 buildResponse(
                     step === "selection"
@@ -587,7 +610,11 @@ describe("Reset password V2 (SSPR)", () => {
     ])(
         "does not complete or cache an account after MFA $name",
         async ({ response, status, rejectToken }) => {
-            const selection = await reachResetMfaSelection();
+            const selectionResult = await reachResetMfaSelection();
+            if (!selectionResult.isState("authMethodSelectionRequired")) {
+                throw new Error("Expected reset MFA selection.");
+            }
+            const selection = selectionResult.state;
             (fetch as jest.Mock)
                 .mockResolvedValueOnce(
                     buildResponse(MFA_EMAIL_CHALLENGE_RESPONSE)
@@ -726,12 +753,15 @@ describe("Reset password V2 (SSPR)", () => {
         expect(startResult.isState("codeRequired")).toBe(true);
         expect(startResult.state).toBeInstanceOf(CodeRequiredStateV2);
 
-        const codeState = startResult.state as CodeRequiredStateV2;
+        if (!startResult.isState("codeRequired")) {
+            throw new Error("Expected a code-required state.");
+        }
+        const codeState = startResult.state;
         expect(codeState.method?.id).toBe("sms");
         expect(codeState.channel).toBe("sms");
         expect(codeState.sentTo).toBe("+*** *******11");
 
-        await completePasswordReset(codeState);
+        await completePasswordReset(startResult);
 
         expect(fetch as jest.Mock).toHaveBeenCalledTimes(9);
         expect(String((fetch as jest.Mock).mock.calls[3][0])).toContain(
@@ -763,8 +793,10 @@ describe("Reset password V2 (SSPR)", () => {
             AuthMethodSelectionRequiredStateV2
         );
 
-        const methodState =
-            startResult.state as AuthMethodSelectionRequiredStateV2;
+        if (!startResult.isState("authMethodSelectionRequired")) {
+            throw new Error("Expected authentication method selection.");
+        }
+        const methodState = startResult.state;
         const emailMethod = methodState.methods.find(
             (method) => method.type === "email"
         );
@@ -776,9 +808,10 @@ describe("Reset password V2 (SSPR)", () => {
         expect(challengeResult.isFailed()).toBe(false);
         expect(challengeResult.state).toBeInstanceOf(CodeRequiredStateV2);
 
-        await completePasswordReset(
-            challengeResult.state as CodeRequiredStateV2
-        );
+        if (!challengeResult.isState("codeRequired")) {
+            throw new Error("Expected a code-required state.");
+        }
+        await completePasswordReset(challengeResult);
 
         expect(fetch as jest.Mock).toHaveBeenCalledTimes(8);
     });
@@ -809,8 +842,10 @@ describe("Reset password V2 (SSPR)", () => {
             AuthMethodSelectionRequiredStateV2
         );
 
-        const methodState =
-            startResult.state as AuthMethodSelectionRequiredStateV2;
+        if (!startResult.isState("authMethodSelectionRequired")) {
+            throw new Error("Expected authentication method selection.");
+        }
+        const methodState = startResult.state;
         const smsMethod = methodState.methods.find(
             (method) => method.type === "sms"
         );
@@ -822,14 +857,18 @@ describe("Reset password V2 (SSPR)", () => {
         expect(challengeResult.isFailed()).toBe(false);
         expect(challengeResult.state).toBeInstanceOf(CodeRequiredStateV2);
 
-        const resendResult = await (
-            challengeResult.state as CodeRequiredStateV2
-        ).resendCode();
+        if (!challengeResult.isState("codeRequired")) {
+            throw new Error("Expected a code-required state.");
+        }
+        const resendResult = await challengeResult.state.resendCode();
         expect(resendResult.isFailed()).toBe(false);
         expect(resendResult.state).toBeInstanceOf(CodeRequiredStateV2);
-        expect((resendResult.state as CodeRequiredStateV2).channel).toBe("sms");
+        if (!resendResult.isState("codeRequired")) {
+            throw new Error("Expected a code-required state.");
+        }
+        expect(resendResult.state.channel).toBe("sms");
 
-        await completePasswordReset(resendResult.state as CodeRequiredStateV2);
+        await completePasswordReset(resendResult);
 
         expect(fetch as jest.Mock).toHaveBeenCalledTimes(11);
         expect(String((fetch as jest.Mock).mock.calls[4][0])).toContain(
@@ -893,9 +932,10 @@ describe("Reset password V2 (SSPR)", () => {
         const startResult = await app.resetPasswordV2({
             username: "user@contoso.com",
         });
-        const result = await (
-            startResult.state as CodeRequiredStateV2
-        ).submitCode("00000");
+        if (!startResult.isState("codeRequired")) {
+            throw new Error("Expected a code-required state.");
+        }
+        const result = await startResult.state.submitCode("00000");
 
         expect(result.isFailed()).toBe(true);
         expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
@@ -926,12 +966,14 @@ describe("Reset password V2 (SSPR)", () => {
         const startResult = await app.resetPasswordV2({
             username: "user@contoso.com",
         });
-        const verifyResult = await (
-            startResult.state as CodeRequiredStateV2
-        ).submitCode("123456");
-        const result = await (
-            verifyResult.state as NewPasswordRequiredStateV2
-        ).submitNewPassword("weak");
+        if (!startResult.isState("codeRequired")) {
+            throw new Error("Expected a code-required state.");
+        }
+        const verifyResult = await startResult.state.submitCode("123456");
+        if (!verifyResult.isState("newPasswordRequired")) {
+            throw new Error("Expected a new-password-required state.");
+        }
+        const result = await verifyResult.state.submitNewPassword("weak");
 
         expect(result.isFailed()).toBe(true);
         expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
