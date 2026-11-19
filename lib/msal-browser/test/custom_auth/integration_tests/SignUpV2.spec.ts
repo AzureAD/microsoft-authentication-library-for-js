@@ -955,7 +955,6 @@ describe("Sign-up V2 entry", () => {
                     buildResponse({
                         continuationToken: "ct-complete",
                         state: "continue",
-                        _links: ACTIVATED_CONTINUE_RESPONSE._links,
                     })
                 );
             const startResult = await app.signUpV2({
@@ -1900,7 +1899,6 @@ describe("Sign-up V2 entry", () => {
                 buildResponse({
                     continuationToken: "ct-complete",
                     state: "continue",
-                    _links: ACTIVATED_CONTINUE_RESPONSE._links,
                 })
             );
 
@@ -2113,7 +2111,6 @@ describe("Sign-up V2 entry", () => {
                 buildResponse({
                     continuationToken: "ct-complete",
                     state: "continue",
-                    _links: ACTIVATED_CONTINUE_RESPONSE._links,
                 })
             );
 
@@ -2269,7 +2266,6 @@ describe("Sign-up V2 entry", () => {
                     buildResponse({
                         continuationToken: "ct-final",
                         state: "continue",
-                        _links: ACTIVATED_CONTINUE_RESPONSE._links,
                     })
                 );
                 fetchMock
@@ -2725,7 +2721,6 @@ describe("Sign-up V2 entry", () => {
                 buildResponse({
                     continuationToken: "ct-verify",
                     state: "continue",
-                    _links: ACTIVATED_CONTINUE_RESPONSE._links,
                 })
             );
 
@@ -2749,9 +2744,7 @@ describe("Sign-up V2 entry", () => {
                 continuationToken: "ct-verify",
                 scenario: "signUp",
                 scopes: ["openid", "profile", "offline_access"],
-                links: {
-                    continue: ACTIVATED_CONTINUE_RESPONSE._links.continue.href,
-                },
+                links: {},
                 signUp: {
                     purpose: "newAccount",
                     pendingProfileAttributes: {},
@@ -2793,7 +2786,6 @@ describe("Sign-up V2 entry", () => {
                 buildResponse({
                     continuationToken: "ct-complete",
                     state: "continue",
-                    _links: ACTIVATED_CONTINUE_RESPONSE._links,
                 })
             )
             .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
@@ -2889,7 +2881,6 @@ describe("Sign-up V2 entry", () => {
                 buildResponse({
                     continuationToken: "ct-complete",
                     state: "continue",
-                    _links: ACTIVATED_CONTINUE_RESPONSE._links,
                 })
             )
             .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))

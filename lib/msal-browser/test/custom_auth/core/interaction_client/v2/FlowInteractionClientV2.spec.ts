@@ -74,9 +74,6 @@ import {
     SIGN_UP_V2_SUBMIT_PASSWORD,
 } from "../../../../../src/custom_auth/core/telemetry/PublicApiId.js";
 
-const CONTINUE_HREF =
-    "https://contoso.ciamlogin.com/server-tenant/oauth2/v2.0/authorize-challenge?dc=server&customer=hello%20world";
-
 describe("FlowInteractionClientV2", () => {
     let client: FlowInteractionClientV2;
     let logger: Logger;
@@ -1556,7 +1553,6 @@ describe("FlowInteractionClientV2", () => {
             };
             apiClient.verifyChallenge.mockResolvedValue({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-mfa-verify",
             });
             apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
@@ -1583,7 +1579,6 @@ describe("FlowInteractionClientV2", () => {
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
                 {
                     continuationToken: "ct-mfa-verify",
-                    continueHref: CONTINUE_HREF,
                 },
                 expect.objectContaining({ correlationId })
             );
@@ -1672,7 +1667,6 @@ describe("FlowInteractionClientV2", () => {
             const errorData = apiError("invalidGrant", "invalidOneTimeCode");
             apiClient.verifyChallenge.mockResolvedValue({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-complete",
             });
             apiClient.completeWithTokens.mockRejectedValue(errorData);
@@ -1706,7 +1700,6 @@ describe("FlowInteractionClientV2", () => {
             };
             apiClient.verifyChallenge.mockResolvedValue({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-mfa-verify",
             });
             apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
@@ -1758,10 +1751,7 @@ describe("FlowInteractionClientV2", () => {
                 authenticationResult: fakeAuthResult,
             });
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
-                {
-                    continuationToken: "ct-mfa-verify",
-                    continueHref: CONTINUE_HREF,
-                },
+                { continuationToken: "ct-mfa-verify" },
                 expect.objectContaining({ correlationId })
             );
             expect(tokenHandler).toHaveBeenCalledWith(
@@ -2231,7 +2221,6 @@ describe("FlowInteractionClientV2", () => {
             });
             apiClient.submitSignUpAttributes.mockResolvedValue({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-complete",
             });
 
@@ -2433,7 +2422,6 @@ describe("FlowInteractionClientV2", () => {
             };
             apiClient.verifyChallenge.mockResolvedValue({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-sign-up-verify",
             });
 
@@ -2451,7 +2439,7 @@ describe("FlowInteractionClientV2", () => {
                 continuationToken: "ct-sign-up-verify",
                 scenario: "signUp",
                 scopes: ["openid", "profile", "offline_access"],
-                links: { continue: CONTINUE_HREF },
+                links: {},
             });
             expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
         });
@@ -2478,7 +2466,6 @@ describe("FlowInteractionClientV2", () => {
             );
             apiClient.verifyChallenge.mockResolvedValue({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-verify",
             });
 
@@ -2608,19 +2595,21 @@ describe("FlowInteractionClientV2", () => {
                 });
             });
 
-            it("preserves the continue href after code verification", async () => {
+            it("reuses sign-in continuation handling after code verification", async () => {
                 const contextSpy = jest.spyOn(
                     client as unknown as {
                         createRequestContext: (
                             apiId: number,
                             correlationId: string
                         ) => unknown;
+                        handleTokenResponse: (
+                            ...args: unknown[]
+                        ) => Promise<unknown>;
                     },
                     "createRequestContext"
                 );
                 apiClient.verifyChallenge.mockResolvedValue({
                     nextAction: "continue",
-                    continueHref: CONTINUE_HREF,
                     continuationToken: "ct-continue",
                 });
                 apiClient.completeWithTokens.mockResolvedValue({
@@ -2658,69 +2647,7 @@ describe("FlowInteractionClientV2", () => {
                     correlationId
                 );
                 expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
-                    {
-                        continuationToken: "ct-continue",
-                        continueHref: CONTINUE_HREF,
-                    },
-                    expect.objectContaining({ correlationId })
-                );
-                expect(result.type).toBe(FLOW_COMPLETED_V2);
-            });
-
-            it("preserves the continue href after password verification", async () => {
-                const contextSpy = jest.spyOn(
-                    client as unknown as {
-                        createRequestContext: (
-                            apiId: number,
-                            correlationId: string
-                        ) => unknown;
-                    },
-                    "createRequestContext"
-                );
-                apiClient.verifyChallenge.mockResolvedValue({
-                    nextAction: "continue",
-                    continueHref: CONTINUE_HREF,
-                    continuationToken: "ct-continue",
-                });
-                apiClient.completeWithTokens.mockResolvedValue({
-                    token_type: "Bearer",
-                    expires_in: 3600,
-                    access_token: "at",
-                    refresh_token: "rt",
-                    scope: "openid profile offline_access User.Read",
-                    id_token: "id",
-                    client_info: "ci",
-                });
-                jest.spyOn(
-                    client as unknown as {
-                        handleTokenResponse: (
-                            ...args: unknown[]
-                        ) => Promise<unknown>;
-                    },
-                    "handleTokenResponse"
-                ).mockResolvedValue({
-                    account: { homeAccountId: "uid.utid" },
-                });
-
-                const result = await client.submitSignInPassword({
-                    correlationId,
-                    continuationState: existingAccountContinuationState,
-                    password: "valid-password",
-                });
-
-                expect(contextSpy).toHaveBeenCalledWith(
-                    SIGN_UP_V2_SUBMIT_PASSWORD,
-                    correlationId
-                );
-                expect(contextSpy).toHaveBeenCalledWith(
-                    SIGN_UP_V2_COMPLETE,
-                    correlationId
-                );
-                expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
-                    {
-                        continuationToken: "ct-continue",
-                        continueHref: CONTINUE_HREF,
-                    },
+                    { continuationToken: "ct-continue" },
                     expect.objectContaining({ correlationId })
                 );
                 expect(result.type).toBe(FLOW_COMPLETED_V2);
@@ -2871,7 +2798,6 @@ describe("FlowInteractionClientV2", () => {
         it("allows custom username attributes without treating them as email", async () => {
             apiClient.submitSignUpAttributes.mockResolvedValue({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-complete",
             });
             const attributes = {
@@ -2932,7 +2858,6 @@ describe("FlowInteractionClientV2", () => {
                     attributes.city = "Later";
                     return {
                         nextAction: "continue",
-                        continueHref: CONTINUE_HREF,
                         continuationToken: "ct-complete",
                     };
                 }
@@ -3033,7 +2958,6 @@ describe("FlowInteractionClientV2", () => {
             );
             apiClient.submitSignUpAttributes.mockResolvedValue({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-complete",
             });
 
@@ -3069,7 +2993,7 @@ describe("FlowInteractionClientV2", () => {
                 continuationToken: "ct-complete",
                 scenario: "signUp",
                 scopes: ["openid", "profile", "offline_access"],
-                links: { continue: CONTINUE_HREF },
+                links: {},
                 signUp: {
                     purpose: "newAccount",
                     submittedAttributeIds: ["password", "jobTitle"],
@@ -3097,7 +3021,6 @@ describe("FlowInteractionClientV2", () => {
                 const expectedAttributes = { ...submittedAttributes };
                 apiClient.submitSignUpAttributes.mockResolvedValue({
                     nextAction: "continue",
-                    continueHref: CONTINUE_HREF,
                     continuationToken: "ct-complete",
                 });
 
@@ -3151,7 +3074,6 @@ describe("FlowInteractionClientV2", () => {
                 })
                 .mockResolvedValueOnce({
                     nextAction: "continue",
-                    continueHref: CONTINUE_HREF,
                     continuationToken: "ct-complete",
                 });
             apiClient.verifyChallenge.mockResolvedValue({
@@ -3202,7 +3124,6 @@ describe("FlowInteractionClientV2", () => {
         it("submits only the trusted password when no profile attributes are retained", async () => {
             apiClient.submitSignUpAttributes.mockResolvedValue({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-complete",
             });
 
@@ -3495,7 +3416,6 @@ describe("FlowInteractionClientV2", () => {
                 apiClient.submitSignUpAttributes.mockResolvedValue({
                     nextAction: nextAction as "continue",
                     continuationToken: "ct-unsupported",
-                    continueHref: CONTINUE_HREF,
                 });
 
                 await expect(
@@ -4092,7 +4012,6 @@ describe("FlowInteractionClientV2", () => {
                     .mockResolvedValueOnce({
                         continuationToken,
                         nextAction: "continue",
-                        continueHref: CONTINUE_HREF,
                     });
 
                 const promise = client.submitNewPassword({
@@ -4127,7 +4046,6 @@ describe("FlowInteractionClientV2", () => {
             apiClient.poll.mockResolvedValue({
                 continuationToken: "ct-complete",
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
             });
 
             const result = await client.submitNewPassword({
@@ -4160,7 +4078,7 @@ describe("FlowInteractionClientV2", () => {
                 continuationToken: "ct-complete",
                 scenario: "passwordReset",
                 scopes: ["openid", "profile", "offline_access"],
-                links: { continue: CONTINUE_HREF },
+                links: {},
             });
         });
 
@@ -4179,7 +4097,6 @@ describe("FlowInteractionClientV2", () => {
                 .mockResolvedValueOnce({
                     continuationToken: "ct-complete",
                     nextAction: "continue",
-                    continueHref: CONTINUE_HREF,
                 });
 
             const promise = client.submitNewPassword({
@@ -4217,7 +4134,6 @@ describe("FlowInteractionClientV2", () => {
                 .mockResolvedValueOnce({
                     continuationToken: "ct-complete",
                     nextAction: "continue",
-                    continueHref: CONTINUE_HREF,
                 });
 
             const promise = client.submitNewPassword({
@@ -4279,7 +4195,6 @@ describe("FlowInteractionClientV2", () => {
                         : {
                               nextAction,
                               continuationToken: "ct-final",
-                              continueHref: CONTINUE_HREF,
                           }
                 );
 
@@ -4361,7 +4276,7 @@ describe("FlowInteractionClientV2", () => {
             continuationToken: "ct-complete",
             scenario: "passwordReset",
             scopes: ["User.Read", "openid", "profile", "offline_access"],
-            links: { continue: CONTINUE_HREF },
+            links: {},
         };
 
         const tokenResponse = {
@@ -4377,19 +4292,6 @@ describe("FlowInteractionClientV2", () => {
         // The account/cache building is msal-common's concern; stub the shared handler so the test
         // covers only this client's wiring (redeem -> handle -> completed envelope).
         const fakeAuthResult = { account: { homeAccountId: "uid.utid" } };
-
-        it("rejects completion without the response continue link before sending a request", async () => {
-            await expect(
-                client.signInWithContinuation({
-                    correlationId,
-                    continuationState: { ...continuationState, links: {} },
-                })
-            ).rejects.toMatchObject({
-                error: CONTINUATION_LINK_MISSING,
-                correlationId,
-            });
-            expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
-        });
 
         it("redeems the continuation and returns a completed result with default scopes", async () => {
             apiClient.completeWithTokens.mockResolvedValue(tokenResponse);
@@ -4412,7 +4314,6 @@ describe("FlowInteractionClientV2", () => {
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
                 {
                     continuationToken: "ct-complete",
-                    continueHref: CONTINUE_HREF,
                 },
                 expect.objectContaining({ correlationId })
             );
@@ -4493,7 +4394,6 @@ describe("FlowInteractionClientV2", () => {
             expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
                 {
                     continuationToken: "ct-complete",
-                    continueHref: CONTINUE_HREF,
                 },
                 expect.objectContaining({ correlationId })
             );
@@ -4866,7 +4766,6 @@ describe("FlowInteractionClientV2", () => {
                 });
                 apiClient.activateAuthMethod.mockResolvedValue({
                     nextAction: "continue",
-                    continueHref: CONTINUE_HREF,
                     continuationToken: "ct-complete",
                 });
                 apiClient.completeWithTokens.mockResolvedValue({
@@ -4910,7 +4809,6 @@ describe("FlowInteractionClientV2", () => {
                 expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
                     {
                         continuationToken: "ct-complete",
-                        continueHref: CONTINUE_HREF,
                     },
                     expect.objectContaining({ correlationId })
                 );
@@ -4926,7 +4824,6 @@ describe("FlowInteractionClientV2", () => {
             async (scenario) => {
                 apiClient.activateAuthMethod.mockResolvedValue({
                     nextAction: "continue",
-                    continueHref: CONTINUE_HREF,
                     continuationToken: "ct-activated",
                 });
                 const signIn = jest.spyOn(client, "signInWithContinuation");
@@ -4948,7 +4845,7 @@ describe("FlowInteractionClientV2", () => {
                         ...continuationState,
                         scenario,
                         continuationToken: "ct-activated",
-                        links: { continue: CONTINUE_HREF },
+                        links: {},
                     },
                 });
                 expect(signIn).not.toHaveBeenCalled();
@@ -5016,7 +4913,6 @@ describe("FlowInteractionClientV2", () => {
             const errorData = apiError("invalidGrant", "invalidOneTimeCode");
             apiClient.activateAuthMethod.mockResolvedValue({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-complete",
             });
             apiClient.completeWithTokens.mockRejectedValue(errorData);

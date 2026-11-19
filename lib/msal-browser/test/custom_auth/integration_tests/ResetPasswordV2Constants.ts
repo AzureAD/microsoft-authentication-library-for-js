@@ -3,151 +3,195 @@
  * Licensed under the MIT License.
  */
 
-import type {
-    AuthorizeChallengeEntryResultV2,
-    ChallengeVerificationResultV2,
-    ContinueResultV2,
-    EnrollmentRequiredResultV2,
-    EnrollmentResultV2,
-    ResetPasswordStartApiResultV2,
-    RiskVerificationRequiredResultV2,
-    VerifyResultV2,
-} from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
-import type {
-    ResetPasswordPollResultV2,
-    ResetPasswordUpdateResultV2,
-} from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/ResetPasswordResultsV2.js";
-
-export const ENTRY_RESPONSE: AuthorizeChallengeEntryResultV2 = {
-    continuationToken: "ct-entry",
-    resetPasswordHref: "/tenant/api/v0.1/auth/resetpassword?dc=X",
+export const ENTRY_RESPONSE = {
+    continuation_token: "ct-entry",
+    reset_password: "/tenant/api/v0.1/auth/resetpassword?dc=X",
 };
 
-const emailMethod = {
+export const EMAIL_METHOD = {
     id: "email",
     type: "email",
     hint: "u***@contoso.com",
-    challengeHref: "/tenant/api/v0.1/methods/email/challenge",
+    _links: {
+        challenge: {
+            href: "/tenant/api/v0.1/methods/email/challenge",
+        },
+    },
 };
 
-const smsMethod = {
+export const SMS_METHOD = {
     id: "sms",
     type: "sms",
     hint: "+*** *******11",
-    challengeHref: "/tenant/api/v0.1/methods/sms/challenge",
+    _links: {
+        challenge: {
+            href: "/tenant/api/v0.1/methods/sms/challenge",
+        },
+    },
 };
 
-export const EMAIL_ONLY_START_RESPONSE: ResetPasswordStartApiResultV2 = {
+const START_RESPONSE = {
     continuationToken: "ct-start",
-    authenticationFactor: "singleFactor",
+    challengeContext: {
+        authenticationFactor: "singleFactor",
+    },
     scenario: "recovery",
-    methods: [emailMethod],
+    _links: {},
 };
 
-export const SMS_ONLY_START_RESPONSE: ResetPasswordStartApiResultV2 = {
-    ...EMAIL_ONLY_START_RESPONSE,
-    methods: [smsMethod],
+export const EMAIL_ONLY_START_RESPONSE = {
+    ...START_RESPONSE,
+    _embedded: {
+        methods: [EMAIL_METHOD],
+    },
 };
 
-export const EMAIL_AND_SMS_START_RESPONSE: ResetPasswordStartApiResultV2 = {
-    ...EMAIL_ONLY_START_RESPONSE,
-    methods: [emailMethod, smsMethod],
+export const SMS_ONLY_START_RESPONSE = {
+    ...START_RESPONSE,
+    _embedded: {
+        methods: [SMS_METHOD],
+    },
 };
 
-export const EMAIL_CHALLENGE_RESPONSE: ChallengeVerificationResultV2 = {
-    nextAction: "verify",
+export const EMAIL_AND_SMS_START_RESPONSE = {
+    ...START_RESPONSE,
+    _embedded: {
+        methods: [EMAIL_METHOD, SMS_METHOD],
+    },
+};
+
+export const EMAIL_CHALLENGE_RESPONSE = {
     continuationToken: "ct-email-challenge",
-    type: "email",
+    action: "verify",
     codeLength: 6,
     hint: "u***@contoso.com",
-    verifyHref: "/tenant/api/v0.1/email/verify",
-    resendHref: "/tenant/api/v0.1/email/resend",
+    type: "email",
+    _links: {
+        verify: { href: "/tenant/api/v0.1/email/verify" },
+        resend: { href: "/tenant/api/v0.1/email/resend" },
+    },
 };
 
-export const SMS_CHALLENGE_RESPONSE: RiskVerificationRequiredResultV2 = {
-    nextAction: "riskverify",
+export const SMS_CHALLENGE_RESPONSE = {
     continuationToken: "ct-sms-risk",
-    riskVerifyHref: "/tenant/api/v1.0-internal/risk/phone/verify",
+    state: "interactionRequired",
+    action: "riskverify",
+    _links: {
+        riskverify: {
+            href: "/tenant/api/v1.0-internal/risk/phone/verify",
+        },
+    },
 };
 
-export const SMS_RISK_VERIFY_RESPONSE: ChallengeVerificationResultV2 = {
-    nextAction: "verify",
+export const SMS_RISK_VERIFY_RESPONSE = {
     continuationToken: "ct-sms-verify",
+    state: "interactionRequired",
+    action: "verify",
+    scenario: "recovery",
+    id: "sms",
     type: "sms",
-    codeLength: 6,
     hint: "+*** *******11",
-    verifyHref: "/tenant/api/v1.0-internal/sms/verify",
-    resendHref: "/tenant/api/v1.0-internal/sms/challenge",
+    payload: { codeLength: 6 },
+    _links: {
+        verify: { href: "/tenant/api/v1.0-internal/sms/verify" },
+        resend: { href: "/tenant/api/v1.0-internal/sms/challenge" },
+    },
 };
 
-export const SMS_RESEND_CHALLENGE_RESPONSE: RiskVerificationRequiredResultV2 = {
+export const SMS_RESEND_CHALLENGE_RESPONSE = {
     ...SMS_CHALLENGE_RESPONSE,
     continuationToken: "ct-sms-resend-risk",
 };
 
-export const SMS_RESEND_RISK_VERIFY_RESPONSE: ChallengeVerificationResultV2 = {
+export const SMS_RESEND_RISK_VERIFY_RESPONSE = {
     ...SMS_RISK_VERIFY_RESPONSE,
     continuationToken: "ct-sms-resend-verify",
 };
 
-export const VERIFY_RESPONSE: VerifyResultV2 = {
-    nextAction: "update",
+export const VERIFY_RESPONSE = {
     continuationToken: "ct-verify",
-    updateHref: "/tenant/api/v0.1/update",
+    action: "update",
+    _links: { update: { href: "/tenant/api/v0.1/update" } },
 };
 
-export const UPDATE_RESPONSE: ResetPasswordUpdateResultV2 = {
+export const UPDATE_RESPONSE = {
     continuationToken: "ct-update",
-    pollHref: "/tenant/api/v0.1/poll",
+    _links: { poll: { href: "/tenant/api/v0.1/poll" } },
 };
 
-export const POLL_COMPLETED_RESPONSE: ContinueResultV2 = {
-    nextAction: "continue",
+export const POLL_COMPLETED_RESPONSE = {
+    state: "continue",
     continuationToken: "ct-poll",
-    continueHref: "/tenant/api/v0.1/continue",
+    _links: { continue: { href: "/tenant/api/v0.1/continue" } },
 };
 
 export const POLL_MFA_REQUIRED_RESPONSE = {
-    nextAction: "challenge",
     continuationToken: "ct-mfa-selection",
-    authenticationFactor: "multiFactor",
-    methods: [
-        {
-            id: "email-mfa",
-            type: "email",
-            hint: "u***@contoso.com",
-            challengeHref: "/tenant/api/v0.1/mfa/email/challenge",
-        },
-    ],
-} satisfies ResetPasswordPollResultV2;
+    state: "interactionRequired",
+    action: "challenge",
+    challengeContext: {
+        authenticationFactor: "multiFactor",
+    },
+    _embedded: {
+        methods: [
+            {
+                id: "email-mfa",
+                type: "email",
+                hint: "u***@contoso.com",
+                _links: {
+                    challenge: {
+                        href: "/tenant/api/v0.1/mfa/email/challenge",
+                    },
+                },
+            },
+        ],
+    },
+};
 
-export const MFA_EMAIL_CHALLENGE_RESPONSE: ChallengeVerificationResultV2 = {
-    ...EMAIL_CHALLENGE_RESPONSE,
+export const MFA_EMAIL_CHALLENGE_RESPONSE = {
     continuationToken: "ct-mfa-challenge",
-    verifyHref: "/tenant/api/v0.1/mfa/email/verify",
-    resendHref: "/tenant/api/v0.1/mfa/email/resend",
-};
-
-export const MFA_VERIFY_RESPONSE: ContinueResultV2 = {
-    ...POLL_COMPLETED_RESPONSE,
-    continuationToken: "ct-mfa-verified",
-};
-
-export const POLL_ENROLL_REQUIRED_RESPONSE: EnrollmentRequiredResultV2 = {
-    nextAction: "enroll",
-    continuationToken: "ct-enroll",
-    methods: [{ type: "email", enrollHref: "/tenant/api/v0.1/enroll/email" }],
-};
-
-export const ENROLL_ACTIVATION_RESPONSE: EnrollmentResultV2 = {
-    nextAction: "activate",
-    continuationToken: "ct-activation",
+    action: "verify",
     codeLength: 6,
-    activateHref: "/tenant/api/v0.1/activate/email",
-    resendHref: "/tenant/api/v0.1/enroll/email",
+    hint: "u***@contoso.com",
+    type: "email",
+    _links: {
+        verify: { href: "/tenant/api/v0.1/mfa/email/verify" },
+        resend: { href: "/tenant/api/v0.1/mfa/email/resend" },
+    },
 };
 
-export const ACTIVATED_CONTINUE_RESPONSE: ContinueResultV2 = {
-    ...POLL_COMPLETED_RESPONSE,
-    continuationToken: "ct-activated",
+export const MFA_VERIFY_RESPONSE = {
+    continuationToken: "ct-mfa-verified",
+    state: "continue",
 };
+
+export const POLL_ENROLL_REQUIRED_RESPONSE = {
+    continuationToken: "ct-enroll",
+    state: "interactionRequired",
+    action: "enroll",
+    _embedded: {
+        methods: [
+            {
+                type: "email",
+                _links: { enroll: { href: "/tenant/api/v0.1/enroll/email" } },
+            },
+        ],
+    },
+};
+
+export const ENROLL_ACTIVATION_RESPONSE = {
+    continuationToken: "ct-activation",
+    action: "activate",
+    codeLength: 6,
+    _links: {
+        activate: { href: "/tenant/api/v0.1/activate/email" },
+        resend: { href: "/tenant/api/v0.1/enroll/email" },
+    },
+};
+
+export const ACTIVATED_CONTINUE_RESPONSE = {
+    continuationToken: "ct-activated",
+    state: "continue",
+};
+
+export const CONTINUE_RESPONSE = { code: "auth-code-1" };

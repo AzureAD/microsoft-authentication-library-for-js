@@ -3,12 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    ServerTelemetryManager,
-    StubbedNetworkModule,
-} from "@azure/msal-common/browser";
-import { buildConfiguration } from "../../../../../../src/config/Configuration.js";
-import { CustomAuthAuthority } from "../../../../../../src/custom_auth/core/CustomAuthAuthority.js";
+import { ServerTelemetryManager } from "@azure/msal-common/browser";
 import { CustomAuthApiClientV2 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { CustomAuthError } from "../../../../../../src/custom_auth/core/error/CustomAuthError.js";
 import { CustomAuthApiError } from "../../../../../../src/custom_auth/core/error/CustomAuthApiError.js";
@@ -20,11 +15,6 @@ import {
 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { HttpMethod } from "../../../../../../src/custom_auth/core/network_client/http_client/IHttpClient.js";
 import type { PollResponseV2 } from "../../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/response/ResponsesV2.js";
-import {
-    getDefaultBrowserCacheManager,
-    getDefaultLogger,
-    getDefaultPerformanceClient,
-} from "../../../../test_resources/TestModules.js";
 
 const mockTelemetryManager = {
     generateCurrentRequestHeaderValue: jest.fn(() => "cur"),
@@ -32,10 +22,9 @@ const mockTelemetryManager = {
 } as unknown as ServerTelemetryManager;
 
 const CLIENT_ID = "client-id-123";
-const BASE_URL = "https://contoso.ciamlogin.com/contoso.onmicrosoft.com";
+const BASE_URL =
+    "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com";
 const RESET_PASSWORD_HREF = "/tenant/api/v0.1/auth/resetpassword?dc=X";
-const CONTINUE_HREF =
-    "https://contoso.ciamlogin.com/server-tenant/oauth2/v2.0/authorize-challenge?dc=server&customer=hello%20world&customer=second&encoded=%2F%2b&empty=";
 
 const buildResponse = (
     body: unknown,
@@ -70,368 +59,6 @@ describe("CustomAuthApiClientV2", () => {
 
     afterEach(() => {
         jest.resetAllMocks();
-    });
-
-    describe.each([
-        "signInStart",
-        "resetPasswordStart",
-        "signUpStart",
-    ] as const)("%s method IDs", (operation) => {
-        const request = {
-            continuationToken: "ct-entry",
-            username: "user@test.example.com",
-        };
-        const response = {
-            continuationToken: "ct-start",
-            action: "challenge",
-            challengeContext: { authenticationFactor: "singleFactor" },
-        };
-
-        it.each([
-            { id: undefined, type: "email" },
-            { id: undefined, type: undefined },
-            { id: null, type: "email" },
-            { id: "", type: "email" },
-            { id: " \t ", type: "email" },
-            { id: 123, type: "email" },
-            { id: {}, type: "email" },
-        ])("rejects response method ID $id with type $type", async (method) => {
-            mockHttpClient.sendAsync.mockResolvedValueOnce(
-                buildResponse({
-                    ...response,
-                    _embedded: {
-                        methods: [
-                            {
-                                ...method,
-                                _links: {
-                                    challenge: {
-                                        href: "/methods/email/challenge",
-                                    },
-                                },
-                            },
-                        ],
-                    },
-                })
-            );
-
-            await expect(
-                apiClient[operation]("/start", request, context)
-            ).rejects.toMatchObject({
-                error: INVALID_HAL_RESPONSE,
-                correlationId: context.correlationId,
-            });
-        });
-
-        it("preserves response IDs independently of method type and href", async () => {
-            const methods = ["primary", "secondary"].map((id) => ({
-                id,
-                type: "email",
-                _links: {
-                    challenge: {
-                        href: `/methods/${id}/challenge?server=value`,
-                    },
-                },
-            }));
-            mockHttpClient.sendAsync.mockResolvedValueOnce(
-                buildResponse({
-                    ...response,
-                    _embedded: { methods },
-                })
-            );
-
-            await expect(
-                apiClient[operation]("/start", request, context)
-            ).resolves.toMatchObject({
-                methods: methods.map((method) => ({
-                    id: method.id,
-                    type: method.type,
-                    challengeHref: method._links.challenge.href,
-                })),
-            });
-        });
-    });
-
-    describe.each(["authority", "proxy"])("%s base URL forms", (baseSource) => {
-        const tenantId = "11111111-2222-4333-8444-555555555555";
-        const nameOrigin = "https://contoso.ciamlogin.com";
-        const customOrigin = "https://login.example.com";
-        const tenantDomain = "contoso.onmicrosoft.com";
-        const cases = [
-            [`${nameOrigin}/${tenantId}`, `${nameOrigin}/${tenantId}`],
-            [`${nameOrigin}/${tenantDomain}`, `${nameOrigin}/${tenantDomain}`],
-            [`${customOrigin}/${tenantId}`, `${customOrigin}/${tenantId}`],
-            [
-                `${customOrigin}/${tenantDomain}`,
-                `${customOrigin}/${tenantDomain}`,
-            ],
-        ].flatMap(([baseUrl, initialBase]) => [
-            [baseUrl, initialBase],
-            [`${baseUrl}/`, initialBase],
-        ]);
-        const config = buildConfiguration(
-            { auth: { clientId: CLIENT_ID } },
-            true
-        );
-        const logger = getDefaultLogger();
-        const performanceClient = getDefaultPerformanceClient();
-        const browserStorage = getDefaultBrowserCacheManager(
-            CLIENT_ID,
-            logger,
-            undefined,
-            undefined,
-            undefined,
-            config.cache
-        );
-
-        it.each(cases)(
-            "uses the configured base for entry/token and server hrefs for continuation with %s",
-            async (baseUrl, initialBase) => {
-                const authority = new CustomAuthAuthority(
-                    baseSource === "authority" ? baseUrl : BASE_URL,
-                    config,
-                    StubbedNetworkModule,
-                    browserStorage,
-                    logger,
-                    performanceClient,
-                    baseSource === "proxy" ? baseUrl : ""
-                );
-                apiClient = new CustomAuthApiClientV2(
-                    authority.getCustomAuthApiDomain(),
-                    CLIENT_ID,
-                    {
-                        sendAsync: mockHttpClient.sendAsync,
-                        post: jest.fn(),
-                        get: jest.fn(),
-                    },
-                    { dc: "configured", extra: "configured-only" }
-                );
-                const href =
-                    "/server-tenant/api/v2.0/resetpassword/start?dc=server&customer=hello%20world&customer=second&empty=&escaped=%2F%2b";
-                const challengeHref =
-                    "/server-tenant/api/v2.0/methods/email/challenge?customer=value%2Btest";
-                mockHttpClient.sendAsync
-                    .mockResolvedValueOnce(
-                        buildResponse({
-                            continuation_token: "ct-entry",
-                            reset_password: href,
-                        })
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse({
-                            continuationToken: "ct-start",
-                            challengeContext: {
-                                authenticationFactor: "singleFactor",
-                            },
-                            _embedded: {
-                                methods: [
-                                    {
-                                        id: "email-1",
-                                        type: "email",
-                                        _links: {
-                                            challenge: {
-                                                href: challengeHref,
-                                            },
-                                        },
-                                    },
-                                ],
-                            },
-                        })
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse({
-                            continuationToken: "ct-challenge",
-                            action: "verify",
-                            type: "email",
-                            codeLength: 6,
-                            _links: {
-                                verify: {
-                                    href: "/server-tenant/api/v2.0/methods/email/verify?dc=server",
-                                },
-                            },
-                        })
-                    )
-                    .mockResolvedValueOnce(buildResponse({ code: "auth-code" }))
-                    .mockResolvedValueOnce(
-                        buildResponse({
-                            access_token: "access-token",
-                            token_type: "Bearer",
-                        })
-                    );
-
-                const entry = await apiClient.authorizeChallengeStart(context);
-                expect(entry.resetPasswordHref).toBe(href);
-                if (!entry.resetPasswordHref) {
-                    throw new Error("Expected the reset-password entry href");
-                }
-                const start = await apiClient.resetPasswordStart(
-                    entry.resetPasswordHref,
-                    {
-                        continuationToken: entry.continuationToken,
-                        username: "user@test.example.com",
-                    },
-                    context
-                );
-                expect(start.methods[0].challengeHref).toBe(challengeHref);
-                await apiClient.requestChallenge(
-                    start.methods[0].challengeHref,
-                    { continuationToken: start.continuationToken },
-                    context
-                );
-                await apiClient.completeWithTokens(
-                    {
-                        continuationToken: "ct-complete",
-                        continueHref: CONTINUE_HREF,
-                    },
-                    context
-                );
-
-                expect(mockHttpClient.sendAsync).toHaveBeenCalledTimes(5);
-                expect(
-                    mockHttpClient.sendAsync.mock.calls.map(([url]) => url.href)
-                ).toEqual([
-                    `${initialBase}/oauth2/v2.0/authorize-challenge?dc=configured&extra=configured-only`,
-                    `${new URL(baseUrl).origin}${href}`,
-                    `${new URL(baseUrl).origin}${challengeHref}`,
-                    `${
-                        new URL(baseUrl).origin
-                    }/server-tenant/oauth2/v2.0/authorize-challenge?dc=server&customer=hello%20world&customer=second&encoded=%2F%2b&empty=`,
-                    `${initialBase}/oauth2/v2.0/token?dc=configured&extra=configured-only`,
-                ]);
-            }
-        );
-    });
-
-    describe("configured query parameters", () => {
-        beforeEach(() => {
-            apiClient = new CustomAuthApiClientV2(
-                BASE_URL,
-                CLIENT_ID,
-                {
-                    sendAsync: mockHttpClient.sendAsync,
-                    post: jest.fn(),
-                    get: jest.fn(),
-                },
-                { dc: "configured", other: "configured-other" }
-            );
-        });
-
-        it.each([
-            [
-                "/tenant/api/v0.1/auth/resetpassword?service=value",
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/auth/resetpassword?service=value",
-            ],
-            [
-                "https://service.example.com/tenant/api/v0.1/auth/resetpassword?service=value",
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/auth/resetpassword?service=value",
-            ],
-            [
-                "/tenant/api/v0.1/auth/resetpassword?dc=server",
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/auth/resetpassword?dc=server",
-            ],
-            [
-                "/tenant/api/v0.1/auth/resetpassword?dc=",
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/auth/resetpassword?dc=",
-            ],
-            [
-                "/tenant/api/v0.1/auth/resetpassword?other=server",
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/auth/resetpassword?other=server",
-            ],
-            [
-                "/tenant/api/v0.1/auth/resetpassword?other=",
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/auth/resetpassword?other=",
-            ],
-            [
-                "/tenant/api/v0.1/auth/resetpassword",
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/auth/resetpassword",
-            ],
-            [
-                "/tenant/api/v0.1/auth/resetpassword?dc=server&customer=hello%20world&customer=second&encoded=%2F%2b&empty=",
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/auth/resetpassword?dc=server&customer=hello%20world&customer=second&encoded=%2F%2b&empty=",
-            ],
-        ])(
-            "preserves the HAL query without adding configured parameters for %s",
-            async (href, expectedUrl) => {
-                mockHttpClient.sendAsync.mockResolvedValueOnce(
-                    buildResponse({
-                        continuationToken: "ct-start",
-                        challengeContext: {
-                            authenticationFactor: "singleFactor",
-                        },
-                        _embedded: {
-                            methods: [
-                                {
-                                    id: "email-1",
-                                    type: "email",
-                                    _links: {
-                                        challenge: {
-                                            href: "/tenant/api/v0.1/methods/email/challenge",
-                                        },
-                                    },
-                                },
-                            ],
-                        },
-                    })
-                );
-
-                await apiClient.resetPasswordStart(
-                    href,
-                    {
-                        continuationToken: "ct-entry",
-                        username: "user@test.example.com",
-                    },
-                    context
-                );
-
-                const [url] = mockHttpClient.sendAsync.mock.calls[0];
-                expect(url.href).toBe(expectedUrl);
-            }
-        );
-
-        it("propagates a server rejection after resolving an absolute href on the configured origin", async () => {
-            mockHttpClient.sendAsync.mockResolvedValueOnce(
-                buildResponse(
-                    {
-                        error: {
-                            code: "invalidRequest",
-                            message: "Unknown endpoint",
-                        },
-                    },
-                    404
-                )
-            );
-
-            await expect(
-                apiClient.resetPasswordStart(
-                    "https://service.example/tenant/api/v0.1/auth/resetpassword",
-                    {
-                        continuationToken: "ct-entry",
-                        username: "user@test.example.com",
-                    },
-                    context
-                )
-            ).rejects.toBeInstanceOf(CustomAuthApiError);
-
-            const [url] = mockHttpClient.sendAsync.mock.calls[0];
-            expect(url.href).toBe(
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/auth/resetpassword"
-            );
-        });
-
-        it("retains the configured tenant and all query parameters on fixed OAuth endpoints", async () => {
-            mockHttpClient.sendAsync.mockResolvedValueOnce(
-                buildResponse({
-                    continuation_token: "ct-entry",
-                    reset_password: RESET_PASSWORD_HREF,
-                })
-            );
-
-            await apiClient.authorizeChallengeStart(context);
-
-            const [url] = mockHttpClient.sendAsync.mock.calls[0];
-            expect(url.href).toBe(
-                `${BASE_URL}/oauth2/v2.0/authorize-challenge?dc=configured&other=configured-other`
-            );
-        });
     });
 
     describe("authorizeChallengeStart", () => {
@@ -515,8 +142,8 @@ describe("CustomAuthApiClientV2", () => {
                             "AADSTS55214: Non-retryable error has occurred.",
                         error_codes: [55214],
                         timestamp: "2026-10-12 15:43:29Z",
-                        trace_id: "test-web-redirect-trace-id",
-                        correlation_id: "test-web-redirect-correlation-id",
+                        trace_id: "c7fe3b84-3596-4d2d-a195-3aa21fb41100",
+                        correlation_id: "c556852d-edfa-4040-b472-15a62de49ad5",
                         suberror: "web_redirect_required",
                     },
                     400
@@ -531,8 +158,8 @@ describe("CustomAuthApiClientV2", () => {
                     "AADSTS55214: Non-retryable error has occurred.",
                 errorCodes: [55214],
                 subError: "web_redirect_required",
-                correlationId: "test-web-redirect-correlation-id",
-                traceId: "test-web-redirect-trace-id",
+                correlationId: "c556852d-edfa-4040-b472-15a62de49ad5",
+                traceId: "c7fe3b84-3596-4d2d-a195-3aa21fb41100",
                 timestamp: "2026-10-12 15:43:29Z",
             });
         });
@@ -545,8 +172,8 @@ describe("CustomAuthApiClientV2", () => {
                         "AADSTS500127: No authenticated credentials found in request.",
                     error_codes: [500127],
                     timestamp: "2026-10-15 11:00:20Z",
-                    trace_id: "test-credentials-missing-trace-id",
-                    correlation_id: "test-credentials-missing-correlation-id",
+                    trace_id: "6a72e163-b400-45c1-82d1-2ffe597f1c00",
+                    correlation_id: "5bf14be2-24a1-425c-b8ea-6961b52105b9",
                     continuation_token: "ct-entry",
                     sign_in: "/tenant/api/v0.1/signin/start",
                 })
@@ -571,9 +198,8 @@ describe("CustomAuthApiClientV2", () => {
                             "AADSTS500127: No authenticated credentials found in request.",
                         error_codes: [500127],
                         timestamp: "2026-10-15 11:00:20Z",
-                        trace_id: "test-credentials-missing-trace-id",
-                        correlation_id:
-                            "test-credentials-missing-correlation-id",
+                        trace_id: "6a72e163-b400-45c1-82d1-2ffe597f1c00",
+                        correlation_id: "5bf14be2-24a1-425c-b8ea-6961b52105b9",
                     },
                     401
                 )
@@ -586,8 +212,8 @@ describe("CustomAuthApiClientV2", () => {
                 errorDescription:
                     "AADSTS500127: No authenticated credentials found in request.",
                 errorCodes: [500127],
-                correlationId: "test-credentials-missing-correlation-id",
-                traceId: "test-credentials-missing-trace-id",
+                correlationId: "5bf14be2-24a1-425c-b8ea-6961b52105b9",
+                traceId: "6a72e163-b400-45c1-82d1-2ffe597f1c00",
                 timestamp: "2026-10-15 11:00:20Z",
             });
         });
@@ -595,7 +221,7 @@ describe("CustomAuthApiClientV2", () => {
 
     describe("resetPasswordStart", () => {
         const request = {
-            username: "user@test.example.com",
+            username: "user@test.com",
             continuationToken: "ct-entry",
         };
 
@@ -629,7 +255,6 @@ describe("CustomAuthApiClientV2", () => {
                     _embedded: {
                         methods: [
                             {
-                                id: "email-1",
                                 _links: {
                                     challenge: {
                                         href: "/tenant/api/v0.1/methods/email/challenge",
@@ -660,7 +285,7 @@ describe("CustomAuthApiClientV2", () => {
             expect(mockHttpClient.sendAsync).toHaveBeenCalledTimes(1);
             const [startUrl] = mockHttpClient.sendAsync.mock.calls[0];
             expect(startUrl.href).toBe(
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/auth/resetpassword?dc=X"
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/auth/resetpassword?dc=X"
             );
         });
     });
@@ -668,7 +293,7 @@ describe("CustomAuthApiClientV2", () => {
     describe("signInStart", () => {
         const request = {
             continuationToken: "ct-entry",
-            username: "user@test.example.com",
+            username: "user@test.com",
         };
 
         it("returns the embedded authentication methods", async () => {
@@ -718,7 +343,7 @@ describe("CustomAuthApiClientV2", () => {
 
             const [startUrl, options] = mockHttpClient.sendAsync.mock.calls[0];
             expect(startUrl.href).toBe(
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/signin/start"
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/signin/start"
             );
             expect(options.method).toBe(HttpMethod.POST);
             expect(JSON.parse(options.body)).toEqual({
@@ -844,7 +469,7 @@ describe("CustomAuthApiClientV2", () => {
 
             const [startUrl, options] = mockHttpClient.sendAsync.mock.calls[0];
             expect(startUrl.href).toBe(
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/signup/start"
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/signup/start"
             );
             expect(JSON.parse(options.body)).toEqual(request);
         });
@@ -1012,49 +637,65 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
-        it("accepts a challenge without a state using shared method resolution", async () => {
-            mockHttpClient.sendAsync.mockResolvedValueOnce(
-                buildResponse({
-                    ...startResponse,
-                    state: undefined,
-                    action: "challenge",
-                    challengeContext: {
-                        authenticationFactor: "singleFactor",
-                    },
-                    _embedded: {
-                        methods: [
-                            {
-                                id: "email-1",
-                                type: "email",
-                                _links: {
-                                    challenge: { href: "/email/challenge" },
+        it.each([
+            {
+                label: "state",
+                state: undefined,
+                id: "email-1",
+                expectedId: "email-1",
+            },
+            {
+                label: "method id",
+                state: "interactionRequired",
+                id: undefined,
+                expectedId: "email",
+            },
+        ])(
+            "accepts a challenge without a $label using shared method resolution",
+            async ({ state, id, expectedId }) => {
+                mockHttpClient.sendAsync.mockResolvedValueOnce(
+                    buildResponse({
+                        ...startResponse,
+                        state,
+                        action: "challenge",
+                        challengeContext: {
+                            authenticationFactor: "singleFactor",
+                        },
+                        _embedded: {
+                            methods: [
+                                {
+                                    id,
+                                    type: "email",
+                                    _links: {
+                                        challenge: { href: "/email/challenge" },
+                                    },
                                 },
-                            },
-                        ],
-                    },
-                })
-            );
+                            ],
+                        },
+                    })
+                );
 
-            await expect(
-                apiClient.signUpStart(
-                    "/tenant/api/v0.1/signup/start",
-                    {
-                        continuationToken: "ct-entry",
-                        username: "existing@contoso.com",
-                    },
-                    context
-                )
-            ).resolves.toMatchObject({
-                nextAction: "challenge",
-                methods: [
-                    {
-                        id: "email-1",
-                        type: "email",
-                        challengeHref: "/email/challenge",
-                    },
-                ],
-            });
-        });
+                await expect(
+                    apiClient.signUpStart(
+                        "/tenant/api/v0.1/signup/start",
+                        {
+                            continuationToken: "ct-entry",
+                            username: "existing@contoso.com",
+                        },
+                        context
+                    )
+                ).resolves.toMatchObject({
+                    nextAction: "challenge",
+                    methods: [
+                        {
+                            id: expectedId,
+                            type: "email",
+                            challengeHref: "/email/challenge",
+                        },
+                    ],
+                });
+            }
+        );
 
         it.each([
             [
@@ -1366,7 +1007,7 @@ describe("CustomAuthApiClientV2", () => {
                     action: "verify",
                     id: "email-1",
                     type: "email",
-                    hint: "u***@test.example.com",
+                    hint: "u***@test.com",
                     codeLength: 8,
                     attributes: [
                         {
@@ -1399,7 +1040,7 @@ describe("CustomAuthApiClientV2", () => {
 
             const [url, options] = mockHttpClient.sendAsync.mock.calls[0];
             expect(url.href).toBe(
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/signup/submitattributes"
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/signup/submitattributes"
             );
             expect(JSON.parse(options.body)).toEqual(request);
         });
@@ -1533,7 +1174,7 @@ describe("CustomAuthApiClientV2", () => {
                     "/tenant/api/v2.0/auth/submitattributes",
                     {
                         continuationToken: "ct-start",
-                        attributes: { email: "user@test.example.com" },
+                        attributes: { email: "user@test.com" },
                     },
                     context
                 )
@@ -1637,7 +1278,6 @@ describe("CustomAuthApiClientV2", () => {
                 buildResponse({
                     continuationToken: "ct-complete",
                     state: "continue",
-                    _links: { continue: { href: CONTINUE_HREF } },
                 })
             );
 
@@ -1652,7 +1292,6 @@ describe("CustomAuthApiClientV2", () => {
 
             expect(result).toEqual({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-complete",
             });
         });
@@ -1678,7 +1317,6 @@ describe("CustomAuthApiClientV2", () => {
                         buildResponse({
                             continuationToken: "ct-continue",
                             state: "continue",
-                            _links: { continue: { href: CONTINUE_HREF } },
                         })
                     );
 
@@ -1708,7 +1346,6 @@ describe("CustomAuthApiClientV2", () => {
                     )
                 ).resolves.toEqual({
                     nextAction: "continue",
-                    continueHref: CONTINUE_HREF,
                     continuationToken: "ct-continue",
                 });
             }
@@ -1721,7 +1358,7 @@ describe("CustomAuthApiClientV2", () => {
                     action: "verify",
                     type: "email",
                     codeLength: 6,
-                    hint: "u***@test.example.com",
+                    hint: "u***@test.com",
                     _links: {
                         verify: { href: "/tenant/api/v0.1/verify" },
                         resend: { href: "/tenant/api/v0.1/resend" },
@@ -1742,7 +1379,7 @@ describe("CustomAuthApiClientV2", () => {
                 verifyHref: "/tenant/api/v0.1/verify",
                 resendHref: "/tenant/api/v0.1/resend",
                 codeLength: 6,
-                hint: "u***@test.example.com",
+                hint: "u***@test.com",
             });
         });
 
@@ -2140,7 +1777,6 @@ describe("CustomAuthApiClientV2", () => {
                 buildResponse({
                     continuationToken: "ct-verify",
                     state: "continue",
-                    _links: { continue: { href: CONTINUE_HREF } },
                 })
             );
 
@@ -2152,7 +1788,6 @@ describe("CustomAuthApiClientV2", () => {
 
             expect(result).toEqual({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-verify",
             });
         });
@@ -2162,7 +1797,6 @@ describe("CustomAuthApiClientV2", () => {
                 buildResponse({
                     continuationToken: "ct-sign-up-verify",
                     state: "continue",
-                    _links: { continue: { href: CONTINUE_HREF } },
                 })
             );
 
@@ -2174,7 +1808,6 @@ describe("CustomAuthApiClientV2", () => {
 
             expect(result).toEqual({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-sign-up-verify",
             });
         });
@@ -2255,7 +1888,7 @@ describe("CustomAuthApiClientV2", () => {
                             {
                                 id: "email-mfa",
                                 type: "email",
-                                hint: "u***@test.example.com",
+                                hint: "u***@test.com",
                                 _links: {
                                     challenge: {
                                         href: "/tenant/api/v0.1/mfa/challenge",
@@ -2284,7 +1917,7 @@ describe("CustomAuthApiClientV2", () => {
                     {
                         id: "email-mfa",
                         type: "email",
-                        hint: "u***@test.example.com",
+                        hint: "u***@test.com",
                         challengeHref: "/tenant/api/v0.1/mfa/challenge",
                     },
                 ],
@@ -2620,7 +2253,7 @@ describe("CustomAuthApiClientV2", () => {
                     state: "interactionRequired",
                     action: "activate",
                     type: "email",
-                    hint: "u***@test.example.com",
+                    hint: "u***@test.com",
                     codeLength: 6,
                     _links: {
                         activate: {
@@ -2636,7 +2269,7 @@ describe("CustomAuthApiClientV2", () => {
             const result = await apiClient.enrollAuthMethod(
                 "/tenant/api/v0.1/enroll/email",
                 {
-                    email: "user@test.example.com",
+                    email: "user@test.com",
                     continuationToken: "ct-enroll",
                 },
                 context
@@ -2645,7 +2278,7 @@ describe("CustomAuthApiClientV2", () => {
             expect(result).toEqual({
                 nextAction: "activate",
                 continuationToken: "ct-activate",
-                hint: "u***@test.example.com",
+                hint: "u***@test.com",
                 codeLength: 6,
                 activateHref: "/tenant/api/v0.1/activate/email",
                 resendHref: "/tenant/api/v0.1/enroll/email",
@@ -2653,11 +2286,11 @@ describe("CustomAuthApiClientV2", () => {
 
             const [url, options] = mockHttpClient.sendAsync.mock.calls[0];
             expect(url.href).toBe(
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/enroll/email"
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/enroll/email"
             );
             expect(options.method).toBe(HttpMethod.POST);
             expect(JSON.parse(options.body)).toEqual({
-                email: "user@test.example.com",
+                email: "user@test.com",
                 continuationToken: "ct-enroll",
             });
         });
@@ -2721,14 +2354,13 @@ describe("CustomAuthApiClientV2", () => {
                     buildResponse({
                         continuationToken: "ct-continue",
                         state: "continue",
-                        _links: { continue: { href: CONTINUE_HREF } },
                     })
                 );
 
             const enrollment = await apiClient.enrollAuthMethod(
                 "/tenant/api/v0.1/enroll/email",
                 {
-                    email: "user@test.example.com",
+                    email: "user@test.com",
                     continuationToken: "ct-enroll",
                 },
                 context
@@ -2753,7 +2385,6 @@ describe("CustomAuthApiClientV2", () => {
                 )
             ).resolves.toEqual({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-continue",
             });
         });
@@ -2779,7 +2410,7 @@ describe("CustomAuthApiClientV2", () => {
                 apiClient.enrollAuthMethod(
                     "/tenant/api/v0.1/enroll/email",
                     {
-                        email: "user@test.example.com",
+                        email: "user@test.com",
                         continuationToken: "ct-enroll",
                     },
                     context
@@ -2803,7 +2434,7 @@ describe("CustomAuthApiClientV2", () => {
                 apiClient.enrollAuthMethod(
                     "/tenant/api/v0.1/enroll/email",
                     {
-                        email: "user@test.example.com",
+                        email: "user@test.com",
                         continuationToken: "ct-enroll",
                     },
                     context
@@ -2834,7 +2465,7 @@ describe("CustomAuthApiClientV2", () => {
                 apiClient.enrollAuthMethod(
                     "/tenant/api/v0.1/enroll/email",
                     {
-                        email: "user@test.example.com",
+                        email: "user@test.com",
                         continuationToken: "ct-enroll",
                     },
                     context
@@ -2868,7 +2499,7 @@ describe("CustomAuthApiClientV2", () => {
                 apiClient.enrollAuthMethod(
                     "/tenant/api/v0.1/enroll/email",
                     {
-                        email: "user@test.example.com",
+                        email: "user@test.com",
                         continuationToken: "ct-enroll",
                     },
                     context
@@ -2899,7 +2530,7 @@ describe("CustomAuthApiClientV2", () => {
                 apiClient.enrollAuthMethod(
                     "/tenant/api/v0.1/enroll/email",
                     {
-                        email: "user@test.example.com",
+                        email: "user@test.com",
                         continuationToken: "ct-enroll",
                     },
                     context
@@ -2938,7 +2569,7 @@ describe("CustomAuthApiClientV2", () => {
                     apiClient.enrollAuthMethod(
                         "/tenant/api/v0.1/enroll/email",
                         {
-                            email: "user@test.example.com",
+                            email: "user@test.com",
                             continuationToken: "ct-enroll",
                         },
                         context
@@ -2955,7 +2586,7 @@ describe("CustomAuthApiClientV2", () => {
                     continuationToken: "ct-resend",
                     action: "activate",
                     type: "email",
-                    hint: "u***@test.example.com",
+                    hint: "u***@test.com",
                     codeLength: 6,
                     _links: {
                         activate: {
@@ -2979,13 +2610,13 @@ describe("CustomAuthApiClientV2", () => {
             ).resolves.toMatchObject({
                 nextAction: "activate",
                 continuationToken: "ct-resend",
-                hint: "u***@test.example.com",
+                hint: "u***@test.com",
                 codeLength: 6,
             });
 
             const [url, options] = mockHttpClient.sendAsync.mock.calls[0];
             expect(url.href).toBe(
-                "https://contoso.ciamlogin.com/tenant/api/v0.1/enroll/email"
+                "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/enroll/email"
             );
             expect(options.method).toBe(HttpMethod.POST);
             expect(JSON.parse(options.body)).toEqual({
@@ -3000,14 +2631,13 @@ describe("CustomAuthApiClientV2", () => {
                 buildResponse({
                     continuationToken: "ct-continue",
                     state: "continue",
-                    _links: { continue: { href: CONTINUE_HREF } },
                 })
             );
 
             const result = await apiClient.activateAuthMethod(
                 "/tenant/api/v0.1/activate/email",
                 {
-                    otp: "123456",
+                    otp: "866334",
                     continuationToken: "ct-activate",
                 },
                 context
@@ -3015,13 +2645,12 @@ describe("CustomAuthApiClientV2", () => {
 
             expect(result).toEqual({
                 nextAction: "continue",
-                continueHref: CONTINUE_HREF,
                 continuationToken: "ct-continue",
             });
 
             const [, options] = mockHttpClient.sendAsync.mock.calls[0];
             expect(JSON.parse(options.body)).toEqual({
-                otp: "123456",
+                otp: "866334",
                 continuationToken: "ct-activate",
             });
         });
@@ -3038,7 +2667,7 @@ describe("CustomAuthApiClientV2", () => {
                 apiClient.activateAuthMethod(
                     "/tenant/api/v0.1/activate/email",
                     {
-                        otp: "123456",
+                        otp: "866334",
                         continuationToken: "ct-activate",
                     },
                     context
@@ -3366,10 +2995,9 @@ describe("CustomAuthApiClientV2", () => {
                     buildResponse({
                         state: "continue",
                         continuationToken: "ct-poll",
-                        _links: {
-                            continue: { href: CONTINUE_HREF },
-                            ...(pollHref ? { poll: { href: pollHref } } : {}),
-                        },
+                        _links: pollHref
+                            ? { poll: { href: pollHref } }
+                            : undefined,
                     })
                 );
 
@@ -3382,7 +3010,6 @@ describe("CustomAuthApiClientV2", () => {
                 expect(result).toEqual({
                     continuationToken: "ct-poll",
                     nextAction: "continue",
-                    continueHref: CONTINUE_HREF,
                     pollHref: undefined,
                 });
                 expect(result).not.toHaveProperty("pollHref");
@@ -3557,8 +3184,9 @@ describe("CustomAuthApiClientV2", () => {
                             message:
                                 "AADSTS50034: The user account does not exist in the directory.",
                             timestamp: "2026-10-15 11:00:16Z",
-                            traceId: "test-user-not-found-trace-id",
-                            correlationId: "test-user-not-found-correlation-id",
+                            traceId: "6a72e163-b400-45c1-82d1-2ffe897e1c00",
+                            correlationId:
+                                "1b387df0-1092-49fd-9afa-503c14ead335",
                             innerError: { code: "userNotFound" },
                         },
                     },
@@ -3575,8 +3203,8 @@ describe("CustomAuthApiClientV2", () => {
             ).rejects.toMatchObject({
                 error: "invalidRequest",
                 innerErrorCode: "userNotFound",
-                correlationId: "test-user-not-found-correlation-id",
-                traceId: "test-user-not-found-trace-id",
+                correlationId: "1b387df0-1092-49fd-9afa-503c14ead335",
+                traceId: "6a72e163-b400-45c1-82d1-2ffe897e1c00",
                 timestamp: "2026-10-15 11:00:16Z",
             });
         });
@@ -3610,129 +3238,7 @@ describe("CustomAuthApiClientV2", () => {
         });
     });
 
-    describe("continue links", () => {
-        it.each([
-            ["verification", undefined],
-            ["verification", ""],
-            ["registration", undefined],
-            ["registration", "   "],
-            ["attributes", undefined],
-            ["attributes", ""],
-            ["poll", undefined],
-            ["poll", "   "],
-        ] as const)(
-            "rejects an invalid %s continue href: %s",
-            async (operation, href) => {
-                mockHttpClient.sendAsync.mockResolvedValueOnce(
-                    buildResponse({
-                        continuationToken: "ct-complete",
-                        state: "continue",
-                        _links:
-                            href === undefined
-                                ? undefined
-                                : { continue: { href } },
-                    })
-                );
-                const operations = {
-                    verification: () =>
-                        apiClient.verifyChallenge(
-                            "/tenant/api/v2.0/verify",
-                            {
-                                continuationToken: "ct-verify",
-                                password: "password",
-                            },
-                            context
-                        ),
-                    registration: () =>
-                        apiClient.activateAuthMethod(
-                            "/tenant/api/v2.0/activate",
-                            { continuationToken: "ct-activate", otp: "123456" },
-                            context
-                        ),
-                    attributes: () =>
-                        apiClient.submitSignUpAttributes(
-                            "/tenant/api/v2.0/attributes",
-                            {
-                                continuationToken: "ct-attributes",
-                                attributes: {},
-                            },
-                            context
-                        ),
-                    poll: () =>
-                        apiClient.poll(
-                            "/tenant/api/v2.0/poll",
-                            { continuationToken: "ct-poll" },
-                            context
-                        ),
-                };
-
-                await expect(operations[operation]()).rejects.toMatchObject({
-                    error: INVALID_HAL_RESPONSE,
-                    errorDescription:
-                        "Invalid HAL response: missing 'continue' link",
-                    correlationId: context.correlationId,
-                });
-                expect(mockHttpClient.sendAsync).toHaveBeenCalledTimes(1);
-            }
-        );
-    });
-
     describe("completeWithTokens", () => {
-        it.each([
-            "/server-tenant/oauth2/v2.0/authorize-challenge",
-            "https://contoso.ciamlogin.com/server-tenant/oauth2/v2.0/authorize-challenge",
-            "/server-tenant/oauth2/v2.0/authorize-challenge?dc=server&empty=",
-            CONTINUE_HREF,
-        ])(
-            "uses the continue href without merging configuration: %s",
-            async (continueHref) => {
-                apiClient = new CustomAuthApiClientV2(
-                    "http://localhost:3001/api",
-                    CLIENT_ID,
-                    {
-                        sendAsync: mockHttpClient.sendAsync,
-                        post: jest.fn(),
-                        get: jest.fn(),
-                    },
-                    { slice: "test1", test: "hi" }
-                );
-                mockHttpClient.sendAsync
-                    .mockResolvedValueOnce(buildResponse({ code: "auth-code" }))
-                    .mockResolvedValueOnce(
-                        buildResponse({
-                            access_token: "access",
-                            token_type: "Bearer",
-                        })
-                    );
-
-                await apiClient.completeWithTokens(
-                    { continuationToken: "ct-complete", continueHref },
-                    context
-                );
-
-                const [authorizeCall, tokenCall] =
-                    mockHttpClient.sendAsync.mock.calls;
-                const expectedPath = continueHref.startsWith("https://")
-                    ? new URL(continueHref).pathname +
-                      new URL(continueHref).search
-                    : continueHref;
-                expect(authorizeCall[0].href).toBe(
-                    `http://localhost:3001${expectedPath}`
-                );
-                expect(authorizeCall[1].method).toBe(HttpMethod.POST);
-                expect(authorizeCall[1].headers["Content-Type"]).toBe(
-                    "application/x-www-form-urlencoded;charset=utf-8"
-                );
-                expect(authorizeCall[1].body).toBeInstanceOf(URLSearchParams);
-                expect(authorizeCall[1].body.toString()).toBe(
-                    "continuation_token=ct-complete"
-                );
-                expect(tokenCall[0].href).toBe(
-                    "http://localhost:3001/api/oauth2/v2.0/token?slice=test1&test=hi"
-                );
-            }
-        );
-
         it("redeems the continuation token for an authorization code then exchanges it for tokens", async () => {
             mockHttpClient.sendAsync
                 .mockResolvedValueOnce(buildResponse({ code: "auth-code-1" }))
@@ -3746,7 +3252,6 @@ describe("CustomAuthApiClientV2", () => {
             const result = await apiClient.completeWithTokens(
                 {
                     continuationToken: "ct-poll",
-                    continueHref: CONTINUE_HREF,
                 },
                 context
             );

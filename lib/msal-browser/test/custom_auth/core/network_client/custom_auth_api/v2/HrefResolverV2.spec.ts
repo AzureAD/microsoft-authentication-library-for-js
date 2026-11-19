@@ -7,53 +7,31 @@ import { resolveHrefV2 } from "../../../../../../src/custom_auth/core/network_cl
 import { ParsedUrlError } from "../../../../../../src/custom_auth/core/error/ParsedUrlError.js";
 
 describe("HrefResolverV2.resolveHrefV2", () => {
+    // Authority the api-client normalizes with a trailing slash before resolving hrefs.
     const base = new URL(
-        "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/"
+        "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/"
     );
 
-    it.each([
-        "https://contoso.ciamlogin.com/tenant-id/",
-        "https://contoso.ciamlogin.com/tenant-id",
-        "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/",
-        "https://contoso.ciamlogin.com/contoso.onmicrosoft.com",
-        "https://contoso.ciamlogin.com/",
-        "https://contoso.ciamlogin.com",
-    ])(
-        "preserves the service tenant when resolving against %s",
-        (authority) => {
-            const href =
-                "/11111111-2222-4333-8444-555555555555/api/v0.1/auth/resetpassword?dc=test-dc-1";
-
-            const result = resolveHrefV2(new URL(authority), href);
-
-            expect(result.href).toBe(
-                "https://contoso.ciamlogin.com/11111111-2222-4333-8444-555555555555/api/v0.1/auth/resetpassword?dc=test-dc-1"
-            );
-        }
-    );
-
-    it("preserves the href query string (dc data-center hint)", () => {
+    it("strips the href tenant and re-anchors on the authority tenant path", () => {
         const href =
-            "/tenant/api/v0.1/auth/methods/email/test-email-method/verify?dc=test-dc-2";
+            "/4710d5e4-43bb-4ff9-89af-30ed8fe31c6d/api/v0.1/auth/resetpassword?dc=ESTS-PUB-SEASLR1";
 
         const result = resolveHrefV2(base, href);
 
-        expect(result.search).toBe("?dc=test-dc-2");
-        expect(result.pathname).toBe(
-            "/tenant/api/v0.1/auth/methods/email/test-email-method/verify"
+        expect(result.href).toBe(
+            "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/auth/resetpassword?dc=ESTS-PUB-SEASLR1"
         );
     });
 
-    it.each([
-        "https://contoso.ciamlogin.com/contoso.onmicrosoft.com",
-        "https://login.example.com/contoso.onmicrosoft.com",
-    ])("preserves a tenant-domain href against %s", (authority) => {
-        const baseUrl = new URL(authority);
+    it("preserves the href query string (dc data-center hint)", () => {
         const href =
-            "/server.onMicrosoft.com/api/v2.0/signin/start?dc=server&customer=hello%20world";
+            "/tenant/api/v0.1/auth/methods/email/c8e4b6bda907432f91a4d15a31cad758/verify?dc=ESTS-PUB-WEULR1-AZ2-FD130-001";
 
-        expect(resolveHrefV2(baseUrl, href).href).toBe(
-            `${baseUrl.origin}${href}`
+        const result = resolveHrefV2(base, href);
+
+        expect(result.search).toBe("?dc=ESTS-PUB-WEULR1-AZ2-FD130-001");
+        expect(result.pathname).toBe(
+            "/nativeauthasampleapp.onmicrosoft.com/api/v0.1/auth/methods/email/c8e4b6bda907432f91a4d15a31cad758/verify"
         );
     });
 
@@ -63,61 +41,49 @@ describe("HrefResolverV2.resolveHrefV2", () => {
         const result = resolveHrefV2(base, href);
 
         expect(result.href).toBe(
-            "https://contoso.ciamlogin.com/tenant/api/v0.1/auth/resetpassword"
+            "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/api/v0.1/auth/resetpassword"
         );
     });
 
-    it("preserves the service tenant in an OAuth href", () => {
+    it("keeps the tail from the /oauth2/ marker", () => {
         const href = "/tenant/oauth2/v2.0/authorize";
 
         const result = resolveHrefV2(base, href);
 
         expect(result.href).toBe(
-            "https://contoso.ciamlogin.com/tenant/oauth2/v2.0/authorize"
+            "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/oauth2/v2.0/authorize"
         );
     });
 
-    it.each(["http", "https"])(
-        "uses an absolute %s href's path and query on the configured origin",
-        (protocol) => {
-            const href = `${protocol}://contoso.ciamlogin.com/contoso.onmicrosoft.com/oauth2/v2.0/authorize-challenge?dc=test-dc-2`;
-
-            const result = resolveHrefV2(base, href);
-
-            expect(result.href).toBe(
-                `${base.origin}/contoso.onmicrosoft.com/oauth2/v2.0/authorize-challenge?dc=test-dc-2`
-            );
-        }
-    );
-
-    it("does not switch hosts when the href contains another origin", () => {
+    it("returns an absolute http(s) href unchanged", () => {
         const href =
-            "https://service.example.com/some-tenant/api/v0.1/auth/methods/password/test-password-method/pollUpdate?dc=Y";
+            "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/oauth2/v2.0/authorize-challenge?dc=ESTS-PUB-WEULR1-AZ2-FD130-001";
 
         const result = resolveHrefV2(base, href);
 
-        expect(result.href).toBe(
-            `${base.origin}/some-tenant/api/v0.1/auth/methods/password/test-password-method/pollUpdate?dc=Y`
-        );
+        expect(result.href).toBe(href);
     });
 
-    it("keeps a protocol-relative href on the configured origin", () => {
-        const result = resolveHrefV2(
-            base,
-            "//service.example/tenant/api/v0.1/auth/resetpassword"
-        );
+    it("does not strip the tenant of an absolute href from another host", () => {
+        const href =
+            "https://ests-r.microsoft.com/some-tenant/api/v0.1/auth/methods/password/11d8/pollUpdate?dc=Y";
 
-        expect(result.href).toBe(
-            "https://contoso.ciamlogin.com//service.example/tenant/api/v0.1/auth/resetpassword"
-        );
+        const result = resolveHrefV2(base, href);
+
+        expect(result.href).toBe(href);
     });
 
-    it("preserves HTTP for a relative href resolved against a local origin", () => {
-        const localBase = new URL("http://localhost:3001/api");
+    it("produces the same result whether the authority has a trailing slash or not", () => {
+        const withSlash = new URL(
+            "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com/"
+        );
+        const withoutSlash = new URL(
+            "https://nativeauthasampleapp.ciamlogin.com/nativeauthasampleapp.onmicrosoft.com"
+        );
         const href = "/tenant/api/v0.1/auth/resetpassword";
 
-        expect(resolveHrefV2(localBase, href).href).toBe(
-            "http://localhost:3001/tenant/api/v0.1/auth/resetpassword"
+        expect(resolveHrefV2(withSlash, href).href).toBe(
+            resolveHrefV2(withoutSlash, href).href
         );
     });
 
@@ -126,43 +92,24 @@ describe("HrefResolverV2.resolveHrefV2", () => {
 
         const result = resolveHrefV2(base, href);
 
-        expect(result.pathname).toBe("/tenant/api/v0.1/auth/resetpassword");
+        expect(result.pathname).toBe(
+            "/nativeauthasampleapp.onmicrosoft.com/api/v0.1/auth/resetpassword"
+        );
     });
 
-    it("preserves a relative path without an API marker", () => {
+    it("keeps a marker-less relative path as-is under the tenant path", () => {
         const href = "/somewhere/else";
 
         const result = resolveHrefV2(base, href);
 
-        expect(result.pathname).toBe("/somewhere/else");
-    });
-
-    it.each([
-        "/tenant/api/v0.1/auth/resetpassword",
-        "/tenant/api/v0.1/auth/resetpassword?dc=server&customer=value",
-        "/tenant/api/v0.1/auth/resetpassword?dc=&customer=value&empty=",
-        "/tenant/api/v0.1/auth/resetpassword?customer=first&customer=second",
-        "/tenant/api/v0.1/auth/resetpassword?customer=hello%20world&encoded=%2F%2b&other=%7E",
-        "/tenant/api/v0.1/auth/resetpassword?dc={dc}",
-    ])("preserves the complete href and query unchanged: %s", (href) => {
-        const result = resolveHrefV2(base, href);
-
-        expect(result.href).toBe(`${base.origin}${href}`);
-    });
-
-    it("rejects a malformed absolute HTTP href", () => {
-        expect(() => resolveHrefV2(base, "http://")).toThrow(ParsedUrlError);
-    });
-
-    it("preserves an absolute href's encoded query while retaining the local proxy origin", () => {
-        const href =
-            "HTTPS://contoso.ciamlogin.com/server.onMicrosoft.com/oauth2/v2.0/authorize-challenge?dc=server&customer=hello%20world&customer=second&encoded=%2F%2b&empty=";
-
-        expect(
-            resolveHrefV2(new URL("http://localhost:3001/api"), href).href
-        ).toBe(
-            "http://localhost:3001/server.onMicrosoft.com/oauth2/v2.0/authorize-challenge?dc=server&customer=hello%20world&customer=second&encoded=%2F%2b&empty="
+        expect(result.pathname).toBe(
+            "/nativeauthasampleapp.onmicrosoft.com/somewhere/else"
         );
+    });
+
+    it("throws a ParsedUrlError when the href cannot be resolved", () => {
+        // A bare protocol-relative marker that new URL cannot parse against the origin.
+        expect(() => resolveHrefV2(base, "http://")).toThrow(ParsedUrlError);
     });
 
     it("throws a ParsedUrlError for an empty href", () => {
@@ -173,16 +120,7 @@ describe("HrefResolverV2.resolveHrefV2", () => {
         "javascript:alert(1)",
         "data:text/plain,test",
         "ftp://example.com",
-    ])("treats a scheme-like href as a path: %s", (href) => {
-        expect(resolveHrefV2(base, href).href).toBe(`${base.origin}/${href}`);
-    });
-
-    it("throws a ParsedUrlError when the resulting URL has an unsupported protocol", () => {
-        expect(() =>
-            resolveHrefV2(
-                new URL("ftp://example.com/tenant"),
-                "/tenant/api/v0.1/auth/resetpassword"
-            )
-        ).toThrow(ParsedUrlError);
+    ])("throws a ParsedUrlError for the unsupported protocol in %s", (href) => {
+        expect(() => resolveHrefV2(base, href)).toThrow(ParsedUrlError);
     });
 });

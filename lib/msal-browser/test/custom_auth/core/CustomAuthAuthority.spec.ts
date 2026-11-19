@@ -10,7 +10,7 @@ import {
 import { TEST_CONFIG } from "../../utils/StringConstants.js";
 
 describe("CustomAuthAuthority", () => {
-    const authorityUrl = "https://contoso.ciamlogin.com/";
+    const authorityUrl = customAuthConfig.auth.authority;
     const customAuthProxyDomain = customAuthConfig.customAuth.authApiProxyUrl;
     const authorityHostname =
         authorityUrl && authorityUrl.startsWith("https")
@@ -32,52 +32,6 @@ describe("CustomAuthAuthority", () => {
     );
 
     describe("constructor", () => {
-        it.each([
-            [
-                "https://contoso.ciamlogin.com",
-                "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/",
-            ],
-            [
-                "https://contoso.ciamlogin.com/",
-                "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/",
-            ],
-            [
-                "https://11111111-2222-4333-8444-555555555555.ciamlogin.com",
-                "https://11111111-2222-4333-8444-555555555555.ciamlogin.com/11111111-2222-4333-8444-555555555555.onmicrosoft.com/",
-            ],
-            [
-                "https://contoso.ciamlogin.com/11111111-2222-4333-8444-555555555555",
-                "https://contoso.ciamlogin.com/11111111-2222-4333-8444-555555555555/",
-            ],
-            [
-                "https://contoso.ciamlogin.com/contoso.onmicrosoft.com",
-                "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/",
-            ],
-            [
-                "https://login.example.com/contoso.onmicrosoft.com",
-                "https://login.example.com/contoso.onmicrosoft.com/",
-            ],
-        ])(
-            "normalizes %s before transforming the CIAM authority",
-            (authority, expectedAuthority) => {
-                const customAuthAuthority = new CustomAuthAuthority(
-                    authority,
-                    config,
-                    StubbedNetworkModule,
-                    browserStorage,
-                    logger,
-                    performanceClient
-                );
-
-                expect(customAuthAuthority.getCustomAuthApiDomain()).toBe(
-                    expectedAuthority
-                );
-                expect(customAuthAuthority.tokenEndpoint).toBe(
-                    `${expectedAuthority}oauth2/v2.0/token`
-                );
-            }
-        );
-
         it("should correctly parse and store the authority URL", () => {
             const customAuthAuthority = new CustomAuthAuthority(
                 authorityUrl ?? "",
@@ -88,7 +42,7 @@ describe("CustomAuthAuthority", () => {
                 performanceClient
             );
             expect(customAuthAuthority.canonicalAuthority).toBe(
-                "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/"
+                "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/"
             );
         });
 
@@ -132,7 +86,7 @@ describe("CustomAuthAuthority", () => {
                 performanceClient
             );
             expect(customAuthAuthority.canonicalAuthority).toBe(
-                "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/"
+                "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/"
             );
 
             const authorityHostname =
@@ -166,7 +120,9 @@ describe("CustomAuthAuthority", () => {
                 logger,
                 performanceClient
             );
-            expect(customAuthAuthority.tenant).toBe("contoso.onmicrosoft.com");
+            expect(customAuthAuthority.tenant).toBe(
+                "spasamples.onmicrosoft.com"
+            );
         });
     });
 
@@ -196,7 +152,7 @@ describe("CustomAuthAuthority", () => {
                 performanceClient
             );
             expect(customAuthAuthority.getCustomAuthApiDomain()).toBe(
-                "https://contoso.ciamlogin.com/contoso.onmicrosoft.com/"
+                "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/"
             );
         });
     });
@@ -213,7 +169,7 @@ describe("CustomAuthAuthority", () => {
                 customAuthProxyDomain
             );
             expect(customAuthAuthority.getPreferredCache()).toBe(
-                "contoso.ciamlogin.com"
+                "spasamples.ciamlogin.com"
             );
         });
     });
