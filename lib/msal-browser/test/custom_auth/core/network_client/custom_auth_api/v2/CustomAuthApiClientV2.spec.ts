@@ -72,6 +72,85 @@ describe("CustomAuthApiClientV2", () => {
         jest.resetAllMocks();
     });
 
+    describe.each([
+        "signInStart",
+        "resetPasswordStart",
+        "signUpStart",
+    ] as const)("%s method IDs", (operation) => {
+        const request = {
+            continuationToken: "ct-entry",
+            username: "user@test.example.com",
+        };
+        const response = {
+            continuationToken: "ct-start",
+            action: "challenge",
+            challengeContext: { authenticationFactor: "singleFactor" },
+        };
+
+        it.each([
+            { id: undefined, type: "email" },
+            { id: undefined, type: undefined },
+            { id: null, type: "email" },
+            { id: "", type: "email" },
+            { id: " \t ", type: "email" },
+            { id: 123, type: "email" },
+            { id: {}, type: "email" },
+        ])("rejects response method ID $id with type $type", async (method) => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    ...response,
+                    _embedded: {
+                        methods: [
+                            {
+                                ...method,
+                                _links: {
+                                    challenge: {
+                                        href: "/methods/email/challenge",
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                })
+            );
+
+            await expect(
+                apiClient[operation]("/start", request, context)
+            ).rejects.toMatchObject({
+                error: INVALID_HAL_RESPONSE,
+                correlationId: context.correlationId,
+            });
+        });
+
+        it("preserves response IDs independently of method type and href", async () => {
+            const methods = ["primary", "secondary"].map((id) => ({
+                id,
+                type: "email",
+                _links: {
+                    challenge: {
+                        href: `/methods/${id}/challenge?server=value`,
+                    },
+                },
+            }));
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    ...response,
+                    _embedded: { methods },
+                })
+            );
+
+            await expect(
+                apiClient[operation]("/start", request, context)
+            ).resolves.toMatchObject({
+                methods: methods.map((method) => ({
+                    id: method.id,
+                    type: method.type,
+                    challengeHref: method._links.challenge.href,
+                })),
+            });
+        });
+    });
+
     describe.each(["authority", "proxy"])("%s base URL forms", (baseSource) => {
         const tenantId = "11111111-2222-4333-8444-555555555555";
         const nameOrigin = "https://contoso.ciamlogin.com";
@@ -146,6 +225,7 @@ describe("CustomAuthApiClientV2", () => {
                             _embedded: {
                                 methods: [
                                     {
+                                        id: "email-1",
                                         type: "email",
                                         _links: {
                                             challenge: {
@@ -280,6 +360,7 @@ describe("CustomAuthApiClientV2", () => {
                         _embedded: {
                             methods: [
                                 {
+                                    id: "email-1",
                                     type: "email",
                                     _links: {
                                         challenge: {
@@ -548,6 +629,7 @@ describe("CustomAuthApiClientV2", () => {
                     _embedded: {
                         methods: [
                             {
+                                id: "email-1",
                                 _links: {
                                     challenge: {
                                         href: "/tenant/api/v0.1/methods/email/challenge",
@@ -930,65 +1012,49 @@ describe("CustomAuthApiClientV2", () => {
             });
         });
 
-        it.each([
-            {
-                label: "state",
-                state: undefined,
-                id: "email-1",
-                expectedId: "email-1",
-            },
-            {
-                label: "method id",
-                state: "interactionRequired",
-                id: undefined,
-                expectedId: "email",
-            },
-        ])(
-            "accepts a challenge without a $label using shared method resolution",
-            async ({ state, id, expectedId }) => {
-                mockHttpClient.sendAsync.mockResolvedValueOnce(
-                    buildResponse({
-                        ...startResponse,
-                        state,
-                        action: "challenge",
-                        challengeContext: {
-                            authenticationFactor: "singleFactor",
-                        },
-                        _embedded: {
-                            methods: [
-                                {
-                                    id,
-                                    type: "email",
-                                    _links: {
-                                        challenge: { href: "/email/challenge" },
-                                    },
+        it("accepts a challenge without a state using shared method resolution", async () => {
+            mockHttpClient.sendAsync.mockResolvedValueOnce(
+                buildResponse({
+                    ...startResponse,
+                    state: undefined,
+                    action: "challenge",
+                    challengeContext: {
+                        authenticationFactor: "singleFactor",
+                    },
+                    _embedded: {
+                        methods: [
+                            {
+                                id: "email-1",
+                                type: "email",
+                                _links: {
+                                    challenge: { href: "/email/challenge" },
                                 },
-                            ],
-                        },
-                    })
-                );
+                            },
+                        ],
+                    },
+                })
+            );
 
-                await expect(
-                    apiClient.signUpStart(
-                        "/tenant/api/v0.1/signup/start",
-                        {
-                            continuationToken: "ct-entry",
-                            username: "existing@contoso.com",
-                        },
-                        context
-                    )
-                ).resolves.toMatchObject({
-                    nextAction: "challenge",
-                    methods: [
-                        {
-                            id: expectedId,
-                            type: "email",
-                            challengeHref: "/email/challenge",
-                        },
-                    ],
-                });
-            }
-        );
+            await expect(
+                apiClient.signUpStart(
+                    "/tenant/api/v0.1/signup/start",
+                    {
+                        continuationToken: "ct-entry",
+                        username: "existing@contoso.com",
+                    },
+                    context
+                )
+            ).resolves.toMatchObject({
+                nextAction: "challenge",
+                methods: [
+                    {
+                        id: "email-1",
+                        type: "email",
+                        challengeHref: "/email/challenge",
+                    },
+                ],
+            });
+        });
 
         it.each([
             [

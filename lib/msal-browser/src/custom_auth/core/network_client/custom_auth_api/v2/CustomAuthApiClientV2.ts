@@ -809,12 +809,23 @@ export class CustomAuthApiClientV2 extends BaseApiClientV2 {
     ): StartMethodV2[] {
         const resolved: StartMethodV2[] = [];
 
-        methods.forEach((method, index) => {
+        methods.forEach((method) => {
             const href = method._links?.challenge?.href;
 
             if (href) {
+                if (typeof method.id !== "string" || !method.id.trim()) {
+                    const message =
+                        "Invalid HAL response: authentication method ID is missing or malformed";
+                    this.logger?.error(message, correlationId);
+                    throw new CustomAuthApiError(
+                        INVALID_HAL_RESPONSE,
+                        message,
+                        correlationId
+                    );
+                }
+
                 resolved.push({
-                    id: method.id ?? method.type ?? `method-${index}`,
+                    id: method.id,
                     type: method.type,
                     hint: method.hint,
                     challengeHref: href,
