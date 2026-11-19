@@ -1,3 +1,5 @@
+/* eslint-disable no-console -- E2E mailbox diagnostics report polling progress without message contents. */
+
 /**
  * Email provider utility functions for mail.tm
  */
@@ -190,28 +192,32 @@ export class MailTmClient {
                     return null;
                 }
             } else {
-                const errorText = await response.text();
-                console.error(`Failed to fetch message source. Status: ${response.status}, Response: ${errorText}`);
+                console.error(`[mail.tm] Failed to fetch message source (HTTP ${response.status}).`);
                 return null;
             }
-        } catch (error) {
-            console.error("Error while fetching message source:", error);
+        } catch {
+            console.error("[mail.tm] Error while fetching message source.");
             return null;
         }
     }
 
     /**
-     * Read messages and extract OTP code with progressive delay strategy
+     * Read messages and extract OTP code with progressive delay strategy.
+     * An optional log context identifies the test attempt and delivery without exposing message contents.
      */
-    async readOtpCode(maxRetries = 5): Promise<string> {
+    async readOtpCode(maxRetries = 5, logContext = "mail.tm"): Promise<string> {
         if (!this.token) {
             throw new Error("Call login() before reading messages");
         }
 
         // Progressive delay strategy: 10s, 20s, 30s, 40s, 50s
         const progressiveDelays = [10, 20, 30, 40, 50];
+        const startedAt = Date.now();
 
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            console.log(
+                `[${logContext}] Mailbox poll ${attempt}/${maxRetries} (+${Date.now() - startedAt}ms): fetch messages`
+            );
             try {
                 const res = await fetch(`${BASE}/messages?page=1`, {
                     headers: {
@@ -223,6 +229,9 @@ export class MailTmClient {
                 if (res.ok) {
                     const json = await res.json();
                     const msgs = json["hydra:member"];
+                    console.log(
+                        `[${logContext}] Mailbox poll ${attempt}/${maxRetries}: ${msgs?.length ?? 0} messages; checking for a matching OTP`
+                    );
 
                     if (msgs && msgs.length > 0) {
                         // Filter messages based on checkpoint if set
@@ -244,28 +253,49 @@ export class MailTmClient {
                             if (otpCode) {
                                 // Clear checkpoint after successful OTP retrieval
                                 this.lastCheckedTime = null;
+                                console.log(
+                                    `[${logContext}] OTP email received on poll ${attempt}/${maxRetries} (+${Date.now() - startedAt}ms); code omitted`
+                                );
                                 return otpCode;
                             }
                         }
                     }
+                    console.log(
+                        `[${logContext}] Mailbox poll ${attempt}/${maxRetries}: no matching OTP found`
+                    );
+                } else {
+                    console.warn(
+                        `[${logContext}] Mailbox poll ${attempt}/${maxRetries}: message fetch failed (HTTP ${res.status})`
+                    );
                 }
 
                 // If not the last attempt, wait before retrying with progressive delay
                 if (attempt < maxRetries) {
                     const delayTime = progressiveDelays[Math.min(attempt - 1, progressiveDelays.length - 1)];
+                    console.log(
+                        `[${logContext}] Retry mailbox poll ${attempt + 1}/${maxRetries} in ${delayTime}s`
+                    );
                     await new Promise((resolve) => setTimeout(resolve, delayTime * 1000));
                 }
-            } catch (error) {
-                console.error(`Error on attempt ${attempt}:`, error);
+            } catch {
+                console.error(
+                    `[${logContext}] Mailbox poll ${attempt}/${maxRetries}: request or response processing failed`
+                );
 
                 // If not the last attempt, wait before retrying with progressive delay
                 if (attempt < maxRetries) {
                     const delayTime = progressiveDelays[Math.min(attempt - 1, progressiveDelays.length - 1)];
+                    console.log(
+                        `[${logContext}] Retry mailbox poll ${attempt + 1}/${maxRetries} in ${delayTime}s`
+                    );
                     await new Promise((resolve) => setTimeout(resolve, delayTime * 1000));
                 }
             }
         }
 
+        console.error(
+            `[${logContext}] Mailbox polling exhausted after ${maxRetries} attempts (+${Date.now() - startedAt}ms)`
+        );
         throw new Error(`Failed to find OTP code after ${maxRetries} attempts`);
     }
 
