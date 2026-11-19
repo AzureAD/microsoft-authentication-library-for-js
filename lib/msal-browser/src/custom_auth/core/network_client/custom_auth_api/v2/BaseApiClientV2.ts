@@ -90,14 +90,9 @@ export abstract class BaseApiClientV2 {
             request.claims = claims;
         }
 
-        const url = buildUrl(
-            this.baseRequestUrl.href,
-            AUTHORIZE_CHALLENGE,
-            this.customAuthApiQueryParams
-        );
         const parsedResponse =
             await this.postOAuthForm<AuthorizeChallengeEntryResponseV2>(
-                url,
+                AUTHORIZE_CHALLENGE,
                 request,
                 context
             );
@@ -205,13 +200,8 @@ export abstract class BaseApiClientV2 {
             client_info: "1",
         };
 
-        const url = buildUrl(
-            this.baseRequestUrl.href,
-            SIGNIN_TOKEN,
-            this.customAuthApiQueryParams
-        );
         const parsedResponse = await this.postOAuthForm<TokenResponseV2>(
-            url,
+            SIGNIN_TOKEN,
             request,
             context
         );
@@ -285,13 +275,21 @@ export abstract class BaseApiClientV2 {
     }
 
     private async postOAuthForm<T>(
-        url: URL,
+        endpoint: string | URL,
         data: OAuthFormRequestV2 | AuthorizeChallengeContinueRequestV2,
         context: RequestContextV2
     ): Promise<ParsedResponseV2<T>> {
         const formData = new URLSearchParams(
             Object.entries(data) as [string, string][]
         );
+        const url =
+            typeof endpoint === "string"
+                ? buildUrl(
+                      this.baseRequestUrl.href,
+                      endpoint,
+                      this.customAuthApiQueryParams
+                  )
+                : endpoint;
         const response = await this.sendRequest(
             url,
             HttpMethod.POST,
