@@ -12,7 +12,7 @@ The `prompt` request parameter tells the identity provider which sign-in experie
 | `none` | Do not display sign-in, account-selection, or consent UI. Return an error if the request cannot complete without interaction. |
 | `create` | Request account creation where supported by the identity provider and account type. |
 
-Support can vary between Microsoft Entra ID, personal Microsoft accounts, B2C policies, and other authorities. MSAL validates prompt values, but accepting a value does not guarantee that an authority implements the requested experience. An unsupported value can produce `invalid_prompt_value` locally or an error from the authority.
+Support can vary between Microsoft Entra ID, personal Microsoft accounts, B2C policies, and other authorities. Interactive requests forward `prompt` to the authority without local value validation, so an unsupported value can produce an authority error. Silent iframe requests instead normalize interactive prompt values to `none`.
 
 ## Defaults and method differences
 
