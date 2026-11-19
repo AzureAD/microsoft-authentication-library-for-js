@@ -20,7 +20,7 @@ Support can vary between Microsoft Entra ID, personal Microsoft accounts, B2C po
 | --- | --- |
 | `loginPopup`, `loginRedirect`, `acquireTokenPopup`, `acquireTokenRedirect` | No `prompt` value is added by default. Existing sessions and provider policy determine whether UI appears. |
 | `ssoSilent` | Uses `prompt=none` for normal SSO requests in a hidden iframe. An interactive prompt value is replaced with `none`. |
-| `acquireTokenSilent` | Looks in the cache and renews tokens as needed. Its request does not accept a prompt setting; any iframe fallback must be noninteractive. |
+| `acquireTokenSilent` | Looks in the cache and renews tokens as needed. Its request accepts `prompt`, but any iframe fallback must remain noninteractive; interactive prompt values are replaced with `none`. |
 
 Do not use the internal `no_session` value as an application sign-in option. `forceRefresh` on a silent request controls cache/refresh-token behavior, not credential prompting; see [token lifetimes](./token-lifetimes.md).
 
