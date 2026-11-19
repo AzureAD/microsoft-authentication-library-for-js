@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Thu, 12 Nov 2026 18:58:52 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 18 Nov 2026 21:34:22 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.30.0
+
+Wed, 18 Nov 2026 21:34:22 GMT
+
+### Minor changes
+
+- Add experimental support for P-384 asymmetric encryption in EAR flows [#8970](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8970) (shylasummers@microsoft.com)
+- Add opt-in authenticated popup-relay protocol v2 and explicit protocol mismatch errors; deprecate v1 due to security concerns while preserving compatibility for staged migration and retirement [#8984](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8984) (nugetaad@microsoft.com)
+- Bump @azure/msal-common to v16.17.0
+
+### Patches
+
+- Prevent silent web requests for different account tenants from sharing an in-flight token acquisition. [#8989](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8989) (hemoral@microsoft.com)
 
 ## 5.29.1
 
