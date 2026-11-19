@@ -1,7 +1,0 @@
-{
-    "type": "patch",
-    "comment": "Prevent silent web requests for different account tenants from sharing an in-flight token acquisition. [#8989](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8989)",
-    "packageName": "@azure/msal-browser",
-    "email": "hemoral@microsoft.com",
-    "dependentChangeType": "patch"
-}
