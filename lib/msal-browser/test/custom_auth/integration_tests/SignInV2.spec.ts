@@ -7,8 +7,10 @@ import { CustomAuthPublicClientApplication } from "../../../src/custom_auth/Cust
 import { CustomAuthStandardController } from "../../../src/custom_auth/controller/CustomAuthStandardController.js";
 import { PasswordRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/PasswordRequiredStateV2.js";
 import { CompletedStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CompletedStateV2.js";
+import { AuthMethodSelectionRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.js";
 import { CodeRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/CodeRequiredStateV2.js";
 import { AuthFlowErrorV2 } from "../../../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.js";
+import { MFAVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
 import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.js";
 import {
     AuthMethodRegistrationRequiredStateV2,
@@ -16,6 +18,8 @@ import {
 } from "../../../src/custom_auth/index.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
+import { CustomAuthApiClientV2 } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
+import { CustomAuthApiError } from "../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import {
     MFA_V2_RESEND_CHALLENGE,
     MFA_V2_SELECT_AUTH_METHOD,
@@ -26,50 +30,89 @@ import {
     SIGN_IN_V2_SUBMIT_PASSWORD,
 } from "../../../src/custom_auth/core/telemetry/PublicApiId.js";
 import {
-    CONTINUE_RESPONSE,
-    EMAIL_CHALLENGE_RESPONSE,
-    EMAIL_REGISTRATION_ACTIVATION_RESPONSE,
-    EMAIL_REGISTRATION_REQUIRED_RESPONSE,
-    EMAIL_MFA_CHALLENGE_RESPONSE,
-    EMAIL_MFA_REQUIRED_RESPONSE,
-    EMAIL_RESEND_RESPONSE,
-    EMAIL_START_RESPONSE,
-    ENTRY_RESPONSE,
-    MFA_VERIFY_RESPONSE,
-    PASSWORD_AND_EMAIL_START_RESPONSE,
-    PASSWORD_CHALLENGE_RESPONSE,
-    PASSWORD_EMAIL_AND_SMS_START_RESPONSE,
-    PHONE_REGISTRATION_ACTIVATION_RESPONSE,
-    PHONE_REGISTRATION_REQUIRED_RESPONSE,
-    SIGN_IN_CONTINUE_RESPONSE,
-    SMS_CHALLENGE_RESPONSE,
-    SMS_MFA_CHALLENGE_RESPONSE,
-    SMS_MFA_REQUIRED_RESPONSE,
-    SMS_MFA_RESEND_RESPONSE,
-    START_RESPONSE,
+    ENTRY_RESULT as ENTRY_RESPONSE,
+    START_RESULT as START_RESPONSE,
+    EMAIL_START_RESULT as EMAIL_START_RESPONSE,
+    PASSWORD_AND_EMAIL_START_RESULT as PASSWORD_AND_EMAIL_START_RESPONSE,
+    PASSWORD_EMAIL_AND_SMS_START_RESULT as PASSWORD_EMAIL_AND_SMS_START_RESPONSE,
+    PASSWORD_METHOD_RESULT as passwordMethod,
+    PASSWORD_CHALLENGE_RESULT as PASSWORD_CHALLENGE_RESPONSE,
+    EMAIL_CHALLENGE_RESULT as EMAIL_CHALLENGE_RESPONSE,
+    EMAIL_RESEND_RESULT as EMAIL_RESEND_RESPONSE,
+    SMS_CHALLENGE_RESULT as SMS_CHALLENGE_RESPONSE,
+    SIGN_IN_CONTINUE_RESULT as SIGN_IN_CONTINUE_RESPONSE,
+    EMAIL_REGISTRATION_REQUIRED_RESULT as EMAIL_REGISTRATION_REQUIRED_RESPONSE,
+    PHONE_REGISTRATION_REQUIRED_RESULT as PHONE_REGISTRATION_REQUIRED_RESPONSE,
+    EMAIL_REGISTRATION_ACTIVATION_RESULT as EMAIL_REGISTRATION_ACTIVATION_RESPONSE,
+    PHONE_REGISTRATION_ACTIVATION_RESULT as PHONE_REGISTRATION_ACTIVATION_RESPONSE,
+    EMAIL_MFA_REQUIRED_RESULT as EMAIL_MFA_REQUIRED_RESPONSE,
+    SMS_MFA_REQUIRED_RESULT as SMS_MFA_REQUIRED_RESPONSE,
+    EMAIL_MFA_CHALLENGE_RESULT as EMAIL_MFA_CHALLENGE_RESPONSE,
+    SMS_MFA_CHALLENGE_RESULT as SMS_MFA_CHALLENGE_RESPONSE,
+    SMS_MFA_RESEND_RESULT as SMS_MFA_RESEND_RESPONSE,
+    MFA_VERIFY_RESULT as MFA_VERIFY_RESPONSE,
 } from "./SignInV2Constants.js";
 
-const buildResponse = (
-    body: unknown,
-    status = 200,
-    headers: Record<string, string> = { "x-ms-request-id": "corr-1" }
-): Response =>
-    ({
-        status,
-        headers: {
-            get: (name: string) => headers[name] ?? null,
-        },
-        json: async () => body,
-    } as unknown as Response);
+const createApiMocks = () => {
+    const unexpected = new Error("Unexpected V2 API call in sign-in test");
+    return {
+        resetPasswordStart: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "resetPasswordStart")
+            .mockRejectedValue(unexpected),
+        signUpStart: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "signUpStart")
+            .mockRejectedValue(unexpected),
+        submitSignUpAttributes: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "submitSignUpAttributes")
+            .mockRejectedValue(unexpected),
+        verifyRisk: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "verifyRisk")
+            .mockRejectedValue(unexpected),
+        submitNewPassword: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "submitNewPassword")
+            .mockRejectedValue(unexpected),
+        poll: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "poll")
+            .mockRejectedValue(unexpected),
+        authorizeChallengeStart: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "authorizeChallengeStart")
+            .mockRejectedValue(unexpected),
+        signInStart: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "signInStart")
+            .mockRejectedValue(unexpected),
+        requestChallenge: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "requestChallenge")
+            .mockRejectedValue(unexpected),
+        verifyChallenge: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "verifyChallenge")
+            .mockRejectedValue(unexpected),
+        completeWithTokens: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "completeWithTokens")
+            .mockRejectedValue(unexpected),
+        enrollAuthMethod: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "enrollAuthMethod")
+            .mockRejectedValue(unexpected),
+        resendAuthMethodRegistrationChallenge: jest
+            .spyOn(
+                CustomAuthApiClientV2.prototype,
+                "resendAuthMethodRegistrationChallenge"
+            )
+            .mockRejectedValue(unexpected),
+        activateAuthMethod: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "activateAuthMethod")
+            .mockRejectedValue(unexpected),
+    };
+};
 
 describe("Sign-in V2", () => {
     let app: CustomAuthPublicClientApplication;
+    let apiClient: ReturnType<typeof createApiMocks>;
 
     beforeEach(async () => {
+        apiClient = createApiMocks();
         app = (await CustomAuthPublicClientApplication.create(
             customAuthConfig
         )) as CustomAuthPublicClientApplication;
-        global.fetch = jest.fn();
     });
 
     afterEach(() => {
@@ -80,30 +123,25 @@ describe("Sign-in V2", () => {
             "customAuthController"
         ] as CustomAuthStandardController;
         controller["eventHandler"]["broadcastChannel"]?.close();
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     describe("single-factor completion", () => {
         describe("PasswordRequiredStateV2", () => {
             it("IT-SF-01: signInV2 -> passwordRequired -> completed", async () => {
-                const continueHref =
-                    "https://contoso.ciamlogin.com/server-tenant/oauth2/v2.0/authorize-challenge?dc=server&customer=hello%20world";
-                (fetch as jest.Mock)
-                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(PASSWORD_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse({
-                            ...SIGN_IN_CONTINUE_RESPONSE,
-                            _links: { continue: { href: continueHref } },
-                        })
-                    )
-                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(TestServerTokenResponse)
-                    );
+                apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                    ENTRY_RESPONSE
+                );
+                apiClient.signInStart.mockResolvedValueOnce(START_RESPONSE);
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    PASSWORD_CHALLENGE_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    SIGN_IN_CONTINUE_RESPONSE
+                );
+                apiClient.completeWithTokens.mockResolvedValueOnce(
+                    TestServerTokenResponse
+                );
 
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
@@ -115,41 +153,32 @@ describe("Sign-in V2", () => {
                     PasswordRequiredStateV2
                 );
 
-                if (!startResult.isState("passwordRequired")) {
-                    throw new Error("Expected a password-required state.");
-                }
-                const result = await startResult.state.submitPassword(
-                    "valid-password"
-                );
+                const result = await (
+                    startResult.state as PasswordRequiredStateV2
+                ).submitPassword("valid-password");
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
                 expect(result.data).toBeInstanceOf(CustomAuthAccountData);
-                const proxyOrigin = new URL(
-                    customAuthConfig.customAuth.authApiProxyUrl
-                ).origin;
-                const calls = (fetch as jest.Mock).mock.calls;
-                expect(String(calls[calls.length - 2][0])).toBe(
-                    `${proxyOrigin}/server-tenant/oauth2/v2.0/authorize-challenge?dc=server&customer=hello%20world`
-                );
+                expect(app.getAllAccounts()).toHaveLength(1);
             });
 
             it.each(["valid-password", "", 42])(
                 "IT-SF-02: ignores legacy upfront password %p until the requested state submits it",
                 async (password) => {
-                    (fetch as jest.Mock)
-                        .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                        .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-                        .mockResolvedValueOnce(
-                            buildResponse(PASSWORD_CHALLENGE_RESPONSE)
-                        )
-                        .mockResolvedValueOnce(
-                            buildResponse(SIGN_IN_CONTINUE_RESPONSE)
-                        )
-                        .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                        .mockResolvedValueOnce(
-                            buildResponse(TestServerTokenResponse)
-                        );
+                    apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                        ENTRY_RESPONSE
+                    );
+                    apiClient.signInStart.mockResolvedValueOnce(START_RESPONSE);
+                    apiClient.requestChallenge.mockResolvedValueOnce(
+                        PASSWORD_CHALLENGE_RESPONSE
+                    );
+                    apiClient.verifyChallenge.mockResolvedValueOnce(
+                        SIGN_IN_CONTINUE_RESPONSE
+                    );
+                    apiClient.completeWithTokens.mockResolvedValueOnce(
+                        TestServerTokenResponse
+                    );
 
                     const inputs = {
                         username: "user@contoso.com",
@@ -160,16 +189,23 @@ describe("Sign-in V2", () => {
 
                     expect(startResult.isState("passwordRequired")).toBe(true);
                     expect(startResult.data).toBeUndefined();
-                    expect(fetch).toHaveBeenCalledTimes(3);
                     expect(
-                        (fetch as jest.Mock).mock.calls.map(
-                            ([, request]) => request.body
-                        )
-                    ).not.toEqual(
-                        expect.arrayContaining([
-                            expect.stringContaining('"password"'),
-                        ])
+                        apiClient.authorizeChallengeStart
+                    ).toHaveBeenCalledTimes(1);
+                    expect(apiClient.signInStart).toHaveBeenCalledWith(
+                        ENTRY_RESPONSE.signInHref,
+                        {
+                            continuationToken: "ct-entry",
+                            username: inputs.username,
+                        },
+                        expect.anything()
                     );
+                    expect(apiClient.requestChallenge).toHaveBeenCalledWith(
+                        passwordMethod.challengeHref,
+                        { continuationToken: "ct-start" },
+                        expect.anything()
+                    );
+                    expect(apiClient.verifyChallenge).not.toHaveBeenCalled();
                     if (!startResult.isState("passwordRequired")) {
                         throw new Error("Expected a password-required state.");
                     }
@@ -183,60 +219,68 @@ describe("Sign-in V2", () => {
             );
 
             it("returns an invalid-password error from PasswordRequiredStateV2", async () => {
-                (fetch as jest.Mock)
-                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(PASSWORD_CHALLENGE_RESPONSE)
+                apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                    ENTRY_RESPONSE
+                );
+                apiClient.signInStart.mockResolvedValueOnce(START_RESPONSE);
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    PASSWORD_CHALLENGE_RESPONSE
+                );
+                apiClient.verifyChallenge.mockRejectedValueOnce(
+                    new CustomAuthApiError(
+                        "invalidGrant",
+                        "AADSTS50126: Invalid username or password.",
+                        "corr-1",
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        undefined,
+                        "invalidUserNameOrPassword"
                     )
-                    .mockResolvedValueOnce(
-                        buildResponse(
-                            {
-                                error: {
-                                    code: "invalidGrant",
-                                    message:
-                                        "AADSTS50126: Invalid username or password.",
-                                    innerError: {
-                                        code: "invalidUserNameOrPassword",
-                                    },
-                                },
-                            },
-                            400
-                        )
-                    );
+                );
 
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
                 });
-                if (!startResult.isState("passwordRequired")) {
-                    throw new Error("Expected a password-required state.");
-                }
-                const result = await startResult.state.submitPassword(
-                    "incorrect"
-                );
+                const result = await (
+                    startResult.state as PasswordRequiredStateV2
+                ).submitPassword("incorrect");
 
                 expect(result.isFailed()).toBe(true);
                 expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
                 expect(result.error?.isInvalidPassword()).toBe(true);
-                expect(fetch).toHaveBeenCalledTimes(4);
+                expect(apiClient.verifyChallenge).toHaveBeenCalledWith(
+                    PASSWORD_CHALLENGE_RESPONSE.verifyHref,
+                    {
+                        continuationToken: "ct-password-challenge",
+                        password: "incorrect",
+                    },
+                    expect.anything()
+                );
+                expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
             });
         });
 
         describe("CodeRequiredStateV2", () => {
             it("IT-SF-03: signInV2 -> codeRequired(email) -> completed", async () => {
-                (fetch as jest.Mock)
-                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(EMAIL_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(SIGN_IN_CONTINUE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(TestServerTokenResponse)
-                    );
+                apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                    ENTRY_RESPONSE
+                );
+                apiClient.signInStart.mockResolvedValueOnce(
+                    EMAIL_START_RESPONSE
+                );
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    EMAIL_CHALLENGE_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    SIGN_IN_CONTINUE_RESPONSE
+                );
+                apiClient.completeWithTokens.mockResolvedValueOnce(
+                    TestServerTokenResponse
+                );
 
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
@@ -246,10 +290,9 @@ describe("Sign-in V2", () => {
                 expect(startResult.isState("codeRequired")).toBe(true);
                 expect(startResult.state).toBeInstanceOf(CodeRequiredStateV2);
 
-                if (!startResult.isState("codeRequired")) {
-                    throw new Error("Expected a code-required state.");
-                }
-                const result = await startResult.state.submitCode("123456");
+                const result = await (
+                    startResult.state as CodeRequiredStateV2
+                ).submitCode("123456");
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -257,28 +300,31 @@ describe("Sign-in V2", () => {
             });
 
             it("IT-SF-04: signInV2 -> codeRequired(email) -> resendCode -> codeRequired -> completed", async () => {
-                (fetch as jest.Mock)
-                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(EMAIL_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(buildResponse(EMAIL_RESEND_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(SIGN_IN_CONTINUE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(TestServerTokenResponse)
-                    );
+                apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                    ENTRY_RESPONSE
+                );
+                apiClient.signInStart.mockResolvedValueOnce(
+                    EMAIL_START_RESPONSE
+                );
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    EMAIL_CHALLENGE_RESPONSE
+                );
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    EMAIL_RESEND_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    SIGN_IN_CONTINUE_RESPONSE
+                );
+                apiClient.completeWithTokens.mockResolvedValueOnce(
+                    TestServerTokenResponse
+                );
 
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
                 });
-                if (!startResult.isState("codeRequired")) {
-                    throw new Error("Expected a code-required state.");
-                }
-                const resendResult = await startResult.state.resendCode();
+                const resendResult = await (
+                    startResult.state as CodeRequiredStateV2
+                ).resendCode();
 
                 expect(resendResult.isState("codeRequired")).toBe(true);
                 expect(resendResult.state).toBeInstanceOf(CodeRequiredStateV2);
@@ -287,10 +333,9 @@ describe("Sign-in V2", () => {
                     expect(resendResult.state.sentTo).toBe("u***@contoso.com");
                 }
 
-                if (!resendResult.isState("codeRequired")) {
-                    throw new Error("Expected a code-required state.");
-                }
-                const result = await resendResult.state.submitCode("123456");
+                const result = await (
+                    resendResult.state as CodeRequiredStateV2
+                ).submitCode("123456");
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -299,21 +344,21 @@ describe("Sign-in V2", () => {
 
         describe("AuthMethodSelectionRequiredStateV2(SINGLE_FACTOR)", () => {
             it("IT-SF-05: signInV2 -> authMethodSelectionRequired(singleFactor) -> passwordRequired -> completed", async () => {
-                (fetch as jest.Mock)
-                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(PASSWORD_AND_EMAIL_START_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(PASSWORD_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(SIGN_IN_CONTINUE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(TestServerTokenResponse)
-                    );
+                apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                    ENTRY_RESPONSE
+                );
+                apiClient.signInStart.mockResolvedValueOnce(
+                    PASSWORD_AND_EMAIL_START_RESPONSE
+                );
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    PASSWORD_CHALLENGE_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    SIGN_IN_CONTINUE_RESPONSE
+                );
+                apiClient.completeWithTokens.mockResolvedValueOnce(
+                    TestServerTokenResponse
+                );
 
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
@@ -322,13 +367,9 @@ describe("Sign-in V2", () => {
                 expect(startResult.isState("authMethodSelectionRequired")).toBe(
                     true
                 );
-                expect(fetch).toHaveBeenCalledTimes(2);
-                if (!startResult.isState("authMethodSelectionRequired")) {
-                    throw new Error(
-                        "Expected authentication method selection."
-                    );
-                }
-                const selectionState = startResult.state;
+                expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+                const selectionState =
+                    startResult.state as AuthMethodSelectionRequiredStateV2;
                 const passwordMethod = selectionState.methods.find(
                     (method) => method.type === "password"
                 );
@@ -343,35 +384,36 @@ describe("Sign-in V2", () => {
                 );
 
                 expect(passwordResult.isState("passwordRequired")).toBe(true);
-                expect(fetch).toHaveBeenCalledTimes(3);
-
-                if (!passwordResult.isState("passwordRequired")) {
-                    throw new Error("Expected a password-required state.");
-                }
-                const result = await passwordResult.state.submitPassword(
-                    "selected-password"
+                expect(apiClient.requestChallenge).toHaveBeenCalledWith(
+                    passwordMethod.challengeHref,
+                    { continuationToken: "ct-start" },
+                    expect.anything()
                 );
+
+                const result = await (
+                    passwordResult.state as PasswordRequiredStateV2
+                ).submitPassword("selected-password");
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
             });
 
             it("IT-SF-06: signInV2 -> authMethodSelectionRequired(singleFactor) -> codeRequired(email) -> completed", async () => {
-                (fetch as jest.Mock)
-                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(PASSWORD_AND_EMAIL_START_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(EMAIL_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(SIGN_IN_CONTINUE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(TestServerTokenResponse)
-                    );
+                apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                    ENTRY_RESPONSE
+                );
+                apiClient.signInStart.mockResolvedValueOnce(
+                    PASSWORD_AND_EMAIL_START_RESPONSE
+                );
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    EMAIL_CHALLENGE_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    SIGN_IN_CONTINUE_RESPONSE
+                );
+                apiClient.completeWithTokens.mockResolvedValueOnce(
+                    TestServerTokenResponse
+                );
 
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
@@ -379,13 +421,9 @@ describe("Sign-in V2", () => {
                 expect(startResult.isState("authMethodSelectionRequired")).toBe(
                     true
                 );
-                expect(fetch).toHaveBeenCalledTimes(2);
-                if (!startResult.isState("authMethodSelectionRequired")) {
-                    throw new Error(
-                        "Expected authentication method selection."
-                    );
-                }
-                const selectionState = startResult.state;
+                expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+                const selectionState =
+                    startResult.state as AuthMethodSelectionRequiredStateV2;
                 const emailMethod = selectionState.methods.find(
                     (method) => method.type === "email"
                 );
@@ -399,12 +437,15 @@ describe("Sign-in V2", () => {
 
                 expect(codeResult.isState("codeRequired")).toBe(true);
                 expect(codeResult.state).toBeInstanceOf(CodeRequiredStateV2);
-                expect(fetch).toHaveBeenCalledTimes(3);
+                expect(apiClient.requestChallenge).toHaveBeenCalledWith(
+                    emailMethod.challengeHref,
+                    { continuationToken: "ct-start" },
+                    expect.anything()
+                );
 
-                if (!codeResult.isState("codeRequired")) {
-                    throw new Error("Expected a code-required state.");
-                }
-                const result = await codeResult.state.submitCode("123456");
+                const result = await (
+                    codeResult.state as CodeRequiredStateV2
+                ).submitCode("123456");
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -414,28 +455,32 @@ describe("Sign-in V2", () => {
 
     describe("JIT registration after sign-in verification", () => {
         it("signInV2 -> passwordRequired -> register email -> resend activation -> completed", async () => {
-            (fetch as jest.Mock)
-                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-                .mockResolvedValueOnce(
-                    buildResponse(PASSWORD_CHALLENGE_RESPONSE)
-                )
-                .mockResolvedValueOnce(
-                    buildResponse(EMAIL_REGISTRATION_REQUIRED_RESPONSE)
-                )
-                .mockResolvedValueOnce(
-                    buildResponse(EMAIL_REGISTRATION_ACTIVATION_RESPONSE)
-                )
-                .mockResolvedValueOnce(
-                    buildResponse({
-                        ...EMAIL_REGISTRATION_ACTIVATION_RESPONSE,
-                        continuationToken: "ct-email-resend",
-                        codeLength: 8,
-                    })
-                )
-                .mockResolvedValueOnce(buildResponse(SIGN_IN_CONTINUE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+            apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                ENTRY_RESPONSE
+            );
+            apiClient.signInStart.mockResolvedValueOnce(START_RESPONSE);
+            apiClient.requestChallenge.mockResolvedValueOnce(
+                PASSWORD_CHALLENGE_RESPONSE
+            );
+            apiClient.verifyChallenge.mockResolvedValueOnce(
+                EMAIL_REGISTRATION_REQUIRED_RESPONSE
+            );
+            apiClient.enrollAuthMethod.mockResolvedValueOnce(
+                EMAIL_REGISTRATION_ACTIVATION_RESPONSE
+            );
+            apiClient.resendAuthMethodRegistrationChallenge.mockResolvedValueOnce(
+                {
+                    ...EMAIL_REGISTRATION_ACTIVATION_RESPONSE,
+                    continuationToken: "ct-email-resend",
+                    codeLength: 8,
+                }
+            );
+            apiClient.activateAuthMethod.mockResolvedValueOnce(
+                SIGN_IN_CONTINUE_RESPONSE
+            );
+            apiClient.completeWithTokens.mockResolvedValueOnce(
+                TestServerTokenResponse
+            );
 
             const startResult = await app.signInV2({
                 username: "user@contoso.com",
@@ -491,40 +536,49 @@ describe("Sign-in V2", () => {
             const result = await resendResult.state.submitChallenge("12345678");
             expect(result.isState("completed")).toBe(true);
             expect(result.data).toBeInstanceOf(CustomAuthAccountData);
-            expect(fetch).toHaveBeenCalledTimes(9);
-            const requests = (fetch as jest.Mock).mock.calls;
-            expect(String(requests[4][0])).toContain("/enroll/email");
-            expect(JSON.parse(requests[4][1].body)).toMatchObject({
-                email: "user@contoso.com",
-                continuationToken: "ct-email-enroll",
-            });
-            expect(String(requests[5][0])).toContain("/enroll/email");
-            expect(JSON.parse(requests[5][1].body)).toMatchObject({
-                continuationToken: "ct-email-activate",
-            });
-            expect(String(requests[6][0])).toContain("/activate/email");
-            expect(JSON.parse(requests[6][1].body)).toMatchObject({
-                otp: "12345678",
-                continuationToken: "ct-email-resend",
-            });
+            expect(apiClient.enrollAuthMethod).toHaveBeenCalledWith(
+                "/tenant/api/v0.1/enroll/email",
+                {
+                    email: "user@contoso.com",
+                    continuationToken: "ct-email-enroll",
+                },
+                expect.anything()
+            );
+            expect(
+                apiClient.resendAuthMethodRegistrationChallenge
+            ).toHaveBeenCalledWith(
+                "/tenant/api/v0.1/enroll/email",
+                { continuationToken: "ct-email-activate" },
+                expect.anything()
+            );
+            expect(apiClient.activateAuthMethod).toHaveBeenCalledWith(
+                "/tenant/api/v0.1/activate/email",
+                { otp: "12345678", continuationToken: "ct-email-resend" },
+                expect.anything()
+            );
+            expect(apiClient.completeWithTokens).toHaveBeenCalledTimes(1);
         });
 
         it("signInV2 -> passwordRequired -> register email -> completed", async () => {
-            (fetch as jest.Mock)
-                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-                .mockResolvedValueOnce(
-                    buildResponse(PASSWORD_CHALLENGE_RESPONSE)
-                )
-                .mockResolvedValueOnce(
-                    buildResponse(EMAIL_REGISTRATION_REQUIRED_RESPONSE)
-                )
-                .mockResolvedValueOnce(
-                    buildResponse(EMAIL_REGISTRATION_ACTIVATION_RESPONSE)
-                )
-                .mockResolvedValueOnce(buildResponse(SIGN_IN_CONTINUE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+            apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                ENTRY_RESPONSE
+            );
+            apiClient.signInStart.mockResolvedValueOnce(START_RESPONSE);
+            apiClient.requestChallenge.mockResolvedValueOnce(
+                PASSWORD_CHALLENGE_RESPONSE
+            );
+            apiClient.verifyChallenge.mockResolvedValueOnce(
+                EMAIL_REGISTRATION_REQUIRED_RESPONSE
+            );
+            apiClient.enrollAuthMethod.mockResolvedValueOnce(
+                EMAIL_REGISTRATION_ACTIVATION_RESPONSE
+            );
+            apiClient.activateAuthMethod.mockResolvedValueOnce(
+                SIGN_IN_CONTINUE_RESPONSE
+            );
+            apiClient.completeWithTokens.mockResolvedValueOnce(
+                TestServerTokenResponse
+            );
 
             const startResult = await app.signInV2({
                 username: "user@contoso.com",
@@ -560,23 +614,29 @@ describe("Sign-in V2", () => {
             );
             expect(result.isState("completed")).toBe(true);
             expect(result.data).toBeInstanceOf(CustomAuthAccountData);
-            expect(fetch).toHaveBeenCalledTimes(8);
+            expect(apiClient.completeWithTokens).toHaveBeenCalledTimes(1);
         });
 
         it("signInV2 -> codeRequired -> register SMS phone -> completed", async () => {
-            (fetch as jest.Mock)
-                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
-                .mockResolvedValueOnce(
-                    buildResponse(PHONE_REGISTRATION_REQUIRED_RESPONSE)
-                )
-                .mockResolvedValueOnce(
-                    buildResponse(PHONE_REGISTRATION_ACTIVATION_RESPONSE)
-                )
-                .mockResolvedValueOnce(buildResponse(SIGN_IN_CONTINUE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+            apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                ENTRY_RESPONSE
+            );
+            apiClient.signInStart.mockResolvedValueOnce(EMAIL_START_RESPONSE);
+            apiClient.requestChallenge.mockResolvedValueOnce(
+                EMAIL_CHALLENGE_RESPONSE
+            );
+            apiClient.verifyChallenge.mockResolvedValueOnce(
+                PHONE_REGISTRATION_REQUIRED_RESPONSE
+            );
+            apiClient.enrollAuthMethod.mockResolvedValueOnce(
+                PHONE_REGISTRATION_ACTIVATION_RESPONSE
+            );
+            apiClient.activateAuthMethod.mockResolvedValueOnce(
+                SIGN_IN_CONTINUE_RESPONSE
+            );
+            apiClient.completeWithTokens.mockResolvedValueOnce(
+                TestServerTokenResponse
+            );
 
             const startResult = await app.signInV2({
                 username: "user@contoso.com",
@@ -619,58 +679,59 @@ describe("Sign-in V2", () => {
             );
             expect(result.isState("completed")).toBe(true);
             expect(result.data).toBeInstanceOf(CustomAuthAccountData);
-            expect(fetch).toHaveBeenCalledTimes(8);
-            const requests = (fetch as jest.Mock).mock.calls;
-            expect(String(requests[4][0])).toContain("/enroll/phone");
-            expect(JSON.parse(requests[4][1].body)).toMatchObject({
-                phoneNumber: "+15555551234",
-                channel: "sms",
-                continuationToken: "ct-phone-enroll",
-            });
-            expect(String(requests[5][0])).toContain("/activate/phone");
+            expect(apiClient.completeWithTokens).toHaveBeenCalledTimes(1);
+            expect(apiClient.enrollAuthMethod).toHaveBeenCalledWith(
+                "/tenant/api/v0.1/enroll/phone",
+                {
+                    phoneNumber: "+15555551234",
+                    channel: "sms",
+                    continuationToken: "ct-phone-enroll",
+                },
+                expect.anything()
+            );
+            expect(apiClient.activateAuthMethod).toHaveBeenCalledWith(
+                "/tenant/api/v0.1/activate/phone",
+                { continuationToken: "ct-phone-activate", otp: "123456" },
+                expect.anything()
+            );
         });
     });
 
     describe("MFA completion", () => {
         describe("after PasswordRequiredStateV2", () => {
             it("IT-MFA-01: signInV2 -> passwordRequired -> authMethodSelectionRequired(multiFactor: email) -> mfaVerificationRequired -> completed", async () => {
-                (fetch as jest.Mock)
-                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(PASSWORD_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(EMAIL_MFA_REQUIRED_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(EMAIL_MFA_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(buildResponse(MFA_VERIFY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(TestServerTokenResponse)
-                    );
+                apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                    ENTRY_RESPONSE
+                );
+                apiClient.signInStart.mockResolvedValueOnce(START_RESPONSE);
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    PASSWORD_CHALLENGE_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    EMAIL_MFA_REQUIRED_RESPONSE
+                );
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    EMAIL_MFA_CHALLENGE_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    MFA_VERIFY_RESPONSE
+                );
+                apiClient.completeWithTokens.mockResolvedValueOnce(
+                    TestServerTokenResponse
+                );
 
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
                 });
-                if (!startResult.isState("passwordRequired")) {
-                    throw new Error("Expected a password-required state.");
-                }
-                const passwordResult = await startResult.state.submitPassword(
-                    "valid-password"
-                );
+                const passwordResult = await (
+                    startResult.state as PasswordRequiredStateV2
+                ).submitPassword("valid-password");
 
                 expect(
                     passwordResult.isState("authMethodSelectionRequired")
                 ).toBe(true);
-                if (!passwordResult.isState("authMethodSelectionRequired")) {
-                    throw new Error(
-                        "Expected authentication method selection."
-                    );
-                }
-                const mfaSelectionState = passwordResult.state;
+                const mfaSelectionState =
+                    passwordResult.state as AuthMethodSelectionRequiredStateV2;
                 expect(mfaSelectionState.methods[0].type).toBe("email");
 
                 const challengeResult =
@@ -682,54 +743,46 @@ describe("Sign-in V2", () => {
                     true
                 );
 
-                if (!challengeResult.isState("mfaVerificationRequired")) {
-                    throw new Error("Expected MFA verification.");
-                }
-                const result = await challengeResult.state.submitChallenge(
-                    "123456"
-                );
+                const result = await (
+                    challengeResult.state as MFAVerificationRequiredStateV2
+                ).submitChallenge("123456");
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
             });
 
             it("IT-MFA-02: signInV2 -> passwordRequired -> authMethodSelectionRequired(multiFactor: sms) -> mfaVerificationRequired -> resendChallenge -> mfaVerificationRequired -> completed", async () => {
-                (fetch as jest.Mock)
-                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(PASSWORD_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(SMS_MFA_REQUIRED_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(SMS_MFA_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(SMS_MFA_RESEND_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(buildResponse(MFA_VERIFY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(TestServerTokenResponse)
-                    );
+                apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                    ENTRY_RESPONSE
+                );
+                apiClient.signInStart.mockResolvedValueOnce(START_RESPONSE);
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    PASSWORD_CHALLENGE_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    SMS_MFA_REQUIRED_RESPONSE
+                );
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    SMS_MFA_CHALLENGE_RESPONSE
+                );
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    SMS_MFA_RESEND_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    MFA_VERIFY_RESPONSE
+                );
+                apiClient.completeWithTokens.mockResolvedValueOnce(
+                    TestServerTokenResponse
+                );
 
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
                 });
-                if (!startResult.isState("passwordRequired")) {
-                    throw new Error("Expected a password-required state.");
-                }
-                const passwordResult = await startResult.state.submitPassword(
-                    "valid-password"
-                );
-                if (!passwordResult.isState("authMethodSelectionRequired")) {
-                    throw new Error(
-                        "Expected authentication method selection."
-                    );
-                }
-                const mfaSelectionState = passwordResult.state;
+                const passwordResult = await (
+                    startResult.state as PasswordRequiredStateV2
+                ).submitPassword("valid-password");
+                const mfaSelectionState =
+                    passwordResult.state as AuthMethodSelectionRequiredStateV2;
 
                 expect(mfaSelectionState.methods[0].type).toBe("sms");
 
@@ -737,11 +790,9 @@ describe("Sign-in V2", () => {
                     await mfaSelectionState.selectAuthMethod(
                         mfaSelectionState.methods[0]
                     );
-                if (!challengeResult.isState("mfaVerificationRequired")) {
-                    throw new Error("Expected MFA verification.");
-                }
-                const resendResult =
-                    await challengeResult.state.resendChallenge();
+                const resendResult = await (
+                    challengeResult.state as MFAVerificationRequiredStateV2
+                ).resendChallenge();
 
                 expect(resendResult.isState("mfaVerificationRequired")).toBe(
                     true
@@ -751,12 +802,9 @@ describe("Sign-in V2", () => {
                     expect(resendResult.state.sentTo).toBe("+1******1234");
                 }
 
-                if (!resendResult.isState("mfaVerificationRequired")) {
-                    throw new Error("Expected MFA verification.");
-                }
-                const result = await resendResult.state.submitChallenge(
-                    "123456"
-                );
+                const result = await (
+                    resendResult.state as MFAVerificationRequiredStateV2
+                ).submitChallenge("123456");
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -770,61 +818,66 @@ describe("Sign-in V2", () => {
                     MFA_V2_RESEND_CHALLENGE,
                     MFA_V2_SUBMIT_CHALLENGE,
                     SIGN_IN_V2_COMPLETE,
-                    SIGN_IN_V2_COMPLETE,
                 ];
-                expect(fetch).toHaveBeenCalledTimes(expectedApiIds.length);
+                const contexts = [
+                    apiClient.authorizeChallengeStart.mock.calls[0][0],
+                    apiClient.signInStart.mock.calls[0][2],
+                    apiClient.requestChallenge.mock.calls[0][2],
+                    apiClient.verifyChallenge.mock.calls[0][2],
+                    apiClient.requestChallenge.mock.calls[1][2],
+                    apiClient.requestChallenge.mock.calls[2][2],
+                    apiClient.verifyChallenge.mock.calls[1][2],
+                    apiClient.completeWithTokens.mock.calls[0][1],
+                ];
+                expect(apiClient.requestChallenge).toHaveBeenCalledTimes(3);
+                expect(apiClient.verifyChallenge).toHaveBeenCalledTimes(2);
+                expect(apiClient.completeWithTokens).toHaveBeenCalledTimes(1);
                 expectedApiIds.forEach((apiId, index) => {
-                    expect(fetch).toHaveBeenNthCalledWith(
-                        index + 1,
-                        expect.anything(),
-                        expect.objectContaining({
-                            headers: expect.objectContaining({
-                                "x-client-current-telemetry":
-                                    expect.stringContaining(`|${apiId},`),
-                            }),
-                        })
-                    );
+                    expect(
+                        contexts[
+                            index
+                        ].telemetryManager.generateCurrentRequestHeaderValue()
+                    ).toContain(`|${apiId},`);
                 });
             });
         });
 
         describe("after CodeRequiredStateV2", () => {
             it("IT-MFA-03: signInV2 -> codeRequired(email) -> authMethodSelectionRequired(multiFactor) -> mfaVerificationRequired -> completed", async () => {
-                (fetch as jest.Mock)
-                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(EMAIL_START_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(EMAIL_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(EMAIL_MFA_REQUIRED_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(EMAIL_MFA_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(buildResponse(MFA_VERIFY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(TestServerTokenResponse)
-                    );
+                apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                    ENTRY_RESPONSE
+                );
+                apiClient.signInStart.mockResolvedValueOnce(
+                    EMAIL_START_RESPONSE
+                );
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    EMAIL_CHALLENGE_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    EMAIL_MFA_REQUIRED_RESPONSE
+                );
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    EMAIL_MFA_CHALLENGE_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    MFA_VERIFY_RESPONSE
+                );
+                apiClient.completeWithTokens.mockResolvedValueOnce(
+                    TestServerTokenResponse
+                );
 
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
                 });
-                if (!startResult.isState("codeRequired")) {
-                    throw new Error("Expected a code-required state.");
-                }
-                const codeResult = await startResult.state.submitCode("123456");
+                const codeResult = await (
+                    startResult.state as CodeRequiredStateV2
+                ).submitCode("123456");
 
                 expect(codeResult.isState("authMethodSelectionRequired")).toBe(
                     true
                 );
-                if (!codeResult.isState("authMethodSelectionRequired")) {
-                    throw new Error(
-                        "Expected authentication method selection."
-                    );
-                }
-                const mfaSelectionState = codeResult.state;
+                const mfaSelectionState =
+                    codeResult.state as AuthMethodSelectionRequiredStateV2;
                 const challengeResult =
                     await mfaSelectionState.selectAuthMethod(
                         mfaSelectionState.methods[0]
@@ -834,12 +887,9 @@ describe("Sign-in V2", () => {
                     true
                 );
 
-                if (!challengeResult.isState("mfaVerificationRequired")) {
-                    throw new Error("Expected MFA verification.");
-                }
-                const result = await challengeResult.state.submitChallenge(
-                    "123456"
-                );
+                const result = await (
+                    challengeResult.state as MFAVerificationRequiredStateV2
+                ).submitChallenge("123456");
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -848,35 +898,33 @@ describe("Sign-in V2", () => {
 
         describe("after AuthMethodSelectionRequiredStateV2(SINGLE_FACTOR)", () => {
             it("IT-MFA-04: signInV2 -> authMethodSelectionRequired(singleFactor) -> passwordRequired -> authMethodSelectionRequired(multiFactor) -> mfaVerificationRequired -> completed", async () => {
-                (fetch as jest.Mock)
-                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(PASSWORD_AND_EMAIL_START_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(PASSWORD_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(EMAIL_MFA_REQUIRED_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(EMAIL_MFA_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(buildResponse(MFA_VERIFY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(TestServerTokenResponse)
-                    );
+                apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                    ENTRY_RESPONSE
+                );
+                apiClient.signInStart.mockResolvedValueOnce(
+                    PASSWORD_AND_EMAIL_START_RESPONSE
+                );
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    PASSWORD_CHALLENGE_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    EMAIL_MFA_REQUIRED_RESPONSE
+                );
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    EMAIL_MFA_CHALLENGE_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    MFA_VERIFY_RESPONSE
+                );
+                apiClient.completeWithTokens.mockResolvedValueOnce(
+                    TestServerTokenResponse
+                );
 
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
                 });
-                if (!startResult.isState("authMethodSelectionRequired")) {
-                    throw new Error(
-                        "Expected authentication method selection."
-                    );
-                }
-                const primarySelectionState = startResult.state;
+                const primarySelectionState =
+                    startResult.state as AuthMethodSelectionRequiredStateV2;
                 const passwordMethod = primarySelectionState.methods.find(
                     (method) => method.type === "password"
                 );
@@ -890,36 +938,23 @@ describe("Sign-in V2", () => {
                     await primarySelectionState.selectAuthMethod(
                         passwordMethod
                     );
-                if (!passwordRequiredResult.isState("passwordRequired")) {
-                    throw new Error("Expected a password-required state.");
-                }
-                const mfaSelectionResult =
-                    await passwordRequiredResult.state.submitPassword(
-                        "valid-password"
-                    );
+                const mfaSelectionResult = await (
+                    passwordRequiredResult.state as PasswordRequiredStateV2
+                ).submitPassword("valid-password");
 
                 expect(
                     mfaSelectionResult.isState("authMethodSelectionRequired")
                 ).toBe(true);
-                if (
-                    !mfaSelectionResult.isState("authMethodSelectionRequired")
-                ) {
-                    throw new Error(
-                        "Expected authentication method selection."
-                    );
-                }
-                const mfaSelectionState = mfaSelectionResult.state;
+                const mfaSelectionState =
+                    mfaSelectionResult.state as AuthMethodSelectionRequiredStateV2;
                 const challengeResult =
                     await mfaSelectionState.selectAuthMethod(
                         mfaSelectionState.methods[0]
                     );
 
-                if (!challengeResult.isState("mfaVerificationRequired")) {
-                    throw new Error("Expected MFA verification.");
-                }
-                const result = await challengeResult.state.submitChallenge(
-                    "123456"
-                );
+                const result = await (
+                    challengeResult.state as MFAVerificationRequiredStateV2
+                ).submitChallenge("123456");
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -937,35 +972,33 @@ describe("Sign-in V2", () => {
             ])(
                 "IT-MFA-05: signInV2 -> authMethodSelectionRequired(singleFactor) -> codeRequired($primaryChannel) -> authMethodSelectionRequired(multiFactor) -> mfaVerificationRequired -> completed",
                 async ({ primaryChannel, challengeResponse }) => {
-                    (fetch as jest.Mock)
-                        .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                        .mockResolvedValueOnce(
-                            buildResponse(PASSWORD_EMAIL_AND_SMS_START_RESPONSE)
-                        )
-                        .mockResolvedValueOnce(buildResponse(challengeResponse))
-                        .mockResolvedValueOnce(
-                            buildResponse(EMAIL_MFA_REQUIRED_RESPONSE)
-                        )
-                        .mockResolvedValueOnce(
-                            buildResponse(EMAIL_MFA_CHALLENGE_RESPONSE)
-                        )
-                        .mockResolvedValueOnce(
-                            buildResponse(MFA_VERIFY_RESPONSE)
-                        )
-                        .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                        .mockResolvedValueOnce(
-                            buildResponse(TestServerTokenResponse)
-                        );
+                    apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                        ENTRY_RESPONSE
+                    );
+                    apiClient.signInStart.mockResolvedValueOnce(
+                        PASSWORD_EMAIL_AND_SMS_START_RESPONSE
+                    );
+                    apiClient.requestChallenge.mockResolvedValueOnce(
+                        challengeResponse
+                    );
+                    apiClient.verifyChallenge.mockResolvedValueOnce(
+                        EMAIL_MFA_REQUIRED_RESPONSE
+                    );
+                    apiClient.requestChallenge.mockResolvedValueOnce(
+                        EMAIL_MFA_CHALLENGE_RESPONSE
+                    );
+                    apiClient.verifyChallenge.mockResolvedValueOnce(
+                        MFA_VERIFY_RESPONSE
+                    );
+                    apiClient.completeWithTokens.mockResolvedValueOnce(
+                        TestServerTokenResponse
+                    );
 
                     const startResult = await app.signInV2({
                         username: "user@contoso.com",
                     });
-                    if (!startResult.isState("authMethodSelectionRequired")) {
-                        throw new Error(
-                            "Expected authentication method selection."
-                        );
-                    }
-                    const primarySelectionState = startResult.state;
+                    const primarySelectionState =
+                        startResult.state as AuthMethodSelectionRequiredStateV2;
                     const primaryMethod = primarySelectionState.methods.find(
                         (method) => method.type === primaryChannel
                     );
@@ -989,38 +1022,25 @@ describe("Sign-in V2", () => {
                         );
                     }
 
-                    if (!codeRequiredResult.isState("codeRequired")) {
-                        throw new Error("Expected a code-required state.");
-                    }
-                    const mfaSelectionResult =
-                        await codeRequiredResult.state.submitCode("123456");
+                    const mfaSelectionResult = await (
+                        codeRequiredResult.state as CodeRequiredStateV2
+                    ).submitCode("123456");
 
                     expect(
                         mfaSelectionResult.isState(
                             "authMethodSelectionRequired"
                         )
                     ).toBe(true);
-                    if (
-                        !mfaSelectionResult.isState(
-                            "authMethodSelectionRequired"
-                        )
-                    ) {
-                        throw new Error(
-                            "Expected authentication method selection."
-                        );
-                    }
-                    const mfaSelectionState = mfaSelectionResult.state;
+                    const mfaSelectionState =
+                        mfaSelectionResult.state as AuthMethodSelectionRequiredStateV2;
                     const challengeResult =
                         await mfaSelectionState.selectAuthMethod(
                             mfaSelectionState.methods[0]
                         );
 
-                    if (!challengeResult.isState("mfaVerificationRequired")) {
-                        throw new Error("Expected MFA verification.");
-                    }
-                    const result = await challengeResult.state.submitChallenge(
-                        "123456"
-                    );
+                    const result = await (
+                        challengeResult.state as MFAVerificationRequiredStateV2
+                    ).submitChallenge("123456");
 
                     expect(result.isState("completed")).toBe(true);
                     expect(result.state).toBeInstanceOf(CompletedStateV2);
@@ -1030,23 +1050,25 @@ describe("Sign-in V2", () => {
 
         describe("after requested password submission", () => {
             it("IT-MFA-06: signInV2 -> passwordRequired -> authMethodSelectionRequired(multiFactor) -> mfaVerificationRequired -> completed", async () => {
-                (fetch as jest.Mock)
-                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(START_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(PASSWORD_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(EMAIL_MFA_REQUIRED_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(
-                        buildResponse(EMAIL_MFA_CHALLENGE_RESPONSE)
-                    )
-                    .mockResolvedValueOnce(buildResponse(MFA_VERIFY_RESPONSE))
-                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(TestServerTokenResponse)
-                    );
+                apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                    ENTRY_RESPONSE
+                );
+                apiClient.signInStart.mockResolvedValueOnce(START_RESPONSE);
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    PASSWORD_CHALLENGE_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    EMAIL_MFA_REQUIRED_RESPONSE
+                );
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    EMAIL_MFA_CHALLENGE_RESPONSE
+                );
+                apiClient.verifyChallenge.mockResolvedValueOnce(
+                    MFA_VERIFY_RESPONSE
+                );
+                apiClient.completeWithTokens.mockResolvedValueOnce(
+                    TestServerTokenResponse
+                );
 
                 const startResult = await app.signInV2({
                     username: "user@contoso.com",
@@ -1060,25 +1082,16 @@ describe("Sign-in V2", () => {
                 expect(
                     mfaSelectionResult.isState("authMethodSelectionRequired")
                 ).toBe(true);
-                if (
-                    !mfaSelectionResult.isState("authMethodSelectionRequired")
-                ) {
-                    throw new Error(
-                        "Expected authentication method selection."
-                    );
-                }
-                const mfaSelectionState = mfaSelectionResult.state;
+                const mfaSelectionState =
+                    mfaSelectionResult.state as AuthMethodSelectionRequiredStateV2;
                 const challengeResult =
                     await mfaSelectionState.selectAuthMethod(
                         mfaSelectionState.methods[0]
                     );
 
-                if (!challengeResult.isState("mfaVerificationRequired")) {
-                    throw new Error("Expected MFA verification.");
-                }
-                const result = await challengeResult.state.submitChallenge(
-                    "123456"
-                );
+                const result = await (
+                    challengeResult.state as MFAVerificationRequiredStateV2
+                ).submitChallenge("123456");
 
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
