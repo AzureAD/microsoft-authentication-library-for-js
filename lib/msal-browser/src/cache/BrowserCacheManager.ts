@@ -21,6 +21,7 @@ import {
     createCacheError,
     DEFAULT_CRYPTO_IMPLEMENTATION,
     ICrypto,
+    IDpopNonceProvider,
     IdTokenEntity,
     invokeAsync,
     IPerformanceClient,
@@ -40,6 +41,8 @@ import {
     AuthToken,
     getTenantIdFromIdTokenClaims,
     buildTenantProfile,
+    canonicalizeDpopResourceServer,
+    validateDpopNonce,
 } from "@azure/msal-common/browser";
 import { CacheOptions } from "../config/Configuration.js";
 import {
@@ -79,6 +82,8 @@ import { EncryptedData, isEncrypted } from "./EncryptedData.js";
 
 type KmsiMap = { [homeAccountId: string]: boolean };
 
+const MAX_RESOURCE_SERVER_NONCES = 50;
+
 /**
  * Reason an old-schema cache entry was removed during migration.
  */
@@ -99,7 +104,10 @@ type UpdateOldEntryResult =
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
  */
-export class BrowserCacheManager extends CacheManager {
+export class BrowserCacheManager
+    extends CacheManager
+    implements IDpopNonceProvider
+{
     // Cache configuration, either set by user or default values.
     protected cacheConfig: Required<CacheOptions>;
     // Window storage object (either local or sessionStorage)
@@ -114,6 +122,7 @@ export class BrowserCacheManager extends CacheManager {
     protected logger: Logger;
     // Event Handler
     private eventHandler: EventHandler;
+    private dpopNonces = new Map<string, string>();
 
     constructor(
         clientId: string,
@@ -1888,6 +1897,60 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * Stores a validated resource-server DPoP nonce in PCA-local memory.
+     * @internal
+     */
+    setDpopNonce(
+        resourceRequestUri: string,
+        dpopNonce: string,
+        correlationId: string = ""
+    ): void {
+        const resourceServer = canonicalizeDpopResourceServer(
+            resourceRequestUri,
+            correlationId
+        );
+        const validatedNonce = validateDpopNonce(dpopNonce, correlationId);
+
+        // Reinsert replacements so eviction remains oldest-write ordered.
+        this.dpopNonces.delete(resourceServer);
+        this.dpopNonces.set(resourceServer, validatedNonce);
+
+        if (this.dpopNonces.size > MAX_RESOURCE_SERVER_NONCES) {
+            const oldestResourceServer = this.dpopNonces.keys().next().value;
+            if (oldestResourceServer) {
+                this.dpopNonces.delete(oldestResourceServer);
+            }
+            this.performanceClient.incrementFields(
+                { "ext.dpopNonceCacheEvictionCount": 1 },
+                correlationId
+            );
+        }
+    }
+
+    /**
+     * Reads the current resource-server DPoP nonce from PCA-local memory.
+     * This optional structural capability is consumed by msal-common without
+     * adding methods to the CacheManager abstraction.
+     * @internal
+     */
+    getDpopNonce(
+        resourceRequestUri: string,
+        correlationId: string = ""
+    ): string | undefined {
+        return this.dpopNonces.get(
+            canonicalizeDpopResourceServer(resourceRequestUri, correlationId)
+        );
+    }
+
+    /**
+     * Clears all PCA-local DPoP nonce state.
+     * @internal
+     */
+    clearDpopNonces(): void {
+        this.dpopNonces.clear();
+    }
+
+    /**
      *
      * @param key
      * @param entity
@@ -2128,6 +2191,7 @@ export class BrowserCacheManager extends CacheManager {
         });
 
         this.internalStorage.clear();
+        this.dpopNonces.clear();
     }
 
     /**

@@ -53,7 +53,7 @@ import * as TimeUtils from "../utils/TimeUtils.js";
 import { AuthenticationResult } from "./AuthenticationResult.js";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload.js";
 import { ServerAuthorizationTokenResponse } from "./ServerAuthorizationTokenResponse.js";
-
+import { IDpopNonceProvider } from "../crypto/IDpopNonceProvider.js";
 /** @internal */
 export type GenerateAuthenticationResultOptions = {
     idTokenClaims?: TokenClaims;
@@ -61,7 +61,31 @@ export type GenerateAuthenticationResultOptions = {
     serverTokenResponse?: ServerAuthorizationTokenResponse;
     requestId?: string;
     tokenBindingKeyManager?: ITokenBindingKeyManager;
+    dpopNonceProvider?: IDpopNonceProvider;
 };
+
+/*
+ * Retains the signing key for fresh proofs on deduplicated calls without
+ * exposing it on the public AuthenticationResult.
+ */
+const dpopKeyIdByAuthenticationResult = new WeakMap<
+    AuthenticationResult,
+    string
+>();
+
+function getDpopNonceForRequest(
+    dpopNonceProvider: IDpopNonceProvider | undefined,
+    request: BaseAuthRequest
+): string | undefined {
+    if (!request.resourceRequestUri || !dpopNonceProvider) {
+        return undefined;
+    }
+
+    return dpopNonceProvider.getDpopNonce(
+        request.resourceRequestUri,
+        request.correlationId
+    );
+}
 
 /**
  * Class that handles response parsing.
@@ -77,6 +101,7 @@ export class ResponseHandler {
     private performanceClient: IPerformanceClient;
     private serializableCache: ISerializableTokenCache | null;
     private persistencePlugin: ICachePlugin | null;
+    private dpopNonceProvider?: IDpopNonceProvider;
 
     constructor(
         clientId: string,
@@ -86,7 +111,8 @@ export class ResponseHandler {
         performanceClient: IPerformanceClient,
         serializableCache: ISerializableTokenCache | null,
         persistencePlugin: ICachePlugin | null,
-        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER
+        tokenBindingKeyManager: ITokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+        dpopNonceProvider?: IDpopNonceProvider
     ) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
@@ -96,6 +122,7 @@ export class ResponseHandler {
         this.performanceClient = performanceClient;
         this.serializableCache = serializableCache;
         this.persistencePlugin = persistencePlugin;
+        this.dpopNonceProvider = dpopNonceProvider;
     }
 
     /**
@@ -384,6 +411,7 @@ export class ResponseHandler {
                             requestState: requestStateObj,
                             requestId: serverRequestId,
                             tokenBindingKeyManager: this.tokenBindingKeyManager,
+                            dpopNonceProvider: this.dpopNonceProvider,
                         }
                     );
                 }
@@ -422,6 +450,7 @@ export class ResponseHandler {
                 serverTokenResponse,
                 requestId: serverRequestId,
                 tokenBindingKeyManager: this.tokenBindingKeyManager,
+                dpopNonceProvider: this.dpopNonceProvider,
             }
         );
     }
@@ -616,6 +645,7 @@ export class ResponseHandler {
             serverTokenResponse,
             requestId,
             tokenBindingKeyManager = DEFAULT_TOKEN_BINDING_KEY_MANAGER,
+            dpopNonceProvider,
         } = options;
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
@@ -624,10 +654,15 @@ export class ResponseHandler {
         let refreshOn: Date | undefined;
         let familyId: string = "";
         let dpopProof: string | undefined;
+        const cachedAccessTokenType = cacheRecord.accessToken?.tokenType || "";
+        const isDpopAccessToken =
+            cachedAccessTokenType.toLowerCase() ===
+            Constants.AuthenticationScheme.DPOP.toLowerCase();
+        const resultTokenType = isDpopAccessToken
+            ? Constants.AuthenticationScheme.DPOP
+            : cachedAccessTokenType;
 
         if (cacheRecord.accessToken) {
-            const accessTokenType =
-                cacheRecord.accessToken.tokenType?.toLowerCase();
             /*
              * if the request object has `popKid` property, `signPopToken` will be set to false and
              * the token will be returned unsigned
@@ -660,10 +695,7 @@ export class ResponseHandler {
             } else {
                 accessToken = cacheRecord.accessToken.secret;
             }
-            if (
-                accessTokenType ===
-                Constants.AuthenticationScheme.DPOP.toLowerCase()
-            ) {
+            if (isDpopAccessToken) {
                 if (!cacheRecord.accessToken.keyId) {
                     throw createClientAuthError(
                         ClientAuthErrorCodes.keyIdMissing,
@@ -674,10 +706,19 @@ export class ResponseHandler {
                     cryptoObj,
                     tokenBindingKeyManager
                 );
+                const dpopNonce = getDpopNonceForRequest(
+                    dpopNonceProvider,
+                    request
+                );
+                performanceClient?.addFields(
+                    { dpopNonceAppliedToProof: Boolean(dpopNonce) },
+                    request.correlationId
+                );
                 dpopProof = await dpopProofGenerator.generateResourceProof(
                     {
                         htu: request.resourceRequestUri,
                         htm: request.resourceRequestMethod,
+                        nonce: dpopNonce,
                         accessToken: cacheRecord.accessToken.secret,
                     },
                     cacheRecord.accessToken.keyId,
@@ -751,7 +792,7 @@ export class ResponseHandler {
               )
             : null;
 
-        return {
+        const authenticationResult: AuthenticationResult = {
             authority: authority.canonicalAuthority,
             uniqueId: uid,
             tenantId: tid,
@@ -768,17 +809,87 @@ export class ResponseHandler {
             correlationId: request.correlationId,
             requestId: requestId || "",
             familyId: familyId,
-            tokenType:
-                cacheRecord.accessToken?.tokenType?.toLowerCase() ===
-                Constants.AuthenticationScheme.DPOP.toLowerCase()
-                    ? Constants.AuthenticationScheme.DPOP
-                    : cacheRecord.accessToken?.tokenType || "",
+            tokenType: resultTokenType,
             state: requestState ? requestState.userRequestState : "",
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || "",
             msGraphHost: cacheRecord.account?.msGraphHost || "",
             code: serverTokenResponse?.spa_code,
             fromPlatformBroker: false,
         };
+
+        if (isDpopAccessToken && cacheRecord.accessToken?.keyId) {
+            ResponseHandler.setDpopKeyId(
+                authenticationResult,
+                cacheRecord.accessToken.keyId
+            );
+        }
+
+        return authenticationResult;
+    }
+
+    /**
+     * Retains an MSAL-owned DPoP key for fresh proofs on deduplicated calls.
+     * @internal
+     */
+    static setDpopKeyId(
+        authenticationResult: AuthenticationResult,
+        keyId: string
+    ): void {
+        dpopKeyIdByAuthenticationResult.set(authenticationResult, keyId);
+    }
+
+    /**
+     * Returns whether MSAL can generate another proof for this result.
+     * @internal
+     */
+    static hasDpopKeyId(authenticationResult: AuthenticationResult): boolean {
+        return dpopKeyIdByAuthenticationResult.has(authenticationResult);
+    }
+
+    /**
+     * Generates a fresh resource proof for a previously constructed DPoP result.
+     * @internal
+     */
+    static async generateDpopResourceProof(
+        cryptoObj: ICrypto,
+        authenticationResult: AuthenticationResult,
+        request: BaseAuthRequest,
+        performanceClient: IPerformanceClient,
+        options: Pick<
+            GenerateAuthenticationResultOptions,
+            "tokenBindingKeyManager" | "dpopNonceProvider"
+        > = {}
+    ): Promise<string> {
+        const keyId = dpopKeyIdByAuthenticationResult.get(authenticationResult);
+        if (!keyId) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.keyIdMissing,
+                request.correlationId
+            );
+        }
+
+        const dpopNonce = getDpopNonceForRequest(
+            options.dpopNonceProvider,
+            request
+        );
+        performanceClient.addFields(
+            { dpopNonceAppliedToProof: Boolean(dpopNonce) },
+            request.correlationId
+        );
+
+        return new DpopProofGenerator(
+            cryptoObj,
+            options.tokenBindingKeyManager ?? DEFAULT_TOKEN_BINDING_KEY_MANAGER
+        ).generateResourceProof(
+            {
+                htu: request.resourceRequestUri,
+                htm: request.resourceRequestMethod,
+                nonce: dpopNonce,
+                accessToken: authenticationResult.accessToken,
+            },
+            keyId,
+            request.correlationId
+        );
     }
 }
 
