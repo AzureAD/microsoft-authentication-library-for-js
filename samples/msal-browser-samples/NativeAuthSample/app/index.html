@@ -15,6 +15,10 @@
         </div>
         <header>
             <h1>MSAL Native Auth Sample</h1>
+            <p>
+                <span id="apiVersionLabel">API V1</span>
+                <a id="apiVersionSwitch" href="?apiVersion=v2">Open V2 mode</a>
+            </p>
             <nav class="auth-nav">
                 <button id="showSignInBtn" class="nav-btn active">Sign In</button>
                 <button id="showSignUpBtn" class="nav-btn">Sign Up</button>
@@ -101,6 +105,22 @@
                                 Create Account
                             </button>
                             <button type="button" id="cancelSignUpPasswordBtn" class="btn btn-secondary">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card" id="signUpAttributesCard" style="display: none;">
+                    <h2>Complete Your Profile</h2>
+                    <p>Provide the requested information. Fields marked with * are required.</p>
+                    <form id="signUpAttributesForm">
+                        <div id="signUpAttributeFields"></div>
+                        <div class="form-actions">
+                            <button type="submit" id="submitSignUpAttributesBtn" class="btn btn-primary">
+                                Continue
+                            </button>
+                            <button type="button" id="cancelSignUpAttributesBtn" class="btn btn-secondary">
                                 Cancel
                             </button>
                         </div>
@@ -266,6 +286,7 @@
     
     <!-- MSAL Custom Auth UMD bundle -->
     <script src="/lib/custom-auth-path/msal-custom-auth.js"></script>
+    <script src="/lib/redirect-bridge/msal-redirect-bridge.js"></script>
 
     <!-- UI components (must load before flow-specific modules) -->
     <script type="module" src="./ui/ui.js"></script>

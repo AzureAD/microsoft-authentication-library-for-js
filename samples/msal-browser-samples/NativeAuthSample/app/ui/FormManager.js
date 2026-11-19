@@ -13,6 +13,7 @@ export class FormManager {
             "signUpCard",
             "resetPasswordCard",
             "signUpPasswordCard",
+            "signUpAttributesCard",
             "resetPasswordNewPasswordCard",
             "codeVerificationCard",
             "passwordInputCard",

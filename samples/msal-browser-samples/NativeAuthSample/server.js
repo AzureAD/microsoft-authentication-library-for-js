@@ -23,7 +23,13 @@ if (argv.p) {
     port = argv.p;
 }
 
-app.use(express.static(path.join(__dirname, 'app')));
+app.use(express.static(path.join(__dirname, 'app'), {
+    setHeaders: function (res, filePath) {
+        if (path.extname(filePath) === '.html') {
+            res.setHeader('Cache-Control', 'no-store');
+        }
+    },
+}));
 app.use(express.json()); // Parse JSON bodies
 
 // Serve MSAL library from local build
@@ -36,6 +42,7 @@ app.get('/nativeAuthConfig.json', function (req, res) {
 
 // Set up a route for index.html.
 app.get('*', function (req, res) {
+    res.setHeader('Cache-Control', 'no-store');
     res.sendFile(path.join(__dirname, "app", 'index.html'));
 });
 
