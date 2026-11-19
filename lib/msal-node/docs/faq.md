@@ -31,7 +31,7 @@ If the developer provides `azureCloudOptions`, MSAL.js will overwrite any value 
 
 ### How do I get the Refresh Token?
 
-MSAL Node does not expose refresh tokens for security reasons. Instead, we manage the refresh token through the cache and update it as required to fetch the corresponding Id Token and Access Token for the developer. Use the appropriate `acquireToken*` API to obtain access tokens, and MSAL will ensure they are renewed if necessary. If you have a refresh token acquired by other means, you can use the [acquireTokenByRefreshToken](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.confidentialclientapplication.html#acquiretokenbyrefreshtoken) API (see also: [Refresh Token sample](../../../samples/msal-node-samples/refresh-token/README.md)). More details on AAD tokens can be found [here](https://learn.microsoft.com/azure/active-directory/develop/security-tokens)
+MSAL Node does not expose refresh tokens for security reasons. Instead, we manage the refresh token through the cache and update it as required to fetch the corresponding Id Token and Access Token for the developer. Use the appropriate `acquireToken*` API to obtain access tokens, and MSAL will ensure they are renewed if necessary. If you have a refresh token acquired by other means, you can use the [acquireTokenByRefreshToken](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.confidentialclientapplication.html#acquiretokenbyrefreshtoken) API. More details on AAD tokens can be found [here](https://learn.microsoft.com/azure/active-directory/develop/security-tokens)
 
 ### Is Electron supported?
 
@@ -39,7 +39,7 @@ Yes. Please refer to [MSAL Node samples](https://github.com/AzureAD/microsoft-au
 
 ### Is interactive flow supported?
 
-Yes, there is an all-in-one `acquireTokenInteractive` API available for `PublicClientApplication` scenarios. Please read more about this API [here](./request.md#acquireTokenInteractive)
+Yes, there is an all-in-one `acquireTokenInteractive` API available for `PublicClientApplication` scenarios. Please read more about this API [here](./request.md#acquiretokeninteractive)
 
 ### Are SPAs supported by MSAL Node?
 
