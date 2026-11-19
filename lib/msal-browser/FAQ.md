@@ -2,7 +2,7 @@
 
 ---
 
-**[Compatibility](#Compatibility)**
+**[Compatibility](#compatibility)**
 
 1. [What browsers are supported by MSAL.js?](#what-browsers-are-supported-by-msaljs)
 1. [Does MSAL.js support mobile browsers?](#does-msal-support-mobile-browsers)
@@ -15,28 +15,28 @@
 1. [Can I use MSAL.js 2.x with Microsoft Graph JavaScript SDK?](#can-i-use-msaljs-2x-with-microsoft-graph-javascript-sdk)
 1. [Can I provision a single-page application via command-line?](#can-i-provision-a-single-page-application-via-command-line)
 
-**[Authentication](#Authentication)**
+**[Authentication](#authentication)**
 
 1. [I don't understand the redirect flow. How does the handleRedirectPromise function work?](#i-dont-understand-the-redirect-flow-how-does-the-handleredirectpromise-function-work)
 1. [How can I support authentication with personal Microsoft accounts only?](#how-can-i-support-authentication-with-personal-microsoft-accounts-only)
 1. [How do I get an authorization code from the library?](#how-do-i-get-an-authorization-code-from-the-library)
 1. [How do I implement self-service sign-up?](#how-do-i-implement-self-service-sign-up)
 
-**[Single Sign-On](#Single-Sign-On)**
+**[Single Sign-On](#single-sign-on)**
 
 1. [How to get single sign-on in my application with MSAL.js?](#how-to-get-single-sign-on-in-my-application-with-msaljs)
 1. [How can my application recognize a user after sign-in? How do I correlate users between applications?](#how-can-my-application-recognize-a-user-after-sign-in-how-do-i-correlate-users-between-applications)
 1. [Troubleshooting single sigon-on](#troubleshooting-single-sign-on)
 
-**[Accounts](#Accounts)**
+**[Accounts](#accounts)**
 
 1. [In what scenarios will getAllAccounts return multiple accounts?](#in-what-scenarios-will-getallaccounts-return-multiple-accounts)
 1. [Is the result of getAllAccounts sorted in any order?](#is-the-result-of-getallaccounts-sorted-in-any-order)
 1. [If an account is returned by getAllAccounts does that mean the user has an active session on the server?](#if-an-account-is-returned-by-getallaccounts-does-that-mean-the-user-has-an-active-session-on-the-server)
 1. [How can I switch between multiple logged in users?](#how-can-i-switch-between-multiple-logged-in-users)
-1. [How can I avoid prompting users if SSO for one or more accounts is available?](#how-can-i-avoid-prompting-users-if-SSO-for-one-or-more-accounts-is-available)
+1. [How can I avoid prompting users if SSO for one or more accounts is available?](#how-can-i-avoid-prompting-users-if-sso-for-one-or-more-accounts-is-available)
 
-**[Configuration](#Configuration)**
+**[Configuration](#configuration)**
 
 1. [What is the difference between sessionStorage and localStorage?](#what-is-the-difference-between-sessionstorage-and-localstorage)
 1. [What are the possible configuration options?](#what-are-the-possible-configuration-options)
@@ -45,7 +45,7 @@
 1. [Why is fragment the only valid field for responseMode in msal-browser?](#why-is-fragment-the-only-valid-field-for-responsemode-in-msal-browser)
 1. [How do I configure the position and dimensions of popups?](#how-do-i-configure-the-position-and-dimensions-of-popups)
 
-**[Tokens](#Tokens)**
+**[Tokens](#tokens)**
 
 1. [How do I acquire an access token? How do I use it?](#how-do-i-acquire-an-access-token-how-do-i-use-it)
 1. [How do I acquire a refresh token?](#how-do-i-acquire-a-refresh-token)
@@ -55,18 +55,18 @@
 1. [How long do tokens last? How long are they valid for?](#how-long-do-tokens-last-how-long-are-they-valid-for)
 1. [What are the differences between supported audiences and account types?](#what-are-the-differences-between-supported-audiences-and-account-types)
 
-**[Scopes & Resources](#Scopes-&-Resources)**
+**[Scopes & Resources](#scopes--resources)**
 
 1. [My application has multiple resources it needs to access to. How should I handle scopes for access tokens?](#my-application-has-multiple-resources-it-needs-to-access-to-how-should-i-handle-scopes-for-access-tokens)
 
-**[B2C](#B2C)**
+**[B2C](#b2c)**
 
 1. [How do I specify which B2C policy/user flow I would like to use?](#how-do-i-specify-which-b2c-policyuser-flow-i-would-like-to-use)
 1. [How do I handle the password-reset user-flow?](#how-do-i-handle-the-password-reset-user-flow)
 1. [Why is getAccount returning null when filtering by username even though I'm signed in?](#why-is-getaccount-returning-null-when-filtering-by-username-even-though-im-signed-in)
 1. [I logged out of my application. Why am I not asked for credentials when I try to log back in?](#i-logged-out-of-my-application-why-am-i-not-asked-for-credentials-when-i-try-to-log-back-in)
 1. [Why am I not signed in when returning from an invite link?](#why-am-i-not-signed-in-when-returning-from-an-invite-link)
-1. [Why is there no access token returned from acquireTokenSilent?](#why-is-there-no-access-token-returned-from-acquiretokensilent)
+1. [Which resources can B2C users access?](./docs/working-with-b2c.md#b2c-and-delegated-permissions)
 1. [What should I do if I believe my issue is with the B2C service itself rather than with the library](#what-should-i-do-if-i-believe-my-issue-is-with-the-b2c-service-itself-rather-than-with-the-library)
 
 **Common Issues**
@@ -214,7 +214,7 @@ MSAL Browser supports self-service sign-up in the auth code flow. Please see our
 
 ## How to get single sign-on in my application with MSAL.js?
 
-Please read the documentation on [Single Sign-On](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso) to learn about different scenarios in which MSAL.js enables single sign-on.
+Please read the documentation on [Single Sign-On](./docs/single-sign-on.md) to learn about different scenarios in which MSAL.js enables single sign-on.
 
 ## How can my application recognize a user after sign-in? How do I correlate users between applications?
 

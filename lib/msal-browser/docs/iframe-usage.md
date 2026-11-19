@@ -51,11 +51,11 @@ Additionally, when 3rd party cookies are disabled in **Chrome**, iframed MSAL ap
 
 ## Single sign-on
 
-You **can** achieve [single sign-on](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso) between iframed and parent apps with the [same-origin](https://developer.mozilla.org/docs/Web/Security/Same-origin_policy) **and** with [cross-origin](https://developer.mozilla.org/docs/Web/Security/Same-origin_policy#cross-origin_script_api_access) **if** you pass an [account hint](./login-user.md#silent-login-with-ssosilent) from the parent app to the iframed app.
+You can attempt [single sign-on](./single-sign-on.md) between parent and iframed apps by supplying an [account hint](./login-user.md#silent-login-with-ssosilent), subject to cookie access and storage partitioning. A hint identifies a session; it does not bypass the browser restrictions described above.
 
 ### Apps with same-origin
 
-Iframed and parent apps with the same-origin may have access to the same MSAL.js cache instance and be able to sign-in without prompts, provided that both apps configure MSAL to use the [local storage](./caching.md#cache-storage) for caching. See for more: [Single sign-on with MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso)
+Tabs and frames of the same application may share MSAL cache entries when they have the same origin and storage partition and use [local storage](./caching.md#cache-storage). Different client IDs do not share an application's token cache simply because the origin is the same. See [single sign-on](./single-sign-on.md) for the distinction between an application cache and the identity-provider session.
 
 ### Apps with cross-origin
 
