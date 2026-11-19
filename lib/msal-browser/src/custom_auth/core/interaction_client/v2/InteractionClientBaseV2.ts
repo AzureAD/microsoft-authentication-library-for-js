@@ -27,12 +27,14 @@ import { MethodNotImplementedError } from "../../error/MethodNotImplementedError
 import { initializeServerTelemetryManager } from "../../../../interaction_client/BaseInteractionClient.js";
 import { RequestContextV2 } from "../../network_client/custom_auth_api/v2/request/RequestsV2.js";
 import { TokenResponseV2 } from "../../network_client/custom_auth_api/v2/response/ResponsesV2.js";
+import { NativeAuthSessionManager } from "../../utils/NativeAuthSessionManager.js";
 
 /*
  * Shared base for Native Auth V2 interaction clients.
  */
 export abstract class InteractionClientBaseV2 extends StandardInteractionClient {
     private readonly tokenResponseHandler: ResponseHandler;
+    private readonly sessionManager: NativeAuthSessionManager;
 
     constructor(
         config: BrowserConfiguration,
@@ -55,6 +57,10 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
             ""
         );
 
+        this.sessionManager = new NativeAuthSessionManager(
+            this.browserStorage,
+            this.logger
+        );
         this.tokenResponseHandler = new ResponseHandler(
             this.config.auth.clientId,
             this.browserStorage,
@@ -127,6 +133,13 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
                 },
                 apiId
             );
+
+        if (result.account) {
+            this.sessionManager.setNativeAuthSession(
+                result.account,
+                correlationId
+            );
+        }
 
         return result as AuthenticationResult;
     }

@@ -1,11 +1,13 @@
 import { CustomAuthSilentCacheClient } from "../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { customAuthConfig } from "../../test_resources/CustomAuthConfig.js";
 import { CustomAuthAuthority } from "../../../../src/custom_auth/core/CustomAuthAuthority.js";
+import { NativeAuthSessionManager } from "../../../../src/custom_auth/core/utils/NativeAuthSessionManager.js";
 import {
     AccessTokenEntity,
     AccountEntity,
     AccountEntityUtils,
     CacheHelpers,
+    ClientAuthErrorCodes,
     CommonSilentFlowRequest,
     Constants,
     createInteractionRequiredAuthError,
@@ -45,6 +47,8 @@ describe("CustomAuthSilentCacheClient", () => {
     let mockCacheManager: BrowserCacheManager;
     let mockCrypto: ICrypto;
     let mockNetworkModule: INetworkModule;
+    let authority: CustomAuthAuthority;
+    let sessionManager: NativeAuthSessionManager;
 
     const mockNavigationClient = {
         navigateExternal: jest.fn(),
@@ -125,7 +129,11 @@ describe("CustomAuthSilentCacheClient", () => {
             mockEventHandler
         );
 
-        const authority = new CustomAuthAuthority(
+        sessionManager = new NativeAuthSessionManager(
+            mockCacheManager,
+            mockLogger
+        );
+        authority = new CustomAuthAuthority(
             customAuthConfig.auth.authority ?? "",
             mockBrowserConfig,
             mockNetworkModule,
@@ -193,6 +201,14 @@ describe("CustomAuthSilentCacheClient", () => {
                 refreshTokenEntityToCache
             );
 
+            sessionManager.setNativeAuthSession(
+                TestAccountDetails,
+                "test-correlation-id"
+            );
+            const readSessionMarker = jest.spyOn(
+                NativeAuthSessionManager.prototype,
+                "shouldUseNativeAuth"
+            );
             const result = await client.acquireToken(commonSilentFlowRequest);
 
             expect(result).toBeDefined();
@@ -200,6 +216,197 @@ describe("CustomAuthSilentCacheClient", () => {
             const cachedAccessTokenScopes =
                 accessTokenEntityToCache.target.split(" ");
             expect(result.scopes).toEqual(cachedAccessTokenScopes);
+            expect(readSessionMarker).not.toHaveBeenCalled();
+            expect(
+                mockNetworkModule.sendPostRequestAsync
+            ).not.toHaveBeenCalled();
+            expect(
+                mockNetworkModule.sendGetRequestAsync
+            ).not.toHaveBeenCalled();
+            readSessionMarker.mockRestore();
+        });
+
+        it.each([true, false])(
+            "routes refresh and token rotation with native session marker = %s",
+            async (nativeSession) => {
+                await saveTokensIntoCache(
+                    "test-correlation-id",
+                    mockCacheManager,
+                    accountEntityToCache,
+                    accessTokenEntityToCache,
+                    refreshTokenEntityToCache
+                );
+                if (nativeSession) {
+                    sessionManager.setNativeAuthSession(
+                        TestAccountDetails,
+                        "test-correlation-id"
+                    );
+                }
+                const saveMetadata = jest.spyOn(
+                    mockCacheManager,
+                    "setAuthorityMetadata"
+                );
+                const request = {
+                    ...commonSilentFlowRequest,
+                    scopes: [...DefaultScopes],
+                    forceRefresh: true,
+                };
+
+                await client.acquireToken(request);
+                await client.acquireToken(request);
+
+                const expectedEndpoint = nativeSession
+                    ? "https://myspafunctiont1.azurewebsites.net/api/ReverseProxy/oauth2/v2.0/token"
+                    : "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/oauth2/v2.0/token";
+                const postRequest =
+                    mockNetworkModule.sendPostRequestAsync as jest.Mock;
+                expect(postRequest).toHaveBeenCalledTimes(2);
+                for (const [url] of postRequest.mock.calls) {
+                    expect(url.split("?")[0]).toBe(expectedEndpoint);
+                }
+                expect(
+                    sessionManager.isNativeAuthSession(TestAccountDetails)
+                ).toBe(nativeSession);
+                expect(saveMetadata).not.toHaveBeenCalled();
+                expect(
+                    mockNetworkModule.sendGetRequestAsync
+                ).not.toHaveBeenCalled();
+                expect(authority.tokenEndpoint).toBe(expectedEndpoint);
+                saveMetadata.mockRestore();
+            }
+        );
+
+        it("derives the direct token endpoint from the canonical authority tenant path", async () => {
+            authority.canonicalAuthority =
+                "https://spasamples.ciamlogin.com/other.onmicrosoft.com/";
+            await saveTokensIntoCache(
+                "test-correlation-id",
+                mockCacheManager,
+                accountEntityToCache,
+                accessTokenEntityToCache,
+                refreshTokenEntityToCache
+            );
+
+            await client.acquireToken({
+                ...commonSilentFlowRequest,
+                forceRefresh: true,
+            });
+
+            expect(
+                mockNetworkModule.sendGetRequestAsync
+            ).not.toHaveBeenCalled();
+            expect(mockNetworkModule.sendPostRequestAsync).toHaveBeenCalledWith(
+                expect.stringContaining(
+                    "https://spasamples.ciamlogin.com/other.onmicrosoft.com/oauth2/v2.0/token?"
+                ),
+                expect.anything()
+            );
+        });
+
+        it("keeps native refresh on the proxy after a direct browser refresh", async () => {
+            await saveTokensIntoCache(
+                "test-correlation-id",
+                mockCacheManager,
+                accountEntityToCache,
+                accessTokenEntityToCache,
+                refreshTokenEntityToCache
+            );
+            const request = {
+                ...commonSilentFlowRequest,
+                forceRefresh: true,
+            };
+            await client.acquireToken(request);
+            await client.logout({ account: TestAccountDetails });
+            await saveTokensIntoCache(
+                "test-correlation-id",
+                mockCacheManager,
+                accountEntityToCache,
+                accessTokenEntityToCache,
+                refreshTokenEntityToCache
+            );
+            sessionManager.setNativeAuthSession(
+                TestAccountDetails,
+                "test-correlation-id"
+            );
+
+            await client.acquireToken(request);
+
+            const postRequest = jest.mocked(
+                mockNetworkModule.sendPostRequestAsync
+            );
+            expect(postRequest.mock.calls[0][0].split("?")[0]).toBe(
+                "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/oauth2/v2.0/token"
+            );
+            expect(postRequest.mock.calls[1][0].split("?")[0]).toBe(
+                "https://myspafunctiont1.azurewebsites.net/api/ReverseProxy/oauth2/v2.0/token"
+            );
+            expect(
+                mockNetworkModule.sendGetRequestAsync
+            ).not.toHaveBeenCalled();
+        });
+
+        it("does not mark a browser session during refresh or retry unrelated failures", async () => {
+            await saveTokensIntoCache(
+                "test-correlation-id",
+                mockCacheManager,
+                accountEntityToCache,
+                accessTokenEntityToCache,
+                refreshTokenEntityToCache
+            );
+            const networkError = new Error("Token endpoint unavailable");
+            const postRequest =
+                mockNetworkModule.sendPostRequestAsync as jest.Mock;
+            postRequest.mockRejectedValueOnce(networkError);
+
+            await expect(
+                client.acquireToken({
+                    ...commonSilentFlowRequest,
+                    forceRefresh: true,
+                })
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.networkError,
+            });
+
+            expect(postRequest).toHaveBeenCalledTimes(1);
+            expect(sessionManager.isNativeAuthSession(TestAccountDetails)).toBe(
+                false
+            );
+        });
+
+        it("uses direct redemption after native sign-out and browser sign-in", async () => {
+            await saveTokensIntoCache(
+                "test-correlation-id",
+                mockCacheManager,
+                accountEntityToCache,
+                accessTokenEntityToCache,
+                refreshTokenEntityToCache
+            );
+            sessionManager.setNativeAuthSession(
+                TestAccountDetails,
+                "test-correlation-id"
+            );
+
+            await client.logout({ account: TestAccountDetails });
+            await saveTokensIntoCache(
+                "test-correlation-id",
+                mockCacheManager,
+                accountEntityToCache,
+                accessTokenEntityToCache,
+                refreshTokenEntityToCache
+            );
+            await client.acquireToken({
+                ...commonSilentFlowRequest,
+                forceRefresh: true,
+            });
+
+            const postRequest =
+                mockNetworkModule.sendPostRequestAsync as jest.Mock;
+            expect(postRequest.mock.calls[0][0].split("?")[0]).toBe(
+                "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/oauth2/v2.0/token"
+            );
+            expect(sessionManager.isNativeAuthSession(TestAccountDetails)).toBe(
+                false
+            );
         });
 
         it("should refresh access token (with valid cached refresh token) when cached access token is invalid.", async () => {
@@ -304,7 +511,7 @@ describe("CustomAuthSilentCacheClient", () => {
 
             commonSilentFlowRequest.forceRefresh = true;
 
-            expect(
+            await expect(
                 client.acquireToken(commonSilentFlowRequest)
             ).rejects.toThrow(mockNoTokensFoundError);
         });
@@ -328,7 +535,7 @@ describe("CustomAuthSilentCacheClient", () => {
 
             commonSilentFlowRequest.forceRefresh = true;
 
-            expect(
+            await expect(
                 client.acquireToken(commonSilentFlowRequest)
             ).rejects.toThrow(mockRefreshTokenExpiredError);
         });

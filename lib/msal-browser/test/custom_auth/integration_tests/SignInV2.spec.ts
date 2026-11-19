@@ -17,7 +17,12 @@ import {
     AuthMethodVerificationRequiredStateV2,
 } from "../../../src/custom_auth/index.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
-import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
+import {
+    RenewedTokens,
+    TestAccountDetails,
+    TestServerTokenResponse,
+} from "../test_resources/TestConstants.js";
+import { NativeAuthSessionManager } from "../../../src/custom_auth/core/utils/NativeAuthSessionManager.js";
 import {
     MFA_V2_RESEND_CHALLENGE,
     MFA_V2_SELECT_AUTH_METHOD,
@@ -58,9 +63,7 @@ const buildResponse = (
 ): Response =>
     ({
         status,
-        headers: {
-            get: (name: string) => headers[name] ?? null,
-        },
+        headers: new Headers(headers),
         json: async () => body,
     } as unknown as Response);
 
@@ -82,12 +85,13 @@ describe("Sign-in V2", () => {
             "customAuthController"
         ] as CustomAuthStandardController;
         controller["eventHandler"]["broadcastChannel"]?.close();
+        jest.restoreAllMocks();
         jest.clearAllMocks();
     });
 
     describe("single-factor completion", () => {
         describe("PasswordRequiredStateV2", () => {
-            it("IT-SF-01: signInV2 -> passwordRequired -> completed", async () => {
+            it("IT-SF-01: signInV2 -> passwordRequired -> completed -> proxied refresh with rotation", async () => {
                 (fetch as jest.Mock)
                     .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
                     .mockResolvedValueOnce(buildResponse(START_RESPONSE))
@@ -98,6 +102,16 @@ describe("Sign-in V2", () => {
                         buildResponse(SIGN_IN_CONTINUE_RESPONSE)
                     )
                     .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                    .mockResolvedValueOnce(
+                        buildResponse(TestServerTokenResponse)
+                    )
+                    .mockResolvedValueOnce(
+                        buildResponse({
+                            ...TestServerTokenResponse,
+                            access_token: RenewedTokens.ACCESS_TOKEN,
+                            refresh_token: RenewedTokens.REFRESH_TOKEN,
+                        })
+                    )
                     .mockResolvedValueOnce(
                         buildResponse(TestServerTokenResponse)
                     );
@@ -119,6 +133,94 @@ describe("Sign-in V2", () => {
                 expect(result.isState("completed")).toBe(true);
                 expect(result.state).toBeInstanceOf(CompletedStateV2);
                 expect(result.data).toBeInstanceOf(CustomAuthAccountData);
+
+                if (!result.isState("completed") || !result.data) {
+                    throw new Error("Expected a completed state.");
+                }
+
+                const controller = app[
+                    "customAuthController"
+                ] as CustomAuthStandardController;
+                expect(
+                    new NativeAuthSessionManager(
+                        controller["browserStorage"],
+                        controller["logger"]
+                    ).isNativeAuthSession(result.data.getAccount())
+                ).toBe(true);
+
+                const refreshResult = await result.data.getAccessToken({
+                    scopes: ["User.Read"],
+                    forceRefresh: true,
+                });
+                expect(refreshResult.isCompleted()).toBe(true);
+                expect(fetch).toHaveBeenNthCalledWith(
+                    7,
+                    expect.stringContaining(
+                        `${customAuthConfig.customAuth.authApiProxyUrl}oauth2/v2.0/token`
+                    ),
+                    expect.objectContaining({ method: "POST" })
+                );
+
+                const rotatedRefreshResult = await result.data.getAccessToken({
+                    scopes: ["User.Read"],
+                    forceRefresh: true,
+                });
+                expect(rotatedRefreshResult.isCompleted()).toBe(true);
+                expect(fetch).toHaveBeenNthCalledWith(
+                    8,
+                    expect.stringContaining(
+                        `${customAuthConfig.customAuth.authApiProxyUrl}oauth2/v2.0/token`
+                    ),
+                    expect.objectContaining({ method: "POST" })
+                );
+                expect(
+                    new URLSearchParams(
+                        (fetch as jest.Mock).mock.calls[7][1].body
+                    ).get("refresh_token")
+                ).toBe(RenewedTokens.REFRESH_TOKEN);
+                expect(fetch).toHaveBeenCalledTimes(8);
+            });
+
+            it("does not mark a native session when V2 token caching fails", async () => {
+                (fetch as jest.Mock)
+                    .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
+                    .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+                    .mockResolvedValueOnce(
+                        buildResponse(PASSWORD_CHALLENGE_RESPONSE)
+                    )
+                    .mockResolvedValueOnce(
+                        buildResponse(SIGN_IN_CONTINUE_RESPONSE)
+                    )
+                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                    .mockResolvedValueOnce(
+                        buildResponse(TestServerTokenResponse)
+                    );
+
+                const controller = app[
+                    "customAuthController"
+                ] as CustomAuthStandardController;
+                jest.spyOn(
+                    controller["browserStorage"],
+                    "saveCacheRecord"
+                ).mockRejectedValueOnce(new Error("Cache write failed"));
+
+                const startResult = await app.signInV2({
+                    username: "user@contoso.com",
+                });
+                if (!startResult.isState("passwordRequired")) {
+                    throw new Error("Expected a password-required state.");
+                }
+                const result = await startResult.state.submitPassword(
+                    "valid-password"
+                );
+
+                expect(result.isFailed()).toBe(true);
+                expect(
+                    new NativeAuthSessionManager(
+                        controller["browserStorage"],
+                        controller["logger"]
+                    ).isNativeAuthSession(TestAccountDetails)
+                ).toBe(false);
             });
 
             it.each(["valid-password", "", 42])(

@@ -16,6 +16,25 @@ import {
     getDefaultNavigationClient,
     getDefaultPerformanceClient,
 } from "../../test_resources/TestModules.js";
+import { BrowserCacheManager } from "../../../../src/cache/BrowserCacheManager.js";
+import { SignInTokenResponse } from "../../../../src/custom_auth/core/network_client/custom_auth_api/types/ApiResponseTypes.js";
+import {
+    TestAccountDetails,
+    TestServerTokenResponse,
+} from "../../test_resources/TestConstants.js";
+import { DefaultScopes } from "../../../../src/custom_auth/CustomAuthConstants.js";
+import { NativeAuthSessionManager } from "../../../../src/custom_auth/core/utils/NativeAuthSessionManager.js";
+
+class TestSignInClient extends SignInClient {
+    processTokenResponse(response: SignInTokenResponse) {
+        return this.handleTokenResponse(
+            response,
+            [...DefaultScopes],
+            "test-correlation-id",
+            0
+        );
+    }
+}
 
 jest.mock(
     "../../../../src/custom_auth/core/network_client/custom_auth_api/CustomAuthApiClient.js",
@@ -59,7 +78,8 @@ jest.mock(
 );
 
 describe("CustomAuthInteractionClientBase", () => {
-    let client: SignInClient;
+    let client: TestSignInClient;
+    let cacheManager: BrowserCacheManager;
     let authority: CustomAuthAuthority;
     const { mockedApiClient } = jest.requireMock(
         "../../../../src/custom_auth/core/network_client/custom_auth_api/CustomAuthApiClient.js"
@@ -87,6 +107,7 @@ describe("CustomAuthInteractionClientBase", () => {
             undefined,
             mockBrowserConfiguration.cache
         );
+        cacheManager = mockCacheManager;
 
         authority = new CustomAuthAuthority(
             customAuthConfig.auth.authority ?? "",
@@ -98,7 +119,7 @@ describe("CustomAuthInteractionClientBase", () => {
             customAuthConfig.customAuth.authApiProxyUrl
         );
 
-        client = new SignInClient(
+        client = new TestSignInClient(
             mockBrowserConfiguration,
             mockCacheManager,
             mockCrypto,
@@ -112,7 +133,46 @@ describe("CustomAuthInteractionClientBase", () => {
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
+        cacheManager.clear("test-correlation-id");
+    });
+
+    describe("V1 native session", () => {
+        const tokenResponse: SignInTokenResponse = {
+            ...TestServerTokenResponse,
+            token_type: "Bearer",
+        };
+
+        it("sets the marker after successfully caching native tokens", async () => {
+            const result = await client.processTokenResponse(tokenResponse);
+
+            expect(result.account).not.toBeNull();
+            expect(cacheManager.getTokenKeys().refreshToken).toHaveLength(1);
+            expect(
+                new NativeAuthSessionManager(
+                    cacheManager,
+                    getDefaultLogger()
+                ).isNativeAuthSession(result.account!)
+            ).toBe(true);
+        });
+
+        it("does not set the marker if token caching fails", async () => {
+            const cacheError = new Error("Cache write failed");
+            jest.spyOn(cacheManager, "saveCacheRecord").mockRejectedValueOnce(
+                cacheError
+            );
+
+            await expect(
+                client.processTokenResponse(tokenResponse)
+            ).rejects.toThrow(cacheError);
+
+            expect(
+                new NativeAuthSessionManager(
+                    cacheManager,
+                    getDefaultLogger()
+                ).isNativeAuthSession(TestAccountDetails)
+            ).toBe(false);
+        });
     });
 
     describe("getChallengeTypes", () => {

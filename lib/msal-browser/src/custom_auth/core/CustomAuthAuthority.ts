@@ -14,11 +14,14 @@ import * as CustomAuthApiEndpoint from "./network_client/custom_auth_api/CustomA
 import { buildUrl } from "./utils/UrlUtils.js";
 import { BrowserConfiguration } from "../../config/Configuration.js";
 import { BrowserCacheManager } from "../../cache/BrowserCacheManager.js";
+import { NativeAuthSessionManager } from "./utils/NativeAuthSessionManager.js";
 
 /**
  * Authority class which can be used to create an authority object for Custom Auth features.
  */
 export class CustomAuthAuthority extends Authority {
+    private readonly sessionManager: NativeAuthSessionManager;
+
     /**
      * Constructor for the Custom Auth Authority.
      * @param authority - The authority URL for the authority.
@@ -60,6 +63,11 @@ export class CustomAuthAuthority extends Authority {
             performanceClient
         );
 
+        this.sessionManager = new NativeAuthSessionManager(
+            cacheManager,
+            logger
+        );
+
         // Set the metadata for the authority
         const metadataEntity = {
             aliases: [this.hostnameAndPort],
@@ -67,7 +75,10 @@ export class CustomAuthAuthority extends Authority {
             preferred_network: this.hostnameAndPort,
             canonical_authority: this.canonicalAuthority,
             authorization_endpoint: "",
-            token_endpoint: this.tokenEndpoint,
+            token_endpoint: buildUrl(
+                this.getCustomAuthApiDomain(),
+                CustomAuthApiEndpoint.SIGNIN_TOKEN
+            ).href,
             end_session_endpoint: "",
             issuer: "",
             aliasesFromNetwork: false,
@@ -112,10 +123,16 @@ export class CustomAuthAuthority extends Authority {
 
     override get tokenEndpoint(): string {
         const endpointUrl = buildUrl(
-            this.getCustomAuthApiDomain(),
+            this.getTokenEndpointDomain(),
             CustomAuthApiEndpoint.SIGNIN_TOKEN
         );
 
         return endpointUrl.href;
+    }
+
+    private getTokenEndpointDomain(): string {
+        return this.sessionManager.shouldUseNativeAuth(this.correlationId)
+            ? this.getCustomAuthApiDomain()
+            : this.canonicalAuthority;
     }
 }
