@@ -1,5 +1,7 @@
 # Microsoft Authentication Library for Node (msal-node)
 
+**Documentation:** [Browse MSAL Node guides](./docs/README.md).
+
 [![npm version](https://img.shields.io/npm/v/@azure/msal-node.svg?style=flat)](https://www.npmjs.com/package/@azure/msal-node/)
 [![npm version](https://img.shields.io/npm/dm/@azure/msal-node.svg)](https://nodei.co/npm/@azure/msal-node/)
 [![codecov](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js/branch/dev/graph/badge.svg?flag=msal-node)](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js)
