@@ -80,6 +80,8 @@ describe("AuthenticationHeaderParser unit tests", () => {
             'Digest realm="example", nonce="digest"',
             'PoP realm="resource", Digest nonce="digest"',
             'PoP realm="resource", PoP nonce="second"',
+            'PoP, PoP nonce="second"',
+            'PoP YWJj==, Digest nonce="digest", PoP nonce="second"',
         ])(
             "does not borrow a nonce from another challenge: %s",
             (headerValue) => {
@@ -153,6 +155,12 @@ describe("AuthenticationHeaderParser unit tests", () => {
                 "opaque%2F%u0041==",
             ],
             [HeaderNames.AuthenticationInfo, 'NEXTNONCE="AbC"', "AbC"],
+            [HeaderNames.AuthenticationInfo, 'PoP\tnextnonce="AbC"', "AbC"],
+            [
+                HeaderNames.WWWAuthenticate,
+                "PoP nonce=opaque%2F==",
+                "opaque%2F==",
+            ],
         ])(
             "preserves the nonce in %s: %s",
             (headerName, headerValue, expectedNonce) => {
@@ -182,6 +190,187 @@ describe("AuthenticationHeaderParser unit tests", () => {
                     ClientConfigurationErrorCodes.invalidAuthenticationHeader,
                     ""
                 )
+            );
+        });
+
+        describe("RFC 9110 recipient grammar", () => {
+            it.each([
+                [
+                    HeaderNames.WWWAuthenticate,
+                    "Basic\t, Other \t, realm=one, PoP nonce=shr",
+                    "shr",
+                ],
+                [
+                    HeaderNames.AuthenticationInfo,
+                    ', , nextnonce \t= \t"shr" , , qop=auth,',
+                    "shr",
+                ],
+                [
+                    HeaderNames.WWWAuthenticate,
+                    ", Basic, , PoP , , nonce \t= \tshr, ,",
+                    "shr",
+                ],
+                [
+                    HeaderNames.WWWAuthenticate,
+                    "Negotiate YWJj+/==, PoP nonce=shr, Other YWJj",
+                    "shr",
+                ],
+                [
+                    HeaderNames.WWWAuthenticate,
+                    "Other abc=, PoP nonce=shr, Other abc==",
+                    "shr",
+                ],
+                [
+                    HeaderNames.WWWAuthenticate,
+                    'Basic realm="simple", Newauth realm="apps", type=1, title="Login to \\"apps\\"", PoP nonce=shr',
+                    "shr",
+                ],
+                [
+                    HeaderNames.WWWAuthenticate,
+                    "PoP nonce=shr, Digest nonce=digest, Other nonce=other",
+                    "shr",
+                ],
+                [
+                    HeaderNames.AuthenticationInfo,
+                    "nextnonce=!#$%&'*+-.^_`|~09AZaz",
+                    "!#$%&'*+-.^_`|~09AZaz",
+                ],
+                [
+                    HeaderNames.AuthenticationInfo,
+                    'nextnonce="\t !#[]~\u0080\u00ff"',
+                    "\t !#[]~\u0080\u00ff",
+                ],
+                [
+                    HeaderNames.AuthenticationInfo,
+                    'nextnonce="a\\\tb\\ \\\u0080"',
+                    "a\tb \u0080",
+                ],
+                [
+                    HeaderNames.WWWAuthenticate,
+                    'PoP nonce=shr, Digest nonce=""',
+                    "shr",
+                ],
+            ])(
+                "accepts valid syntax in %s: %s",
+                (headerName, headerValue, expectedNonce) => {
+                    expect(
+                        new AuthenticationHeaderParser({
+                            [headerName]: headerValue,
+                        }).getShrNonce()
+                    ).toBe(expectedNonce);
+                }
+            );
+
+            it.each([
+                [
+                    HeaderNames.AuthenticationInfo,
+                    "nextnonce=one, NEXTNONCE=two",
+                ],
+                [HeaderNames.WWWAuthenticate, "PoP nonce=one, NONCE=two"],
+                [
+                    HeaderNames.WWWAuthenticate,
+                    "Digest realm=one, REALM=two, PoP nonce=shr",
+                ],
+                [HeaderNames.AuthenticationInfo, "nextnonce=abc/def"],
+                [HeaderNames.AuthenticationInfo, "nextnonce=abc(def)"],
+                [HeaderNames.AuthenticationInfo, "qop=auth==, nextnonce=shr"],
+                [
+                    HeaderNames.AuthenticationInfo,
+                    "nonce=one, PoP nextnonce=shr",
+                ],
+                [HeaderNames.AuthenticationInfo, "Digest nextnonce=shr"],
+                [HeaderNames.WWWAuthenticate, "nonce=shr"],
+                [
+                    HeaderNames.WWWAuthenticate,
+                    "Negotiate YWJj, nonce=bad, PoP nonce=shr",
+                ],
+                [HeaderNames.WWWAuthenticate, "Other abc=def==, PoP nonce=shr"],
+                [
+                    HeaderNames.WWWAuthenticate,
+                    "Other\tvalue=one, PoP nonce=shr",
+                ],
+                [HeaderNames.WWWAuthenticate, "PoP, nonce=shr"],
+                [HeaderNames.AuthenticationInfo, "\u00a0nextnonce=shr"],
+                [HeaderNames.AuthenticationInfo, "nextnonce=shr\u00a0"],
+            ])(
+                "rejects invalid syntax in %s: %s",
+                (headerName, headerValue) => {
+                    expect(() =>
+                        new AuthenticationHeaderParser({
+                            [headerName]: headerValue,
+                        }).getShrNonce()
+                    ).toThrow(
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.invalidAuthenticationHeader,
+                            ""
+                        )
+                    );
+                }
+            );
+
+            it.each([
+                "\0",
+                "\x08",
+                "\n",
+                "\r",
+                "\x1f",
+                "\x7f",
+                "\u0100",
+                "\u2028",
+            ])(
+                "rejects characters outside the HTTP field grammar: %j",
+                (character) => {
+                    for (const headerName of [
+                        HeaderNames.AuthenticationInfo,
+                        HeaderNames.WWWAuthenticate,
+                    ]) {
+                        const prefix =
+                            headerName === HeaderNames.AuthenticationInfo
+                                ? "nextnonce"
+                                : "PoP nonce";
+                        for (const value of [
+                            `${prefix}="a${character}b"`,
+                            `${prefix}="a\\${character}b"`,
+                            `${prefix}=shr${character}`,
+                            `${character}${prefix}=shr`,
+                        ]) {
+                            expect(() =>
+                                new AuthenticationHeaderParser({
+                                    [headerName]: value,
+                                }).getShrNonce()
+                            ).toThrow(
+                                createClientConfigurationError(
+                                    ClientConfigurationErrorCodes.invalidAuthenticationHeader,
+                                    ""
+                                )
+                            );
+                        }
+                    }
+                }
+            );
+
+            it.each([
+                [HeaderNames.AuthenticationInfo, "nextnonce=shr"],
+                [HeaderNames.WWWAuthenticate, "PoP nonce=shr"],
+            ])(
+                "bounds empty list elements in %s",
+                (headerName, headerValue) => {
+                    expect(
+                        new AuthenticationHeaderParser({
+                            [headerName]: `${",".repeat(32)}${headerValue}`,
+                        }).getShrNonce()
+                    ).toBe("shr");
+                    expect(() =>
+                        new AuthenticationHeaderParser({
+                            [headerName]: `${",".repeat(33)}${headerValue}`,
+                        }).getShrNonce()
+                    ).toThrow(
+                        createClientConfigurationError(
+                            ClientConfigurationErrorCodes.invalidAuthenticationHeader,
+                            ""
+                        )
+                    );
+                }
             );
         });
 
