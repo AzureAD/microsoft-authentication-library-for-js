@@ -199,7 +199,12 @@ const popTokenRequest = {
     shrNonce: "NONCE_ACQUIRED_FROM_RESOURCE_SERVER"
 }
 
-const result = await pca.acquireTokenInteractive(popTokenRequest);
+const result = await pca.acquireTokenInteractive({
+    ...popTokenRequest,
+    openBrowser: async () => {
+        throw new Error("This PoP request requires the native broker.");
+    },
+});
 if (!result.account) {
     throw new Error("Broker sign-in did not return an account.");
 }
