@@ -9,7 +9,7 @@ import {
 } from "../test_resources/TestModules.js";
 import { TEST_CONFIG } from "../../utils/StringConstants.js";
 import { TestAccountDetails } from "../test_resources/TestConstants.js";
-import { setNativeAuthSession } from "../../../src/custom_auth/core/utils/NativeAuthSession.js";
+import { NativeAuthSessionManager } from "../../../src/custom_auth/core/utils/NativeAuthSessionManager.js";
 
 describe("CustomAuthAuthority", () => {
     const authorityUrl = customAuthConfig.auth.authority;
@@ -247,8 +247,10 @@ describe("CustomAuthAuthority", () => {
             getAccounts.mockReturnValue([]);
             expect(sharedAuthority.tokenEndpoint).toBe(proxyEndpoint);
 
-            setNativeAuthSession(
+            new NativeAuthSessionManager(
                 browserStorage,
+                logger
+            ).setNativeAuthSession(
                 TestAccountDetails,
                 TEST_CONFIG.CORRELATION_ID
             );
@@ -273,8 +275,10 @@ describe("CustomAuthAuthority", () => {
                     session === "signed out" ? [] : [TestAccountDetails]
                 );
                 if (session === "native") {
-                    setNativeAuthSession(
+                    new NativeAuthSessionManager(
                         browserStorage,
+                        logger
+                    ).setNativeAuthSession(
                         TestAccountDetails,
                         TEST_CONFIG.CORRELATION_ID
                     );

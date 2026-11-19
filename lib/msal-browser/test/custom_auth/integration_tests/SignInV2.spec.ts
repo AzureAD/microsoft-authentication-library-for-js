@@ -22,7 +22,7 @@ import {
     TestAccountDetails,
     TestServerTokenResponse,
 } from "../test_resources/TestConstants.js";
-import { isNativeAuthSession } from "../../../src/custom_auth/core/utils/NativeAuthSession.js";
+import { NativeAuthSessionManager } from "../../../src/custom_auth/core/utils/NativeAuthSessionManager.js";
 import {
     MFA_V2_RESEND_CHALLENGE,
     MFA_V2_SELECT_AUTH_METHOD,
@@ -142,10 +142,10 @@ describe("Sign-in V2", () => {
                     "customAuthController"
                 ] as CustomAuthStandardController;
                 expect(
-                    isNativeAuthSession(
+                    new NativeAuthSessionManager(
                         controller["browserStorage"],
-                        result.data.getAccount()
-                    )
+                        controller["logger"]
+                    ).isNativeAuthSession(result.data.getAccount())
                 ).toBe(true);
 
                 const refreshResult = await result.data.getAccessToken({
@@ -216,10 +216,10 @@ describe("Sign-in V2", () => {
 
                 expect(result.isFailed()).toBe(true);
                 expect(
-                    isNativeAuthSession(
+                    new NativeAuthSessionManager(
                         controller["browserStorage"],
-                        TestAccountDetails
-                    )
+                        controller["logger"]
+                    ).isNativeAuthSession(TestAccountDetails)
                 ).toBe(false);
             });
 

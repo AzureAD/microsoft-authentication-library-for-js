@@ -14,14 +14,13 @@ import * as CustomAuthApiEndpoint from "./network_client/custom_auth_api/CustomA
 import { buildUrl } from "./utils/UrlUtils.js";
 import { BrowserConfiguration } from "../../config/Configuration.js";
 import { BrowserCacheManager } from "../../cache/BrowserCacheManager.js";
-import { isNativeAuthSession } from "./utils/NativeAuthSession.js";
+import { NativeAuthSessionManager } from "./utils/NativeAuthSessionManager.js";
 
 /**
  * Authority class which can be used to create an authority object for Custom Auth features.
  */
 export class CustomAuthAuthority extends Authority {
-    private readonly browserStorage: BrowserCacheManager;
-    private readonly customAuthLogger: Logger;
+    private readonly sessionManager: NativeAuthSessionManager;
 
     /**
      * Constructor for the Custom Auth Authority.
@@ -64,8 +63,10 @@ export class CustomAuthAuthority extends Authority {
             performanceClient
         );
 
-        this.browserStorage = cacheManager;
-        this.customAuthLogger = logger;
+        this.sessionManager = new NativeAuthSessionManager(
+            cacheManager,
+            logger
+        );
 
         // Set the metadata for the authority
         const metadataEntity = {
@@ -130,33 +131,8 @@ export class CustomAuthAuthority extends Authority {
     }
 
     private getTokenEndpointDomain(): string {
-        const accounts = this.browserStorage.getAllAccounts(
-            {},
-            this.correlationId
-        );
-
-        if (accounts.length > 1) {
-            this.customAuthLogger.warning(
-                "Multiple accounts found in cache. This is not supported in the Native Auth scenario.",
-                this.correlationId
-            );
-        }
-
-        const account = accounts[0];
-
-        if (!account) {
-            return this.getCustomAuthApiDomain();
-        }
-
-        const isNativeSession = isNativeAuthSession(
-            this.browserStorage,
-            account
-        );
-
-        if (isNativeSession) {
-            return this.getCustomAuthApiDomain();
-        }
-
-        return this.canonicalAuthority;
+        return this.sessionManager.shouldUseNativeAuth(this.correlationId)
+            ? this.getCustomAuthApiDomain()
+            : this.canonicalAuthority;
     }
 }

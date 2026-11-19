@@ -27,10 +27,11 @@ import { EndSessionRequest } from "../../../request/EndSessionRequest.js";
 import { ClearCacheRequest } from "../../../request/ClearCacheRequest.js";
 import { AuthenticationResult } from "../../../response/AuthenticationResult.js";
 import { SignInTokenResponse } from "../network_client/custom_auth_api/types/ApiResponseTypes.js";
-import { setNativeAuthSession } from "../utils/NativeAuthSession.js";
+import { NativeAuthSessionManager } from "../utils/NativeAuthSessionManager.js";
 
 export abstract class CustomAuthInteractionClientBase extends StandardInteractionClient {
     private readonly tokenResponseHandler: ResponseHandler;
+    private readonly sessionManager: NativeAuthSessionManager;
 
     constructor(
         config: BrowserConfiguration,
@@ -57,6 +58,10 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
             tokenBindingKeyManager
         );
 
+        this.sessionManager = new NativeAuthSessionManager(
+            this.browserStorage,
+            this.logger
+        );
         this.tokenResponseHandler = new ResponseHandler(
             this.config.auth.clientId,
             this.browserStorage,
@@ -128,8 +133,7 @@ export abstract class CustomAuthInteractionClientBase extends StandardInteractio
             );
 
         if (result.account) {
-            setNativeAuthSession(
-                this.browserStorage,
+            this.sessionManager.setNativeAuthSession(
                 result.account,
                 correlationId
             );

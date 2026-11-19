@@ -23,7 +23,7 @@ import {
     TestServerTokenResponse,
 } from "../../test_resources/TestConstants.js";
 import { DefaultScopes } from "../../../../src/custom_auth/CustomAuthConstants.js";
-import { isNativeAuthSession } from "../../../../src/custom_auth/core/utils/NativeAuthSession.js";
+import { NativeAuthSessionManager } from "../../../../src/custom_auth/core/utils/NativeAuthSessionManager.js";
 
 class TestSignInClient extends SignInClient {
     processTokenResponse(response: SignInTokenResponse) {
@@ -148,9 +148,12 @@ describe("CustomAuthInteractionClientBase", () => {
 
             expect(result.account).not.toBeNull();
             expect(cacheManager.getTokenKeys().refreshToken).toHaveLength(1);
-            expect(isNativeAuthSession(cacheManager, result.account!)).toBe(
-                true
-            );
+            expect(
+                new NativeAuthSessionManager(
+                    cacheManager,
+                    getDefaultLogger()
+                ).isNativeAuthSession(result.account!)
+            ).toBe(true);
         });
 
         it("does not set the marker if token caching fails", async () => {
@@ -163,9 +166,12 @@ describe("CustomAuthInteractionClientBase", () => {
                 client.processTokenResponse(tokenResponse)
             ).rejects.toThrow(cacheError);
 
-            expect(isNativeAuthSession(cacheManager, TestAccountDetails)).toBe(
-                false
-            );
+            expect(
+                new NativeAuthSessionManager(
+                    cacheManager,
+                    getDefaultLogger()
+                ).isNativeAuthSession(TestAccountDetails)
+            ).toBe(false);
         });
     });
 

@@ -1,7 +1,7 @@
 import { CustomAuthSilentCacheClient } from "../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { customAuthConfig } from "../../test_resources/CustomAuthConfig.js";
 import { CustomAuthAuthority } from "../../../../src/custom_auth/core/CustomAuthAuthority.js";
-import * as NativeAuthSession from "../../../../src/custom_auth/core/utils/NativeAuthSession.js";
+import { NativeAuthSessionManager } from "../../../../src/custom_auth/core/utils/NativeAuthSessionManager.js";
 import {
     AccessTokenEntity,
     AccountEntity,
@@ -48,6 +48,7 @@ describe("CustomAuthSilentCacheClient", () => {
     let mockCrypto: ICrypto;
     let mockNetworkModule: INetworkModule;
     let authority: CustomAuthAuthority;
+    let sessionManager: NativeAuthSessionManager;
 
     const mockNavigationClient = {
         navigateExternal: jest.fn(),
@@ -128,6 +129,10 @@ describe("CustomAuthSilentCacheClient", () => {
             mockEventHandler
         );
 
+        sessionManager = new NativeAuthSessionManager(
+            mockCacheManager,
+            mockLogger
+        );
         authority = new CustomAuthAuthority(
             customAuthConfig.auth.authority ?? "",
             mockBrowserConfig,
@@ -196,14 +201,13 @@ describe("CustomAuthSilentCacheClient", () => {
                 refreshTokenEntityToCache
             );
 
-            NativeAuthSession.setNativeAuthSession(
-                mockCacheManager,
+            sessionManager.setNativeAuthSession(
                 TestAccountDetails,
                 "test-correlation-id"
             );
             const readSessionMarker = jest.spyOn(
-                NativeAuthSession,
-                "isNativeAuthSession"
+                NativeAuthSessionManager.prototype,
+                "shouldUseNativeAuth"
             );
             const result = await client.acquireToken(commonSilentFlowRequest);
 
@@ -233,8 +237,7 @@ describe("CustomAuthSilentCacheClient", () => {
                     refreshTokenEntityToCache
                 );
                 if (nativeSession) {
-                    NativeAuthSession.setNativeAuthSession(
-                        mockCacheManager,
+                    sessionManager.setNativeAuthSession(
                         TestAccountDetails,
                         "test-correlation-id"
                     );
@@ -262,10 +265,7 @@ describe("CustomAuthSilentCacheClient", () => {
                     expect(url.split("?")[0]).toBe(expectedEndpoint);
                 }
                 expect(
-                    NativeAuthSession.isNativeAuthSession(
-                        mockCacheManager,
-                        TestAccountDetails
-                    )
+                    sessionManager.isNativeAuthSession(TestAccountDetails)
                 ).toBe(nativeSession);
                 expect(saveMetadata).not.toHaveBeenCalled();
                 expect(
@@ -324,8 +324,7 @@ describe("CustomAuthSilentCacheClient", () => {
                 accessTokenEntityToCache,
                 refreshTokenEntityToCache
             );
-            NativeAuthSession.setNativeAuthSession(
-                mockCacheManager,
+            sessionManager.setNativeAuthSession(
                 TestAccountDetails,
                 "test-correlation-id"
             );
@@ -369,12 +368,9 @@ describe("CustomAuthSilentCacheClient", () => {
             });
 
             expect(postRequest).toHaveBeenCalledTimes(1);
-            expect(
-                NativeAuthSession.isNativeAuthSession(
-                    mockCacheManager,
-                    TestAccountDetails
-                )
-            ).toBe(false);
+            expect(sessionManager.isNativeAuthSession(TestAccountDetails)).toBe(
+                false
+            );
         });
 
         it("uses direct redemption after native sign-out and browser sign-in", async () => {
@@ -385,8 +381,7 @@ describe("CustomAuthSilentCacheClient", () => {
                 accessTokenEntityToCache,
                 refreshTokenEntityToCache
             );
-            NativeAuthSession.setNativeAuthSession(
-                mockCacheManager,
+            sessionManager.setNativeAuthSession(
                 TestAccountDetails,
                 "test-correlation-id"
             );
@@ -409,12 +404,9 @@ describe("CustomAuthSilentCacheClient", () => {
             expect(postRequest.mock.calls[0][0].split("?")[0]).toBe(
                 "https://spasamples.ciamlogin.com/spasamples.onmicrosoft.com/oauth2/v2.0/token"
             );
-            expect(
-                NativeAuthSession.isNativeAuthSession(
-                    mockCacheManager,
-                    TestAccountDetails
-                )
-            ).toBe(false);
+            expect(sessionManager.isNativeAuthSession(TestAccountDetails)).toBe(
+                false
+            );
         });
 
         it("should refresh access token (with valid cached refresh token) when cached access token is invalid.", async () => {
