@@ -61,6 +61,7 @@ export interface TokenRequestV2 extends OAuthFormRequestV2 {
  */
 export interface CompleteWithTokensRequestV2 {
     continuationToken: string;
+    continueHref: string;
 }
 
 /*

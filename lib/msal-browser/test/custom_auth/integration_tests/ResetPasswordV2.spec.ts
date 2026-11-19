@@ -15,53 +15,96 @@ import { CustomAuthAccountData } from "../../../src/custom_auth/get_account/auth
 import { NewPasswordRequiredStateV2 } from "../../../src/custom_auth/reset_password/auth_flow/v2/state/NewPasswordRequiredStateV2.js";
 import { SignInContinuationStateV2 } from "../../../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.js";
 import { MFAVerificationRequiredStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.js";
+import type { CustomAuthResultV2 } from "../../../src/custom_auth/core/auth_flow/v2/CustomAuthResultV2.js";
+import type { RequestChallengeResultStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/result/RequestChallengeResultV2.js";
+import type { ResetPasswordStartResultStateV2 } from "../../../src/custom_auth/core/auth_flow/v2/result/ResetPasswordStartResultV2.js";
+import type { SubmitNewPasswordResultV2 } from "../../../src/custom_auth/reset_password/auth_flow/v2/result/SubmitNewPasswordResultV2.js";
 import { INVALID_HAL_RESPONSE } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
+import { CustomAuthApiClientV2 } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
+import { CustomAuthApiError } from "../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import {
-    ACTIVATED_CONTINUE_RESPONSE,
-    CONTINUE_RESPONSE,
-    ENROLL_ACTIVATION_RESPONSE,
+    ENTRY_RESPONSE,
+    EMAIL_ONLY_START_RESPONSE,
+    SMS_ONLY_START_RESPONSE,
     EMAIL_AND_SMS_START_RESPONSE,
     EMAIL_CHALLENGE_RESPONSE,
-    EMAIL_ONLY_START_RESPONSE,
-    ENTRY_RESPONSE,
+    SMS_CHALLENGE_RESPONSE,
+    SMS_RISK_VERIFY_RESPONSE,
+    SMS_RESEND_CHALLENGE_RESPONSE,
+    SMS_RESEND_RISK_VERIFY_RESPONSE,
+    VERIFY_RESPONSE,
+    UPDATE_RESPONSE,
+    POLL_COMPLETED_RESPONSE,
+    POLL_MFA_REQUIRED_RESPONSE,
     MFA_EMAIL_CHALLENGE_RESPONSE,
     MFA_VERIFY_RESPONSE,
     POLL_ENROLL_REQUIRED_RESPONSE,
-    POLL_COMPLETED_RESPONSE,
-    POLL_MFA_REQUIRED_RESPONSE,
-    SMS_CHALLENGE_RESPONSE,
-    SMS_ONLY_START_RESPONSE,
-    SMS_RESEND_CHALLENGE_RESPONSE,
-    SMS_RESEND_RISK_VERIFY_RESPONSE,
-    SMS_RISK_VERIFY_RESPONSE,
-    UPDATE_RESPONSE,
-    VERIFY_RESPONSE,
+    ENROLL_ACTIVATION_RESPONSE,
+    ACTIVATED_CONTINUE_RESPONSE,
 } from "./ResetPasswordV2Constants.js";
 
-const buildResponse = (
-    body: unknown,
-    status = 200,
-    headers: Record<string, string> = { "x-ms-request-id": "corr-1" }
-): Response =>
-    ({
-        status,
-        headers: {
-            get: (name: string) => headers[name] ?? null,
-        },
-        json: async () => body,
-    } as unknown as Response);
+const createApiMocks = () => {
+    const unexpected = new Error("Unexpected V2 API call in reset test");
+    return {
+        signInStart: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "signInStart")
+            .mockRejectedValue(unexpected),
+        signUpStart: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "signUpStart")
+            .mockRejectedValue(unexpected),
+        submitSignUpAttributes: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "submitSignUpAttributes")
+            .mockRejectedValue(unexpected),
+        resendAuthMethodRegistrationChallenge: jest
+            .spyOn(
+                CustomAuthApiClientV2.prototype,
+                "resendAuthMethodRegistrationChallenge"
+            )
+            .mockRejectedValue(unexpected),
+        authorizeChallengeStart: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "authorizeChallengeStart")
+            .mockRejectedValue(unexpected),
+        resetPasswordStart: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "resetPasswordStart")
+            .mockRejectedValue(unexpected),
+        requestChallenge: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "requestChallenge")
+            .mockRejectedValue(unexpected),
+        verifyRisk: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "verifyRisk")
+            .mockRejectedValue(unexpected),
+        verifyChallenge: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "verifyChallenge")
+            .mockRejectedValue(unexpected),
+        submitNewPassword: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "submitNewPassword")
+            .mockRejectedValue(unexpected),
+        poll: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "poll")
+            .mockRejectedValue(unexpected),
+        completeWithTokens: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "completeWithTokens")
+            .mockRejectedValue(unexpected),
+        enrollAuthMethod: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "enrollAuthMethod")
+            .mockRejectedValue(unexpected),
+        activateAuthMethod: jest
+            .spyOn(CustomAuthApiClientV2.prototype, "activateAuthMethod")
+            .mockRejectedValue(unexpected),
+    };
+};
 
 describe("Reset password V2 (SSPR)", () => {
     let app: CustomAuthPublicClientApplication;
+    let apiClient: ReturnType<typeof createApiMocks>;
 
     beforeEach(async () => {
+        apiClient = createApiMocks();
         app = (await CustomAuthPublicClientApplication.create(
             customAuthConfig
         )) as CustomAuthPublicClientApplication;
-
-        global.fetch = jest.fn();
     });
 
     afterEach(() => {
@@ -80,25 +123,36 @@ describe("Reset password V2 (SSPR)", () => {
             controller["eventHandler"]["broadcastChannel"].close();
         }
 
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
         jest.useRealTimers();
     });
 
     const completePasswordReset = async (
-        codeState: CodeRequiredStateV2
+        codeResult: CustomAuthResultV2<
+            ResetPasswordStartResultStateV2 | RequestChallengeResultStateV2
+        >
     ): Promise<void> => {
-        const verifyResult = await codeState.submitCode("123456");
+        if (!codeResult.isState("codeRequired")) {
+            throw new Error("Expected a code-required state.");
+        }
+        const verifyResult = await codeResult.state.submitCode("123456");
         expect(verifyResult.isFailed()).toBe(false);
         expect(verifyResult.state).toBeInstanceOf(NewPasswordRequiredStateV2);
 
-        const passwordState = verifyResult.state as NewPasswordRequiredStateV2;
+        if (!verifyResult.isState("newPasswordRequired")) {
+            throw new Error("Expected newPasswordRequired state.");
+        }
+        const passwordState = verifyResult.state;
         const submitResult = await passwordState.submitNewPassword(
             "new-valid-password"
         );
         expect(submitResult.isFailed()).toBe(false);
         expect(submitResult.state).toBeInstanceOf(SignInContinuationStateV2);
 
-        const signInState = submitResult.state as SignInContinuationStateV2;
+        if (!submitResult.isState("signInContinuation")) {
+            throw new Error("Expected signInContinuation state.");
+        }
+        const signInState = submitResult.state;
         const signInResult = await signInState.signIn();
         expect(signInResult.isFailed()).toBe(false);
         expect(signInResult.isState("completed")).toBe(true);
@@ -107,19 +161,30 @@ describe("Reset password V2 (SSPR)", () => {
         expect(signInResult.data?.getAccount()?.idToken).toStrictEqual(
             TestServerTokenResponse.id_token
         );
+        expect(app.getAllAccounts()).toHaveLength(1);
+        expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
+            {
+                continuationToken: "ct-poll",
+                continueHref: POLL_COMPLETED_RESPONSE.continueHref,
+            },
+            expect.anything()
+        );
     };
 
     const reachResetMfaSelection =
-        async (): Promise<AuthMethodSelectionRequiredStateV2> => {
-            (fetch as jest.Mock)
-                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE))
-                .mockResolvedValueOnce(
-                    buildResponse(POLL_MFA_REQUIRED_RESPONSE)
-                );
+        async (): Promise<SubmitNewPasswordResultV2> => {
+            apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                ENTRY_RESPONSE
+            );
+            apiClient.resetPasswordStart.mockResolvedValueOnce(
+                EMAIL_ONLY_START_RESPONSE
+            );
+            apiClient.requestChallenge.mockResolvedValueOnce(
+                EMAIL_CHALLENGE_RESPONSE
+            );
+            apiClient.verifyChallenge.mockResolvedValueOnce(VERIFY_RESPONSE);
+            apiClient.submitNewPassword.mockResolvedValueOnce(UPDATE_RESPONSE);
+            apiClient.poll.mockResolvedValueOnce(POLL_MFA_REQUIRED_RESPONSE);
 
             const start = await app.resetPasswordV2({
                 username: "user@contoso.com",
@@ -138,21 +203,27 @@ describe("Reset password V2 (SSPR)", () => {
             if (!selection.isState("authMethodSelectionRequired")) {
                 throw new Error("Expected reset MFA selection.");
             }
-            expect(fetch).toHaveBeenCalledTimes(6);
+            expect(apiClient.poll).toHaveBeenCalledTimes(1);
+            expect(apiClient.verifyChallenge).toHaveBeenCalledTimes(1);
+            expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
             expect(app.getAllAccounts()).toHaveLength(0);
-            return selection.state;
+            return selection;
         };
 
     it("completes password reset after automatically challenging the only Email method", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(POLL_COMPLETED_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+        apiClient.authorizeChallengeStart.mockResolvedValueOnce(ENTRY_RESPONSE);
+        apiClient.resetPasswordStart.mockResolvedValueOnce(
+            EMAIL_ONLY_START_RESPONSE
+        );
+        apiClient.requestChallenge.mockResolvedValueOnce(
+            EMAIL_CHALLENGE_RESPONSE
+        );
+        apiClient.verifyChallenge.mockResolvedValueOnce(VERIFY_RESPONSE);
+        apiClient.submitNewPassword.mockResolvedValueOnce(UPDATE_RESPONSE);
+        apiClient.poll.mockResolvedValueOnce(POLL_COMPLETED_RESPONSE);
+        apiClient.completeWithTokens.mockResolvedValueOnce(
+            TestServerTokenResponse
+        );
 
         const startResult = await app.resetPasswordV2({
             username: "user@contoso.com",
@@ -165,27 +236,29 @@ describe("Reset password V2 (SSPR)", () => {
         expect(codeState.method?.id).toBe("email");
         expect(codeState.channel).toBe("email");
 
-        await completePasswordReset(codeState);
+        await completePasswordReset(startResult);
 
-        expect(fetch).toHaveBeenCalledTimes(8);
+        expect(apiClient.requestChallenge).toHaveBeenCalledTimes(1);
     });
 
     it("completes password reset after automatically challenging the only Email method and resending the code", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
-            .mockResolvedValueOnce(
-                buildResponse({
-                    ...EMAIL_CHALLENGE_RESPONSE,
-                    continuationToken: "ct-email-resend",
-                })
-            )
-            .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(POLL_COMPLETED_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+        apiClient.authorizeChallengeStart.mockResolvedValueOnce(ENTRY_RESPONSE);
+        apiClient.resetPasswordStart.mockResolvedValueOnce(
+            EMAIL_ONLY_START_RESPONSE
+        );
+        apiClient.requestChallenge.mockResolvedValueOnce(
+            EMAIL_CHALLENGE_RESPONSE
+        );
+        apiClient.requestChallenge.mockResolvedValueOnce({
+            ...EMAIL_CHALLENGE_RESPONSE,
+            continuationToken: "ct-email-resend",
+        });
+        apiClient.verifyChallenge.mockResolvedValueOnce(VERIFY_RESPONSE);
+        apiClient.submitNewPassword.mockResolvedValueOnce(UPDATE_RESPONSE);
+        apiClient.poll.mockResolvedValueOnce(POLL_COMPLETED_RESPONSE);
+        apiClient.completeWithTokens.mockResolvedValueOnce(
+            TestServerTokenResponse
+        );
 
         const startResult = await app.resetPasswordV2({
             username: "user@contoso.com",
@@ -202,43 +275,52 @@ describe("Reset password V2 (SSPR)", () => {
         if (!resent.isState("codeRequired")) {
             throw new Error("Expected a replacement reset code.");
         }
-        await completePasswordReset(resent.state);
+        await completePasswordReset(resent);
 
-        expect(fetch).toHaveBeenCalledTimes(9);
+        expect(apiClient.requestChallenge).toHaveBeenNthCalledWith(
+            2,
+            EMAIL_CHALLENGE_RESPONSE.resendHref,
+            { continuationToken: "ct-email-challenge" },
+            expect.anything()
+        );
+        expect(apiClient.verifyChallenge).toHaveBeenCalledWith(
+            EMAIL_CHALLENGE_RESPONSE.verifyHref,
+            { continuationToken: "ct-email-resend", otp: "123456" },
+            expect.anything()
+        );
     });
 
     it.each([false, true])(
         "enrolls and activates a method after the final poll (in-progress poll: %s)",
         async (pollInProgress) => {
-            (fetch as jest.Mock)
-                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE));
+            apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                ENTRY_RESPONSE
+            );
+            apiClient.resetPasswordStart.mockResolvedValueOnce(
+                EMAIL_ONLY_START_RESPONSE
+            );
+            apiClient.requestChallenge.mockResolvedValueOnce(
+                EMAIL_CHALLENGE_RESPONSE
+            );
+            apiClient.verifyChallenge.mockResolvedValueOnce(VERIFY_RESPONSE);
+            apiClient.submitNewPassword.mockResolvedValueOnce(UPDATE_RESPONSE);
             if (pollInProgress) {
-                (fetch as jest.Mock).mockResolvedValueOnce(
-                    buildResponse({
-                        continuationToken: "ct-poll-in-progress",
-                        action: "poll",
-                        _links: {
-                            poll: { href: "/tenant/api/v0.1/poll-next" },
-                        },
-                    })
-                );
+                apiClient.poll.mockResolvedValueOnce({
+                    nextAction: "poll",
+                    continuationToken: "ct-poll-in-progress",
+                    pollHref: "/tenant/api/v0.1/poll-next",
+                });
             }
-            (fetch as jest.Mock)
-                .mockResolvedValueOnce(
-                    buildResponse(POLL_ENROLL_REQUIRED_RESPONSE)
-                )
-                .mockResolvedValueOnce(
-                    buildResponse(ENROLL_ACTIVATION_RESPONSE)
-                )
-                .mockResolvedValueOnce(
-                    buildResponse(ACTIVATED_CONTINUE_RESPONSE)
-                )
-                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+            apiClient.poll.mockResolvedValueOnce(POLL_ENROLL_REQUIRED_RESPONSE);
+            apiClient.enrollAuthMethod.mockResolvedValueOnce(
+                ENROLL_ACTIVATION_RESPONSE
+            );
+            apiClient.activateAuthMethod.mockResolvedValueOnce(
+                ACTIVATED_CONTINUE_RESPONSE
+            );
+            apiClient.completeWithTokens.mockResolvedValueOnce(
+                TestServerTokenResponse
+            );
 
             const startResult = await app.resetPasswordV2({
                 username: "user@contoso.com",
@@ -251,7 +333,8 @@ describe("Reset password V2 (SSPR)", () => {
             if (!verified.isState("newPasswordRequired")) {
                 throw new Error("Expected a new password before enrollment.");
             }
-            expect(fetch).toHaveBeenCalledTimes(4);
+            expect(apiClient.verifyChallenge).toHaveBeenCalledTimes(1);
+            expect(apiClient.submitNewPassword).not.toHaveBeenCalled();
 
             if (pollInProgress) {
                 jest.useFakeTimers();
@@ -269,19 +352,24 @@ describe("Reset password V2 (SSPR)", () => {
             if (!registration.isState("authMethodRegistrationRequired")) {
                 throw new Error("Expected enrollment after password update.");
             }
-            const enrollCallIndex = pollInProgress ? 7 : 6;
-            expect(fetch).toHaveBeenCalledTimes(enrollCallIndex);
-            const pollCalls = (fetch as jest.Mock).mock.calls;
-            expect(String(pollCalls[5][0])).toContain("/poll");
-            expect(JSON.parse(pollCalls[5][1].body)).toEqual({
-                continuationToken: "ct-update",
-            });
+            expect(apiClient.poll).toHaveBeenCalledTimes(
+                pollInProgress ? 2 : 1
+            );
+            expect(apiClient.poll).toHaveBeenNthCalledWith(
+                1,
+                "/tenant/api/v0.1/poll",
+                { continuationToken: "ct-update" },
+                expect.anything()
+            );
             if (pollInProgress) {
-                expect(String(pollCalls[6][0])).toContain("/poll-next");
-                expect(JSON.parse(pollCalls[6][1].body)).toEqual({
-                    continuationToken: "ct-poll-in-progress",
-                });
+                expect(apiClient.poll).toHaveBeenNthCalledWith(
+                    2,
+                    "/tenant/api/v0.1/poll-next",
+                    { continuationToken: "ct-poll-in-progress" },
+                    expect.anything()
+                );
             }
+            expect(apiClient.enrollAuthMethod).not.toHaveBeenCalled();
             const activation = await registration.state.selectAuthMethod(
                 registration.state.methods[0],
                 "user@contoso.com"
@@ -299,63 +387,65 @@ describe("Reset password V2 (SSPR)", () => {
             expect(continuation.data).toBeUndefined();
             expect(continuation.scenario).toBe("passwordReset");
             expect(app.getAllAccounts()).toHaveLength(0);
-            expect(fetch).toHaveBeenCalledTimes(enrollCallIndex + 2);
+            expect(apiClient.activateAuthMethod).toHaveBeenCalledTimes(1);
+            expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
             if (!continuation.isState("signInContinuation")) {
                 throw new Error("Expected explicit sign-in after activation.");
             }
             const completed = await continuation.state.signIn();
             expect(completed.isState("completed")).toBe(true);
             expect(completed.data).toBeInstanceOf(CustomAuthAccountData);
-            expect(fetch).toHaveBeenCalledTimes(enrollCallIndex + 4);
-            const calls = (fetch as jest.Mock).mock.calls;
-            expect(String(calls[enrollCallIndex][0])).toContain(
-                "/enroll/email"
+            expect(apiClient.enrollAuthMethod).toHaveBeenCalledWith(
+                "/tenant/api/v0.1/enroll/email",
+                { continuationToken: "ct-enroll", email: "user@contoso.com" },
+                expect.anything()
             );
-            expect(JSON.parse(calls[enrollCallIndex][1].body)).toEqual({
-                continuationToken: "ct-enroll",
-                email: "user@contoso.com",
-            });
-            expect(String(calls[enrollCallIndex + 1][0])).toContain(
-                "/activate/email"
+            expect(apiClient.activateAuthMethod).toHaveBeenCalledWith(
+                "/tenant/api/v0.1/activate/email",
+                { continuationToken: "ct-activation", otp: "123456" },
+                expect.anything()
             );
-            expect(
-                (calls[enrollCallIndex + 2][1].body as URLSearchParams).get(
-                    "continuation_token"
-                )
-            ).toBe("ct-activated");
+            expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
+                {
+                    continuationToken: "ct-activated",
+                    continueHref: ACTIVATED_CONTINUE_RESPONSE.continueHref,
+                },
+                expect.anything()
+            );
         }
     );
 
     it.each([false, true])(
         "completes password reset MFA with explicit sign-in (in-progress poll: %s)",
         async (pollInProgress) => {
-            (fetch as jest.Mock)
-                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE));
+            apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                ENTRY_RESPONSE
+            );
+            apiClient.resetPasswordStart.mockResolvedValueOnce(
+                EMAIL_ONLY_START_RESPONSE
+            );
+            apiClient.requestChallenge.mockResolvedValueOnce(
+                EMAIL_CHALLENGE_RESPONSE
+            );
+            apiClient.verifyChallenge.mockResolvedValueOnce(VERIFY_RESPONSE);
+            apiClient.submitNewPassword.mockResolvedValueOnce(UPDATE_RESPONSE);
             if (pollInProgress) {
-                (fetch as jest.Mock).mockResolvedValueOnce(
-                    buildResponse({
-                        continuationToken: "ct-poll-in-progress",
-                        action: "poll",
-                        _links: {
-                            poll: { href: "/tenant/api/v0.1/poll-next" },
-                        },
-                    })
-                );
+                apiClient.poll.mockResolvedValueOnce({
+                    nextAction: "poll",
+                    continuationToken: "ct-poll-in-progress",
+                    pollHref: "/tenant/api/v0.1/poll-next",
+                });
             }
-            (fetch as jest.Mock)
-                .mockResolvedValueOnce(
-                    buildResponse(POLL_MFA_REQUIRED_RESPONSE)
-                )
-                .mockResolvedValueOnce(
-                    buildResponse(MFA_EMAIL_CHALLENGE_RESPONSE)
-                )
-                .mockResolvedValueOnce(buildResponse(MFA_VERIFY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+            apiClient.poll.mockResolvedValueOnce(POLL_MFA_REQUIRED_RESPONSE);
+            apiClient.requestChallenge.mockResolvedValueOnce(
+                MFA_EMAIL_CHALLENGE_RESPONSE
+            );
+            apiClient.verifyChallenge.mockResolvedValueOnce(
+                MFA_VERIFY_RESPONSE
+            );
+            apiClient.completeWithTokens.mockResolvedValueOnce(
+                TestServerTokenResponse
+            );
 
             const startResult = await app.resetPasswordV2({
                 username: "user@contoso.com",
@@ -401,7 +491,7 @@ describe("Reset password V2 (SSPR)", () => {
             expect(continuation.data).toBeUndefined();
             expect(continuation.scenario).toBe("passwordReset");
             expect(app.getAllAccounts()).toHaveLength(0);
-            expect(fetch).toHaveBeenCalledTimes(pollInProgress ? 9 : 8);
+            expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
             if (!continuation.isState("signInContinuation")) {
                 throw new Error("Expected explicit sign-in after MFA.");
             }
@@ -411,52 +501,65 @@ describe("Reset password V2 (SSPR)", () => {
             expect(completed.data?.getAccount()?.idToken).toBe(
                 TestServerTokenResponse.id_token
             );
-            expect(fetch).toHaveBeenCalledTimes(pollInProgress ? 11 : 10);
-            const calls = (fetch as jest.Mock).mock.calls;
-            const pollIndex = 5;
-            expect(String(calls[pollIndex][0])).toContain("/poll");
+            expect(apiClient.poll).toHaveBeenCalledTimes(
+                pollInProgress ? 2 : 1
+            );
+            expect(apiClient.poll).toHaveBeenNthCalledWith(
+                1,
+                "/tenant/api/v0.1/poll",
+                { continuationToken: "ct-update" },
+                expect.anything()
+            );
             if (pollInProgress) {
-                expect(String(calls[pollIndex + 1][0])).toContain("/poll-next");
+                expect(apiClient.poll).toHaveBeenNthCalledWith(
+                    2,
+                    "/tenant/api/v0.1/poll-next",
+                    { continuationToken: "ct-poll-in-progress" },
+                    expect.anything()
+                );
             }
-            expect(String(calls[pollInProgress ? 7 : 6][0])).toContain(
-                "/mfa/email/challenge"
+            expect(apiClient.requestChallenge).toHaveBeenNthCalledWith(
+                2,
+                "/tenant/api/v0.1/mfa/email/challenge",
+                { continuationToken: "ct-mfa-selection" },
+                expect.anything()
             );
-            expect(JSON.parse(calls[pollInProgress ? 7 : 6][1].body)).toEqual({
-                continuationToken: "ct-mfa-selection",
-            });
-            expect(String(calls[pollInProgress ? 8 : 7][0])).toContain(
-                "/mfa/email/verify"
+            expect(apiClient.verifyChallenge).toHaveBeenNthCalledWith(
+                2,
+                "/tenant/api/v0.1/mfa/email/verify",
+                { continuationToken: "ct-mfa-challenge", otp: "654321" },
+                expect.anything()
             );
-            expect(JSON.parse(calls[pollInProgress ? 8 : 7][1].body)).toEqual({
-                continuationToken: "ct-mfa-challenge",
-                otp: "654321",
-            });
+            expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
+                {
+                    continuationToken: "ct-mfa-verified",
+                    continueHref: MFA_VERIFY_RESPONSE.continueHref,
+                },
+                expect.anything()
+            );
         }
     );
 
     it("uses the refreshed MFA token and verify link after resending", async () => {
-        const selection = await reachResetMfaSelection();
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(MFA_EMAIL_CHALLENGE_RESPONSE))
-            .mockResolvedValueOnce(
-                buildResponse({
-                    ...MFA_EMAIL_CHALLENGE_RESPONSE,
-                    continuationToken: "ct-mfa-resent",
-                    codeLength: 8,
-                    hint: "r***@contoso.com",
-                    _links: {
-                        verify: {
-                            href: "/tenant/api/v0.1/mfa/email/verify-resent",
-                        },
-                        resend: {
-                            href: "/tenant/api/v0.1/mfa/email/resend-next",
-                        },
-                    },
-                })
-            )
-            .mockResolvedValueOnce(buildResponse(MFA_VERIFY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+        const selectionResult = await reachResetMfaSelection();
+        if (!selectionResult.isState("authMethodSelectionRequired")) {
+            throw new Error("Expected reset MFA selection.");
+        }
+        const selection = selectionResult.state;
+        apiClient.requestChallenge
+            .mockResolvedValueOnce(MFA_EMAIL_CHALLENGE_RESPONSE)
+            .mockResolvedValueOnce({
+                ...MFA_EMAIL_CHALLENGE_RESPONSE,
+                continuationToken: "ct-mfa-resent",
+                codeLength: 8,
+                hint: "r***@contoso.com",
+                verifyHref: "/tenant/api/v0.1/mfa/email/verify-resent",
+                resendHref: "/tenant/api/v0.1/mfa/email/resend-next",
+            });
+        apiClient.verifyChallenge.mockResolvedValueOnce(MFA_VERIFY_RESPONSE);
+        apiClient.completeWithTokens.mockResolvedValueOnce(
+            TestServerTokenResponse
+        );
 
         const challenge = await selection.selectAuthMethod(
             selection.methods[0]
@@ -474,7 +577,7 @@ describe("Reset password V2 (SSPR)", () => {
         const continuation = await resent.state.submitChallenge("12345678");
         expect(continuation.data).toBeUndefined();
         expect(app.getAllAccounts()).toHaveLength(0);
-        expect(fetch).toHaveBeenCalledTimes(9);
+        expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
         if (!continuation.isState("signInContinuation")) {
             throw new Error("Expected explicit sign-in after MFA resend.");
         }
@@ -482,34 +585,51 @@ describe("Reset password V2 (SSPR)", () => {
         expect(completed.isState("completed")).toBe(true);
         expect(completed.data).toBeInstanceOf(CustomAuthAccountData);
 
-        const calls = (fetch as jest.Mock).mock.calls;
-        expect(calls).toHaveLength(11);
-        expect(String(calls[7][0])).toContain("/mfa/email/resend");
-        expect(JSON.parse(calls[7][1].body)).toEqual({
-            continuationToken: "ct-mfa-challenge",
-        });
-        expect(String(calls[8][0])).toContain("/mfa/email/verify-resent");
-        expect(JSON.parse(calls[8][1].body)).toEqual({
-            continuationToken: "ct-mfa-resent",
-            otp: "12345678",
-        });
+        expect(apiClient.completeWithTokens).toHaveBeenCalledTimes(1);
+        expect(apiClient.requestChallenge).toHaveBeenNthCalledWith(
+            3,
+            "/tenant/api/v0.1/mfa/email/resend",
+            { continuationToken: "ct-mfa-challenge" },
+            expect.anything()
+        );
+        expect(apiClient.verifyChallenge).toHaveBeenNthCalledWith(
+            2,
+            "/tenant/api/v0.1/mfa/email/verify-resent",
+            { continuationToken: "ct-mfa-resent", otp: "12345678" },
+            expect.anything()
+        );
     });
 
     it.each(["selection", "resend", "verification"] as const)(
         "rejects enrollment after MFA %s without caching an account",
         async (step) => {
-            const selection = await reachResetMfaSelection();
-            (fetch as jest.Mock).mockResolvedValueOnce(
-                buildResponse(
-                    step === "selection"
-                        ? POLL_ENROLL_REQUIRED_RESPONSE
-                        : MFA_EMAIL_CHALLENGE_RESPONSE
-                )
+            const selectionResult = await reachResetMfaSelection();
+            if (!selectionResult.isState("authMethodSelectionRequired")) {
+                throw new Error("Expected reset MFA selection.");
+            }
+            const selection = selectionResult.state;
+            const invalidChallenge = new CustomAuthApiError(
+                INVALID_HAL_RESPONSE,
+                "Enrollment is not a challenge response",
+                "corr-1"
             );
-            if (step !== "selection") {
-                (fetch as jest.Mock).mockResolvedValueOnce(
-                    buildResponse(POLL_ENROLL_REQUIRED_RESPONSE)
+            if (step === "selection") {
+                apiClient.requestChallenge.mockRejectedValueOnce(
+                    invalidChallenge
                 );
+            } else {
+                apiClient.requestChallenge.mockResolvedValueOnce(
+                    MFA_EMAIL_CHALLENGE_RESPONSE
+                );
+                if (step === "resend") {
+                    apiClient.requestChallenge.mockRejectedValueOnce(
+                        invalidChallenge
+                    );
+                } else {
+                    apiClient.verifyChallenge.mockResolvedValueOnce(
+                        POLL_ENROLL_REQUIRED_RESPONSE
+                    );
+                }
             }
             const challenge = await selection.selectAuthMethod(
                 selection.methods[0]
@@ -530,73 +650,77 @@ describe("Reset password V2 (SSPR)", () => {
             expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
             expect(result.data).toBeUndefined();
             expect(app.getAllAccounts()).toHaveLength(0);
-            expect(fetch).toHaveBeenCalledTimes(step === "selection" ? 7 : 8);
+            expect(apiClient.requestChallenge).toHaveBeenCalledTimes(
+                step === "resend" ? 3 : 2
+            );
+            expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
         }
     );
 
     it.each([
         {
             name: "invalid OTP",
-            response: {
-                error: {
-                    code: "invalidGrant",
-                    message: "Synthetic rejected verification code.",
-                },
-            },
-            status: 400,
+            response: new CustomAuthApiError(
+                "invalidGrant",
+                "Synthetic rejected verification code.",
+                "corr-1"
+            ),
             rejectToken: false,
         },
         {
             name: "expired continuation",
-            response: {
-                error: {
-                    code: "invalidRequest",
-                    message: "Synthetic expired continuation.",
-                },
-            },
-            status: 400,
+            response: new CustomAuthApiError(
+                "invalidRequest",
+                "Synthetic expired continuation.",
+                "corr-1"
+            ),
             rejectToken: false,
         },
         {
             name: "unexpected update",
             response: VERIFY_RESPONSE,
-            status: 200,
             rejectToken: false,
         },
         {
             name: "unexpected risk verification",
-            response: SMS_CHALLENGE_RESPONSE,
-            status: 200,
+            response: new CustomAuthApiError(
+                INVALID_HAL_RESPONSE,
+                "Unexpected risk verification response.",
+                "corr-1"
+            ),
             rejectToken: false,
         },
         {
             name: "rejected token exchange",
             response: MFA_VERIFY_RESPONSE,
-            status: 200,
             rejectToken: true,
         },
     ])(
         "does not complete or cache an account after MFA $name",
-        async ({ response, status, rejectToken }) => {
-            const selection = await reachResetMfaSelection();
-            (fetch as jest.Mock)
-                .mockResolvedValueOnce(
-                    buildResponse(MFA_EMAIL_CHALLENGE_RESPONSE)
-                )
-                .mockResolvedValueOnce(buildResponse(response, status));
+        async ({ response, rejectToken }) => {
+            const selectionResult = await reachResetMfaSelection();
+            if (!selectionResult.isState("authMethodSelectionRequired")) {
+                throw new Error("Expected reset MFA selection.");
+            }
+            const selection = selectionResult.state;
+            apiClient.requestChallenge.mockResolvedValueOnce(
+                MFA_EMAIL_CHALLENGE_RESPONSE
+            );
+            if (response instanceof CustomAuthApiError) {
+                apiClient.verifyChallenge.mockRejectedValueOnce(response);
+            } else {
+                apiClient.verifyChallenge.mockResolvedValueOnce(response);
+            }
             if (rejectToken) {
-                (fetch as jest.Mock)
-                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-                    .mockResolvedValueOnce(
-                        buildResponse(
-                            {
-                                error: "invalid_grant",
-                                error_description:
-                                    "Synthetic token exchange rejection.",
-                            },
-                            400
-                        )
-                    );
+                apiClient.completeWithTokens.mockRejectedValueOnce(
+                    new CustomAuthApiError(
+                        "invalid_grant",
+                        "Synthetic token exchange rejection.",
+                        "corr-1",
+                        undefined,
+                        undefined
+                    )
+                );
             }
 
             const challenge = await selection.selectAuthMethod(
@@ -611,7 +735,7 @@ describe("Reset password V2 (SSPR)", () => {
             if (rejectToken) {
                 expect(verification.isState("signInContinuation")).toBe(true);
                 expect(app.getAllAccounts()).toHaveLength(0);
-                expect(fetch).toHaveBeenCalledTimes(8);
+                expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
             }
             const result = verification.isState("signInContinuation")
                 ? await verification.state.signIn()
@@ -620,9 +744,14 @@ describe("Reset password V2 (SSPR)", () => {
             expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
             expect(result.data).toBeUndefined();
             expect(app.getAllAccounts()).toHaveLength(0);
-            expect(fetch).toHaveBeenCalledTimes(rejectToken ? 10 : 8);
-            expect(String((fetch as jest.Mock).mock.calls[7][0])).toContain(
-                "/mfa/email/verify"
+            expect(apiClient.completeWithTokens).toHaveBeenCalledTimes(
+                rejectToken ? 1 : 0
+            );
+            expect(apiClient.verifyChallenge).toHaveBeenNthCalledWith(
+                2,
+                "/tenant/api/v0.1/mfa/email/verify",
+                { continuationToken: "ct-mfa-challenge", otp: "654321" },
+                expect.anything()
             );
         }
     );
@@ -633,21 +762,23 @@ describe("Reset password V2 (SSPR)", () => {
     ])(
         "rejects an unsupported poll response %j without retrying",
         async (body) => {
-            (fetch as jest.Mock)
-                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
-                .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE))
-                .mockResolvedValueOnce(
-                    buildResponse({
-                        ...body,
-                        continuationToken: "ct-poll",
-                        _links: {
-                            poll: { href: "/tenant/api/v0.1/poll-next" },
-                        },
-                    })
-                );
+            const error = new CustomAuthApiError(
+                INVALID_HAL_RESPONSE,
+                `Unsupported poll response: ${JSON.stringify(body)}`,
+                "corr-1"
+            );
+            apiClient.authorizeChallengeStart.mockResolvedValueOnce(
+                ENTRY_RESPONSE
+            );
+            apiClient.resetPasswordStart.mockResolvedValueOnce(
+                EMAIL_ONLY_START_RESPONSE
+            );
+            apiClient.requestChallenge.mockResolvedValueOnce(
+                EMAIL_CHALLENGE_RESPONSE
+            );
+            apiClient.verifyChallenge.mockResolvedValueOnce(VERIFY_RESPONSE);
+            apiClient.submitNewPassword.mockResolvedValueOnce(UPDATE_RESPONSE);
+            apiClient.poll.mockRejectedValueOnce(error);
 
             const startResult = await app.resetPasswordV2({
                 username: "user@contoso.com",
@@ -667,20 +798,25 @@ describe("Reset password V2 (SSPR)", () => {
             expect(result.isFailed()).toBe(true);
             expect(result.error?.errorData).toMatchObject({
                 error: INVALID_HAL_RESPONSE,
+                errorDescription: error.errorDescription,
             });
             expect(result.isState("failed")).toBe(true);
-            expect(fetch).toHaveBeenCalledTimes(6);
+            expect(apiClient.poll).toHaveBeenCalledTimes(1);
+            expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
         }
     );
 
     it("rejects enrollment before a new password is submitted", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
-            .mockResolvedValueOnce(
-                buildResponse(POLL_ENROLL_REQUIRED_RESPONSE)
-            );
+        apiClient.authorizeChallengeStart.mockResolvedValueOnce(ENTRY_RESPONSE);
+        apiClient.resetPasswordStart.mockResolvedValueOnce(
+            EMAIL_ONLY_START_RESPONSE
+        );
+        apiClient.requestChallenge.mockResolvedValueOnce(
+            EMAIL_CHALLENGE_RESPONSE
+        );
+        apiClient.verifyChallenge.mockResolvedValueOnce(
+            POLL_ENROLL_REQUIRED_RESPONSE
+        );
 
         const startResult = await app.resetPasswordV2({
             username: "user@contoso.com",
@@ -694,20 +830,26 @@ describe("Reset password V2 (SSPR)", () => {
         expect(result.error?.errorData).toMatchObject({
             error: "unsupported_flow_transition",
         });
-        expect(fetch).toHaveBeenCalledTimes(4);
+        expect(apiClient.verifyChallenge).toHaveBeenCalledTimes(1);
+        expect(apiClient.submitNewPassword).not.toHaveBeenCalled();
+        expect(apiClient.completeWithTokens).not.toHaveBeenCalled();
     });
 
     it("completes password reset after automatically challenging the only SMS method", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(SMS_ONLY_START_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(SMS_CHALLENGE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(SMS_RISK_VERIFY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(POLL_COMPLETED_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+        apiClient.authorizeChallengeStart.mockResolvedValueOnce(ENTRY_RESPONSE);
+        apiClient.resetPasswordStart.mockResolvedValueOnce(
+            SMS_ONLY_START_RESPONSE
+        );
+        apiClient.requestChallenge.mockResolvedValueOnce(
+            SMS_CHALLENGE_RESPONSE
+        );
+        apiClient.verifyRisk.mockResolvedValueOnce(SMS_RISK_VERIFY_RESPONSE);
+        apiClient.verifyChallenge.mockResolvedValueOnce(VERIFY_RESPONSE);
+        apiClient.submitNewPassword.mockResolvedValueOnce(UPDATE_RESPONSE);
+        apiClient.poll.mockResolvedValueOnce(POLL_COMPLETED_RESPONSE);
+        apiClient.completeWithTokens.mockResolvedValueOnce(
+            TestServerTokenResponse
+        );
 
         const startResult = await app.resetPasswordV2({
             username: "user@contoso.com",
@@ -717,32 +859,42 @@ describe("Reset password V2 (SSPR)", () => {
         expect(startResult.isState("codeRequired")).toBe(true);
         expect(startResult.state).toBeInstanceOf(CodeRequiredStateV2);
 
-        const codeState = startResult.state as CodeRequiredStateV2;
+        if (!startResult.isState("codeRequired")) {
+            throw new Error("Expected codeRequired state.");
+        }
+        const codeState = startResult.state;
         expect(codeState.method?.id).toBe("sms");
         expect(codeState.channel).toBe("sms");
         expect(codeState.sentTo).toBe("+*** *******11");
 
-        await completePasswordReset(codeState);
+        await completePasswordReset(startResult);
 
-        expect(fetch as jest.Mock).toHaveBeenCalledTimes(9);
-        expect(String((fetch as jest.Mock).mock.calls[3][0])).toContain(
-            "/risk/phone/verify"
+        expect(apiClient.verifyRisk).toHaveBeenCalledWith(
+            SMS_CHALLENGE_RESPONSE.riskVerifyHref,
+            { continuationToken: "ct-sms-risk" },
+            expect.anything()
         );
-        expect(String((fetch as jest.Mock).mock.calls[4][0])).toContain(
-            "/sms/verify"
+        expect(apiClient.verifyChallenge).toHaveBeenCalledWith(
+            SMS_RISK_VERIFY_RESPONSE.verifyHref,
+            { continuationToken: "ct-sms-verify", otp: "123456" },
+            expect.anything()
         );
     });
 
     it("completes password reset after selecting Email from multiple methods", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_AND_SMS_START_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(POLL_COMPLETED_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+        apiClient.authorizeChallengeStart.mockResolvedValueOnce(ENTRY_RESPONSE);
+        apiClient.resetPasswordStart.mockResolvedValueOnce(
+            EMAIL_AND_SMS_START_RESPONSE
+        );
+        apiClient.requestChallenge.mockResolvedValueOnce(
+            EMAIL_CHALLENGE_RESPONSE
+        );
+        apiClient.verifyChallenge.mockResolvedValueOnce(VERIFY_RESPONSE);
+        apiClient.submitNewPassword.mockResolvedValueOnce(UPDATE_RESPONSE);
+        apiClient.poll.mockResolvedValueOnce(POLL_COMPLETED_RESPONSE);
+        apiClient.completeWithTokens.mockResolvedValueOnce(
+            TestServerTokenResponse
+        );
 
         const startResult = await app.resetPasswordV2({
             username: "user@contoso.com",
@@ -754,8 +906,10 @@ describe("Reset password V2 (SSPR)", () => {
             AuthMethodSelectionRequiredStateV2
         );
 
-        const methodState =
-            startResult.state as AuthMethodSelectionRequiredStateV2;
+        if (!startResult.isState("authMethodSelectionRequired")) {
+            throw new Error("Expected authMethodSelectionRequired state.");
+        }
+        const methodState = startResult.state;
         const emailMethod = methodState.methods.find(
             (method) => method.type === "email"
         );
@@ -767,28 +921,36 @@ describe("Reset password V2 (SSPR)", () => {
         expect(challengeResult.isFailed()).toBe(false);
         expect(challengeResult.state).toBeInstanceOf(CodeRequiredStateV2);
 
-        await completePasswordReset(
-            challengeResult.state as CodeRequiredStateV2
-        );
+        await completePasswordReset(challengeResult);
 
-        expect(fetch as jest.Mock).toHaveBeenCalledTimes(8);
+        expect(apiClient.requestChallenge).toHaveBeenCalledWith(
+            emailMethod.challengeHref,
+            { continuationToken: "ct-start" },
+            expect.anything()
+        );
     });
 
     it("completes password reset after selecting SMS and resending the code", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_AND_SMS_START_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(SMS_CHALLENGE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(SMS_RISK_VERIFY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(SMS_RESEND_CHALLENGE_RESPONSE))
-            .mockResolvedValueOnce(
-                buildResponse(SMS_RESEND_RISK_VERIFY_RESPONSE)
-            )
-            .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(UPDATE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(POLL_COMPLETED_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(TestServerTokenResponse));
+        apiClient.authorizeChallengeStart.mockResolvedValueOnce(ENTRY_RESPONSE);
+        apiClient.resetPasswordStart.mockResolvedValueOnce(
+            EMAIL_AND_SMS_START_RESPONSE
+        );
+        apiClient.requestChallenge.mockResolvedValueOnce(
+            SMS_CHALLENGE_RESPONSE
+        );
+        apiClient.verifyRisk.mockResolvedValueOnce(SMS_RISK_VERIFY_RESPONSE);
+        apiClient.requestChallenge.mockResolvedValueOnce(
+            SMS_RESEND_CHALLENGE_RESPONSE
+        );
+        apiClient.verifyRisk.mockResolvedValueOnce(
+            SMS_RESEND_RISK_VERIFY_RESPONSE
+        );
+        apiClient.verifyChallenge.mockResolvedValueOnce(VERIFY_RESPONSE);
+        apiClient.submitNewPassword.mockResolvedValueOnce(UPDATE_RESPONSE);
+        apiClient.poll.mockResolvedValueOnce(POLL_COMPLETED_RESPONSE);
+        apiClient.completeWithTokens.mockResolvedValueOnce(
+            TestServerTokenResponse
+        );
 
         const startResult = await app.resetPasswordV2({
             username: "user@contoso.com",
@@ -800,8 +962,10 @@ describe("Reset password V2 (SSPR)", () => {
             AuthMethodSelectionRequiredStateV2
         );
 
-        const methodState =
-            startResult.state as AuthMethodSelectionRequiredStateV2;
+        if (!startResult.isState("authMethodSelectionRequired")) {
+            throw new Error("Expected authMethodSelectionRequired state.");
+        }
+        const methodState = startResult.state;
         const smsMethod = methodState.methods.find(
             (method) => method.type === "sms"
         );
@@ -813,42 +977,50 @@ describe("Reset password V2 (SSPR)", () => {
         expect(challengeResult.isFailed()).toBe(false);
         expect(challengeResult.state).toBeInstanceOf(CodeRequiredStateV2);
 
-        const resendResult = await (
-            challengeResult.state as CodeRequiredStateV2
-        ).resendCode();
+        if (!challengeResult.isState("codeRequired")) {
+            throw new Error("Expected codeRequired state.");
+        }
+        const resendResult = await challengeResult.state.resendCode();
         expect(resendResult.isFailed()).toBe(false);
         expect(resendResult.state).toBeInstanceOf(CodeRequiredStateV2);
-        expect((resendResult.state as CodeRequiredStateV2).channel).toBe("sms");
+        if (!resendResult.isState("codeRequired")) {
+            throw new Error("Expected codeRequired state.");
+        }
+        expect(resendResult.state.channel).toBe("sms");
 
-        await completePasswordReset(resendResult.state as CodeRequiredStateV2);
+        await completePasswordReset(resendResult);
 
-        expect(fetch as jest.Mock).toHaveBeenCalledTimes(11);
-        expect(String((fetch as jest.Mock).mock.calls[4][0])).toContain(
-            "/sms/challenge"
+        expect(apiClient.requestChallenge).toHaveBeenNthCalledWith(
+            2,
+            SMS_RISK_VERIFY_RESPONSE.resendHref,
+            { continuationToken: "ct-sms-verify" },
+            expect.anything()
         );
-        expect(String((fetch as jest.Mock).mock.calls[5][0])).toContain(
-            "/risk/phone/verify"
+        expect(apiClient.verifyRisk).toHaveBeenNthCalledWith(
+            2,
+            SMS_RESEND_CHALLENGE_RESPONSE.riskVerifyHref,
+            { continuationToken: "ct-sms-resend-risk" },
+            expect.anything()
         );
     });
 
     it("surfaces a reset-disabled error when starting password reset", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(
-                buildResponse(
-                    {
-                        error: {
-                            code: "invalidRequest",
-                            message:
-                                "AADSTS10040039: You can't reset your own password because password reset isn't turned on for your account.",
-                            innerError: {
-                                code: "passwordResetNotEnabledForUser",
-                            },
-                        },
-                    },
-                    400
-                )
-            );
+        apiClient.authorizeChallengeStart.mockResolvedValueOnce(ENTRY_RESPONSE);
+        apiClient.resetPasswordStart.mockRejectedValueOnce(
+            new CustomAuthApiError(
+                "invalidRequest",
+                "AADSTS10040039: You can't reset your own password because password reset isn't turned on for your account.",
+                "corr-1",
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                "passwordResetNotEnabledForUser"
+            )
+        );
 
         const result = await app.resetPasswordV2({
             username: "user@contoso.com",
@@ -860,92 +1032,115 @@ describe("Reset password V2 (SSPR)", () => {
         expect(result.error?.innerErrorCode).toBe(
             "passwordResetNotEnabledForUser"
         );
-        expect(fetch).toHaveBeenCalledTimes(2);
+        expect(apiClient.resetPasswordStart).toHaveBeenCalledTimes(1);
+        expect(apiClient.requestChallenge).not.toHaveBeenCalled();
     });
 
     it("surfaces an invalid-code failure while awaiting a valid code", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
-            .mockResolvedValueOnce(
-                buildResponse(
-                    {
-                        error: {
-                            code: "invalidGrant",
-                            message: "AADSTS50181: Unable to validate the otp.",
-                            innerError: { code: "invalidOneTimeCode" },
-                        },
-                    },
-                    400
-                )
-            );
+        apiClient.authorizeChallengeStart.mockResolvedValueOnce(ENTRY_RESPONSE);
+        apiClient.resetPasswordStart.mockResolvedValueOnce(
+            EMAIL_ONLY_START_RESPONSE
+        );
+        apiClient.requestChallenge.mockResolvedValueOnce(
+            EMAIL_CHALLENGE_RESPONSE
+        );
+        apiClient.verifyChallenge.mockRejectedValueOnce(
+            new CustomAuthApiError(
+                "invalidGrant",
+                "AADSTS50181: Unable to validate the otp.",
+                "corr-1",
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                "invalidOneTimeCode"
+            )
+        );
 
         const startResult = await app.resetPasswordV2({
             username: "user@contoso.com",
         });
-        const result = await (
-            startResult.state as CodeRequiredStateV2
-        ).submitCode("00000");
+        if (!startResult.isState("codeRequired")) {
+            throw new Error("Expected codeRequired state.");
+        }
+        const result = await startResult.state.submitCode("00000");
 
         expect(result.isFailed()).toBe(true);
         expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
         expect(result.error?.isInvalidCode()).toBe(true);
-        expect(fetch).toHaveBeenCalledTimes(4);
+        expect(apiClient.verifyChallenge).toHaveBeenCalledWith(
+            EMAIL_CHALLENGE_RESPONSE.verifyHref,
+            { continuationToken: "ct-email-challenge", otp: "00000" },
+            expect.anything()
+        );
+        expect(apiClient.submitNewPassword).not.toHaveBeenCalled();
     });
 
     it("surfaces an invalid-password failure while awaiting a valid password", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_CHALLENGE_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(VERIFY_RESPONSE))
-            .mockResolvedValueOnce(
-                buildResponse(
-                    {
-                        error: {
-                            code: "invalidRequest",
-                            message:
-                                "AADSTS120002: New password doesn't meet complexity requirements.",
-                            innerError: { code: "passwordTooWeak" },
-                        },
-                    },
-                    400
-                )
-            );
+        apiClient.authorizeChallengeStart.mockResolvedValueOnce(ENTRY_RESPONSE);
+        apiClient.resetPasswordStart.mockResolvedValueOnce(
+            EMAIL_ONLY_START_RESPONSE
+        );
+        apiClient.requestChallenge.mockResolvedValueOnce(
+            EMAIL_CHALLENGE_RESPONSE
+        );
+        apiClient.verifyChallenge.mockResolvedValueOnce(VERIFY_RESPONSE);
+        apiClient.submitNewPassword.mockRejectedValueOnce(
+            new CustomAuthApiError(
+                "invalidRequest",
+                "AADSTS120002: New password doesn't meet complexity requirements.",
+                "corr-1",
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                "passwordTooWeak"
+            )
+        );
 
         const startResult = await app.resetPasswordV2({
             username: "user@contoso.com",
         });
-        const verifyResult = await (
-            startResult.state as CodeRequiredStateV2
-        ).submitCode("123456");
-        const result = await (
-            verifyResult.state as NewPasswordRequiredStateV2
-        ).submitNewPassword("weak");
+        if (!startResult.isState("codeRequired")) {
+            throw new Error("Expected codeRequired state.");
+        }
+        const verifyResult = await startResult.state.submitCode("123456");
+        if (!verifyResult.isState("newPasswordRequired")) {
+            throw new Error("Expected newPasswordRequired state.");
+        }
+        const result = await verifyResult.state.submitNewPassword("weak");
 
         expect(result.isFailed()).toBe(true);
         expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
         expect(result.error?.isInvalidPassword()).toBe(true);
-        expect(fetch).toHaveBeenCalledTimes(5);
+        expect(apiClient.submitNewPassword).toHaveBeenCalledWith(
+            "/tenant/api/v0.1/update",
+            { continuationToken: "ct-verify", newPassword: "weak" },
+            expect.anything()
+        );
+        expect(apiClient.poll).not.toHaveBeenCalled();
     });
 
     it("surfaces a browser-required failure when the server asks for web fallback", async () => {
-        (fetch as jest.Mock)
-            .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE))
-            .mockResolvedValueOnce(buildResponse(EMAIL_ONLY_START_RESPONSE))
-            .mockResolvedValueOnce(
-                buildResponse(
-                    {
-                        error: "invalid_grant",
-                        error_description:
-                            "AADSTS55214: Non-retryable error has occurred.",
-                        error_codes: [55214],
-                        suberror: "web_redirect_required",
-                    },
-                    400
-                )
-            );
+        apiClient.authorizeChallengeStart.mockResolvedValueOnce(ENTRY_RESPONSE);
+        apiClient.resetPasswordStart.mockResolvedValueOnce(
+            EMAIL_ONLY_START_RESPONSE
+        );
+        apiClient.requestChallenge.mockRejectedValueOnce(
+            new CustomAuthApiError(
+                "invalid_grant",
+                "AADSTS55214: Non-retryable error has occurred.",
+                "corr-1",
+                [55214],
+                "web_redirect_required"
+            )
+        );
 
         const result = await app.resetPasswordV2({
             username: "user@contoso.com",
@@ -954,6 +1149,7 @@ describe("Reset password V2 (SSPR)", () => {
         expect(result.isFailed()).toBe(true);
         expect(result.error).toBeInstanceOf(AuthFlowErrorV2);
         expect(result.error?.isBrowserRequired()).toBe(true);
-        expect(fetch).toHaveBeenCalledTimes(3);
+        expect(apiClient.requestChallenge).toHaveBeenCalledTimes(1);
+        expect(apiClient.verifyChallenge).not.toHaveBeenCalled();
     });
 });

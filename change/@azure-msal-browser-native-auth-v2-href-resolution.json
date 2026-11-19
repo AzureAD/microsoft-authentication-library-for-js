@@ -1,0 +1,6 @@
+{
+    "type": "patch",
+    "comment": "Preserve server-provided paths and queries for Native Auth V2 HAL and authorize-challenge continuation links, including absolute links, while retaining the configured origin. [#8996](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8996)",
+    "packageName": "@azure/msal-browser",
+    "dependentChangeType": "patch"
+}

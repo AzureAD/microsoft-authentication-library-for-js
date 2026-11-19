@@ -6,6 +6,7 @@
 import {
     Authority,
     AuthorityOptions,
+    formatAuthorityUri,
     INetworkModule,
     IPerformanceClient,
     Logger,
@@ -38,7 +39,7 @@ export class CustomAuthAuthority extends Authority {
         private customAuthProxyDomain?: string
     ) {
         const ciamAuthorityUrl = CustomAuthAuthority.transformCIAMAuthority(
-            authority,
+            formatAuthorityUri(authority),
             ""
         );
 
