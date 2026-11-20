@@ -31,6 +31,7 @@ import {
     TimeUtils,
     Constants,
     CacheHelpers,
+    validateAgeAssuranceTargets,
 } from "@azure/msal-common/browser";
 import { isBridgeError, BridgeError } from "../BridgeError.js";
 import { BridgeStatusCode } from "../BridgeStatusCode.js";
@@ -127,6 +128,11 @@ export class NestedAppAuthAdapter {
         const idTokenClaims = AuthToken.extractTokenClaims(
             response.token.id_token,
             this.crypto.base64Decode,
+            request.correlationId
+        );
+        validateAgeAssuranceTargets(
+            request.claims,
+            idTokenClaims,
             request.correlationId
         );
         const account = this.fromNaaAccountInfo(
@@ -307,6 +313,11 @@ export class NestedAppAuthAdapter {
         const idTokenClaims = AuthToken.extractTokenClaims(
             idToken.secret,
             this.crypto.base64Decode,
+            correlationId
+        );
+        validateAgeAssuranceTargets(
+            request.claims,
+            idTokenClaims,
             correlationId
         );
 

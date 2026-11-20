@@ -7,6 +7,7 @@ import {
     AuthenticationResult,
     ClientConfiguration,
     AADServerParamKeys,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import {
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
@@ -47,6 +48,25 @@ describe("ClientCredentialClient claimsFromClient tests", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+    });
+
+    it("does not treat an opaque access token as an ID-token target receipt", async () => {
+        const client = new ClientCredentialClient(config);
+        await expect(
+            client.acquireToken({
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                claimsFromClient: JSON.stringify({
+                    id_token: {
+                        xms_agvs: { additionalProperties: ["target-mc"] },
+                    },
+                }),
+            })
+        ).rejects.toMatchObject({
+            errorCode: ClientAuthErrorCodes.ageAssuranceTargetMismatch,
+        });
+        expect(config.storageInterface!.getTokenKeys().accessToken).toEqual([]);
     });
 
     describe("Body injection", () => {

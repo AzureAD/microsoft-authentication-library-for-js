@@ -302,6 +302,32 @@ describe("NestedAppAuthController.ts Class Unit Tests", () => {
             );
         });
 
+        it("snapshots target claims even when a correlation ID is supplied", async () => {
+            const claims = JSON.stringify({
+                id_token: {
+                    xms_agvs: { additionalProperties: ["target-mc"] },
+                },
+            });
+            const request = {
+                scopes: [NAA_SCOPE],
+                account: testAccount,
+                correlationId: NAA_CORRELATION_ID,
+                claims,
+            };
+            const bridge = jest
+                .spyOn(bridgeProxy, "getTokenSilent")
+                .mockResolvedValue(SILENT_TOKEN_RESPONSE);
+            const pending = pca.acquireTokenSilent(request);
+            request.claims = "{}";
+            await expect(pending).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.ageAssuranceTargetMismatch,
+            });
+            expect(bridge).toHaveBeenCalledTimes(1);
+            expect(
+                JSON.parse(bridge.mock.calls[0][0].claims!).id_token.xms_agvs
+            ).toEqual(JSON.parse(claims).id_token.xms_agvs);
+        });
+
         it("acquireTokenSilent calls acquireTokenFromCache with no cache policy set", async () => {
             jest.spyOn(
                 NestedAppAuthController.prototype as any,

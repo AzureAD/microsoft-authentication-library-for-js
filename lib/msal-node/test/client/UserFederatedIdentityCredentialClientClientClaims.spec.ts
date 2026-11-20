@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, AADServerParamKeys } from "@azure/msal-common";
+import {
+    ClientConfiguration,
+    AADServerParamKeys,
+    ClientAuthErrorCodes,
+} from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -48,6 +52,23 @@ describe("UserFederatedIdentityCredentialClient claimsFromClient tests", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+    });
+
+    it("validates client-originated targets before saving the network result", async () => {
+        const client = new UserFederatedIdentityCredentialClient(config);
+        await expect(
+            client.acquireToken({
+                ...baseRequest(),
+                claimsFromClient: JSON.stringify({
+                    id_token: {
+                        xms_agvs: { additionalProperties: ["target-mc"] },
+                    },
+                }),
+            })
+        ).rejects.toMatchObject({
+            errorCode: ClientAuthErrorCodes.ageAssuranceTargetMismatch,
+        });
+        expect(config.storageInterface!.getTokenKeys().accessToken).toEqual([]);
     });
 
     describe("Body injection", () => {

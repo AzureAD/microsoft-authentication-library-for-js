@@ -229,7 +229,83 @@ describe("PlatformAuthInteractionClient Tests", () => {
     });
 
     describe("acquireTokensFromInternalCache Tests", () => {
-        let getAccessTokenSpy: jest.SpyInstance;
+        it.each([TEST_ID_TOKEN, null])(
+            "rejects a replaced or removed ID token after the asynchronous cache lookup (%s)",
+            async (idToken) => {
+                jest.spyOn(
+                    SilentCacheClient.prototype,
+                    "acquireToken"
+                ).mockResolvedValue({
+                    idTokenClaims: { xms_agvt: "+mc" },
+                } as Awaited<ReturnType<SilentCacheClient["acquireToken"]>>);
+                jest.spyOn(
+                    CacheManager.prototype,
+                    "getIdToken"
+                ).mockReturnValue(idToken);
+                const broker = jest.spyOn(wamProvider, "sendMessage");
+                await expect(
+                    platformAuthInteractionClient.acquireToken({
+                        scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                        claims: JSON.stringify({
+                            id_token: {
+                                xms_agvs: {
+                                    additionalProperties: ["target-mc"],
+                                },
+                            },
+                        }),
+                    })
+                ).rejects.toMatchObject({
+                    errorCode: "age_assurance_target_mismatch",
+                });
+                expect(broker).not.toHaveBeenCalled();
+            }
+        );
+
+        it("does not reacquire from the broker after a cached target mismatch", async () => {
+            const error = new AuthError(
+                "age_assurance_target_mismatch",
+                RANDOM_TEST_GUID
+            );
+            jest.spyOn(
+                platformAuthInteractionClient as unknown as {
+                    acquireTokensFromCache(): Promise<AuthenticationResult>;
+                },
+                "acquireTokensFromCache"
+            ).mockRejectedValue(error);
+            const broker = jest.spyOn(wamProvider, "sendMessage");
+            await expect(
+                platformAuthInteractionClient.acquireToken({
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                })
+            ).rejects.toBe(error);
+            expect(broker).not.toHaveBeenCalled();
+        });
+
+        it("rejects a missing broker receipt before saving tokens", async () => {
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockResolvedValue(MOCK_WAM_RESPONSE);
+            const save = jest.spyOn(internalStorage, "saveCacheRecord");
+            await expect(
+                platformAuthInteractionClient.acquireToken(
+                    {
+                        scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                        claims: JSON.stringify({
+                            id_token: {
+                                xms_agvs: {
+                                    additionalProperties: ["target-mc"],
+                                },
+                            },
+                        }),
+                    },
+                    CacheLookupPolicy.Skip
+                )
+            ).rejects.toMatchObject({
+                errorCode: "age_assurance_target_mismatch",
+            });
+            expect(save).not.toHaveBeenCalled();
+        });
 
         beforeEach(() => {
             // @ts-ignore
@@ -5441,6 +5517,26 @@ describe("PlatformAuthInteractionClient Tests", () => {
     });
 
     describe("initializePlatformRequest tests", () => {
+        it("snapshots target claims before authority resolution", async () => {
+            const mcClaims = JSON.stringify({
+                id_token: {
+                    xms_agvs: { additionalProperties: ["target-mc"] },
+                },
+            });
+            const request = { scopes: ["User.Read"], claims: mcClaims };
+            const client = platformAuthInteractionClient as unknown as {
+                initializePlatformRequest(
+                    request: PopupRequest
+                ): Promise<PlatformAuthRequest>;
+            };
+            const pending = client.initializePlatformRequest(request);
+            request.claims = "{}";
+            const result = await pending;
+            expect(JSON.parse(result.claims!).id_token.xms_agvs).toEqual(
+                JSON.parse(mcClaims).id_token.xms_agvs
+            );
+        });
+
         it("pick up default params", async () => {
             const nativeRequest =
                 // @ts-ignore

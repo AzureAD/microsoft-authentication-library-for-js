@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Validate explicitly requested ID-token age-assurance targets before cache writes and successful results [#8983](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8983)",
+  "packageName": "@azure/msal-node",
+  "email": "mohaibrahim@microsoft.com",
+  "dependentChangeType": "patch"
+}
