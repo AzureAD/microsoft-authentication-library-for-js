@@ -2535,6 +2535,9 @@ export type PerformanceEvent = {
     platformAuthRequestCorrelationId?: string;
     nestedAppAuthRequest?: boolean;
     bridgeType?: "NAA" | "PWB";
+    bridgeSdkName?: string;
+    bridgeSdkVersion?: string;
+    platform?: string;
     multiMatchedAT?: number;
     multiMatchedID?: number;
     multiMatchedRT?: number;
