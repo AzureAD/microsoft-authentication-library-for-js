@@ -128,6 +128,9 @@ export class AuthenticationHeaderParser {
                      * Match one complete quoted value containing escaped characters or characters
                      * other than quotes/backslashes. Strip its quotes and escape backslashes only;
                      * percent sequences and all other nonce data remain unchanged.
+                     * Raw header examples (not JavaScript string literals):
+                     * Accept: "a\",b\\c==%2F" -> a",b\c==%2F
+                     * Reject: "abc"trailing (text outside the closing quote).
                      */
                     return /^"(?:\\.|[^"\\])*"$/.test(value)
                         ? value.slice(1, -1).replace(/\\(.)/g, "$1")
