@@ -812,12 +812,19 @@ describe("PlatformAuthDOMHandler tests", () => {
                 },
                 extendedLifetimeToken: true,
             };
-            const validatedResponse =
-                //@ts-ignore
-                platformAuthDOMHandler.validatePlatformBrokerResponse(
-                    testResponse,
-                    TEST_CONFIG.CORRELATION_ID
-                );
+            executeGetTokenMock.mockResolvedValue(testResponse);
+            const validatedResponse = await platformAuthDOMHandler!.sendMessage(
+                {
+                    accountId: "test-id",
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scope: "read openid",
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    windowTitleSubstring: "",
+                    tokenType: Constants.AuthenticationScheme.BEARER,
+                }
+            );
             expect(validatedResponse).toEqual({
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 account: {
@@ -838,12 +845,12 @@ describe("PlatformAuthDOMHandler tests", () => {
         });
 
         it.each([
-            { bindingAttested: "true", expectedBindingAttested: true },
-            { bindingAttested: "false", expectedBindingAttested: false },
-            { bindingAttested: "invalid", expectedBindingAttested: undefined },
+            { bindingAttested: "true", isValid: true },
+            { bindingAttested: "false", isValid: true },
+            { bindingAttested: "invalid", isValid: false },
         ])(
-            "maps DOM DPoP response fields when binding_attested is $bindingAttested",
-            async ({ bindingAttested, expectedBindingAttested }) => {
+            "validates canonical DOM DPoP properties when binding_attested is $bindingAttested",
+            async ({ bindingAttested, isValid }) => {
                 getSupportedContractsMock.mockResolvedValue([
                     PlatformAuthConstants.PLATFORM_DOM_APIS,
                 ]);
@@ -868,26 +875,39 @@ describe("PlatformAuthDOMHandler tests", () => {
                     scopes: "read openid",
                     error: {},
                     properties: {
-                        token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
-                        DPoP: "test-dpop-proof",
+                        token_type:
+                            bindingAttested === "false"
+                                ? Constants.AuthenticationScheme.DPOP
+                                : PlatformAuthTokenType.DPOP_WITH_PROOF,
+                        ...(bindingAttested !== "false" && {
+                            DPoP: "test-dpop-proof",
+                        }),
                         binding_attested: bindingAttested,
                     },
                 };
+                const testRequest: PlatformAuthRequest = {
+                    accountId: "test-id",
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scope: "read openid",
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    windowTitleSubstring: "",
+                    tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
+                    preferBinding: PlatformAuthBindingPreference.ATTESTED,
+                    keyId: "owned-request-key",
+                    reqCnf: "owned-request-confirmation",
+                };
+                executeGetTokenMock.mockResolvedValue(testResponse);
 
-                if (expectedBindingAttested === undefined) {
+                if (!isValid) {
                     const endMeasurementSpy = jest.spyOn(
                         performanceClient,
                         "endMeasurement"
                     );
-                    expect(() =>
-                        //@ts-ignore
-                        platformAuthDOMHandler.validatePlatformBrokerResponse(
-                            testResponse,
-                            TEST_CONFIG.CORRELATION_ID
-                        )
-                    ).toThrow(
-                        "Platform broker returned invalid binding_attested value."
-                    );
+                    await expect(
+                        platformAuthDOMHandler!.sendMessage(testRequest)
+                    ).rejects.toThrow("Conflicting DPoP broker response.");
                     expect(
                         endMeasurementSpy.mock.calls
                             .map(([event]) => event)
@@ -906,16 +926,10 @@ describe("PlatformAuthDOMHandler tests", () => {
                 }
 
                 const validatedResponse =
-                    //@ts-ignore
-                    platformAuthDOMHandler.validatePlatformBrokerResponse(
-                        testResponse,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
+                    await platformAuthDOMHandler!.sendMessage(testRequest);
                 expect(validatedResponse).toEqual(
                     expect.objectContaining({
-                        token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
-                        DPoP: "test-dpop-proof",
-                        binding_attested: expectedBindingAttested,
+                        properties: (testResponse as any).properties,
                     })
                 );
             }

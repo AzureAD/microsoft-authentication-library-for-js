@@ -345,7 +345,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     private validatePlatformBrokerResponse(
         response: object,
         correlationId: string,
-        request?: PlatformAuthRequest
+        request: PlatformAuthRequest
     ): PlatformAuthResponse {
         const validationMeasurement = this.performanceClient.startMeasurement(
             BrowserPerformanceEvents.PlatformAuthDOMValidateResponse,
@@ -382,14 +382,12 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                             response as PlatformDOMTokenResponse,
                             correlationId
                         );
-                    if (request) {
-                        this.validateDpopResponse(
-                            response as PlatformDOMTokenResponse,
-                            validatedResponse,
-                            request,
-                            correlationId
-                        );
-                    }
+                    this.validateDpopResponse(
+                        response as PlatformDOMTokenResponse,
+                        validatedResponse,
+                        request,
+                        correlationId
+                    );
                     validationMeasurement.end({
                         success: true,
                         platformAuthProviderType: this.platformAuthType,
@@ -419,7 +417,7 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                         correlationId
                     );
                     const isDpopRequest = isDpopBrokerTokenType(
-                        request?.tokenType
+                        request.tokenType
                     );
                     const nativeError = errorResponse.error;
                     const code =
@@ -577,14 +575,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             correlationId
         );
         const responseProperties = response.properties || {};
-        const bindingAttested = this.parseDOMBoolean(
-            isDpopBrokerTokenType(responseProperties.token_type) &&
-                typeof responseProperties.binding_attested === "string"
-                ? responseProperties.binding_attested.trim().toLowerCase()
-                : responseProperties.binding_attested,
-            "binding_attested",
-            correlationId
-        );
         const nativeResponse: PlatformAuthResponse = {
             access_token: response.accessToken,
             id_token: response.idToken,
@@ -596,32 +586,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             properties: responseProperties,
             extendedLifetimeToken: response.extendedLifetimeToken ?? false,
             shr: response.proofOfPossessionPayload,
-            token_type: responseProperties.token_type,
-            DPoP: responseProperties.DPoP,
-            binding_attested: bindingAttested,
         };
 
         return nativeResponse;
-    }
-
-    private parseDOMBoolean(
-        value: string | undefined,
-        propertyName: string,
-        correlationId: string
-    ): boolean | undefined {
-        if (value === undefined) {
-            return undefined;
-        }
-
-        if (value === "true" || value === "false") {
-            return value === "true";
-        }
-
-        throw createAuthError(
-            AuthErrorCodes.unexpectedError,
-            correlationId,
-            `Platform broker returned invalid ${propertyName} value.`
-        );
     }
 
     private getDOMExtraParams(

@@ -57,7 +57,10 @@ import {
     MATS,
     PlatformAuthResponse,
 } from "../broker/nativeBroker/PlatformAuthResponse.js";
-import { validateDpopBrokerOutcome } from "../broker/nativeBroker/PlatformAuthDpop.js";
+import {
+    isDpopBrokerTokenType,
+    validateDpopBrokerOutcome,
+} from "../broker/nativeBroker/PlatformAuthDpop.js";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager.js";
 import { BrowserConfiguration } from "../config/Configuration.js";
 import { base64Decode } from "../encode/Base64Decode.js";
@@ -1773,21 +1776,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @returns Whether the request uses a DPoP token type.
      */
     private isDpopBrokerRequest(request: PlatformAuthRequest): boolean {
-        return this.isDpopBrokerTokenType(request.tokenType);
-    }
-
-    /**
-     * Determines whether a token type represents a DPoP broker request.
-     * @param tokenType - Token type to inspect.
-     * @returns Whether the token type is a supported DPoP broker token type.
-     */
-    private isDpopBrokerTokenType(tokenType: string | undefined): boolean {
-        const normalizedTokenType = tokenType?.trim().toLowerCase();
-        return (
-            normalizedTokenType === PlatformAuthTokenType.DPOP_WITH_PROOF ||
-            normalizedTokenType ===
-                Constants.AuthenticationScheme.DPOP.toLowerCase()
-        );
+        return isDpopBrokerTokenType(request.tokenType);
     }
 
     /**
