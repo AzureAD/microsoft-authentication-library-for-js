@@ -26,6 +26,7 @@ import { UnexpectedError } from "../../../src/custom_auth/core/error/UnexpectedE
 import { CustomAuthApiError } from "../../../src/custom_auth/core/error/CustomAuthApiError.js";
 import { CustomAuthError } from "../../../src/custom_auth/core/error/CustomAuthError.js";
 import { UNSUPPORTED_FLOW_TRANSITION } from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/ErrorCodesV2.js";
+import * as PublicApiId from "../../../src/custom_auth/core/telemetry/PublicApiId.js";
 import { customAuthConfig } from "../test_resources/CustomAuthConfig.js";
 import { TestServerTokenResponse } from "../test_resources/TestConstants.js";
 import {
@@ -66,6 +67,15 @@ const buildResponse = (
         },
         json: async () => body,
     } as unknown as Response);
+
+const getRequestApiIds = (): number[] =>
+    (fetch as jest.Mock).mock.calls.map(([, options]) =>
+        Number(
+            options.headers["x-client-current-telemetry"]
+                .split("|")[1]
+                .split(",")[0]
+        )
+    );
 
 describe("Sign-up V2 agreed contract", () => {
     it("does not accept null scopes on any public V2 entry input", () => {
@@ -147,6 +157,7 @@ describe("Sign-up V2 entry", () => {
         });
 
         expect(startResult.isState("existingAccountCodeRequired")).toBe(true);
+        expect(startResult.scenario).toBe("signIn");
         if (!startResult.isState("existingAccountCodeRequired")) {
             throw new Error("Expected existing-account email verification.");
         }
@@ -165,6 +176,7 @@ describe("Sign-up V2 entry", () => {
         const result = await startResult.state.submitCode("123456");
 
         expect(result.isState("completed")).toBe(true);
+        expect(result.scenario).toBe("signIn");
         expect(result.data).toBeInstanceOf(CustomAuthAccountData);
         expect(JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)).toEqual({
             continuationToken: "ct-existing-email",
@@ -201,6 +213,7 @@ describe("Sign-up V2 entry", () => {
         expect(startResult.isState("existingAccountPasswordRequired")).toBe(
             true
         );
+        expect(startResult.scenario).toBe("signIn");
         if (!startResult.isState("existingAccountPasswordRequired")) {
             throw new Error("Expected existing-account password verification.");
         }
@@ -214,6 +227,7 @@ describe("Sign-up V2 entry", () => {
         const result = await startResult.state.submitPassword("valid-password");
 
         expect(result.isState("completed")).toBe(true);
+        expect(result.scenario).toBe("signIn");
         expect(JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)).toEqual({
             continuationToken: PASSWORD_CHALLENGE_RESPONSE.continuationToken,
             password: "valid-password",
@@ -247,6 +261,7 @@ describe("Sign-up V2 entry", () => {
             expect(startResult.isState("authMethodSelectionRequired")).toBe(
                 true
             );
+            expect(startResult.scenario).toBe("signIn");
             expect(fetch).toHaveBeenCalledTimes(2);
             if (!startResult.isState("authMethodSelectionRequired")) {
                 throw new Error("Expected existing-account method selection.");
@@ -303,8 +318,18 @@ describe("Sign-up V2 entry", () => {
                 : undefined;
 
             expect(completed?.isState("completed")).toBe(true);
-            expect(completed?.scenario).toBe("signUp");
+            expect(completed?.scenario).toBe("signIn");
             expect(completed?.data).toBeInstanceOf(CustomAuthAccountData);
+            expect(getRequestApiIds()).toEqual([
+                PublicApiId.SIGN_UP_V2_START,
+                PublicApiId.SIGN_UP_V2_START,
+                PublicApiId.SIGN_IN_V2_CHALLENGE,
+                methodType === "email"
+                    ? PublicApiId.SIGN_IN_V2_SUBMIT_CODE
+                    : PublicApiId.SIGN_IN_V2_SUBMIT_PASSWORD,
+                PublicApiId.SIGN_IN_V2_COMPLETE,
+                PublicApiId.SIGN_IN_V2_COMPLETE,
+            ]);
             expect(
                 JSON.parse((fetch as jest.Mock).mock.calls[3][1].body)
             ).toEqual({
@@ -351,7 +376,7 @@ describe("Sign-up V2 entry", () => {
                 : start;
 
             expect(result.isFailed()).toBe(true);
-            expect(result.scenario).toBe("signUp");
+            expect(result.scenario).toBe("signIn");
             expect(result.error?.errorData.error).toBe(
                 UNSUPPORTED_FLOW_TRANSITION
             );
@@ -399,7 +424,7 @@ describe("Sign-up V2 entry", () => {
         if (!resent.isState("existingAccountCodeRequired")) {
             throw new Error("Expected existing-account replacement code.");
         }
-        expect(resent.scenario).toBe("signUp");
+        expect(resent.scenario).toBe("signIn");
         expect(resent.state).toMatchObject({
             sentTo: resendResponse.hint,
             codeLength: 8,
@@ -414,7 +439,7 @@ describe("Sign-up V2 entry", () => {
         const completed = await resent.state.submitCode("12345678");
 
         expect(completed.isState("completed")).toBe(true);
-        expect(completed.scenario).toBe("signUp");
+        expect(completed.scenario).toBe("signIn");
         const requests = (fetch as jest.Mock).mock.calls;
         expect(String(requests[3][0])).toContain("/existing/email/resend");
         expect(JSON.parse(requests[3][1].body)).toEqual({
@@ -425,6 +450,15 @@ describe("Sign-up V2 entry", () => {
             continuationToken: "ct-existing-resend",
             otp: "12345678",
         });
+        expect(getRequestApiIds()).toEqual([
+            PublicApiId.SIGN_UP_V2_START,
+            PublicApiId.SIGN_UP_V2_START,
+            PublicApiId.SIGN_IN_V2_CHALLENGE,
+            PublicApiId.SIGN_IN_V2_CHALLENGE,
+            PublicApiId.SIGN_IN_V2_SUBMIT_CODE,
+            PublicApiId.SIGN_IN_V2_COMPLETE,
+            PublicApiId.SIGN_IN_V2_COMPLETE,
+        ]);
     });
 
     it.each(["password", "push", undefined])(
@@ -460,7 +494,7 @@ describe("Sign-up V2 entry", () => {
             const result = await start.state.resendCode();
 
             expect(result.isFailed()).toBe(true);
-            expect(result.scenario).toBe("signUp");
+            expect(result.scenario).toBe("signIn");
             expect(result.error?.errorData.error).toBe(
                 UNSUPPORTED_FLOW_TRANSITION
             );
@@ -469,7 +503,7 @@ describe("Sign-up V2 entry", () => {
     );
 
     it.each(["email", "password"] as const)(
-        "keeps existing-account %s failures retryable with signup error attribution",
+        "keeps existing-account %s failures retryable with sign-in error attribution",
         async (methodType) => {
             (fetch as jest.Mock)
                 .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
@@ -530,8 +564,8 @@ describe("Sign-up V2 entry", () => {
             }
 
             expect(failed.isFailed()).toBe(true);
-            expect(failed.scenario).toBe("signUp");
-            expect(failed.error?.scenario).toBe("signUp");
+            expect(failed.scenario).toBe("signIn");
+            expect(failed.error?.scenario).toBe("signIn");
             expect(failed.error?.isInvalidCode()).toBe(methodType === "email");
             expect(failed.error?.isInvalidPassword()).toBe(
                 methodType === "password"
@@ -544,7 +578,7 @@ describe("Sign-up V2 entry", () => {
                 : undefined;
 
             expect(completed?.isState("completed")).toBe(true);
-            expect(completed?.scenario).toBe("signUp");
+            expect(completed?.scenario).toBe("signIn");
             expect(String((fetch as jest.Mock).mock.calls[4][0])).toBe(
                 String((fetch as jest.Mock).mock.calls[3][0])
             );
@@ -593,7 +627,7 @@ describe("Sign-up V2 entry", () => {
             }
 
             expect(result.isFailed()).toBe(true);
-            expect(result.scenario).toBe("signUp");
+            expect(result.scenario).toBe("signIn");
             expect(result.error?.errorData.error).toBe(
                 UNSUPPORTED_FLOW_TRANSITION
             );
@@ -647,7 +681,7 @@ describe("Sign-up V2 entry", () => {
             );
 
             expect(result.isFailed()).toBe(true);
-            expect(result.scenario).toBe("signUp");
+            expect(result.scenario).toBe("signIn");
             expect(result.error?.errorData.error).toBe(
                 UNSUPPORTED_FLOW_TRANSITION
             );
@@ -700,7 +734,7 @@ describe("Sign-up V2 entry", () => {
             if (!verified?.isState("authMethodSelectionRequired")) {
                 throw new Error("Expected shared MFA selection.");
             }
-            expect(verified.scenario).toBe("signUp");
+            expect(verified.scenario).toBe("signIn");
             expect(verified.state).toBeInstanceOf(
                 customAuth.AuthMethodSelectionRequiredStateV2
             );
@@ -715,7 +749,7 @@ describe("Sign-up V2 entry", () => {
             if (!resent.isState("mfaVerificationRequired")) {
                 throw new Error("Expected refreshed SMS MFA verification.");
             }
-            expect(resent.scenario).toBe("signUp");
+            expect(resent.scenario).toBe("signIn");
             expect(
                 resent.state["stateParameters"].continuationState.signUp
             ).toEqual({
@@ -725,7 +759,7 @@ describe("Sign-up V2 entry", () => {
             const completed = await resent.state.submitChallenge("123456");
 
             expect(completed.isState("completed")).toBe(true);
-            expect(completed.scenario).toBe("signUp");
+            expect(completed.scenario).toBe("signIn");
             expect(completed.data).toBeInstanceOf(CustomAuthAccountData);
             expect(
                 JSON.parse((fetch as jest.Mock).mock.calls[6][1].body)
@@ -733,6 +767,26 @@ describe("Sign-up V2 entry", () => {
                 continuationToken: SMS_MFA_RESEND_RESPONSE.continuationToken,
                 otp: "123456",
             });
+            expect(
+                new URLSearchParams(
+                    (fetch as jest.Mock).mock.calls[7][1].body
+                ).get("continuation_token")
+            ).toBe(ACTIVATED_CONTINUE_RESPONSE.continuationToken);
+            expect(fetch).toHaveBeenCalledTimes(9);
+            expect(app.getAllAccounts()).toHaveLength(1);
+            expect(getRequestApiIds()).toEqual([
+                PublicApiId.SIGN_UP_V2_START,
+                PublicApiId.SIGN_UP_V2_START,
+                PublicApiId.SIGN_IN_V2_CHALLENGE,
+                methodType === "email"
+                    ? PublicApiId.SIGN_IN_V2_SUBMIT_CODE
+                    : PublicApiId.SIGN_IN_V2_SUBMIT_PASSWORD,
+                PublicApiId.MFA_V2_SELECT_AUTH_METHOD,
+                PublicApiId.MFA_V2_RESEND_CHALLENGE,
+                PublicApiId.MFA_V2_SUBMIT_CHALLENGE,
+                PublicApiId.SIGN_IN_V2_COMPLETE,
+                PublicApiId.SIGN_IN_V2_COMPLETE,
+            ]);
             expect(
                 (fetch as jest.Mock).mock.calls.some(([url]) =>
                     String(url).includes("submitattributes")
@@ -742,8 +796,12 @@ describe("Sign-up V2 entry", () => {
     );
 
     it.each(["email", "password"] as const)(
-        "continues existing-account %s verification through JIT enrollment",
+        "continues existing-account %s verification through JIT enrollment and resend",
         async (methodType) => {
+            const resentActivationResponse = {
+                ...ENROLL_ACTIVATION_RESPONSE,
+                continuationToken: "ct-activation-resent",
+            };
             (fetch as jest.Mock)
                 .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
                 .mockResolvedValueOnce(
@@ -764,6 +822,7 @@ describe("Sign-up V2 entry", () => {
                 .mockResolvedValueOnce(
                     buildResponse(ENROLL_ACTIVATION_RESPONSE)
                 )
+                .mockResolvedValueOnce(buildResponse(resentActivationResponse))
                 .mockResolvedValueOnce(
                     buildResponse(ACTIVATED_CONTINUE_RESPONSE)
                 )
@@ -772,6 +831,8 @@ describe("Sign-up V2 entry", () => {
 
             const start = await app.signUpV2({
                 username: "existing@contoso.com",
+                correlationId: "existing-account-jit",
+                scopes: ["User.Read"],
                 attributes: {
                     displayName: "Signup profile",
                     username: "signup-only-alias",
@@ -792,31 +853,143 @@ describe("Sign-up V2 entry", () => {
             if (!activation.isState("authMethodVerificationRequired")) {
                 throw new Error("Expected JIT activation.");
             }
-            expect(activation.scenario).toBe("signUp");
+            expect(activation.scenario).toBe("signIn");
+            expect(activation.state["stateParameters"].correlationId).toBe(
+                "existing-account-jit"
+            );
+            expect(
+                activation.state["stateParameters"].continuationState.scopes
+            ).toEqual(["User.Read", "openid", "profile", "offline_access"]);
             expect(
                 activation.state["stateParameters"].continuationState.signUp
             ).toEqual({
                 purpose: "existingAccount",
             });
-            const continuation = await activation.state.submitChallenge(
-                "123456"
-            );
-            expect(continuation.data).toBeUndefined();
             expect(app.getAllAccounts()).toHaveLength(0);
-            expect(fetch).toHaveBeenCalledTimes(6);
-            if (!continuation.isState("signInContinuation")) {
-                throw new Error("Expected explicit sign-in after activation.");
+            const resent = await activation.state.resendChallenge();
+            if (!resent.isState("authMethodVerificationRequired")) {
+                throw new Error("Expected the resent JIT activation.");
             }
-            const completed = await continuation.state.signIn();
+            expect(resent.scenario).toBe("signIn");
+            const completed = await resent.state.submitChallenge("123456");
 
             expect(completed.isState("completed")).toBe(true);
-            expect(completed.scenario).toBe("signUp");
+            expect(completed.scenario).toBe("signIn");
             expect(completed.data).toBeInstanceOf(CustomAuthAccountData);
+            expect(app.getAllAccounts()).toHaveLength(1);
+            expect(fetch).toHaveBeenCalledTimes(9);
+            expect(
+                JSON.parse((fetch as jest.Mock).mock.calls[6][1].body)
+            ).toEqual({
+                continuationToken: resentActivationResponse.continuationToken,
+                otp: "123456",
+            });
+            expect(
+                new URLSearchParams(
+                    (fetch as jest.Mock).mock.calls[7][1].body
+                ).get("continuation_token")
+            ).toBe(ACTIVATED_CONTINUE_RESPONSE.continuationToken);
+            expect(getRequestApiIds()).toEqual([
+                PublicApiId.SIGN_UP_V2_START,
+                PublicApiId.SIGN_UP_V2_START,
+                PublicApiId.SIGN_IN_V2_CHALLENGE,
+                methodType === "email"
+                    ? PublicApiId.SIGN_IN_V2_SUBMIT_CODE
+                    : PublicApiId.SIGN_IN_V2_SUBMIT_PASSWORD,
+                PublicApiId.JIT_V2_ENROLL_AUTH_METHOD,
+                PublicApiId.JIT_V2_RESEND_CHALLENGE,
+                PublicApiId.JIT_V2_SUBMIT_CHALLENGE,
+                PublicApiId.SIGN_IN_V2_COMPLETE,
+                PublicApiId.SIGN_IN_V2_COMPLETE,
+            ]);
             expect(
                 (fetch as jest.Mock).mock.calls.some(([url]) =>
                     String(url).includes("submitattributes")
                 )
             ).toBe(false);
+        }
+    );
+
+    it.each(["activation", "token exchange"] as const)(
+        "does not complete existing-account JIT when %s fails",
+        async (stage) => {
+            (fetch as jest.Mock)
+                .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        SYNTHETIC_EXISTING_ACCOUNT_EMAIL_START_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(
+                    buildResponse(
+                        SYNTHETIC_EXISTING_ACCOUNT_EMAIL_CHALLENGE_RESPONSE
+                    )
+                )
+                .mockResolvedValueOnce(buildResponse(ENROLL_REQUIRED_RESPONSE))
+                .mockResolvedValueOnce(
+                    buildResponse(ENROLL_ACTIVATION_RESPONSE)
+                );
+            if (stage === "activation") {
+                (fetch as jest.Mock).mockResolvedValueOnce(
+                    buildResponse(
+                        {
+                            error: {
+                                code: "invalidGrant",
+                                message: "The activation code is incorrect.",
+                                innerError: { code: "invalidOneTimeCode" },
+                            },
+                        },
+                        400
+                    )
+                );
+            } else {
+                (fetch as jest.Mock)
+                    .mockResolvedValueOnce(
+                        buildResponse(ACTIVATED_CONTINUE_RESPONSE)
+                    )
+                    .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
+                    .mockResolvedValueOnce(
+                        buildResponse(
+                            {
+                                error: "invalid_grant",
+                                error_description:
+                                    "The authorization code could not be redeemed.",
+                            },
+                            400
+                        )
+                    );
+            }
+            const start = await app.signUpV2({
+                username: "existing@contoso.com",
+            });
+            if (!start.isState("existingAccountCodeRequired")) {
+                throw new Error(
+                    "Expected existing-account email verification."
+                );
+            }
+            const verified = await start.state.submitCode("123456");
+            if (!verified.isState("authMethodRegistrationRequired")) {
+                throw new Error("Expected JIT method registration.");
+            }
+            const activation = await verified.state.selectAuthMethod(
+                verified.state.methods[1],
+                "existing@contoso.com"
+            );
+            if (!activation.isState("authMethodVerificationRequired")) {
+                throw new Error("Expected JIT activation.");
+            }
+
+            const result = await activation.state.submitChallenge("123456");
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.scenario).toBe("signIn");
+            expect(result.error?.scenario).toBe("signIn");
+            expect(result.error?.isInvalidChallenge()).toBe(
+                stage === "activation"
+            );
+            expect(result.data).toBeUndefined();
+            expect(app.getAllAccounts()).toHaveLength(0);
+            expect(fetch).toHaveBeenCalledTimes(stage === "activation" ? 6 : 8);
         }
     );
 
@@ -981,6 +1154,12 @@ describe("Sign-up V2 entry", () => {
                 },
             });
             expect(fetch).toHaveBeenCalledTimes(4);
+            expect(getRequestApiIds()).toEqual([
+                PublicApiId.SIGN_UP_V2_START,
+                PublicApiId.SIGN_UP_V2_START,
+                PublicApiId.SIGN_UP_V2_SUBMIT_CODE,
+                PublicApiId.SIGN_UP_V2_SUBMIT_ATTRIBUTES,
+            ]);
         }
     );
 
@@ -1388,10 +1567,16 @@ describe("Sign-up V2 entry", () => {
         ).toBe(true);
     });
 
-    it("registers after sign-up code verification without repeating that code", async () => {
+    it("preserves sign-up API IDs through code resend and JIT continuation", async () => {
         (fetch as jest.Mock)
             .mockResolvedValueOnce(buildResponse(ENTRY_RESPONSE, 401))
             .mockResolvedValueOnce(buildResponse(START_RESPONSE))
+            .mockResolvedValueOnce(
+                buildResponse({
+                    ...START_RESPONSE,
+                    continuationToken: "ct-signup-resend",
+                })
+            )
             .mockResolvedValueOnce(buildResponse(ENROLL_REQUIRED_RESPONSE))
             .mockResolvedValueOnce(buildResponse(ENROLL_ACTIVATION_RESPONSE))
             .mockResolvedValueOnce(buildResponse(ACTIVATED_CONTINUE_RESPONSE))
@@ -1405,9 +1590,11 @@ describe("Sign-up V2 entry", () => {
             throw new Error("Expected sign-up email-code challenge.");
         }
 
-        const registrationResult = await startResult.state.submitCode(
-            "12345678"
-        );
+        const resent = await startResult.state.resendCode();
+        if (!resent.isState("codeRequired")) {
+            throw new Error("Expected the resent sign-up email code.");
+        }
+        const registrationResult = await resent.state.submitCode("12345678");
         if (!registrationResult.isState("authMethodRegistrationRequired")) {
             throw new Error("Expected registration after code verification.");
         }
@@ -1425,16 +1612,26 @@ describe("Sign-up V2 entry", () => {
         );
         expect(continuationResult.data).toBeUndefined();
         expect(app.getAllAccounts()).toHaveLength(0);
-        expect(fetch).toHaveBeenCalledTimes(5);
+        expect(fetch).toHaveBeenCalledTimes(6);
         if (!continuationResult.isState("signInContinuation")) {
             throw new Error("Expected explicit sign-in after activation.");
         }
         const completedResult = await continuationResult.state.signIn();
         expect(completedResult.isState("completed")).toBe(true);
         expect(completedResult.data).toBeInstanceOf(CustomAuthAccountData);
-        expect(fetch).toHaveBeenCalledTimes(7);
+        expect(fetch).toHaveBeenCalledTimes(8);
+        expect(getRequestApiIds()).toEqual([
+            PublicApiId.SIGN_UP_V2_START,
+            PublicApiId.SIGN_UP_V2_START,
+            PublicApiId.SIGN_UP_V2_RESEND_CODE,
+            PublicApiId.SIGN_UP_V2_SUBMIT_CODE,
+            PublicApiId.JIT_V2_ENROLL_AUTH_METHOD,
+            PublicApiId.JIT_V2_SUBMIT_CHALLENGE,
+            PublicApiId.SIGN_UP_V2_COMPLETE,
+            PublicApiId.SIGN_UP_V2_COMPLETE,
+        ]);
         expect(
-            ((fetch as jest.Mock).mock.calls[5][1].body as URLSearchParams).get(
+            ((fetch as jest.Mock).mock.calls[6][1].body as URLSearchParams).get(
                 "continuation_token"
             )
         ).toBe("ct-activated");
