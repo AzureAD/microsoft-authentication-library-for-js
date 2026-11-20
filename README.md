@@ -1,5 +1,7 @@
 # Microsoft Authentication Library for JavaScript (MSAL.js)
 
+**Documentation:** [Browse guides by library and task](./docs/README.md).
+
 The Microsoft Authentication Library for JavaScript enables both client-side and server-side JavaScript applications to authenticate users using [Microsoft Entra ID](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) for work and school accounts, Microsoft personal accounts (MSA), and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
 ## Repository
@@ -31,20 +33,20 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
 ### Library Version Support Status
 
 
-| Package Name | Current Version | LTS Version | 
+| Package Name | Current Version | LTS Version |
 |--------------|-----------------|-------------|
-| @azure/msal-browser |v5 | v4 |
-| @azure/msal-node | v5 | v3 | 
-| @azure/msal-react | v5 | v3 | 
-| @azure/msal-angular | v5 | v4 |
+| @azure/msal-browser | v5 | v4 |
+| @azure/msal-node | v7 | v6 |
+| @azure/msal-react | v5 | v3 |
+| @azure/msal-angular | v6 | v5 |
 | @azure/msal-node-extensions | v5 | v1 |
-| ~~@azure/msal (msal-core)~~|  | Fully Deprecated  |
-| ~~@azure/msal-angularjs~~ |  | Fully Deprecated  |
+| ~~@azure/msal (msal-core)~~|  | Fully Deprecated |
+| ~~@azure/msal-angularjs~~ |  | Fully Deprecated |
 
 **Disambiguation:**
-- The MSAL team provides full support to the current version for each package in the table below.
+- The MSAL team provides full support to the current version for each package in the table above.
 - LTS (long-term support) versions will still receive some support and critical bug-fixes but will not ship new features. Our recommendation if you encounter any issues will always be to upgrade to the latest version of the library.
-- All supported packages were brought up to version parity as of `v5`. Packages with versions lower than `v4` in the LTS column skipped as many versions as required to jump directly to `v5`.
+- Most supported packages were brought up to version parity at `v5`. Packages may release later major versions independently when package-specific breaking changes are required.
 
 #### MSAL Browser CDN Deprecation
 
@@ -67,7 +69,7 @@ All of our libraries follow [semantic versioning](https://semver.org). We recomm
 
 ## Community Help and Support
 
--   [GitHub Issues](../../issues) is the best place to ask questions, report bugs, and new request features.
+-   [GitHub Issues](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues) is the best place to ask questions, report bugs, and new request features.
 
 -   [FAQs](https://aka.ms/msaljs-faq) for access to our frequently asked questions.
 

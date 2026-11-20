@@ -8,6 +8,10 @@ If you are coming from [MSAL v1.x](../../msal-common/), you can follow this guid
 
 Go to the Azure AD portal for your tenant and review the App Registrations. You can create a [new registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-app-registration#create-the-app-registration) for MSAL 2.x or you can [update your existing registration](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-app-registration#redirect-uri-msaljs-20-with-auth-code-flow) for the registration that you are using for MSAL 1.x.
 
+In the Microsoft Entra admin center, select **App registrations > your application > Authentication**. Move the browser redirect URIs from **Web** to **Single-page application**, or add the SPA platform and register the exact redirect URIs there. Do not add a client secret to a SPA. After every application sharing the registration has migrated to authorization code flow with PKCE, disable the implicit-grant options for access tokens and ID tokens. Disabling them earlier can break clients that still depend on implicit flow.
+
+This is a historical 1.x-to-2.x guide. When moving to the current MSAL Browser release, also follow the later [major-version migration guides](./README.md#migrations-and-historical-guidance), including initialization and the dedicated [redirect bridge](./redirect-bridge.md).
+
 ## 2. Add the msal-browser package to your project
 
 See the [installation section of the README](../README.md#installation).
