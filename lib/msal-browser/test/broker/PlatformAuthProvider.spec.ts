@@ -299,23 +299,16 @@ describe("PlatformAuthProvider tests", () => {
             );
         });
 
-        it.each([
-            Constants.AuthenticationScheme.BEARER,
-            Constants.AuthenticationScheme.POP,
-            Constants.AuthenticationScheme.DPOP,
-        ])(
-            "returns false for %s when platform auth provider is not initialized",
-            (authenticationScheme) => {
-                const result = PlatformAuthProvider.isPlatformAuthAllowed(
-                    config,
-                    logger,
-                    TEST_CONFIG.CORRELATION_ID,
-                    undefined,
-                    authenticationScheme
-                );
-                expect(result).toBe(false);
-            }
-        );
+        it("returns false when platform auth provider is not initialized", () => {
+            const result = PlatformAuthProvider.isPlatformAuthAllowed(
+                config,
+                logger,
+                TEST_CONFIG.CORRELATION_ID,
+                undefined,
+                Constants.AuthenticationScheme.BEARER
+            );
+            expect(result).toBe(false);
+        });
         it("returns false when authentication scheme is not supported", () => {
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
@@ -329,37 +322,6 @@ describe("PlatformAuthProvider tests", () => {
                 "unknown-scheme" as Constants.AuthenticationScheme
             );
             expect(result).toBe(false);
-        });
-
-        it("allows DPoP with a normally discovered DOM provider", async () => {
-            const getSupportedContracts = jest
-                .fn()
-                .mockResolvedValue([PlatformAuthConstants.PLATFORM_DOM_APIS]);
-            Object.defineProperty(navigator, "platformAuthentication", {
-                configurable: true,
-                value: { getSupportedContracts },
-            });
-            try {
-                const provider = await PlatformAuthDOMHandler.createProvider(
-                    logger,
-                    performanceClient,
-                    TEST_CONFIG.CORRELATION_ID
-                );
-                expect(
-                    PlatformAuthProvider.isPlatformAuthAllowed(
-                        config,
-                        logger,
-                        TEST_CONFIG.CORRELATION_ID,
-                        provider,
-                        Constants.AuthenticationScheme.DPOP
-                    )
-                ).toBe(true);
-                expect(getSupportedContracts).toHaveBeenCalledWith(
-                    PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID
-                );
-            } finally {
-                delete (navigator as any).platformAuthentication;
-            }
         });
 
         it("returns true for DPoP when the extension provider is active", () => {

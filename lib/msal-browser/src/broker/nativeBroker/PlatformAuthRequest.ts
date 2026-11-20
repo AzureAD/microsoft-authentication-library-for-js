@@ -38,6 +38,18 @@ export const PlatformAuthTokenType = {
 } as const;
 
 /**
+ * Returns whether a token type uses the platform broker DPoP protocol.
+ */
+export function isDpopBrokerTokenType(tokenType: unknown): boolean {
+    const normalized =
+        typeof tokenType === "string" ? tokenType.trim().toLowerCase() : "";
+    return (
+        normalized === PlatformAuthTokenType.DPOP_WITH_PROOF ||
+        normalized === Constants.AuthenticationScheme.DPOP.toLowerCase()
+    );
+}
+
+/**
  * Supported platform broker request token type. Authentication schemes are
  * internal request intent; the additional values are WAM DPoP wire contracts.
  */

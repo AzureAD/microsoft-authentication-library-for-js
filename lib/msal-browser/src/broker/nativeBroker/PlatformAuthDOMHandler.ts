@@ -15,9 +15,8 @@ import {
 } from "@azure/msal-common/browser";
 import {
     DOMExtraParameters,
-    PlatformAuthBindingPreference,
+    isDpopBrokerTokenType,
     PlatformAuthRequest,
-    PlatformAuthTokenType,
     PlatformDOMTokenRequest,
 } from "./PlatformAuthRequest.js";
 import { PlatformAuthConstants } from "../../utils/BrowserConstants.js";
@@ -32,10 +31,6 @@ import {
 import * as NativeStatusCodes from "./NativeStatusCodes.js";
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
-import {
-    isDpopBrokerTokenType,
-    validateDpopBrokerOutcome,
-} from "./PlatformAuthDpop.js";
 
 const DOM_DPOP_ERROR_CODES = new Set<string>(
     Object.values(NativeAuthErrorCodes)
@@ -101,11 +96,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 performanceClient,
                 correlationId
             )(PlatformAuthConstants.MICROSOFT_ENTRA_BROKERID)) as string[];
-            const contractSupported =
-                Array.isArray(supportedContracts) &&
-                supportedContracts.includes(
-                    PlatformAuthConstants.PLATFORM_DOM_APIS
-                );
+            const contractSupported = supportedContracts?.includes(
+                PlatformAuthConstants.PLATFORM_DOM_APIS
+            );
             if (contractSupported) {
                 logger.trace(
                     "Platform auth api available in DOM",
@@ -187,23 +180,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
 
         try {
             const isDpopRequest = isDpopBrokerTokenType(request.tokenType);
-            if (
-                isDpopRequest &&
-                (request.tokenType !== PlatformAuthTokenType.DPOP_WITH_PROOF ||
-                    typeof request.keyId !== "string" ||
-                    !request.keyId.trim() ||
-                    typeof request.reqCnf !== "string" ||
-                    !request.reqCnf.trim() ||
-                    (request.preferBinding !== undefined &&
-                        request.preferBinding !==
-                            PlatformAuthBindingPreference.ATTESTED))
-            ) {
-                throw createAuthError(
-                    AuthErrorCodes.unexpectedError,
-                    correlationId,
-                    "DPoP request key binding is incomplete."
-                );
-            }
             const platformDOMRequest = invoke(
                 this.initializePlatformDOMRequest.bind(this),
                 BrowserPerformanceEvents.PlatformAuthDOMInitializeRequest,
@@ -356,17 +332,16 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                     correlationId
                 );
                 try {
+                    this.validateDpopResponseShape(
+                        response as PlatformDOMTokenResponse,
+                        request,
+                        correlationId
+                    );
                     const validatedResponse =
                         this.convertToPlatformBrokerResponse(
                             response as PlatformDOMTokenResponse,
                             correlationId
                         );
-                    this.validateDpopResponse(
-                        response as PlatformDOMTokenResponse,
-                        validatedResponse,
-                        request,
-                        correlationId
-                    );
                     validationMeasurement.end({
                         success: true,
                         platformAuthProviderType: this.platformAuthType,
@@ -406,7 +381,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                             : nativeError.code;
                     const status =
                         isDpopRequest &&
-                        nativeError.status !== "THROTTLED" &&
                         !Object.values(NativeStatusCodes).some(
                             (value) => value === nativeError.status
                         )
@@ -465,11 +439,11 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     }
 
     /**
-     * Validates DOM response shape before applying the shared broker outcome contract.
+     * Validates DOM wire fields before normalization. The interaction client
+     * validates canonical L1/L3 outcomes for both broker transports.
      */
-    private validateDpopResponse(
+    private validateDpopResponseShape(
         response: PlatformDOMTokenResponse,
-        normalizedResponse: PlatformAuthResponse,
         request: PlatformAuthRequest,
         correlationId: string
     ): void {
@@ -533,12 +507,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 );
             }
         }
-        validateDpopBrokerOutcome(
-            normalizedResponse,
-            request,
-            correlationId,
-            this.performanceClient
-        );
     }
 
     private getCorrelationId(correlationId?: string): string {

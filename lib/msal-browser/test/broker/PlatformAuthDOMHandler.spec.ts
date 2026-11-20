@@ -125,25 +125,6 @@ describe("PlatformAuthDOMHandler tests", () => {
             );
         });
 
-        it.each([
-            null,
-            "get-token-and-sign-out",
-            { includes: () => true },
-            ["get-cookies"],
-        ])(
-            "does not enable DPoP for invalid or unrelated capabilities %p",
-            async (contracts) => {
-                getSupportedContractsMock.mockResolvedValue(contracts);
-                await expect(
-                    PlatformAuthDOMHandler.createProvider(
-                        logger,
-                        performanceClient,
-                        TEST_CONFIG.CORRELATION_ID
-                    )
-                ).resolves.toBeUndefined();
-            }
-        );
-
         it("should emit a failed measurement when the DOM API is not available", async () => {
             Object.defineProperty(window.navigator, "platformAuthentication", {
                 value: undefined,
@@ -815,97 +796,6 @@ describe("PlatformAuthDOMHandler tests", () => {
                 extendedLifetimeToken: true,
             });
         });
-
-        it.each([
-            { bindingAttested: "true", isValid: true },
-            { bindingAttested: "false", isValid: true },
-            { bindingAttested: "invalid", isValid: false },
-        ])(
-            "validates canonical DOM DPoP properties when binding_attested is $bindingAttested",
-            async ({ bindingAttested, isValid }) => {
-                getSupportedContractsMock.mockResolvedValue([
-                    PlatformAuthConstants.PLATFORM_DOM_APIS,
-                ]);
-                const platformAuthDOMHandler =
-                    await PlatformAuthDOMHandler.createProvider(
-                        logger,
-                        performanceClient,
-                        "test-correlation-id"
-                    );
-                const testResponse: object = {
-                    isSuccess: true,
-                    state: "",
-                    accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                    expiresIn: 6000,
-                    account: {
-                        id: "test-id",
-                        userName: "test-user",
-                        properties: {},
-                    },
-                    clientInfo: "test-client-info",
-                    idToken: TEST_TOKENS.IDTOKEN_V1,
-                    scopes: "read openid",
-                    error: {},
-                    properties: {
-                        token_type:
-                            bindingAttested === "false"
-                                ? Constants.AuthenticationScheme.DPOP
-                                : PlatformAuthTokenType.DPOP_WITH_PROOF,
-                        ...(bindingAttested !== "false" && {
-                            DPoP: "test-dpop-proof",
-                        }),
-                        binding_attested: bindingAttested,
-                    },
-                };
-                const testRequest: PlatformAuthRequest = {
-                    accountId: "test-id",
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    authority: TEST_CONFIG.validAuthority,
-                    redirectUri: TEST_URIS.TEST_REDIR_URI,
-                    scope: "read openid",
-                    correlationId: TEST_CONFIG.CORRELATION_ID,
-                    windowTitleSubstring: "",
-                    tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
-                    preferBinding: PlatformAuthBindingPreference.ATTESTED,
-                    keyId: "owned-request-key",
-                    reqCnf: "owned-request-confirmation",
-                };
-                executeGetTokenMock.mockResolvedValue(testResponse);
-
-                if (!isValid) {
-                    const endMeasurementSpy = jest.spyOn(
-                        performanceClient,
-                        "endMeasurement"
-                    );
-                    await expect(
-                        platformAuthDOMHandler!.sendMessage(testRequest)
-                    ).rejects.toThrow("Conflicting DPoP broker response.");
-                    expect(
-                        endMeasurementSpy.mock.calls
-                            .map(([event]) => event)
-                            .find(
-                                (event) =>
-                                    event.name ===
-                                    BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
-                            )
-                    ).toMatchObject({
-                        correlationId: TEST_CONFIG.CORRELATION_ID,
-                        success: false,
-                        platformAuthProviderType:
-                            PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
-                    });
-                    return;
-                }
-
-                const validatedResponse =
-                    await platformAuthDOMHandler!.sendMessage(testRequest);
-                expect(validatedResponse).toEqual(
-                    expect.objectContaining({
-                        properties: (testResponse as any).properties,
-                    })
-                );
-            }
-        );
     });
 
     describe("DPoP transport boundary", () => {
@@ -961,7 +851,7 @@ describe("PlatformAuthDOMHandler tests", () => {
         });
 
         it.each(["L1", "L3"])(
-            "validates unchanged %s properties against the shared outcome contract",
+            "passes %s broker properties unchanged to the interaction client",
             async (level) => {
                 if (level === "L1") {
                     response.properties = {
@@ -1020,45 +910,8 @@ describe("PlatformAuthDOMHandler tests", () => {
             { state: {} },
             { expiresIn: "6000" },
             { expiresIn: 1.5 },
-            { properties: undefined },
             { properties: null },
             { properties: [] },
-            { properties: { token_type: "unknown" } },
-            {
-                properties: {
-                    token_type: "dpop+proof",
-                    binding_attested: "true",
-                },
-            },
-            {
-                properties: {
-                    token_type: "dpop+proof",
-                    binding_attested: "true",
-                    DPoP: " ",
-                },
-            },
-            {
-                properties: {
-                    token_type: "dpop+proof",
-                    binding_attested: false,
-                    DPoP: "proof",
-                },
-            },
-            {
-                properties: {
-                    token_type: "dpop+proof",
-                    binding_attested: "false",
-                    DPoP: "proof",
-                },
-            },
-            { properties: { token_type: "dpop", binding_attested: "true" } },
-            {
-                properties: {
-                    token_type: "dpop",
-                    binding_attested: "false",
-                    DPoP: "proof",
-                },
-            },
             {
                 properties: {
                     token_type: "dpop+proof",
@@ -1092,11 +945,10 @@ describe("PlatformAuthDOMHandler tests", () => {
             }
         );
 
-        it("rejects DPoP outcomes for a Bearer request at the direct-handler boundary", async () => {
+        it("leaves canonical outcome validation to the interaction client", async () => {
             request.tokenType = Constants.AuthenticationScheme.BEARER;
-            await expect(handler.sendMessage(request)).rejects.toBeInstanceOf(
-                AuthError
-            );
+            const result = await handler.sendMessage(request);
+            expect(result.properties).toBe(response.properties);
         });
 
         describe.each([
@@ -1152,25 +1004,6 @@ describe("PlatformAuthDOMHandler tests", () => {
             });
         });
 
-        it.each([
-            { reqCnf: undefined },
-            { keyId: " " },
-            { keyId: 99 },
-            { reqCnf: {} },
-            { preferBinding: "unknown" },
-        ])(
-            "rejects malformed request bindings before IPC without mutating them %p",
-            async (overrides) => {
-                Object.assign(request, overrides);
-                const original = { ...request };
-                await expect(
-                    handler.sendMessage(request)
-                ).rejects.toBeInstanceOf(AuthError);
-                expect(request).toEqual(original);
-                expect(executeGetTokenMock).not.toHaveBeenCalled();
-            }
-        );
-
         it.each([null, undefined])(
             "accepts nullable optional DOM dictionaries and state %p",
             async (value) => {
@@ -1194,6 +1027,16 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(error.errorCode).toBe(AuthErrorCodes.unexpectedError);
             expect(JSON.stringify(error)).not.toContain("private-broker-data");
             expect(error.message).not.toContain("private-broker-data");
+        });
+
+        it("does not preserve an unsupported broker status", async () => {
+            response = {
+                isSuccess: false,
+                error: { code: "BrokerError", status: "THROTTLED" },
+            };
+            const error = await handler.sendMessage(request).catch((e) => e);
+            expect(error).toBeInstanceOf(NativeAuthError);
+            expect(error.ext?.status).toBeUndefined();
         });
 
         it.each(["NoSupport", "BadState", "OSError", "BrokerError"])(

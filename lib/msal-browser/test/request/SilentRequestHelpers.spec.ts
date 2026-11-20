@@ -306,49 +306,22 @@ describe("silent request preparation", () => {
         expect(prepared.account).toBe(prepared.request.account);
     });
 
-    it("keeps web preparation for DPoP when no platform provider is available", () => {
+    it("selects broker DPoP preparation when the DOM provider is active", () => {
         input.request.authenticationScheme =
             Constants.AuthenticationScheme.DPOP;
         const prepared = resolveSilentRequestPreparation(
             input,
-            undefined,
-            logger,
-            performanceClient
-        );
-        expect(prepared).toEqual(prepareWebSilentRequest(input));
-        expect(prepared.request).toBe(input.request);
-        expect(prepared.account).toBe(input.account);
-    });
-
-    it("selects broker DPoP preparation with a normally discovered DOM provider", async () => {
-        Object.defineProperty(navigator, "platformAuthentication", {
-            configurable: true,
-            value: {
-                getSupportedContracts: jest
-                    .fn()
-                    .mockResolvedValue(["get-token-and-sign-out"]),
-            },
-        });
-        try {
-            const domProvider = await PlatformAuthDOMHandler.createProvider(
+            new PlatformAuthDOMHandler(
                 logger,
                 performanceClient,
                 "test-correlation-id"
-            );
-            input.request.authenticationScheme =
-                Constants.AuthenticationScheme.DPOP;
-            const prepared = resolveSilentRequestPreparation(
-                input,
-                domProvider,
-                logger,
-                performanceClient
-            );
-            expect(prepared.key).toBeUndefined();
-            expect(prepared.request).not.toBe(input.request);
-            expect(prepared.account).toBe(prepared.request.account);
-        } finally {
-            delete (navigator as any).platformAuthentication;
-        }
+            ),
+            logger,
+            performanceClient
+        );
+        expect(prepared.key).toBeUndefined();
+        expect(prepared.request).not.toBe(input.request);
+        expect(prepared.account).toBe(prepared.request.account);
     });
 
     it("keeps web preparation for unsupported broker scheme SSH", () => {

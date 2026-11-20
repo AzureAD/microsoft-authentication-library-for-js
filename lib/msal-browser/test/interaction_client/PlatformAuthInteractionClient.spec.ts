@@ -4112,8 +4112,16 @@ describe("PlatformAuthInteractionClient Tests", () => {
                         internalStorage,
                         "saveCacheRecord"
                     );
+                    const addFieldsSpy = jest.spyOn(perfClient, "addFields");
                     const client = createClient(apiId);
                     const result = await client.acquireToken(request);
+                    expect(
+                        addFieldsSpy.mock.calls.filter(
+                            ([fields]) =>
+                                fields["ext.brokerDpopOutcome"] ===
+                                level.toLowerCase()
+                        )
+                    ).toHaveLength(1);
                     expect(result.dpopProof).toBe(
                         level === "L3"
                             ? "unchanged-broker-proof"
@@ -4453,8 +4461,34 @@ describe("PlatformAuthInteractionClient Tests", () => {
             }
 
             it.each([
+                undefined,
+                null,
+                [],
+                {},
                 { token_type: "unknown" },
                 { token_type: "dpop+proof", binding_attested: "true" },
+                {
+                    token_type: "dpop+proof",
+                    binding_attested: "true",
+                    DPoP: " ",
+                },
+                {
+                    token_type: "dpop+proof",
+                    binding_attested: "invalid",
+                    DPoP: "broker-proof",
+                },
+                {
+                    token_type: "dpop+proof",
+                    binding_attested: false,
+                    DPoP: "broker-proof",
+                },
+                {
+                    token_type: "dpop+proof",
+                    binding_attested: "false",
+                    DPoP: "broker-proof",
+                },
+                { token_type: "dpop+proof", DPoP: "broker-proof" },
+                { token_type: "dpop" },
                 { token_type: "dpop", binding_attested: "true" },
                 {
                     token_type: "dpop",
@@ -4464,7 +4498,8 @@ describe("PlatformAuthInteractionClient Tests", () => {
             ])(
                 "rejects invalid outcomes before account, cache, or proof mutation %p",
                 async (properties) => {
-                    brokerResponse.properties = properties;
+                    brokerResponse.properties =
+                        properties as unknown as PlatformAuthResponse["properties"];
                     const accountSpy = jest.spyOn(
                         browserCacheManager,
                         "setAccount"
