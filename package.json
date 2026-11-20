@@ -57,6 +57,7 @@
         "shared-configs/rollup-msal",
         "lib/msal-common",
         "lib/msal-browser",
+        "lib/msal-nested-app-auth-bridge",
         "lib/msal-node",
         "lib/msal-angular",
         "lib/msal-react",

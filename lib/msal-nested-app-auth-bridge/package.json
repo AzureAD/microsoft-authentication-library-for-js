@@ -1,0 +1,87 @@
+{
+  "name": "@azure/msal-nested-app-auth-bridge",
+  "version": "1.0.0",
+  "description": "Portable Nested App Authentication bridge for WKWebView and WebView2 hosts",
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
+  "keywords": [
+    "authentication",
+    "msal",
+    "nested app auth",
+    "webview",
+    "webview2",
+    "wkwebview"
+  ],
+  "sideEffects": false,
+  "type": "module",
+  "main": "./lib/index.cjs",
+  "module": "./dist/index.mjs",
+  "browser": "./dist/nested-app-auth-bridge.js",
+  "types": "./types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./types/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./types/index.d.ts",
+        "default": "./lib/index.cjs"
+      }
+    },
+    "./auto": {
+      "types": "./types/autoInstall.d.ts",
+      "import": "./dist/autoInstall.mjs"
+    },
+    "./browser": "./dist/nested-app-auth-bridge.js",
+    "./package.json": "./package.json"
+  },
+  "beachball": {
+    "disallowedChangeTypes": [
+      "major"
+    ]
+  },
+  "files": [
+    "dist",
+    "lib",
+    "types",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "clean": "shx rm -rf dist lib types temp",
+    "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build:types": "tsc -p tsconfig.build.types.json",
+    "build": "npm run clean && npm run build:modules && npm run build:types",
+    "build:all": "cd ../.. && npm run build --workspace=@azure/msal-nested-app-auth-bridge",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
+    "format:check": "prettier --ignore-path .gitignore --check src test",
+    "format:fix": "prettier --ignore-path .gitignore --write src test",
+    "apiExtractor": "api-extractor run",
+    "prepack": "npm run build:all"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.58.7",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/jest": "^29.5.4",
+    "eslint-config-msal": "file:../../shared-configs/eslint-config-msal",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.6.4",
+    "rollup": "^4.22.4",
+    "shx": "^0.3.2",
+    "ts-jest": "^29.4.11",
+    "tslib": "^1.10.0",
+    "typescript": "^4.9.5"
+  }
+}
