@@ -20,7 +20,10 @@ import {
     PlatformAuthRequest,
     PlatformAuthTokenType,
 } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
-import { NativeAuthError } from "../../src/error/NativeAuthError.js";
+import {
+    isFatalNativeAuthError,
+    NativeAuthError,
+} from "../../src/error/NativeAuthError.js";
 import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 
 describe("PlatformAuthDOMHandler tests", () => {
@@ -221,35 +224,6 @@ describe("PlatformAuthDOMHandler tests", () => {
     });
 
     describe("sendMessage and validatePlatformBrokerResponse tests", () => {
-        it("rejects DPoP requests without calling the DOM API", async () => {
-            getSupportedContractsMock.mockResolvedValue([
-                PlatformAuthConstants.PLATFORM_DOM_APIS,
-            ]);
-            const testRequest: PlatformAuthRequest = {
-                accountId: "test-id",
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: TEST_CONFIG.validAuthority,
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scope: "read openid",
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                windowTitleSubstring: "",
-                tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
-            };
-            const platformAuthDOMHandler =
-                await PlatformAuthDOMHandler.createProvider(
-                    logger,
-                    performanceClient,
-                    "test-correlation-id"
-                );
-
-            await expect(
-                platformAuthDOMHandler?.sendMessage(testRequest)
-            ).rejects.toMatchObject({
-                errorCode: "platform_auth_dom_dpop_not_supported",
-            });
-            expect(executeGetTokenMock).not.toHaveBeenCalled();
-        });
-
         it("returns PlatformBrokerResponse success response for valid request to DOM API", async () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
@@ -709,6 +683,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 enclave: PlatformAuthEnclave.HARDWARE,
                 reqCnf: "test-req-cnf",
                 tokenType,
+                keyId: "owned-request-key",
                 resourceRequestMethod: "POST",
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 extraParametersNoCache: {
@@ -719,6 +694,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 },
                 extraParameters: {
                     customUserInput: "test-user-input",
+                    bindingPreferenceSent: "must-not-be-sent",
                 },
             };
 
@@ -739,6 +715,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                     customUserInput: "test-user-input",
                     windowTitleSubstring: "test-window-substring",
                     tokenType,
+                    keyId: "owned-request-key",
                 },
                 extraParametersNoCache: {
                     pop_method: "POST",
@@ -756,6 +733,9 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(platformDOMRequest).not.toHaveProperty("reqCnf");
             expect(platformDOMRequest.extraParameters).not.toHaveProperty(
                 "reqCnf"
+            );
+            expect(platformDOMRequest.extraParameters).not.toHaveProperty(
+                "bindingPreferenceSent"
             );
         });
     });
@@ -790,12 +770,19 @@ describe("PlatformAuthDOMHandler tests", () => {
                 },
                 extendedLifetimeToken: true,
             };
-            const validatedResponse =
-                //@ts-ignore
-                platformAuthDOMHandler.validatePlatformBrokerResponse(
-                    testResponse,
-                    TEST_CONFIG.CORRELATION_ID
-                );
+            executeGetTokenMock.mockResolvedValue(testResponse);
+            const validatedResponse = await platformAuthDOMHandler!.sendMessage(
+                {
+                    accountId: "test-id",
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scope: "read openid",
+                    correlationId: TEST_CONFIG.CORRELATION_ID,
+                    windowTitleSubstring: "",
+                    tokenType: Constants.AuthenticationScheme.BEARER,
+                }
+            );
             expect(validatedResponse).toEqual({
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 account: {
@@ -814,88 +801,228 @@ describe("PlatformAuthDOMHandler tests", () => {
                 extendedLifetimeToken: true,
             });
         });
+    });
 
-        it.each([
-            { bindingAttested: "true", expectedBindingAttested: true },
-            { bindingAttested: "false", expectedBindingAttested: false },
-            { bindingAttested: "invalid", expectedBindingAttested: undefined },
-        ])(
-            "maps DOM DPoP response fields when binding_attested is $bindingAttested",
-            async ({ bindingAttested, expectedBindingAttested }) => {
-                getSupportedContractsMock.mockResolvedValue([
-                    PlatformAuthConstants.PLATFORM_DOM_APIS,
-                ]);
-                const platformAuthDOMHandler =
-                    await PlatformAuthDOMHandler.createProvider(
-                        logger,
-                        performanceClient,
-                        "test-correlation-id"
-                    );
-                const testResponse: object = {
-                    isSuccess: true,
-                    state: "",
-                    accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                    expiresIn: 6000,
-                    account: {
-                        id: "test-id",
-                        userName: "test-user",
-                        properties: {},
-                    },
-                    clientInfo: "test-client-info",
-                    idToken: TEST_TOKENS.IDTOKEN_V1,
-                    scopes: "read openid",
-                    error: {},
-                    properties: {
-                        token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
-                        dpop_proof: "test-dpop-proof",
-                        binding_attested: bindingAttested,
-                    },
-                };
+    describe("platform DOM transport", () => {
+        let handler: PlatformAuthDOMHandler;
+        let request: PlatformAuthRequest;
+        let response: Record<string, any>;
 
-                if (expectedBindingAttested === undefined) {
-                    const endMeasurementSpy = jest.spyOn(
-                        performanceClient,
-                        "endMeasurement"
-                    );
-                    expect(() =>
-                        //@ts-ignore
-                        platformAuthDOMHandler.validatePlatformBrokerResponse(
-                            testResponse,
-                            TEST_CONFIG.CORRELATION_ID
-                        )
-                    ).toThrow(
-                        "Platform broker returned invalid binding_attested value."
-                    );
-                    expect(
-                        endMeasurementSpy.mock.calls
-                            .map(([event]) => event)
-                            .find(
-                                (event) =>
-                                    event.name ===
-                                    BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
-                            )
-                    ).toMatchObject({
-                        correlationId: TEST_CONFIG.CORRELATION_ID,
-                        success: false,
-                        platformAuthProviderType:
-                            PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
-                    });
-                    return;
+        beforeEach(() => {
+            handler = new PlatformAuthDOMHandler(
+                logger,
+                performanceClient,
+                TEST_CONFIG.CORRELATION_ID
+            );
+            request = {
+                accountId: "test-id",
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scope: "read openid",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                windowTitleSubstring: "",
+                tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
+                preferBinding: PlatformAuthBindingPreference.ATTESTED,
+                keyId: "owned-request-key",
+                reqCnf: "owned-request-confirmation",
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://example.com/resource",
+                extraParametersNoCache: {
+                    pop_method: "GET",
+                    pop_url: "https://example.com/resource",
+                    bindingPreferenceSent: "must-not-be-sent",
+                },
+            };
+            response = {
+                isSuccess: true,
+                accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                idToken: TEST_TOKENS.IDTOKEN_V1,
+                clientInfo: "test-client-info",
+                account: {
+                    id: "test-id",
+                    userName: "test-user",
+                    properties: {},
+                },
+                scopes: "read openid",
+                expiresIn: 6000,
+                properties: {
+                    token_type: "dpop+proof",
+                    binding_attested: "true",
+                    DPoP: "unchanged-broker-proof",
+                },
+            };
+            executeGetTokenMock.mockImplementation(async () => response);
+        });
+
+        it.each(["L1", "L3"])(
+            "passes %s broker properties unchanged to the interaction client",
+            async (level) => {
+                if (level === "L1") {
+                    response.properties = {
+                        token_type: "DPoP",
+                        binding_attested: "false",
+                    };
                 }
-
-                const validatedResponse =
-                    //@ts-ignore
-                    platformAuthDOMHandler.validatePlatformBrokerResponse(
-                        testResponse,
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-                expect(validatedResponse).toEqual(
+                const result = await handler.sendMessage(request);
+                expect(result.properties).toBe(response.properties);
+                expect(result.properties).toEqual(
                     expect.objectContaining({
-                        token_type: PlatformAuthTokenType.DPOP_WITH_PROOF,
-                        DPoP: "test-dpop-proof",
-                        binding_attested: expectedBindingAttested,
+                        token_type: level === "L1" ? "DPoP" : "dpop+proof",
+                        binding_attested: level === "L1" ? "false" : "true",
                     })
                 );
+                expect(result.properties.DPoP).toBe(
+                    level === "L3" ? "unchanged-broker-proof" : undefined
+                );
+                expect(request.bindingPreferenceSent).toBe(true);
+                const wire = executeGetTokenMock.mock.calls[0][0];
+                expect(wire.preferBinding).toBe(
+                    PlatformAuthBindingPreference.ATTESTED
+                );
+                expect(wire.requestConfirmation).toBe(request.reqCnf);
+                expect(wire.extraParametersNoCache).toEqual({
+                    pop_method: "GET",
+                    pop_url: "https://example.com/resource",
+                });
+                expect(wire).not.toHaveProperty("bindingPreferenceSent");
+                expect(wire.extraParameters).not.toHaveProperty(
+                    "bindingPreferenceSent"
+                );
+            }
+        );
+
+        it.each([{ isSuccess: false }, { isSuccess: "true" }])(
+            "rejects an invalid DOM success flag %p",
+            async (overrides) => {
+                Object.assign(response, overrides);
+                await expect(
+                    handler.sendMessage(request)
+                ).rejects.toMatchObject({
+                    errorCode: AuthErrorCodes.unexpectedError,
+                });
+            }
+        );
+
+        it("leaves canonical outcome validation to the interaction client", async () => {
+            request.tokenType = Constants.AuthenticationScheme.BEARER;
+            const result = await handler.sendMessage(request);
+            expect(result.properties).toBe(response.properties);
+        });
+
+        it.each([
+            Constants.AuthenticationScheme.BEARER,
+            Constants.AuthenticationScheme.POP,
+        ])(
+            "preserves %s responses and legacy proof payloads",
+            async (tokenType) => {
+                request.tokenType = tokenType;
+                response.properties = {};
+                if (tokenType === Constants.AuthenticationScheme.POP) {
+                    response.proofOfPossessionPayload = "legacy-broker-proof";
+                }
+
+                await expect(
+                    handler.sendMessage(request)
+                ).resolves.toMatchObject({
+                    properties: {},
+                    shr: response.proofOfPossessionPayload,
+                });
+            }
+        );
+
+        it.each([
+            Constants.AuthenticationScheme.BEARER,
+            Constants.AuthenticationScheme.POP,
+            PlatformAuthTokenType.DPOP_WITH_PROOF,
+        ])("preserves DOM exceptions for %s", async (tokenType) => {
+            request.tokenType = tokenType;
+            const error = new Error("test DOM failure");
+            executeGetTokenMock.mockRejectedValue(error);
+            await expect(handler.sendMessage(request)).rejects.toBe(error);
+        });
+
+        it.each([
+            Constants.AuthenticationScheme.BEARER,
+            Constants.AuthenticationScheme.POP,
+            PlatformAuthTokenType.DPOP_WITH_PROOF,
+        ])(
+            "preserves standard broker error details for %s",
+            async (tokenType) => {
+                request.tokenType = tokenType;
+                response = {
+                    isSuccess: false,
+                    error: {
+                        code: "BrokerError",
+                        errorCode: "-2147186943",
+                        status: "PERSISTENT_ERROR",
+                        description: "test broker description",
+                        protocolError: "test-protocol-error",
+                        properties: { test: "metadata" },
+                    },
+                };
+                const endMeasurementSpy = jest.spyOn(
+                    performanceClient,
+                    "endMeasurement"
+                );
+                const error = await handler
+                    .sendMessage(request)
+                    .catch((e) => e);
+                expect(error).toBeInstanceOf(NativeAuthError);
+                expect(error.errorCode).toBe("BrokerError");
+                expect(error.ext).toEqual({
+                    error: -2147186943,
+                    status: "PERSISTENT_ERROR",
+                    protocol_error: "test-protocol-error",
+                    properties: { test: "metadata" },
+                });
+                expect(isFatalNativeAuthError(error)).toBe(true);
+                expect(error.message).toContain("test broker description");
+                expect(
+                    endMeasurementSpy.mock.calls
+                        .map(([event]) => event)
+                        .find(
+                            (event) =>
+                                event.name ===
+                                BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
+                        )
+                ).toMatchObject({
+                    success: false,
+                    brokerErrorName: "BrokerError",
+                    brokerErrorCode: "-2147186943",
+                });
+            }
+        );
+
+        it.each([
+            ["USER_CANCEL", "user_cancelled"],
+            ["NO_NETWORK", "no_network_connectivity"],
+            ["ACCOUNT_UNAVAILABLE", "native_account_unavailable"],
+            ["USER_INTERACTION_REQUIRED", "BrokerError"],
+            ["PERSISTENT_ERROR", "BrokerError"],
+            ["DISABLED", "BrokerError"],
+        ])(
+            "uses the existing %s broker error mapping",
+            async (status, errorCode) => {
+                response = {
+                    isSuccess: false,
+                    error: {
+                        code: "BrokerError",
+                        description: "test broker description",
+                        errorCode: "-1",
+                        status,
+                        protocolError: "test-protocol-error",
+                        properties: { test: "metadata" },
+                    },
+                };
+                const error = await handler
+                    .sendMessage(request)
+                    .catch((e) => e);
+                expect(error.errorCode).toBe(errorCode);
+                if (error instanceof NativeAuthError) {
+                    expect(error.ext?.status).toBe(status);
+                    expect(error.ext?.properties).toEqual({ test: "metadata" });
+                }
             }
         );
     });
