@@ -1,5 +1,7 @@
 # Microsoft Authentication Extensions for Node
 
+**Documentation:** [Browse cache persistence and broker guides](../docs/README.md).
+
 ![npm (scoped)](https://img.shields.io/npm/v/@azure/msal-node-extensions)
 ![npm](https://img.shields.io/npm/dw/@azure/msal-node-extensions)
 
