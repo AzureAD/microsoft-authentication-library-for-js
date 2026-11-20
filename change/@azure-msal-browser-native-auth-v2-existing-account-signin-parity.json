@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Align Native Auth V2 existing-account sign-up with sign-in scenarios and automatic completion after JIT or MFA.",
+    "packageName": "@azure/msal-browser",
+    "email": "223556219+Copilot@users.noreply.github.com",
+    "dependentChangeType": "patch"
+}

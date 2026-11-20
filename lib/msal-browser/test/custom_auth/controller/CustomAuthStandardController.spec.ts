@@ -29,6 +29,7 @@ import { CustomAuthApiClientV2 } from "../../../src/custom_auth/core/network_cli
 import {
     FLOW_CODE_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
+    createFlowExistingAccountStartResultV2,
 } from "../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { CustomAuthFlowScenarioV2 } from "../../../src/custom_auth/core/auth_flow/v2/CustomAuthFlowScenarioV2.js";
 import { CustomAuthResultV2 } from "../../../src/custom_auth/core/auth_flow/v2/CustomAuthResultV2.js";
@@ -129,6 +130,10 @@ describe("CustomAuthStandardController", () => {
     });
 
     describe("signUpV2", () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
         it("forwards upfront attributes to the flow client", async () => {
             const attributes = {
                 displayName: "Test User",
@@ -172,6 +177,101 @@ describe("CustomAuthStandardController", () => {
                 claims: undefined,
                 attributes,
             });
+        });
+
+        it.each([
+            new CustomAuthApiError(
+                "invalid_grant",
+                "The existing-account challenge failed.",
+                "correlation-id"
+            ),
+            new Error("The existing-account challenge could not be sent."),
+        ])(
+            "logs the original post-discovery error before creating a sign-in failure: %s",
+            async (error) => {
+                const correlationId = "correlation-id";
+                const discovery = createFlowExistingAccountStartResultV2({
+                    correlationId,
+                    continuationState: {
+                        continuationToken: "ct-existing",
+                        scenario: CustomAuthFlowScenarioV2.SignIn,
+                        scopes: [
+                            "User.Read",
+                            "openid",
+                            "profile",
+                            "offline_access",
+                        ],
+                        links: {},
+                        signUp: { purpose: "existingAccount" },
+                    },
+                    authenticationFactor: "singleFactor",
+                    methods: [
+                        {
+                            id: "email-existing",
+                            type: "email",
+                            challengeHref:
+                                "https://endpoint/existing/challenge",
+                        },
+                    ],
+                });
+                jest.spyOn(
+                    controller["flowClientV2"],
+                    "signUp"
+                ).mockResolvedValue(discovery);
+                const challengeSpy = jest
+                    .spyOn(
+                        controller["flowClientV2"],
+                        "challengeExistingAccount"
+                    )
+                    .mockRejectedValue(error);
+                const loggerSpy = jest.spyOn(controller["logger"], "errorPii");
+                const factorySpy = jest.spyOn(
+                    CustomAuthResultV2,
+                    "createWithError"
+                );
+
+                const result = await controller.signUpV2({
+                    username: "existing@contoso.com",
+                    correlationId,
+                });
+
+                expect(challengeSpy).toHaveBeenCalledWith(discovery);
+                expect(result.isFailed()).toBe(true);
+                expect(result.scenario).toBe("signIn");
+                expect(result.error?.scenario).toBe("signIn");
+                expect(factorySpy).toHaveBeenCalledWith(error, {
+                    scenario: CustomAuthFlowScenarioV2.SignIn,
+                    correlationId,
+                });
+                expect(loggerSpy).toHaveBeenCalledWith(
+                    expect.stringContaining(String(error)),
+                    correlationId
+                );
+                expect(loggerSpy.mock.invocationCallOrder[0]).toBeLessThan(
+                    factorySpy.mock.invocationCallOrder[0]
+                );
+            }
+        );
+
+        it("keeps errors before existing-account discovery in the sign-up scenario", async () => {
+            const error = new Error("Sign-up start could not be sent.");
+            jest.spyOn(controller["flowClientV2"], "signUp").mockRejectedValue(
+                error
+            );
+            const challengeSpy = jest.spyOn(
+                controller["flowClientV2"],
+                "challengeExistingAccount"
+            );
+
+            const result = await controller.signUpV2({
+                username: "user@contoso.com",
+                correlationId: "correlation-id",
+            });
+
+            expect(result.isFailed()).toBe(true);
+            expect(result.scenario).toBe("signUp");
+            expect(result.error?.scenario).toBe("signUp");
+            expect(challengeSpy).not.toHaveBeenCalled();
         });
     });
 
