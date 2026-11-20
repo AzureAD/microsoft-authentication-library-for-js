@@ -8,7 +8,7 @@ This feature is currently only supported in the following environment:
 
 -   A machine running a Windows build that supports the feature (more to come on this) or a Company Portal managed Mac with a specific Mac OS version (more to come on this).
 -   Chrome and Edge browsers or Teams
--   [Windows Accounts extension](https://chrome.google.com/webstore/detail/windows-accounts/ppnbnpeolgkicgegkbkbjmhlideopiji) (version 1.0.5 or higher) is installed if using Chrome or Edge
+-   [Windows Accounts extension](https://chrome.google.com/webstore/detail/windows-accounts/ppnbnpeolgkicgegkbkbjmhlideopiji) (version 1.0.5 or higher) is installed if using Chrome or Edge, unless using the [Edge DOM API preview](#acquiring-device-bound-tokens-using-dom-api)
 -   App must be hosted on `https`
 
 Additionally, this feature is currently only supported for Work and School Accounts
@@ -33,7 +33,7 @@ Additionally, you will need to call and await the new `initialize` API before in
 ```javascript
 const pca = new PublicClientApplication(msalConfig);
 
-// Initialize will establish a connection with the browser extension, if present
+// Initialize discovers the available platform-broker transport
 await pca.initialize();
 
 // Call handleRedirectPromise, after initialization is complete
@@ -71,19 +71,17 @@ For platform-broker requests, only `acquireTokenSilent` checks MSAL's internal a
 
 #### Availability and provider selection
 
-Within an explicitly enabled preview environment, DPoP broker support is available through the Windows Accounts extension or the Edge Platform Authentication DOM API. The DOM path additionally requires the configuration described [below](#acquiring-device-bound-tokens-using-dom-api) and `navigator.platformAuthentication.getSupportedContracts("MicrosoftEntra")` must advertise `get-token-and-sign-out`. MSAL does not route DPoP through a DOM handler whose contract has not been discovered. If DOM discovery fails, the existing extension or browser-managed provider selection applies.
-
-MSAL sends the string `preferBinding: "attested"`, maps its request confirmation to the DOM API's `requestConfirmation`, and preserves `pop_method` and `pop_url` in `extraParametersNoCache`. Broker response properties are unchanged between transports: `properties.token_type`, `properties.DPoP`, and `properties.binding_attested` carry the binding outcome. These transport fields are internal; applications continue to use MSAL's DPoP request and result APIs. Contract advertisement alone does not establish that the Windows broker or token service has DPoP enabled.
+Within an explicitly enabled preview environment, DPoP broker support is available through the Windows Accounts extension or the Edge Platform Authentication DOM API. To use the DOM API, enable the configuration described [below](#acquiring-device-bound-tokens-using-dom-api). Applications use the same DPoP request and result APIs with either transport; no transport-specific DPoP settings are required.
 
 #### Broker binding outcomes
 
-Through either broker transport, MSAL asks the platform broker to use broker-attested binding as a best-effort security improvement. With an L1 outcome, the token is bound to an MSAL-generated browser key and MSAL creates the resource proof locally. With an L3 outcome, MSAL returns the broker's resource proof unchanged, does not locally sign it, and does not cache the access token or proof. Token issuance and Conditional Access determine whether the available binding satisfies tenant policy; applications receive and use the resulting DPoP token in the same way regardless of the binding mechanism.
+Through either broker transport, MSAL asks the platform broker to use broker-attested binding as a best-effort security improvement. With an L1 outcome, the token is bound to an MSAL-generated browser key and MSAL creates the resource proof locally. With an L3 outcome, the platform broker supplies the resource proof. Token issuance and Conditional Access determine whether the available binding satisfies tenant policy; applications receive and use the resulting DPoP token in the same way regardless of the binding mechanism.
 
-MSAL validates both transports against the same L1/L3 outcome contract and rejects missing, malformed, unknown, or contradictory outcomes before updating accounts or token caches. Application-managed DPoP keys are not supported through either broker transport. L1 tokens use only MSAL-owned keys, follow the existing internal cache replacement lifecycle, and respect `storeInCache.accessToken: false` by discarding the candidate key instead of retaining a cached access token.
+MSAL rejects invalid or inconsistent broker responses instead of returning an unbound token. Application-managed DPoP keys are not supported through either broker transport.
 
 #### Redirect key persistence
 
-When `acquireTokenRedirect()` uses either broker transport, broker interaction occurs while the current application page remains loaded. If the broker returns an L1 outcome, MSAL must retain its generated key across the subsequent application-page navigation used to resume the request through `handleRedirectPromise()`. MSAL therefore verifies that the key is available in [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) before performing that navigation and fails the request if it was not persisted. If the broker returns an L3 outcome, the broker supplies the DPoP proof, so MSAL discards the local candidate key and does not require it to survive the application-page navigation.
+For L1 outcomes through either broker transport, `acquireTokenRedirect()` requires [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) to retain the MSAL-generated key until the request resumes through `handleRedirectPromise()`. The request fails if the key cannot be persisted. L3 outcomes use a broker-generated proof and do not require browser-key persistence.
 
 #### Request requirements and limitations
 
