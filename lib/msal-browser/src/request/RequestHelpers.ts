@@ -251,6 +251,11 @@ export async function initializeBaseRequest(
         );
     }
 
+    performanceClient.addFields(
+        { authenticationScheme: validatedRequest.authenticationScheme },
+        correlationId
+    );
+
     return validatedRequest;
 }
 

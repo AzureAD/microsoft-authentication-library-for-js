@@ -322,6 +322,7 @@ export class SilentFlowClient {
             {
                 idTokenClaims,
                 tokenBindingKeyManager: this.config.tokenBindingKeyManager,
+                dpopNonceProvider: this.config.dpopNonceProvider,
             }
         );
     }

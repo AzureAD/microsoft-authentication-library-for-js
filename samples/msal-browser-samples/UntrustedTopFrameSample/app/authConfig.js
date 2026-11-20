@@ -29,6 +29,13 @@ export const HTTP_METHOD = (
 export const EAR =
     new URLSearchParams(window.location.search).get("ear") === "true";
 
+const relayVersion =
+    new URLSearchParams(window.location.search).get("relayVersion") || "1";
+if (relayVersion !== "1" && relayVersion !== "2") {
+    throw new Error("relayVersion must be 1 or 2");
+}
+export const RELAY_PROTOCOL_VERSION = relayVersion === "2" ? 2 : 1;
+
 export const msalConfig = {
     auth: {
         clientId: CLIENT_ID,
@@ -38,7 +45,10 @@ export const msalConfig = {
         // Top-level, same-origin popup-relay page. Because this app is embedded
         // in a cross-origin iframe, acquireTokenPopup opens this page (instead
         // of the IdP directly) and relays the interactive flow through it.
-        popupRelayUri: "/relay",
+        popupRelayUri: RELAY_PROTOCOL_VERSION === 2 ? "/relay-v2" : "/relay",
+        ...(RELAY_PROTOCOL_VERSION === 2
+            ? { popupRelayProtocolVersion: 2 }
+            : {}),
     },
     cache: {
         cacheLocation: "localStorage",

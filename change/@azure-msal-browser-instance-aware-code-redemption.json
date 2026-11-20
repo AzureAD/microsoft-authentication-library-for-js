@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Forward browser instance-aware configuration and redirect request overrides during authorization code redemption [#8959](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8959)",
-  "packageName": "@azure/msal-browser",
-  "email": "nugetaad@microsoft.com",
-  "dependentChangeType": "patch"
-}

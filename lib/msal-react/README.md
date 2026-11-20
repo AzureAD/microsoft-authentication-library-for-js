@@ -1,5 +1,7 @@
 # Microsoft Authentication Library for React (msal-react)
 
+**Documentation:** [Browse MSAL React guides](./docs/README.md).
+
 [![npm version](https://img.shields.io/npm/v/@azure/msal-react.svg?style=flat)](https://www.npmjs.com/package/@azure/msal-react/)
 [![npm version](https://img.shields.io/npm/dm/@azure/msal-react.svg)](https://nodei.co/npm/@azure/msal-react/)
 [![codecov](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js/branch/dev/graph/badge.svg?flag=msal-react)](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js)

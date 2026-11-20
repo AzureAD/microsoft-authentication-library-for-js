@@ -22,6 +22,13 @@ export const AcquireTokenByRefreshToken = "acquireTokenByRefreshToken";
 export const AcquireTokenSilentAsync = "acquireTokenSilentAsync";
 
 /**
+ * loadDpopNonce API in StandardController (msal-browser).
+ * Stores a resource-server DPoP nonce in controller-owned memory.
+ */
+export const StandardControllerLoadDpopNonce =
+    "standardControllerLoadDpopNonce";
+
+/**
  * provisionTokenBindingKey API in TokenBindingKeyManager class (msal-browser).
  * Used to provision token-binding key material and return a key identifier.
  */
@@ -201,6 +208,13 @@ export const UrlEncodeArr = "urlEncodeArr";
 export const Encrypt = "encrypt";
 export const Decrypt = "decrypt";
 export const GenerateEarKey = "generateEarKey";
+export const GenerateAsymmetricEarKey = "generateAsymmetricEarKey";
+export const ImportAsymmetricEarKey = "importAsymmetricEarKey";
+export const ImportAsymmetricEarPublicKey = "importAsymmetricEarPublicKey";
+export const DeriveAsymmetricEarSecret = "deriveAsymmetricEarSecret";
+export const AsymmetricEarConcatKdf = "asymmetricEarConcatKdf";
+export const ImportAsymmetricEarContentKey = "importAsymmetricEarContentKey";
+export const DecryptAsymmetricEarResponse = "decryptAsymmetricEarResponse";
 export const DecryptEarResponse = "decryptEarResponse";
 
 export const LoadAccount = "loadAccount";
