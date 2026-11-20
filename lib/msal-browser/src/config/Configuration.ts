@@ -86,6 +86,16 @@ export type BrowserAuthOptions = {
     popupRelayUri?: string;
 
     /**
+     * Wire protocol served by popupRelayUri. Defaults to 1 for compatibility
+     * with existing relay pages. Version 1 is deprecated due to security
+     * concerns: it executes URL-fragment descriptors without authenticating
+     * their provenance. Set to 2 with a separately deployed endpoint calling
+     * runPopupRelay({ protocolVersion: 2 }) for authenticated handoff, then
+     * retire the v1 endpoint. Version 2 never falls back to legacy execution.
+     */
+    popupRelayProtocolVersion?: 1 | 2;
+
+    /**
      * Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
      */
     clientCapabilities?: Array<string>;
@@ -216,6 +226,11 @@ export type BrowserSystemOptions = SystemOptions & {
  */
 export type BrowserExperimentalOptions = {
     /**
+     * Opts EAR requests into asymmetric encryption. Defaults to false.
+     * Requires system.protocolMode to be ProtocolMode.EAR.
+     */
+    enableAsymmetricEar?: boolean;
+    /**
      * Enables iframe timeout telemetry experiment for silent iframe bridge monitoring.
      */
     iframeTimeoutTelemetry?: boolean;
@@ -306,6 +321,7 @@ export function buildConfiguration(
                 : "",
         postLogoutRedirectUri: "",
         popupRelayUri: "",
+        popupRelayProtocolVersion: 1,
         clientCapabilities: [],
         OIDCOptions: {
             responseMode: Constants.ResponseMode.FRAGMENT,
@@ -381,6 +397,7 @@ export function buildConfiguration(
     };
 
     const DEFAULT_EXPERIMENTAL_OPTIONS: Required<BrowserExperimentalOptions> = {
+        enableAsymmetricEar: false,
         iframeTimeoutTelemetry: false,
         allowPlatformBrokerWithDOM: false,
     };
@@ -469,9 +486,27 @@ export function buildConfiguration(
         experimental: {
             ...DEFAULT_EXPERIMENTAL_OPTIONS,
             ...userInputExperimental,
+            enableAsymmetricEar:
+                userInputExperimental?.enableAsymmetricEar ?? false,
         },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
+
+    if (
+        overlayedConfig.experimental.enableAsymmetricEar &&
+        overlayedConfig.system.protocolMode !== ProtocolMode.EAR
+    ) {
+        const logger = new Logger(
+            providedSystemOptions.loggerOptions,
+            name,
+            version
+        );
+        logger.warning(
+            "experimental.enableAsymmetricEar is ignored because system.protocolMode is not ProtocolMode.EAR.",
+            ""
+        );
+        overlayedConfig.experimental.enableAsymmetricEar = false;
+    }
 
     return overlayedConfig;
 }

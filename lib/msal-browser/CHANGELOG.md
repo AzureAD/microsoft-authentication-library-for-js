@@ -1,8 +1,58 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Tue, 27 Oct 2026 18:15:10 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 18 Nov 2026 21:34:22 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.30.0
+
+Wed, 18 Nov 2026 21:34:22 GMT
+
+### Minor changes
+
+- Add experimental support for P-384 asymmetric encryption in EAR flows [#8970](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8970) (shylasummers@microsoft.com)
+- Add opt-in authenticated popup-relay protocol v2 and explicit protocol mismatch errors; deprecate v1 due to security concerns while preserving compatibility for staged migration and retirement [#8984](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8984) (nugetaad@microsoft.com)
+- Bump @azure/msal-common to v16.17.0
+
+### Patches
+
+- Prevent silent web requests for different account tenants from sharing an in-flight token acquisition. [#8989](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8989) (hemoral@microsoft.com)
+
+## 5.29.1
+
+Thu, 12 Nov 2026 18:58:52 GMT
+
+### Patches
+
+- Forward browser instance-aware configuration and redirect request overrides during authorization code redemption [#8959](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8959) (nugetaad@microsoft.com)
+- Bump @azure/msal-common to v16.16.2
+
+## 5.29.0
+
+Fri, 06 Nov 2026 23:13:15 GMT
+
+### Minor changes
+
+- Mark Native Auth V2 entry APIs as experimental and require sign-in passwords to be submitted through the requested password state. [#8960](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8960) ()
+- Align Native Auth V2 sign-up start with the API. [#8940](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8940) Simplify V2 inputs and resend results. [#8941](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8941) Share V2 password state and results between sign-in and sign-up, validating retained profile attributes before password collection. [#8942](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8942) Support server-directed, multi-step V2 sign-up attribute and password collection. [#8943](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8943) (undefined)
+- Support server-directed MFA after Native Auth V2 password reset, including automatic sign-in after MFA. (ydi.w127@gmail.com)
+- Bump @azure/msal-common to v16.16.1
+
+### Patches
+
+- Correct Native Auth V2 browser, user-not-found, password, and local-username error classification, add general attribute and MFA/JIT challenge classifiers, and remove obsolete error helpers. [#8961](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8961) (undefined)
+- Limit native token-cache lookup to acquireTokenSilent, honor silent cache policies, and preserve ID tokens during platform-broker account updates [#8971](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8971) (lalima.sharda@gmail.com)
+- Defer Native Auth V2 sign-in after reset MFA and sign-up/reset JIT [#8973](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8973) (yongdiwang@microsoft.com)
+
+## 5.28.0
+
+Thu, 05 Nov 2026 01:03:50 GMT
+
+### Minor changes
+
+- Support Native Auth V2 JIT email and SMS enrollment during sign-in, sign-up, and password reset. [#8927](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8927) (undefined)
+- Implement extension-only WAM DPoP routing outcomes, MSAL-managed request keys, and proof cache policy [#8789](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8789) (hectormmg@microsoft.com)
+- Bump @azure/msal-common to v16.16.0
 
 ## 5.27.0
 

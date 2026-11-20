@@ -2,6 +2,8 @@
 
 Before you get started, please ensure you have completed all the [prerequisites](../README.md#prerequisites).
 
+See [application registration](./app-registration.md) for the client ID, tenant/authority, redirect URI, permissions, and credential prerequisites for a confidential client.
+
 In this document:
 
 -   [Initialization of MSAL](#initialization-of-msal)

@@ -27,6 +27,7 @@ import {
     PerformanceEvents,
     PopTokenGenerator,
     RequestParameterBuilder,
+    ResponseHandler,
     ScopeSet,
     ServerTelemetryManager,
     SignedHttpRequestParameters,
@@ -156,7 +157,8 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             performanceClient,
             correlationId,
             provider,
-            this.tokenBindingKeyManager
+            this.tokenBindingKeyManager,
+            browserStorage
         );
 
         const extensionName = this.platformAuthProvider.getExtensionName();
@@ -240,48 +242,50 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             throw e;
         }
 
-        // check if the tokens can be retrieved from internal cache
-        let cachedResult: AuthenticationResult | undefined;
-        try {
-            cachedResult = await this.acquireTokensFromCache(
-                this.accountId,
-                nativeRequest
-            );
-        } catch (e) {
-            if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+        if (this.apiId === ApiId.acquireTokenSilent_silentFlow) {
+            let cachedResult: AuthenticationResult | undefined;
+            try {
+                cachedResult = await this.acquireTokensFromCache(
+                    this.accountId,
+                    nativeRequest,
+                    cacheLookupPolicy
+                );
+            } catch (e) {
+                if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                    this.logger.info(
+                        "MSAL internal Cache does not contain tokens, return error as per cache policy",
+                        this.correlationId
+                    );
+                    nativeATMeasurement.add({
+                        isNativeBroker: false,
+                    });
+                    nativeATMeasurement.end({
+                        success: false,
+                    });
+                    await this.resetGeneratedDpopRequestKeyBestEffort(
+                        nativeRequest
+                    );
+                    throw e;
+                }
+                // continue with a native call for any and all errors
                 this.logger.info(
-                    "MSAL internal Cache does not contain tokens, return error as per cache policy",
+                    "MSAL internal Cache does not contain tokens, proceed to make a native call",
                     this.correlationId
                 );
+            }
+
+            if (cachedResult) {
+                // Served from the native internal cache; token did not come directly from the broker
                 nativeATMeasurement.add({
                     isNativeBroker: false,
                 });
                 nativeATMeasurement.end({
-                    success: false,
+                    success: true,
+                    fromCache: true,
                 });
-                await this.resetGeneratedDpopRequestKeyBestEffort(
-                    nativeRequest
-                );
-                throw e;
+                await this.resetGeneratedDpopRequestKey(nativeRequest);
+                return cachedResult;
             }
-            // continue with a native call for any and all errors
-            this.logger.info(
-                "MSAL internal Cache does not contain tokens, proceed to make a native call",
-                this.correlationId
-            );
-        }
-
-        if (cachedResult) {
-            // Served from the native internal cache; token did not come directly from the broker
-            nativeATMeasurement.add({
-                isNativeBroker: false,
-            });
-            nativeATMeasurement.end({
-                success: true,
-                fromCache: true,
-            });
-            await this.resetGeneratedDpopRequestKey(nativeRequest);
-            return cachedResult;
         }
 
         // dispatch the request to the broker
@@ -416,15 +420,28 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Fetches the tokens from the cache if un-expired
+     * Fetches unexpired tokens when allowed by cache policy.
      * @param nativeAccountId
      * @param request
-     * @returns authenticationResult
+     * @param cacheLookupPolicy
+     * @returns Cached result, or undefined when cache policy bypasses lookup.
      */
     protected async acquireTokensFromCache(
         nativeAccountId: string,
-        request: PlatformAuthRequest
-    ): Promise<AuthenticationResult> {
+        request: PlatformAuthRequest,
+        cacheLookupPolicy: CacheLookupPolicy = CacheLookupPolicy.Default
+    ): Promise<AuthenticationResult | undefined> {
+        if (
+            cacheLookupPolicy === CacheLookupPolicy.RefreshTokenAndNetwork ||
+            cacheLookupPolicy === CacheLookupPolicy.Skip
+        ) {
+            this.logger.verbose(
+                "Native cache lookup bypassed for cache policy",
+                this.correlationId
+            );
+            return undefined;
+        }
+
         if (!nativeAccountId) {
             this.logger.warning(
                 "NativeInteractionClient:acquireTokensFromCache - No nativeAccountId provided",
@@ -841,6 +858,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             isL3DpopResponse ||
             (this.isDpopBrokerRequest(request) &&
                 storeInCache?.accessToken === false);
+        if (
+            dpopBrokerOutcome === "L1" &&
+            !shouldRemoveGeneratedDpopKey &&
+            request.keyId
+        ) {
+            ResponseHandler.setDpopKeyId(result, request.keyId);
+        }
         if (shouldRemoveGeneratedDpopKey) {
             await this.resetGeneratedDpopRequestKey(request);
         }
@@ -1088,7 +1112,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             kmsi,
             this.apiId
         );
-        // Remove any existing cached tokens for this account in browser storage
+        // Remove cached web access and refresh tokens, preserving ID tokens.
         if (clearExistingTokens) {
             this.browserStorage.removeAccountContext(
                 AccountEntityUtils.getAccountInfo(accountEntity),
@@ -1298,12 +1322,16 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 ? undefined
                 : this.config.auth.clientCapabilities;
 
-        const { scopes, claims, dpopNonce } = request as (
-            | PopupRequest
-            | SsoSilentRequest
-        ) & {
-            dpopNonce?: string;
-        };
+        const { scopes, claims } = request;
+        const dpopNonce =
+            request.authenticationScheme ===
+                Constants.AuthenticationScheme.DPOP &&
+            request.resourceRequestUri
+                ? this.browserStorage.getDpopNonce(
+                      request.resourceRequestUri,
+                      this.correlationId
+                  )
+                : undefined;
         const scopeSet = new ScopeSet(
             [...(scopes || []), ...Constants.OIDC_DEFAULT_SCOPES],
             this.correlationId
@@ -1624,12 +1652,19 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             this.browserCrypto,
             this.tokenBindingKeyManager
         );
+        const currentNonce = request.resourceRequestUri
+            ? this.browserStorage.getDpopNonce(
+                  request.resourceRequestUri,
+                  this.correlationId
+              )
+            : undefined;
         return dpopProofGenerator.generateResourceProof(
             {
                 htu: request.resourceRequestUri,
                 htm: request.resourceRequestMethod,
                 accessToken: response.access_token,
-                nonce: request.extraParametersNoCache?.pop_nonce,
+                nonce:
+                    currentNonce ?? request.extraParametersNoCache?.pop_nonce,
             },
             request.keyId as string,
             this.correlationId

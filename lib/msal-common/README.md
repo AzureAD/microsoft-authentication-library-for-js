@@ -1,5 +1,7 @@
 # Microsoft Authentication Library for JavaScript (MSAL.js) Common Protocols Package
 
+**Documentation:** [Browse shared protocol guides](./docs/README.md).
+
 [![npm version](https://img.shields.io/npm/v/@azure/msal-common.svg?style=flat)](https://www.npmjs.com/package/@azure/msal-common/)
 [![npm version](https://img.shields.io/npm/dm/@azure/msal-common.svg)](https://nodei.co/npm/@azure/msal-common/)
 [![codecov](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js/branch/dev/graph/badge.svg?flag=msal-common)](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js)
@@ -10,7 +12,7 @@
 1. [About](#about)
 2. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/FAQ.md)
 3. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/CHANGELOG.md)
-4. [Releases](#releases)
+4. [Releases](https://github.com/AzureAD/microsoft-authentication-library-for-js/releases)
 5. [Prerequisites and Usage](#prerequisites-and-usage)
 6. [Installation](#installation)
 7. [Security Reporting](#security-reporting)

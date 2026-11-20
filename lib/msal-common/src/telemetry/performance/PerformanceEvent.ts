@@ -241,6 +241,11 @@ export type PerformanceEvent = {
     lateResponseExperimentEnabled?: boolean;
 
     /**
+     * Popup-relay wire protocol selected for the request (1 or 2).
+     */
+    popupRelayProtocolVersion?: number;
+
+    /**
      * Number of times a fetch POST request was retried due to transport failure
      */
     fetchRetryCount?: number;
@@ -466,6 +471,16 @@ export type PerformanceEvent = {
     dpopTokenTypeMismatch?: string;
 
     /**
+     * Authentication scheme used for the request.
+     */
+    authenticationScheme?: string;
+
+    /**
+     * Whether a resource-server nonce was applied to the generated DPoP proof.
+     */
+    dpopNonceAppliedToProof?: boolean;
+
+    /**
      * Whether the user has "Keep Me Signed In" enabled
      */
     kmsi?: boolean;
@@ -620,5 +635,6 @@ export const IntFields: ReadonlySet<string> = new Set([
     "networkRtt",
     "redirectBridgeTimeoutMs",
     "redirectBridgeMessageVersion",
+    "popupRelayProtocolVersion",
     "fetchRetryCount",
 ]);

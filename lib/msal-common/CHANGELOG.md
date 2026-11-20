@@ -1,8 +1,43 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Tue, 27 Oct 2026 18:15:10 GMT and should not be manually modified. -->
+<!-- This log was last generated on Wed, 18 Nov 2026 21:34:22 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.17.0
+
+Wed, 18 Nov 2026 21:34:22 GMT
+
+### Minor changes
+
+- Support asymmetric EAR request metadata [#8970](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8970) (shylasummers@microsoft.com)
+- Declare popupRelayProtocolVersion as a top-level integer performance telemetry field [#8984](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8984) (nugetaad@microsoft.com)
+
+## 16.16.2
+
+Thu, 12 Nov 2026 18:58:52 GMT
+
+### Patches
+
+- Respect PII logging settings for performance wrapper exception details [#8982](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8982) (lalima.sharda@gmail.com)
+- Omit raw state values from authorization response validation errors [#8955](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8955) (undefined)
+- Validate authority and region inputs and honor instance-aware configuration during authorization code redemption [#8959](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8959) (nugetaad@microsoft.com)
+
+## 16.16.1
+
+Fri, 06 Nov 2026 23:13:15 GMT
+
+### Patches
+
+- Preserve ID tokens during account-context cleanup and remove them on full account removal [#8971](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8971) (lalima.sharda@gmail.com)
+
+## 16.16.0
+
+Thu, 05 Nov 2026 01:03:50 GMT
+
+### Minor changes
+
+- Export the DPoP proof generator from the browser entry point [#8789](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8789) (hectormmg@microsoft.com)
 
 ## 16.15.0
 

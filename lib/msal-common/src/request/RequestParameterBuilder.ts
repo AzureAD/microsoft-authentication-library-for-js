@@ -770,16 +770,21 @@ export function addBrokerParameters(
  * Add EAR (Encrypted Authorize Response) request parameters
  * @param parameters
  * @param jwk
+ * @param jweCrypto - Base64-encoded encryption metadata; defaults to symmetric EAR.
  */
 export function addEARParameters(
     parameters: Map<string, string>,
-    jwk: string
+    jwk: string,
+    jweCrypto?: string
 ): void {
     parameters.set(AADServerParamKeys.EAR_JWK, encodeURIComponent(jwk));
 
-    // ear_jwe_crypto will always have value: {"alg":"dir","enc":"A256GCM"} so we can hardcode this
+    // Default symmetric EAR metadata; asymmetric requests supply their APV.
     const jweCryptoB64Encoded = "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0";
-    parameters.set(AADServerParamKeys.EAR_JWE_CRYPTO, jweCryptoB64Encoded);
+    parameters.set(
+        AADServerParamKeys.EAR_JWE_CRYPTO,
+        jweCrypto ?? jweCryptoB64Encoded
+    );
 }
 
 export function addResource(

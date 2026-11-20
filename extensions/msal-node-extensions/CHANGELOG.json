@@ -2,6 +2,72 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Wed, 18 Nov 2026 21:34:22 GMT",
+      "version": "5.6.3",
+      "tag": "@azure/msal-node-extensions_v5.6.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "589ceaf511c4d3b87e1b3192a764b7bf80da412e",
+            "comment": "Use node-gyp 13 to support Visual Studio 2026 and document contributor build requirements without changing supported application runtimes. [#8992](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8992)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.17.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 12 Nov 2026 18:58:53 GMT",
+      "version": "5.6.2",
+      "tag": "@azure/msal-node-extensions_v5.6.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.16.2",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 06 Nov 2026 23:13:16 GMT",
+      "version": "5.6.1",
+      "tag": "@azure/msal-node-extensions_v5.6.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.16.1",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 05 Nov 2026 01:03:50 GMT",
+      "version": "5.6.0",
+      "tag": "@azure/msal-node-extensions_v5.6.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v16.16.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 27 Oct 2026 18:15:10 GMT",
       "version": "5.5.4",
       "tag": "@azure/msal-node-extensions_v5.5.4",

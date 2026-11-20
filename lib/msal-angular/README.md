@@ -1,5 +1,7 @@
 # Microsoft Authentication Library for Angular
 
+**Documentation:** [Browse MSAL Angular guides](./docs/README.md).
+
 ![npm (scoped)](https://img.shields.io/npm/v/@azure/msal-angular)
 ![npm](https://img.shields.io/npm/dw/@azure/msal-angular)
 [![codecov](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js/branch/dev/graph/badge.svg?flag=msal-angular)](https://codecov.io/gh/AzureAD/microsoft-authentication-library-for-js)

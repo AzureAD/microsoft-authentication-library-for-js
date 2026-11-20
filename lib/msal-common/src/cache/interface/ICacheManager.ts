@@ -260,14 +260,14 @@ export interface ICacheManager {
     removeAllAccounts(correlationId: string): void;
 
     /**
-     * returns a boolean if the given account is removed
+     * Removes the account and its associated tokens.
      * @param account
      * @param correlationId
      */
     removeAccount(account: AccountInfo, correlationId: string): void;
 
     /**
-     * returns a boolean if the given account is removed
+     * Removes access and refresh tokens, preserving the account and its ID tokens.
      * @param account
      * @param correlationId
      */

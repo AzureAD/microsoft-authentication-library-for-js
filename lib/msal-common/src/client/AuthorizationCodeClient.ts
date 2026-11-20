@@ -139,7 +139,10 @@ export class AuthorizationCodeClient {
         }
 
         // Check for new cloud instance
-        if (authCodePayload && authCodePayload.cloud_instance_host_name) {
+        if (
+            this.config.authOptions.instanceAware === true &&
+            authCodePayload?.cloud_instance_host_name
+        ) {
             await invokeAsync(
                 this.updateTokenEndpointAuthority.bind(this),
                 PerformanceEvents.UpdateTokenEndpointAuthority,
@@ -170,7 +173,8 @@ export class AuthorizationCodeClient {
             this.performanceClient,
             this.config.serializableCache,
             this.config.persistencePlugin,
-            this.config.tokenBindingKeyManager
+            this.config.tokenBindingKeyManager,
+            this.config.dpopNonceProvider
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.

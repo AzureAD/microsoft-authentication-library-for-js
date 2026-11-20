@@ -17,6 +17,7 @@ export type PopupRequest = Partial<
         | "responseMode"
         | "scopes"
         | "earJwk"
+        | "asymmetricEar"
         | "codeChallenge"
         | "codeChallengeMethod"
         | "platformBroker"

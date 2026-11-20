@@ -32,6 +32,7 @@ import {
     TimeUtils,
     DEFAULT_TOKEN_BINDING_KEY_MANAGER,
     ITokenBindingKeyManager,
+    ResponseHandler,
 } from "@azure/msal-common/browser";
 import * as BrowserPerformanceEvents from "../telemetry/BrowserPerformanceEvents.js";
 import * as BrowserRootPerformanceEvents from "../telemetry/BrowserRootPerformanceEvents.js";
@@ -2242,6 +2243,30 @@ export class StandardController implements IController {
     }
 
     /**
+     * Stores a resource-server DPoP nonce for the matching HTTPS origin.
+     */
+    public async loadDpopNonce(
+        resourceRequestUri: string,
+        dpopNonce: string
+    ): Promise<void> {
+        BrowserUtils.blockNonBrowserEnvironment();
+        const correlationId = createNewGuid();
+        return invokeAsync(
+            async (): Promise<void> => {
+                this.browserStorage.setDpopNonce(
+                    resourceRequestUri,
+                    dpopNonce,
+                    correlationId
+                );
+            },
+            BrowserPerformanceEvents.StandardControllerLoadDpopNonce,
+            this.logger,
+            this.performanceClient,
+            correlationId
+        )();
+    }
+
+    /**
      * Replaces the default logger set in configurations with new Logger with new configurations
      * @param logger Logger instance
      */
@@ -2440,18 +2465,17 @@ export class StandardController implements IController {
             this.performanceClient
         );
 
-        const shouldDeduplicate =
-            preparedRequest.request.authenticationScheme !==
-            Constants.AuthenticationScheme.DPOP;
+        const requestKey = preparedRequest.key;
+        const shouldDeduplicate = requestKey !== undefined;
         const inProgressRequest = shouldDeduplicate
-            ? this.activeSilentTokenRequests.get(preparedRequest.key)
+            ? this.activeSilentTokenRequests.get(requestKey)
             : undefined;
 
         if (typeof inProgressRequest === "undefined") {
             this.logger.verbose(
                 shouldDeduplicate
                     ? "acquireTokenSilent called for the first time, storing active request"
-                    : "acquireTokenSilent called for DPoP request, starting an independent operation",
+                    : "acquireTokenSilent called for platform DPoP request, starting an independent operation",
                 correlationId
             );
             this.performanceClient.addFields({ deduped: false }, correlationId);
@@ -2469,17 +2493,14 @@ export class StandardController implements IController {
                 },
                 preparedRequest.account
             );
-            if (!shouldDeduplicate) {
+            if (requestKey === undefined) {
                 return activeRequest;
             }
 
-            this.activeSilentTokenRequests.set(
-                preparedRequest.key,
-                activeRequest
-            );
+            this.activeSilentTokenRequests.set(requestKey, activeRequest);
 
             return activeRequest.finally(() => {
-                this.activeSilentTokenRequests.delete(preparedRequest.key);
+                this.activeSilentTokenRequests.delete(requestKey);
             });
         } else {
             this.logger.verbose(
@@ -2487,7 +2508,50 @@ export class StandardController implements IController {
                 correlationId
             );
             this.performanceClient.addFields({ deduped: true }, correlationId);
-            return inProgressRequest;
+            const joiningRequest = {
+                ...preparedRequest.request,
+                correlationId,
+            };
+            const result = await inProgressRequest;
+            if (
+                joiningRequest.authenticationScheme !==
+                Constants.AuthenticationScheme.DPOP
+            ) {
+                return result;
+            }
+
+            if (
+                result.fromPlatformBroker &&
+                !ResponseHandler.hasDpopKeyId(result)
+            ) {
+                return invokeAsync(
+                    this.acquireTokenSilentAsync.bind(this),
+                    BrowserPerformanceEvents.AcquireTokenSilentAsync,
+                    this.logger,
+                    this.performanceClient,
+                    correlationId
+                )(joiningRequest, result.account || preparedRequest.account);
+            }
+
+            const dpopProof = await ResponseHandler.generateDpopResourceProof(
+                this.browserCrypto,
+                result,
+                {
+                    ...joiningRequest,
+                    authority:
+                        joiningRequest.authority || this.config.auth.authority,
+                },
+                this.performanceClient,
+                {
+                    tokenBindingKeyManager: this.tokenBindingKeyManager,
+                    dpopNonceProvider: this.browserStorage,
+                }
+            );
+
+            return {
+                ...result,
+                dpopProof,
+            };
         }
     }
 

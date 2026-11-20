@@ -35,7 +35,7 @@ export type SilentRequestPreparationInput = {
  * Flow-independent inputs consumed by the in-flight request registry.
  */
 export type PreparedSilentRequest = {
-    key: string;
+    key?: string;
     request: SilentRequest;
     account: AccountInfo;
 };
@@ -43,7 +43,6 @@ export type PreparedSilentRequest = {
 type PlatformSilentRequest = SilentRequest &
     Pick<SsoSilentRequest, "nonce" | "loginHint"> & {
         account: AccountInfo;
-        dpopNonce?: string;
     };
 
 /**
@@ -94,6 +93,7 @@ export function prepareWebSilentRequest({
     return {
         key: JSON.stringify({
             ...thumbprint,
+            accountTenantId: account.tenantId,
             forceRefresh: !!request.forceRefresh,
             cacheLookupPolicy:
                 request.cacheLookupPolicy ?? CacheLookupPolicy.Default,
@@ -121,7 +121,14 @@ export function preparePlatformSilentRequest({
     });
 
     return {
-        key: `platform:${getPlatformSilentRequestKey(platformRequest, config)}`,
+        key:
+            platformRequest.authenticationScheme ===
+            Constants.AuthenticationScheme.DPOP
+                ? undefined
+                : `platform:${getPlatformSilentRequestKey(
+                      platformRequest,
+                      config
+                  )}`,
         request: platformRequest,
         account: platformRequest.account,
     };
@@ -165,7 +172,6 @@ function getPlatformSilentRequestKey(
         loginHint: request.loginHint,
         popKid: request.popKid,
         shrNonce: request.shrNonce,
-        dpopNonce: request.dpopNonce,
         skipBrokerClaims: request.embeddedClientId
             ? !!request.skipBrokerClaims
             : undefined,
