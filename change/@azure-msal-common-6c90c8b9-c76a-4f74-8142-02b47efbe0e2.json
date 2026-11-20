@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Include shrNonce, shrOptions and popKid in the request thumbprint so concurrent PoP silent requests with different SHR parameters or keys are not deduplicated [#8834](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8834)",
+    "packageName": "@azure/msal-common",
+    "email": "leo.camus23@gmail.com",
+    "dependentChangeType": "patch"
+}
