@@ -80,17 +80,14 @@ export class AuthenticationHeaderParser {
         let selected = !scheme;
 
         for (let index = 0; index <= header.length; index++) {
-            const character = header[index];
+            const character = index < header.length ? header[index] : ",";
             if (escaped) {
                 escaped = false;
             } else if (quoted && character === "\\") {
                 escaped = true;
             } else if (character === '"') {
                 quoted = !quoted;
-            } else if (
-                !quoted &&
-                (character === "," || index === header.length)
-            ) {
+            } else if (!quoted && character === ",") {
                 const part = header.slice(start, index).trim();
                 start = index + 1;
                 if (!part) {
