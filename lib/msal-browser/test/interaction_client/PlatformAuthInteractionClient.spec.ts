@@ -4404,62 +4404,6 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 expect(removeKeySpy).toHaveBeenCalledTimes(1);
             });
 
-            if (transport === "DOM") {
-                it.each([
-                    Constants.AuthenticationScheme.BEARER,
-                    Constants.AuthenticationScheme.POP,
-                ])(
-                    "rejects misplaced DPoP markers for %s before account, cache, or key mutation",
-                    async (authenticationScheme) => {
-                        (
-                            navigator as any
-                        ).platformAuthentication.executeGetToken.mockResolvedValue(
-                            {
-                                isSuccess: true,
-                                accessToken: brokerResponse.access_token,
-                                idToken: brokerResponse.id_token,
-                                clientInfo: brokerResponse.client_info,
-                                account: brokerResponse.account,
-                                scopes: brokerResponse.scope,
-                                expiresIn: brokerResponse.expires_in,
-                                properties: {},
-                                DPoP: "unexpected-proof",
-                            }
-                        );
-                        const accountSpy = jest.spyOn(
-                            browserCacheManager,
-                            "setAccount"
-                        );
-                        const idTokenSpy = jest.spyOn(
-                            browserCacheManager,
-                            "setIdTokenCredential"
-                        );
-                        const saveSpy = jest.spyOn(
-                            internalStorage,
-                            "saveCacheRecord"
-                        );
-                        await expect(
-                            platformAuthInteractionClient.acquireToken({
-                                ...request,
-                                authenticationScheme,
-                                ...(authenticationScheme ===
-                                    Constants.AuthenticationScheme.POP && {
-                                    popKid: "app-pop-key",
-                                }),
-                            })
-                        ).rejects.toMatchObject({
-                            errorCode: AuthErrorCodes.unexpectedError,
-                        });
-                        expect(accountSpy).not.toHaveBeenCalled();
-                        expect(idTokenSpy).not.toHaveBeenCalled();
-                        expect(saveSpy).not.toHaveBeenCalled();
-                        expect(signSpy).not.toHaveBeenCalled();
-                        expect(provisionKeySpy).not.toHaveBeenCalled();
-                        expect(removeKeySpy).not.toHaveBeenCalled();
-                    }
-                );
-            }
-
             it.each([
                 undefined,
                 null,

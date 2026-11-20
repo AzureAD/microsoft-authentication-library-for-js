@@ -683,6 +683,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                 enclave: PlatformAuthEnclave.HARDWARE,
                 reqCnf: "test-req-cnf",
                 tokenType,
+                keyId: "owned-request-key",
                 resourceRequestMethod: "POST",
                 resourceRequestUri: "https://graph.microsoft.com/v1.0/me",
                 extraParametersNoCache: {
@@ -714,6 +715,7 @@ describe("PlatformAuthDOMHandler tests", () => {
                     customUserInput: "test-user-input",
                     windowTitleSubstring: "test-window-substring",
                     tokenType,
+                    keyId: "owned-request-key",
                 },
                 extraParametersNoCache: {
                     pop_method: "POST",
@@ -801,7 +803,7 @@ describe("PlatformAuthDOMHandler tests", () => {
         });
     });
 
-    describe("DPoP transport boundary", () => {
+    describe("platform DOM transport", () => {
         let handler: PlatformAuthDOMHandler;
         let request: PlatformAuthRequest;
         let response: Record<string, any>;
@@ -890,54 +892,8 @@ describe("PlatformAuthDOMHandler tests", () => {
             }
         );
 
-        it.each([
-            { isSuccess: false },
-            { isSuccess: "true" },
-            { accessToken: "" },
-            { account: null },
-            { account: [] },
-            {
-                account: {
-                    id: "test-id",
-                    userName: "test-user",
-                    properties: [],
-                },
-            },
-            {
-                account: {
-                    id: "test-id",
-                    userName: "test-user",
-                    properties: { UID: 123 },
-                },
-            },
-            { state: {} },
-            { expiresIn: "6000" },
-            { expiresIn: 1.5 },
-            { properties: null },
-            { properties: [] },
-            {
-                properties: {
-                    token_type: "dpop+proof",
-                    binding_attested: "true",
-                    dpop_proof: "noncanonical-proof",
-                },
-            },
-            {
-                properties: {
-                    token_type: "dpop+proof",
-                    binding_attested: "true",
-                    DPoP: "broker-proof",
-                    dpop_proof: "conflicting-alias-proof",
-                },
-            },
-            { proofOfPossessionPayload: "legacy-shr" },
-            { DPoP: "conflicting-top-level-proof" },
-            { dpop_proof: "conflicting-top-level-proof" },
-            { token_type: "Bearer" },
-            { binding_attested: false },
-            { error: { code: "BrokerError" } },
-        ])(
-            "rejects malformed or contradictory responses %p",
+        it.each([{ isSuccess: false }, { isSuccess: "true" }])(
+            "rejects an invalid DOM success flag %p",
             async (overrides) => {
                 Object.assign(response, overrides);
                 await expect(
@@ -954,46 +910,14 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(result.properties).toBe(response.properties);
         });
 
-        describe.each([
+        it.each([
             Constants.AuthenticationScheme.BEARER,
             Constants.AuthenticationScheme.POP,
-        ])("%s response markers", (tokenType) => {
-            it.each(
-                [
-                    { token_type: "DPoP" },
-                    { token_type: "dpop+proof" },
-                    { DPoP: "unexpected-proof" },
-                    { dpop_proof: "unexpected-proof" },
-                    { binding_attested: "false" },
-                ].flatMap((marker) =>
-                    [{}, undefined].map((properties) => ({
-                        marker,
-                        properties,
-                    }))
-                )
-            )(
-                "rejects misplaced DPoP markers without canonical properties %p",
-                async ({ marker, properties }) => {
-                    request.tokenType = tokenType;
-                    if (properties === undefined) {
-                        delete response.properties;
-                    } else {
-                        response.properties = properties;
-                    }
-                    Object.assign(response, marker);
-
-                    await expect(
-                        handler.sendMessage(request)
-                    ).rejects.toMatchObject({
-                        errorCode: AuthErrorCodes.unexpectedError,
-                    });
-                }
-            );
-
-            it("preserves non-DPoP responses and legacy proof payloads", async () => {
+        ])(
+            "preserves %s responses and legacy proof payloads",
+            async (tokenType) => {
                 request.tokenType = tokenType;
                 response.properties = {};
-                response.token_type = tokenType;
                 if (tokenType === Constants.AuthenticationScheme.POP) {
                     response.proofOfPossessionPayload = "legacy-broker-proof";
                 }
@@ -1004,76 +928,71 @@ describe("PlatformAuthDOMHandler tests", () => {
                     properties: {},
                     shr: response.proofOfPossessionPayload,
                 });
-            });
-        });
-
-        it.each([null, undefined])(
-            "accepts nullable optional DOM dictionaries and state %p",
-            async (value) => {
-                response.account.properties = value;
-                response.state = value;
-                await expect(
-                    handler.sendMessage(request)
-                ).resolves.toMatchObject({
-                    state: "",
-                    properties: { DPoP: "unchanged-broker-proof" },
-                });
             }
         );
 
-        it("does not expose raw DOM exceptions", async () => {
-            executeGetTokenMock.mockRejectedValue(
-                new Error("private-broker-data")
-            );
-            const error = await handler.sendMessage(request).catch((e) => e);
-            expect(error).toBeInstanceOf(AuthError);
-            expect(error.errorCode).toBe(AuthErrorCodes.unexpectedError);
-            expect(JSON.stringify(error)).not.toContain("private-broker-data");
-            expect(error.message).not.toContain("private-broker-data");
+        it.each([
+            Constants.AuthenticationScheme.BEARER,
+            Constants.AuthenticationScheme.POP,
+            PlatformAuthTokenType.DPOP_WITH_PROOF,
+        ])("preserves DOM exceptions for %s", async (tokenType) => {
+            request.tokenType = tokenType;
+            const error = new Error("test DOM failure");
+            executeGetTokenMock.mockRejectedValue(error);
+            await expect(handler.sendMessage(request)).rejects.toBe(error);
         });
 
-        it("preserves broker error codes and HRESULT fallback without retaining metadata", async () => {
-            response = {
-                isSuccess: false,
-                error: {
-                    code: "BrokerError",
-                    errorCode: "-2147186943",
+        it.each([
+            Constants.AuthenticationScheme.BEARER,
+            Constants.AuthenticationScheme.POP,
+            PlatformAuthTokenType.DPOP_WITH_PROOF,
+        ])(
+            "preserves standard broker error details for %s",
+            async (tokenType) => {
+                request.tokenType = tokenType;
+                response = {
+                    isSuccess: false,
+                    error: {
+                        code: "BrokerError",
+                        errorCode: "-2147186943",
+                        status: "PERSISTENT_ERROR",
+                        description: "test broker description",
+                        protocolError: "test-protocol-error",
+                        properties: { test: "metadata" },
+                    },
+                };
+                const endMeasurementSpy = jest.spyOn(
+                    performanceClient,
+                    "endMeasurement"
+                );
+                const error = await handler
+                    .sendMessage(request)
+                    .catch((e) => e);
+                expect(error).toBeInstanceOf(NativeAuthError);
+                expect(error.errorCode).toBe("BrokerError");
+                expect(error.ext).toEqual({
+                    error: -2147186943,
                     status: "PERSISTENT_ERROR",
-                    description: "private-broker-data",
-                    protocolError: "private-broker-data",
-                    properties: { token: "private-broker-data" },
-                },
-            };
-            const endMeasurementSpy = jest.spyOn(
-                performanceClient,
-                "endMeasurement"
-            );
-            const error = await handler.sendMessage(request).catch((e) => e);
-            expect(error).toBeInstanceOf(NativeAuthError);
-            expect(error.errorCode).toBe("BrokerError");
-            expect(error.ext).toEqual({
-                error: -2147186943,
-                status: "PERSISTENT_ERROR",
-            });
-            expect(isFatalNativeAuthError(error)).toBe(true);
-            expect(error.message).not.toContain("private-broker-data");
-            expect(JSON.stringify(endMeasurementSpy.mock.calls)).not.toContain(
-                "private-broker-data"
-            );
-            expect(
-                endMeasurementSpy.mock.calls
-                    .map(([event]) => event)
-                    .find(
-                        (event) =>
-                            event.name ===
-                            BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
-                    )
-            ).toMatchObject({
-                success: false,
-                brokerErrorName: "BrokerError",
-                brokerErrorCode: undefined,
-            });
-        });
+                    protocol_error: "test-protocol-error",
+                    properties: { test: "metadata" },
+                });
+                expect(isFatalNativeAuthError(error)).toBe(true);
+                expect(error.message).toContain("test broker description");
+                expect(
+                    endMeasurementSpy.mock.calls
+                        .map(([event]) => event)
+                        .find(
+                            (event) =>
+                                event.name ===
+                                BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
+                        )
+                ).toMatchObject({
+                    success: false,
+                    brokerErrorName: "BrokerError",
+                    brokerErrorCode: "-2147186943",
+                });
+            }
+        );
 
         it.each([
             ["USER_CANCEL", "user_cancelled"],
@@ -1083,30 +1002,26 @@ describe("PlatformAuthDOMHandler tests", () => {
             ["PERSISTENT_ERROR", "BrokerError"],
             ["DISABLED", "BrokerError"],
         ])(
-            "preserves %s error semantics without retaining broker metadata",
+            "uses the existing %s broker error mapping",
             async (status, errorCode) => {
                 response = {
                     isSuccess: false,
                     error: {
                         code: "BrokerError",
-                        description: "private-broker-data",
-                        errorCode: "private-broker-data",
+                        description: "test broker description",
+                        errorCode: "-1",
                         status,
-                        protocolError: "private-broker-data",
-                        properties: { token: "private-broker-data" },
+                        protocolError: "test-protocol-error",
+                        properties: { test: "metadata" },
                     },
                 };
                 const error = await handler
                     .sendMessage(request)
                     .catch((e) => e);
                 expect(error.errorCode).toBe(errorCode);
-                expect(JSON.stringify(error)).not.toContain(
-                    "private-broker-data"
-                );
-                expect(error.message).not.toContain("private-broker-data");
                 if (error instanceof NativeAuthError) {
                     expect(error.ext?.status).toBe(status);
-                    expect(error.ext?.properties).toBeUndefined();
+                    expect(error.ext?.properties).toEqual({ test: "metadata" });
                 }
             }
         );

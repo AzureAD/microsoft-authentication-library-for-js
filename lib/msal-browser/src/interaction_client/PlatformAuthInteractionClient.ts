@@ -47,7 +47,6 @@ import {
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
     createPlatformAuthExtraParametersNoCache,
-    isDpopBrokerTokenType,
     PlatformAuthBindingPreference,
     PlatformAuthEnclave,
     PlatformAuthRequest,
@@ -1637,7 +1636,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             request.bindingPreferenceSent ??
             request.preferBinding !== undefined;
         const hasDpopResponse =
-            isDpopBrokerTokenType(normalizedResponse.tokenType) ||
+            this.isDpopBrokerTokenType(normalizedResponse.tokenType) ||
             normalizedResponse.proof !== undefined ||
             normalizedResponse.hasBindingAttested;
 
@@ -1651,7 +1650,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
             return "none";
         }
 
-        if (!isDpopBrokerTokenType(normalizedResponse.tokenType)) {
+        if (!this.isDpopBrokerTokenType(normalizedResponse.tokenType)) {
             this.throwInvalidDpopResponse(
                 "unknown_token_type",
                 "Unknown DPoP broker response."
@@ -2008,7 +2007,21 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @returns Whether the request uses a DPoP token type.
      */
     private isDpopBrokerRequest(request: PlatformAuthRequest): boolean {
-        return isDpopBrokerTokenType(request.tokenType);
+        return this.isDpopBrokerTokenType(request.tokenType);
+    }
+
+    /**
+     * Determines whether a token type represents a DPoP broker request.
+     * @param tokenType - Token type to inspect.
+     * @returns Whether the token type is a supported DPoP broker token type.
+     */
+    private isDpopBrokerTokenType(tokenType: string | undefined): boolean {
+        const normalizedTokenType = tokenType?.trim().toLowerCase();
+        return (
+            normalizedTokenType === PlatformAuthTokenType.DPOP_WITH_PROOF ||
+            normalizedTokenType ===
+                Constants.AuthenticationScheme.DPOP.toLowerCase()
+        );
     }
 
     /**
