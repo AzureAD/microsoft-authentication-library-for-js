@@ -79,6 +79,10 @@ export class AuthenticationHeaderParser {
         let escaped = false;
         let selected = !scheme;
 
+        /*
+         * Only unquoted commas separate parameters; backslashes escape the next quoted character.
+         * A synthetic comma at end of input processes the final parameter through the same path.
+         */
         for (let index = 0; index <= header.length; index++) {
             const character = index < header.length ? header[index] : ",";
             if (escaped) {
@@ -93,10 +97,18 @@ export class AuthenticationHeaderParser {
                 if (!part) {
                     continue;
                 }
+                /*
+                 * Preserve any "=" in the value. Before it, whitespace separates an optional
+                 * scheme from the parameter name (e.g. "PoP nonce" versus "nonce").
+                 */
                 const separator = part.indexOf("=");
                 const names = (separator < 0 ? part : part.slice(0, separator))
                     .trim()
                     .split(/\s+/);
+                /*
+                 * A bare scheme or "scheme parameter=..." starts a new challenge.
+                 * Stop when the first PoP challenge ends, rather than borrowing another nonce.
+                 */
                 if (scheme && (separator < 0 || names.length > 1)) {
                     if (selected) {
                         return undefined;
@@ -112,6 +124,11 @@ export class AuthenticationHeaderParser {
                     if (!value.startsWith('"')) {
                         return value;
                     }
+                    /*
+                     * Match one complete quoted value containing escaped characters or characters
+                     * other than quotes/backslashes. Strip its quotes and escape backslashes only;
+                     * percent sequences and all other nonce data remain unchanged.
+                     */
                     return /^"(?:\\.|[^"\\])*"$/.test(value)
                         ? value.slice(1, -1).replace(/\\(.)/g, "$1")
                         : undefined;
