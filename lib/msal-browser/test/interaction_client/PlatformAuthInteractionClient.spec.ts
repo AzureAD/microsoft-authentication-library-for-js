@@ -4155,6 +4155,61 @@ describe("PlatformAuthInteractionClient Tests", () => {
                 }
             );
 
+            it.each(["L1", "L3"])(
+                "forwards the PCA resource nonce without changing the %s outcome",
+                async (level) => {
+                    browserCacheManager.setDpopNonce(
+                        request.resourceRequestUri!,
+                        "resource-nonce"
+                    );
+                    if (level === "L1") {
+                        brokerResponse.properties = {
+                            token_type: "DPoP",
+                            binding_attested: "false",
+                        };
+                    }
+                    const generateProofSpy = jest
+                        .spyOn(
+                            DpopProofGenerator.prototype,
+                            "generateResourceProof"
+                        )
+                        .mockResolvedValue("nonce-local-resource-proof");
+
+                    const result = await createClient().acquireToken(request);
+
+                    const wire =
+                        transport === "DOM"
+                            ? (navigator as any).platformAuthentication
+                                  .executeGetToken.mock.calls[0][0]
+                            : (provider.sendMessage as jest.Mock).mock
+                                  .calls[0][0];
+                    expect(wire.extraParametersNoCache).toEqual({
+                        pop_method: request.resourceRequestMethod,
+                        pop_url: request.resourceRequestUri,
+                        pop_nonce: "resource-nonce",
+                    });
+                    expect(wire).not.toHaveProperty("pop_nonce");
+                    expect(wire.extraParameters).not.toHaveProperty(
+                        "pop_nonce"
+                    );
+                    if (level === "L3") {
+                        expect(result.dpopProof).toBe("unchanged-broker-proof");
+                        expect(generateProofSpy).not.toHaveBeenCalled();
+                    } else {
+                        expect(result.dpopProof).toBe(
+                            "nonce-local-resource-proof"
+                        );
+                        expect(generateProofSpy).toHaveBeenCalledWith(
+                            expect.objectContaining({
+                                nonce: "resource-nonce",
+                            }),
+                            "local-dpop-key",
+                            RANDOM_TEST_GUID
+                        );
+                    }
+                }
+            );
+
             it("does not cache L1 tokens or retain the key when access-token caching is disabled", async () => {
                 brokerResponse.properties = {
                     token_type: "DPoP",
