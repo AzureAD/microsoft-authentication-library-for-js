@@ -1116,6 +1116,59 @@ describe("PlatformAuthDOMHandler tests", () => {
             );
         });
 
+        describe.each([
+            Constants.AuthenticationScheme.BEARER,
+            Constants.AuthenticationScheme.POP,
+        ])("%s response markers", (tokenType) => {
+            it.each(
+                [
+                    { token_type: "DPoP" },
+                    { token_type: "dpop+proof" },
+                    { DPoP: "unexpected-proof" },
+                    { dpop_proof: "unexpected-proof" },
+                    { binding_attested: "false" },
+                ].flatMap((marker) =>
+                    [{}, undefined].map((properties) => ({
+                        marker,
+                        properties,
+                    }))
+                )
+            )(
+                "rejects misplaced DPoP markers without canonical properties %p",
+                async ({ marker, properties }) => {
+                    request.tokenType = tokenType;
+                    if (properties === undefined) {
+                        delete response.properties;
+                    } else {
+                        response.properties = properties;
+                    }
+                    Object.assign(response, marker);
+
+                    await expect(
+                        handler.sendMessage(request)
+                    ).rejects.toMatchObject({
+                        errorCode: AuthErrorCodes.unexpectedError,
+                    });
+                }
+            );
+
+            it("preserves non-DPoP responses and legacy proof payloads", async () => {
+                request.tokenType = tokenType;
+                response.properties = {};
+                response.token_type = tokenType;
+                if (tokenType === Constants.AuthenticationScheme.POP) {
+                    response.proofOfPossessionPayload = "legacy-broker-proof";
+                }
+
+                await expect(
+                    handler.sendMessage(request)
+                ).resolves.toMatchObject({
+                    properties: {},
+                    shr: response.proofOfPossessionPayload,
+                });
+            });
+        });
+
         it.each([
             { reqCnf: undefined },
             { keyId: " " },

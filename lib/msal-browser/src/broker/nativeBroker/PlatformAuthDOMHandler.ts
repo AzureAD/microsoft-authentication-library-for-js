@@ -502,7 +502,11 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             isDpopBrokerTokenType(properties?.token_type) ||
             properties?.dpop_proof !== undefined ||
             properties?.DPoP !== undefined ||
-            properties?.binding_attested !== undefined;
+            properties?.binding_attested !== undefined ||
+            isDpopBrokerTokenType(rawResponse.token_type) ||
+            rawResponse.DPoP !== undefined ||
+            rawResponse.dpop_proof !== undefined ||
+            rawResponse.binding_attested !== undefined;
         if (isDpopBrokerTokenType(request.tokenType) || isDpopResponse) {
             if (
                 (properties !== undefined &&
