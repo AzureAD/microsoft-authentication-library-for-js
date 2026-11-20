@@ -20,7 +20,10 @@ import {
     PlatformAuthRequest,
     PlatformAuthTokenType,
 } from "../../src/broker/nativeBroker/PlatformAuthRequest.js";
-import { NativeAuthError } from "../../src/error/NativeAuthError.js";
+import {
+    isFatalNativeAuthError,
+    NativeAuthError,
+} from "../../src/error/NativeAuthError.js";
 import * as BrowserPerformanceEvents from "../../src/telemetry/BrowserPerformanceEvents.js";
 
 describe("PlatformAuthDOMHandler tests", () => {
@@ -1029,65 +1032,63 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(error.message).not.toContain("private-broker-data");
         });
 
-        it("does not preserve an unsupported broker status", async () => {
+        it("preserves broker error codes and HRESULT fallback without retaining metadata", async () => {
             response = {
                 isSuccess: false,
-                error: { code: "BrokerError", status: "THROTTLED" },
+                error: {
+                    code: "BrokerError",
+                    errorCode: "-2147186943",
+                    status: "PERSISTENT_ERROR",
+                    description: "private-broker-data",
+                    protocolError: "private-broker-data",
+                    properties: { token: "private-broker-data" },
+                },
             };
+            const endMeasurementSpy = jest.spyOn(
+                performanceClient,
+                "endMeasurement"
+            );
             const error = await handler.sendMessage(request).catch((e) => e);
             expect(error).toBeInstanceOf(NativeAuthError);
-            expect(error.ext?.status).toBeUndefined();
+            expect(error.errorCode).toBe("BrokerError");
+            expect(error.ext).toEqual({
+                error: -2147186943,
+                status: "PERSISTENT_ERROR",
+            });
+            expect(isFatalNativeAuthError(error)).toBe(true);
+            expect(error.message).not.toContain("private-broker-data");
+            expect(JSON.stringify(endMeasurementSpy.mock.calls)).not.toContain(
+                "private-broker-data"
+            );
+            expect(
+                endMeasurementSpy.mock.calls
+                    .map(([event]) => event)
+                    .find(
+                        (event) =>
+                            event.name ===
+                            BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
+                    )
+            ).toMatchObject({
+                success: false,
+                brokerErrorName: "BrokerError",
+                brokerErrorCode: undefined,
+            });
         });
-
-        it.each(["NoSupport", "BadState", "OSError", "BrokerError"])(
-            "sanitizes noncanonical DOM error code %s",
-            async (code) => {
-                response = {
-                    isSuccess: false,
-                    error: {
-                        code,
-                        status: "PERSISTENT_ERROR",
-                    },
-                };
-                const endMeasurementSpy = jest.spyOn(
-                    performanceClient,
-                    "endMeasurement"
-                );
-
-                await expect(
-                    handler.sendMessage(request)
-                ).rejects.toMatchObject({
-                    errorCode: AuthErrorCodes.unexpectedError,
-                });
-                expect(
-                    endMeasurementSpy.mock.calls
-                        .map(([event]) => event)
-                        .find(
-                            (event) =>
-                                event.name ===
-                                BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
-                        )
-                ).toMatchObject({
-                    success: false,
-                    brokerErrorName: AuthErrorCodes.unexpectedError,
-                });
-            }
-        );
 
         it.each([
             ["USER_CANCEL", "user_cancelled"],
             ["NO_NETWORK", "no_network_connectivity"],
             ["ACCOUNT_UNAVAILABLE", "native_account_unavailable"],
-            ["USER_INTERACTION_REQUIRED", AuthErrorCodes.unexpectedError],
-            ["PERSISTENT_ERROR", AuthErrorCodes.unexpectedError],
-            ["DISABLED", AuthErrorCodes.unexpectedError],
+            ["USER_INTERACTION_REQUIRED", "BrokerError"],
+            ["PERSISTENT_ERROR", "BrokerError"],
+            ["DISABLED", "BrokerError"],
         ])(
             "preserves %s error semantics without retaining broker metadata",
             async (status, errorCode) => {
                 response = {
                     isSuccess: false,
                     error: {
-                        code: "private-broker-data",
+                        code: "BrokerError",
                         description: "private-broker-data",
                         errorCode: "private-broker-data",
                         status,

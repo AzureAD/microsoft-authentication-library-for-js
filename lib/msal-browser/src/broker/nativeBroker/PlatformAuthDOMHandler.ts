@@ -24,17 +24,9 @@ import {
     PlatformAuthResponse,
     PlatformDOMTokenResponse,
 } from "./PlatformAuthResponse.js";
-import {
-    createNativeAuthError,
-    NativeAuthErrorCodes,
-} from "../../error/NativeAuthError.js";
-import * as NativeStatusCodes from "./NativeStatusCodes.js";
+import { createNativeAuthError } from "../../error/NativeAuthError.js";
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
-
-const DOM_DPOP_ERROR_CODES = new Set<string>(
-    Object.values(NativeAuthErrorCodes)
-);
 
 export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     protected logger: Logger;
@@ -374,45 +366,24 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                         request.tokenType
                     );
                     const nativeError = errorResponse.error;
-                    const code =
-                        isDpopRequest &&
-                        !DOM_DPOP_ERROR_CODES.has(nativeError.code)
-                            ? AuthErrorCodes.unexpectedError
-                            : nativeError.code;
-                    const status =
-                        isDpopRequest &&
-                        !Object.values(NativeStatusCodes).some(
-                            (value) => value === nativeError.status
-                        )
-                            ? undefined
-                            : nativeError.status;
-                    const numericError = Number(nativeError.errorCode);
                     const nativeAuthError = createNativeAuthError(
-                        code,
+                        nativeError.code,
                         correlationId,
                         isDpopRequest ? undefined : nativeError.description,
                         {
-                            error: isDpopRequest
-                                ? Number.isInteger(numericError) &&
-                                  numericError >= -2147483648 &&
-                                  numericError <= 2147483647
-                                    ? numericError
-                                    : undefined
-                                : parseInt(nativeError.errorCode),
-                            protocol_error: isDpopRequest
-                                ? undefined
-                                : nativeError.protocolError,
-                            status,
-                            properties: isDpopRequest
-                                ? undefined
-                                : nativeError.properties,
+                            error: parseInt(nativeError.errorCode),
+                            status: nativeError.status,
+                            ...(!isDpopRequest && {
+                                protocol_error: nativeError.protocolError,
+                                properties: nativeError.properties,
+                            }),
                         }
                     );
                     validationMeasurement.end(
                         {
                             success: false,
                             platformAuthProviderType: this.platformAuthType,
-                            brokerErrorName: code,
+                            brokerErrorName: nativeError.code,
                             brokerErrorCode: isDpopRequest
                                 ? undefined
                                 : nativeError.errorCode,
