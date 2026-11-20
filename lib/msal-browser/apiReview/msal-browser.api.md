@@ -1133,7 +1133,7 @@ const unsupportedTokenBindingAlgorithm = "unsupported_token_binding_algorithm";
 const userCancelled = "user_cancelled";
 
 // @public (undocumented)
-export const version = "5.30.0";
+export const version = "5.31.0";
 
 // @public (undocumented)
 const WaitForBridgeLateResponse = "waitForBridgeLateResponse";

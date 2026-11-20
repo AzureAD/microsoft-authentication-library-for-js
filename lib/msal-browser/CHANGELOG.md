@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 18 Nov 2026 21:34:22 GMT and should not be manually modified. -->
+<!-- This log was last generated on Fri, 20 Nov 2026 21:11:21 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.31.0
+
+Fri, 20 Nov 2026 21:11:21 GMT
+
+### Minor changes
+
+- Add IPublicClientApplication.loadDpopNonce with origin-scoped PCA-memory state and WAM forwarding (AB#3677519) [#8981](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8981) (hemoral@microsoft.com)
+- Bump @azure/msal-common to v16.18.0
 
 ## 5.30.0
 
