@@ -2,6 +2,27 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Fri, 20 Nov 2026 21:11:21 GMT",
+      "version": "5.31.0",
+      "tag": "@azure/msal-browser_v5.31.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a7b2b8fd5eceb9fd45bc42230ed9fdb6693f124e",
+            "comment": "Add IPublicClientApplication.loadDpopNonce with origin-scoped PCA-memory state and WAM forwarding (AB#3677519) [#8981](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8981)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.18.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 18 Nov 2026 21:34:22 GMT",
       "version": "5.30.0",
       "tag": "@azure/msal-browser_v5.30.0",
