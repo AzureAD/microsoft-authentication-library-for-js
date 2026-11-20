@@ -4,6 +4,7 @@
  */
 
 import {
+    ClaimsUtils,
     AuthorizationCodeClient,
     ClientConfiguration,
     RefreshTokenClient,
@@ -663,6 +664,13 @@ export abstract class ClientApplication {
 
         return {
             ...authRequest,
+            claims: ClaimsUtils.mergeClientCapabilities(
+                authRequest.claims,
+                ClaimsUtils.shouldSkipBrokerClaims(authRequest)
+                    ? undefined
+                    : this.config.auth.clientCapabilities,
+                correlationId
+            ),
             scopes: [
                 ...((authRequest && authRequest.scopes) || []),
                 ...Constants.OIDC_DEFAULT_SCOPES,

@@ -7,24 +7,28 @@ When MSAL acquires a token, it caches it for future usage. MSAL manages token li
 You can configure the cache storage location via the configuration object that is used to instantiate MSAL:
 
 ```typescript
-import { PublicClientApplication, BrowserCacheLocation } from "@azure/msal-browser";
+import {
+    PublicClientApplication,
+    BrowserCacheLocation,
+} from "@azure/msal-browser";
 
 const pca = new PublicClientApplication({
     auth: {
         clientId: "Enter_the_Application_Id_Here", // e.g. "b1b60dca-c49d-496e-9851-xxxxxxxxxxxx" (guid)
-        authority: "https://login.microsoftonline.com/Enter_the_Tenant_Info_Here", // e.g. "common" or your tenantId (guid),
-        redirectUri: "/"
+        authority:
+            "https://login.microsoftonline.com/Enter_the_Tenant_Info_Here", // e.g. "common" or your tenantId (guid),
+        redirectUri: "/",
     },
     cache: {
-       cacheLocation: BrowserCacheLocation.SessionStorage // "sessionStorage"
-    }
+        cacheLocation: BrowserCacheLocation.SessionStorage, // "sessionStorage"
+    },
 });
 ```
 
 By default, MSAL stores the various authentication artifacts it obtains from the IdP in browser storage using the [Web Storage API](https://developer.mozilla.org/docs/Web/API/Web_Storage_API) supported by all modern browsers. Accordingly, MSAL offers two methods of persistent storage: `sessionStorage` (default) and `localStorage`. In addition, MSAL provides `memoryStorage` option which allows you to opt-out of storing the cache in browser storage.
 
 | Cache Location   | Cleared on                                             | Shared between windows/tabs | Redirect flow supported |
-|------------------|--------------------------------------------------------|-----------------------------|-------------------------|
+| ---------------- | ------------------------------------------------------ | --------------------------- | ----------------------- |
 | `sessionStorage` | window/tab close                                       | No                          | Yes                     |
 | `localStorage`   | browser close (unless user selected keep me signed in) | Yes                         | Yes                     |
 | `memoryStorage`  | page refresh/navigation                                | No                          | No                      |
@@ -52,22 +56,84 @@ We consider session/local storage secure as long as your application does not ha
 
 To faciliate efficient token acquisition while maintaining a good UX, MSAL caches various artifacts resulting from its API calls. Below is a summary of entities in MSAL cache:
 
-- **Durable artifacts** (lasting after the request -see also: [token lifetimes](token-lifetimes.md))
-    - access tokens
-    - id tokens
-    - refresh tokens
-    - accounts
-- **Ephemeral artifacts** (limited to request lifetime)
-    - request metadata (e.g. state, nonce, authority)
-    - errors
-    - interaction status
-- **Telemetry**
-    - previous failed request 
-    - performance data
+-   **Durable artifacts** (lasting after the request -see also: [token lifetimes](token-lifetimes.md))
+    -   access tokens
+    -   id tokens
+    -   refresh tokens
+    -   accounts
+-   **Ephemeral artifacts** (limited to request lifetime)
+    -   request metadata (e.g. state, nonce, authority)
+    -   errors
+    -   interaction status
+-   **Telemetry**
+    -   previous failed request
+    -   performance data
 
 > :bulb: Temporary cache entries will always be stored in session storage or in memory. MSAL will fallback to memory storage if sessionStorage is not available.
 
 > :bulb: The authorization code is only stored in memory and will be discarded after redeeming it for tokens.
+
+## CAE-aware access-token caching
+
+The existing cache keeps ordinary and CP1 access tokens separately using a
+`clientCapabilities` component. It stores the complete advertised capability set
+as a JSON array string, normalized for casing, order and duplicates. Empty,
+CP1, CP2 and combined sets remain distinct, alongside existing dimensions such
+as account, scopes and attribute tokens. All sets share account, ID-token and
+refresh-token state.
+
+For mixed callers, leave global `auth.clientCapabilities` unset and specify CP1
+on the request. Configured capabilities otherwise override the request's
+`xms_cc`. The marker describes the advertised capability, not a decoded claim
+from the resource's access token.
+
+```javascript
+const pca = new PublicClientApplication({
+    auth: { clientId: "<your-client-id>" },
+    cache: { cacheLocation: "localStorage" },
+});
+await pca.initialize();
+// Use the account from the existing sign-in flow.
+const ordinary = await pca.acquireTokenSilent({
+    account,
+    scopes: ["User.Read"],
+});
+const cp1 = await pca.acquireTokenSilent({
+    account,
+    scopes: ["User.Read"],
+    claims: JSON.stringify({ access_token: { xms_cc: { values: ["CP1"] } } }),
+});
+```
+
+Declaring CP1 support no longer forces a cache miss. Lookup and overlapping-scope
+replacement use the same capability and other cache components. Additional
+claims requirements and `forceRefresh` retain their existing renewal behavior.
+When importing or hydrating tokens, supply the claims of the acquisition that
+produced them; MSAL does not inspect opaque access tokens to infer capabilities.
+
+Account and credential schema6 use the existing versioned cache and migration framework.
+Account, ID-token and refresh-token state migrate normally. Access tokens from
+older schemas are not copied into the new schema: today's PCA configuration
+cannot establish how an earlier token was requested. MSAL renews
+as needed, which may require interaction if silent renewal fails. Older-schema
+entries remain subject to the normal expiry, retention and quota rules below.
+Rolling back lets the older SDK use its own schema, without granting that SDK
+mixed-capability isolation it did not already support.
+
+Account and credential versions stay aligned. When migrating older entries,
+the ID-token migration can find an account stored under an earlier schema,
+preserving sign-in state from prior prototypes with mismatched versions.
+
+Library-added optional ID-token claims do not force renewal. Caller requirements
+on those claims, such as `essential: true` or a requested value, still do.
+
+Persistent caches use the normal hashing implementation. Non-browser NAA's
+memory-only cache instead encodes the complete component map into its key, so
+it does not require WebCrypto or a fixed list of known capabilities.
+
+This changes token selection, not concurrent request ordering or revocation.
+It does not cancel earlier acquisitions or guarantee immediate cross-tab reuse
+of a replacement token.
 
 ## Cache persistence during MSAL.js upgrades and rollbacks
 
@@ -82,13 +148,13 @@ When a breaking cache change is made the older cache will be kept for 5 days, by
 ```javascript
 const config = {
     auth: {
-        clientId: "<your-client-id>"
+        clientId: "<your-client-id>",
     },
     cache: {
         cacheLocation: "localStorage",
-        cacheRetentionDays: 0 // Set this to the number of days you want old cache to be preserved in the event a rollback is needed (Default 5 days)
-    }
-}
+        cacheRetentionDays: 0, // Set this to the number of days you want old cache to be preserved in the event a rollback is needed (Default 5 days)
+    },
+};
 
 const pca = new PublicClientApplication(config);
 await pca.initialize();
@@ -96,12 +162,12 @@ await pca.initialize();
 
 ## Remarks
 
-- We do not recommend apps having business logic dependent on direct use of entities in the cache. Instead, use the appropriate MSAL API when you need to acquire tokens or retrieve accounts.
-- Keys used to encrypt proof of possession (PoP) tokens and DPoP token-binding keys are stored using a combination of [IndexedDB API](https://developer.mozilla.org/docs/Web/API/IndexedDB_API) and memory storage. For more information, please refer to [access-token-proof-of-possession](./access-token-proof-of-possession.md#pop-key-management).
-- DPoP support in MSAL Browser is currently in development and is not fully rolled out or ready for production use. APIs and behavior may change; use this feature only for evaluation and testing.
-- DPoP access tokens are cached as authentication-scheme access tokens partitioned by `tokenType=dpop` and the request's DPoP key thumbprint. DPoP proof JWTs are not cached; MSAL signs a fresh proof on each successful acquisition and treats a cached DPoP access token as a cache miss if the matching local key is unavailable. When MSAL removes a cached PoP or DPoP access token, it also removes the associated token-binding key.
-- Resource-server DPoP nonces loaded through `loadDpopNonce` are held in memory by the `PublicClientApplication`. Reloading or navigating away from the page discards this state; normal cache clearing and logout also remove it.
+-   We do not recommend apps having business logic dependent on direct use of entities in the cache. Instead, use the appropriate MSAL API when you need to acquire tokens or retrieve accounts.
+-   Keys used to encrypt proof of possession (PoP) tokens and DPoP token-binding keys are stored using a combination of [IndexedDB API](https://developer.mozilla.org/docs/Web/API/IndexedDB_API) and memory storage. For more information, please refer to [access-token-proof-of-possession](./access-token-proof-of-possession.md#pop-key-management).
+-   DPoP support in MSAL Browser is currently in development and is not fully rolled out or ready for production use. APIs and behavior may change; use this feature only for evaluation and testing.
+-   DPoP access tokens are cached as authentication-scheme access tokens partitioned by `tokenType=dpop` and the request's DPoP key thumbprint. DPoP proof JWTs are not cached; MSAL signs a fresh proof on each successful acquisition and treats a cached DPoP access token as a cache miss if the matching local key is unavailable. When MSAL removes a cached PoP or DPoP access token, it also removes the associated token-binding key.
+-   Resource-server DPoP nonces loaded through `loadDpopNonce` are held in memory by the `PublicClientApplication`. Reloading or navigating away from the page discards this state; normal cache clearing and logout also remove it.
 
 ## More information
 
-- [Acquire and cache tokens using the Microsoft Authentication Library](https://docs.microsoft.com/azure/active-directory/develop/msal-acquire-cache-tokens)
+-   [Acquire and cache tokens using the Microsoft Authentication Library](https://docs.microsoft.com/azure/active-directory/develop/msal-acquire-cache-tokens)

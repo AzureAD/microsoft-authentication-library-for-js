@@ -105,6 +105,35 @@ describe("JS Runtime Nested App Auth", () => {
             expect(authResult.accessToken).toBe(TEST_TOKENS.ACCESS_TOKEN);
         }
 
+        for (const values of [["CP1"], ["CP2"], ["CP2", "CP1"]]) {
+            mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
+            const claims = JSON.stringify({
+                access_token: { xms_cc: { values } },
+            });
+            expect(
+                (
+                    await pca.acquireTokenSilent({
+                        scopes: ["User.Read"],
+                        claims,
+                    })
+                ).fromCache
+            ).toBe(false);
+            const equivalentClaims = JSON.stringify({
+                access_token: { xms_cc: { values: [...values].reverse() } },
+            });
+            expect(
+                (
+                    await pca.acquireTokenSilent({
+                        scopes: ["User.Read"],
+                        claims: equivalentClaims,
+                    })
+                ).fromCache
+            ).toBe(true);
+        }
+        expect(
+            (await pca.acquireTokenSilent({ scopes: ["User.Read"] })).fromCache
+        ).toBe(true);
+
         // Validate claims parameter
         mockBridge.addAuthResultResponse("GetToken", SILENT_TOKEN_RESPONSE);
         {

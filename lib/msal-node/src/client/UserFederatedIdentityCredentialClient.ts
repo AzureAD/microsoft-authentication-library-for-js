@@ -8,6 +8,7 @@ import {
     AuthenticationResult,
     Authority,
     ClientConfiguration,
+    ClaimsUtils,
     Constants,
     RequestParameterBuilder,
     RequestThumbprint,
@@ -42,7 +43,18 @@ export class UserFederatedIdentityCredentialClient extends BaseClient {
     public async acquireToken(
         request: CommonUserFederatedIdentityCredentialRequest
     ): Promise<AuthenticationResult | null> {
-        return this.executeTokenRequest(request, this.authority);
+        return this.executeTokenRequest(
+            {
+                ...request,
+                claims: ClaimsUtils.mergeClientCapabilities(
+                    request.claims,
+                    this.config.authOptions.clientCapabilities,
+                    request.correlationId,
+                    request.claimsFromClient
+                ),
+            },
+            this.authority
+        );
     }
 
     /**

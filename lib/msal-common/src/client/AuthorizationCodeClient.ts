@@ -3,6 +3,10 @@
  * Licensed under the MIT License.
  */
 
+import {
+    mergeClientCapabilities,
+    shouldSkipBrokerClaims,
+} from "../request/ClaimsUtils.js";
 import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCodeRequest.js";
 import { Authority } from "../authority/Authority.js";
 import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
@@ -127,10 +131,20 @@ export class AuthorizationCodeClient {
      * @param request
      */
     async acquireToken(
-        request: CommonAuthorizationCodeRequest,
+        baseRequest: CommonAuthorizationCodeRequest,
         apiId: number,
         authCodePayload?: AuthorizationCodePayload
     ): Promise<AuthenticationResult> {
+        const request = {
+            ...baseRequest,
+            claims: mergeClientCapabilities(
+                baseRequest.claims,
+                shouldSkipBrokerClaims(baseRequest)
+                    ? undefined
+                    : this.config.authOptions.clientCapabilities,
+                baseRequest.correlationId
+            ),
+        };
         if (!request.code) {
             throw createClientAuthError(
                 ClientAuthErrorCodes.requestCannotBeMade,

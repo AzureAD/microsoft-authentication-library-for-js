@@ -692,10 +692,14 @@ describe("ResponseHandler.ts", () => {
                                 ?.additionalCacheKeyComponents
                         ).toEqual({
                             attribute_tokens: "alpha zeta",
+                            clientCapabilities: "[]",
                         });
                         // hash input is JSON.stringify of additionalCacheKeyComponents
                         expect(hashStringSpy).toHaveBeenCalledWith(
-                            JSON.stringify({ attribute_tokens: "alpha zeta" })
+                            JSON.stringify({
+                                attribute_tokens: "alpha zeta",
+                                clientCapabilities: "[]",
+                            })
                         );
                         // The entity itself must not carry the hash field
                         const entityAsRecord =

@@ -1,0 +1,6 @@
+{
+    "type": "patch",
+    "comment": "Partition access tokens by complete capability sets using existing cache components and hashing; allow capabilities and library-added optional claims to reuse cached tokens while preserving caller requirements. [#8975](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8975)",
+    "packageName": "@azure/msal-common",
+    "dependentChangeType": "patch"
+}

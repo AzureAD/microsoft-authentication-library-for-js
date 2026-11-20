@@ -511,7 +511,7 @@ describe("BrowserCacheManager tests", () => {
 
                 expect(addFieldsSpy).toHaveBeenCalledWith(
                     {
-                        postMigrateATCount: 2,
+                        postMigrateATCount: 1,
                         postMigrateAcntCount: 2,
                         postMigrateITCount: 2,
                         postMigrateRTCount: 2,
@@ -612,7 +612,7 @@ describe("BrowserCacheManager tests", () => {
 
                 expect(addFieldsSpy).toHaveBeenCalledWith(
                     {
-                        postMigrateATCount: 2,
+                        postMigrateATCount: 1,
                         postMigrateAcntCount: 2,
                         postMigrateITCount: 2,
                         postMigrateRTCount: 2,
@@ -759,7 +759,7 @@ describe("BrowserCacheManager tests", () => {
 
                 expect(addFieldsSpy).toHaveBeenCalledWith(
                     {
-                        postMigrateATCount: 2,
+                        postMigrateATCount: 1,
                         postMigrateAcntCount: 2,
                         postMigrateITCount: 2,
                         postMigrateRTCount: 2,
@@ -777,9 +777,6 @@ describe("BrowserCacheManager tests", () => {
                 expect(currentTokenKeys.accessToken).toEqual([
                     browserCacheManager.generateCredentialKey(
                         TEST_ACCESS_TOKEN_ENTITY
-                    ),
-                    browserCacheManager.generateCredentialKey(
-                        schema2AccessToken
                     ),
                 ]);
                 expect(currentTokenKeys.refreshToken).toEqual([
@@ -988,6 +985,77 @@ describe("BrowserCacheManager tests", () => {
             });
 
             describe("migrateIdTokens - KMSI edge cases", () => {
+                it.each([4, 5])(
+                    "migrates schema %s credentials whose account is in an earlier schema",
+                    async (credentialSchema) => {
+                        await browserCacheManager.initialize(
+                            TEST_CONFIG.CORRELATION_ID
+                        );
+                        const idToken = {
+                            ...TEST_ID_TOKEN_ENTITY,
+                            secret: TEST_TOKENS.IDTOKEN_V2,
+                            lastUpdatedAt: Date.now().toString(),
+                        };
+                        const account = {
+                            ...TEST_ACCOUNT_ENTITY,
+                            homeAccountId: idToken.homeAccountId,
+                            lastUpdatedAt: Date.now().toString(),
+                        };
+                        const oldAccountKey = `msal.3|${account.homeAccountId}|${account.environment}|${account.realm}`;
+                        const oldIdTokenKey = browserCacheManager
+                            .generateCredentialKey(idToken)
+                            .replace(
+                                `msal.${CacheKeys.CREDENTIAL_SCHEMA_VERSION}|`,
+                                `msal.${credentialSchema}|`
+                            );
+                        window.localStorage.setItem(
+                            oldAccountKey,
+                            JSON.stringify(account)
+                        );
+                        window.localStorage.setItem(
+                            oldIdTokenKey,
+                            JSON.stringify(idToken)
+                        );
+                        window.localStorage.setItem(
+                            CacheKeys.getAccountKeysCacheKey(3),
+                            JSON.stringify([oldAccountKey])
+                        );
+                        window.localStorage.setItem(
+                            CacheKeys.getTokenKeysCacheKey(
+                                TEST_CONFIG.MSAL_CLIENT_ID,
+                                credentialSchema
+                            ),
+                            JSON.stringify({
+                                idToken: [oldIdTokenKey],
+                                accessToken: [],
+                                refreshToken: [],
+                            })
+                        );
+
+                        await browserCacheManager.migrateExistingCache(
+                            TEST_CONFIG.CORRELATION_ID
+                        );
+
+                        expect(
+                            browserCacheManager.getAccountKeys()
+                        ).toHaveLength(1);
+                        expect(
+                            browserCacheManager.getIdTokenCredential(
+                                browserCacheManager.generateCredentialKey(
+                                    idToken
+                                ),
+                                TEST_CONFIG.CORRELATION_ID
+                            )?.secret
+                        ).toBe(idToken.secret);
+                        expect(
+                            window.localStorage.getItem(oldAccountKey)
+                        ).not.toBeNull();
+                        expect(
+                            window.localStorage.getItem(oldIdTokenKey)
+                        ).not.toBeNull();
+                    }
+                );
+
                 it("should migrate when old token has signin_state and is newer", async () => {
                     await browserCacheManager.initialize(
                         TEST_CONFIG.CORRELATION_ID
@@ -1261,60 +1329,72 @@ describe("BrowserCacheManager tests", () => {
                     );
                 });
 
-                it("should migrate access tokens with correct KMSI value from kmsiMap", async () => {
-                    await browserCacheManager.initialize(
-                        TEST_CONFIG.CORRELATION_ID
-                    );
+                it.each([undefined, "false", "true", "[", "[1]"])(
+                    "retains unknown old capability sets without migrating them even with KMSI: %s",
+                    async (marker) => {
+                        await browserCacheManager.initialize(
+                            TEST_CONFIG.CORRELATION_ID
+                        );
 
-                    // Setup idToken with KMSI=true
-                    const idToken = {
-                        ...TEST_ID_TOKEN_ENTITY,
-                        secret: TEST_TOKENS.IDTOKEN_V2, // Has signin_state with kmsi
-                    };
-                    await browserCacheManager.setIdTokenCredential(
-                        idToken,
-                        TEST_CONFIG.CORRELATION_ID,
-                        true
-                    );
+                        // Setup idToken with KMSI=true
+                        const idToken = {
+                            ...TEST_ID_TOKEN_ENTITY,
+                            secret: TEST_TOKENS.IDTOKEN_V2, // Has signin_state with kmsi
+                        };
+                        await browserCacheManager.setIdTokenCredential(
+                            idToken,
+                            TEST_CONFIG.CORRELATION_ID,
+                            true
+                        );
 
-                    // Create v0 access token for same account
-                    const v0AccessToken = {
-                        ...TEST_ACCESS_TOKEN_ENTITY,
-                        homeAccountId: idToken.homeAccountId,
-                    };
-                    const v0AccessTokenKey = `${v0AccessToken.homeAccountId}-${v0AccessToken.environment}-accesstoken-${v0AccessToken.clientId}-${v0AccessToken.realm}`;
-                    window.localStorage.setItem(
-                        v0AccessTokenKey,
-                        JSON.stringify(v0AccessToken)
-                    );
+                        // Create v0 access token for same account
+                        const v0AccessToken = {
+                            ...TEST_ACCESS_TOKEN_ENTITY,
+                            homeAccountId: idToken.homeAccountId,
+                            additionalCacheKeyComponents:
+                                marker === undefined
+                                    ? undefined
+                                    : { clientCapabilities: marker },
+                        };
+                        const v0AccessTokenKey = `${v0AccessToken.homeAccountId}-${v0AccessToken.environment}-accesstoken-${v0AccessToken.clientId}-${v0AccessToken.realm}`;
+                        window.localStorage.setItem(
+                            v0AccessTokenKey,
+                            JSON.stringify(v0AccessToken)
+                        );
 
-                    // Setup v0 token keys
-                    window.localStorage.setItem(
-                        `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
-                        JSON.stringify({
-                            idToken: [],
-                            accessToken: [v0AccessTokenKey],
-                            refreshToken: [],
-                        })
-                    );
+                        // Setup v0 token keys
+                        window.localStorage.setItem(
+                            `msal.token.keys.${TEST_CONFIG.MSAL_CLIENT_ID}`,
+                            JSON.stringify({
+                                idToken: [],
+                                accessToken: [v0AccessTokenKey],
+                                refreshToken: [],
+                            })
+                        );
 
-                    const performanceIncrement = jest.spyOn(
-                        performanceClient,
-                        "incrementFields"
-                    );
+                        const performanceIncrement = jest.spyOn(
+                            performanceClient,
+                            "incrementFields"
+                        );
 
-                    await browserCacheManager.migrateExistingCache(
-                        TEST_CONFIG.CORRELATION_ID
-                    );
+                        await browserCacheManager.migrateExistingCache(
+                            TEST_CONFIG.CORRELATION_ID
+                        );
 
-                    // Should have migrated successfully
-                    expect(performanceIncrement).toHaveBeenCalledWith(
-                        { migratedATCount: 1 },
-                        TEST_CONFIG.CORRELATION_ID
-                    );
-                });
+                        expect(
+                            browserCacheManager.getTokenKeys().accessToken
+                        ).toHaveLength(0);
+                        expect(
+                            window.localStorage.getItem(v0AccessTokenKey)
+                        ).not.toBeNull();
+                        expect(performanceIncrement).toHaveBeenCalledWith(
+                            { skipATMigrateCount: 1 },
+                            TEST_CONFIG.CORRELATION_ID
+                        );
+                    }
+                );
 
-                it("should only migrate access tokens when newer than existing", async () => {
+                it("retains even recorded capability tokens only for their older-schema readers", async () => {
                     await browserCacheManager.initialize(
                         TEST_CONFIG.CORRELATION_ID
                     );
@@ -1338,6 +1418,9 @@ describe("BrowserCacheManager tests", () => {
                         ...TEST_ACCESS_TOKEN_ENTITY,
                         lastUpdatedAt: recentTimestamp,
                         target: "scope1 scope2",
+                        additionalCacheKeyComponents: {
+                            clientCapabilities: '["CP1"]',
+                        },
                     };
                     const v0AccessTokenKey = `${v0AccessToken.homeAccountId}-${v0AccessToken.environment}-accesstoken-${v0AccessToken.clientId}-${v0AccessToken.realm}-${v0AccessToken.target}--`;
                     window.localStorage.setItem(
@@ -1364,21 +1447,16 @@ describe("BrowserCacheManager tests", () => {
                         TEST_CONFIG.CORRELATION_ID
                     );
 
-                    // Should have migrated the old token
                     expect(performanceIncrement).toHaveBeenCalledWith(
-                        { migratedATCount: 1 },
+                        { skipATMigrateCount: 1 },
                         TEST_CONFIG.CORRELATION_ID
                     );
-
-                    // Verify the token was migrated
-                    const migratedToken =
-                        browserCacheManager.getAccessTokenCredential(
-                            browserCacheManager.generateCredentialKey(
-                                v0AccessToken
-                            ),
-                            TEST_CONFIG.CORRELATION_ID
-                        );
-                    expect(migratedToken).toBeDefined();
+                    expect(
+                        browserCacheManager.getTokenKeys().accessToken
+                    ).toHaveLength(0);
+                    expect(
+                        window.localStorage.getItem(v0AccessTokenKey)
+                    ).not.toBeNull();
                 });
             });
         });

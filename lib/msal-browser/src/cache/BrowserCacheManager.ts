@@ -202,7 +202,7 @@ export class BrowserCacheManager
         }
         const kmsiMap = this.getKMSIValues();
         for (let i = 0; i < CacheKeys.CREDENTIAL_SCHEMA_VERSION; i++) {
-            await this.migrateAccessTokens(i, kmsiMap, correlationId);
+            await this.migrateAccessTokens(i, correlationId);
             await this.migrateRefreshTokens(i, kmsiMap, correlationId);
         }
 
@@ -541,9 +541,20 @@ export class BrowserCacheManager
             const currentAccountKey = currentAccountKeys.find((key) =>
                 key.includes(oldSchemaData.homeAccountId)
             );
-            const previousAccountKey = previousAccountKeys.find((key) =>
+            let previousAccountKey = previousAccountKeys.find((key) =>
                 key.includes(oldSchemaData.homeAccountId)
             );
+            // Earlier caches can have a newer credential schema than their account.
+            for (
+                let schema = accountSchema - 1;
+                !currentAccountKey && !previousAccountKey && schema >= 0;
+                schema--
+            ) {
+                previousAccountKey = getAccountKeys(
+                    this.browserStorage,
+                    schema
+                ).find((key) => key.includes(oldSchemaData.homeAccountId));
+            }
 
             let account: AccountEntity | null = null;
             if (currentAccountKey) {
@@ -666,15 +677,13 @@ export class BrowserCacheManager
     }
 
     /**
-     * Migrates access tokens from old cache schema to current schema
+     * Cleans expired old-schema access tokens, retaining valid entries only for older readers.
      * @param credentialSchema
-     * @param kmsiMap
      * @param correlationId
      * @returns
      */
     async migrateAccessTokens(
         credentialSchema: number,
-        kmsiMap: KmsiMap,
         correlationId: string
     ): Promise<void> {
         const credentialKeysToMigrate = getTokenKeys(
@@ -685,12 +694,6 @@ export class BrowserCacheManager
         if (credentialKeysToMigrate.accessToken.length === 0) {
             return;
         }
-
-        const currentCredentialKeys = getTokenKeys(
-            this.clientId,
-            this.browserStorage,
-            CacheKeys.CREDENTIAL_SCHEMA_VERSION
-        );
 
         for (const accessTokenKey of [...credentialKeysToMigrate.accessToken]) {
             this.performanceClient.incrementFields(
@@ -737,53 +740,10 @@ export class BrowserCacheManager
                 continue;
             }
 
-            if (!(oldSchemaData.homeAccountId in kmsiMap)) {
-                // Don't migrate tokens if we don't have an idToken for them
-                this.performanceClient.incrementFields(
-                    { skipATMigrateCount: 1 },
-                    correlationId
-                );
-                continue;
-            }
-
-            const newKey = this.generateCredentialKey(oldSchemaData);
-            const kmsi = kmsiMap[oldSchemaData.homeAccountId];
-            if (!currentCredentialKeys.accessToken.includes(newKey)) {
-                await this.setUserData(
-                    newKey,
-                    JSON.stringify(oldSchemaData),
-                    correlationId,
-                    oldSchemaData.lastUpdatedAt,
-                    kmsi
-                );
-                this.performanceClient.incrementFields(
-                    { migratedATCount: 1 },
-                    correlationId
-                );
-                currentCredentialKeys.accessToken.push(newKey);
-            } else {
-                const currentToken = this.getAccessTokenCredential(
-                    newKey,
-                    correlationId
-                );
-                if (
-                    !currentToken ||
-                    oldSchemaData.lastUpdatedAt > currentToken.lastUpdatedAt
-                ) {
-                    // If the token already exists, only overwrite it if the old token has a more recent lastUpdatedAt
-                    await this.setUserData(
-                        newKey,
-                        JSON.stringify(oldSchemaData),
-                        correlationId,
-                        oldSchemaData.lastUpdatedAt,
-                        kmsi
-                    );
-                    this.performanceClient.incrementFields(
-                        { migratedATCount: 1 },
-                        correlationId
-                    );
-                }
-            }
+            this.performanceClient.incrementFields(
+                { skipATMigrateCount: 1 },
+                correlationId
+            );
         }
 
         this.setTokenKeys(
@@ -791,7 +751,6 @@ export class BrowserCacheManager
             correlationId,
             credentialSchema
         );
-        this.setTokenKeys(currentCredentialKeys, correlationId);
     }
 
     /**
@@ -1599,6 +1558,31 @@ export class BrowserCacheManager
             correlationId
         );
         return parsedAccessToken as AccessTokenEntity;
+    }
+
+    /** Keeps non-browser NAA memory keys independent of cryptographic APIs. */
+    protected async getCacheKeySuffix(
+        components: Record<string, string>
+    ): Promise<string> {
+        if (
+            this.browserStorage instanceof MemoryStorage &&
+            (this.cryptoImpl === DEFAULT_CRYPTO_IMPLEMENTATION ||
+                typeof window === "undefined" ||
+                !window.crypto?.subtle ||
+                typeof TextEncoder === "undefined")
+        ) {
+            /*
+             * NAA's non-browser memory cache has no WebCrypto. Fixed-width hex
+             * preserves every component without collisions when keys are lowercased.
+             */
+            return JSON.stringify(components)
+                .split("")
+                .map((character) =>
+                    character.charCodeAt(0).toString(16).padStart(4, "0")
+                )
+                .join("");
+        }
+        return super.getCacheKeySuffix(components);
     }
 
     /**
@@ -2535,7 +2519,11 @@ export class BrowserCacheManager
             undefined, // refreshOn
             result.tokenType as Constants.AuthenticationScheme,
             undefined, // userAssertionHash
-            request.sshKid
+            request.sshKid,
+            CacheHelpers.getAccessTokenCacheKeyComponents({
+                ...request,
+                correlationId: request.correlationId || result.correlationId,
+            })
         );
 
         if (request.resource) {
