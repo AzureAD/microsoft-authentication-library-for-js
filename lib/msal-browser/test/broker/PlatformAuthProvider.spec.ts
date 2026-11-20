@@ -299,16 +299,23 @@ describe("PlatformAuthProvider tests", () => {
             );
         });
 
-        it("returns false when platform auth provider is not initialized", () => {
-            const result = PlatformAuthProvider.isPlatformAuthAllowed(
-                config,
-                logger,
-                TEST_CONFIG.CORRELATION_ID,
-                undefined,
-                Constants.AuthenticationScheme.BEARER
-            );
-            expect(result).toBe(false);
-        });
+        it.each([
+            Constants.AuthenticationScheme.BEARER,
+            Constants.AuthenticationScheme.POP,
+            Constants.AuthenticationScheme.DPOP,
+        ])(
+            "returns false for %s when platform auth provider is not initialized",
+            (authenticationScheme) => {
+                const result = PlatformAuthProvider.isPlatformAuthAllowed(
+                    config,
+                    logger,
+                    TEST_CONFIG.CORRELATION_ID,
+                    undefined,
+                    authenticationScheme
+                );
+                expect(result).toBe(false);
+            }
+        );
         it("returns false when authentication scheme is not supported", () => {
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
@@ -324,22 +331,7 @@ describe("PlatformAuthProvider tests", () => {
             expect(result).toBe(false);
         });
 
-        it("returns false for DPoP when the DOM contract has not been discovered", () => {
-            const result = PlatformAuthProvider.isPlatformAuthAllowed(
-                config,
-                logger,
-                TEST_CONFIG.CORRELATION_ID,
-                new PlatformAuthDOMHandler(
-                    logger,
-                    performanceClient,
-                    "test-correlation-id"
-                ),
-                Constants.AuthenticationScheme.DPOP
-            );
-            expect(result).toBe(false);
-        });
-
-        it("routes DPoP through DOM only after the required contract is advertised", async () => {
+        it("allows DPoP with a normally discovered DOM provider", async () => {
             const getSupportedContracts = jest
                 .fn()
                 .mockResolvedValue([PlatformAuthConstants.PLATFORM_DOM_APIS]);
@@ -389,6 +381,7 @@ describe("PlatformAuthProvider tests", () => {
         it.each([
             Constants.AuthenticationScheme.BEARER,
             Constants.AuthenticationScheme.POP,
+            Constants.AuthenticationScheme.DPOP,
         ])(
             "returns true for %s when the DOM provider is active",
             (authenticationScheme) => {

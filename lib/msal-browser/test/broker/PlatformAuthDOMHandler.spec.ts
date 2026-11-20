@@ -240,34 +240,6 @@ describe("PlatformAuthDOMHandler tests", () => {
     });
 
     describe("sendMessage and validatePlatformBrokerResponse tests", () => {
-        it("rejects direct DPoP requests before discovery without calling the DOM API", async () => {
-            getSupportedContractsMock.mockResolvedValue([
-                PlatformAuthConstants.PLATFORM_DOM_APIS,
-            ]);
-            const testRequest: PlatformAuthRequest = {
-                accountId: "test-id",
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: TEST_CONFIG.validAuthority,
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scope: "read openid",
-                correlationId: TEST_CONFIG.CORRELATION_ID,
-                windowTitleSubstring: "",
-                tokenType: PlatformAuthTokenType.DPOP_WITH_PROOF,
-            };
-            const platformAuthDOMHandler = new PlatformAuthDOMHandler(
-                logger,
-                performanceClient,
-                "test-correlation-id"
-            );
-
-            await expect(
-                platformAuthDOMHandler?.sendMessage(testRequest)
-            ).rejects.toMatchObject({
-                errorCode: AuthErrorCodes.unexpectedError,
-            });
-            expect(executeGetTokenMock).not.toHaveBeenCalled();
-        });
-
         it("returns PlatformBrokerResponse success response for valid request to DOM API", async () => {
             getSupportedContractsMock.mockResolvedValue([
                 PlatformAuthConstants.PLATFORM_DOM_APIS,
@@ -941,15 +913,12 @@ describe("PlatformAuthDOMHandler tests", () => {
         let request: PlatformAuthRequest;
         let response: Record<string, any>;
 
-        beforeEach(async () => {
-            getSupportedContractsMock.mockResolvedValue([
-                PlatformAuthConstants.PLATFORM_DOM_APIS,
-            ]);
-            handler = (await PlatformAuthDOMHandler.createProvider(
+        beforeEach(() => {
+            handler = new PlatformAuthDOMHandler(
                 logger,
                 performanceClient,
                 TEST_CONFIG.CORRELATION_ID
-            ))!;
+            );
             request = {
                 accountId: "test-id",
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1226,6 +1195,41 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(JSON.stringify(error)).not.toContain("private-broker-data");
             expect(error.message).not.toContain("private-broker-data");
         });
+
+        it.each(["NoSupport", "BadState", "OSError", "BrokerError"])(
+            "sanitizes noncanonical DOM error code %s",
+            async (code) => {
+                response = {
+                    isSuccess: false,
+                    error: {
+                        code,
+                        status: "PERSISTENT_ERROR",
+                    },
+                };
+                const endMeasurementSpy = jest.spyOn(
+                    performanceClient,
+                    "endMeasurement"
+                );
+
+                await expect(
+                    handler.sendMessage(request)
+                ).rejects.toMatchObject({
+                    errorCode: AuthErrorCodes.unexpectedError,
+                });
+                expect(
+                    endMeasurementSpy.mock.calls
+                        .map(([event]) => event)
+                        .find(
+                            (event) =>
+                                event.name ===
+                                BrowserPerformanceEvents.PlatformAuthDOMValidateResponse
+                        )
+                ).toMatchObject({
+                    success: false,
+                    brokerErrorName: AuthErrorCodes.unexpectedError,
+                });
+            }
+        );
 
         it.each([
             ["USER_CANCEL", "user_cancelled"],

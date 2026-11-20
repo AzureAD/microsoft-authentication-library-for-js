@@ -169,9 +169,7 @@ export function isPlatformAuthAllowed(
         !authenticationScheme ||
         authenticationScheme === Constants.AuthenticationScheme.BEARER ||
         authenticationScheme === Constants.AuthenticationScheme.POP ||
-        (authenticationScheme === Constants.AuthenticationScheme.DPOP &&
-            (!(platformAuthProvider instanceof PlatformAuthDOMHandler) ||
-                platformAuthProvider.isDpopSupported()));
+        authenticationScheme === Constants.AuthenticationScheme.DPOP;
     const fields = {
         allowPlatformBroker: config.system.allowPlatformBroker,
         ...(config.system.allowPlatformBroker && {

@@ -306,16 +306,12 @@ describe("silent request preparation", () => {
         expect(prepared.account).toBe(prepared.request.account);
     });
 
-    it("keeps web preparation for DPoP when the DOM contract has not been discovered", () => {
+    it("keeps web preparation for DPoP when no platform provider is available", () => {
         input.request.authenticationScheme =
             Constants.AuthenticationScheme.DPOP;
         const prepared = resolveSilentRequestPreparation(
             input,
-            new PlatformAuthDOMHandler(
-                logger,
-                performanceClient,
-                "test-correlation-id"
-            ),
+            undefined,
             logger,
             performanceClient
         );
@@ -324,7 +320,7 @@ describe("silent request preparation", () => {
         expect(prepared.account).toBe(input.account);
     });
 
-    it("selects broker DPoP preparation when DOM advertises the required contract", async () => {
+    it("selects broker DPoP preparation with a normally discovered DOM provider", async () => {
         Object.defineProperty(navigator, "platformAuthentication", {
             configurable: true,
             value: {

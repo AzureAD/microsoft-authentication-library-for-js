@@ -37,19 +37,14 @@ import {
     validateDpopBrokerOutcome,
 } from "./PlatformAuthDpop.js";
 
-const DOM_DPOP_ERROR_CODES = new Set<string>([
-    ...Object.values(NativeAuthErrorCodes),
-    "NoSupport",
-    "BadState",
-    "OSError",
-    "BrokerError",
-]);
+const DOM_DPOP_ERROR_CODES = new Set<string>(
+    Object.values(NativeAuthErrorCodes)
+);
 
 export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     protected logger: Logger;
     protected performanceClient: IPerformanceClient;
     protected readonly correlationId: string;
-    private dpopSupported = false;
     platformAuthType: string;
 
     constructor(
@@ -126,13 +121,11 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                     platformAuthProviderType:
                         PlatformAuthConstants.PLATFORM_DOM_PROVIDER,
                 });
-                const provider = new PlatformAuthDOMHandler(
+                return new PlatformAuthDOMHandler(
                     logger,
                     performanceClient,
                     correlationId
                 );
-                provider.dpopSupported = true;
-                return provider;
             }
             createProviderMeasurement.add({
                 platformAuthProviderAvailable: false,
@@ -172,13 +165,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     }
 
     /**
-     * Whether discovery advertised the contract required for DOM DPoP.
-     */
-    isDpopSupported(): boolean {
-        return this.dpopSupported;
-    }
-
-    /**
      * Send token request to platform broker via browser DOM API
      * @param request
      * @returns
@@ -201,13 +187,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
 
         try {
             const isDpopRequest = isDpopBrokerTokenType(request.tokenType);
-            if (isDpopRequest && !this.dpopSupported) {
-                throw createAuthError(
-                    AuthErrorCodes.unexpectedError,
-                    correlationId,
-                    "Platform authentication DOM contract is unavailable."
-                );
-            }
             if (
                 isDpopRequest &&
                 (request.tokenType !== PlatformAuthTokenType.DPOP_WITH_PROOF ||
