@@ -1129,7 +1129,10 @@ describe("PlatformAuthDOMHandler tests", () => {
             expect(loggerErrorSpy.mock.calls[0][0]).toContain(
                 "'PlatformAuthDOMHandler' - Error stringifying extra parameters"
             );
-            expect(loggerErrorPiiSpy).not.toHaveBeenCalled();
+            expect(loggerErrorPiiSpy).toHaveBeenCalled();
+            expect(loggerErrorPiiSpy.mock.calls[0][0]).toContain(
+                "'PlatformAuthDOMHandler' - Error stringifying extra parameters"
+            );
         });
     });
 });
