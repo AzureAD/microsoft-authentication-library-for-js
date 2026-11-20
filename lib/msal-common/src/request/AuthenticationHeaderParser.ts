@@ -13,14 +13,6 @@ import {
     normalizeResponseHeaders,
 } from "../network/ResponseHeaders.js";
 
-type WWWAuthenticateChallenges = {
-    nonce?: string;
-};
-
-type AuthenticationInfoChallenges = {
-    nextnonce?: string;
-};
-
 /**
  * This is a helper class that parses supported HTTP response authentication headers to extract and return
  * header challenge values that can be used outside the basic authorization flows.
@@ -28,77 +20,124 @@ type AuthenticationInfoChallenges = {
 export class AuthenticationHeaderParser {
     private headers: Record<string, string>;
 
-    /** Captures a case-insensitive snapshot of the response headers. */
+    /**
+     * Captures a case-insensitive snapshot of the response headers.
+     * Callers must combine repeated field lines into comma-separated values (RFC 9110 Section 5.2).
+     */
     constructor(headers: Record<string, string>) {
         this.headers = normalizeResponseHeaders(headers);
     }
 
     /**
      * This method parses the SHR nonce value out of either the Authentication-Info or WWW-Authenticate authentication headers.
+     * Nonces are opaque: only HTTP quoted-string syntax is decoded, not URI escapes.
+     * WWW-Authenticate uses the first PoP challenge, never parameters from other challenges.
      * @returns
      */
     getShrNonce(): string {
-        // Attempt to parse nonce from Authentiacation-Info
         const authenticationInfo = getResponseHeader(
             this.headers,
             HeaderNames.AuthenticationInfo
         );
-        if (authenticationInfo) {
-            const authenticationInfoChallenges =
-                this.parseChallenges<AuthenticationInfoChallenges>(
-                    authenticationInfo
-                );
-            if (authenticationInfoChallenges.nextnonce) {
-                return authenticationInfoChallenges.nextnonce;
-            }
-            throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidAuthenticationHeader,
-                ""
-            );
-        }
-
-        // Attempt to parse nonce from WWW-Authenticate
         const wwwAuthenticate = getResponseHeader(
             this.headers,
             HeaderNames.WWWAuthenticate
         );
-        if (wwwAuthenticate) {
-            const wwwAuthenticateChallenges =
-                this.parseChallenges<WWWAuthenticateChallenges>(
-                    wwwAuthenticate
-                );
-            if (wwwAuthenticateChallenges.nonce) {
-                return wwwAuthenticateChallenges.nonce;
-            }
+        const header = authenticationInfo || wwwAuthenticate;
+        if (!header) {
             throw createClientConfigurationError(
-                ClientConfigurationErrorCodes.invalidAuthenticationHeader,
+                ClientConfigurationErrorCodes.missingNonceAuthenticationHeader,
                 ""
             );
         }
 
-        // If neither header is present, throw missing headers error
+        const nonce = this.parseNonce(
+            header,
+            authenticationInfo ? "nextnonce" : "nonce",
+            authenticationInfo ? undefined : "pop"
+        );
+        if (nonce) {
+            return nonce;
+        }
         throw createClientConfigurationError(
-            ClientConfigurationErrorCodes.missingNonceAuthenticationHeader,
+            ClientConfigurationErrorCodes.invalidAuthenticationHeader,
             ""
         );
     }
 
     /**
-     * Parses an HTTP header's challenge set into a key/value map.
-     * @param header
-     * @returns
+     * Extracts a nonce without validating unrelated parameters.
+     * RFC 9110 Sections 5.6.4 and 11.6.1 define quoting and challenge boundaries.
      */
-    private parseChallenges<T>(header: string): T {
-        const schemeSeparator = header.indexOf(" ");
-        const challenges = header.substr(schemeSeparator + 1).split(",");
-        const challengeMap = {} as T;
+    private parseNonce(
+        header: string,
+        nonceName: string,
+        scheme?: string
+    ): string | undefined {
+        let start = 0;
+        let quoted = false;
+        let escaped = false;
+        let selected = !scheme;
 
-        challenges.forEach((challenge: string) => {
-            const [key, value] = challenge.split("=");
-            // Remove escaped quotation marks (', ") from challenge string to keep only the challenge value
-            challengeMap[key] = unescape(value.replace(/['"]+/g, ""));
-        });
-
-        return challengeMap;
+        /*
+         * Only unquoted commas separate parameters; backslashes escape the next quoted character.
+         * A synthetic comma at end of input processes the final parameter through the same path.
+         */
+        for (let index = 0; index <= header.length; index++) {
+            const character = index < header.length ? header[index] : ",";
+            if (escaped) {
+                escaped = false;
+            } else if (quoted && character === "\\") {
+                escaped = true;
+            } else if (character === '"') {
+                quoted = !quoted;
+            } else if (!quoted && character === ",") {
+                const part = header.slice(start, index).trim();
+                start = index + 1;
+                if (!part) {
+                    continue;
+                }
+                /*
+                 * Preserve any "=" in the value. Before it, whitespace separates an optional
+                 * scheme from the parameter name (e.g. "PoP nonce" versus "nonce").
+                 */
+                const separator = part.indexOf("=");
+                const names = (separator < 0 ? part : part.slice(0, separator))
+                    .trim()
+                    .split(/\s+/);
+                /*
+                 * A bare scheme or "scheme parameter=..." starts a new challenge.
+                 * Stop when the first PoP challenge ends, rather than borrowing another nonce.
+                 */
+                if (scheme && (separator < 0 || names.length > 1)) {
+                    if (selected) {
+                        return undefined;
+                    }
+                    selected = names[0].toLowerCase() === scheme;
+                }
+                if (
+                    selected &&
+                    separator >= 0 &&
+                    names[names.length - 1].toLowerCase() === nonceName
+                ) {
+                    const value = part.slice(separator + 1).trim();
+                    if (!value.startsWith('"')) {
+                        return value;
+                    }
+                    /*
+                     * Match one complete quoted value containing escaped characters or characters
+                     * other than quotes/backslashes. Strip its quotes and escape backslashes only;
+                     * percent sequences and all other nonce data remain unchanged.
+                     * Raw header examples (not JavaScript string literals):
+                     * Accept: "a\",b\\c==%2F" -> a",b\c==%2F
+                     * Reject: "abc"trailing (text outside the closing quote).
+                     */
+                    return /^"(?:\\.|[^"\\])*"$/.test(value)
+                        ? value.slice(1, -1).replace(/\\(.)/g, "$1")
+                        : undefined;
+                }
+            }
+        }
+        return undefined;
     }
 }

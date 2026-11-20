@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Preserve opaque SHR nonce values and correctly parse authentication header parameters. [#8994](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8994)",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
