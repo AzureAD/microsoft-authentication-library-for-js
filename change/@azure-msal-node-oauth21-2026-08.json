@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Validate OAuth 2.1 form-post responses and reject password grants for profile authorities [PR pending](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/TBD)",
+  "packageName": "@azure/msal-node",
+  "email": "spingale@microsoft.com",
+  "dependentChangeType": "patch"
+}

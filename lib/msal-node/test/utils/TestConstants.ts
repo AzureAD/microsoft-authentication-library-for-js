@@ -158,14 +158,14 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
 export const DEFAULT_OPENID_CONFIG_RESPONSE = {
     body: {
         token_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/token",
         token_endpoint_auth_methods_supported: [
             "client_secret_post",
             "private_key_jwt",
             "client_secret_basic",
         ],
         jwks_uri:
-            "https://login.microsoftonline.com/{tenant}/discovery/v2.0/keys",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/keys",
         response_modes_supported: ["query", "fragment", "form_post"],
         subject_types_supported: ["pairwise"],
         id_token_signing_alg_values_supported: ["RS256"],
@@ -176,15 +176,15 @@ export const DEFAULT_OPENID_CONFIG_RESPONSE = {
             "id_token token",
         ],
         scopes_supported: ["openid", "profile", "email", "offline_access"],
-        issuer: "https://login.microsoftonline.com/{tenant}/v2.0",
+        issuer: "https://login.microsoftonline.com/{tenant}/oauth21/2026-08",
         request_uri_parameter_supported: false,
         userinfo_endpoint: "https://graph.microsoft.com/oidc/userinfo",
         authorization_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/authorize",
         http_logout_supported: true,
         frontchannel_logout_supported: true,
         end_session_endpoint:
-            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/logout",
+            "https://login.microsoftonline.com/{tenant}/oauth21/2026-08/logout",
         claims_supported: [
             "sub",
             "iss",
