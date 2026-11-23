@@ -306,7 +306,7 @@ describe("silent request preparation", () => {
         expect(prepared.account).toBe(prepared.request.account);
     });
 
-    it("keeps web preparation for DPoP when the DOM provider is active", () => {
+    it("selects broker DPoP preparation when the DOM provider is active", () => {
         input.request.authenticationScheme =
             Constants.AuthenticationScheme.DPOP;
         const prepared = resolveSilentRequestPreparation(
@@ -319,9 +319,9 @@ describe("silent request preparation", () => {
             logger,
             performanceClient
         );
-        expect(prepared).toEqual(prepareWebSilentRequest(input));
-        expect(prepared.request).toBe(input.request);
-        expect(prepared.account).toBe(input.account);
+        expect(prepared.key).toBeUndefined();
+        expect(prepared.request).not.toBe(input.request);
+        expect(prepared.account).toBe(prepared.request.account);
     });
 
     it("keeps web preparation for unsupported broker scheme SSH", () => {

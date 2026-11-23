@@ -15,7 +15,6 @@ import {
 import {
     DOMExtraParameters,
     PlatformAuthRequest,
-    PlatformAuthTokenType,
     PlatformDOMTokenRequest,
 } from "./PlatformAuthRequest.js";
 import { PlatformAuthConstants } from "../../utils/BrowserConstants.js";
@@ -24,12 +23,8 @@ import {
     PlatformDOMTokenResponse,
 } from "./PlatformAuthResponse.js";
 import { createNativeAuthError } from "../../error/NativeAuthError.js";
-import { createBrowserAuthError } from "../../error/BrowserAuthError.js";
 import { IPlatformAuthHandler } from "./IPlatformAuthHandler.js";
 import * as BrowserPerformanceEvents from "../../telemetry/BrowserPerformanceEvents.js";
-
-const PLATFORM_AUTH_DOM_DPOP_NOT_SUPPORTED =
-    "platform_auth_dom_dpop_not_supported";
 
 export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
     protected logger: Logger;
@@ -174,15 +169,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
         );
 
         try {
-            if (
-                request.tokenType?.trim().toLowerCase() ===
-                PlatformAuthTokenType.DPOP_WITH_PROOF
-            ) {
-                throw createBrowserAuthError(
-                    PLATFORM_AUTH_DOM_DPOP_NOT_SUPPORTED,
-                    correlationId
-                );
-            }
             const platformDOMRequest = invoke(
                 this.initializePlatformDOMRequest.bind(this),
                 BrowserPerformanceEvents.PlatformAuthDOMInitializeRequest,
@@ -190,6 +176,8 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
                 this.performanceClient,
                 correlationId
             )(request);
+            request.bindingPreferenceSent =
+                platformDOMRequest.preferBinding !== undefined;
             const response: object =
                 // @ts-ignore
                 await window.navigator.platformAuthentication.executeGetToken(
@@ -268,8 +256,12 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             preferBinding: preferBinding,
             enclave: enclave,
             requestConfirmation: reqCnf,
-            extraParametersNoCache,
+            extraParametersNoCache: extraParametersNoCache && {
+                ...extraParametersNoCache,
+            },
         };
+        delete platformDOMRequest.extraParameters?.bindingPreferenceSent;
+        delete platformDOMRequest.extraParametersNoCache?.bindingPreferenceSent;
 
         return platformDOMRequest;
     }
@@ -299,7 +291,10 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             response &&
             Object.prototype.hasOwnProperty.call(response, "isSuccess")
         ) {
-            if (isValid) {
+            if (
+                isValid &&
+                (response as PlatformDOMTokenResponse).isSuccess === true
+            ) {
                 this.logger.trace(
                     `'${this.platformAuthType}' - platform broker returned successful and valid response`,
                     correlationId
@@ -390,11 +385,6 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             correlationId
         );
         const responseProperties = response.properties || {};
-        const bindingAttested = this.parseDOMBoolean(
-            responseProperties.binding_attested,
-            "binding_attested",
-            correlationId
-        );
         const nativeResponse: PlatformAuthResponse = {
             access_token: response.accessToken,
             id_token: response.idToken,
@@ -406,32 +396,9 @@ export class PlatformAuthDOMHandler implements IPlatformAuthHandler {
             properties: responseProperties,
             extendedLifetimeToken: response.extendedLifetimeToken ?? false,
             shr: response.proofOfPossessionPayload,
-            token_type: responseProperties.token_type,
-            DPoP: responseProperties.dpop_proof,
-            binding_attested: bindingAttested,
         };
 
         return nativeResponse;
-    }
-
-    private parseDOMBoolean(
-        value: string | undefined,
-        propertyName: string,
-        correlationId: string
-    ): boolean | undefined {
-        if (value === undefined) {
-            return undefined;
-        }
-
-        if (value === "true" || value === "false") {
-            return value === "true";
-        }
-
-        throw createAuthError(
-            AuthErrorCodes.unexpectedError,
-            correlationId,
-            `Platform broker returned invalid ${propertyName} value.`
-        );
     }
 
     private getDOMExtraParams(
