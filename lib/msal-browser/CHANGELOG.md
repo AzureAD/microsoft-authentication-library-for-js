@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-browser
 
-<!-- This log was last generated on Wed, 18 Nov 2026 21:34:22 GMT and should not be manually modified. -->
+<!-- This log was last generated on Mon, 23 Nov 2026 19:00:28 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.31.0
+
+Mon, 23 Nov 2026 19:00:28 GMT
+
+### Minor changes
+
+- Support platform-broker DPoP outcomes through the existing DOM API transport [#8968](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8968) (hectormmg@microsoft.com)
+- Add IPublicClientApplication.loadDpopNonce with origin-scoped PCA-memory state and WAM forwarding (AB#3677519) [#8981](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8981) (hemoral@microsoft.com)
+- Bump @azure/msal-common to v16.18.0
+
+### Patches
+
+- Validate broker authorization response state and enforce full-length authentication tags for symmetric encrypted authorization responses. [#9002](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/9002) (thomas.norling@microsoft.com)
 
 ## 5.30.0
 
