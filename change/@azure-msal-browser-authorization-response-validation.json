@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Validate broker authorization response state and enforce full-length authentication tags for symmetric encrypted authorization responses.",
+    "packageName": "@azure/msal-browser",
+    "email": "thomas.norling@microsoft.com",
+    "dependentChangeType": "patch"
+}

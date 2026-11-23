@@ -674,7 +674,9 @@ export async function decryptEarResponse(
         const iv = base64DecToArr(earJweParts[2]);
         const ciphertext = base64DecToArr(earJweParts[3]);
         const tag = base64DecToArr(earJweParts[4]);
-        const tagLengthBits = tag.byteLength * 8;
+        if (tag.byteLength !== 16) {
+            throw new Error("Invalid AES-GCM authentication tag length");
+        }
 
         // Concat ciphertext and tag
         const encryptedData = new Uint8Array(ciphertext.length + tag.length);
@@ -685,7 +687,7 @@ export async function decryptEarResponse(
             {
                 name: AES_GCM,
                 iv: iv,
-                tagLength: tagLengthBits,
+                tagLength: 128,
                 additionalData: header,
             },
             key,
