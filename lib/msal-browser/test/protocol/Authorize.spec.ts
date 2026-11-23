@@ -1162,6 +1162,36 @@ describe("Authorize Protocol Tests", () => {
             addFieldsSpy.mockRestore();
         });
 
+        it("rejects a broker response with mismatched state before requesting a token", async () => {
+            const broker = jest.spyOn(
+                PlatformAuthInteractionClient.prototype,
+                "acquireToken"
+            );
+            await expect(
+                Authorize.handleResponseCode(
+                    validRequest,
+                    { accountId: "test-account-id", state: "other-state" },
+                    "test-code-verifier",
+                    ApiId.acquireTokenRedirect,
+                    config,
+                    {} as any,
+                    cacheManager,
+                    cacheManager,
+                    eventHandler,
+                    logger,
+                    performanceClient,
+                    new PlatformAuthExtensionHandler(
+                        logger,
+                        2000,
+                        performanceClient
+                    )
+                )
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.stateMismatch,
+            });
+            expect(broker).not.toHaveBeenCalled();
+        });
+
         it("handleResponseCode instruments clientdata telemetry before processing response", async () => {
             const addFieldsSpy = jest.spyOn(performanceClient, "addFields");
             // clientdata: e|AADSTS65001|consent_required|login.microsoftonline.com|none
