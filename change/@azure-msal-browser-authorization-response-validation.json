@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Validate broker authorization response state and enforce full-length authentication tags for symmetric encrypted authorization responses.",
+    "comment": "Validate broker authorization response state and enforce full-length authentication tags for symmetric encrypted authorization responses. [#9002](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/9002)",
     "packageName": "@azure/msal-browser",
     "email": "thomas.norling@microsoft.com",
     "dependentChangeType": "patch"
