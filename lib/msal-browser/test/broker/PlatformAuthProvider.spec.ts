@@ -324,21 +324,6 @@ describe("PlatformAuthProvider tests", () => {
             expect(result).toBe(false);
         });
 
-        it("returns false for DPoP when the DOM provider is active", () => {
-            const result = PlatformAuthProvider.isPlatformAuthAllowed(
-                config,
-                logger,
-                TEST_CONFIG.CORRELATION_ID,
-                new PlatformAuthDOMHandler(
-                    logger,
-                    performanceClient,
-                    "test-correlation-id"
-                ),
-                Constants.AuthenticationScheme.DPOP
-            );
-            expect(result).toBe(false);
-        });
-
         it("returns true for DPoP when the extension provider is active", () => {
             const result = PlatformAuthProvider.isPlatformAuthAllowed(
                 config,
@@ -358,6 +343,7 @@ describe("PlatformAuthProvider tests", () => {
         it.each([
             Constants.AuthenticationScheme.BEARER,
             Constants.AuthenticationScheme.POP,
+            Constants.AuthenticationScheme.DPOP,
         ])(
             "returns true for %s when the DOM provider is active",
             (authenticationScheme) => {
