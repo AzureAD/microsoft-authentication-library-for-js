@@ -558,6 +558,20 @@ describe("BrowserCrypto Tests", () => {
             });
         });
 
+        it("rejects a symmetric EAR response with a shortened authentication tag", async () => {
+            const parts = (await generateValidEarJWE("{}", validEarJWK)).split(
+                "."
+            );
+            parts[4] = Buffer.from(parts[4], "base64url")
+                .subarray(0, 12)
+                .toString("base64url");
+            await expect(
+                decryptEarResponse(validEarJWK, parts.join("."))
+            ).rejects.toMatchObject({
+                errorCode: BrowserAuthErrorCodes.failedToDecryptEarResponse,
+            });
+        });
+
         it("Successfully decrypts ear_jwe with given earJwk", async () => {
             const jwe = await generateValidEarJWE(
                 JSON.stringify(TEST_TOKEN_RESPONSE.body),

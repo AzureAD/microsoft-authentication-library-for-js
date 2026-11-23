@@ -668,6 +668,11 @@ export async function handleResponseCode(
     instrumentClientData(response, request.correlationId, performanceClient);
 
     if (response.accountId) {
+        AuthorizeProtocol.validateAuthorizationResponse(
+            response,
+            request.state,
+            request.correlationId
+        );
         return invokeAsync(
             handleResponsePlatformBroker,
             BrowserPerformanceEvents.HandleResponsePlatformBroker,
