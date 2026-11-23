@@ -1,0 +1,7 @@
+{
+    "type": "minor",
+    "comment": "Support platform-broker DPoP outcomes through the existing DOM API transport [#8968](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8968)",
+    "packageName": "@azure/msal-browser",
+    "email": "hectormmg@microsoft.com",
+    "dependentChangeType": "minor"
+}

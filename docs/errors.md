@@ -1,5 +1,7 @@
 # MSAL.js errors
 
+This catalog lists diagnostic codes. For recovery patterns, interaction-required responses, claims challenges, retries, and safe logging, see [Browser error handling](../lib/msal-browser/docs/handle-errors.md).
+
 ## Auth errors
 
 ### `unexpected_error`
@@ -227,7 +229,7 @@ may maintain its own cache; MSAL cannot undo broker-side writes.
 
 ### `authority_uri_insecure`
 
--   Authority URIs must use https. Please see here for valid authority configuration options: https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-initializing-client-applications#configuration-options.
+-   Authority URIs must use https. See [authority configuration](../lib/msal-common/docs/authority.md) for valid authority options.
 
 ### `url_parse_error`
 

@@ -2,6 +2,8 @@
 
 Before you get started, please ensure you have completed all the [prerequisites](../README.md#prerequisites).
 
+See [application registration](./app-registration.md) for the client ID, tenant/authority, redirect URI, and permission values to collect before configuring a public client.
+
 In this document:
 
 -   [Initialization of MSAL](#initialization-of-msal)
