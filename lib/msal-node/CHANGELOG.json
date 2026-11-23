@@ -2,6 +2,29 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 23 Nov 2026 19:00:28 GMT",
+      "version": "7.2.4",
+      "tag": "@azure/msal-node_v7.2.4",
+      "comments": {
+        "none": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "a7b2b8fd5eceb9fd45bc42230ed9fdb6693f124e",
+            "comment": "Restore the MSAL Node major-change guard after the v7 release [#8909](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8909)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v16.18.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 18 Nov 2026 21:34:22 GMT",
       "version": "7.2.3",
       "tag": "@azure/msal-node_v7.2.3",

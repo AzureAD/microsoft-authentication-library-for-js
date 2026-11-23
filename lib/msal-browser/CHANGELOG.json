@@ -2,6 +2,41 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 23 Nov 2026 19:00:28 GMT",
+      "version": "5.31.0",
+      "tag": "@azure/msal-browser_v5.31.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "50074431c070840a59b004881b30ac3bd84e1496",
+            "comment": "Validate broker authorization response state and enforce full-length authentication tags for symmetric encrypted authorization responses. [#9002](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/9002)"
+          }
+        ],
+        "minor": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "50074431c070840a59b004881b30ac3bd84e1496",
+            "comment": "Support platform-broker DPoP outcomes through the existing DOM API transport [#8968](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8968)"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a7b2b8fd5eceb9fd45bc42230ed9fdb6693f124e",
+            "comment": "Add IPublicClientApplication.loadDpopNonce with origin-scoped PCA-memory state and WAM forwarding (AB#3677519) [#8981](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8981)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.18.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 18 Nov 2026 21:34:22 GMT",
       "version": "5.30.0",
       "tag": "@azure/msal-browser_v5.30.0",
