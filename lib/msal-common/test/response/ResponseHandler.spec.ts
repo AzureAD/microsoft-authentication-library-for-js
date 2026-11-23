@@ -210,6 +210,79 @@ describe("ResponseHandler.ts", () => {
             expect(save).not.toHaveBeenCalled();
         });
 
+        it.each([
+            [undefined, true],
+            ["", true],
+            ["+all", true],
+            ["-ALL", true],
+            ["+mc", false],
+            ["+all,+mc", false],
+            ["+all,-ALL", false],
+            ["all", false],
+            [null, false],
+        ])(
+            "validates an untargeted network receipt %j before cache writes",
+            async (receipt, valid) => {
+                claimsStub.mockReturnValue({
+                    ...ID_TOKEN_CLAIMS,
+                    xms_agvt: receipt,
+                });
+                const handler = new ResponseHandler(
+                    TEST_CONFIG.MSAL_CLIENT_ID,
+                    testCacheManager,
+                    cryptoInterface,
+                    logger,
+                    stubPerformanceClient,
+                    null,
+                    null
+                );
+                const save = jest.spyOn(testCacheManager, "saveCacheRecord");
+                const result = handler.handleServerTokenResponse(
+                    AUTHENTICATION_RESULT.body,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    { ...request, claims: undefined },
+                    0
+                );
+                if (valid) {
+                    await expect(result).resolves.toMatchObject({
+                        idTokenClaims: { xms_agvt: receipt },
+                    });
+                    expect(save).toHaveBeenCalledTimes(1);
+                } else {
+                    await expect(result).rejects.toMatchObject({
+                        errorCode:
+                            ClientAuthErrorCodes.ageAssuranceTargetMismatch,
+                    });
+                    expect(save).not.toHaveBeenCalled();
+                }
+            }
+        );
+
+        it("does not require an ID token on an untargeted token response", async () => {
+            const handler = new ResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+            await expect(
+                handler.handleServerTokenResponse(
+                    { ...AUTHENTICATION_RESULT.body, id_token: undefined },
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    { ...request, claims: undefined },
+                    0
+                )
+            ).resolves.toMatchObject({
+                accessToken: AUTHENTICATION_RESULT.body.access_token,
+                idToken: "",
+            });
+        });
+
         it.each([true, false])(
             "validates result construction (fromCache=%s)",
             async (fromCache) => {

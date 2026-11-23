@@ -230,6 +230,88 @@ describe("PlatformAuthInteractionClient Tests", () => {
     });
 
     describe("acquireTokensFromInternalCache Tests", () => {
+        let getAccessTokenSpy: jest.SpyInstance;
+
+        it("rejects a named receipt reread from cache without requested targets or broker fallback", async () => {
+            jest.spyOn(
+                SilentCacheClient.prototype,
+                "acquireToken"
+            ).mockResolvedValue({
+                idTokenClaims: { xms_agvt: "+all" },
+            } as Awaited<ReturnType<SilentCacheClient["acquireToken"]>>);
+            jest.spyOn(CacheManager.prototype, "getIdToken").mockReturnValue({
+                ...TEST_ID_TOKEN,
+                secret: `e30.${btoa(
+                    JSON.stringify({ ...ID_TOKEN_CLAIMS, xms_agvt: "+mc" })
+                )}.signature`,
+            });
+            const broker = jest.spyOn(wamProvider, "sendMessage");
+            await expect(
+                platformAuthInteractionClient.acquireToken({
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                })
+            ).rejects.toMatchObject({
+                errorCode: "age_assurance_target_mismatch",
+            });
+            expect(broker).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            ["+mc", false],
+            ["+all,-ALL", false],
+            ["-ALL", true],
+        ])(
+            "validates untargeted broker receipt %s before saving tokens",
+            async (receipt, valid) => {
+                jest.spyOn(
+                    PlatformAuthExtensionHandler.prototype,
+                    "sendMessage"
+                ).mockResolvedValue({
+                    ...MOCK_WAM_RESPONSE,
+                    id_token: `e30.${btoa(
+                        JSON.stringify({
+                            ...ID_TOKEN_CLAIMS,
+                            xms_agvt: receipt,
+                        })
+                    )}.signature`,
+                });
+                const save = jest.spyOn(internalStorage, "saveCacheRecord");
+                const result = platformAuthInteractionClient.acquireToken(
+                    { scopes: TEST_CONFIG.DEFAULT_SCOPES },
+                    CacheLookupPolicy.Skip
+                );
+                if (valid) {
+                    await expect(result).resolves.toMatchObject({
+                        idTokenClaims: { xms_agvt: receipt },
+                    });
+                    expect(save).toHaveBeenCalledTimes(1);
+                } else {
+                    await expect(result).rejects.toMatchObject({
+                        errorCode: "age_assurance_target_mismatch",
+                    });
+                    expect(save).not.toHaveBeenCalled();
+                }
+            }
+        );
+
+        it("rejects a malformed present broker ID token without requested targets", async () => {
+            jest.spyOn(
+                PlatformAuthExtensionHandler.prototype,
+                "sendMessage"
+            ).mockResolvedValue({
+                ...MOCK_WAM_RESPONSE,
+                id_token: "malformed",
+            });
+            const save = jest.spyOn(internalStorage, "saveCacheRecord");
+            await expect(
+                platformAuthInteractionClient.acquireToken(
+                    { scopes: TEST_CONFIG.DEFAULT_SCOPES },
+                    CacheLookupPolicy.Skip
+                )
+            ).rejects.toMatchObject({ errorCode: "token_parsing_error" });
+            expect(save).not.toHaveBeenCalled();
+        });
+
         it.each([TEST_ID_TOKEN, null])(
             "rejects a replaced or removed ID token after the asynchronous cache lookup (%s)",
             async (idToken) => {

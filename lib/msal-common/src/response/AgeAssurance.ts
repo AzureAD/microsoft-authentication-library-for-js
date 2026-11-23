@@ -9,7 +9,8 @@ import { createClientConfigurationError } from "../error/ClientConfigurationErro
 import { claimsRequestParsingError } from "../error/ClientConfigurationErrorCodes.js";
 
 /**
- * Binds an ID-token age-assurance receipt to explicitly requested targets.
+ * Binds an ID-token age-assurance receipt to the requested targets.
+ * Without explicit targets, only absent, empty, or a single signed all receipt is valid.
  * Receipt signs describe outcomes, not target identities or authorization.
  * Access-token claims are deliberately excluded.
  * @internal
@@ -19,27 +20,21 @@ export function validateAgeAssuranceTargets(
     idTokenClaims: object | undefined,
     correlationId: string
 ): void {
-    if (!requestedClaims) {
-        return;
-    }
-
     let claims;
-    try {
-        claims = JSON.parse(requestedClaims);
-    } catch {
-        throw createClientConfigurationError(
-            claimsRequestParsingError,
-            correlationId
-        );
+    if (requestedClaims) {
+        try {
+            claims = JSON.parse(requestedClaims);
+        } catch {
+            throw createClientConfigurationError(
+                claimsRequestParsingError,
+                correlationId
+            );
+        }
     }
 
     const properties = claims?.id_token?.xms_agvs?.additionalProperties;
-    if (!Array.isArray(properties)) {
-        return;
-    }
-
     const targets = new Set<string>();
-    for (const property of properties) {
+    for (const property of Array.isArray(properties) ? properties : []) {
         if (
             typeof property !== "string" ||
             !property.toLowerCase().startsWith("target-")
@@ -55,12 +50,15 @@ export function validateAgeAssuranceTargets(
         }
         targets.add(target);
     }
-    if (!targets.size) {
-        return;
-    }
-
     const receipt = (idTokenClaims as { xms_agvt?: unknown } | undefined)
         ?.xms_agvt;
+    if (!targets.size) {
+        if (receipt === undefined || receipt === "") {
+            return;
+        }
+        targets.add("all");
+    }
+
     if (typeof receipt !== "string") {
         throw createClientAuthError(ageAssuranceTargetMismatch, correlationId);
     }

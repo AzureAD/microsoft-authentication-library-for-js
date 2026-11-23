@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Validate explicitly requested ID-token age-assurance targets before cache writes and successful results [#8983](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8983)",
+  "comment": "Validate ID-token age-assurance receipts before cache writes and successful results, including absent, empty, or signed all receipts when no targets are requested [#8983](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8983)",
   "packageName": "@azure/msal-browser",
   "email": "mohaibrahim@microsoft.com",
   "dependentChangeType": "patch"

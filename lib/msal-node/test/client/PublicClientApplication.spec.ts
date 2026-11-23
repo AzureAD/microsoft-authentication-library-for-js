@@ -1214,6 +1214,47 @@ describe("PublicClientApplication", () => {
         });
 
         test.each(["silent", "interactive"])(
+            "validates untargeted %s broker receipts",
+            async (flow) => {
+                const plugin = new MockNativeBrokerPlugin();
+                const authApp = new PublicClientApplication({
+                    ...appConfig,
+                    broker: { nativeBrokerPlugin: plugin },
+                });
+                const request = {
+                    account: mockNativeAccountInfo,
+                    scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+                    openBrowser: jest.fn(),
+                };
+                const broker = jest.spyOn(
+                    plugin,
+                    flow === "silent"
+                        ? "acquireTokenSilent"
+                        : "acquireTokenInteractive"
+                );
+                const acquire = () =>
+                    flow === "silent"
+                        ? authApp.acquireTokenSilent(request)
+                        : authApp.acquireTokenInteractive(request);
+                broker.mockResolvedValue({
+                    ...mockNativeAuthenticationResult,
+                    idTokenClaims: { xms_agvt: "+mc" },
+                });
+                await expect(acquire()).rejects.toMatchObject({
+                    errorCode: ClientAuthErrorCodes.ageAssuranceTargetMismatch,
+                });
+                expect(broker).toHaveBeenCalledTimes(1);
+                broker.mockResolvedValue({
+                    ...mockNativeAuthenticationResult,
+                    idTokenClaims: { xms_agvt: "-ALL" },
+                });
+                await expect(acquire()).resolves.toMatchObject({
+                    idTokenClaims: { xms_agvt: "-ALL" },
+                });
+            }
+        );
+
+        test.each(["silent", "interactive"])(
             "validates %s broker target receipts",
             async (flow) => {
                 const plugin = new MockNativeBrokerPlugin();

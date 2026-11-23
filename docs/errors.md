@@ -84,16 +84,23 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 ### `age_assurance_target_mismatch`
 
-An ID-token age-assurance receipt does not match the explicitly requested targets.
-Validation applies only when `id_token.xms_agvs.additionalProperties` contains
-`target-<identity>` entries in an array in the effective request claims JSON.
+An ID-token age-assurance receipt does not match the requested targets.
+Explicit targets are `target-<identity>` entries in the
+`id_token.xms_agvs.additionalProperties` array in the effective request claims JSON.
+Without explicit ID-token targets (including absent claims, an empty array, or
+access-token-only claims), a received ID token may have only an absent or empty
+string receipt, or exactly one signed `all` entry (`+all` or `-all`, ignoring case).
+Named targets, extra or duplicate entries, unsigned or malformed entries, and
+non-string receipts (including `null`) are rejected. This does not require an
+ID token on flows that do not return one.
 For Node flows supporting `claimsFromClient`, validation uses the existing
 deep merge with `claims`, including client-claims precedence. For example, requesting
 `target-mc` and `target-sm` requires an `xms_agvt` receipt such as `+mc,-sm`.
 Matching ignores identity case and order, but requires a sign on every receipt
 entry and rejects duplicate, missing, extra, malformed, or non-string receipts.
 Target names are opaque, nonempty identities without commas, whitespace, or a
-leading sign. `all` is a literal identity, not a wildcard.
+leading sign. Explicit `target-all` is a literal identity, not a wildcard, and
+requires a signed `all` receipt; the absent/empty exception does not apply.
 
 Client-claims access-token cache isolation does not bind the separately cached
 ID token to those targets. A cached receipt mismatch fails closed with this error;
@@ -103,7 +110,7 @@ requires explicit SDK-owner agreement before this draft is ready to merge.
 This check also applies to cached and broker-returned results and when
 `xms_agvs` is `0`. Negative outcomes such as `-mc` can match: matching is not
 proof of adulthood or an authorization decision. Access tokens remain opaque;
-access-token-only target requests do not enable this ID-token check.
+access-token-only target requests use the no-explicit-ID-token-target rule above.
 
 Review the requested targets and the identity provider's receipt support before
 retrying. Do not ignore this error or use a rejected result. An external broker

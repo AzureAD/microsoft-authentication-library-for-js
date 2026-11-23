@@ -82,7 +82,7 @@ describe("OnBehalfOfClient claimsFromClient tests", () => {
                 },
             });
 
-        const responseWithReceipt = (receipt: string) => {
+        const responseWithReceipt = (receipt: string | null) => {
             const parts = AUTHENTICATION_RESULT.body.id_token.split(".");
             const payload = JSON.parse(
                 Buffer.from(parts[1], "base64url").toString()
@@ -156,6 +156,101 @@ describe("OnBehalfOfClient claimsFromClient tests", () => {
                 }
             );
             expect(network).toHaveBeenCalledTimes(3);
+        });
+
+        it.each<[string | undefined, string | null]>([
+            [undefined, "+mc"],
+            [undefined, null],
+            ['{"id_token":{"xms_agvs":{"additionalProperties":[]}}}', "+mc"],
+        ])(
+            "fails closed for untargeted claims %s after the cached receipt changes to %j",
+            async (claimsFromClient, receipt) => {
+                const network = jest
+                    .spyOn(config.networkInterface!, "sendPostRequestAsync")
+                    .mockResolvedValue(responseWithReceipt("-ALL"));
+                const client = new OnBehalfOfClient(config);
+                const request = {
+                    ...baseRequest(),
+                    claimsFromClient,
+                };
+                await expect(
+                    client.acquireToken(request)
+                ).resolves.toMatchObject({
+                    fromCache: false,
+                    idTokenClaims: { xms_agvt: "-ALL" },
+                });
+                await expect(
+                    client.acquireToken(request)
+                ).resolves.toMatchObject({
+                    fromCache: true,
+                });
+                const storage = config.storageInterface!;
+                const keys = storage.getTokenKeys();
+                const idToken = storage.getIdTokenCredential(
+                    keys.idToken[0],
+                    request.correlationId
+                )!;
+                await storage.setIdTokenCredential(
+                    {
+                        ...idToken,
+                        secret: responseWithReceipt(receipt).body.id_token,
+                    },
+                    request.correlationId,
+                    false
+                );
+                await expect(
+                    client.acquireToken(request)
+                ).rejects.toMatchObject({
+                    errorCode: ClientAuthErrorCodes.ageAssuranceTargetMismatch,
+                });
+                expect(network).toHaveBeenCalledTimes(1);
+                expect(storage.getTokenKeys()).toEqual(keys);
+            }
+        );
+
+        it("allows an untargeted OBO response and cache hit without an ID token", async () => {
+            const network = jest
+                .spyOn(config.networkInterface!, "sendPostRequestAsync")
+                .mockResolvedValue({
+                    ...AUTHENTICATION_RESULT,
+                    body: {
+                        ...AUTHENTICATION_RESULT.body,
+                        id_token: undefined,
+                    },
+                });
+            const client = new OnBehalfOfClient(config);
+            await expect(
+                client.acquireToken(baseRequest())
+            ).resolves.toMatchObject({
+                fromCache: false,
+                idToken: "",
+            });
+            await expect(
+                client.acquireToken(baseRequest())
+            ).resolves.toMatchObject({
+                fromCache: true,
+                idToken: "",
+            });
+            expect(network).toHaveBeenCalledTimes(1);
+        });
+
+        it("rejects a malformed present OBO ID token without requested targets before caching", async () => {
+            jest.spyOn(
+                config.networkInterface!,
+                "sendPostRequestAsync"
+            ).mockResolvedValue({
+                ...AUTHENTICATION_RESULT,
+                body: { ...AUTHENTICATION_RESULT.body, id_token: "malformed" },
+            });
+            const client = new OnBehalfOfClient(config);
+            await expect(
+                client.acquireToken(baseRequest())
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.tokenParsingError,
+            });
+            expect(config.storageInterface!.getTokenKeys().accessToken).toEqual(
+                []
+            );
         });
 
         it("uses wire merge precedence without changing the caller request", async () => {

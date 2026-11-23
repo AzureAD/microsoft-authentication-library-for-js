@@ -87,10 +87,15 @@ describe("age-assurance target binding", () => {
         ).toThrow();
     });
 
-    it.each([
+    describe.each([
         undefined,
+        "",
         "{}",
         claims([]),
+        JSON.stringify({
+            id_token: { xms_agvs: { additionalProperties: [] } },
+        }),
+        JSON.stringify({ id_token: { unrelated: { essential: true } } }),
         claims(["target-mc"], "access_token"),
         JSON.stringify({
             id_token: { xms_agvs: { additionalProperties: "target-mc" } },
@@ -109,11 +114,85 @@ describe("age-assurance target binding", () => {
                 },
             },
         }),
-    ])("does not opt in without explicit ID-token targets: %s", (request) => {
-        expect(() =>
-            validateAgeAssuranceTargets(request, undefined, "")
-        ).not.toThrow();
+    ])("without explicit ID-token targets: %s", (request) => {
+        it("does not require an ID token", () => {
+            expect(() =>
+                validateAgeAssuranceTargets(request, undefined, "")
+            ).not.toThrow();
+        });
+
+        it.each([undefined, "", "+all", "-ALL"])(
+            "accepts receipt %j",
+            (receipt) => {
+                expect(() =>
+                    validateAgeAssuranceTargets(
+                        request,
+                        { xms_agvt: receipt },
+                        "correlation"
+                    )
+                ).not.toThrow();
+            }
+        );
+
+        it.each([
+            null,
+            0,
+            false,
+            {},
+            ["+all"],
+            "+mc",
+            "+all,+mc",
+            "+all,+all",
+            "+all,-ALL",
+            "all",
+            "++all",
+            "+",
+            " ",
+            " +all",
+            "+all ",
+            "+all,",
+            "+all,,",
+        ])("rejects receipt %j", (receipt) => {
+            expect(() =>
+                validateAgeAssuranceTargets(
+                    request,
+                    { xms_agvs: 0, xms_agvt: receipt },
+                    "correlation"
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    errorCode: ageAssuranceTargetMismatch,
+                    correlationId: "correlation",
+                })
+            );
+        });
     });
+
+    it.each([undefined, "", "+mc", "+all,+mc", "+all,-ALL"])(
+        "requires exactly signed all for an explicit target-all request: %j",
+        (receipt) => {
+            expect(() =>
+                validateAgeAssuranceTargets(
+                    claims(["target-all"]),
+                    { xms_agvt: receipt },
+                    ""
+                )
+            ).toThrow();
+        }
+    );
+
+    it.each([undefined, "", "+all"])(
+        "rejects an invalid target- request even with receipt %j",
+        (receipt) => {
+            expect(() =>
+                validateAgeAssuranceTargets(
+                    claims(["target-"]),
+                    { xms_agvt: receipt },
+                    ""
+                )
+            ).toThrow();
+        }
+    );
 
     it("keeps request expectations independent across calls", () => {
         validateAgeAssuranceTargets(
