@@ -26,7 +26,6 @@ import { AuthMethodRegistrationRequiredStateV2 } from "./AuthMethodRegistrationR
 
 /**
  * State returned when first-factor authentication requires a one-time code.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class CodeRequiredStateV2 extends ChallengeVerificationStateBaseV2<CodeRequiredStateParametersV2> {
     readonly stateType = "codeRequired";

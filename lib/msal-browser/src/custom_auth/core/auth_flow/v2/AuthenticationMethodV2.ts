@@ -5,7 +5,6 @@
 
 /**
  * An authentication method offered by the server during a native auth V2 flow.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export interface AuthenticationMethodV2 {
     id: string;

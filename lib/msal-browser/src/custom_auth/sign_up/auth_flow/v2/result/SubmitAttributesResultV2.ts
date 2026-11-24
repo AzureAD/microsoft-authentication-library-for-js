@@ -12,7 +12,6 @@ import type { AttributesRequiredStateV2 } from "../state/AttributesRequiredState
 
 /**
  * States returned after submitting sign-up attributes.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SubmitAttributesResultStateV2 =
     | AttributesRequiredStateV2
@@ -23,7 +22,6 @@ export type SubmitAttributesResultStateV2 =
 
 /**
  * Result of submitting sign-up attributes.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SubmitAttributesResultV2 = CustomAuthResultV2<
     SubmitAttributesResultStateV2,

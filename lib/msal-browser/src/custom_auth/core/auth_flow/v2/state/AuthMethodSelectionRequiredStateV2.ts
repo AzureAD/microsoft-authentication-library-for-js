@@ -27,7 +27,6 @@ import { ExistingAccountPasswordRequiredStateV2 } from "../../../../sign_up/auth
 
 /**
  * State returned when the user must select an authentication method.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class AuthMethodSelectionRequiredStateV2 extends AuthFlowActionRequiredStateBase<AuthMethodSelectionRequiredStateParametersV2> {
     readonly stateType = "authMethodSelectionRequired";

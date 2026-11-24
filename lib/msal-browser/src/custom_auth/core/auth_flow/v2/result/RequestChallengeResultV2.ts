@@ -13,7 +13,6 @@ import type { ExistingAccountPasswordRequiredStateV2 } from "../../../../sign_up
 
 /**
  * States returned after requesting an authentication challenge.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type RequestChallengeResultStateV2 =
     | CodeRequiredStateV2
@@ -25,7 +24,6 @@ export type RequestChallengeResultStateV2 =
 
 /**
  * Result of requesting an authentication challenge.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type RequestChallengeResultV2 =
     CustomAuthResultV2<RequestChallengeResultStateV2>;
