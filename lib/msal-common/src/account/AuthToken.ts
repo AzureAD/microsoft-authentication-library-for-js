@@ -4,13 +4,14 @@
  */
 
 import { TokenClaims } from "./TokenClaims.js";
+import { decodeCwtToken, isCwtToken } from "./CwtToken.js";
 import {
     createClientAuthError,
     ClientAuthErrorCodes,
 } from "../error/ClientAuthError.js";
 
 /**
- * Extract token by decoding the rawToken
+ * Extract token by decoding the rawToken (supports both JWS JWT and RFC 8392 CBOR Web Token)
  *
  * @param encodedToken
  */
@@ -19,6 +20,17 @@ export function extractTokenClaims(
     base64Decode: (input: string) => string,
     correlationId: string
 ): TokenClaims {
+    if (!encodedToken) {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.nullOrEmptyToken,
+            correlationId
+        );
+    }
+
+    if (isCwtToken(encodedToken)) {
+        return decodeCwtToken(encodedToken, correlationId).claims;
+    }
+
     const jswPayload = getJWSPayload(encodedToken, correlationId);
 
     // token will be decoded to get the username

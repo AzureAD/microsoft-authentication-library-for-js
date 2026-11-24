@@ -46,6 +46,16 @@ export type TokenClaims = {
     ver?: string;
     upn?: string;
     preferred_username?: string;
+    email?: string;
+    scp?: string;
+    azp?: string;
+    azpacr?: string;
+    uti?: string;
+    c_hash?: string;
+    at_hash?: string;
+    xms_mfa_time?: number;
+    xms_cc?: string[];
+    aio?: string;
     login_hint?: string;
     /**
      * Contains KMSI (Keep Me Signed In) status among other things
