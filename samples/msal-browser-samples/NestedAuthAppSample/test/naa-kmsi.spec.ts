@@ -54,7 +54,7 @@ describe("NAA + KMSI tests", () => {
 
     async function launchWebContext(): Promise<BrowserContext> {
         return chromium.launchPersistentContext(userDataDir, {
-            executablePath: puppeteer.executablePath(),
+            executablePath: await puppeteer.executablePath(),
             headless: process.env["HEADLESS"] !== "false",
             ignoreHTTPSErrors: true,
         });

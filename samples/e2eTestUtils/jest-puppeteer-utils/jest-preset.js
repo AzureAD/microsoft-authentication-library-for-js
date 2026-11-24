@@ -1,12 +1,15 @@
 module.exports = {
     testPathIgnorePatterns: ["/node_modules"],
+    moduleNameMapper: {
+        "^puppeteer$": `${__dirname}/puppeteer.cjs`,
+    },
     transform: {
-        "^.+\\.ts?$": "ts-jest"
+        "^.+\\.ts?$": ["ts-jest", { compiler: require.resolve("typescript") }],
     },
     verbose: true,
     testMatch: ["**/test/**/**.spec.ts", "!**/test/**/*agc*.spec.ts"],
     testTimeout: 120000,
     globalSetup: `${__dirname}/jestSetup.js`,
     globalTeardown: `${__dirname}/jestTeardown.js`,
-    testEnvironment: `${__dirname}/puppeteer_environment.js`
-}
+    testEnvironment: `${__dirname}/puppeteer_environment.js`,
+};

@@ -29,6 +29,7 @@
         "vite": "^7.3.7"
     },
     "overrides": {
+        "zod": "4.6.7",
         "get-uri": {
             "basic-ftp": "6.2.2"
         }
