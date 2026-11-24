@@ -62,6 +62,25 @@ describe("AuthenticationHeaderParser unit tests", () => {
             }
         );
 
+        it.each([
+            [
+                HeaderNames.AuthenticationInfo,
+                'nextnonce="dGVzdA=="',
+                "dGVzdA==",
+            ],
+            [HeaderNames.WWWAuthenticate, 'PoP nonce="dGVzdA=="', "dGVzdA=="],
+            [HeaderNames.AuthenticationInfo, 'nextnonce="a=b=="', "a=b=="],
+        ])(
+            "preserves equals signs in %s: %s",
+            (headerName, headerValue, expectedNonce) => {
+                expect(
+                    new AuthenticationHeaderParser({
+                        [headerName]: headerValue,
+                    }).getShrNonce()
+                ).toBe(expectedNonce);
+            }
+        );
+
         it("should throw an error if neither Authentication-Info or WWW-Authenticate headers are present", () => {
             const authenticationHeaderParser = new AuthenticationHeaderParser(
                 {}

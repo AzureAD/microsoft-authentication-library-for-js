@@ -94,7 +94,8 @@ export class AuthenticationHeaderParser {
         const challengeMap = {} as T;
 
         challenges.forEach((challenge: string) => {
-            const [key, value] = challenge.split("=");
+            // Capture everything after the first "=" so nonce padding is preserved.
+            const [key, value] = challenge.split(/=(.*)/s);
             // Remove escaped quotation marks (', ") from challenge string to keep only the challenge value
             challengeMap[key] = unescape(value.replace(/['"]+/g, ""));
         });

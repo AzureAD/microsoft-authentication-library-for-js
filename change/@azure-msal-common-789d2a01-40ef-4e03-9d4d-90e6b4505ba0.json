@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Preserve equals signs and padding when extracting SHR server nonces.",
+    "packageName": "@azure/msal-common",
+    "email": "",
+    "dependentChangeType": "patch"
+}
