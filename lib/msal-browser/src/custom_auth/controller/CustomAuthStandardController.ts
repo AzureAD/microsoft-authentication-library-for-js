@@ -38,6 +38,7 @@ import {
     FLOW_CODE_REQUIRED_V2,
     FLOW_EXISTING_ACCOUNT_CODE_REQUIRED_V2,
     FLOW_EXISTING_ACCOUNT_PASSWORD_REQUIRED_V2,
+    FLOW_EXISTING_ACCOUNT_START_V2,
     FLOW_METHOD_SELECTION_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
 } from "../core/interaction_client/v2/result/FlowActionResultV2.js";
@@ -845,6 +846,8 @@ export class CustomAuthStandardController
 
     async signUpV2(inputs: SignUpInputsV2): Promise<SignUpStartResultV2> {
         const correlationId = this.getCorrelationId(inputs);
+        let scenario: CustomAuthFlowScenarioV2 =
+            CustomAuthFlowScenarioV2.SignUp;
 
         try {
             ArgumentValidator.ensureArgumentIsNotNullOrUndefined(
@@ -874,13 +877,23 @@ export class CustomAuthStandardController
                 correlationId
             );
 
-            const result = await this.flowClientV2.signUp({
+            const startResult = await this.flowClientV2.signUp({
                 correlationId,
                 username: inputs.username,
                 scopes: inputs.scopes,
                 claims: inputs.claims,
                 attributes: inputs.attributes,
             });
+
+            if (startResult.type === FLOW_EXISTING_ACCOUNT_START_V2) {
+                scenario = startResult.continuationState.scenario;
+            }
+            const result =
+                startResult.type === FLOW_EXISTING_ACCOUNT_START_V2
+                    ? await this.flowClientV2.challengeExistingAccount(
+                          startResult
+                      )
+                    : startResult;
 
             if (result.type === FLOW_CODE_REQUIRED_V2) {
                 return new CustomAuthResultV2(
@@ -971,7 +984,7 @@ export class CustomAuthStandardController
             );
 
             return CustomAuthResultV2.createWithError(error, {
-                scenario: CustomAuthFlowScenarioV2.SignUp,
+                scenario,
                 correlationId,
             });
         }
