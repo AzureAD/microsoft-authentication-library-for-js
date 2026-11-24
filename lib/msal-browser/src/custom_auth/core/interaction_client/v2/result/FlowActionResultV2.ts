@@ -8,6 +8,10 @@ import { AuthenticationMethodV2 } from "../../../auth_flow/v2/AuthenticationMeth
 import { FlowContinuationStateV2 } from "../FlowContinuationStateV2.js";
 import { SignUpAttributeV2 } from "../../../network_client/custom_auth_api/v2/result/SignUpResultsV2.js";
 import { AuthenticationMethodRegistrationV2 } from "../../../auth_flow/v2/AuthenticationMethodRegistrationV2.js";
+import type {
+    AuthenticationFactorV2,
+    StartMethodV2,
+} from "../../../network_client/custom_auth_api/v2/result/BaseResultsV2.js";
 
 interface FlowActionResultBaseV2 {
     type: string;
@@ -44,6 +48,14 @@ export interface FlowExistingAccountPasswordRequiredResultV2
     extends FlowActionResultBaseV2 {
     type: typeof FLOW_EXISTING_ACCOUNT_PASSWORD_REQUIRED_V2;
     continuationState: FlowContinuationStateV2;
+}
+
+export interface FlowExistingAccountStartResultV2
+    extends FlowActionResultBaseV2 {
+    type: typeof FLOW_EXISTING_ACCOUNT_START_V2;
+    continuationState: FlowContinuationStateV2;
+    authenticationFactor: AuthenticationFactorV2;
+    methods: StartMethodV2[];
 }
 
 export interface FlowResetPasswordCodeRequiredResultV2
@@ -127,8 +139,7 @@ export type FlowExistingAccountChallengeResultV2 =
 
 export type FlowSignUpStartResultV2 =
     | FlowCodeRequiredResultV2
-    | FlowExistingAccountChallengeResultV2
-    | FlowMethodSelectionRequiredResultV2;
+    | FlowExistingAccountStartResultV2;
 
 export type FlowResetPasswordStartResultV2 =
     | FlowMethodSelectionRequiredResultV2
@@ -163,6 +174,8 @@ export const FLOW_EXISTING_ACCOUNT_CODE_REQUIRED_V2 =
     "FlowExistingAccountCodeRequiredResultV2";
 export const FLOW_EXISTING_ACCOUNT_PASSWORD_REQUIRED_V2 =
     "FlowExistingAccountPasswordRequiredResultV2";
+export const FLOW_EXISTING_ACCOUNT_START_V2 =
+    "FlowExistingAccountStartResultV2";
 export const FLOW_PASSWORD_REQUIRED_V2 = "FlowPasswordRequiredResultV2";
 export const FLOW_SIGN_UP_PASSWORD_REQUIRED_V2 =
     "FlowSignUpPasswordRequiredResultV2";
@@ -199,6 +212,12 @@ export function createFlowExistingAccountPasswordRequiredResultV2(
     input: Omit<FlowExistingAccountPasswordRequiredResultV2, "type">
 ): FlowExistingAccountPasswordRequiredResultV2 {
     return { type: FLOW_EXISTING_ACCOUNT_PASSWORD_REQUIRED_V2, ...input };
+}
+
+export function createFlowExistingAccountStartResultV2(
+    input: Omit<FlowExistingAccountStartResultV2, "type">
+): FlowExistingAccountStartResultV2 {
+    return { type: FLOW_EXISTING_ACCOUNT_START_V2, ...input };
 }
 
 export function createFlowPasswordRequiredResultV2(

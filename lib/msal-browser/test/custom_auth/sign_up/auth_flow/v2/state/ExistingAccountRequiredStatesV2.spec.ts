@@ -15,8 +15,9 @@ import type { FlowInteractionClientV2 } from "../../../../../../src/custom_auth/
 import {
     FLOW_CODE_REQUIRED_V2,
     FLOW_COMPLETED_V2,
-    FLOW_MFA_REQUIRED_V2,
     FLOW_PASSWORD_REQUIRED_V2,
+    createFlowAuthMethodRegistrationRequiredResultV2,
+    createFlowMFARequiredResultV2,
 } from "../../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import type { CustomAuthSilentCacheClient } from "../../../../../../src/custom_auth/get_account/interaction_client/CustomAuthSilentCacheClient.js";
 import { getDefaultLogger } from "../../../../test_resources/TestModules.js";
@@ -25,7 +26,7 @@ describe("existing-account sign-up states", () => {
     const correlationId = "test-correlation-id";
     const continuationState = {
         continuationToken: "ct-existing",
-        scenario: "signUp" as const,
+        scenario: "signIn" as const,
         scopes: ["openid", "profile", "offline_access"],
         links: {
             verify: "/existing/verify",
@@ -99,6 +100,7 @@ describe("existing-account sign-up states", () => {
                         : "existingAccountPasswordRequired"
                 )
             ).toBe(true);
+            expect(result.scenario).toBe("signIn");
             expect(flowClient.requestChallenge).toHaveBeenCalledWith({
                 correlationId,
                 authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
@@ -163,6 +165,8 @@ describe("existing-account sign-up states", () => {
         const retried = await state.selectAuthMethod(methods[0]);
 
         expect(failed.isFailed()).toBe(true);
+        expect(failed.scenario).toBe("signIn");
+        expect(failed.error?.scenario).toBe("signIn");
         expect(retried.isState("existingAccountCodeRequired")).toBe(true);
     });
 
@@ -202,61 +206,133 @@ describe("existing-account sign-up states", () => {
         }
     );
 
-    it("continues selected existing-account credentials into shared MFA selection", async () => {
-        const mfaMethod = {
-            id: "sms-mfa",
-            type: "sms",
-            challengeHref: "/mfa/sms/challenge",
-        };
-        const mfaContinuationState = {
-            ...continuationState,
-            continuationToken: "ct-mfa",
-        };
-        flowClient.requestChallenge
-            .mockResolvedValueOnce({
-                type: FLOW_CODE_REQUIRED_V2,
-                correlationId,
-                continuationState,
-                channel: "email",
-                codeLength: 8,
-            })
-            .mockResolvedValueOnce({
-                type: FLOW_CODE_REQUIRED_V2,
+    it.each(["email", "password"] as const)(
+        "continues selected existing-account %s credentials into shared MFA selection",
+        async (methodType) => {
+            const mfaMethod = {
+                id: "sms-mfa",
+                type: "sms",
+                challengeHref: "/mfa/sms/challenge",
+            };
+            const mfaContinuationState = {
+                ...continuationState,
+                continuationToken: "ct-mfa",
+            };
+            flowClient.requestChallenge
+                .mockResolvedValueOnce({
+                    type:
+                        methodType === "email"
+                            ? FLOW_CODE_REQUIRED_V2
+                            : FLOW_PASSWORD_REQUIRED_V2,
+                    correlationId,
+                    continuationState,
+                    channel: "email",
+                    codeLength: 8,
+                })
+                .mockResolvedValueOnce({
+                    type: FLOW_CODE_REQUIRED_V2,
+                    correlationId,
+                    continuationState: mfaContinuationState,
+                    channel: "sms",
+                    codeLength: 6,
+                });
+            const mfaResult = createFlowMFARequiredResultV2({
                 correlationId,
                 continuationState: mfaContinuationState,
-                channel: "sms",
-                codeLength: 6,
+                methods: [mfaMethod],
             });
-        flowClient.submitCode.mockResolvedValueOnce({
-            type: FLOW_MFA_REQUIRED_V2,
-            correlationId,
-            continuationState: mfaContinuationState,
-            methods: [mfaMethod],
-        });
-        const state = new AuthMethodSelectionRequiredStateV2({
-            ...commonParameters,
-            methods,
-            authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
-        });
+            if (methodType === "email") {
+                flowClient.submitCode.mockResolvedValueOnce(mfaResult);
+            } else {
+                flowClient.submitSignInPassword.mockResolvedValueOnce(
+                    mfaResult
+                );
+            }
+            const state = new AuthMethodSelectionRequiredStateV2({
+                ...commonParameters,
+                methods,
+                authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
+            });
 
-        const selected = await state.selectAuthMethod(methods[0]);
-        if (!selected.isState("existingAccountCodeRequired")) {
-            throw new Error("Expected existing-account email verification.");
+            const selected = await state.selectAuthMethod(
+                methods[methodType === "email" ? 0 : 1]
+            );
+            const verification = selected.isState("existingAccountCodeRequired")
+                ? await selected.state.submitCode("12345678")
+                : selected.isState("existingAccountPasswordRequired")
+                ? await selected.state.submitPassword("valid-password")
+                : undefined;
+            if (!verification?.isState("authMethodSelectionRequired")) {
+                throw new Error("Expected shared MFA method selection.");
+            }
+            expect(verification.state).toBeInstanceOf(
+                AuthMethodSelectionRequiredStateV2
+            );
+            expect(verification.state.methods).toEqual([mfaMethod]);
+
+            const mfa = await verification.state.selectAuthMethod(mfaMethod);
+
+            expect(mfa.state).toBeInstanceOf(MFAVerificationRequiredStateV2);
+            expect(mfa.scenario).toBe("signIn");
         }
+    );
 
-        const verification = await selected.state.submitCode("12345678");
-        if (!verification.isState("authMethodSelectionRequired")) {
-            throw new Error("Expected shared MFA method selection.");
+    it.each(["email", "password"] as const)(
+        "continues selected existing-account %s credentials into JIT registration",
+        async (methodType) => {
+            flowClient.requestChallenge.mockResolvedValueOnce({
+                type:
+                    methodType === "email"
+                        ? FLOW_CODE_REQUIRED_V2
+                        : FLOW_PASSWORD_REQUIRED_V2,
+                correlationId,
+                continuationState,
+                channel: methodType,
+            });
+            const registrationResult =
+                createFlowAuthMethodRegistrationRequiredResultV2({
+                    correlationId,
+                    continuationState: {
+                        ...continuationState,
+                        continuationToken: "ct-enroll",
+                    },
+                    methods: [
+                        { type: "email", enrollHref: "/jit/email/enroll" },
+                    ],
+                });
+            if (methodType === "email") {
+                flowClient.submitCode.mockResolvedValueOnce(registrationResult);
+            } else {
+                flowClient.submitSignInPassword.mockResolvedValueOnce(
+                    registrationResult
+                );
+            }
+            const selection = new AuthMethodSelectionRequiredStateV2({
+                ...commonParameters,
+                methods,
+                authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
+            });
+
+            const selected = await selection.selectAuthMethod(
+                methods[methodType === "email" ? 0 : 1]
+            );
+            const result = selected.isState("existingAccountCodeRequired")
+                ? await selected.state.submitCode("12345678")
+                : selected.isState("existingAccountPasswordRequired")
+                ? await selected.state.submitPassword("valid-password")
+                : undefined;
+
+            expect(result?.isState("authMethodRegistrationRequired")).toBe(
+                true
+            );
+            expect(result?.scenario).toBe("signIn");
+            if (!result?.isState("authMethodRegistrationRequired")) {
+                throw new Error("Expected shared JIT registration.");
+            }
+            expect(result.state.methods).toEqual(registrationResult.methods);
+            expect(flowClient.submitSignUpAttributes).not.toHaveBeenCalled();
         }
-        expect(verification.state).toBeInstanceOf(
-            AuthMethodSelectionRequiredStateV2
-        );
-        expect(verification.state.methods).toEqual([mfaMethod]);
-
-        const mfa = await verification.state.selectAuthMethod(mfaMethod);
-
-        expect(mfa.state).toBeInstanceOf(MFAVerificationRequiredStateV2);
-    });
+    );
 
     it("allows retry after a bad existing-account code", async () => {
         flowClient.submitCode
