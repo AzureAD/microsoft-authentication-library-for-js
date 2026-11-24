@@ -1159,7 +1159,7 @@ describe("Sign-up V2 entry", () => {
                 PublicApiId.SIGN_UP_V2_START,
                 PublicApiId.SIGN_UP_V2_START,
                 PublicApiId.SIGN_UP_V2_SUBMIT_CODE,
-                PublicApiId.SIGN_UP_V2_SUBMIT_ATTRIBUTES,
+                PublicApiId.SIGN_UP_V2_SUBMIT_PASSWORD,
             ]);
         }
     );

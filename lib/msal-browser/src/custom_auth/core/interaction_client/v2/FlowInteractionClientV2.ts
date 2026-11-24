@@ -804,7 +804,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     async submitSignUpAttributes(
-        parameters: FlowSubmitSignUpAttributesParamsV2
+        parameters: FlowSubmitSignUpAttributesParamsV2,
+        step: "submitAttributes" | "submitPassword" = "submitAttributes"
     ): Promise<FlowSignUpSubmitAttributesResultV2> {
         const {
             continuationState,
@@ -814,7 +815,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         const context = this.createRequestContext(
             this.resolveStepApiId(
                 continuationState.scenario,
-                "submitAttributes",
+                step,
                 correlationId
             ),
             correlationId

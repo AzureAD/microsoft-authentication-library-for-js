@@ -2905,6 +2905,43 @@ describe("FlowInteractionClientV2", () => {
             },
         };
 
+        it.each([
+            {
+                step: "submitPassword" as const,
+                apiId: SIGN_UP_V2_SUBMIT_PASSWORD,
+            },
+            {
+                step: undefined,
+                apiId: SIGN_UP_V2_SUBMIT_ATTRIBUTES,
+            },
+        ])("records API id $apiId for step $step", async ({ step, apiId }) => {
+            const contextSpy = jest.spyOn(
+                client as unknown as {
+                    createRequestContext: (
+                        apiId: number,
+                        correlationId: string
+                    ) => unknown;
+                },
+                "createRequestContext"
+            );
+            apiClient.submitSignUpAttributes.mockResolvedValue({
+                nextAction: "continue",
+                continueHref: CONTINUE_HREF,
+                continuationToken: "ct-complete",
+            });
+
+            await client.submitSignUpAttributes(
+                {
+                    correlationId,
+                    continuationState,
+                    attributes: { password: "valid-password" },
+                },
+                step
+            );
+
+            expect(contextSpy).toHaveBeenCalledWith(apiId, correlationId);
+        });
+
         it("allows custom username attributes without treating them as email", async () => {
             apiClient.submitSignUpAttributes.mockResolvedValue({
                 nextAction: "continue",

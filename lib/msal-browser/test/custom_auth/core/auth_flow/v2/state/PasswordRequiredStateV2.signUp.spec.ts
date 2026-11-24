@@ -88,13 +88,16 @@ describe("PasswordRequiredStateV2 sign-up", () => {
 
         const result = await buildState().submitPassword("valid-password");
 
-        expect(flowClient.submitSignUpAttributes).toHaveBeenCalledWith({
-            correlationId,
-            continuationState,
-            attributes: {
-                password: "valid-password",
+        expect(flowClient.submitSignUpAttributes).toHaveBeenCalledWith(
+            {
+                correlationId,
+                continuationState,
+                attributes: {
+                    password: "valid-password",
+                },
             },
-        });
+            "submitPassword"
+        );
         expect(result.isState("signInContinuation")).toBe(true);
         expect(result.state).toBeInstanceOf(SignInContinuationStateV2);
         expect(result.scenario).toBe(CustomAuthFlowScenarioV2.SignUp);

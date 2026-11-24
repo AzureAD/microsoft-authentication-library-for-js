@@ -97,11 +97,14 @@ export class PasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<Pas
             );
         }
 
-        const result = await flowClient.submitSignUpAttributes({
-            correlationId,
-            continuationState,
-            attributes: { password },
-        });
+        const result = await flowClient.submitSignUpAttributes(
+            {
+                correlationId,
+                continuationState,
+                attributes: { password },
+            },
+            "submitPassword"
+        );
         return signUpStateTransitionHandler.handleAttributeSubmission(
             result,
             { ...this.stateParameters, signUpStateTransitionHandler },
