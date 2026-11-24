@@ -37,8 +37,6 @@ The [public export index](../src/custom_auth/index.ts) includes the operation-sp
 
 Passwords, verification codes, continuation tokens, account attributes, and authentication responses are sensitive. Do not log them or persist flow state as application navigation state. After sign-in, request an access token for the intended resource, handle acquisition failure, and clear the application's authenticated UI when signing out.
 
-<a name='experimental-v2-contracts'></a>
-
 ## Native authentication V2
 
 V2 uses the same `@azure/msal-browser/custom-auth` entry point, with separate operation inputs, results, states, and a shared flow-error type.
