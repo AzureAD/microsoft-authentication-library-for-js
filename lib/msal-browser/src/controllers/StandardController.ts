@@ -2811,7 +2811,11 @@ export class StandardController implements IController {
                 silentRequest.correlationId
             )(silentRequest, cacheLookupPolicy).catch(
                 (cacheError: AuthError) => {
-                    if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                    if (
+                        cacheError.errorCode ===
+                            ClientAuthErrorCodes.ageAssuranceTargetMismatch ||
+                        cacheLookupPolicy === CacheLookupPolicy.AccessToken
+                    ) {
                         throw cacheError;
                     }
 

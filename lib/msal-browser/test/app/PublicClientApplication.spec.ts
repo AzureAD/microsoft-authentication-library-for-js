@@ -7744,6 +7744,72 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 "Refresh Token expired"
             );
 
+            it.each([
+                undefined,
+                CacheLookupPolicy.Default,
+                CacheLookupPolicy.AccessTokenAndRefreshToken,
+            ])(
+                "rejects a cached named Age Assurance receipt without network recovery for cache policy %s",
+                async (cacheLookupPolicy) => {
+                    const idTokenClaims = {
+                        ...ID_TOKEN_CLAIMS,
+                        xms_agvt: "+mc",
+                    };
+                    const tokenParts = TEST_TOKENS.IDTOKEN_V2.split(".");
+                    tokenParts[1] = Buffer.from(
+                        JSON.stringify(idTokenClaims)
+                    ).toString("base64url");
+                    const idToken = tokenParts.join(".");
+                    const account = updateAccountTenantProfileData(
+                        AccountEntityUtils.getAccountInfo(
+                            buildAccountFromIdTokenClaims(idTokenClaims)
+                        ),
+                        undefined,
+                        idTokenClaims,
+                        idToken
+                    );
+                    await pca.hydrateCache(
+                        {
+                            ...testTokenResponse,
+                            account,
+                            idToken,
+                            idTokenClaims,
+                        },
+                        { scopes: TEST_CONFIG.DEFAULT_SCOPES, account }
+                    );
+                    const cacheSpy = jest.spyOn(
+                        SilentCacheClient.prototype,
+                        "acquireToken"
+                    );
+                    const refreshSpy = jest
+                        .spyOn(SilentRefreshClient.prototype, "acquireToken")
+                        .mockResolvedValue(testTokenResponse);
+                    const iframeSpy = jest
+                        .spyOn(SilentIframeClient.prototype, "acquireToken")
+                        .mockResolvedValue(testTokenResponse);
+                    const networkSpy = jest.spyOn(
+                        FetchClient.prototype,
+                        "sendPostRequestAsync"
+                    );
+
+                    await expect(
+                        pca.acquireTokenSilent({
+                            scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                            account,
+                            cacheLookupPolicy,
+                            correlationId: RANDOM_TEST_GUID,
+                        })
+                    ).rejects.toMatchObject({
+                        errorCode:
+                            ClientAuthErrorCodes.ageAssuranceTargetMismatch,
+                    });
+                    expect(cacheSpy).toHaveBeenCalledTimes(1);
+                    expect(refreshSpy).not.toHaveBeenCalled();
+                    expect(iframeSpy).not.toHaveBeenCalled();
+                    expect(networkSpy).not.toHaveBeenCalled();
+                }
+            );
+
             it("Calls SilentCacheClient.acquireToken, SilentRefreshClient.acquireToken and SilentIframeClient.acquireToken if cache lookup throws and refresh token is expired when CacheLookupPolicy is set to Default", async () => {
                 const silentCacheSpy: jest.SpyInstance = jest
                     .spyOn(SilentCacheClient.prototype, "acquireToken")
