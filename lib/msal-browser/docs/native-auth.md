@@ -39,4 +39,4 @@ Passwords, verification codes, continuation tokens, account attributes, and auth
 
 ## Experimental V2 contracts
 
-Methods such as `signInV2`, `signUpV2`, and `resetPasswordV2` and their [V2 interface](../src/custom_auth/ICustomAuthPublicClientApplicationV2.ts) are marked experimental in the source. They may change without notice and are not for production use. Do not mix their inputs, result types, or state contracts with the corresponding non-V2 operations.
+Methods such as `signInV2`, `signUpV2`, and `resetPasswordV2` and their [V2 interface](../src/custom_auth/ICustomAuthPublicClientApplicationV2.ts) remain experimental. Removing source warning annotations does not change their support status or declare general availability. They may change without notice and are not for production use. Do not mix their inputs, result types, or state contracts with the corresponding non-V2 operations.
