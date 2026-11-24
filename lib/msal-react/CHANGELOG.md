@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-react
 
-<!-- This log was last generated on Wed, 18 Nov 2026 21:34:22 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 24 Nov 2026 20:40:50 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 5.9.0
+
+Tue, 24 Nov 2026 20:40:50 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to v5.31.0
 
 ## 5.8.3
 

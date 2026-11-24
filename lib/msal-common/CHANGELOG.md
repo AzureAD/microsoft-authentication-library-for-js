@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-<!-- This log was last generated on Wed, 18 Nov 2026 21:34:22 GMT and should not be manually modified. -->
+<!-- This log was last generated on Tue, 24 Nov 2026 20:40:50 GMT and should not be manually modified. -->
 
 <!-- Start content -->
+
+## 16.18.0
+
+Tue, 24 Nov 2026 20:40:50 GMT
+
+### Minor changes
+
+- Add opaque DPoP nonce forwarding and version-aware resource proof support (AB#3677519) [#8819](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8819) (hemoral@microsoft.com)
 
 ## 16.17.0
 

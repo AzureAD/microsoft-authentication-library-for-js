@@ -2,6 +2,47 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 24 Nov 2026 20:40:49 GMT",
+      "version": "5.31.0",
+      "tag": "@azure/msal-browser_v5.31.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c3b9edd085e328c9cd018d9c1c0c359f3affb1ac",
+            "comment": "Validate broker authorization response state and enforce full-length authentication tags for symmetric encrypted authorization responses. [#9002](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/9002)"
+          },
+          {
+            "author": "223556219+Copilot@users.noreply.github.com",
+            "package": "@azure/msal-browser",
+            "commit": "c3b9edd085e328c9cd018d9c1c0c359f3affb1ac",
+            "comment": "Align Native Auth V2 existing-account sign-up with sign-in scenarios and automatic completion after JIT or MFA."
+          }
+        ],
+        "minor": [
+          {
+            "author": "hectormmg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c3b9edd085e328c9cd018d9c1c0c359f3affb1ac",
+            "comment": "Support platform-broker DPoP outcomes through the existing DOM API transport [#8968](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8968)"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c3b9edd085e328c9cd018d9c1c0c359f3affb1ac",
+            "comment": "Add IPublicClientApplication.loadDpopNonce with origin-scoped PCA-memory state and WAM forwarding (AB#3677519) [#8981](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8981)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v16.18.0",
+            "commit": "not available"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 18 Nov 2026 21:34:22 GMT",
       "version": "5.30.0",
       "tag": "@azure/msal-browser_v5.30.0",

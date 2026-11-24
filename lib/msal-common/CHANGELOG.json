@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 24 Nov 2026 20:40:50 GMT",
+      "version": "16.18.0",
+      "tag": "@azure/msal-common_v16.18.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c3b9edd085e328c9cd018d9c1c0c359f3affb1ac",
+            "comment": "Add opaque DPoP nonce forwarding and version-aware resource proof support (AB#3677519) [#8819](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8819)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 18 Nov 2026 21:34:22 GMT",
       "version": "16.17.0",
       "tag": "@azure/msal-common_v16.17.0",
