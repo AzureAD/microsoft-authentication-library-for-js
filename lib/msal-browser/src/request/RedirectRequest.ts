@@ -29,6 +29,7 @@ export type RedirectRequest = Partial<
      * The page that should be returned to after loginRedirect or acquireTokenRedirect. This should only be used if this is different from the redirectUri and will default to the page that initiates the request. When the navigateToLoginRequestUrl config option is set to false this parameter will be ignored.
      * Must be an application-controlled, trusted destination. Validate query parameters and other input that your application does not fully control before using them as the destination.
      * For navigation within your app, validate that the resolved URL uses HTTPS and matches your application's origin.
+     * Allow HTTP only for local development on localhost or loopback addresses.
      */
     redirectStartPage?: string;
 };

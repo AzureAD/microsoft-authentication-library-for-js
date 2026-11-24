@@ -6,7 +6,7 @@ By default `msal-browser` uses `window.location.assign` and `window.location.rep
 
 The `redirectStartPage` request option selects the page to return to after `loginRedirect` or `acquireTokenRedirect`. The `mainWindowRedirectUri` option selects where the main window navigates after `logoutPopup`. Both options must contain application-controlled, trusted destinations. Do not pass query parameters or other input that your application does not fully control directly into these options.
 
-Validate destinations before passing them to MSAL; MSAL does not enforce your application's destination allow-list. For return navigation within your app, resolve relative URLs against a trusted application origin, require the `https:` protocol, and require the resolved URL's origin to match your application's origin. Allowing HTTPS alone does not prevent navigation to another website. If validation fails, use a fixed, application-controlled page instead.
+Validate destinations before passing them to MSAL; MSAL does not enforce your application's destination allow-list. For return navigation within your app, resolve relative URLs against a trusted application origin and require the `https:` protocol. Allow `http:` only for local development on localhost or loopback addresses, such as `127.0.0.1` or `[::1]`. In either case, require the resolved URL's origin to match your application's origin; checking the protocol alone does not prevent navigation to another website. If validation fails, use a fixed, application-controlled page instead.
 
 ## Writing your own implemenation
 
