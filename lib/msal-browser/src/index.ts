@@ -119,6 +119,13 @@ export {
     // Account
     AccountInfo,
     IdTokenClaims,
+    CwtToken,
+    isCwtToken,
+    decodeCwtToken,
+    verifyCwtEs256Signature,
+    buildCoseSigStructure,
+    CwtHeader,
+    DecodedCwtToken,
     // Error
     AuthError,
     AuthErrorCodes,

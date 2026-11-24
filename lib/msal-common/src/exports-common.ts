@@ -4,6 +4,7 @@
  */
 
 import * as AuthToken from "./account/AuthToken.js";
+import * as CwtToken from "./account/CwtToken.js";
 import * as AuthorityFactory from "./authority/AuthorityFactory.js";
 import * as CacheHelpers from "./cache/utils/CacheHelpers.js";
 import * as TimeUtils from "./utils/TimeUtils.js";
@@ -12,6 +13,21 @@ import * as AADServerParamKeys from "./constants/AADServerParamKeys.js";
 import * as AccountEntityUtils from "./cache/utils/AccountEntityUtils.js";
 
 export { AuthToken };
+export { CwtToken };
+export {
+    isCwtToken,
+    decodeCwtToken,
+    verifyCwtEs256Signature,
+    buildCoseSigStructure,
+    encodeDeterministicCbor,
+    decodeCbor,
+    base64UrlToBytes,
+    bytesToBase64Url,
+    formatUuidBytes,
+    parseUuidToBytes,
+    CwtHeader,
+    DecodedCwtToken,
+} from "./account/CwtToken.js";
 export { AuthorityFactory };
 export { CacheHelpers };
 export { TimeUtils };
