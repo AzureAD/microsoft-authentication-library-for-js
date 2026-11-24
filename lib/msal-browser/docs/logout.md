@@ -89,6 +89,8 @@ The `logoutPopup` API will open the server signout page in a popup, allowing you
 - `postLogoutRedirectUri` is **required** in order for MSAL to be able to close the popup when signout is complete
 - `postLogoutRedirectUri` will be opened in the popup window, not the main frame. If you need your top level app to be redirected after logout you can use the `mainWindowRedirectUri` parameter on the logout request.
 
+**Important:** `mainWindowRedirectUri` must be an application-controlled, trusted destination. Validate query parameters and other input that your application does not fully control before using them as the destination. For return navigation within your app, validate that the resolved URL uses HTTP(S) and matches your application's origin. See [Trusted navigation destinations](./navigation.md#trusted-navigation-destinations).
+
 [Configuration options](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionpopuprequest) can be provided to customize the behavior.
 
 ```javascript

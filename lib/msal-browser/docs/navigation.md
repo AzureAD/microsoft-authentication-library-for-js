@@ -2,6 +2,12 @@
 
 By default `msal-browser` uses `window.location.assign` and `window.location.replace` to redirect your application to external urls, such as the sign-in or sign-out pages, and internal urls, other pages in your app after returning from an external redirect. There may be situations, however, where you would like to override the default behavior with your own. For example, frameworks like React and Angular provide different APIs to handle client-side navigation without reloading the entire SPA. `msal-browser` exposes both the `INavigationClient` interface as well as the `NavigationClient` default implementation for you to provide your own custom implementation.
 
+## Trusted navigation destinations
+
+The `redirectStartPage` request option selects the page to return to after `loginRedirect` or `acquireTokenRedirect`. The `mainWindowRedirectUri` option selects where the main window navigates after `logoutPopup`. Both options must contain application-controlled, trusted destinations. Do not pass query parameters or other input that your application does not fully control directly into these options.
+
+Validate destinations before passing them to MSAL; MSAL does not enforce your application's destination allow-list. For return navigation within your app, resolve relative URLs against a trusted application origin, require the `https:` or `http:` protocol, and require the resolved URL's origin to match your application's origin. Allowing HTTP(S) alone does not prevent navigation to another website. If validation fails, use a fixed, application-controlled page instead.
+
 ## Writing your own implemenation
 
 The interface contains 2 methods:

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Clarify trusted destinations for redirectStartPage and mainWindowRedirectUri.",
+  "packageName": "@azure/msal-browser",
+  "email": "lalima.sharda@gmail.com",
+  "dependentChangeType": "patch"
+}
