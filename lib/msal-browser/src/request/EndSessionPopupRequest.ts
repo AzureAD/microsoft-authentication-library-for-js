@@ -17,7 +17,7 @@ export type EndSessionPopupRequest = Partial<CommonEndSessionRequest> & {
     /**
      * URI to navigate the main window to after logout is complete
      * Must be an application-controlled, trusted destination. Validate query parameters and other input that your application does not fully control before using them as the destination.
-     * For navigation within your app, validate that the resolved URL uses HTTP(S) and matches your application's origin.
+     * For navigation within your app, validate that the resolved URL uses HTTPS and matches your application's origin.
      */
     mainWindowRedirectUri?: string;
     /**
