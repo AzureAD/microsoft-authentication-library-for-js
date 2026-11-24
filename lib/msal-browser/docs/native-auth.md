@@ -37,6 +37,38 @@ The [public export index](../src/custom_auth/index.ts) includes the operation-sp
 
 Passwords, verification codes, continuation tokens, account attributes, and authentication responses are sensitive. Do not log them or persist flow state as application navigation state. After sign-in, request an access token for the intended resource, handle acquisition failure, and clear the application's authenticated UI when signing out.
 
-## Experimental V2 contracts
+<a name='experimental-v2-contracts'></a>
 
-Methods such as `signInV2`, `signUpV2`, and `resetPasswordV2` and their [V2 interface](../src/custom_auth/ICustomAuthPublicClientApplicationV2.ts) remain experimental. Removing source warning annotations does not change their support status or declare general availability. They may change without notice and are not for production use. Do not mix their inputs, result types, or state contracts with the corresponding non-V2 operations.
+## Native authentication V2
+
+V2 uses the same `@azure/msal-browser/custom-auth` entry point, with separate operation inputs, results, states, and a shared flow-error type.
+
+### V2 application and configuration
+
+Create the application using `CustomAuthPublicClientApplication.create` and `CustomAuthConfiguration`, as described in [Application and configuration](#application-and-configuration).
+
+Use the [V2 interface](../src/custom_auth/ICustomAuthPublicClientApplicationV2.ts), `ICustomAuthPublicClientApplicationV2`, for the V2 application contract. Start flows with `SignInInputsV2`, `SignUpInputsV2`, or `ResetPasswordInputsV2`, defined in the [operation inputs](../src/custom_auth/CustomAuthActionInputs.ts). Supply passwords and verification codes through the actions exposed by the returned states rather than the initial V2 inputs.
+
+### V2 operations, results, and states
+
+| Scenario | API families and source reference |
+| --- | --- |
+| Sign-in | `signInV2`, password/code-required states, and authentication-method selection. Start with [`SignInStartResultV2`](../src/custom_auth/sign_in/auth_flow/v2/result/SignInStartResultV2.ts). |
+| Sign-up | `signUpV2`, account verification, attributes, password setup, and existing-account states. Start with [`SignUpStartResultV2`](../src/custom_auth/sign_up/auth_flow/v2/result/SignUpStartResultV2.ts). |
+| Password reset | `resetPasswordV2`, authentication-method selection, code verification, and new-password submission. Start with [`ResetPasswordStartResultV2`](../src/custom_auth/core/auth_flow/v2/result/ResetPasswordStartResultV2.ts). |
+| Authentication-method registration | [`AuthMethodRegistrationRequiredStateV2`](../src/custom_auth/core/auth_flow/v2/state/AuthMethodRegistrationRequiredStateV2.ts) selects a method to register; [`AuthMethodVerificationRequiredStateV2`](../src/custom_auth/core/auth_flow/v2/state/AuthMethodVerificationRequiredStateV2.ts) handles verification. |
+| MFA | [`AuthMethodSelectionRequiredStateV2`](../src/custom_auth/core/auth_flow/v2/state/AuthMethodSelectionRequiredStateV2.ts) selects a method when required; [`MFAVerificationRequiredStateV2`](../src/custom_auth/core/auth_flow/v2/state/MFAVerificationRequiredStateV2.ts) handles verification. |
+| Sign-in continuation | [`SignInContinuationStateV2.signIn()`](../src/custom_auth/sign_in/auth_flow/v2/state/SignInContinuationStateV2.ts) continues sign-in after a preceding flow. |
+| Current account, access tokens, and sign-out | Use the shared `getCurrentAccount` API and operations exposed by [`CustomAuthAccountData`](../src/custom_auth/get_account/auth_flow/CustomAuthAccountData.ts). |
+
+V2 operation-specific result aliases use the shared [`CustomAuthResultV2`](../src/custom_auth/core/auth_flow/v2/CustomAuthResultV2.ts) class with state unions describing each operation's possible outcomes. Use `result.isState(...)` or `result.state.stateType` to identify the next state and invoke only the actions that state supports.
+
+Pass each returned result through state handling again: submitting a password, code, attributes, or registration challenge can require another step. Do not reuse an earlier state after advancing the flow.
+
+### V2 error handling and sensitive data
+
+Check `result.isFailed()` and inspect `result.error`, which uses the shared [`AuthFlowErrorV2`](../src/custom_auth/core/auth_flow/v2/error/AuthFlowErrorV2.ts) type. Its helpers identify actionable conditions such as invalid input, invalid passwords, invalid codes or challenges, and browser-required responses.
+
+Use `scenario` to identify the flow associated with a result or error. Handle application-creation exceptions separately from flow-result failures.
+
+Keep V1 and V2 input, result, and state contracts distinct. The same sensitive-data precautions apply to both versions: do not log credentials, verification codes, continuation tokens, account attributes, or authentication responses.
