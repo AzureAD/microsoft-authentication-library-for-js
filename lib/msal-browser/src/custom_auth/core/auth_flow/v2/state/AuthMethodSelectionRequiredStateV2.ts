@@ -75,8 +75,6 @@ export class AuthMethodSelectionRequiredStateV2 extends AuthFlowActionRequiredSt
                 signInStateTransitionHandler,
             };
             const isExistingAccountSignUp =
-                continuationState.scenario ===
-                    CustomAuthFlowScenarioV2.SignUp &&
                 continuationState.signUp?.purpose === "existingAccount";
 
             const channel =

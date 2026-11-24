@@ -28,6 +28,7 @@ import {
     createFlowCodeRequiredResultV2,
     createFlowExistingAccountCodeRequiredResultV2,
     createFlowExistingAccountPasswordRequiredResultV2,
+    createFlowExistingAccountStartResultV2,
     createFlowPasswordRequiredResultV2,
     createFlowSignUpPasswordRequiredResultV2,
     createFlowMFARequiredResultV2,
@@ -43,6 +44,8 @@ import {
 import type {
     FlowCodeRequiredResultV2,
     FlowExistingAccountChallengeResultV2,
+    FlowExistingAccountStartResultV2,
+    FlowMethodSelectionRequiredResultV2,
     FlowCompletedResultV2,
     FlowSignInContinuationRequiredResultV2,
     FlowSignInStartResultV2,
@@ -306,22 +309,36 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             });
         }
 
-        const continuationState: FlowContinuationStateV2 = {
-            continuationToken: startResult.continuationToken,
-            scenario: CustomAuthFlowScenarioV2.SignUp,
-            scopes,
-            links: {},
-            signUp: {
-                purpose: "existingAccount",
+        return createFlowExistingAccountStartResultV2({
+            correlationId,
+            continuationState: {
+                continuationToken: startResult.continuationToken,
+                scenario: CustomAuthFlowScenarioV2.SignIn,
+                scopes,
+                links: {},
+                signUp: {
+                    purpose: "existingAccount",
+                },
             },
-        };
+            authenticationFactor: startResult.authenticationFactor,
+            methods: startResult.methods,
+        });
+    }
+
+    async challengeExistingAccount(
+        parameters: FlowExistingAccountStartResultV2
+    ): Promise<
+        | FlowExistingAccountChallengeResultV2
+        | FlowMethodSelectionRequiredResultV2
+    > {
+        const { continuationState, correlationId } = parameters;
         this.ensureAuthenticationFactor(
-            startResult.authenticationFactor,
+            parameters.authenticationFactor,
             AuthenticationFactorV2.SINGLE_FACTOR,
             "existing-account sign-up",
             correlationId
         );
-        const supportedMethods = startResult.methods
+        const supportedMethods = parameters.methods
             .map((method) => ({
                 id: method.id,
                 type: method.type ?? "",
@@ -724,17 +741,6 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         }
 
         if (continuationState.scenario === CustomAuthFlowScenarioV2.SignIn) {
-            return this.handleSignInVerification(
-                continuationState,
-                verifyResult,
-                correlationId
-            );
-        }
-
-        if (
-            continuationState.scenario === CustomAuthFlowScenarioV2.SignUp &&
-            continuationState.signUp?.purpose === "existingAccount"
-        ) {
             return this.handleSignInVerification(
                 continuationState,
                 verifyResult,

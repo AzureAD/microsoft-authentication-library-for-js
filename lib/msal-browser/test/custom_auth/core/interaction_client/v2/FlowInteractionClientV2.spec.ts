@@ -10,6 +10,7 @@ import { CustomAuthFlowScenarioV2 } from "../../../../../src/custom_auth/core/au
 import {
     FLOW_METHOD_SELECTION_REQUIRED_V2,
     FLOW_CODE_REQUIRED_V2,
+    FLOW_EXISTING_ACCOUNT_START_V2,
     FLOW_PASSWORD_REQUIRED_V2,
     FLOW_SIGN_UP_PASSWORD_REQUIRED_V2,
     FLOW_MFA_REQUIRED_V2,
@@ -33,6 +34,7 @@ import {
 } from "../../../../../src/custom_auth/core/interaction_client/v2/result/FlowActionResultV2.js";
 import { FlowContinuationStateV2 } from "../../../../../src/custom_auth/core/interaction_client/v2/FlowContinuationStateV2.js";
 import { FlowAuthMethodRegistrationRequiredParamsV2 } from "../../../../../src/custom_auth/core/interaction_client/v2/parameter/FlowParamsV2.js";
+import type { FlowSignUpStartParamsV2 } from "../../../../../src/custom_auth/core/interaction_client/v2/parameter/FlowParamsV2.js";
 import { CustomAuthAuthority } from "../../../../../src/custom_auth/core/CustomAuthAuthority.js";
 import { CustomAuthApiClientV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/CustomAuthApiClientV2.js";
 import { AuthenticationFactorV2 } from "../../../../../src/custom_auth/core/network_client/custom_auth_api/v2/result/BaseResultsV2.js";
@@ -64,6 +66,7 @@ import {
     MFA_V2_SELECT_AUTH_METHOD,
     MFA_V2_SUBMIT_CHALLENGE,
     SIGN_IN_V2_CHALLENGE,
+    SIGN_IN_V2_COMPLETE,
     SIGN_IN_V2_SUBMIT_CODE,
     SIGN_IN_V2_SUBMIT_PASSWORD,
     SIGN_UP_V2_COMPLETE,
@@ -202,6 +205,20 @@ describe("FlowInteractionClientV2", () => {
     });
 
     describe("signUp", () => {
+        const challengeExistingAccount = async (
+            parameters: FlowSignUpStartParamsV2
+        ) => {
+            const result = await client.signUp(parameters);
+            expect(result.type).toBe(FLOW_EXISTING_ACCOUNT_START_V2);
+            expect(result.continuationState.scenario).toBe("signIn");
+            expect(result.correlationId).toBe(parameters.correlationId);
+            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+            if (result.type !== FLOW_EXISTING_ACCOUNT_START_V2) {
+                throw new Error("Expected existing-account discovery.");
+            }
+            return client.challengeExistingAccount(result);
+        };
+
         it("returns the email challenge from start without submitting attributes", async () => {
             apiClient.authorizeChallengeStart.mockResolvedValue({
                 continuationToken: "ct-entry",
@@ -496,9 +513,10 @@ describe("FlowInteractionClientV2", () => {
                     codeLength: methodType === "email" ? 6 : undefined,
                 });
 
-                const result = await client.signUp({
+                const result = await challengeExistingAccount({
                     correlationId,
                     username: "existing@contoso.com",
+                    scopes: ["User.Read"],
                     attributes: {
                         givenName: "Signup profile",
                         username: "signup-only-alias",
@@ -508,7 +526,13 @@ describe("FlowInteractionClientV2", () => {
                 expect(result.type).toBe(expectedType);
                 expect(result.continuationState).toMatchObject({
                     continuationToken: "ct-challenge",
-                    scenario: "signUp",
+                    scenario: "signIn",
+                    scopes: [
+                        "User.Read",
+                        "openid",
+                        "profile",
+                        "offline_access",
+                    ],
                     links: {
                         verify: verifyHref,
                     },
@@ -523,47 +547,60 @@ describe("FlowInteractionClientV2", () => {
             }
         );
 
-        it("offers multiple existing-account methods without retaining upfront profiles or requesting a challenge", async () => {
-            apiClient.authorizeChallengeStart.mockResolvedValue({
-                continuationToken: "ct-entry",
-                signUpHref: "https://endpoint/signup/start",
-            });
-            const methods = ["email", "password"].map((type) => ({
-                id: `${type}-1`,
-                type,
-                challengeHref: `https://endpoint/${type}/challenge`,
-            }));
-            apiClient.signUpStart.mockResolvedValue({
-                nextAction: "challenge",
-                continuationToken: "ct-existing",
-                authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
-                methods,
-            });
-
-            const result = await client.signUp({
-                correlationId,
-                username: "existing@contoso.com",
-                attributes: {
-                    givenName: "Signup profile",
-                    username: "signup-only-alias",
-                },
-            });
-
-            expect(result).toMatchObject({
-                type: FLOW_METHOD_SELECTION_REQUIRED_V2,
-                methods,
-                continuationState: {
+        it.each([
+            { methodTypes: ["email", "password"] },
+            { methodTypes: ["password", "email"] },
+        ])(
+            "offers existing-account methods in server order $methodTypes without automatically challenging",
+            async ({ methodTypes }) => {
+                apiClient.authorizeChallengeStart.mockResolvedValue({
+                    continuationToken: "ct-entry",
+                    signUpHref: "https://endpoint/signup/start",
+                });
+                const methods = methodTypes.map((type) => ({
+                    id: `${type}-1`,
+                    type,
+                    challengeHref: `https://endpoint/${type}/challenge`,
+                }));
+                apiClient.signUpStart.mockResolvedValue({
+                    nextAction: "challenge",
                     continuationToken: "ct-existing",
-                    scenario: "signUp",
-                    signUp: { purpose: "existingAccount" },
-                },
-            });
-            expect(result.continuationState.signUp).toEqual({
-                purpose: "existingAccount",
-            });
-            expect(apiClient.requestChallenge).not.toHaveBeenCalled();
-            expect(apiClient.submitSignUpAttributes).not.toHaveBeenCalled();
-        });
+                    authenticationFactor: AuthenticationFactorV2.SINGLE_FACTOR,
+                    methods: [
+                        {
+                            id: "sms-unsupported",
+                            type: "sms",
+                            challengeHref: "https://endpoint/sms/challenge",
+                        },
+                        ...methods,
+                    ],
+                });
+
+                const result = await challengeExistingAccount({
+                    correlationId,
+                    username: "existing@contoso.com",
+                    attributes: {
+                        givenName: "Signup profile",
+                        username: "signup-only-alias",
+                    },
+                });
+
+                expect(result).toMatchObject({
+                    type: FLOW_METHOD_SELECTION_REQUIRED_V2,
+                    methods,
+                    continuationState: {
+                        continuationToken: "ct-existing",
+                        scenario: "signIn",
+                        signUp: { purpose: "existingAccount" },
+                    },
+                });
+                expect(result.continuationState.signUp).toEqual({
+                    purpose: "existingAccount",
+                });
+                expect(apiClient.requestChallenge).not.toHaveBeenCalled();
+                expect(apiClient.submitSignUpAttributes).not.toHaveBeenCalled();
+            }
+        );
 
         it.each([{ methodTypes: [] }, { methodTypes: ["sms"] }])(
             "rejects invalid existing-account methods $methodTypes without requesting a challenge",
@@ -584,7 +621,7 @@ describe("FlowInteractionClientV2", () => {
                 });
 
                 await expect(
-                    client.signUp({
+                    challengeExistingAccount({
                         correlationId,
                         username: "existing@contoso.com",
                     })
@@ -615,7 +652,7 @@ describe("FlowInteractionClientV2", () => {
             } as never);
 
             await expect(
-                client.signUp({
+                challengeExistingAccount({
                     correlationId,
                     username: "existing@contoso.com",
                 })
@@ -2543,7 +2580,7 @@ describe("FlowInteractionClientV2", () => {
         describe("existing-account sign-up verification", () => {
             const existingAccountContinuationState: FlowContinuationStateV2 = {
                 continuationToken: "ct-existing",
-                scenario: "signUp",
+                scenario: "signIn",
                 scopes: ["User.Read", "openid", "profile", "offline_access"],
                 links: {
                     verify: "https://endpoint/existing/verify",
@@ -2593,14 +2630,14 @@ describe("FlowInteractionClientV2", () => {
                 );
                 expect(apiClient.submitSignUpAttributes).not.toHaveBeenCalled();
                 expect(contextSpy).toHaveBeenCalledWith(
-                    SIGN_UP_V2_SUBMIT_PASSWORD,
+                    SIGN_IN_V2_SUBMIT_PASSWORD,
                     correlationId
                 );
                 expect(result).toMatchObject({
                     type: FLOW_MFA_REQUIRED_V2,
                     continuationState: {
                         continuationToken: "ct-mfa",
-                        scenario: "signUp",
+                        scenario: "signIn",
                         signUp: {
                             purpose: "existingAccount",
                         },
@@ -2650,11 +2687,11 @@ describe("FlowInteractionClientV2", () => {
                 });
 
                 expect(contextSpy).toHaveBeenCalledWith(
-                    SIGN_UP_V2_SUBMIT_CODE,
+                    SIGN_IN_V2_SUBMIT_CODE,
                     correlationId
                 );
                 expect(contextSpy).toHaveBeenCalledWith(
-                    SIGN_UP_V2_COMPLETE,
+                    SIGN_IN_V2_COMPLETE,
                     correlationId
                 );
                 expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
@@ -2752,7 +2789,7 @@ describe("FlowInteractionClientV2", () => {
                 });
 
                 expect(contextSpy).toHaveBeenCalledWith(
-                    SIGN_UP_V2_RESEND_CODE,
+                    SIGN_IN_V2_CHALLENGE,
                     correlationId
                 );
                 expect(result).toMatchObject({
