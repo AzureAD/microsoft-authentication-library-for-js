@@ -2746,11 +2746,11 @@ describe("FlowInteractionClientV2", () => {
                 });
 
                 expect(contextSpy).toHaveBeenCalledWith(
-                    SIGN_UP_V2_SUBMIT_PASSWORD,
+                    SIGN_IN_V2_SUBMIT_PASSWORD,
                     correlationId
                 );
                 expect(contextSpy).toHaveBeenCalledWith(
-                    SIGN_UP_V2_COMPLETE,
+                    SIGN_IN_V2_COMPLETE,
                     correlationId
                 );
                 expect(apiClient.completeWithTokens).toHaveBeenCalledWith(
