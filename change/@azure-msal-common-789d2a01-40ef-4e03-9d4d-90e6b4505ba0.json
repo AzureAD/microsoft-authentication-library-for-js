@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Preserve equals signs and padding when extracting SHR server nonces.",
+    "comment": "Preserve equals signs and padding when extracting SHR server nonces. [#9010](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/9010)",
     "packageName": "@azure/msal-common",
     "email": "",
     "dependentChangeType": "patch"
