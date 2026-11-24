@@ -91,7 +91,7 @@ export async function pcaInitializedPoller(
             // hasn't appeared yet or the page is mid-navigation.
             const el = await page
                 .waitForSelector("#pca-initialized", { timeout: 1000 })
-                .catch(() => null);
+                .catch((): null => null);
             if (!el) {
                 throw new Error("PCA not yet initialized");
             }
@@ -100,7 +100,7 @@ export async function pcaInitializedPoller(
             // retry rather than a hard failure.
             const initializedText = await page
                 .$eval("#pca-initialized", (node) => node.textContent)
-                .catch(() => null);
+                .catch((): null => null);
             if (initializedText !== "true") {
                 throw new Error("PCA not yet initialized");
             }

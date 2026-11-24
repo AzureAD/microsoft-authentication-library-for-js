@@ -1,6 +1,11 @@
 module.exports = {
     displayName: "Nested Auth App Sample",
     testTimeout: 120000,
+    moduleNameMapper: {
+        "^puppeteer$": require.resolve(
+            "../../e2eTestUtils/jest-puppeteer-utils/puppeteer.cjs"
+        ),
+    },
     transform: {
         "^.+\\.ts?$": "ts-jest",
     },
