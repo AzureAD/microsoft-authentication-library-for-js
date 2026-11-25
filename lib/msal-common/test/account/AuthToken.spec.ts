@@ -80,6 +80,49 @@ describe("AuthToken.ts Class Unit Tests", () => {
     });
 
     describe("extractIdToken()", () => {
+        it.each(
+            [
+                [TEST_TOKENS.IDTOKEN_V2],
+                { toString: () => TEST_TOKENS.IDTOKEN_V2 },
+            ].map((input) => [input])
+        )(
+            "rejects non-string input instead of coercing %p to a JWT",
+            (input) => {
+                expect(() =>
+                    AuthToken.extractTokenClaims(
+                        input as unknown as string,
+                        cryptoInterface.base64Decode,
+                        "invalid-input"
+                    )
+                ).toThrow(
+                    expect.objectContaining({
+                        errorCode: ClientAuthErrorCodes.tokenParsingError,
+                        correlationId: "invalid-input",
+                    })
+                );
+            }
+        );
+
+        it.each(
+            [null, [], false, true, 0, 42, "payload"].map((payload) => [
+                payload,
+            ])
+        )("rejects a non-object JWT claims payload: %p", (payload) => {
+            const token = `header.${btoa(JSON.stringify(payload))}.signature`;
+            expect(() =>
+                AuthToken.extractTokenClaims(
+                    token,
+                    cryptoInterface.base64Decode,
+                    "invalid-payload"
+                )
+            ).toThrow(
+                expect.objectContaining({
+                    errorCode: ClientAuthErrorCodes.tokenParsingError,
+                    correlationId: "invalid-payload",
+                })
+            );
+        });
+
         it("Throws error if rawIdToken is null or empty", () => {
             expect(() =>
                 AuthToken.extractTokenClaims(

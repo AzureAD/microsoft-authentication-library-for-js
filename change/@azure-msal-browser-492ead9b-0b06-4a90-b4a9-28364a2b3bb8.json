@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Reject supplied malformed ID tokens before external token imports and cache the validated response snapshot",
+    "packageName": "@azure/msal-browser",
+    "email": "mohaibrahim@microsoft.com",
+    "dependentChangeType": "patch"
+}

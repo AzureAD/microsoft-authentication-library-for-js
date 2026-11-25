@@ -170,6 +170,133 @@ describe("ResponseHandler.ts", () => {
         jest.restoreAllMocks();
     });
 
+    describe("raw ID token validation", () => {
+        const request: BaseAuthRequest = {
+            authority: testAuthority.canonicalAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: ["openid"],
+        };
+        let handler: ResponseHandler;
+
+        beforeEach(() => {
+            claimsStub.mockRestore();
+            handler = new ResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null
+            );
+        });
+
+        it.each(
+            [
+                "",
+                null,
+                false,
+                0,
+                [],
+                [TEST_TOKENS.IDTOKEN_V2],
+                "malformed",
+                ...[null, [], true, 42, "payload"].map(
+                    (payload) =>
+                        `header.${btoa(JSON.stringify(payload))}.signature`
+                ),
+            ].map((idToken) => [idToken])
+        )(
+            "rejects supplied invalid ID token %p before changing cache",
+            async (idToken) => {
+                await handler.handleServerTokenResponse(
+                    AUTHENTICATION_RESULT.body,
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    request,
+                    0
+                );
+                const before = JSON.stringify(testCacheManager.store);
+                const save = jest.spyOn(testCacheManager, "saveCacheRecord");
+                await expect(
+                    handler.handleServerTokenResponse(
+                        {
+                            ...AUTHENTICATION_RESULT.body,
+                            id_token: idToken as string,
+                        },
+                        testAuthority,
+                        TimeUtils.nowSeconds(),
+                        request,
+                        0
+                    )
+                ).rejects.toMatchObject({
+                    errorCode: idToken
+                        ? ClientAuthErrorCodes.tokenParsingError
+                        : ClientAuthErrorCodes.nullOrEmptyToken,
+                    correlationId: request.correlationId,
+                });
+                expect(save).not.toHaveBeenCalled();
+                expect(JSON.stringify(testCacheManager.store)).toBe(before);
+            }
+        );
+
+        it.each([undefined, TEST_TOKENS.IDTOKEN_V2])(
+            "preserves opaque bearer tokens with absent or valid ID token %p",
+            async (idToken) => {
+                const result = await handler.handleServerTokenResponse(
+                    {
+                        ...AUTHENTICATION_RESULT.body,
+                        id_token: idToken,
+                        access_token: "opaque-access-token",
+                    },
+                    testAuthority,
+                    TimeUtils.nowSeconds(),
+                    request,
+                    0
+                );
+                expect(result.accessToken).toBe("opaque-access-token");
+                expect(result.idToken).toBe(idToken || "");
+            }
+        );
+
+        it("continues extracting the binding key from a valid PoP access token", async () => {
+            const accessToken = `header.${btoa(
+                JSON.stringify({ cnf: { kid: TEST_POP_VALUES.KID } })
+            )}.signature`;
+            const save = jest.spyOn(testCacheManager, "saveCacheRecord");
+            const popHandler = new ResponseHandler(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                testCacheManager,
+                cryptoInterface,
+                logger,
+                stubPerformanceClient,
+                null,
+                null,
+                mockTokenBindingKeyManager
+            );
+            const result = await popHandler.handleServerTokenResponse(
+                {
+                    ...POP_AUTHENTICATION_RESULT.body,
+                    access_token: accessToken,
+                },
+                testAuthority,
+                TimeUtils.nowSeconds(),
+                {
+                    ...request,
+                    resourceRequestMethod: "POST",
+                    resourceRequestUri:
+                        TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+                },
+                0
+            );
+            expect(result.tokenType).toBe(AuthenticationScheme.POP);
+            expect(result.accessToken).toBe(TEST_TOKENS.POP_TOKEN);
+            expect(save.mock.calls[0][0].accessToken).toMatchObject({
+                keyId: TEST_POP_VALUES.KID,
+                secret: accessToken,
+            });
+        });
+    });
+
     describe("nonce validation", () => {
         const testRequest: BaseAuthRequest = {
             authority: testAuthority.canonicalAuthority,

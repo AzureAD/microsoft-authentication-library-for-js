@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Reject supplied malformed ID tokens before processing token responses and require JWT claims payloads to be JSON objects",
+    "packageName": "@azure/msal-common",
+    "email": "mohaibrahim@microsoft.com",
+    "dependentChangeType": "patch"
+}

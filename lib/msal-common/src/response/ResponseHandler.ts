@@ -240,9 +240,9 @@ export class ResponseHandler {
     ): Promise<AuthenticationResult> {
         // create an idToken object (not entity)
         let idTokenClaims: TokenClaims | undefined;
-        if (serverTokenResponse.id_token) {
+        if (serverTokenResponse.id_token !== undefined) {
             idTokenClaims = extractTokenClaims(
-                serverTokenResponse.id_token || "",
+                serverTokenResponse.id_token,
                 this.cryptoObj.base64Decode,
                 request.correlationId
             );
