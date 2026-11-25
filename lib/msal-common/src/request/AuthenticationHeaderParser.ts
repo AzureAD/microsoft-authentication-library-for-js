@@ -116,11 +116,20 @@ export class AuthenticationHeaderParser {
             }
             // Trim syntax whitespace before removing quotes, preserving whitespace inside the nonce.
             const parameterValue = value.trim();
-            challengeMap[parameterName] = unescape(
-                parameterValue.replace(/['"]+/g, "")
-            );
+            challengeMap[parameterName] =
+                stripSurroundingDoubleQuotes(parameterValue);
         }
 
         return challengeMap;
     }
+}
+
+/**
+ * Removes surrounding HTTP double quotes without decoding or modifying the contents.
+ */
+function stripSurroundingDoubleQuotes(value: string): string {
+    if (value.startsWith('"') && value.endsWith('"')) {
+        return value.slice(1, -1);
+    }
+    return value;
 }

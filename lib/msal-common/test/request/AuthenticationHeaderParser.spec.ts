@@ -131,6 +131,22 @@ describe("AuthenticationHeaderParser unit tests", () => {
             }
         );
 
+        it.each(
+            ["abc%2Fdef", "opaque%u0041", "a'b"].flatMap((nonce) => [
+                [HeaderNames.AuthenticationInfo, `nextnonce="${nonce}"`, nonce],
+                [HeaderNames.WWWAuthenticate, `PoP nonce="${nonce}"`, nonce],
+            ])
+        )(
+            "preserves opaque nonce contents in %s: %s",
+            (headerName, headerValue, expectedNonce) => {
+                expect(
+                    new AuthenticationHeaderParser({
+                        [headerName]: headerValue,
+                    }).getShrNonce()
+                ).toBe(expectedNonce);
+            }
+        );
+
         it("should throw an error if neither Authentication-Info or WWW-Authenticate headers are present", () => {
             const authenticationHeaderParser = new AuthenticationHeaderParser(
                 {}
