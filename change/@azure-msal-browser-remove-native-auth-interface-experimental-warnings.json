@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Remove experimental API warnings from Native Auth APIs [#9005](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/9005)",
+    "packageName": "@azure/msal-browser",
+    "email": "yongdiwang@microsoft.com",
+    "dependentChangeType": "patch"
+}

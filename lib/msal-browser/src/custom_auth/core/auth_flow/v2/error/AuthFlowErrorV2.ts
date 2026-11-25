@@ -29,7 +29,6 @@ export type AuthFlowErrorContextV2 =
 
 /**
  * Error returned by a native authentication V2 operation.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class AuthFlowErrorV2 {
     readonly scenario: CustomAuthFlowScenarioV2;

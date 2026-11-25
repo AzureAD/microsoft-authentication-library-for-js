@@ -122,7 +122,6 @@ export class CustomAuthPublicClientApplication
 
     /**
      * Starts native auth V2 sign-in.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      * @param inputs - Inputs for the sign-in V2 flow.
      * @returns A promise that resolves to the sign-in start result.
      */
@@ -132,7 +131,6 @@ export class CustomAuthPublicClientApplication
 
     /**
      * Starts native auth V2 sign-up.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      * @param inputs - Inputs for the sign-up V2 flow.
      * @returns A promise that resolves to the sign-up start result.
      */
@@ -142,7 +140,6 @@ export class CustomAuthPublicClientApplication
 
     /**
      * Starts native auth V2 self-service password reset.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      * @param {ResetPasswordInputsV2} inputs - Inputs for the reset-password V2 flow
      * @returns {Promise<ResetPasswordStartResultV2>} - A promise that resolves to ResetPasswordStartResultV2
      */

@@ -37,7 +37,6 @@ export class MfaSubmitChallengeResult extends AuthFlowResultBase<
     /**
      * Checks if the MFA flow is completed successfully.
      * @returns true if completed, false otherwise.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     isCompleted(): this is MfaSubmitChallengeResult & {
         state: MfaCompletedState;
@@ -48,7 +47,6 @@ export class MfaSubmitChallengeResult extends AuthFlowResultBase<
     /**
      * Checks if the result is in a failed state.
      * @returns true if the result is failed, false otherwise.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     isFailed(): this is MfaSubmitChallengeResult & {
         state: MfaFailedState;
