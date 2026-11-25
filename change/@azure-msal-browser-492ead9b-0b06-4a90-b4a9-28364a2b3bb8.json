@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Reject supplied malformed ID tokens before external token imports and cache the validated response snapshot",
+    "comment": "Reject supplied malformed ID tokens before external token imports and cache the validated response snapshot [#9011](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/9011)",
     "packageName": "@azure/msal-browser",
     "email": "mohaibrahim@microsoft.com",
     "dependentChangeType": "patch"
