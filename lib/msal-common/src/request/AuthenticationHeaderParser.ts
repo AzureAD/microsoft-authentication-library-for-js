@@ -99,7 +99,7 @@ export class AuthenticationHeaderParser {
         const parameters = header
             .trim()
             .replace(isWwwAuthenticate ? /^\S+\s+/ : /^PoP\s+/i, "");
-        const challenges = parameters.split(",");
+        const challenges = splitAuthenticationParameters(parameters);
         const challengeMap = {} as T;
 
         for (const challenge of challenges) {
@@ -117,7 +117,7 @@ export class AuthenticationHeaderParser {
             // Trim syntax whitespace before removing quotes, preserving whitespace inside the nonce.
             const parameterValue = value.trim();
             challengeMap[parameterName] =
-                stripSurroundingDoubleQuotes(parameterValue);
+                parseQuotedParameterValue(parameterValue);
         }
 
         return challengeMap;
@@ -125,11 +125,44 @@ export class AuthenticationHeaderParser {
 }
 
 /**
- * Removes surrounding HTTP double quotes without decoding or modifying the contents.
+ * Splits parameters at commas outside quoted strings, respecting escaped characters.
  */
-function stripSurroundingDoubleQuotes(value: string): string {
+function splitAuthenticationParameters(header: string): string[] {
+    const parameters: string[] = [];
+    let parameterStart = 0;
+    let inQuotes = false;
+    let escaped = false;
+
+    for (let index = 0; index < header.length; index++) {
+        const character = header[index];
+        // An escaped quote or backslash is data, not a change to the quoting state.
+        if (escaped) {
+            escaped = false;
+            continue;
+        }
+        if (inQuotes && character === "\\") {
+            escaped = true;
+        } else if (character === '"') {
+            inQuotes = !inQuotes;
+        } else if (character === "," && !inQuotes) {
+            parameters.push(header.slice(parameterStart, index));
+            parameterStart = index + 1;
+        }
+    }
+    parameters.push(header.slice(parameterStart));
+    return parameters;
+}
+
+/**
+ * Removes surrounding HTTP double quotes and decodes quoted pairs, not URI escapes.
+ */
+function parseQuotedParameterValue(value: string): string {
     if (value.startsWith('"') && value.endsWith('"')) {
-        return value.slice(1, -1);
+        /*
+         * A backslash escapes the next character in an HTTP quoted string.
+         * For example, a\"b becomes a"b; %2F is not an escape and stays literal.
+         */
+        return value.slice(1, -1).replace(/\\(.)/gs, "$1");
     }
     return value;
 }

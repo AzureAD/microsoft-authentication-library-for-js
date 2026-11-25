@@ -1,6 +1,6 @@
 {
     "type": "patch",
-    "comment": "Preserve opaque SHR server nonce contents, including equals signs, percent sequences, and apostrophes, and handle authentication-header parameter placement and whitespace. [#9010](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/9010)",
+    "comment": "Preserve opaque SHR server nonce contents, including padding, percent sequences, and apostrophes; handle parameter placement, whitespace, quoted commas, and HTTP quoted pairs. [#9010](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/9010)",
     "packageName": "@azure/msal-common",
     "email": "",
     "dependentChangeType": "patch"

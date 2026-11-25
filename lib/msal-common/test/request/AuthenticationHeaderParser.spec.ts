@@ -147,6 +147,57 @@ describe("AuthenticationHeaderParser unit tests", () => {
             }
         );
 
+        it.each(
+            [
+                ["a,b", "a,b"],
+                [String.raw`a\"b`, 'a"b'],
+                [String.raw`a\\b`, String.raw`a\b`],
+                [String.raw`a\"b,c`, 'a"b,c'],
+                [String.raw`a\%2Fb`, "a%2Fb"],
+                ["a\\\\", "a\\"],
+            ].flatMap(([rawNonce, expectedNonce]) => [
+                [
+                    HeaderNames.AuthenticationInfo,
+                    `nextnonce="${rawNonce}", qop="auth"`,
+                    expectedNonce,
+                ],
+                [
+                    HeaderNames.WWWAuthenticate,
+                    `PoP nonce="${rawNonce}", realm="resource"`,
+                    expectedNonce,
+                ],
+            ])
+        )(
+            "handles quoted commas and HTTP escapes in %s: %s",
+            (headerName, headerValue, expectedNonce) => {
+                expect(
+                    new AuthenticationHeaderParser({
+                        [headerName]: headerValue,
+                    }).getShrNonce()
+                ).toBe(expectedNonce);
+            }
+        );
+
+        it.each([
+            [
+                HeaderNames.AuthenticationInfo,
+                'nextnonce="shr", qop="auth,nextnonce=wrong"',
+            ],
+            [
+                HeaderNames.WWWAuthenticate,
+                'PoP nonce="shr", realm="example,nonce=wrong"',
+            ],
+        ])(
+            "does not treat quoted metadata as another nonce in %s: %s",
+            (headerName, headerValue) => {
+                expect(
+                    new AuthenticationHeaderParser({
+                        [headerName]: headerValue,
+                    }).getShrNonce()
+                ).toBe("shr");
+            }
+        );
+
         it("should throw an error if neither Authentication-Info or WWW-Authenticate headers are present", () => {
             const authenticationHeaderParser = new AuthenticationHeaderParser(
                 {}
