@@ -16,7 +16,6 @@ import type { AuthMethodRegistrationRequiredStateV2 } from "../state/AuthMethodR
 
 /**
  * States returned after verifying an authentication challenge.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type VerifyChallengeResultStateV2 =
     | NewPasswordRequiredStateV2
@@ -30,7 +29,6 @@ export type VerifyChallengeResultStateV2 =
 
 /**
  * Result of verifying an authentication challenge.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type VerifyChallengeResultV2 = CustomAuthResultV2<
     VerifyChallengeResultStateV2,

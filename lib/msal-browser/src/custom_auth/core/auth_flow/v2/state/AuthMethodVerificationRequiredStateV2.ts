@@ -17,7 +17,6 @@ import { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2/stat
 /**
  * State returned when a newly registered authentication method must be
  * activated with the challenge sent by the service.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class AuthMethodVerificationRequiredStateV2 extends AuthFlowActionRequiredStateBase<AuthMethodVerificationRequiredStateParametersV2> {
     readonly stateType = "authMethodVerificationRequired";
