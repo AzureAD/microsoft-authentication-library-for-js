@@ -57,7 +57,6 @@ export class SignInSubmitCodeResult extends AuthFlowResultBase<
 
     /**
      * Checks if the result requires authentication method registration.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     isAuthMethodRegistrationRequired(): this is SignInSubmitCodeResult & {
         state: AuthMethodRegistrationRequiredState;
@@ -70,7 +69,6 @@ export class SignInSubmitCodeResult extends AuthFlowResultBase<
 
     /**
      * Checks if the result requires MFA.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     isMfaRequired(): this is SignInSubmitCodeResult & {
         state: MfaAwaitingState;
