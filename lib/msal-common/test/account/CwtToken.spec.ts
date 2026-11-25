@@ -6,11 +6,15 @@ import {
     COAP_CONTENT_FORMAT_CWT,
     COSE_ALG_ES256,
     COSE_HEADER_ALG,
+    COSE_HEADER_CRIT,
     COSE_HEADER_KID,
     COSE_HEADER_TYP,
+    CWT_CLAIM_AT_HASH,
     CWT_CLAIM_AUD,
     CWT_CLAIM_AZP,
     CWT_CLAIM_AZPACR,
+    CWT_CLAIM_C_HASH,
+    CWT_CLAIM_CNF,
     CWT_CLAIM_CTI,
     CWT_CLAIM_EMAIL,
     CWT_CLAIM_EXP,
@@ -55,11 +59,16 @@ if (!globalThis.crypto) {
 }
 
 async function createSignedTestCwt(
-    claimsEntries: Array<[number | string, CborValue]>
+    claimsEntries: Array<[number | string, CborValue]>,
+    options?: {
+        protectedEntries?: Array<[number | string, CborValue]>;
+        unprotectedEntries?: Array<[number | string, CborValue]>;
+    }
 ): Promise<{
     token: string;
     jwk: Record<string, unknown>;
     privateKey: CryptoKey;
+    kidBytes: Uint8Array;
 }> {
     const keyPair = await subtle.generateKey(
         { name: "ECDSA", namedCurve: "P-256" },
@@ -77,12 +86,18 @@ async function createSignedTestCwt(
     ]);
     const kid = bytesToBase64Url(kidBytes);
 
-    const protMap = new Map<number | string, CborValue>([
-        [COSE_HEADER_ALG, COSE_ALG_ES256],
-        [COSE_HEADER_KID, kidBytes],
-        [COSE_HEADER_TYP, COAP_CONTENT_FORMAT_CWT],
-    ]);
+    const protMap = new Map<number | string, CborValue>(
+        options?.protectedEntries ?? [
+            [COSE_HEADER_ALG, COSE_ALG_ES256],
+            [COSE_HEADER_KID, kidBytes],
+            [COSE_HEADER_TYP, COAP_CONTENT_FORMAT_CWT],
+        ]
+    );
     const protectedBytes = encodeDeterministicCbor(protMap);
+
+    const unprotMap = new Map<number | string, CborValue>(
+        options?.unprotectedEntries ?? []
+    );
 
     const payloadMap = new Map<number | string, CborValue>(claimsEntries);
     const payloadBytes = encodeDeterministicCbor(payloadMap);
@@ -99,12 +114,7 @@ async function createSignedTestCwt(
         tag: CBOR_TAG_CWT,
         value: {
             tag: CBOR_TAG_COSE_SIGN1,
-            value: [
-                protectedBytes,
-                new Map<number | string, CborValue>(),
-                payloadBytes,
-                sigBytes,
-            ],
+            value: [protectedBytes, unprotMap, payloadBytes, sigBytes],
         },
     });
 
@@ -117,6 +127,7 @@ async function createSignedTestCwt(
             alg: "ES256",
         },
         privateKey: keyPair.privateKey,
+        kidBytes,
     };
 }
 
@@ -208,6 +219,9 @@ describe("CwtToken and AuthToken CWT integration", () => {
         expect((extracted as Record<string, unknown>).custom_claim).toBe(
             "custom_val"
         );
+        expect(extracted.uti).toBe(
+            bytesToBase64Url(new Uint8Array(16).fill(0x11))
+        );
 
         const verified = await verifyCwtEs256Signature(
             token,
@@ -226,6 +240,164 @@ describe("CwtToken and AuthToken CWT integration", () => {
         await expect(
             verifyCwtEs256Signature(tamperedToken, { keys: [jwk] }, "corr-bad")
         ).rejects.toBeInstanceOf(ClientAuthError);
+    });
+
+    it("base64url-encodes 16-byte hashes/opaque IDs and preserves top-level string-array claims", async () => {
+        const hash16 = new Uint8Array(16).fill(0xab);
+        const cnfKid16 = new Uint8Array(16).fill(0xcd);
+        const expectedHashB64 = bytesToBase64Url(hash16);
+        const expectedCnfKidB64 = bytesToBase64Url(cnfKid16);
+
+        const { token } = await createSignedTestCwt([
+            [CWT_CLAIM_ISS, "https://login.live-tst.com:44329"],
+            [CWT_CLAIM_C_HASH, hash16],
+            [CWT_CLAIM_AT_HASH, hash16],
+            [
+                CWT_CLAIM_CNF,
+                new Map<number | string, CborValue>([
+                    [COSE_HEADER_KID, cnfKid16],
+                ]),
+            ],
+            ["emails", ["b2cuser@example.com"]],
+            ["roles", ["Reader", "Writer"]],
+            ["amr", ["pwd", "mfa"]],
+        ]);
+
+        const decoded = decodeCwtToken(token, "corr-hash");
+        expect(decoded.claims.c_hash).toBe(expectedHashB64);
+        expect(decoded.claims.at_hash).toBe(expectedHashB64);
+        expect(decoded.claims.cnf?.kid).toBe(expectedCnfKidB64);
+        expect(decoded.claims.emails).toEqual(["b2cuser@example.com"]);
+        expect(decoded.claims.roles).toEqual(["Reader", "Writer"]);
+        expect((decoded.claims as Record<string, unknown>).amr).toEqual([
+            "pwd",
+            "mfa",
+        ]);
+    });
+
+    it("enforces RFC 9052 crit header validation and unprotected/duplicate header rules", async () => {
+        const kidBytes = new Uint8Array([1, 2, 3, 4]);
+
+        // Valid supported crit header succeeds
+        const validCrit = await createSignedTestCwt(
+            [[CWT_CLAIM_SUB, "sub-1"]],
+            {
+                protectedEntries: [
+                    [COSE_HEADER_ALG, COSE_ALG_ES256],
+                    [COSE_HEADER_CRIT, [COSE_HEADER_ALG, COSE_HEADER_TYP]],
+                    [COSE_HEADER_KID, kidBytes],
+                    [COSE_HEADER_TYP, COAP_CONTENT_FORMAT_CWT],
+                ],
+            }
+        );
+        const validVerified = await verifyCwtEs256Signature(validCrit.token, {
+            keys: [{ ...validCrit.jwk, kid: bytesToBase64Url(kidBytes) }],
+        });
+        expect(validVerified.claims.sub).toBe("sub-1");
+
+        // Signed CWT with unknown critical header must be rejected
+        const unknownCrit = await createSignedTestCwt(
+            [[CWT_CLAIM_SUB, "sub-1"]],
+            {
+                protectedEntries: [
+                    [COSE_HEADER_ALG, COSE_ALG_ES256],
+                    [COSE_HEADER_CRIT, [999]],
+                    [999, "custom-critical"],
+                ],
+            }
+        );
+        await expect(
+            verifyCwtEs256Signature(unknownCrit.token, {
+                keys: [{ ...unknownCrit.jwk, kid: undefined }],
+            })
+        ).rejects.toBeInstanceOf(ClientAuthError);
+
+        // Empty crit array must be rejected
+        const emptyCrit = await createSignedTestCwt(
+            [[CWT_CLAIM_SUB, "sub-1"]],
+            {
+                protectedEntries: [
+                    [COSE_HEADER_ALG, COSE_ALG_ES256],
+                    [COSE_HEADER_CRIT, []],
+                ],
+            }
+        );
+        expect(() => decodeCwtToken(emptyCrit.token)).toThrow(ClientAuthError);
+
+        // Unprotected kid works during key rotation when matching key is not first in JWKS
+        const otherPair = await subtle.generateKey(
+            { name: "ECDSA", namedCurve: "P-256" },
+            true,
+            ["sign", "verify"]
+        );
+        const otherJwk = (await subtle.exportKey(
+            "jwk",
+            otherPair.publicKey
+        )) as Record<string, unknown>;
+
+        const unprotKidToken = await createSignedTestCwt(
+            [[CWT_CLAIM_SUB, "sub-unprot-kid"]],
+            {
+                protectedEntries: [[COSE_HEADER_ALG, COSE_ALG_ES256]],
+                unprotectedEntries: [[COSE_HEADER_KID, kidBytes]],
+            }
+        );
+        const rotatedVerified = await verifyCwtEs256Signature(
+            unprotKidToken.token,
+            {
+                keys: [
+                    { ...otherJwk, kid: "first-unrelated-key", use: "sig" },
+                    {
+                        ...unprotKidToken.jwk,
+                        kid: bytesToBase64Url(kidBytes),
+                        alg: undefined,
+                    },
+                ],
+            }
+        );
+        expect(rotatedVerified.claims.sub).toBe("sub-unprot-kid");
+
+        // Duplicate kid in both protected and unprotected headers must be rejected
+        const dupKid = await createSignedTestCwt([[CWT_CLAIM_SUB, "sub-dup"]], {
+            protectedEntries: [
+                [COSE_HEADER_ALG, COSE_ALG_ES256],
+                [COSE_HEADER_KID, kidBytes],
+            ],
+            unprotectedEntries: [[COSE_HEADER_KID, kidBytes]],
+        });
+        expect(() => decodeCwtToken(dupKid.token)).toThrow(ClientAuthError);
+    });
+
+    it("rejects JWKS keys with incompatible use, key_ops, or alg before importing", async () => {
+        const { token, jwk } = await createSignedTestCwt([
+            [CWT_CLAIM_SUB, "sub-jwk-filter"],
+        ]);
+
+        await expect(
+            verifyCwtEs256Signature(token, {
+                keys: [{ ...jwk, use: "enc" }],
+            })
+        ).rejects.toThrow("No matching EC P-256 signing key");
+
+        await expect(
+            verifyCwtEs256Signature(token, {
+                keys: [{ ...jwk, key_ops: ["deriveKey"] }],
+            })
+        ).rejects.toThrow("No matching EC P-256 signing key");
+
+        await expect(
+            verifyCwtEs256Signature(token, {
+                keys: [{ ...jwk, alg: "ES384" }],
+            })
+        ).rejects.toThrow("No matching EC P-256 signing key");
+
+        // Accepts MSA PublishECCJWK format (use="sig", alg omitted)
+        const msaStyleJwk = { ...jwk };
+        delete msaStyleJwk.alg;
+        const verified = await verifyCwtEs256Signature(token, {
+            keys: [msaStyleJwk],
+        });
+        expect(verified.claims.sub).toBe("sub-jwk-filter");
     });
 
     it("throws tokenParsingError with correlationId on corrupted CWT bytes", () => {

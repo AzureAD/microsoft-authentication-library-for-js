@@ -14,9 +14,16 @@ export const CBOR_TAG_COSE_SIGN1 = 18;
 export const COSE_ALG_ES256 = -7;
 export const COSE_ALG_RS256 = -257;
 export const COSE_HEADER_ALG = 1;
+export const COSE_HEADER_CRIT = 2;
 export const COSE_HEADER_KID = 4;
 export const COSE_HEADER_TYP = 16;
 export const COAP_CONTENT_FORMAT_CWT = 61;
+
+const SUPPORTED_CRITICAL_COSE_HEADERS = new Set<number | string>([
+    COSE_HEADER_ALG,
+    COSE_HEADER_KID,
+    COSE_HEADER_TYP,
+]);
 
 // Standard IANA CWT claims (RFC 8392, RFC 8747, RFC 9200)
 export const CWT_CLAIM_ISS = 1;
@@ -288,9 +295,7 @@ export function encodeDeterministicCbor(value: CborValue): Uint8Array {
                 val: encodeDeterministicCbor(mapVal),
             });
         });
-        encodedPairs.sort((lhs, rhs) =>
-            compareLexicographic(lhs.key, rhs.key)
-        );
+        encodedPairs.sort((lhs, rhs) => compareLexicographic(lhs.key, rhs.key));
         for (let i = 1; i < encodedPairs.length; i++) {
             if (
                 compareLexicographic(
@@ -419,7 +424,10 @@ function readCborItemInternal(
             for (let i = 0; i < arg; i++) {
                 const k = readCborItemInternal(bytes, cursor, depth + 1);
                 cursor = k.nextOffset;
-                if (typeof k.value !== "number" && typeof k.value !== "string") {
+                if (
+                    typeof k.value !== "number" &&
+                    typeof k.value !== "string"
+                ) {
                     throw new Error("Unsupported CBOR map key type");
                 }
                 const v = readCborItemInternal(bytes, cursor, depth + 1);
@@ -512,9 +520,17 @@ function coerceUuidOrString(val: CborValue): string | undefined {
         return val;
     }
     if (val instanceof Uint8Array) {
-        return val.length === 16
-            ? formatUuidBytes(val)
-            : bytesToBase64Url(val);
+        return val.length === 16 ? formatUuidBytes(val) : bytesToBase64Url(val);
+    }
+    return undefined;
+}
+
+function coerceOpaqueIdOrHash(val: CborValue): string | undefined {
+    if (typeof val === "string") {
+        return val;
+    }
+    if (val instanceof Uint8Array) {
+        return bytesToBase64Url(val);
     }
     return undefined;
 }
@@ -564,7 +580,7 @@ function mapCwtClaimsToTokenClaims(
                 claims.iat = val;
             }
         } else if (key === CWT_CLAIM_CTI || key === "uti" || key === "jti") {
-            const uti = coerceUuidOrString(val);
+            const uti = coerceOpaqueIdOrHash(val);
             if (uti !== undefined) {
                 claims.uti = uti;
             }
@@ -572,7 +588,7 @@ function mapCwtClaimsToTokenClaims(
             if (val instanceof Map) {
                 const kidVal =
                     val.get(COSE_HEADER_KID) ?? val.get("kid") ?? val.get(3);
-                const kidStr = coerceUuidOrString(kidVal ?? null);
+                const kidStr = coerceOpaqueIdOrHash(kidVal ?? null);
                 if (kidStr) {
                     claims.cnf = { kid: kidStr };
                 }
@@ -649,12 +665,12 @@ function mapCwtClaimsToTokenClaims(
                 claims.nonce = val;
             }
         } else if (key === CWT_CLAIM_C_HASH || key === "c_hash") {
-            const ch = coerceUuidOrString(val);
+            const ch = coerceOpaqueIdOrHash(val);
             if (ch !== undefined) {
                 claims.c_hash = ch;
             }
         } else if (key === CWT_CLAIM_AT_HASH || key === "at_hash") {
-            const ath = coerceUuidOrString(val);
+            const ath = coerceOpaqueIdOrHash(val);
             if (ath !== undefined) {
                 claims.at_hash = ath;
             }
@@ -693,12 +709,20 @@ function mapCwtClaimsToTokenClaims(
             typeof key === "string" &&
             key !== "__proto__" &&
             key !== "constructor" &&
-            key !== "prototype" &&
-            (typeof val === "string" ||
-                typeof val === "number" ||
-                typeof val === "boolean")
+            key !== "prototype"
         ) {
-            claims[key] = val;
+            if (
+                typeof val === "string" ||
+                typeof val === "number" ||
+                typeof val === "boolean"
+            ) {
+                claims[key] = val;
+            } else if (Array.isArray(val)) {
+                const arr = coerceStringArray(val);
+                if (arr) {
+                    claims[key] = arr;
+                }
+            }
         }
     });
 
@@ -779,6 +803,44 @@ export function decodeCwtToken(
             throw new Error("COSE protected header must be a CBOR map");
         }
 
+        /*
+         * RFC 9052 Section 3: reject duplicate header labels across protected and unprotected buckets,
+         * and forbid security-sensitive alg/crit parameters in the unprotected bucket.
+         */
+        for (const label of protDecoded.keys()) {
+            if (unprotVal.has(label)) {
+                throw new Error(
+                    "Duplicate COSE header parameter across protected and unprotected buckets"
+                );
+            }
+        }
+        if (unprotVal.has(COSE_HEADER_ALG) || unprotVal.has(COSE_HEADER_CRIT)) {
+            throw new Error(
+                "COSE alg and crit parameters are only permitted in protected header"
+            );
+        }
+
+        // RFC 9052 Section 3.1: validate critical COSE header parameters (label 2).
+        if (protDecoded.has(COSE_HEADER_CRIT)) {
+            const critVal = protDecoded.get(COSE_HEADER_CRIT);
+            if (!Array.isArray(critVal) || critVal.length === 0) {
+                throw new Error("Malformed COSE crit header parameter");
+            }
+            for (const critLabel of critVal) {
+                if (
+                    (typeof critLabel !== "number" &&
+                        typeof critLabel !== "string") ||
+                    (typeof critLabel === "string" && critLabel.length === 0) ||
+                    !protDecoded.has(critLabel) ||
+                    !SUPPORTED_CRITICAL_COSE_HEADERS.has(critLabel)
+                ) {
+                    throw new Error(
+                        "Unsupported or missing critical COSE header parameter"
+                    );
+                }
+            }
+        }
+
         const coseAlg = protDecoded.get(COSE_HEADER_ALG);
         if (typeof coseAlg !== "number") {
             throw new Error("Missing COSE alg in protected header");
@@ -790,17 +852,29 @@ export function decodeCwtToken(
                 ? "RS256"
                 : `COSE(${coseAlg})`;
 
-        const rawKid = protDecoded.get(COSE_HEADER_KID);
+        const rawKid = protDecoded.has(COSE_HEADER_KID)
+            ? protDecoded.get(COSE_HEADER_KID)
+            : unprotVal.get(COSE_HEADER_KID);
         let kid: string | undefined;
         let kidBytes: Uint8Array | undefined;
         if (rawKid instanceof Uint8Array) {
+            if (rawKid.length === 0) {
+                throw new Error("Empty COSE kid header");
+            }
             kidBytes = rawKid;
             kid = bytesToBase64Url(rawKid);
         } else if (typeof rawKid === "string") {
+            if (rawKid.length === 0) {
+                throw new Error("Empty COSE kid header");
+            }
             kid = rawKid;
+        } else if (rawKid !== undefined) {
+            throw new Error("Malformed COSE kid header");
         }
 
-        const rawTyp = protDecoded.get(COSE_HEADER_TYP);
+        const rawTyp = protDecoded.has(COSE_HEADER_TYP)
+            ? protDecoded.get(COSE_HEADER_TYP)
+            : unprotVal.get(COSE_HEADER_TYP);
         const typ =
             typeof rawTyp === "number" || typeof rawTyp === "string"
                 ? rawTyp
@@ -834,6 +908,38 @@ export function decodeCwtToken(
     }
 }
 
+function isCompatibleEs256VerificationJwk(
+    jwk: Record<string, unknown>,
+    expectedKid?: string
+): boolean {
+    if (
+        !jwk ||
+        jwk.kty !== "EC" ||
+        jwk.crv !== "P-256" ||
+        typeof jwk.x !== "string" ||
+        jwk.x.length === 0 ||
+        typeof jwk.y !== "string" ||
+        jwk.y.length === 0
+    ) {
+        return false;
+    }
+    if (jwk.use !== undefined && jwk.use !== "sig") {
+        return false;
+    }
+    if (jwk.alg !== undefined && jwk.alg !== "ES256") {
+        return false;
+    }
+    if (jwk.key_ops !== undefined) {
+        if (!Array.isArray(jwk.key_ops) || !jwk.key_ops.includes("verify")) {
+            return false;
+        }
+    }
+    if (expectedKid && jwk.kid !== expectedKid) {
+        return false;
+    }
+    return true;
+}
+
 /**
  * Cryptographically verify an ES256 COSE_Sign1 CWT against an OIDC JWKS key set using WebCrypto.
  */
@@ -859,52 +965,50 @@ export async function verifyCwtEs256Signature(
     }
 
     const keys = Array.isArray(jwks?.keys) ? jwks.keys : [];
-    const matchingJwk = keys.find(
-        (k) =>
-            k &&
-            k.kty === "EC" &&
-            k.crv === "P-256" &&
-            typeof k.x === "string" &&
-            typeof k.y === "string" &&
-            (!decoded.header.kid || k.kid === decoded.header.kid)
+    const candidateJwks = keys.filter((k) =>
+        isCompatibleEs256VerificationJwk(k, decoded.header.kid)
     );
-    if (!matchingJwk) {
+    if (candidateJwks.length === 0) {
         throw new Error(
             "No matching EC P-256 signing key found in JWKS for CWT verification"
         );
     }
 
-    const publicKey = await subtle.importKey(
-        "jwk",
-        {
-            kty: "EC",
-            crv: "P-256",
-            x: matchingJwk.x as string,
-            y: matchingJwk.y as string,
-            ext: true,
-        },
-        { name: "ECDSA", namedCurve: "P-256" },
-        false,
-        ["verify"]
-    );
-
     const sigStructure = buildCoseSigStructure(
         decoded.protectedHeaderBytes,
         decoded.payloadBytes
     );
-    const verified = await subtle.verify(
-        { name: "ECDSA", hash: "SHA-256" },
-        publicKey,
-        new Uint8Array(decoded.signatureBytes),
-        new Uint8Array(sigStructure)
-    );
+    const sigBytes = new Uint8Array(decoded.signatureBytes);
+    const sigData = new Uint8Array(sigStructure);
 
-    if (!verified) {
-        throw createClientAuthError(
-            ClientAuthErrorCodes.tokenParsingError,
-            correlationId
+    for (const candidateJwk of candidateJwks) {
+        const publicKey = await subtle.importKey(
+            "jwk",
+            {
+                kty: "EC",
+                crv: "P-256",
+                x: candidateJwk.x as string,
+                y: candidateJwk.y as string,
+                ext: true,
+            },
+            { name: "ECDSA", namedCurve: "P-256" },
+            false,
+            ["verify"]
         );
+
+        const verified = await subtle.verify(
+            { name: "ECDSA", hash: "SHA-256" },
+            publicKey,
+            sigBytes,
+            sigData
+        );
+        if (verified) {
+            return decoded;
+        }
     }
 
-    return decoded;
+    throw createClientAuthError(
+        ClientAuthErrorCodes.tokenParsingError,
+        correlationId
+    );
 }
