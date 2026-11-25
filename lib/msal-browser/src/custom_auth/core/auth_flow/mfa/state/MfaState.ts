@@ -31,7 +31,6 @@ abstract class MfaState<
      * Requests an MFA challenge for a specific authentication method.
      * @param authMethodId The authentication method ID to use for the challenge.
      * @returns Promise that resolves to MfaRequestChallengeResult.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     async requestChallenge(
         authMethodId: string
@@ -101,7 +100,6 @@ export class MfaAwaitingState extends MfaState<MfaAwaitingStateParameters> {
     /**
      * Gets the available authentication methods for MFA.
      * @returns Array of available authentication methods.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     getAuthMethods(): AuthenticationMethod[] {
         return this.stateParameters.authMethods;
@@ -121,7 +119,6 @@ export class MfaVerificationRequiredState extends MfaState<MfaVerificationRequir
     /**
      * Gets the length of the code that the user needs to provide.
      * @returns The expected code length.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     getCodeLength(): number {
         return this.stateParameters.codeLength;
@@ -130,7 +127,6 @@ export class MfaVerificationRequiredState extends MfaState<MfaVerificationRequir
     /**
      * Gets the channel through which the challenge was sent.
      * @returns The challenge channel (e.g., "email").
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     getChannel(): string {
         return this.stateParameters.challengeChannel;
@@ -139,7 +135,6 @@ export class MfaVerificationRequiredState extends MfaState<MfaVerificationRequir
     /**
      * Gets the target label indicating where the challenge was sent.
      * @returns The challenge target label (e.g., masked email address).
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     getSentTo(): string {
         return this.stateParameters.challengeTargetLabel;
@@ -149,7 +144,6 @@ export class MfaVerificationRequiredState extends MfaState<MfaVerificationRequir
      * Submits the MFA challenge (e.g., OTP code) to complete the authentication.
      * @param challenge The challenge code (e.g., OTP code) entered by the user.
      * @returns Promise that resolves to MfaSubmitChallengeResult.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     async submitChallenge(
         challenge: string

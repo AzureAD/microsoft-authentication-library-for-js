@@ -15,7 +15,6 @@ import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2
 
 /**
  * States returned after submitting a sign-in or sign-up password.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SubmitPasswordResultStateV2 =
     | CompletedStateV2
@@ -28,7 +27,6 @@ export type SubmitPasswordResultStateV2 =
 
 /**
  * Result of submitting a password in the active flow.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SubmitPasswordResultV2 = CustomAuthResultV2<
     SubmitPasswordResultStateV2,
