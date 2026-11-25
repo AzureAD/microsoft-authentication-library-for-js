@@ -10,7 +10,6 @@ import type { FailedStateV2 } from "../state/FailedStateV2.js";
 
 /**
  * States returned when native auth V2 password reset starts.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type ResetPasswordStartResultStateV2 =
     | AuthMethodSelectionRequiredStateV2
@@ -19,7 +18,6 @@ export type ResetPasswordStartResultStateV2 =
 
 /**
  * Result of starting native auth V2 password reset.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type ResetPasswordStartResultV2 =
     CustomAuthResultV2<ResetPasswordStartResultStateV2>;

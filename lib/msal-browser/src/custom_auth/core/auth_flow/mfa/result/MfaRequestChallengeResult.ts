@@ -36,7 +36,6 @@ export class MfaRequestChallengeResult extends AuthFlowResultBase<
     /**
      * Checks if the result indicates that verification is required.
      * @returns true if verification is required, false otherwise.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     isVerificationRequired(): this is MfaRequestChallengeResult & {
         state: MfaVerificationRequiredState;
@@ -47,7 +46,6 @@ export class MfaRequestChallengeResult extends AuthFlowResultBase<
     /**
      * Checks if the result is in a failed state.
      * @returns true if the result is failed, false otherwise.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     isFailed(): this is MfaRequestChallengeResult & {
         state: MfaFailedState;
