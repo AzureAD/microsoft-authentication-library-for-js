@@ -26,7 +26,6 @@ import type { SubmitAttributesResultV2 } from "../../../../sign_up/auth_flow/v2/
 
 /**
  * State returned when sign-in or sign-up requires a password.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export class PasswordRequiredStateV2 extends AuthFlowActionRequiredStateBase<PasswordRequiredStateParametersV2> {
     readonly stateType = "passwordRequired";

@@ -44,7 +44,6 @@ export class AuthMethodRegistrationChallengeMethodResult extends AuthFlowResultB
     /**
      * Checks if the result indicates that verification is required.
      * @returns true if verification is required, false otherwise.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     isVerificationRequired(): this is AuthMethodRegistrationChallengeMethodResult & {
         state: AuthMethodVerificationRequiredState;
@@ -58,7 +57,6 @@ export class AuthMethodRegistrationChallengeMethodResult extends AuthFlowResultB
     /**
      * Checks if the result indicates that registration is completed (fast-pass scenario).
      * @returns true if registration is completed, false otherwise.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     isCompleted(): this is AuthMethodRegistrationChallengeMethodResult & {
         state: AuthMethodRegistrationCompletedState;
@@ -72,7 +70,6 @@ export class AuthMethodRegistrationChallengeMethodResult extends AuthFlowResultB
     /**
      * Checks if the result is in a failed state.
      * @returns true if the result is failed, false otherwise.
-     * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
      */
     isFailed(): this is AuthMethodRegistrationChallengeMethodResult & {
         state: AuthMethodRegistrationFailedState;

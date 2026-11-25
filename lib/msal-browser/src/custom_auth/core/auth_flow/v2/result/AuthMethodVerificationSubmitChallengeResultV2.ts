@@ -11,7 +11,6 @@ import type { SignInContinuationStateV2 } from "../../../../sign_in/auth_flow/v2
 
 /**
  * States returned after submitting an authentication-method verification challenge.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type AuthMethodVerificationSubmitChallengeResultStateV2 =
     | SignInContinuationStateV2
@@ -20,7 +19,6 @@ export type AuthMethodVerificationSubmitChallengeResultStateV2 =
 
 /**
  * Result of submitting an authentication-method verification challenge.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type AuthMethodVerificationSubmitChallengeResultV2 = CustomAuthResultV2<
     AuthMethodVerificationSubmitChallengeResultStateV2,

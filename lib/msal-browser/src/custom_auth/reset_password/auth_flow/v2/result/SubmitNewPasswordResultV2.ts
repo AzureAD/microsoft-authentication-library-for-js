@@ -11,7 +11,6 @@ import type { AuthMethodSelectionRequiredStateV2 } from "../../../../core/auth_f
 
 /**
  * States returned after submitting a new password.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SubmitNewPasswordResultStateV2 =
     | SignInContinuationStateV2
@@ -21,7 +20,6 @@ export type SubmitNewPasswordResultStateV2 =
 
 /**
  * Result of submitting a new password.
- * @warning This API is experimental. It may be changed in the future without notice. Do not use in production applications.
  */
 export type SubmitNewPasswordResultV2 =
     CustomAuthResultV2<SubmitNewPasswordResultStateV2>;
