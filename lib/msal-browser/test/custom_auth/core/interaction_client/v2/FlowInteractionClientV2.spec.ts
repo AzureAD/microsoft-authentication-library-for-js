@@ -345,6 +345,7 @@ describe("FlowInteractionClientV2", () => {
             apiClient.authorizeChallengeStart.mockImplementation(async () => {
                 runtimeInputs.attributes.displayName = "Mutated User";
                 runtimeInputs.attributes.city = "Later";
+                runtimeInputs.claims = "{}";
                 return {
                     continuationToken: "ct-entry",
                     signUpHref: "https://endpoint/signup/start",
@@ -396,6 +397,7 @@ describe("FlowInteractionClientV2", () => {
                 continuationToken: "ct-start",
                 scenario: "signUp",
                 scopes: ["User.Read", "openid", "profile", "offline_access"],
+                claims: '{"id_token":{"auth_time":{"essential":true}}}',
                 links: {
                     verify: "https://endpoint/signup/verify",
                     resend: "https://endpoint/signup/resend",
@@ -725,6 +727,7 @@ describe("FlowInteractionClientV2", () => {
                 continuationToken: "ct-challenge",
                 scenario: "signIn",
                 scopes: ["User.Read", "openid", "profile", "offline_access"],
+                claims: '{"access_token":{"acrs":{"value":"c4"}}}',
                 links: {
                     challenge: "https://endpoint/password/challenge",
                     verify: "https://endpoint/password/verify",
@@ -1795,7 +1798,8 @@ describe("FlowInteractionClientV2", () => {
                 tokenResponse,
                 continuationState.scopes,
                 correlationId,
-                expect.any(Number)
+                expect.any(Number),
+                continuationState.claims
             );
         });
 
@@ -4313,6 +4317,7 @@ describe("FlowInteractionClientV2", () => {
             continuationToken: "ct-complete",
             scenario: "passwordReset",
             scopes: ["User.Read", "openid", "profile", "offline_access"],
+            claims: '{"id_token":{"xms_agvs":{"additionalProperties":["target-mc"]}}}',
             links: {},
         };
 
@@ -4358,7 +4363,8 @@ describe("FlowInteractionClientV2", () => {
                 tokenResponse,
                 continuationState.scopes,
                 correlationId,
-                expect.any(Number)
+                expect.any(Number),
+                continuationState.claims
             );
 
             expect(result.type).toBe(FLOW_COMPLETED_V2);
@@ -4392,7 +4398,8 @@ describe("FlowInteractionClientV2", () => {
                 tokenResponse,
                 continuationState.scopes,
                 correlationId,
-                SIGN_UP_V2_COMPLETE
+                SIGN_UP_V2_COMPLETE,
+                continuationState.claims
             );
         });
 

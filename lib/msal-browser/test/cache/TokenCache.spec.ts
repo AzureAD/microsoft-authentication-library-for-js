@@ -135,6 +135,190 @@ describe("TokenCache tests", () => {
             browserStorage.clear(RANDOM_TEST_GUID);
         });
 
+        describe("age-assurance preflight", () => {
+            const claims = JSON.stringify({
+                id_token: { xms_agvs: { additionalProperties: ["target-mc"] } },
+            });
+            const request = (requestedClaims?: string): SilentRequest => ({
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                claims: requestedClaims,
+                account: {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    environment: testEnvironment,
+                    tenantId: TEST_CONFIG.TENANT,
+                    username: "username",
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+                },
+            });
+            const token = (receipt: unknown): string =>
+                `header.${btoa(
+                    JSON.stringify({ ...testIdTokenClaims, xms_agvt: receipt })
+                )}.signature`;
+
+            it.each([
+                [claims, "+MC"],
+                [claims, "-mc"],
+                [undefined, undefined],
+                [undefined, ""],
+                [undefined, "+all"],
+                [undefined, "-ALL"],
+            ])(
+                "loads matching receipt %p / %p",
+                async (requestedClaims, receipt) => {
+                    const result = await loadExternalTokens(
+                        configuration,
+                        request(requestedClaims),
+                        {
+                            id_token: token(receipt),
+                            access_token: testAccessToken,
+                            refresh_token: testRefreshToken,
+                            expires_in: 3600,
+                        },
+                        {}
+                    );
+                    expect(result.idTokenClaims).toEqual(
+                        expect.objectContaining(
+                            receipt === undefined ? {} : { xms_agvt: receipt }
+                        )
+                    );
+                    expect(result.accessToken).toBe(testAccessToken);
+                    expect(browserStorage.getTokenKeys().idToken).toHaveLength(
+                        1
+                    );
+                }
+            );
+
+            it.each([
+                [claims, undefined],
+                [claims, "+all"],
+                [claims, "+other"],
+                [undefined, "+mc"],
+                [undefined, "+all,-mc"],
+                [undefined, "+all,+ALL"],
+                [undefined, "all"],
+                [undefined, null],
+                [undefined, ["+all"]],
+            ])(
+                "rejects receipt %p / %p without altering existing cache",
+                async (requestedClaims, receipt) => {
+                    await loadExternalTokens(
+                        configuration,
+                        request(),
+                        {
+                            id_token: testIdToken,
+                            access_token: testAccessToken,
+                            refresh_token: testRefreshToken,
+                            expires_in: 3600,
+                        },
+                        {}
+                    );
+                    const before = { ...window.sessionStorage };
+                    const setters = [
+                        "setAccount",
+                        "setIdTokenCredential",
+                        "setAccessTokenCredential",
+                        "setRefreshTokenCredential",
+                    ] as const;
+                    const writes = setters.map((setter) =>
+                        jest.spyOn(BrowserCacheManager.prototype, setter)
+                    );
+                    await expect(
+                        loadExternalTokens(
+                            configuration,
+                            request(requestedClaims),
+                            {
+                                id_token: token(receipt),
+                                access_token: "replacement-access-token",
+                                refresh_token: "replacement-refresh-token",
+                                expires_in: 3600,
+                            },
+                            {}
+                        )
+                    ).rejects.toMatchObject({
+                        errorCode: "age_assurance_target_mismatch",
+                    });
+                    writes.forEach((write) =>
+                        expect(write).not.toHaveBeenCalled()
+                    );
+                    expect({ ...window.sessionStorage }).toEqual(before);
+                }
+            );
+
+            it.each([
+                "",
+                "malformed",
+                null,
+                ...[null, [], 42, "payload"].map(
+                    (payload) =>
+                        `header.${btoa(JSON.stringify(payload))}.signature`
+                ),
+            ])(
+                "does not treat supplied malformed ID token %p as absent",
+                async (idToken) => {
+                    const write = jest.spyOn(
+                        BrowserCacheManager.prototype,
+                        "setAccount"
+                    );
+                    await expect(
+                        loadExternalTokens(
+                            configuration,
+                            request(),
+                            {
+                                id_token: idToken as string,
+                                access_token: testAccessToken,
+                                expires_in: 3600,
+                            },
+                            {}
+                        )
+                    ).rejects.toBeDefined();
+                    expect(write).not.toHaveBeenCalled();
+                }
+            );
+
+            it("allows absent ID tokens only when no targets were requested", async () => {
+                const response = {
+                    access_token: testAccessToken,
+                    expires_in: 3600,
+                };
+                const result = await loadExternalTokens(
+                    configuration,
+                    request(),
+                    response,
+                    {}
+                );
+                expect(result.accessToken).toBe(testAccessToken);
+                const before = { ...window.sessionStorage };
+                await expect(
+                    loadExternalTokens(
+                        configuration,
+                        request(claims),
+                        response,
+                        {}
+                    )
+                ).rejects.toMatchObject({
+                    errorCode: "age_assurance_target_mismatch",
+                });
+                expect({ ...window.sessionStorage }).toEqual(before);
+            });
+
+            it("imports the validated snapshot despite caller mutation during initialization", async () => {
+                const inputs = request(claims);
+                const idToken = token("-mc");
+                const response = { id_token: idToken };
+                const pending = loadExternalTokens(
+                    configuration,
+                    inputs,
+                    response,
+                    {}
+                );
+                inputs.claims = "{}";
+                response.id_token = token("+other");
+                const result = await pending;
+                expect(result.idToken).toBe(idToken);
+                expect(result.idTokenClaims).toMatchObject({ xms_agvt: "-mc" });
+            });
+        });
+
         it("loads id token with a request account", async () => {
             const setSpy = jest.spyOn(
                 BrowserCacheManager.prototype,

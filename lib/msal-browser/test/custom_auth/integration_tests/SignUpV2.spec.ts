@@ -1258,6 +1258,7 @@ describe("Sign-up V2 entry", () => {
                 continuationToken: "ct-start",
                 scenario: "signUp",
                 scopes: ["openid", "User.Read", "profile", "offline_access"],
+                claims: '{"id_token":{}}',
                 links: {
                     verify: "/tenant/api/v0.1/email/verify",
                     resend: "/tenant/api/v0.1/email/resend",
@@ -2508,6 +2509,7 @@ describe("Sign-up V2 entry", () => {
                 continuationToken: "ct-next",
                 scenario: "signUp",
                 scopes: ["User.Read", "openid", "profile", "offline_access"],
+                claims: '{"id_token":{"auth_time":{"essential":true}}}',
                 links: {
                     submitAttributes: nextResponse._links.submitAttributes.href,
                 },

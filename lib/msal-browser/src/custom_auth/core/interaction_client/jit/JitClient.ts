@@ -39,6 +39,7 @@ export class JitClient extends CustomAuthInteractionClientBase {
     async challengeAuthMethod(
         parameters: JitChallengeAuthMethodParams
     ): Promise<JitVerificationRequiredResult | JitCompletedResult> {
+        const claims = parameters.claims;
         const correlationId = parameters.correlationId || this.correlationId;
         const apiId = PublicApiId.JIT_CHALLENGE_AUTH_METHOD;
         const telemetryManager = initializeServerTelemetryManager(
@@ -90,7 +91,7 @@ export class JitClient extends CustomAuthInteractionClientBase {
                 grantType: GrantType.CONTINUATION_TOKEN,
                 scopes: parameters.scopes,
                 username: parameters.username,
-                claims: parameters.claims,
+                claims,
             };
 
             const completedResult = await this.submitChallenge(fastPassParams);
@@ -116,6 +117,7 @@ export class JitClient extends CustomAuthInteractionClientBase {
     async submitChallenge(
         parameters: JitSubmitChallengeParams
     ): Promise<JitCompletedResult> {
+        const claims = parameters.claims;
         const correlationId = parameters.correlationId || this.correlationId;
         const apiId = PublicApiId.JIT_SUBMIT_CHALLENGE;
         const telemetryManager = initializeServerTelemetryManager(
@@ -157,8 +159,8 @@ export class JitClient extends CustomAuthInteractionClientBase {
             scope: scopes.join(" "),
             correlationId: continueResponse.correlation_id || correlationId,
             telemetryManager: telemetryManager,
-            ...(parameters.claims && {
-                claims: parameters.claims,
+            ...(claims && {
+                claims,
             }),
         };
 
@@ -173,7 +175,8 @@ export class JitClient extends CustomAuthInteractionClientBase {
             tokenResponse.correlation_id ||
                 continueResponse.correlation_id ||
                 correlationId,
-            apiId
+            apiId,
+            claims
         );
 
         return createJitCompletedResult({

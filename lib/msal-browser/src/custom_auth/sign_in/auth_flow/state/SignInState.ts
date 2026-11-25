@@ -56,7 +56,8 @@ export abstract class SignInState<
             | SignInCompletedResult
             | SignInJitRequiredResult
             | SignInMfaRequiredResult,
-        scopes?: string[]
+        scopes?: string[],
+        claims = this.stateParameters.claims
     ): {
         state:
             | SignInCompletedState
@@ -105,7 +106,7 @@ export abstract class SignInState<
                     authMethods: result.authMethods,
                     username: this.stateParameters.username,
                     scopes: scopes ?? [],
-                    claims: this.stateParameters.claims,
+                    claims,
                 }),
             };
         } else if (result.type === SIGN_IN_MFA_REQUIRED_RESULT_TYPE) {
@@ -125,6 +126,7 @@ export abstract class SignInState<
                     cacheClient: this.stateParameters.cacheClient,
                     scopes: scopes ?? [],
                     authMethods: result.authMethods ?? [],
+                    claims,
                 }),
             };
         } else {

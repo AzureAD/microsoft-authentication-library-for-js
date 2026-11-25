@@ -106,7 +106,8 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
         tokenResponse: TokenResponseV2,
         requestedScopes: string[],
         correlationId: string,
-        apiId: number
+        apiId: number,
+        claims?: string
     ): Promise<AuthenticationResult> {
         this.logger.verbose("Processing V2 token response.", correlationId);
 
@@ -124,6 +125,7 @@ export abstract class InteractionClientBaseV2 extends StandardInteractionClient 
                     authority: this.customAuthAuthority.canonicalAuthority,
                     correlationId,
                     scopes: responseScopes,
+                    claims,
                 },
                 apiId
             );

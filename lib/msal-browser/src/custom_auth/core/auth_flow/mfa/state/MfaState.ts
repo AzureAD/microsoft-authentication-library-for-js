@@ -75,6 +75,7 @@ abstract class MfaState<
                     codeLength: result.codeLength,
                     selectedAuthMethodId: authMethodId,
                     scopes: this.stateParameters.scopes ?? [],
+                    claims: this.stateParameters.claims,
                 })
             );
         } catch (error) {
@@ -166,6 +167,7 @@ export class MfaVerificationRequiredState extends MfaState<MfaVerificationRequir
                 correlationId: this.stateParameters.correlationId,
                 continuationToken: this.stateParameters.continuationToken ?? "",
                 scopes: this.stateParameters.scopes ?? [],
+                claims: this.stateParameters.claims,
                 challenge: challenge,
             };
 
