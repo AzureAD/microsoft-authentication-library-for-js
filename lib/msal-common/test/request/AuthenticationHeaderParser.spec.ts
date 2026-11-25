@@ -81,6 +81,56 @@ describe("AuthenticationHeaderParser unit tests", () => {
             }
         );
 
+        it.each([
+            [
+                HeaderNames.AuthenticationInfo,
+                'nextnonce="abc", qop="auth"',
+                "abc",
+            ],
+            [
+                HeaderNames.AuthenticationInfo,
+                'qop="auth", nextnonce="abc"',
+                "abc",
+            ],
+            [
+                HeaderNames.AuthenticationInfo,
+                'qop="auth,auth-int", nextnonce="abc"',
+                "abc",
+            ],
+            [
+                HeaderNames.AuthenticationInfo,
+                'PoP qop="auth", nextnonce="abc"',
+                "abc",
+            ],
+            [
+                HeaderNames.WWWAuthenticate,
+                'PoP realm="resource", nonce="abc"',
+                "abc",
+            ],
+            [
+                HeaderNames.AuthenticationInfo,
+                'PoP nextnonce \t= \t"abc" \t',
+                "abc",
+            ],
+            [HeaderNames.AuthenticationInfo, 'NEXTNONCE="AbC"', "AbC"],
+            [HeaderNames.WWWAuthenticate, 'pOp\tnonce="abc"', "abc"],
+            [HeaderNames.AuthenticationInfo, 'nextnonce=" a b "', " a b "],
+            [
+                HeaderNames.WWWAuthenticate,
+                'PoP nonce="shr", Digest realm="example", nonce="digest"',
+                "shr",
+            ],
+        ])(
+            "handles parameter placement and whitespace in %s: %s",
+            (headerName, headerValue, expectedNonce) => {
+                expect(
+                    new AuthenticationHeaderParser({
+                        [headerName]: headerValue,
+                    }).getShrNonce()
+                ).toBe(expectedNonce);
+            }
+        );
+
         it("should throw an error if neither Authentication-Info or WWW-Authenticate headers are present", () => {
             const authenticationHeaderParser = new AuthenticationHeaderParser(
                 {}

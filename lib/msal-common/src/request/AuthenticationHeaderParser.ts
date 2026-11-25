@@ -65,7 +65,8 @@ export class AuthenticationHeaderParser {
         if (wwwAuthenticate) {
             const wwwAuthenticateChallenges =
                 this.parseChallenges<WWWAuthenticateChallenges>(
-                    wwwAuthenticate
+                    wwwAuthenticate,
+                    true
                 );
             if (wwwAuthenticateChallenges.nonce) {
                 return wwwAuthenticateChallenges.nonce;
@@ -86,19 +87,39 @@ export class AuthenticationHeaderParser {
     /**
      * Parses an HTTP header's challenge set into a key/value map.
      * @param header
+     * @param isWwwAuthenticate - Whether the header requires a leading authentication scheme.
      * @returns
      */
-    private parseChallenges<T>(header: string): T {
-        const schemeSeparator = header.indexOf(" ");
-        const challenges = header.substr(schemeSeparator + 1).split(",");
+    private parseChallenges<T>(header: string, isWwwAuthenticate = false): T {
+        /*
+         * WWW-Authenticate starts with a scheme followed by whitespace.
+         * Authentication-Info has no scheme, but we also accept its legacy "PoP " prefix.
+         * Do not discard its first parameter merely because a space occurs in the header.
+         */
+        const parameters = header
+            .trim()
+            .replace(isWwwAuthenticate ? /^\S+\s+/ : /^PoP\s+/i, "");
+        const challenges = parameters.split(",");
         const challengeMap = {} as T;
 
-        challenges.forEach((challenge: string) => {
+        for (const challenge of challenges) {
             // Capture everything after the first "=" so nonce padding is preserved.
             const [key, value] = challenge.split(/=(.*)/s);
-            // Remove escaped quotation marks (', ") from challenge string to keep only the challenge value
-            challengeMap[key] = unescape(value.replace(/['"]+/g, ""));
-        });
+            // Ignore fragments without a value rather than losing a nonce in another parameter.
+            if (value === undefined) {
+                continue;
+            }
+            const parameterName = key.trim().toLowerCase();
+            // A key with whitespace, such as "Digest realm", starts another challenge.
+            if (isWwwAuthenticate && /\s/.test(parameterName)) {
+                break;
+            }
+            // Trim syntax whitespace before removing quotes, preserving whitespace inside the nonce.
+            const parameterValue = value.trim();
+            challengeMap[parameterName] = unescape(
+                parameterValue.replace(/['"]+/g, "")
+            );
+        }
 
         return challengeMap;
     }
