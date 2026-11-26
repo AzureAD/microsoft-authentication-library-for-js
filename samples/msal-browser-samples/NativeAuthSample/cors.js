@@ -16,7 +16,8 @@ const argv = require("yargs")
 
 const port = argv.port;
 const apiPath = "/api";
-const serviceUri = `https://${argv.tenantSubdomain}.ciamlogin.com/${argv.tenantId}`;
+const serviceOrigin = `https://${argv.tenantSubdomain}.ciamlogin.com`;
+const serviceUri = `${serviceOrigin}/${argv.tenantId}`;
 
 const extraHeaders = [
     "x-client-SKU",
@@ -48,11 +49,16 @@ http.createServer((req, res) => {
         return;
     }
 
-    if (reqUrl.pathname.startsWith(apiPath)) {
+    const isLegacyPath =
+        reqUrl.pathname === apiPath ||
+        reqUrl.pathname.startsWith(`${apiPath}/`);
+    const isTenantPath = /^\/[^/]+\/(?:api|oauth2)\//.test(reqUrl.pathname);
+
+    if (isLegacyPath || isTenantPath) {
         const targetUrl =
-            serviceUri +
-            reqUrl.pathname?.replace(apiPath, "") +
-            (reqUrl.search || "");
+            (isLegacyPath
+                ? serviceUri + reqUrl.pathname.slice(apiPath.length)
+                : serviceOrigin + reqUrl.pathname) + (reqUrl.search || "");
 
         const newHeaders = {};
         for (let [key, value] of Object.entries(req.headers)) {
