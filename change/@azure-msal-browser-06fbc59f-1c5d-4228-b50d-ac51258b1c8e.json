@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Clarify trusted destinations for redirectStartPage and mainWindowRedirectUri. [#9006](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/9006)",
+  "packageName": "@azure/msal-browser",
+  "email": "lalima.sharda@gmail.com",
+  "dependentChangeType": "patch"
+}
