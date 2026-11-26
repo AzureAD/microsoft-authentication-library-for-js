@@ -627,7 +627,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationState: {
                     ...continuationState,
                     continuationToken: result.continuationToken,
-                    links: {},
+                    links: { continue: result.continueHref },
                 },
             });
         }
@@ -635,6 +635,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         return this.completeSignInAfterVerification(
             continuationState,
             result.continuationToken,
+            result.continueHref,
             correlationId
         );
     }
@@ -716,7 +717,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationState: {
                     ...continuationState,
                     continuationToken: verifyResult.continuationToken,
-                    links: {},
+                    links: { continue: verifyResult.continueHref },
                 },
             });
         }
@@ -803,7 +804,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     }
 
     async submitSignUpAttributes(
-        parameters: FlowSubmitSignUpAttributesParamsV2
+        parameters: FlowSubmitSignUpAttributesParamsV2,
+        step: "submitAttributes" | "submitPassword" = "submitAttributes"
     ): Promise<FlowSignUpSubmitAttributesResultV2> {
         const {
             continuationState,
@@ -813,7 +815,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         const context = this.createRequestContext(
             this.resolveStepApiId(
                 continuationState.scenario,
-                "submitAttributes",
+                step,
                 correlationId
             ),
             correlationId
@@ -982,7 +984,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     continuationToken: pollResult.continuationToken,
                     scenario: continuationState.scenario,
                     scopes: continuationState.scopes,
-                    links: {},
+                    links: { continue: pollResult.continueHref },
                 },
             });
         }
@@ -1034,6 +1036,10 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         const tokenResponse = await this.apiClient.completeWithTokens(
             {
                 continuationToken: continuationState.continuationToken,
+                continueHref: this.requireLink(
+                    correlationId,
+                    continuationState.links.continue
+                ),
             },
             context
         );
@@ -1101,6 +1107,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             return this.completeSignInAfterVerification(
                 continuationState,
                 verifyResult.continuationToken,
+                verifyResult.continueHref,
                 correlationId
             );
         }
@@ -1179,7 +1186,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationState: {
                     ...continuationState,
                     continuationToken: verifyResult.continuationToken,
-                    links: {},
+                    links: { continue: verifyResult.continueHref },
                 },
             });
         }
@@ -1408,7 +1415,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationState: {
                     ...continuationState,
                     continuationToken: result.continuationToken,
-                    links: {},
+                    links: { continue: result.continueHref },
                 },
             });
         }
@@ -1541,6 +1548,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
     private completeSignInAfterVerification(
         continuationState: FlowContinuationStateV2,
         continuationToken: string,
+        continueHref: string,
         correlationId: string
     ): Promise<FlowCompletedResultV2> {
         return this.signInWithContinuation({
@@ -1548,7 +1556,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             continuationState: {
                 ...continuationState,
                 continuationToken,
-                links: {},
+                links: { continue: continueHref },
             },
         });
     }

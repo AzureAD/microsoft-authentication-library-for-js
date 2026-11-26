@@ -1,0 +1,6 @@
+{
+    "type": "patch",
+    "comment": "Normalize the Native Auth authority trailing slash before CIAM tenant transformation. [#8996](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8996)",
+    "packageName": "@azure/msal-browser",
+    "dependentChangeType": "patch"
+}
