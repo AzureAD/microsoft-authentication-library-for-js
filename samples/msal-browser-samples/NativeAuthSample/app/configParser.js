@@ -170,11 +170,3 @@ export function getClaimsForAuth(customClaims = null) {
 
     return undefined;
 }
-
-// Auto-initialize configuration when module loads
-initNativeAuthConfig().catch((error) => {
-    console.error(
-        "Failed to auto-initialize native auth configuration:",
-        error
-    );
-});

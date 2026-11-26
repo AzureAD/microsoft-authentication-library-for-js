@@ -6,6 +6,9 @@
 import { SignInModule } from "./flows/signin/index.js";
 import { SignUpModule } from "./flows/signup/index.js";
 import { ResetPasswordModule } from "./flows/resetPassword/index.js";
+import { SignInModuleV2 } from "./flows/v2/SignInModule.js";
+import { SignUpModuleV2 } from "./flows/v2/SignUpModule.js";
+import { ResetPasswordModuleV2 } from "./flows/v2/ResetPasswordModule.js";
 import { initMsalConfig } from "./authConfig.js";
 import uiManager from "./ui/ui.js";
 
@@ -20,6 +23,11 @@ class NativeAuthApp {
         this.signInModule = null;
         this.signUpModule = null;
         this.resetPasswordModule = null;
+        this.apiVersion =
+            new URLSearchParams(window.location.search).get("apiVersion") ===
+            "v2"
+                ? "v2"
+                : "v1";
     }
 
     async initializeMSAL() {
@@ -52,17 +60,35 @@ class NativeAuthApp {
                 await this.CustomAuthPublicClientApplication.create(msalConfig);
             console.log("MSAL instance created successfully");
 
-            // Initialize sign-in module
-            this.signInModule = new SignInModule(this.msalInstance);
-            this.signInModule.initialize();
+            if (this.apiVersion === "v2") {
+                this.signInModule = new SignInModuleV2(
+                    this.msalInstance,
+                    uiManager
+                );
+                this.signInModule.initialize();
+                this.signUpModule = new SignUpModuleV2(
+                    this.msalInstance,
+                    uiManager
+                );
+                this.signUpModule.initialize();
+                this.resetPasswordModule = new ResetPasswordModuleV2(
+                    this.msalInstance,
+                    uiManager
+                );
+                this.resetPasswordModule.initialize();
+            } else {
+                // Initialize sign-in module
+                this.signInModule = new SignInModule(this.msalInstance);
+                this.signInModule.initialize();
 
-            // Initialize sign-up module
-            this.signUpModule = new SignUpModule();
-            await this.signUpModule.initialize(this.msalInstance);
+                // Initialize sign-up module
+                this.signUpModule = new SignUpModule();
+                await this.signUpModule.initialize(this.msalInstance);
 
-            // Initialize reset password module
-            this.resetPasswordModule = new ResetPasswordModule();
-            await this.resetPasswordModule.initialize(this.msalInstance);
+                // Initialize reset password module
+                this.resetPasswordModule = new ResetPasswordModule();
+                await this.resetPasswordModule.initialize(this.msalInstance);
+            }
 
             // Initialize app-level navigation
             this.initializeNavigation();
@@ -189,6 +215,19 @@ class NativeAuthApp {
      * Initialize app-level navigation between sign-in and sign-up forms
      */
     initializeNavigation() {
+        const versionLabel = document.getElementById("apiVersionLabel");
+        const versionSwitch = document.getElementById("apiVersionSwitch");
+        const versionUrl = new URL(window.location.href);
+        versionLabel.textContent = `API ${this.apiVersion.toUpperCase()}`;
+        if (this.apiVersion === "v2") {
+            versionUrl.searchParams.delete("apiVersion");
+            versionSwitch.textContent = "Open V1 mode";
+        } else {
+            versionUrl.searchParams.set("apiVersion", "v2");
+            versionSwitch.textContent = "Open V2 mode";
+        }
+        versionSwitch.href = versionUrl.href;
+
         const showSignInBtn = document.getElementById("showSignInBtn");
         const showSignUpBtn = document.getElementById("showSignUpBtn");
         const showResetPasswordBtn = document.getElementById(
@@ -223,6 +262,11 @@ class NativeAuthApp {
      * Show sign-in form and hide other forms
      */
     showSignInForm() {
+        if (this.apiVersion === "v2") {
+            this.signInModule.clearPendingOperation();
+            this.signUpModule.clearPendingOperation();
+            this.resetPasswordModule.clearPendingOperation();
+        }
         const showSignInBtn = document.getElementById("showSignInBtn");
         const showSignUpBtn = document.getElementById("showSignUpBtn");
         const showResetPasswordBtn = document.getElementById(
@@ -275,6 +319,11 @@ class NativeAuthApp {
      * Show sign-up form and hide other forms
      */
     showSignUpForm() {
+        if (this.apiVersion === "v2") {
+            this.signInModule.clearPendingOperation();
+            this.signUpModule.clearPendingOperation();
+            this.resetPasswordModule.clearPendingOperation();
+        }
         const showSignInBtn = document.getElementById("showSignInBtn");
         const showSignUpBtn = document.getElementById("showSignUpBtn");
         const showResetPasswordBtn = document.getElementById(
@@ -327,6 +376,11 @@ class NativeAuthApp {
      * Show reset password form and hide other forms
      */
     showResetPasswordForm() {
+        if (this.apiVersion === "v2") {
+            this.signInModule.clearPendingOperation();
+            this.signUpModule.clearPendingOperation();
+            this.resetPasswordModule.clearPendingOperation();
+        }
         const showSignInBtn = document.getElementById("showSignInBtn");
         const showSignUpBtn = document.getElementById("showSignUpBtn");
         const showResetPasswordBtn = document.getElementById(
@@ -399,6 +453,12 @@ export function getResetPasswordModule() {
 // Initialize the app when DOM is loaded and make it globally available
 document.addEventListener("DOMContentLoaded", async () => {
     try {
+        const responseParams = `${window.location.hash}${window.location.search}`;
+        if (/[#&?](code|error|ear_jwe)=/.test(responseParams)) {
+            await msalRedirectBridge.broadcastResponseToMainFrame();
+            return;
+        }
+
         // Create new instance
         const app = new NativeAuthApp();
         nativeAuthAppInstance = app;
@@ -406,7 +466,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Initialize MSAL
         await app.initializeMSAL();
     } catch (error) {
-        console.error(`Failed to initialize MSAL: ${error.message}`);
+        console.error(
+            `Failed to initialize MSAL or process authentication response: ${error.message}`
+        );
         // Don't set initialization flag to true if initialization fails
     }
 });

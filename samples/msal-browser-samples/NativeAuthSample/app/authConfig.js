@@ -78,11 +78,9 @@ async function initMsalConfig() {
             authority: authority,
             redirectUri: "/", // You must register this URI on Azure Portal/App Registration. Defaults to window.location.href e.g. http://localhost:3000/
             postLogoutRedirectUri: "",
-            navigateToLoginRequestUrl: false,
         },
         cache: {
             cacheLocation: "sessionStorage",
-            storeAuthStateInCookie: false,
         },
         system: {
             loggerOptions: {
