@@ -65,7 +65,8 @@ export class AuthenticationHeaderParser {
         if (wwwAuthenticate) {
             const wwwAuthenticateChallenges =
                 this.parseChallenges<WWWAuthenticateChallenges>(
-                    wwwAuthenticate
+                    wwwAuthenticate,
+                    true
                 );
             if (wwwAuthenticateChallenges.nonce) {
                 return wwwAuthenticateChallenges.nonce;
@@ -86,19 +87,82 @@ export class AuthenticationHeaderParser {
     /**
      * Parses an HTTP header's challenge set into a key/value map.
      * @param header
+     * @param isWwwAuthenticate - Whether the header requires a leading authentication scheme.
      * @returns
      */
-    private parseChallenges<T>(header: string): T {
-        const schemeSeparator = header.indexOf(" ");
-        const challenges = header.substr(schemeSeparator + 1).split(",");
+    private parseChallenges<T>(header: string, isWwwAuthenticate = false): T {
+        /*
+         * WWW-Authenticate starts with a scheme followed by whitespace.
+         * Authentication-Info has no scheme, but we also accept its legacy "PoP " prefix.
+         * Do not discard its first parameter merely because a space occurs in the header.
+         */
+        const parameters = header
+            .trim()
+            .replace(isWwwAuthenticate ? /^\S+\s+/ : /^PoP\s+/i, "");
+        const challenges = splitAuthenticationParameters(parameters);
         const challengeMap = {} as T;
 
-        challenges.forEach((challenge: string) => {
-            const [key, value] = challenge.split("=");
-            // Remove escaped quotation marks (', ") from challenge string to keep only the challenge value
-            challengeMap[key] = unescape(value.replace(/['"]+/g, ""));
-        });
+        for (const challenge of challenges) {
+            // Capture everything after the first "=" so nonce padding is preserved.
+            const [key, value] = challenge.split(/=(.*)/s);
+            // Ignore fragments without a value rather than losing a nonce in another parameter.
+            if (value === undefined) {
+                continue;
+            }
+            const parameterName = key.trim().toLowerCase();
+            // A key with whitespace, such as "Digest realm", starts another challenge.
+            if (isWwwAuthenticate && /\s/.test(parameterName)) {
+                break;
+            }
+            // Trim syntax whitespace before removing quotes, preserving whitespace inside the nonce.
+            const parameterValue = value.trim();
+            challengeMap[parameterName] =
+                parseQuotedParameterValue(parameterValue);
+        }
 
         return challengeMap;
     }
+}
+
+/**
+ * Splits parameters at commas outside quoted strings, respecting escaped characters.
+ */
+function splitAuthenticationParameters(header: string): string[] {
+    const parameters: string[] = [];
+    let parameterStart = 0;
+    let inQuotes = false;
+    let escaped = false;
+
+    for (let index = 0; index < header.length; index++) {
+        const character = header[index];
+        // An escaped quote or backslash is data, not a change to the quoting state.
+        if (escaped) {
+            escaped = false;
+            continue;
+        }
+        if (inQuotes && character === "\\") {
+            escaped = true;
+        } else if (character === '"') {
+            inQuotes = !inQuotes;
+        } else if (character === "," && !inQuotes) {
+            parameters.push(header.slice(parameterStart, index));
+            parameterStart = index + 1;
+        }
+    }
+    parameters.push(header.slice(parameterStart));
+    return parameters;
+}
+
+/**
+ * Removes surrounding HTTP double quotes and decodes quoted pairs, not URI escapes.
+ */
+function parseQuotedParameterValue(value: string): string {
+    if (value.startsWith('"') && value.endsWith('"')) {
+        /*
+         * A backslash escapes the next character in an HTTP quoted string.
+         * For example, a\"b becomes a"b; %2F is not an escape and stays literal.
+         */
+        return value.slice(1, -1).replace(/\\(.)/gs, "$1");
+    }
+    return value;
 }
