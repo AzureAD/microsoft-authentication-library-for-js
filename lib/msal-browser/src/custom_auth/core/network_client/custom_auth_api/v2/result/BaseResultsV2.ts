@@ -50,10 +50,13 @@ export interface EnrollmentResultV2 {
     resendHref?: string;
 }
 
-export interface ActivationResultV2 {
+export interface ContinueResultV2 {
     nextAction: typeof ResponseStateV2.CONTINUE;
     continuationToken: string;
+    continueHref: string;
 }
+
+export type ActivationResultV2 = ContinueResultV2;
 
 export const AuthenticationFactorV2 = {
     SINGLE_FACTOR: "singleFactor",
@@ -99,10 +102,7 @@ export type VerifyResultV2 =
           continuationToken: string;
           updateHref: string;
       }
-    | {
-          nextAction: typeof ResponseStateV2.CONTINUE;
-          continuationToken: string;
-      }
+    | ContinueResultV2
     | {
           nextAction: typeof CHALLENGE_RELATION;
           continuationToken: string;
