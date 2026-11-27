@@ -225,6 +225,9 @@ export class NestedAppAuthController implements IController {
         atPopupMeasurement.add({
             nestedAppAuthRequest: true,
             bridgeType: "NAA",
+            bridgeSdkName: this.bridgeProxy.sdkName,
+            bridgeSdkVersion: this.bridgeProxy.sdkVersion,
+            platform: this.bridgeProxy.getHostCapabilities()?.platform,
         });
 
         try {
@@ -349,6 +352,9 @@ export class NestedAppAuthController implements IController {
         ssoSilentMeasurement.add({
             nestedAppAuthRequest: true,
             bridgeType: "NAA",
+            bridgeSdkName: this.bridgeProxy.sdkName,
+            bridgeSdkVersion: this.bridgeProxy.sdkVersion,
+            platform: this.bridgeProxy.getHostCapabilities()?.platform,
         });
 
         try {
@@ -443,6 +449,9 @@ export class NestedAppAuthController implements IController {
         atsMeasurement?.add({
             nestedAppAuthRequest: true,
             bridgeType: "NAA",
+            bridgeSdkName: this.bridgeProxy.sdkName,
+            bridgeSdkVersion: this.bridgeProxy.sdkVersion,
+            platform: this.bridgeProxy.getHostCapabilities()?.platform,
         });
 
         // if the request has claims, we cannot look up in the cache
@@ -451,6 +460,7 @@ export class NestedAppAuthController implements IController {
                 "Claims are present in the request, skipping cache lookup",
                 correlationId
             );
+            atsMeasurement.discard();
             return null;
         }
 
@@ -460,6 +470,7 @@ export class NestedAppAuthController implements IController {
                 "forceRefresh is set to true, skipping cache lookup",
                 correlationId
             );
+            atsMeasurement.discard();
             return null;
         }
 
@@ -476,6 +487,7 @@ export class NestedAppAuthController implements IController {
                 result = await this.acquireTokenFromCacheInternal(request);
                 break;
             default:
+                atsMeasurement.discard();
                 return null;
         }
 
