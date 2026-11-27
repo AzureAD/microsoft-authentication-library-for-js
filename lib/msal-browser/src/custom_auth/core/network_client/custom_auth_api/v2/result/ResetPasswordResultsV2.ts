@@ -5,6 +5,7 @@
 
 import type {
     AuthenticationFactorV2,
+    ContinueResultV2,
     EnrollmentMethodV2,
     StartMethodV2,
 } from "./BaseResultsV2.js";
@@ -12,7 +13,6 @@ import {
     CHALLENGE_RELATION,
     ENROLL_RELATION,
     POLL_RELATION,
-    ResponseStateV2,
 } from "../ApiClientConstantsV2.js";
 
 export interface ResetPasswordUpdateResultV2 {
@@ -37,7 +37,4 @@ export type ResetPasswordPollResultV2 =
           authenticationFactor: AuthenticationFactorV2;
           methods: StartMethodV2[];
       }
-    | {
-          nextAction: typeof ResponseStateV2.CONTINUE;
-          continuationToken: string;
-      };
+    | ContinueResultV2;
