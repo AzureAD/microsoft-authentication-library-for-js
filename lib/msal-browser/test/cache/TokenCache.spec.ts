@@ -15,6 +15,7 @@ import {
     AccountEntityUtils,
     PerformanceEvent,
     TimeUtils,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common/browser";
 import {
     LoadTokenOptions,
@@ -133,6 +134,151 @@ describe("TokenCache tests", () => {
 
         afterEach(() => {
             browserStorage.clear(RANDOM_TEST_GUID);
+        });
+
+        describe("raw ID token validation", () => {
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                account: {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    environment: "login.windows.net",
+                    tenantId: TEST_CONFIG.TENANT,
+                    username: "username",
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
+                },
+            };
+
+            it.each(
+                [
+                    "",
+                    null,
+                    false,
+                    0,
+                    [],
+                    [TEST_TOKENS.IDTOKEN_V2],
+                    "malformed",
+                    ...[null, [], true, 42, "payload"].map(
+                        (payload) =>
+                            `header.${btoa(JSON.stringify(payload))}.signature`
+                    ),
+                ].map((idToken) => [idToken])
+            )(
+                "rejects supplied invalid ID token %p without changing existing cache",
+                async (idToken) => {
+                    await loadExternalTokens(
+                        configuration,
+                        request,
+                        {
+                            id_token: testIdToken,
+                            access_token: testAccessToken,
+                            refresh_token: testRefreshToken,
+                            expires_in: 3600,
+                        },
+                        {}
+                    );
+                    const before = { ...window.sessionStorage };
+                    const writes = [
+                        jest.spyOn(BrowserCacheManager.prototype, "setAccount"),
+                        jest.spyOn(
+                            BrowserCacheManager.prototype,
+                            "setIdTokenCredential"
+                        ),
+                        jest.spyOn(
+                            BrowserCacheManager.prototype,
+                            "setAccessTokenCredential"
+                        ),
+                        jest.spyOn(
+                            BrowserCacheManager.prototype,
+                            "setRefreshTokenCredential"
+                        ),
+                    ];
+                    const initialize = jest.spyOn(
+                        BrowserCacheManager.prototype,
+                        "initialize"
+                    );
+                    await expect(
+                        loadExternalTokens(
+                            configuration,
+                            request,
+                            {
+                                id_token: idToken as string,
+                                access_token: "replacement-access-token",
+                                refresh_token: "replacement-refresh-token",
+                                expires_in: 3600,
+                            },
+                            {}
+                        )
+                    ).rejects.toMatchObject({
+                        errorCode: idToken
+                            ? ClientAuthErrorCodes.tokenParsingError
+                            : ClientAuthErrorCodes.nullOrEmptyToken,
+                        correlationId: request.correlationId,
+                    });
+                    expect(initialize).not.toHaveBeenCalled();
+                    writes.forEach((write) =>
+                        expect(write).not.toHaveBeenCalled()
+                    );
+                    expect({ ...window.sessionStorage }).toEqual(before);
+                }
+            );
+
+            it.each([undefined, TEST_TOKENS.IDTOKEN_V2])(
+                "imports opaque access tokens with absent or valid ID token %p",
+                async (idToken) => {
+                    const result = await loadExternalTokens(
+                        configuration,
+                        request,
+                        {
+                            id_token: idToken,
+                            access_token: "opaque-access-token",
+                            expires_in: 3600,
+                        },
+                        {}
+                    );
+                    expect(result.accessToken).toBe("opaque-access-token");
+                    expect(result.idToken).toBe(idToken || "");
+                }
+            );
+
+            it("writes the validated ID token when the caller mutates the response during initialization", async () => {
+                let resume!: () => void;
+                const gate = new Promise<void>((resolve) => {
+                    resume = resolve;
+                });
+                const initialize = BrowserCacheManager.prototype.initialize;
+                jest.spyOn(
+                    BrowserCacheManager.prototype,
+                    "initialize"
+                ).mockImplementationOnce(async function (
+                    this: BrowserCacheManager,
+                    correlationId
+                ) {
+                    await gate;
+                    return initialize.call(this, correlationId);
+                });
+                const write = jest.spyOn(
+                    BrowserCacheManager.prototype,
+                    "setIdTokenCredential"
+                );
+                const response = { id_token: testIdToken };
+                const pending = loadExternalTokens(
+                    configuration,
+                    request,
+                    response,
+                    {}
+                );
+                response.id_token = "malformed";
+                resume();
+                const result = await pending;
+                expect(result.idToken).toBe(testIdToken);
+                expect(result.idTokenClaims).toEqual(testIdTokenClaims);
+                expect(write).toHaveBeenCalledWith(
+                    expect.objectContaining({ secret: testIdToken }),
+                    expect.anything(),
+                    false
+                );
+            });
         });
 
         it("loads id token with a request account", async () => {

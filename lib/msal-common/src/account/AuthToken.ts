@@ -21,17 +21,26 @@ export function extractTokenClaims(
 ): TokenClaims {
     const jswPayload = getJWSPayload(encodedToken, correlationId);
 
-    // token will be decoded to get the username
+    let claims: unknown;
     try {
         // base64Decode() should throw an error if there is an issue
         const base64Decoded = base64Decode(jswPayload);
-        return JSON.parse(base64Decoded) as TokenClaims;
+        claims = JSON.parse(base64Decoded);
     } catch (err) {
         throw createClientAuthError(
             ClientAuthErrorCodes.tokenParsingError,
             correlationId
         );
     }
+
+    if (!claims || typeof claims !== "object" || Array.isArray(claims)) {
+        throw createClientAuthError(
+            ClientAuthErrorCodes.tokenParsingError,
+            correlationId
+        );
+    }
+
+    return claims as TokenClaims;
 }
 
 /**
@@ -72,7 +81,8 @@ export function getJWSPayload(
         );
     }
     const tokenPartsRegex = /^([^\.\s]*)\.([^\.\s]+)\.([^\.\s]*)$/;
-    const matches = tokenPartsRegex.exec(authToken);
+    const matches =
+        typeof authToken === "string" && tokenPartsRegex.exec(authToken);
     if (!matches || matches.length < 4) {
         throw createClientAuthError(
             ClientAuthErrorCodes.tokenParsingError,

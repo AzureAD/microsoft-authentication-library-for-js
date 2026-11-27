@@ -60,6 +60,7 @@ export type LoadTokenOptions = {
  * @param options - Options controlling how tokens are loaded into the cache.
  * @param performanceClient - Optional performance client used for telemetry measurements.
  * @returns `AuthenticationResult` for the response that was loaded.
+ * @throws If a supplied ID token is malformed, no tokens are imported.
  */
 export async function loadExternalTokens(
     config: Configuration,
@@ -70,6 +71,7 @@ export async function loadExternalTokens(
 ): Promise<AuthenticationResult> {
     BrowserUtils.blockNonBrowserEnvironment();
 
+    const responseSnapshot = { ...response };
     const browserConfig = buildConfiguration(config, true);
 
     const correlationId =
@@ -81,13 +83,14 @@ export async function loadExternalTokens(
     );
 
     try {
-        const idTokenClaims = response.id_token
-            ? AuthToken.extractTokenClaims(
-                  response.id_token,
-                  base64Decode,
-                  correlationId
-              )
-            : undefined;
+        const idTokenClaims =
+            responseSnapshot.id_token !== undefined
+                ? AuthToken.extractTokenClaims(
+                      responseSnapshot.id_token,
+                      base64Decode,
+                      correlationId
+                  )
+                : undefined;
         const kmsi = AuthToken.isKmsi(idTokenClaims || {});
 
         const authorityOptions: AuthorityOptions = {
@@ -138,7 +141,7 @@ export async function loadExternalTokens(
             correlationId
         )(
             request,
-            options.clientInfo || response.client_info || "",
+            options.clientInfo || responseSnapshot.client_info || "",
             correlationId,
             storage,
             logger,
@@ -155,7 +158,7 @@ export async function loadExternalTokens(
             performanceClient,
             correlationId
         )(
-            response,
+            responseSnapshot,
             cacheRecordAccount.homeAccountId,
             cacheRecordAccount.environment,
             cacheRecordAccount.realm,
@@ -174,7 +177,7 @@ export async function loadExternalTokens(
             correlationId
         )(
             request,
-            response,
+            responseSnapshot,
             cacheRecordAccount.homeAccountId,
             cacheRecordAccount.environment,
             cacheRecordAccount.realm,
@@ -193,7 +196,7 @@ export async function loadExternalTokens(
             performanceClient,
             correlationId
         )(
-            response,
+            responseSnapshot,
             cacheRecordAccount.homeAccountId,
             cacheRecordAccount.environment,
             kmsi,
