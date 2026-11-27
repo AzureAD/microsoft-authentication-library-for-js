@@ -7,6 +7,7 @@ import {
     AuthenticationResult,
     ClientConfiguration,
     AADServerParamKeys,
+    ClientAuthErrorCodes,
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -17,6 +18,7 @@ import { ClientTestUtils } from "./ClientTestUtils.js";
 import { mockNetworkClient } from "../utils/MockNetworkClient.js";
 import { CommonOnBehalfOfRequest } from "../../src/request/CommonOnBehalfOfRequest.js";
 import { OnBehalfOfClient } from "../../src/client/OnBehalfOfClient.js";
+import { CryptoProvider } from "../../src/crypto/CryptoProvider.js";
 
 // A simple NSP-style claims payload.
 const NSP_CLAIMS = '{"xms_az_nwperimid":{"essential":true}}';
@@ -53,6 +55,257 @@ describe("OnBehalfOfClient claimsFromClient tests", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+    });
+
+    describe("ID-token target binding", () => {
+        beforeEach(() => {
+            config.authOptions!.authority!.canonicalAuthority =
+                TEST_CONFIG.validAuthority.replace(
+                    "/common",
+                    `/${TEST_CONFIG.MSAL_TENANT_ID}`
+                );
+            const crypto = new CryptoProvider();
+            jest.spyOn(
+                config.cryptoInterface!,
+                "base64Decode"
+            ).mockImplementation(crypto.base64Decode.bind(crypto));
+            jest.spyOn(
+                config.cryptoInterface!,
+                "hashString"
+            ).mockImplementation(crypto.hashString.bind(crypto));
+        });
+
+        const targetClaims = (target: string) =>
+            JSON.stringify({
+                id_token: {
+                    xms_agvs: { additionalProperties: [`target-${target}`] },
+                },
+            });
+
+        const responseWithReceipt = (receipt: string | null) => {
+            const parts = AUTHENTICATION_RESULT.body.id_token.split(".");
+            const payload = JSON.parse(
+                Buffer.from(parts[1], "base64url").toString()
+            );
+            parts[1] = Buffer.from(
+                JSON.stringify({ ...payload, xms_agvs: 0, xms_agvt: receipt })
+            ).toString("base64url");
+            return {
+                ...AUTHENTICATION_RESULT,
+                body: {
+                    ...AUTHENTICATION_RESULT.body,
+                    id_token: parts.join("."),
+                },
+            };
+        };
+
+        it("rejects a client-claims mismatch before cache writes", async () => {
+            const client = new OnBehalfOfClient(config);
+            await expect(
+                client.acquireToken({
+                    ...baseRequest(),
+                    claimsFromClient: targetClaims("mc"),
+                })
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.ageAssuranceTargetMismatch,
+            });
+            expect(config.storageInterface!.getTokenKeys().accessToken).toEqual(
+                []
+            );
+        });
+
+        it("fails closed when another target set overwrites the shared ID token", async () => {
+            const network = jest
+                .spyOn(config.networkInterface!, "sendPostRequestAsync")
+                .mockResolvedValueOnce(responseWithReceipt("-mc"))
+                .mockResolvedValueOnce(responseWithReceipt("+sm"))
+                .mockResolvedValueOnce(responseWithReceipt("+mc"));
+            const client = new OnBehalfOfClient(config);
+            const mcRequest = {
+                ...baseRequest(),
+                claimsFromClient: targetClaims("mc"),
+            };
+            await client.acquireToken(mcRequest);
+            expect((await client.acquireToken(mcRequest))!.fromCache).toBe(
+                true
+            );
+            await client.acquireToken({
+                ...baseRequest(),
+                claimsFromClient: targetClaims("sm"),
+            });
+            expect(
+                config.storageInterface!.getTokenKeys().accessToken
+            ).toHaveLength(2);
+            expect(
+                config.storageInterface!.getTokenKeys().idToken
+            ).toHaveLength(1);
+            await expect(client.acquireToken(mcRequest)).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.ageAssuranceTargetMismatch,
+            });
+            expect(network).toHaveBeenCalledTimes(2);
+            await expect(
+                client.acquireToken({ ...mcRequest, skipCache: true })
+            ).resolves.toMatchObject({
+                fromCache: false,
+                idTokenClaims: { xms_agvt: "+mc" },
+            });
+            await expect(client.acquireToken(mcRequest)).resolves.toMatchObject(
+                {
+                    fromCache: true,
+                    idTokenClaims: { xms_agvt: "+mc" },
+                }
+            );
+            expect(network).toHaveBeenCalledTimes(3);
+        });
+
+        it.each<[string | undefined, string | null]>([
+            [undefined, "+mc"],
+            [undefined, null],
+            ['{"id_token":{"xms_agvs":{"additionalProperties":[]}}}', "+mc"],
+        ])(
+            "fails closed for untargeted claims %s after the cached receipt changes to %j",
+            async (claimsFromClient, receipt) => {
+                const network = jest
+                    .spyOn(config.networkInterface!, "sendPostRequestAsync")
+                    .mockResolvedValue(responseWithReceipt("-ALL"));
+                const client = new OnBehalfOfClient(config);
+                const request = {
+                    ...baseRequest(),
+                    claimsFromClient,
+                };
+                await expect(
+                    client.acquireToken(request)
+                ).resolves.toMatchObject({
+                    fromCache: false,
+                    idTokenClaims: { xms_agvt: "-ALL" },
+                });
+                await expect(
+                    client.acquireToken(request)
+                ).resolves.toMatchObject({
+                    fromCache: true,
+                });
+                const storage = config.storageInterface!;
+                const keys = storage.getTokenKeys();
+                const idToken = storage.getIdTokenCredential(
+                    keys.idToken[0],
+                    request.correlationId
+                )!;
+                await storage.setIdTokenCredential(
+                    {
+                        ...idToken,
+                        secret: responseWithReceipt(receipt).body.id_token,
+                    },
+                    request.correlationId,
+                    false
+                );
+                await expect(
+                    client.acquireToken(request)
+                ).rejects.toMatchObject({
+                    errorCode: ClientAuthErrorCodes.ageAssuranceTargetMismatch,
+                });
+                expect(network).toHaveBeenCalledTimes(1);
+                expect(storage.getTokenKeys()).toEqual(keys);
+            }
+        );
+
+        it("allows an untargeted OBO response and cache hit without an ID token", async () => {
+            const network = jest
+                .spyOn(config.networkInterface!, "sendPostRequestAsync")
+                .mockResolvedValue({
+                    ...AUTHENTICATION_RESULT,
+                    body: {
+                        ...AUTHENTICATION_RESULT.body,
+                        id_token: undefined,
+                    },
+                });
+            const client = new OnBehalfOfClient(config);
+            await expect(
+                client.acquireToken(baseRequest())
+            ).resolves.toMatchObject({
+                fromCache: false,
+                idToken: "",
+            });
+            await expect(
+                client.acquireToken(baseRequest())
+            ).resolves.toMatchObject({
+                fromCache: true,
+                idToken: "",
+            });
+            expect(network).toHaveBeenCalledTimes(1);
+        });
+
+        it("rejects a malformed present OBO ID token without requested targets before caching", async () => {
+            jest.spyOn(
+                config.networkInterface!,
+                "sendPostRequestAsync"
+            ).mockResolvedValue({
+                ...AUTHENTICATION_RESULT,
+                body: { ...AUTHENTICATION_RESULT.body, id_token: "malformed" },
+            });
+            const client = new OnBehalfOfClient(config);
+            await expect(
+                client.acquireToken(baseRequest())
+            ).rejects.toMatchObject({
+                errorCode: ClientAuthErrorCodes.tokenParsingError,
+            });
+            expect(config.storageInterface!.getTokenKeys().accessToken).toEqual(
+                []
+            );
+        });
+
+        it("uses wire merge precedence without changing the caller request", async () => {
+            jest.spyOn(
+                config.networkInterface!,
+                "sendPostRequestAsync"
+            ).mockResolvedValue(responseWithReceipt("-sm"));
+            const client = new OnBehalfOfClient(config);
+            const request = {
+                ...baseRequest(),
+                claims: targetClaims("mc"),
+                claimsFromClient: targetClaims("sm"),
+            };
+            await expect(client.acquireToken(request)).resolves.toMatchObject({
+                idTokenClaims: { xms_agvt: "-sm" },
+            });
+            const body = await createTokenRequestBodySpy.mock.results[0].value;
+            const wireClaims = JSON.parse(
+                new URLSearchParams(body).get("claims")!
+            );
+            expect(wireClaims.id_token.xms_agvs.additionalProperties).toEqual([
+                "target-sm",
+            ]);
+            expect(request.claims).toBe(targetClaims("mc"));
+        });
+
+        it("snapshots client claims independently before asynchronous work", async () => {
+            const network = jest
+                .spyOn(config.networkInterface!, "sendPostRequestAsync")
+                .mockImplementation(async (_url, options) => {
+                    const wireClaims = JSON.parse(
+                        new URLSearchParams(options!.body).get("claims")!
+                    );
+                    const target =
+                        wireClaims.id_token.xms_agvs.additionalProperties[0];
+                    return responseWithReceipt(
+                        target === "target-mc" ? "-mc" : "+sm"
+                    ) as any;
+                });
+            const client = new OnBehalfOfClient(config);
+            const request = {
+                ...baseRequest(),
+                claimsFromClient: targetClaims("mc"),
+            };
+            const first = client.acquireToken(request);
+            request.claimsFromClient = targetClaims("sm");
+            const second = client.acquireToken(request);
+            request.claimsFromClient = "{}";
+            const results = await Promise.all([first, second]);
+            expect(results.map((result) => result!.idTokenClaims)).toEqual([
+                expect.objectContaining({ xms_agvt: "-mc" }),
+                expect.objectContaining({ xms_agvt: "+sm" }),
+            ]);
+            expect(network).toHaveBeenCalledTimes(2);
+        });
     });
 
     describe("Body injection", () => {

@@ -162,10 +162,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         this.logger.verbose("Starting V2 sign-in.", correlationId);
 
         const scopes = this.getScopes(parameters.scopes);
+        const claims = parameters.claims;
         const entryResult = await this.apiClient.authorizeChallengeStart(
             context,
             scopes,
-            parameters.claims
+            claims
         );
         const startResult = await this.apiClient.signInStart(
             this.requireLink(correlationId, entryResult.signInHref, {
@@ -190,6 +191,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             continuationToken: startResult.continuationToken,
             scenario: CustomAuthFlowScenarioV2.SignIn,
             scopes,
+            claims,
             links: {},
         };
         const methods = startResult.methods.map((method) => ({
@@ -255,10 +257,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         this.logger.verbose("Starting V2 sign-up.", correlationId);
 
         const scopes = this.getScopes(parameters.scopes);
+        const claims = parameters.claims;
         const entryResult = await this.apiClient.authorizeChallengeStart(
             context,
             scopes,
-            parameters.claims
+            claims
         );
         const startResult = await this.apiClient.signUpStart(
             this.requireLink(correlationId, entryResult.signUpHref, {
@@ -293,6 +296,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     continuationToken: startResult.continuationToken,
                     scenario: CustomAuthFlowScenarioV2.SignUp,
                     scopes,
+                    claims,
                     links: {
                         verify: startResult.verifyHref,
                         resend: startResult.resendHref,
@@ -315,6 +319,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                 continuationToken: startResult.continuationToken,
                 scenario: CustomAuthFlowScenarioV2.SignIn,
                 scopes,
+                claims,
                 links: {},
                 signUp: {
                     purpose: "existingAccount",
@@ -405,10 +410,11 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
         );
 
         const scopes = this.getScopes(parameters.scopes);
+        const claims = parameters.claims;
         const entryResult = await this.apiClient.authorizeChallengeStart(
             context,
             scopes,
-            parameters.claims
+            claims
         );
         const startResult = await this.apiClient.resetPasswordStart(
             this.requireLink(correlationId, entryResult.resetPasswordHref, {
@@ -432,6 +438,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             continuationToken: startResult.continuationToken,
             scenario: CustomAuthFlowScenarioV2.PasswordReset,
             scopes,
+            claims,
             links: {},
         };
         const methods = startResult.methods.map((method) => ({
@@ -735,6 +742,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     continuationToken: verifyResult.continuationToken,
                     scenario: continuationState.scenario,
                     scopes: continuationState.scopes,
+                    claims: continuationState.claims,
                     links: { update: verifyResult.updateHref },
                 },
             });
@@ -961,6 +969,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     continuationToken: pollResult.continuationToken,
                     scenario: continuationState.scenario,
                     scopes: continuationState.scopes,
+                    claims: continuationState.claims,
                     links: {},
                 },
                 methods: pollResult.methods.map((method) => ({
@@ -984,6 +993,7 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
                     continuationToken: pollResult.continuationToken,
                     scenario: continuationState.scenario,
                     scopes: continuationState.scopes,
+                    claims: continuationState.claims,
                     links: { continue: pollResult.continueHref },
                 },
             });
@@ -1048,7 +1058,8 @@ export class FlowInteractionClientV2 extends InteractionClientBaseV2 {
             tokenResponse,
             continuationState.scopes,
             correlationId,
-            apiId
+            apiId,
+            continuationState.claims
         );
 
         this.logger.verbose(

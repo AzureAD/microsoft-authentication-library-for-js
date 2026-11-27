@@ -37,6 +37,7 @@ import {
 } from "../config/Configuration.js";
 import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest.js";
 import { BaseClient } from "./BaseClient.js";
+import { getResponseRequest } from "../utils/ResponseUtils.js";
 
 /**
  * OAuth2.0 client credential grant
@@ -55,11 +56,12 @@ export class ClientCredentialClient extends BaseClient {
 
     /**
      * Public API to acquire a token with ClientCredential Flow for Confidential clients
-     * @param request - CommonClientCredentialRequest provided by the developer
+     * @param userRequest - CommonClientCredentialRequest provided by the developer
      */
     public async acquireToken(
-        request: CommonClientCredentialRequest
+        userRequest: CommonClientCredentialRequest
     ): Promise<AuthenticationResult | null> {
+        const request = { ...userRequest };
         // Build additional cache key components for cache isolation
         let additionalCacheKeyComponents: Record<string, string> | undefined;
         if (request.fmiPath) {
@@ -237,7 +239,7 @@ export class ClientCredentialClient extends BaseClient {
                     appMetadata: null,
                 },
                 true,
-                request,
+                getResponseRequest(request),
                 this.performanceClient,
                 {
                     tokenBindingKeyManager: this.config.tokenBindingKeyManager,
@@ -387,7 +389,7 @@ export class ClientCredentialClient extends BaseClient {
             serverTokenResponse,
             this.authority,
             reqTimestamp,
-            request,
+            getResponseRequest(request),
             ApiId.acquireTokenByClientCredential,
             undefined, // authCodePayload
             undefined, // userAssertionHash

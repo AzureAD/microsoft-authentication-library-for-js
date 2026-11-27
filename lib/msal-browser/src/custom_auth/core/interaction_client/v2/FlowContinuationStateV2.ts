@@ -21,6 +21,7 @@ export interface FlowContinuationStateV2 {
     continuationToken: string;
     scenario: CustomAuthFlowScenarioV2;
     scopes: string[];
+    readonly claims?: string;
     links: FlowLinksV2;
     signUp?:
         | {

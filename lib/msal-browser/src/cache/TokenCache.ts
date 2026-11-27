@@ -15,6 +15,8 @@ import {
     buildStaticAuthorityOptions,
     CacheHelpers,
     CacheRecord,
+    ClientAuthErrorCodes,
+    createClientAuthError,
     ExternalTokenResponse,
     ICrypto,
     IdTokenEntity,
@@ -26,6 +28,7 @@ import {
     StubPerformanceClient,
     TimeUtils,
     TokenClaims,
+    validateAgeAssuranceTargets,
 } from "@azure/msal-common/browser";
 import { buildConfiguration, Configuration } from "../config/Configuration.js";
 import * as BrowserCrypto from "../crypto/BrowserCrypto.js";
@@ -60,6 +63,7 @@ export type LoadTokenOptions = {
  * @param options - Options controlling how tokens are loaded into the cache.
  * @param performanceClient - Optional performance client used for telemetry measurements.
  * @returns `AuthenticationResult` for the response that was loaded.
+ * @throws If the ID-token age-assurance receipt does not match the request, no tokens are loaded.
  */
 export async function loadExternalTokens(
     config: Configuration,
@@ -68,12 +72,14 @@ export async function loadExternalTokens(
     options: LoadTokenOptions,
     performanceClient: IPerformanceClient = new StubPerformanceClient()
 ): Promise<AuthenticationResult> {
+    const requestSnapshot = { ...request };
+    const responseSnapshot = { ...response };
     BrowserUtils.blockNonBrowserEnvironment();
 
     const browserConfig = buildConfiguration(config, true);
 
     const correlationId =
-        request.correlationId || BrowserCrypto.createNewGuid();
+        requestSnapshot.correlationId || BrowserCrypto.createNewGuid();
 
     const rootMeasurement = performanceClient.startMeasurement(
         BrowserRootPerformanceEvents.LoadExternalTokens,
@@ -81,13 +87,30 @@ export async function loadExternalTokens(
     );
 
     try {
-        const idTokenClaims = response.id_token
-            ? AuthToken.extractTokenClaims(
-                  response.id_token,
-                  base64Decode,
-                  correlationId
-              )
-            : undefined;
+        const idTokenClaims =
+            responseSnapshot.id_token !== undefined
+                ? AuthToken.extractTokenClaims(
+                      responseSnapshot.id_token,
+                      base64Decode,
+                      correlationId
+                  )
+                : undefined;
+        if (
+            responseSnapshot.id_token !== undefined &&
+            (!idTokenClaims ||
+                typeof idTokenClaims !== "object" ||
+                Array.isArray(idTokenClaims))
+        ) {
+            throw createClientAuthError(
+                ClientAuthErrorCodes.tokenParsingError,
+                correlationId
+            );
+        }
+        validateAgeAssuranceTargets(
+            requestSnapshot.claims,
+            idTokenClaims,
+            correlationId
+        );
         const kmsi = AuthToken.isKmsi(idTokenClaims || {});
 
         const authorityOptions: AuthorityOptions = {
@@ -116,11 +139,11 @@ export async function loadExternalTokens(
         await storage.initialize(correlationId);
 
         const authorityString =
-            request.authority || browserConfig.auth.authority;
+            requestSnapshot.authority || browserConfig.auth.authority;
         const authority = await AuthorityFactory.createDiscoveredInstance(
             Authority.generateAuthority(
                 authorityString,
-                request.azureCloudOptions
+                requestSnapshot.azureCloudOptions
             ),
             browserConfig.system.networkClient,
             storage,
@@ -137,8 +160,8 @@ export async function loadExternalTokens(
             performanceClient,
             correlationId
         )(
-            request,
-            options.clientInfo || response.client_info || "",
+            requestSnapshot,
+            options.clientInfo || responseSnapshot.client_info || "",
             correlationId,
             storage,
             logger,
@@ -155,7 +178,7 @@ export async function loadExternalTokens(
             performanceClient,
             correlationId
         )(
-            response,
+            responseSnapshot,
             cacheRecordAccount.homeAccountId,
             cacheRecordAccount.environment,
             cacheRecordAccount.realm,
@@ -173,8 +196,8 @@ export async function loadExternalTokens(
             performanceClient,
             correlationId
         )(
-            request,
-            response,
+            requestSnapshot,
+            responseSnapshot,
             cacheRecordAccount.homeAccountId,
             cacheRecordAccount.environment,
             cacheRecordAccount.realm,
@@ -193,7 +216,7 @@ export async function loadExternalTokens(
             performanceClient,
             correlationId
         )(
-            response,
+            responseSnapshot,
             cacheRecordAccount.homeAccountId,
             cacheRecordAccount.environment,
             kmsi,
@@ -211,7 +234,7 @@ export async function loadExternalTokens(
         );
 
         return generateAuthenticationResult(
-            request,
+            requestSnapshot,
             {
                 account: cacheRecordAccount,
                 idToken,

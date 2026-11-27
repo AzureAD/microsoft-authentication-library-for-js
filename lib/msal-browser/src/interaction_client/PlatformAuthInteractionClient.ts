@@ -43,6 +43,7 @@ import {
     invokeAsync,
     normalizeDpopResourceRequestContext,
     updateAccountTenantProfileData,
+    validateAgeAssuranceTargets,
 } from "@azure/msal-common/browser";
 import { IPlatformAuthHandler } from "../broker/nativeBroker/IPlatformAuthHandler.js";
 import {
@@ -253,7 +254,12 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                     cacheLookupPolicy
                 );
             } catch (e) {
-                if (cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                if (
+                    cacheLookupPolicy === CacheLookupPolicy.AccessToken ||
+                    (e instanceof AuthError &&
+                        e.errorCode ===
+                            ClientAuthErrorCodes.ageAssuranceTargetMismatch)
+                ) {
                     this.logger.info(
                         "MSAL internal Cache does not contain tokens, return error as per cache policy",
                         this.correlationId
@@ -486,9 +492,21 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 account.tenantId
             );
 
+            if (!idToken?.secret) {
+                validateAgeAssuranceTargets(
+                    request.claims,
+                    undefined,
+                    this.correlationId
+                );
+            }
             const idTokenClaims = AuthToken.extractTokenClaims(
                 idToken?.secret || "",
                 base64Decode,
+                this.correlationId
+            );
+            validateAgeAssuranceTargets(
+                request.claims,
+                idTokenClaims,
                 this.correlationId
             );
 
@@ -773,6 +791,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const idTokenClaims = AuthToken.extractTokenClaims(
             response.id_token,
             base64Decode,
+            this.correlationId
+        );
+        validateAgeAssuranceTargets(
+            request.claims,
+            idTokenClaims,
             this.correlationId
         );
 
@@ -1309,8 +1332,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
      * @param request
      */
     protected async initializePlatformRequest(
-        request: PopupRequest | SsoSilentRequest
+        userRequest: PopupRequest | SsoSilentRequest
     ): Promise<PlatformAuthRequest> {
+        const request = { ...userRequest };
         this.logger.trace(
             "NativeInteractionClient - initializePlatformRequest called",
             this.correlationId

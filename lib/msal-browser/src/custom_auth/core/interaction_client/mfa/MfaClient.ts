@@ -155,7 +155,8 @@ export class MfaClient extends CustomAuthInteractionClientBase {
             tokenResponse,
             scopes,
             tokenResponse.correlation_id || correlationId,
-            apiId
+            apiId,
+            request.claims
         );
 
         return createMfaCompletedResult({

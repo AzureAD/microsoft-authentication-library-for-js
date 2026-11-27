@@ -4,6 +4,15 @@
  */
 
 import type {
+    AuthorizeChallengeContinueResponseV2,
+    CodeChallengeResponseV2,
+    ContinueResponseV2,
+    EnrollmentRequiredResponseV2,
+    EnrollmentResponseV2,
+    SignInStartResponseV2,
+    VerifyResponseV2,
+} from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/response/ResponsesV2.js";
+import type {
     AuthorizeChallengeEntryResultV2,
     ChallengeVerificationResultV2,
     ContinueResultV2,
@@ -200,13 +209,14 @@ export const PASSWORD_METHOD = {
 
 export const START_RESPONSE = {
     continuationToken: "ct-start",
+    action: "challenge",
     challengeContext: {
         authenticationFactor: "singleFactor",
     },
     _embedded: {
         methods: [PASSWORD_METHOD],
     },
-};
+} satisfies SignInStartResponseV2;
 
 export const PASSWORD_CHALLENGE_RESPONSE = {
     continuationToken: "ct-password-challenge",
@@ -257,3 +267,108 @@ export const SMS_MFA_RESEND_RESPONSE = {
     ...SMS_MFA_CHALLENGE_RESPONSE,
     continuationToken: "ct-sms-mfa-resend",
 };
+
+// HTTP fixtures exercise response parsing as well as the flow and cache layers.
+export const EMAIL_START_RESPONSE = {
+    ...START_RESPONSE,
+    _embedded: {
+        methods: [
+            {
+                id: "email-1",
+                type: "email",
+                hint: "u***@contoso.com",
+                _links: {
+                    challenge: { href: "/tenant/api/v0.1/email/challenge" },
+                },
+            },
+        ],
+    },
+} satisfies SignInStartResponseV2;
+
+export const EMAIL_CHALLENGE_RESPONSE = {
+    continuationToken: "ct-email-challenge",
+    action: "verify",
+    type: "email",
+    codeLength: 6,
+    hint: "u***@contoso.com",
+    _links: {
+        verify: { href: "/tenant/api/v0.1/email/verify" },
+        resend: { href: "/tenant/api/v0.1/email/resend" },
+    },
+} satisfies CodeChallengeResponseV2;
+
+export const SIGN_IN_CONTINUE_RESPONSE = {
+    continuationToken: "ct-password-verify",
+    state: "continue",
+    _links: {
+        continue: { href: "/tenant/oauth2/v2.0/authorize-challenge" },
+    },
+} satisfies ContinueResponseV2;
+
+export const EMAIL_MFA_REQUIRED_RESPONSE = {
+    continuationToken: "ct-email-mfa",
+    state: "interactionRequired",
+    action: "challenge",
+    challengeContext: {
+        authenticationFactor: "multiFactor",
+    },
+    _embedded: {
+        methods: [
+            {
+                id: "email-mfa",
+                type: "email",
+                hint: "u***@contoso.com",
+                _links: {
+                    challenge: {
+                        href: "/tenant/api/v0.1/mfa/email/challenge",
+                    },
+                },
+            },
+        ],
+    },
+} satisfies VerifyResponseV2;
+
+export const EMAIL_MFA_CHALLENGE_RESPONSE = {
+    ...EMAIL_CHALLENGE_RESPONSE,
+    continuationToken: "ct-email-mfa-challenge",
+    _links: {
+        verify: { href: "/tenant/api/v0.1/mfa/email/verify" },
+        resend: { href: "/tenant/api/v0.1/mfa/email/resend" },
+    },
+} satisfies CodeChallengeResponseV2;
+
+export const MFA_VERIFY_RESPONSE = {
+    ...SIGN_IN_CONTINUE_RESPONSE,
+    continuationToken: "ct-mfa-verify",
+} satisfies ContinueResponseV2;
+
+export const EMAIL_REGISTRATION_REQUIRED_RESPONSE = {
+    continuationToken: "ct-email-enroll",
+    state: "interactionRequired",
+    action: "enroll",
+    _embedded: {
+        methods: [
+            {
+                type: "email",
+                _links: {
+                    enroll: { href: "/tenant/api/v0.1/enroll/email" },
+                },
+            },
+        ],
+    },
+} satisfies EnrollmentRequiredResponseV2;
+
+export const EMAIL_REGISTRATION_ACTIVATION_RESPONSE = {
+    continuationToken: "ct-email-activate",
+    action: "activate",
+    codeLength: 6,
+    hint: "u***@contoso.com",
+    _links: {
+        activate: { href: "/tenant/api/v0.1/activate/email" },
+        resend: { href: "/tenant/api/v0.1/enroll/email" },
+    },
+} satisfies EnrollmentResponseV2;
+
+export const CONTINUE_RESPONSE = {
+    code: "auth-code-1",
+} satisfies AuthorizeChallengeContinueResponseV2;

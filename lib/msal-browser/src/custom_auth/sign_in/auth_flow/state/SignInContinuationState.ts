@@ -66,7 +66,8 @@ export class SignInContinuationState extends SignInState<SignInContinuationState
 
             const nextState = this.handleSignInResult(
                 signInResult,
-                signInWithContinuationTokenInputs?.scopes
+                signInWithContinuationTokenInputs?.scopes,
+                continuationTokenParams.claims
             );
 
             if (nextState.error) {

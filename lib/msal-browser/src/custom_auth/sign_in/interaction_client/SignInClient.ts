@@ -199,7 +199,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             scopes,
             correlationId,
             telemetryManager,
-            apiId
+            apiId,
+            request.claims
         );
     }
 
@@ -251,7 +252,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             scopes,
             correlationId,
             telemetryManager,
-            apiId
+            apiId,
+            request.claims
         );
     }
 
@@ -302,7 +304,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
             scopes,
             correlationId,
             telemetryManager,
-            apiId
+            apiId,
+            request.claims
         );
     }
 
@@ -319,7 +322,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
         scopes: string[],
         correlationId: string,
         telemetryManager: ServerTelemetryManager,
-        apiId: number
+        apiId: number,
+        claims?: string
     ): Promise<
         | SignInCompletedResult
         | SignInJitRequiredResult
@@ -342,7 +346,8 @@ export class SignInClient extends CustomAuthInteractionClientBase {
                 tokenResponse,
                 scopes,
                 tokenResponse.correlation_id || correlationId,
-                apiId
+                apiId,
+                claims
             );
 
             return createSignInCompleteResult({

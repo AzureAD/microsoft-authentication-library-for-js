@@ -13,6 +13,7 @@ export interface MfaStateParameters
     mfaClient: MfaClient;
     cacheClient: CustomAuthSilentCacheClient;
     scopes?: string[];
+    claims?: string;
 }
 
 export interface MfaVerificationRequiredStateParameters

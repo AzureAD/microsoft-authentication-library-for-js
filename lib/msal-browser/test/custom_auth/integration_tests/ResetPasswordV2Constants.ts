@@ -4,6 +4,20 @@
  */
 
 import type {
+    AuthorizeChallengeEntryResponseV2,
+    ContinueResponseV2,
+    PasswordResetStartResponseV2,
+    PollResponseV2,
+    UpdatePasswordResponseV2,
+    VerifyResponseV2,
+} from "../../../src/custom_auth/core/network_client/custom_auth_api/v2/response/ResponsesV2.js";
+import {
+    EMAIL_START_RESPONSE,
+    EMAIL_CHALLENGE_RESPONSE as SIGN_IN_EMAIL_CHALLENGE_RESPONSE,
+    EMAIL_MFA_REQUIRED_RESPONSE,
+    EMAIL_MFA_CHALLENGE_RESPONSE,
+} from "./SignInV2Constants.js";
+import type {
     AuthorizeChallengeEntryResultV2,
     ChallengeVerificationResultV2,
     ContinueResultV2,
@@ -151,3 +165,48 @@ export const ACTIVATED_CONTINUE_RESPONSE: ContinueResultV2 = {
     ...POLL_COMPLETED_RESPONSE,
     continuationToken: "ct-activated",
 };
+
+// Keep wire responses distinct from the parsed API results above.
+export const HTTP_ENTRY_RESPONSE = {
+    continuation_token: "ct-entry",
+    reset_password: "/tenant/api/v0.1/auth/resetpassword?dc=X",
+} satisfies AuthorizeChallengeEntryResponseV2;
+
+export const HTTP_EMAIL_ONLY_START_RESPONSE = {
+    ...EMAIL_START_RESPONSE,
+    scenario: "recovery",
+} satisfies PasswordResetStartResponseV2;
+
+export const HTTP_EMAIL_CHALLENGE_RESPONSE = SIGN_IN_EMAIL_CHALLENGE_RESPONSE;
+
+export const HTTP_VERIFY_RESPONSE = {
+    continuationToken: "ct-verify",
+    action: "update",
+    _links: { update: { href: "/tenant/api/v0.1/update" } },
+} satisfies VerifyResponseV2;
+
+export const HTTP_UPDATE_RESPONSE = {
+    continuationToken: "ct-update",
+    _links: { poll: { href: "/tenant/api/v0.1/poll" } },
+} satisfies UpdatePasswordResponseV2;
+
+export const HTTP_POLL_COMPLETED_RESPONSE = {
+    state: "continue",
+    continuationToken: "ct-poll",
+    _links: { continue: { href: "/tenant/api/v0.1/continue" } },
+} satisfies PollResponseV2;
+
+export const HTTP_POLL_MFA_REQUIRED_RESPONSE = {
+    ...EMAIL_MFA_REQUIRED_RESPONSE,
+    continuationToken: "ct-mfa-selection",
+} satisfies PollResponseV2;
+
+export const HTTP_MFA_EMAIL_CHALLENGE_RESPONSE = {
+    ...EMAIL_MFA_CHALLENGE_RESPONSE,
+    continuationToken: "ct-mfa-challenge",
+};
+
+export const HTTP_MFA_VERIFY_RESPONSE = {
+    ...HTTP_POLL_COMPLETED_RESPONSE,
+    continuationToken: "ct-mfa-verified",
+} satisfies ContinueResponseV2;

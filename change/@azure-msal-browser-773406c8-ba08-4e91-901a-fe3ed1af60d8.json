@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Validate ID-token age-assurance receipts before cache writes and successful results, including Native Auth continuations and external token imports; preserve original requested targets across asynchronous operations [#8983](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/8983)",
+    "packageName": "@azure/msal-browser",
+    "email": "mohaibrahim@microsoft.com",
+    "dependentChangeType": "patch"
+}

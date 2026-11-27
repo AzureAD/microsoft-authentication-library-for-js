@@ -15,6 +15,7 @@ export const invalidState = "invalid_state";
 export const stateMismatch = "state_mismatch";
 export const stateNotFound = "state_not_found";
 export const nonceMismatch = "nonce_mismatch";
+export const ageAssuranceTargetMismatch = "age_assurance_target_mismatch";
 export const multipleMatchingTokens = "multiple_matching_tokens";
 export const multipleMatchingAppMetadata = "multiple_matching_appMetadata";
 export const requestCannotBeMade = "request_cannot_be_made";

@@ -22,6 +22,7 @@ export { AccountEntityUtils };
 export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient.js";
 export { RefreshTokenClient } from "./client/RefreshTokenClient.js";
 export { SilentFlowClient } from "./client/SilentFlowClient.js";
+export { validateAgeAssuranceTargets } from "./response/AgeAssurance.js";
 export {
     AuthOptions,
     SystemOptions,

@@ -259,10 +259,11 @@ export class CustomAuthStandardController
             );
             this.ensureUserNotSignedIn(correlationId);
 
-            if (signInInputs.claims) {
+            const claims = signInInputs.claims;
+            if (claims) {
                 ArgumentValidator.ensureArgumentIsJSONString(
                     "signInInputs.claims",
-                    signInInputs.claims,
+                    claims,
                     correlationId
                 );
             }
@@ -310,7 +311,7 @@ export class CustomAuthStandardController
                         username: signInInputs.username,
                         codeLength: startResult.codeLength,
                         scopes: signInInputs.scopes ?? [],
-                        claims: signInInputs.claims,
+                        claims,
                     })
                 );
             } else if (
@@ -340,7 +341,7 @@ export class CustomAuthStandardController
                             mfaClient: this.mfaClient,
                             username: signInInputs.username,
                             scopes: signInInputs.scopes ?? [],
-                            claims: signInInputs.claims,
+                            claims,
                         })
                     );
                 }
@@ -360,7 +361,7 @@ export class CustomAuthStandardController
                     continuationToken: startResult.continuationToken,
                     password: signInInputs.password,
                     username: signInInputs.username,
-                    claims: signInInputs.claims,
+                    claims,
                 };
 
                 const submitPasswordResult =
@@ -407,7 +408,7 @@ export class CustomAuthStandardController
                             authMethods: submitPasswordResult.authMethods,
                             username: signInInputs.username,
                             scopes: signInInputs.scopes ?? [],
-                            claims: signInInputs.claims,
+                            claims,
                         })
                     );
                 } else if (
@@ -431,6 +432,7 @@ export class CustomAuthStandardController
                             cacheClient: this.cacheClient,
                             scopes: signInInputs.scopes ?? [],
                             authMethods: submitPasswordResult.authMethods ?? [],
+                            claims,
                         })
                     );
                 } else {
