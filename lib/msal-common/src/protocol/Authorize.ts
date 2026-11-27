@@ -4,6 +4,7 @@
  */
 
 import { CommonAuthorizationUrlRequest } from "../request/CommonAuthorizationUrlRequest.js";
+import { shouldSkipBrokerClaims } from "../request/ClaimsUtils.js";
 import * as RequestParameterBuilder from "../request/RequestParameterBuilder.js";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient.js";
 import * as AADServerParamKeys from "../constants/AADServerParamKeys.js";
@@ -252,7 +253,9 @@ export function getStandardAuthorizeRequestParameters(
         parameters,
         request.correlationId,
         request.claims,
-        authOptions.clientCapabilities,
+        shouldSkipBrokerClaims(request)
+            ? undefined
+            : authOptions.clientCapabilities,
         request.skipBrokerClaims
     );
 

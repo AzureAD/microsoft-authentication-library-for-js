@@ -700,8 +700,8 @@ export abstract class CacheManager implements ICacheManager {
             credential.additionalCacheKeyComponents &&
             Object.keys(credential.additionalCacheKeyComponents).length > 0
         ) {
-            additionalCacheKeyHash = await this.cryptoImpl.hashString(
-                JSON.stringify(credential.additionalCacheKeyComponents)
+            additionalCacheKeyHash = await this.getCacheKeySuffix(
+                credential.additionalCacheKeyComponents
             );
         }
         const accessTokenFilter: CredentialFilter = {
@@ -711,6 +711,8 @@ export abstract class CacheManager implements ICacheManager {
             homeAccountId: credential.homeAccountId,
             realm: credential.realm,
             tokenType: credential.tokenType,
+            additionalCacheKeyComponents:
+                credential.additionalCacheKeyComponents,
         };
 
         const tokenKeys = this.getTokenKeys();
@@ -762,6 +764,13 @@ export abstract class CacheManager implements ICacheManager {
             kmsi,
             additionalCacheKeyHash
         );
+    }
+
+    /** Returns the cache-key suffix for additional credential dimensions. */
+    protected async getCacheKeySuffix(
+        components: Record<string, string>
+    ): Promise<string> {
+        return this.cryptoImpl.hashString(JSON.stringify(components));
     }
 
     /**
@@ -1440,14 +1449,8 @@ export abstract class CacheManager implements ICacheManager {
                 ? Constants.CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
                 : Constants.CredentialType.ACCESS_TOKEN;
 
-        const attributeTokenPartition = CacheHelpers.serializeAttributeTokens(
-            request.attributeTokens
-        );
-        const additionalCacheKeyComponents = attributeTokenPartition
-            ? {
-                  attribute_tokens: attributeTokenPartition,
-              }
-            : undefined;
+        const additionalCacheKeyComponents =
+            CacheHelpers.getAccessTokenCacheKeyComponents(request);
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,

@@ -161,15 +161,17 @@ describe("OnBehalfOf unit tests", () => {
                     const returnVal: string = await createTokenRequestBodySpy
                         .mock.results[0].value;
                     expect(
-                        decodeURIComponent(
-                            returnVal
-                                .split("&")
-                                .filter((key: string) =>
-                                    key.includes("claims=")
-                                )[0]
-                                .split("claims=")[1]
+                        JSON.parse(
+                            decodeURIComponent(
+                                returnVal
+                                    .split("&")
+                                    .filter((key: string) =>
+                                        key.includes("claims=")
+                                    )[0]
+                                    .split("claims=")[1]
+                            )
                         )
-                    ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
+                    ).toEqual(JSON.parse(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS));
 
                     // acquire a token (without changing anything) and verify that it comes from the cache
                     // verify that it comes from the cache
@@ -243,13 +245,17 @@ describe("OnBehalfOf unit tests", () => {
                 const returnVal: string = await createTokenRequestBodySpy.mock
                     .results[0].value;
                 expect(
-                    decodeURIComponent(
-                        returnVal
-                            .split("&")
-                            .filter((key: string) => key.includes("claims="))[0]
-                            .split("claims=")[1]
+                    JSON.parse(
+                        decodeURIComponent(
+                            returnVal
+                                .split("&")
+                                .filter((key: string) =>
+                                    key.includes("claims=")
+                                )[0]
+                                .split("claims=")[1]
+                        )
                     )
-                ).toEqual(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS);
+                ).toEqual(JSON.parse(CAE_CONSTANTS.MERGED_EMPTY_CLAIMS));
 
                 // second identical request: served from the cache (not bypassed)
                 const cachedAuthResult = (await client.acquireToken(

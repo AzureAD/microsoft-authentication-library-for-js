@@ -422,7 +422,8 @@ describe("TokenCache tests", () => {
             expect(accessSpy).toHaveBeenCalledWith(
                 expect.objectContaining({ secret: testAccessToken }),
                 expect.anything(),
-                false
+                false,
+                expect.any(String)
             );
         });
 

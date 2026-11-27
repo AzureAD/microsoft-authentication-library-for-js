@@ -13,6 +13,7 @@ import {
     AuthToken,
     AuthorityType,
     CacheHelpers,
+    ClaimsUtils,
     ClientAuthErrorCodes,
     ClientConfigurationErrorCodes,
     CommonSilentFlowRequest,
@@ -150,7 +151,11 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         this.platformAuthProvider = provider;
         this.nativeStorageManager = nativeStorageImpl;
         this.silentCacheClient = new SilentCacheClient(
-            config,
+            {
+                ...config,
+                // Broker requests already carry their effective capabilities.
+                auth: { ...config.auth, clientCapabilities: [] },
+            },
             this.nativeStorageManager,
             browserCrypto,
             logger,
@@ -371,6 +376,7 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 this.correlationId
             ).asArray(),
             account: cachedAccount,
+            claims: request.claims,
             forceRefresh: false,
             ...this.createSilentCacheTokenBindingParameters(request),
             resource: request.extraParameters?.resource,
@@ -1202,7 +1208,13 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
                 : (request.tokenType as Constants.AuthenticationScheme),
             undefined,
             request.keyId,
-            additionalCacheKeyComponents
+            CacheHelpers.getAccessTokenCacheKeyComponents(
+                {
+                    claims: request.claims,
+                    correlationId: request.correlationId,
+                },
+                additionalCacheKeyComponents
+            )
         );
         if (request.extraParameters?.resource) {
             cachedAccessToken.resource = request.extraParameters.resource;
@@ -1319,10 +1331,9 @@ export class PlatformAuthInteractionClient extends BaseInteractionClient {
         const canonicalAuthority = await this.getCanonicalAuthority(request);
 
         // ignore config claims if skipBrokerClaims is set to true and this is a brokered authentication flow
-        const configClaims =
-            request.skipBrokerClaims && !!request.embeddedClientId
-                ? undefined
-                : this.config.auth.clientCapabilities;
+        const configClaims = ClaimsUtils.shouldSkipBrokerClaims(request)
+            ? undefined
+            : this.config.auth.clientCapabilities;
 
         const { scopes, claims } = request;
         const dpopNonce =

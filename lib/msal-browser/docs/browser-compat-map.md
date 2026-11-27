@@ -27,7 +27,7 @@ All `crypto.subtle` methods require HTTPS (secure context). On HTTP origins, `cr
 
 | API | MSAL Usage | Fallback |
 |-----|-----------|----------|
-| `crypto.subtle.digest()` | PKCE `code_challenge` (SHA-256) | None — PKCE is mandatory |
+| `crypto.subtle.digest()` | PKCE `code_challenge` and persistent cache-component hashing (SHA-256) | None for PKCE/persistent caches. NAA memory-only caches encode components directly when WebCrypto or `TextEncoder` is unavailable. |
 | `crypto.getRandomValues()` | PKCE verifier, state, nonce, correlation IDs | None |
 | `crypto.subtle.generateKey()` | PoP RSA keypairs, DPoP ES256/P-256 keypairs, EAR AES keys | None for PoP/DPoP/EAR |
 | `crypto.subtle.importKey()` | PoP signing, DPoP signing, EAR decryption, localStorage encryption (HKDF → AES-GCM) | None |

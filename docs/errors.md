@@ -224,6 +224,8 @@ This error occurs when MSAL.js surpasses the allotted storage limit when attempt
 
 -   Given claims parameter must be a stringified JSON object.
 
+When merging configured client capabilities, `access_token` and `xms_cc`, if supplied, must be objects. The `xms_cc.values` field, if supplied, must be an array of strings.
+
 ### `invalid_dpop_htm`
 
 -   DPoP HTTP method (`htm`) must be a non-empty RFC HTTP method token.

@@ -584,7 +584,7 @@ const AUTHORIZATION_PENDING = "authorization_pending";
 // @internal
 export class AuthorizationCodeClient {
     constructor(configuration: ClientConfiguration, performanceClient: IPerformanceClient);
-    acquireToken(request: CommonAuthorizationCodeRequest, apiId: number, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult>;
+    acquireToken(baseRequest: CommonAuthorizationCodeRequest, apiId: number, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult>;
     // (undocumented)
     authority: Authority;
     // (undocumented)
@@ -807,7 +807,8 @@ declare namespace CacheHelpers {
         updateAuthorityEndpointMetadata,
         updateCloudDiscoveryMetadata,
         isAuthorityMetadataExpired,
-        serializeAttributeTokens
+        serializeAttributeTokens,
+        getAccessTokenCacheKeyComponents
     }
 }
 export { CacheHelpers }
@@ -839,6 +840,7 @@ export abstract class CacheManager implements ICacheManager {
     // (undocumented)
     abstract getAuthorityMetadataKeys(): Array<string>;
     getBaseAccountInfo(accountFilter: AccountFilter, correlationId: string): AccountInfo | null;
+    protected getCacheKeySuffix(components: Record<string, string>): Promise<string>;
     getIdToken(account: AccountInfo, correlationId: string, tokenKeys?: TokenKeys, targetRealm?: string): IdTokenEntity | null;
     abstract getIdTokenCredential(idTokenKey: string, correlationId: string): IdTokenEntity | null;
     getIdTokensByFilter(filter: CredentialFilter, correlationId: string, tokenKeys?: TokenKeys): Map<string, IdTokenEntity>;
@@ -975,6 +977,20 @@ type ClaimsRequestKeys = (typeof ClaimsRequestKeys)[keyof typeof ClaimsRequestKe
 
 // @public (undocumented)
 const claimsRequestParsingError = "claims_request_parsing_error";
+
+declare namespace ClaimsUtils {
+    export {
+        shouldSkipBrokerClaims,
+        parseClaims,
+        isPlainObject,
+        mergeClientCapabilities,
+        deepMergeClaims,
+        getClientCapabilities,
+        supportsCae,
+        hasAdditionalClaims,
+        DEFAULT_ID_TOKEN_CLAIMS
+    }
+}
 
 // @public (undocumented)
 const CLI_DATA = "clidata";
@@ -1457,6 +1473,9 @@ const CredentialType: {
 // @public (undocumented)
 type CredentialType = (typeof CredentialType)[keyof typeof CredentialType];
 
+// @public
+function deepMergeClaims(baseClaims: Record<string, unknown>, claimsToMerge: Record<string, unknown>): Record<string, unknown>;
+
 // @public (undocumented)
 const DEFAULT_AUTHORITY = "https://login.microsoftonline.com/common/";
 
@@ -1468,6 +1487,11 @@ const DEFAULT_COMMON_TENANT = "common";
 
 // @public
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto;
+
+// @public
+const DEFAULT_ID_TOKEN_CLAIMS: Record<string, {
+    essential: false;
+}>;
 
 // @public (undocumented)
 const DEFAULT_MAX_THROTTLE_TIME_SECONDS: number;
@@ -1670,6 +1694,9 @@ function generateHomeAccountId(serverClientInfo: string, authType: AuthorityType
 // @public
 function generateLibraryState(cryptoObj: ICrypto, correlationId: string, meta?: Record<string, string>): string;
 
+// @public
+function getAccessTokenCacheKeyComponents(request: Pick<BaseAuthRequest, "claims" | "attributeTokens" | "correlationId">, additionalCacheKeyComponents?: Record<string, string>): Record<string, string>;
+
 // @internal
 function getAccountInfo(accountEntity: AccountEntity): AccountInfo;
 
@@ -1684,6 +1711,9 @@ function getAuthorizeUrl(authority: Authority, requestParameters: Map<string, st
 
 // @public (undocumented)
 export function getClientAssertion(clientAssertion: string | ClientAssertionCallback, clientId: string, tokenEndpoint?: string, fmiPath?: string): Promise<string>;
+
+// @public
+function getClientCapabilities(claims?: string, correlationId?: string): string[];
 
 // @public
 function getDeserializedResponse(responseString: string): AuthorizeResponse | null;
@@ -1723,6 +1753,9 @@ const HandleCodeResponseFromServer = "handleCodeResponseFromServer";
 
 // @public
 const HandleServerTokenResponse = "handleServerTokenResponse";
+
+// @public
+function hasAdditionalClaims(claims?: string, correlationId?: string): boolean;
 
 // @public (undocumented)
 const hashNotDeserialized = "hash_not_deserialized";
@@ -2085,6 +2118,9 @@ function isIdTokenEntity(entity: object): entity is IdTokenEntity;
 function isKmsi(idTokenClaims: TokenClaims): boolean;
 
 // @public
+function isPlainObject(value: unknown): value is Record<string, unknown>;
+
+// @public
 function isRefreshTokenEntity(entity: object): entity is RefreshTokenEntity;
 
 // @public
@@ -2229,6 +2265,12 @@ const logoutRequestEmpty = "logout_request_empty";
 
 // @public
 function mapToQueryString(parameters: Map<string, string>): string;
+
+// @public
+function mergeClientCapabilities(claims: string, clientCapabilities?: string[], correlationId?: string, claimsToMerge?: string): string;
+
+// @public (undocumented)
+function mergeClientCapabilities(claims?: string, clientCapabilities?: string[], correlationId?: string, claimsToMerge?: string): string | undefined;
 
 // @public (undocumented)
 const methodNotImplemented = "method_not_implemented";
@@ -2398,6 +2440,9 @@ const OPENID_SCOPE = "openid";
 
 // @public (undocumented)
 const openIdConfigError = "openid_config_error";
+
+// @public
+function parseClaims(claims: string, correlationId?: string): Record<string, unknown>;
 
 // @public
 function parseRequestState(base64Decode: (input: string) => string, state: string, correlationId: string): RequestStateObject;
@@ -2787,7 +2832,7 @@ export type RefreshTokenCache = Record<string, RefreshTokenEntity>;
 export class RefreshTokenClient {
     constructor(configuration: ClientConfiguration, performanceClient: IPerformanceClient);
     // (undocumented)
-    acquireToken(request: CommonRefreshTokenRequest, apiId: number): Promise<AuthenticationResult>;
+    acquireToken(baseRequest: CommonRefreshTokenRequest, apiId: number): Promise<AuthenticationResult>;
     acquireTokenByRefreshToken(request: CommonSilentFlowRequest, apiId: number): Promise<AuthenticationResult>;
     // (undocumented)
     authority: Authority;
@@ -3147,6 +3192,9 @@ function setRequestState(cryptoObj: ICrypto, userState: string | undefined, meta
 // @public (undocumented)
 const SetUserData = "setUserData";
 
+// @public
+function shouldSkipBrokerClaims(request: Pick<BaseAuthRequest, "skipBrokerClaims" | "embeddedClientId" | "extraParameters">): boolean;
+
 // @public (undocumented)
 const SHR_NONCE_VALIDITY = 240;
 
@@ -3179,7 +3227,7 @@ export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequest
 // @internal (undocumented)
 export class SilentFlowClient {
     constructor(configuration: ClientConfiguration, performanceClient: IPerformanceClient);
-    acquireCachedToken(request: CommonSilentFlowRequest): Promise<[AuthenticationResult, CacheOutcome]>;
+    acquireCachedToken(baseRequest: CommonSilentFlowRequest): Promise<[AuthenticationResult, CacheOutcome]>;
     // (undocumented)
     authority: Authority;
     // (undocumented)
@@ -3308,6 +3356,9 @@ export type SubMeasurement = {
     name: string;
     startTimeMs: number;
 };
+
+// @public
+function supportsCae(claims?: string, correlationId?: string): boolean;
 
 // @public
 export type SystemOptions = {
