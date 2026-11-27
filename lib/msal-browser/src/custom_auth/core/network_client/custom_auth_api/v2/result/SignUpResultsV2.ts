@@ -5,6 +5,7 @@
 
 import type {
     ChallengeVerificationResultV2,
+    ContinueResultV2,
     EnrollmentRequiredResultV2,
     StartResultV2,
 } from "./BaseResultsV2.js";
@@ -42,7 +43,4 @@ export type SignUpSubmitAttributesApiResultV2 =
           submitAttributesHref: string;
       }
     | EnrollmentRequiredResultV2
-    | {
-          nextAction: typeof SignUpSubmitAttributesNextActionV2.CONTINUE;
-          continuationToken: string;
-      };
+    | ContinueResultV2;

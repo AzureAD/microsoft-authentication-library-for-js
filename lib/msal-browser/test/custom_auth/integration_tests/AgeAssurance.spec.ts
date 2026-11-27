@@ -458,14 +458,14 @@ describe("Native Auth age-assurance binding", () => {
                     const reset = flow.startsWith("reset");
                     const bodies: unknown[] = reset
                         ? [
-                              resetV2.ENTRY_RESPONSE,
-                              resetV2.EMAIL_ONLY_START_RESPONSE,
-                              resetV2.EMAIL_CHALLENGE_RESPONSE,
-                              resetV2.VERIFY_RESPONSE,
-                              resetV2.UPDATE_RESPONSE,
+                              resetV2.HTTP_ENTRY_RESPONSE,
+                              resetV2.HTTP_EMAIL_ONLY_START_RESPONSE,
+                              resetV2.HTTP_EMAIL_CHALLENGE_RESPONSE,
+                              resetV2.HTTP_VERIFY_RESPONSE,
+                              resetV2.HTTP_UPDATE_RESPONSE,
                               flow === "resetMfa"
-                                  ? resetV2.POLL_MFA_REQUIRED_RESPONSE
-                                  : resetV2.POLL_COMPLETED_RESPONSE,
+                                  ? resetV2.HTTP_POLL_MFA_REQUIRED_RESPONSE
+                                  : resetV2.HTTP_POLL_COMPLETED_RESPONSE,
                           ]
                         : [
                               signUpV2.ENTRY_RESPONSE,
@@ -475,8 +475,8 @@ describe("Native Auth age-assurance binding", () => {
                           ];
                     if (flow === "resetMfa") {
                         bodies.push(
-                            resetV2.MFA_EMAIL_CHALLENGE_RESPONSE,
-                            resetV2.MFA_VERIFY_RESPONSE
+                            resetV2.HTTP_MFA_EMAIL_CHALLENGE_RESPONSE,
+                            resetV2.HTTP_MFA_VERIFY_RESPONSE
                         );
                     } else if (!reset) {
                         if (flow === "existingAccount") {

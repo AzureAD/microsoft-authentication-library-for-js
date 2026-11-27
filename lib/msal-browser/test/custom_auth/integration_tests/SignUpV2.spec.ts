@@ -1128,6 +1128,7 @@ describe("Sign-up V2 entry", () => {
                     buildResponse({
                         continuationToken: "ct-complete",
                         state: "continue",
+                        _links: ACTIVATED_CONTINUE_RESPONSE._links,
                     })
                 );
             const startResult = await app.signUpV2({
@@ -1158,7 +1159,7 @@ describe("Sign-up V2 entry", () => {
                 PublicApiId.SIGN_UP_V2_START,
                 PublicApiId.SIGN_UP_V2_START,
                 PublicApiId.SIGN_UP_V2_SUBMIT_CODE,
-                PublicApiId.SIGN_UP_V2_SUBMIT_ATTRIBUTES,
+                PublicApiId.SIGN_UP_V2_SUBMIT_PASSWORD,
             ]);
         }
     );
@@ -2097,6 +2098,7 @@ describe("Sign-up V2 entry", () => {
                 buildResponse({
                     continuationToken: "ct-complete",
                     state: "continue",
+                    _links: ACTIVATED_CONTINUE_RESPONSE._links,
                 })
             );
 
@@ -2309,6 +2311,7 @@ describe("Sign-up V2 entry", () => {
                 buildResponse({
                     continuationToken: "ct-complete",
                     state: "continue",
+                    _links: ACTIVATED_CONTINUE_RESPONSE._links,
                 })
             );
 
@@ -2464,6 +2467,7 @@ describe("Sign-up V2 entry", () => {
                     buildResponse({
                         continuationToken: "ct-final",
                         state: "continue",
+                        _links: ACTIVATED_CONTINUE_RESPONSE._links,
                     })
                 );
                 fetchMock
@@ -2920,6 +2924,7 @@ describe("Sign-up V2 entry", () => {
                 buildResponse({
                     continuationToken: "ct-verify",
                     state: "continue",
+                    _links: ACTIVATED_CONTINUE_RESPONSE._links,
                 })
             );
 
@@ -2943,7 +2948,9 @@ describe("Sign-up V2 entry", () => {
                 continuationToken: "ct-verify",
                 scenario: "signUp",
                 scopes: ["openid", "profile", "offline_access"],
-                links: {},
+                links: {
+                    continue: ACTIVATED_CONTINUE_RESPONSE._links.continue.href,
+                },
                 signUp: {
                     purpose: "newAccount",
                     pendingProfileAttributes: {},
@@ -2985,6 +2992,7 @@ describe("Sign-up V2 entry", () => {
                 buildResponse({
                     continuationToken: "ct-complete",
                     state: "continue",
+                    _links: ACTIVATED_CONTINUE_RESPONSE._links,
                 })
             )
             .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))
@@ -3080,6 +3088,7 @@ describe("Sign-up V2 entry", () => {
                 buildResponse({
                     continuationToken: "ct-complete",
                     state: "continue",
+                    _links: ACTIVATED_CONTINUE_RESPONSE._links,
                 })
             )
             .mockResolvedValueOnce(buildResponse(CONTINUE_RESPONSE))

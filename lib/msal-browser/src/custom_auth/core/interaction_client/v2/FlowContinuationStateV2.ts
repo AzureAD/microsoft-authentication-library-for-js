@@ -7,6 +7,7 @@ import { CustomAuthFlowScenarioV2 } from "../../auth_flow/v2/CustomAuthFlowScena
 import type { UserAccountAttributes } from "../../../UserAccountAttributes.js";
 
 export interface FlowLinksV2 {
+    continue?: string;
     challenge?: string;
     verify?: string;
     activate?: string;
